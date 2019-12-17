@@ -1,0 +1,190 @@
+###############################################################################
+#####     Definition of Evaluator Control Parameters attributes    ############
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+MAX_BB_EVAL
+size_t
+INF
+\( Stopping criterion on the number of blackbox evaluations \)
+\(
+
+. Maximum number of blackbox evaluations
+
+. Argument: one positive integer
+
+. An INF value serves to disable the stopping criterion.
+
+. Does not consider evaluations taken in the cache (cache hits)
+
+. In bi-objective mode: max number of blackbox evaluations for each MADS run
+
+. Example: MAX_BB_EVAL 1000
+
+\)
+\( basic stop(s) stopping max maximum criterion(s) blackbox(es) bb \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+################################################################################
+MAX_EVAL
+size_t
+INF
+\( Stopping criterion on the number of evaluations (blackbox and cache) \)
+\(
+
+. Maximum number of evaluations, including evaluations taken in the cache
+  (cache hits)
+
+. Argument: one positive integer
+
+. An INF value serves to disable the stopping criterion.
+
+. Example: MAX_EVAL 1000
+
+\)
+\( advanced stop(s) stopping max maximum criterion(s) blackbox(es) bb eval(s) evaluation(s) cache \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+################################################################################
+# For now, only the boolean is implemented. No minimum number of
+#success, no lucky eval, etc.
+OPPORTUNISTIC_EVAL
+bool
+true
+\( Opportunistic strategy - general flag (terminate evaluations as soon as a success is found) \)
+\(
+
+. Opportunistic strategy: Terminate evaluations as soon as a success is found
+
+. This parameter is the default value for other OPPORTUNISTIC parameters,
+   including Search steps
+
+. This parameter is the value used for Poll step
+
+. Argument: one boolean (yes or no)
+
+. Type 'nomad -h opportunistic' to see advanced options
+
+. Example: OPPORTUNISTIC_EVAL no  # complete evaluations
+
+\)
+\( advanced opportunistic oppor eval(s) evaluation(s) terminate list success(es) \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+CLEAR_EVAL_QUEUE
+bool
+true
+\( Opportunistic strategy: Flag to clear EvaluatorControl queue between each run \)
+\(
+
+. Opportunistic strategy: If a success is found, clear evaluation queue of 
+  other points.
+
+. If this flag is false, the points in the evaluation queue that are not yet 
+  evaluated might be evaluated later.
+
+. If this flag is true, the points in the evaluation queue that are not yet
+  evaluated will be flushed.
+
+. Outside of opportunistic strategy, this flag has no effect.
+
+\)
+\( advanced opportunistic oppor eval(s) evaluation(s) clear flush \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+BB_MAX_BLOCK_SIZE
+size_t
+1
+\( Size of blocks of points, to be used for parallel evaluations \)
+\(
+. Maximum size of a block of evaluations send to the blackbox
+  executable at once. Blackbox executable can manage parallel
+  evaluations on its own. Opportunistic strategies may apply after
+  each block of evaluations.
+   
+. Depending on the algorithm phase, the blackbox executable will
+  receive at most BB_MAX_BLOCK_SIZE points to evaluate.
+   
+. When this parameter is greater than one, the number of evaluations
+  may exceed the MAX_BB_EVAL stopping criterion.
+   
+. Argument: integer > 0
+ 
+. Example: BB_MAX_BLOCK_SIZE 3
+           The blackbox executable receives blocks of
+           at most 3 points for evaluation.
+
+\)
+\( advanced block parallel \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MAX_BLOCK_EVAL
+size_t
+INF
+\( Stopping criterion on the number of blocks evaluations \)
+\(
+
+. Maximum number of blocks evaluations
+
+. Argument: one positive integer
+
+. An INF value serves to disable the stopping criterion.
+
+. Example: MAX_BLOCK_EVAL 100
+
+\)
+\( advances block stop parallel \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_EVAL_NB
+size_t
+100
+\( Max number of sgtelib model evaluations for each optimization of the surrogate problem \)
+\(
+. Max number of sgtelib model evaluations for each
+    optimization of the surrogate problem.
+
+. Argument: one integer > 0
+
+. Note: In NOMAD 3, the default is 10000. Early tests in NOMAD 4 show extremely
+  long resolution times for this value. The default value is set to 100 until
+  more investigation is done.
+
+. Example: SGTELIB_MODEL_EVAL_NB 5000
+\)
+\( advanced sgtelib search model model_search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################

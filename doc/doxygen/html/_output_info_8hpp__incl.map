@@ -1,0 +1,14 @@
+<map id="/home/montvivi/Git/nomad.4.0.0/src/Output/OutputInfo.hpp" name="/home/montvivi/Git/nomad.4.0.0/src/Output/OutputInfo.hpp">
+<area shape="rect" id="node4" href="$_stats_info_8hpp.html" title="Class for Stats info and display. " alt="" coords="887,109,1037,136"/>
+<area shape="rect" id="node23" href="$_array_of_string_8hpp.html" title="Class to be used for an array of n strings. " alt="" coords="1136,483,1293,509"/>
+<area shape="rect" id="node16" href="$nomad__nsbegin_8hpp.html" title="../nomad_nsbegin.hpp" alt="" coords="297,632,444,659"/>
+<area shape="rect" id="node18" href="$nomad__nsend_8hpp.html" title="../nomad_nsend.hpp" alt="" coords="1071,632,1207,659"/>
+<area shape="rect" id="node6" href="$_array_of_double_8hpp.html" title="Base class to be used for an array of n Double values, as base class for Point and Direction..." alt="" coords="960,333,1133,360"/>
+<area shape="rect" id="node8" href="$_double_8hpp.html" title="Custom class for double&#45;precision reals (headers) " alt="" coords="682,408,811,435"/>
+<area shape="rect" id="node24" href="$_point_8hpp.html" title="Point. " alt="" coords="819,184,937,211"/>
+<area shape="rect" id="node10" href="$defines_8hpp.html" title="Definitions. " alt="" coords="550,557,668,584"/>
+<area shape="rect" id="node19" href="$_exception_8hpp.html" title="Custom class for exceptions (headers) " alt="" coords="693,557,827,584"/>
+<area shape="rect" id="node20" href="$utils_8hpp.html" title="Utility functions (headers) " alt="" coords="771,483,873,509"/>
+<area shape="rect" id="node17" href="$nomad__version_8hpp.html" title="nomad_version.hpp" alt="" coords="305,707,436,733"/>
+<area shape="rect" id="node25" href="$_direction_8hpp.html" title="Direction. " alt="" coords="809,259,948,285"/>
+</map>

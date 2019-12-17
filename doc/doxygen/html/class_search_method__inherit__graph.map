@@ -1,0 +1,9 @@
+<map id="SearchMethod" name="SearchMethod">
+<area shape="rect" id="node5" href="$class_l_h_search_method.html" title="Class for the search method using Latin Hypercube. " alt="" coords="5,229,128,256"/>
+<area shape="rect" id="node6" href="$class_n_m_search_method.html" title="Class to perform a Search method using Nelder Mead simplex algorithm. " alt="" coords="153,229,279,256"/>
+<area shape="rect" id="node7" href="$class_speculative_search_method.html" title="Speculative search. " alt="" coords="304,229,477,256"/>
+<area shape="rect" id="node8" href="$class_user_search_method.html" title="Class UserSearchMethod: Search method defined by user. " alt="" coords="502,229,633,256"/>
+<area shape="rect" id="node2" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,...). " alt="" coords="222,80,271,107"/>
+<area shape="rect" id="node3" href="$class_mads_iteration_utils.html" title="Class of utils for MADS iterations. " alt="" coords="296,80,421,107"/>
+<area shape="rect" id="node4" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="311,5,405,32"/>
+</map>

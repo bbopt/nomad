@@ -1,0 +1,50 @@
+
+# PROBLEM PARAMETERS
+####################
+
+# Number of variables
+DIMENSION 5
+
+# Black box
+BB_EXE u.exe
+
+# ALGORITHM PARAMETERS
+######################
+
+# Starting point
+X0 ( 4 6 6 6 5 )
+
+LOWER_BOUND ( -10.0 - - - -5.0 )
+UPPER_BOUND * 31.0
+
+# The algorithm terminates after that number black-box evaluations
+MAX_BB_EVAL 1000
+
+# Parameters for display degree
+#DISPLAY_HEADER 0
+DISPLAY_DEGREE 2
+DISPLAY_ALL_EVAL true
+DISPLAY_INFEASIBLE true
+DISPLAY_UNSUCCESSFUL false
+
+GRANULARITY * 0.01
+
+MAX_EVAL 1000
+
+#DISPLAY_STATS BBE THREAD_NUM OBJ ( SOL ) OBJ CONS_H H_MAX
+DISPLAY_STATS BBE ( SOL ) OBJ
+TMP_DIR /tmp
+BB_OUTPUT_TYPE PB OBJ
+ADD_SEED_TO_FILE_NAMES false
+
+OPPORTUNISTIC_EVAL true
+H_MAX_0 200000
+FIXED_VARIABLE 0-2
+
+#NB_THREADS_OPENMP 8
+
+HOT_RESTART_ON_USER_INTERRUPT false
+HOT_RESTART_READ_FILES false
+HOT_RESTART_WRITE_FILES false
+CACHE_FILE cache.txt
+REJECT_UNKNOWN_PARAMETERS false

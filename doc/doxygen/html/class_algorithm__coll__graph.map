@@ -1,0 +1,7 @@
+<map id="Algorithm" name="Algorithm">
+<area shape="rect" id="node2" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,...). " alt="" coords="94,189,142,216"/>
+<area shape="rect" id="node6" href="$class_termination.html" title="Class for termination of an algorithm. " alt="" coords="73,267,164,293"/>
+<area shape="rect" id="node8" href="$class_initialization.html" title="Class for initilization (step 0) of an Algorithm. " alt="" coords="240,267,330,293"/>
+<area shape="rect" id="node3" title="STL class. " alt="" coords="80,99,156,125"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="58,6,178,47"/>
+</map>

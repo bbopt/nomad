@@ -1,0 +1,247 @@
+###############################################################################
+######          Definition of DisplayParameters attributes           ##########
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #).
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment).
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords.
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+#### DISPLAY_STATS is a complex parameter its default value will be set during
+#### checkAndComply
+DISPLAY_STATS
+NOMAD::ArrayOfString
+BBE OBJ
+\( Format for displaying the evaluation points \)
+\(
+
+. Format of the outputs displayed at each success (single-objective)
+
+. Format of the final Pareto front (multi-objective)
+
+. Displays more points with DISPLAY_ALL_EVAL true
+
+. Arguments: list of strings possibly including the following keywords:
+    BBE        : blackbox evaluations
+    BBO        : blackbox outputs
+    BLK_EVA    : block evaluation calls
+    BLK_SIZE   : number of points in the block
+    CACHE_HITS : cache hits
+    CONS_H     : infeasibility (h) value
+    EVAL       : evaluations (includes cache hits)
+    GEN_STEP   : name of the step that generated this point to evaluate
+    H_MAX      : max infeasibility (h) acceptable
+    LAP        : number of lap evaluations since last reset
+    MESH_INDEX : mesh index
+    MESH_SIZE / DELTA_M : mesh size delta_k^m
+    FRAME_SIZE / DELTA_F : frame size delta_k^f
+    OBJ        : objective function value
+    SGTE       : number of surrogate evaluations since last reset
+    SOL        : current feasible iterate
+    THREAD_NUM : thread number in which this evaluation was done
+    TOTAL_SGTE : total number of surrogate evaluations
+    TIME       : real time in seconds
+    USER       : user-defined string
+
+. Example:
+    DISPLAY_STATS BBE EVAL ( SOL ) OBJ CONS_H
+
+\)
+\( basic display(s) output(s) stat(s) success(es) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+###############################################################################
+DISPLAY_DEGREE
+int
+2
+\( Level of verbose during execution \)
+\(
+
+. Argument: one integer in {0, 1, 2, 3} (basic) or one string in:
+    . 'NO', 'NO_DISPLAY',
+    . 'MIN', 'MINIMAL', 'MINIMAL_DISPLAY',
+    . 'NORMAL', 'NORMAL_DISPLAY',
+    . 'FULL', 'FULL_DISPLAY'
+    
+. Example:
+    DISPLAY_DEGREE 2    # basic: normal display
+
+\)
+\( basic display verbose output(s) info(s) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+###############################################################################
+DISPLAY_ALL_EVAL
+bool
+true
+\( Flag to display all evaluations \)
+\(
+
+. If true, more points are displayed with parameters DISPLAY_STATS and
+  STATS_FILE
+
+. If false, only the successful evaluations are displayed.
+
+. Overrides parameters DISPLAY_INFEASIBLE and DISPLAY_UNSUCCESSFUL
+
+. Points of the phase one with EB constraint are not displayed
+
+. Argument: one boolean
+
+. Example: DISPLAY_ALL_EVAL yes
+
+\)
+\( basic display(s) stat(s) eval(s) evaluation(s)  \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+###############################################################################
+DISPLAY_INFEASIBLE
+bool
+true
+\( Flag to display infeasible \)
+\(
+
+. When true, do display iterations for which constraints are violated.
+
+. When false, only display iterations where the point is feasible.
+
+. Argument: one boolean
+
+. Example: DISPLAY_INFEASIBLE yes
+
+\)
+\( advanced display(s) infeasible \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+###############################################################################
+DISPLAY_UNSUCCESSFUL
+bool
+true
+\( Flag to display unsuccessful \)
+\(
+
+. When true, display iterations even when no better solution is found.
+
+. When false, only display iterations when a better objective value is found.
+
+. Argument: one boolean ('yes' or 'no')
+
+. Example: DISPLAY_UNSUCCESSFUL yes
+
+
+\)
+\( advanced display(s) success(es) failed failure(s) fail(s) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+###############################################################################
+STATS_FILE
+NOMAD::ArrayOfString
+-
+\( The name of the stats file \)
+\(
+
+. File containing all successes in a formatted way (similar as DISPLAY_STATS in a file)
+
+. Displays more points with DISPLAY_ALL_EVAL=true
+
+. Arguments: one string (file name) and one list of strings (for the format of stats)
+
+. The seed is added to the file name if
+  ADD_SEED_TO_FILE_NAMES=\'yes\'
+
+. Example: STATS_FILE log.txt BBE SOL f=%.2EOBJ
+
+
+\)
+\( basic stat(s) file(s) name display(s) output(s) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+###############################################################################
+SOL_FORMAT
+NOMAD::ArrayOfDouble
+-
+\( Format of the solution \)
+\(
+
+. SOL_FORMAT is computed from BB_OUTPUT_TYPE and GRANULARITY
+  parameters.
+ 
+. Gives the format precision for display of SOL. May also be used for
+  other ArrayOfDouble of the same DIMENSION (ex. bounds, deltas).
+
+. Cannot be modified by user. Internal parameter.
+
+\)
+\( advanced internal \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+###############################################################################
+DISPLAY_HEADER
+size_t
+40
+\( Frequency at which the stats header is displayed \)
+\(
+
+. Every time this number of stats lines is displayed, the stats header is
+  displayed again. This parameter is for clarity of the display.
+
+. Value of INF means to never display the header.
+
+\)
+\( advanced \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+###############################################################################
+OBJ_WIDTH
+size_t
+0
+\( Character width of the objective \)
+\(
+
+. OBJ_WIDTH is computed to display the objective correctly when NOMAD is run.
+
+. Internal parameter.
+
+\)
+\( advanced internal \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+###############################################################################
+MAX_DISPLAY_STEP_LEVEL
+size_t
+20
+\( Depth of the step after which info is not printed \)
+\(
+. If a step has more than this number of parent steps, it will not be printed.
+
+. Only has effect when DISPLAY_DEGREE = FULL.
+
+\)
+\( advanced \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+###############################################################################

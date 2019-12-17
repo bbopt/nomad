@@ -1,0 +1,41 @@
+<map id="/home/montvivi/Git/nomad.4.0.0/src/Algos/NelderMead/NMAllReflective.cpp" name="/home/montvivi/Git/nomad.4.0.0/src/Algos/NelderMead/NMAllReflective.cpp">
+<area shape="rect" id="node3" href="$_n_m_all_reflective_8hpp.html" title="../../Algos/NelderMead\l/NMAllReflective.hpp" alt="" coords="2396,110,2543,151"/>
+<area shape="rect" id="node50" href="$_n_m_reflective_8hpp.html" title="../../Algos/NelderMead\l/NMReflective.hpp" alt="" coords="4149,110,4296,151"/>
+<area shape="rect" id="node4" href="$_n_m_mega_iteration_8hpp.html" title="../../Algos/NelderMead\l/NMMegaIteration.hpp" alt="" coords="2395,366,2544,407"/>
+<area shape="rect" id="node46" href="$_n_m_iteration_utils_8hpp.html" title="../../Algos/NelderMead\l/NMIterationUtils.hpp" alt="" coords="2728,201,2875,242"/>
+<area shape="rect" id="node49" href="$_mads_iteration_8hpp.html" title="../../Algos/Mads/MadsIteration.hpp" alt="" coords="1539,464,1753,491"/>
+<area shape="rect" id="node11" href="$nomad__nsbegin_8hpp.html" title="../nomad_nsbegin.hpp" alt="" coords="3316,1309,3463,1336"/>
+<area shape="rect" id="node13" href="$nomad__nsend_8hpp.html" title="../nomad_nsend.hpp" alt="" coords="1177,1309,1313,1336"/>
+<area shape="rect" id="node5" href="$_mega_iteration_8hpp.html" title="../../Algos/MegaIteration.hpp" alt="" coords="2507,464,2688,491"/>
+<area shape="rect" id="node45" href="$_n_m_iteration_8hpp.html" title="../../Algos/NelderMead\l/NMIteration.hpp" alt="" coords="2235,457,2381,498"/>
+<area shape="rect" id="node6" href="$_iteration_8hpp.html" title="../Algos/Iteration.hpp" alt="" coords="2295,547,2433,573"/>
+<area shape="rect" id="node7" href="$_step_8hpp.html" title="../Algos/Step.hpp" alt="" coords="2305,621,2423,648"/>
+<area shape="rect" id="node9" href="$_all_stop_reasons_8hpp.html" title="../Algos/AllStopReasons.hpp" alt="" coords="499,1069,681,1096"/>
+<area shape="rect" id="node15" href="$_mesh_base_8hpp.html" title="Base class for mesh. " alt="" coords="1264,845,1416,872"/>
+<area shape="rect" id="node27" href="$_barrier_8hpp.html" title="../Eval/Barrier.hpp" alt="" coords="2105,771,2228,797"/>
+<area shape="rect" id="node33" href="$_evaluator_control_8hpp.html" title="Management for evaluation. " alt="" coords="2440,696,2619,723"/>
+<area shape="rect" id="node40" href="$_output_info_8hpp.html" title="../Output/OutputInfo.hpp" alt="" coords="1719,771,1879,797"/>
+<area shape="rect" id="node43" href="$_output_queue_8hpp.html" title="../Output/OutputQueue.hpp" alt="" coords="1832,696,2008,723"/>
+<area shape="rect" id="node25" href="$_run_parameters_8hpp.html" title="../Param/RunParameters.hpp" alt="" coords="3191,1069,3377,1096"/>
+<area shape="rect" id="node44" href="$_callback_type_8hpp.html" title="Types for Callback. " alt="" coords="761,1227,927,1253"/>
+<area shape="rect" id="node10" href="$_exception_8hpp.html" title="Custom class for exceptions (headers) " alt="" coords="550,1227,684,1253"/>
+<area shape="rect" id="node14" href="$_stop_reason_8hpp.html" title="../Util/StopReason.hpp" alt="" coords="685,1144,835,1171"/>
+<area shape="rect" id="node12" href="$nomad__version_8hpp.html" title="nomad_version.hpp" alt="" coords="3323,1384,3455,1411"/>
+<area shape="rect" id="node17" href="$_algo_stop_reasons_8hpp.html" title="AlgoStopReasons.hpp" alt="" coords="635,995,783,1021"/>
+<area shape="rect" id="node18" href="$_array_of_double_8hpp.html" title="Base class to be used for an array of n Double values, as base class for Point and Direction..." alt="" coords="1619,1069,1792,1096"/>
+<area shape="rect" id="node21" href="$_direction_8hpp.html" title="Direction. " alt="" coords="1417,995,1556,1021"/>
+<area shape="rect" id="node22" href="$_point_8hpp.html" title="Point. " alt="" coords="1561,920,1679,947"/>
+<area shape="rect" id="node23" href="$_pb_parameters_8hpp.html" title="../Param/PbParameters.hpp" alt="" coords="3298,995,3477,1021"/>
+<area shape="rect" id="node20" href="$_double_8hpp.html" title="Custom class for double&#45;precision reals (headers) " alt="" coords="1314,1144,1443,1171"/>
+<area shape="rect" id="node26" href="$_evaluator_control_parameters_8hpp.html" title="../Param/EvaluatorControl\lParameters.hpp" alt="" coords="2905,1219,3073,1261"/>
+<area shape="rect" id="node28" href="$_eval_point_8hpp.html" title="Evaluation point. " alt="" coords="2677,845,2816,872"/>
+<area shape="rect" id="node29" href="$_eval_8hpp.html" title="Evaluation at a point. " alt="" coords="2577,920,2684,947"/>
+<area shape="rect" id="node31" href="$_b_b_output_8hpp.html" title="Output of a Blackbox evaluation. " alt="" coords="2208,995,2349,1021"/>
+<area shape="rect" id="node32" href="$_eval_parameters_8hpp.html" title="../Param/EvalParameters.hpp" alt="" coords="2831,995,3019,1021"/>
+<area shape="rect" id="node34" href="$_cache_base_8hpp.html" title="Base class for cache. " alt="" coords="2567,771,2729,797"/>
+<area shape="rect" id="node37" href="$_eval_queue_point_8hpp.html" title="Point specificly designed for EvalQueue. " alt="" coords="2753,771,2929,797"/>
+<area shape="rect" id="node38" href="$_evaluator_8hpp.html" title="Evaluation of blackbox functions. WIP. " alt="" coords="2303,771,2440,797"/>
+<area shape="rect" id="node42" href="$_stats_info_8hpp.html" title="Class for Stats info and display. " alt="" coords="1610,845,1760,872"/>
+<area shape="rect" id="node47" href="$_iteration_utils_8hpp.html" title="../../Algos/IterationUtils.hpp" alt="" coords="2790,291,2964,317"/>
+<area shape="rect" id="node48" href="$_algorithm_8hpp.html" title="../Algos/Algorithm.hpp" alt="" coords="3343,373,3489,400"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="ArrayOfDouble" name="ArrayOfDouble">
+<area shape="rect" id="node2" href="$class_direction.html" title="Class for the representation of a direction. " alt="" coords="5,80,77,107"/>
+<area shape="rect" id="node3" href="$class_point.html" title="Class for the representation of a point. " alt="" coords="102,80,153,107"/>
+<area shape="rect" id="node4" href="$class_eval_point.html" title="Class for the representation of an evaluation point. " alt="" coords="90,155,165,181"/>
+<area shape="rect" id="node5" href="$class_eval_queue_point.html" title="EvalQueuePoint" alt="" coords="71,229,185,256"/>
+</map>

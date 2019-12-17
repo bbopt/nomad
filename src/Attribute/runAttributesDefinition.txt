@@ -1,0 +1,973 @@
+###############################################################################
+#######           Definition of Run Parameters attributes          ############
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+SEED
+int
+0
+\( The seed for the pseudo-random number generator \)
+\(
+
+. Random seed
+
+. Argument: one nonnegative integer (max UINT32_MAX), or -1, or the string 'DIFF'
+
+. The default value is used for each run if the parameter is not provided.
+
+. If '-1' or 'DIFF' is entered the seed is different for each run (PID is used).
+
+. The seed is used in the output file names
+
+. Example: SEED 123456
+
+\)
+\( advanced seed(s) random number run \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+ADD_SEED_TO_FILE_NAMES
+bool
+true
+\( The flag to add seed to the file names \)
+\(
+
+. If \'yes\', the seed is added to the name of output file provided by STATS_FILE
+
+. Argument: one boolean (\'yes\' or \'no\')
+
+. Example: ADD_SEED_TO_FILE_NAMES no
+
+\)
+\( advanced seed(s) random number run stat(s) file history solution(s) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################
+NB_THREADS_OPENMP
+int
+-1
+\( The number of threads when OpenMP parallel evaluations
+are enabled \)
+\(
+
+. Set the number of threads to be used by OpenMP.
+
+. Argument: One positive integer, or -1. A value of -1 means OpenMP decides
+  by itself.
+
+. Example: NB_THREADS_OPENMP 8
+
+\)
+\( advanced thread(s) openmp parallel eval(s) evaluation(s) \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+HOT_RESTART_READ_FILES
+bool
+false
+\( Flag to read hot restart files \)
+\(
+
+. If true, the hot restart files (hotRestart.txt and CACHE_FILE) are read
+  when NOMAD is started. If NOMAD is ran twice, the second run starts from
+  where the first run ended.
+
+. If false, the hot restart files are ignored when NOMAD is started. Two runs
+  in a row will start from the same configuration.
+
+. See also: HOT_RESTART_WRITE_FILES, CACHE_FILE
+
+\)
+\( advanced hot restart file(s) interrupt \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################
+HOT_RESTART_WRITE_FILES
+bool
+false
+\( Flag to write hot restart files \)
+\(
+
+. If true, when NOMAD ends, write the hot restart files (hotRestart.txt and
+  CACHE_FILE).
+
+. See also: HOT_RESTART_READ_FILES, CACHE_FILE
+
+\)
+\( advanced hot restart file(s) interrupt \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################
+HOT_RESTART_ON_USER_INTERRUPT
+bool
+false
+\( Flag to perform a hot restart on user interrupt \)
+\(
+
+. If true, when NOMAD runs and the user does an interruption (CTRL+C),
+  then the parameters can be modified. Upon pressing CTRL+D, the resolution
+  continues where it was stopped, using the modified parameters.
+
+. If false, when NOMAD runs and the user does an interruption (CTRL+C),
+  the resolution ends.
+
+\)
+\( advanced hot restart file(s) interrupt \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################
+HOT_RESTART_FILE
+std::string
+hotrestart.txt
+\( The name of the hot restart file \)
+\(
+
+. Name of the file where the information about hot restart is kept.
+
+
+\)
+\( advanced hot restart file(s) file interrupt \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################
+REJECT_UNKNOWN_PARAMETERS
+bool
+false
+\( Flag to reject unknown parameters when checking validity of parameters \)
+\(
+
+. If true, when reading a parameters file, NOMAD will ignore unknown parameters.
+
+. If false, when reading a parameters file, NOMAD will exit if unknown
+  parameters are present.
+
+\)
+\( advanced valid param(s) parameter(s) ignore \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################
+LH_SEARCH
+NOMAD::LHSearchType
+-
+\( Latin Hypercube Sampling Search method \)
+\(
+
+. Latin-Hypercube sampling (search)
+
+. Arguments: two size_t p0 and pi
+
+. p0: number of initial LH search points
+
+. pi: LH search points at each iteration
+
+. The search can be opportunistic or not
+  (parameter OPPORTUNISTIC_EVAL)
+
+. Example: LH_SEARCH 100 0
+
+\)
+\( basic search latin hypercube sampling opportunistic_lh \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+LH_EVAL
+size_t
+0
+\( Latin Hypercube Sampling of points (no optimization) \)
+\(
+
+. Latin-Hypercube sampling (evaluations)
+
+. Argument: A positive integer p < INF
+
+. p: number of LH points
+
+. All points will be evaluated (no opportunism). This options will deactivate
+  any optimization strategy.
+
+. The LH sampling requires to have both lower and upper bounds defined.
+
+. Example: LH_EVAL 100
+
+\)
+\( basic latin hypercube sampling \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_EVAL
+bool
+0
+\( Sgtelib Model Sampling of points (no optimization) \)
+\(
+
+. Sgtelib Model sampling
+
+. Argument: bool
+
+. Default: not used
+
+. Best points are taken from the cache
+
+. A model is computed
+
+. The most promising points according to that model are evaluated
+
+. No opportunism
+
+. This option deactivates any optimization strategy.
+
+. Example: SGTELIB_MODEL_EVAL 100
+
+\)
+\( advanced sgtelib model sampling \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+H_MAX_0
+NOMAD::Double
+NOMAD::INF
+\( Initial value of hMax. \)
+\(
+. Initial value of hMax. Used for progressive barrier (PB) constraints.
+
+. Argument: one positive real.
+
+. Points x such that h(x) > hMax are rejected. h measures the feasibility, or
+  how much the constraints are violated.
+
+. Example: H_MAX_0 100.0
+
+\)
+\( advanced hmax h_max constraint(s) pb feasibility progressive barrier \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+SGTELIB_SEARCH
+bool
+false
+\( Model search using Sgtelib \)
+\(
+
+. MADS model search, using Bastien Talgorn's Sgtelib
+
+. This replaces the MODEL_SEARCH parameter from NOMAD 3
+
+. Argument: one boolean ('yes' or 'no')
+
+. Disabled for more than 50 variables
+
+. Example: SGTELIB_SEARCH yes
+
+. See also: DISABLE
+\)
+\( basic mads model search sgtelib model_search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_DEFINITION
+NOMAD::ArrayOfString
+-
+\( Definition of the surrogate model \)
+\(
+
+. Argument: Array of string that represent the Sgtelib model definition. See sgtelib manual.
+
+. Default: TYPE PRS DEGREE 2
+
+. Example: TYPE PRS DEGREE 1 # builds a linear model
+.          TYPE PRS DEGREE 2 # builds a quadratic model
+.          TYPE RBF          # builds an RBF model
+.          TYPE ENSEMBLE     # builds an ensemble of models
+           # builds a lowess model with local linear regression
+           # and optimized kernel shape:
+.          TYPE LOWESS DEGREE 1 KERNEL_COEF OPTIM
+.          # Variation that gives good results:
+           TYPE LOWESS DEGREE 1 KERNEL_SHAPE OPTIM KERNEL_COEF OPTIM RIDGE 0 METRIC AOECV
+\)
+\( advanced sgtelib search model model_search interpolation regression \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_TRIALS
+size_t
+1
+\( Max number of sgtelib model search failures before going to the poll step \)
+\(
+. Max number of sgtelib model search failures before going to the poll step.
+
+. Argument: one positive integer
+
+. Note: The minimum between this parameter and MAX_ITERATION_PER_MEGAITERATION
+  will be used.
+
+. Example: SGTELIB_MODEL_TRIALS 5
+\)
+\( developer trials sgtelib model search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_FORMULATION
+NOMAD::SgtelibModelFormulationType
+FS
+\( Formulation of the surrogate problem \)
+\(
+. Formulation of the surrogate problem.
+
+. Argument: one string in {'FS', 'EIS', 'FSP',
+                           'EFI', 'EFIS','EFIM','EFIC',
+                           'PFI',
+                           'D',
+                           'EXTERN'}
+
+. Description of the surrogate problem formulations :
+    (FS)   min f    -d.sigma_f
+           st  c_j  -d.sigma_j <= 0
+
+    (EIS)  min -EI  -d.sigma_f
+           st  c_j  -d.sigma_j <= 0
+
+    (FSP)  min f    -d.sigma_f
+           st  P >= 1/2
+
+    (EFI)  min -EFI
+
+    (EFIS) min -EFI -d.sigma_f
+
+    (EFIM) min -EFI -d.sigma_f.mu
+
+    (EFIM) min -EFI -d.(EI.mu+P.sigma_f)
+
+    (PFI)  min -PFI
+
+    (D)    min -distance_to_closest
+
+. Example: SGTELIB_MODEL_FORMULATION EFI
+\)
+\( developer advanced surrogate problem expected improvement diversification model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_FEASIBILITY
+NOMAD::SgtelibModelFeasibilityType
+C
+\( Method used to model the feasibility of a point \)
+\(
+. Method used to model the feasibility of a point.
+
+. Arguments: one character in {'C', 'H', 'M', 'P'}
+
+. Example: SGTELIB_MODEL_FEASIBILITY C  # 1 model per constraint
+           SGTELIB_MODEL_FEASIBILITY H  # 1 model of the aggregate constraint
+           SGTELIB_MODEL_FEASIBILITY M  # 1 model of the max of the constraints
+           SGTELIB_MODEL_FEASIBILITY B  # 1 binary model of the feasibility
+\)
+\( developer advanced feasibility constraints interpolation regression model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_DISPLAY
+std::string
+-
+\( Display of the sgtelib model \)
+\(
+. Control the display of the sgtelib model search. These details are only shown
+  if DISPLAY_DEGREE is FULL (3) or more.
+
+. Arguments: a string containing one or several of the following letters
+
+. \"S\": General information on the sgtelib model search
+
+. \"F\": Details of the filter step
+
+. \"O\": Details of the models optimization
+
+. \"P\": Details of the projection
+
+. \"U\": Details of the model update
+
+. \"I\": Advancement of the model optimization
+
+. \"X\": Display of all of the model evaluations
+
+. Example: SGTELIB_MODEL_DISPLAY SPF # display the general information on the search
+                                       and on the filter and projection steps
+\)
+\( developer advanced model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_DIVERSIFICATION
+NOMAD::Double
+0.01
+\( Coefficient of the exploration term in the surrogate problem \)
+\(
+. Coefficient of the exploration term in the surrogate problem.
+
+. Argument: one positive real
+
+. Example: SGTELIB_MODEL_DIVERSIFICATION 0    # no exploration
+           SGTELIB_MODEL_DIVERSIFICATION 0.01 # light exploration
+           SGTELIB_MODEL_DIVERSIFICATION 0.1  # medium exploration
+           SGTELIB_MODEL_DIVERSIFICATION 1    # strong exploration
+\)
+\( developer advanced model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_EXCLUSION_AREA
+NOMAD::Double
+0.0
+\( Exclusion area for the sgtelib model search around points of the cache \)
+\(
+. Defines an exclusion area for the sgtelib model search around points of the cache
+
+. Arguments: one real number in [0, 0.5]
+
+. Example: SGTELIB_MODEL_EXCLUSION_AREA 0 # no exclusion area
+           SGTELIB_MODEL_EXCLUSION_AREA 0.1 # small exclusion area
+           SGTELIB_MODEL_EXCLUSION_AREA 0.5 # large exclusion area
+
+\)
+\( developer advanced model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_CANDIDATES_NB
+int
+-1
+\( Number of candidates returned by the sgtelib model search \)
+\(
+. Number of candidates returned by the sgtelib model search.
+
+. Argument: one integer
+
+. If smaller or equal to 0, then the number of candidates
+  will be the largest value between BB_MAX_BLOCK_SIZE and
+  2 * DIMENSION
+
+. Example: SGTELIB_MODEL_CANDIDATES_NB 8
+\)
+\( developer advanced model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MIN_POINTS_FOR_MODEL
+size_t
+1
+\( Minimum number of valid points necessary to build a model \)
+\(
+. Defines the minimum number of valid points beyond which no model will
+  be build
+
+. Arguments: one positive integer
+
+. Example: SGTELIB_MIN_POINTS_FOR_MODEL 5
+
+\)
+\( developer advanced model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MAX_POINTS_FOR_MODEL
+size_t
+100
+\( Maximum number of valid points used to build a model \)
+\(
+. Defines the maximum number of valid points kept to build a model.
+  Extra points are ignored.
+
+. Arguments: one positive integer
+
+. Example: SGTELIB_MAX_POINTS_FOR_MODEL 96
+
+\)
+\( developer advanced model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_FILTER
+std::string
+2345
+\( Methods used in the sgtelib search filter to return several search candidates \)
+\(
+. Methods used in the sgtelib search filter to return several search candidates
+
+. Arguments: a string containing several integers from 0 to 5
+
+. Method 0: Select the best candidate
+
+. Method 1: Select the most remote candidate
+
+. Method 2: Select the best candidate, with minimal distance to the cache
+
+. Method 3: Select the best candidate, with minimal margin in feasibility
+
+. Method 4: Select the candidate with the best isolation number
+
+. Method 5: Select the candidate with the best density number
+
+. Examples: SGTELIB_MODEL_FILTER 0    # Only method 0 will be used
+            SGTELIB_MODEL_FILTER 01   # Alternate between method 0 and 1
+            SGTELIB_MODEL_FILTER 2345 # Cycle through methods 2, 3, 4 and 5
+\)
+\( developer advanced model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MODEL_SEARCH_PROJ_TO_MESH
+bool
+true
+\( Model search trial points are projected to the mesh \)
+\(
+. True if model search trial points are projected to the mesh
+
+. Argument: one boolean ('yes' or 'no')
+
+. Example: MODEL_SEARCH_PROJ_TO_MESH no
+\)
+\( developer models sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SPECULATIVE_SEARCH
+bool
+true
+\( MADS speculative search method \)
+\(
+
+. MADS speculative search (optimistic strategy)
+
+. Argument: one boolean ('yes' or 'no')
+
+. Example: SPECULATIVE_SEARCH no
+
+\)
+\( basic mads search speculative \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SPECULATIVE_SEARCH_MAX
+size_t
+1
+\( MADS speculative search method \)
+\(
+
+. Number of points to generate using the MADS speculative search (optimistic
+  strategy)
+
+. Argument: one positive integer
+
+. Example: SPECULATIVE_SEARCH_MAX 2
+
+\)
+\( advanced mads search speculative \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+ANISOTROPIC_MESH
+bool
+true
+\( MADS uses anisotropic mesh for generating directions \)
+\(
+
+. MADS uses anisotropic mesh for generating directions
+
+. Argument: one boolean ('yes' or 'no')
+
+. Example: ANISOTROPIC_MESH no
+
+\)
+\( advanced mads direction(s) anisotropic anisotropy aniso \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+ANISOTROPY_FACTOR
+NOMAD::Double
+0.1
+\( MADS anisotropy factor for mesh size change \)
+\(
+
+. Set anisotropy_factor for mesh relative coarsening/refining if the anisotropic
+  mesh is enabled.
+
+. Argument: one positive real
+
+. Example: ANISOTROPY_FACTOR 0.05
+
+\)
+\( advanced mads direction(s) anisotropic anisotropy aniso \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+GENERATE_ALL_POINTS_BEFORE_EVAL
+bool
+false
+\( Evaluate points generated from Search and Poll steps all at once \)
+\(
+. If true, generate all points from Search and Poll steps, and then
+  start evaluation. This method is preferred when multiple processes
+  are available in parallel to evaluate points. This way, more processes
+  will work on evaluating points simultaneously.
+
+. If false, generate points from Search, evaluate them, and then continue
+  to Poll, or to next Search. This is the classic way of evaluation.
+  If multiple processes are available for evaluation, and the Search step
+  generated a single point, only that point is evaluated while the other
+  processes do nothing.
+
+\)
+\( advanced \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+USER_CALLS_ENABLED
+bool
+true
+\( Controls the automatic calls to user function \)
+\(
+. If true the user functions are called (update_iteration, ...)
+
+\)
+\( advanced user(s) callback function(s) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+################################################################################
+FRAME_CENTER_USE_CACHE
+bool
+false
+\( Find best points in the cache and use them as frame centers \)
+\(
+. When this parameter is true, when the Update step occurs, the points with
+  the best values are found in the Cache. Multiple points may have the same
+  value. These points are all used as frame centers for the next Search and
+  Poll steps.
+
+. When this parameter is false, the frame centers (one feasible and one
+  infeasible) are kept from previous iterations. This is the classical
+  MADS algorithm.
+
+\)
+\( advanced \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MAX_TIME
+size_t
+INF
+\( Maximum wall-clock time in seconds \)
+\(
+. Argument: one positive integer. INF means there is no maximum.
+
+. Example: MAX_TIME 3600 # one hour max
+
+\)
+\( basic clock stop time \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_OPTIMIZATION
+bool
+false
+\( Nelder Mead stand alone optimization for constrained and unconstrained pbs \)
+\(
+
+. Nelder Mead optimization for constrained and unconstrained optimization
+
+. Argument: bool
+
+. Stand alone Nelder Mead optimization will deactivate any optimization strategy.
+
+. Example: NM_OPTIMIZATION true
+
+\)
+\( advanced nelder mead simplex \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+NM_SEARCH
+bool
+true
+\( Nelder Mead optimization used as a search step for Mads \)
+\(
+
+. Nelder Mead optimization as a search step for Mads
+
+. Argument: bool
+
+. If NM_OPTIMIZATION is true, no optimization algorithm will be performed.
+
+. Example: NM_SEARCH fase
+
+\)
+\( advanced nelder mead simplex mads search\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_SIMPLEX_INCLUDE_LENGTH
+NOMAD::Double
+INF
+\( Construct NM simplex using points in cache.\)
+\(
+
+. Construct NM simplex using points in cache within a given distance of poll
+  center in absolute value.
+
+. Argument: Positive double. INF means all points are considered.
+
+. Example: NM_SIMPLEX_INCLUDE_LENGTH 0.2
+
+\)
+\( advanced nelder mead simplex length\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_SIMPLEX_INCLUDE_FACTOR
+size_t
+8
+\( Construct NM simplex using points in cache.\)
+\(
+
+. Construct NM simplex using points in cache within a given length of frame center
+  relative. The length equals the include factor multiplied by the frame size.
+  Used only if the mesh is defined.
+
+. Argument: Positive integer. INF means all points are considered.
+
+. Example: NM_SIMPLEX_INCLUDE_FACTOR 10
+
+\)
+\( advanced nelder mead simplex include factor length poll \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_DELTA_E
+NOMAD::Double
+2
+\( NM expansion parameter delta_e.\)
+\(
+
+. Nelder Mead expansion parameter
+
+. Argument: Positive NOMAD::Double > 1
+
+. Example: NM_DELTA_E 2.5
+
+\)
+\( advanced nelder mead simplex expansion \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_DELTA_IC
+NOMAD::Double
+-0.5
+\( NM inside contraction parameter delta_ic.\)
+\(
+
+. Nelder Mead inside contraction parameter
+
+. Argument: Negative NOMAD::Double
+
+. Example: NM_DELTA_IC -1
+
+\)
+\( advanced nelder mead simplex inside contraction \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_DELTA_OC
+NOMAD::Double
+0.5
+\( NM outside contraction parameter delta_oc.\)
+\(
+
+. Nelder Mead outside contraction parameter
+
+. Argument: Positive NOMAD::Double <= 1
+
+. Example: NM_DELTA_OC 0.8
+
+\)
+\( advanced nelder mead simplex outside contraction \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_GAMMA
+NOMAD::Double
+0.5
+\( NM shrink parameter gamma.\)
+\(
+
+. Nelder Mead shrink parameter
+
+. Argument: Positive NOMAD::Double <= 1
+
+. Example: NM_GAMMA 0.8
+
+\)
+\( advanced nelder mead simplex shrink \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_SEARCH_MAX_TRIAL_PTS_NFACTOR
+size_t
+80
+\( NM-Mads search stopping criterion.\)
+\(
+
+. NM-Mads stopping criterion. Max number of trial pts < dimension * NFactor
+
+. Argument: Positive integer. INF disables this criterion.
+
+. Example: NM_SEARCH_MAX_TRIAL_PTS_NFACTOR 100
+
+\)
+\( advanced nelder mead mads search stop trial \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_SEARCH_RANK_EPS
+NOMAD::Double
+0.01
+\( NM-Mads epsilon for the rank of DZ.\)
+\(
+
+. Precision to detect when a vector increases the rank or not.
+
+. Argument: Positive double.
+
+. Example: NM_SEARCH_RANK_EPS 1E-4
+
+\)
+\( advanced nelder mead mads search rank DZ \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_SEARCH_STOP_ON_SUCCESS
+bool
+true
+\( NM-Mads search stops on success.\)
+\(
+
+. NM-Mads search opportunistically stops on success.
+
+. Argument: boolean.
+
+. Example: NM_SEARCH_STOP_ON_SUCCESS false
+
+\)
+\( advanced nelder mead mads search opportunistic success \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+DISABLE
+std::string
+-
+\(Forcefully disable a feature\)
+\(
+. This parameter is used to forcefully disable a feature.
+
+. Argument: MODELS
+
+. DISABLE MODELS disables all uses of models. It is equivalent to set:
+      SGTELIB_SEARCH no
+
+. WARNING: Settings of SGTELIB_SEARCH will be ignored
+
+\)
+\( advanced model \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MODEL_RADIUS_FACTOR
+NOMAD::Double
+2.0
+\( Model radius factor \)
+\(
+. Model radius factor
+
+. This parameter is used to select points to build the model
+
+. Frame size is multiplied by this factor to get the search radius
+
+. Points inside a circle centered on the poll center, within this radius,
+  are selected to build the model
+
+. Arguments: one strictly positive real
+
+. Example: MODEL_RADIUS_FACTOR 1.0
+\)
+\( developer model \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MAX_ITERATIONS
+size_t
+INF
+\( The maximum number of iterations of the MADS algorithm \)
+\(
+
+. Maximum number of iterations
+
+. Argument: one positive integer. INF means there is no maximum.
+
+. Default INF
+
+. Example: MAX_ITERATIONS 1000
+
+\)
+\( advanced max maximum iteration(s) stop(s) stopping criterion(s) \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MAX_ITERATION_PER_MEGAITERATION
+size_t
+10
+\( Maximum number of Iterations to generate for each MegaIteration. \)
+\(
+. Maximum number of Iterations to generate for each MegaIteration.
+
+. Argument: one positive integer. INF means there is no maximum.
+
+. If there are few points in the barrier, this parameter has no effect.
+
+. If POLL_CENTER_USE_CACHE is false, this parameter has no effect.
+
+. If there are many points in the barrier, this parameter limits
+  the number of iterations generated.
+  A mixture of feasible and infeasible points of the barrier is used to
+  generate iterations.
+  Each iteration uses a point of the barrier as frame center. 
+
+\)
+\( advanced \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################

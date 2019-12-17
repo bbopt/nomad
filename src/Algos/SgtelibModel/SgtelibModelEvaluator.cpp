@@ -1,0 +1,561 @@
+/*---------------------------------------------------------------------------------*/
+/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
+/*                                                                                 */
+/*  NOMAD - Version 4.0.0 has been created by                                      */
+/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
+/*                 Christophe Tribes           - Polytechnique Montreal            */
+/*                                                                                 */
+/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
+/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
+/*                 Christophe Tribes           - Polytechnique Montreal            */
+/*                                                                                 */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
+/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
+/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*                                                                                 */
+/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
+/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
+/*  and Exxon Mobil.                                                               */
+/*                                                                                 */
+/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
+/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
+/*  Exxon Mobil.                                                                   */
+/*                                                                                 */
+/*  Contact information:                                                           */
+/*    Polytechnique Montreal - GERAD                                               */
+/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
+/*    e-mail: nomad@gerad.ca                                                       */
+/*    phone : 1-514-340-6053 #6928                                                 */
+/*    fax   : 1-514-340-5665                                                       */
+/*                                                                                 */
+/*  This program is free software: you can redistribute it and/or modify it        */
+/*  under the terms of the GNU Lesser General Public License as published by       */
+/*  the Free Software Foundation, either version 3 of the License, or (at your     */
+/*  option) any later version.                                                     */
+/*                                                                                 */
+/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
+/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
+/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
+/*  for more details.                                                              */
+/*                                                                                 */
+/*  You should have received a copy of the GNU Lesser General Public License       */
+/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
+/*                                                                                 */
+/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
+/*---------------------------------------------------------------------------------*/
+
+#include "../../Algos/SgtelibModel/SgtelibModelEvaluator.hpp"
+
+#include "../../Algos/EvcInterface.hpp"
+#include "../../Algos/SgtelibModel/SgtelibModel.hpp"
+#include "../../Type/SgtelibModelFormulationType.hpp"
+#include "../../../ext/sgtelib/src/Surrogate.hpp"
+
+// Constructor
+// Usually, Evaluators work in full dimension.
+// In this case, the models may work better in subdimension.
+// This is why a fixed variable is used.
+NOMAD::SgtelibModelEvaluator::SgtelibModelEvaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams,
+                                   const NOMAD::SgtelibModel* modelAlgo,
+                                   const std::string& modelDisplay,
+                                   const NOMAD::Double& diversification,
+                                   const NOMAD::SgtelibModelFeasibilityType& modelFeasibility,
+                                   const double tc,
+                                   const NOMAD::Point& fixedVariable)
+  : NOMAD::Evaluator(evalParams, NOMAD::EvalType::SGTE),
+    _modelAlgo(modelAlgo),
+    _modelDisplay(modelDisplay),
+    _diversification(diversification),
+    _modelFeasibility(modelFeasibility),
+    _tc(tc),
+    _displayLevel(NOMAD::OutputLevel::LEVEL_INFO),
+    _fixedVariable(fixedVariable)
+{
+    init();
+}
+
+
+// Destructor
+NOMAD::SgtelibModelEvaluator::~SgtelibModelEvaluator()
+{
+}
+
+
+void NOMAD::SgtelibModelEvaluator::init()
+{
+    _displayLevel = (std::string::npos != _modelDisplay.find("X"))
+                        ? NOMAD::OutputLevel::LEVEL_INFO
+                        : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
+
+}
+
+
+/*------------------------------------------------------------------------*/
+/*                evaluate the sgtelib_model model at a given point       */
+/*------------------------------------------------------------------------*/
+bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
+                                          const NOMAD::Double &hMax,
+                                          bool &countEval) const
+{
+    // Convert x to subspace, because model is in subspace.
+    x = x.makeSubSpacePointFromFixed(_fixedVariable);
+
+    std::string s = "X = " + x.display();
+    NOMAD::OutputQueue::Add(s, _displayLevel);
+
+    size_t n = x.size();
+    const auto bbot = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
+
+    size_t nbConstraints = NOMAD::getNbConstraints(bbot);
+    size_t nbModels = NOMAD::SgtelibModel::getNbModels(_modelFeasibility, nbConstraints);
+    // Init the matrices for prediction
+    SGTELIB::Matrix   M_predict (  "M_predict", 1, static_cast<int>(nbModels));
+    SGTELIB::Matrix STD_predict ("STD_predict", 1, static_cast<int>(nbModels));
+    SGTELIB::Matrix CDF_predict ("CDF_predict", 1, static_cast<int>(nbModels));
+    SGTELIB::Matrix  EI_predict ( "EI_predict", 1, static_cast<int>(nbModels));
+
+
+    // --------------------- //
+    // In/Out Initialisation //
+    // --------------------- //
+    // Declaration of the stastistical measurements
+    NOMAD::Double pf = 1; // P[x]
+    NOMAD::Double f = 0; // predicted mean of the objective
+    NOMAD::Double sigma_f = 0; // predicted variance of the objective
+    NOMAD::Double pi = 0; // probability of improvement
+    NOMAD::Double ei = 0; // expected improvement
+    NOMAD::Double efi = 0; // expected feasible improvement
+    NOMAD::Double pfi = 0; // probability of feasible improvement
+    NOMAD::Double mu = 0; // uncertainty on the feasibility
+    NOMAD::Double penalty = 0; // exclusion area penalty
+    NOMAD::Double d = 0; // Distance to closest point of the cache
+    NOMAD::Double h = 0; // Constraint violation
+
+    // Creation of matrix for input / output of SGTELIB model
+    SGTELIB::Matrix X_predict("X_predict", 1, static_cast<int>(n));
+    // Shall we compute statistical criterias
+    bool useStatisticalCriteria = false;
+    // FORMULATION USED IN THIS EVAL_X
+    const NOMAD::SgtelibModelFormulationType formulation = _modelAlgo->getFormulation();
+
+    // Unfortunately, Sgtelib is not thread-safe.
+    // For this reason we have to set part of the eval_x code to critical.
+#ifdef _OPENMP
+    #pragma omp critical(SgtelibEvalX)
+#endif // _OPENMP
+    {
+
+        // Set the input matrix
+        for (size_t i = 0; i < n; i++)
+        {
+            X_predict.set(0, static_cast<int>(i), x[i].todouble());
+        }
+
+        // Reset point outputs
+        // By default, set everything to -1
+        // Note: Currently NOMAD cannot set a bbo value by index, so we have to
+        // work around by constructing a suitable string.
+        // Note: Why set some default values on bbo?
+        NOMAD::ArrayOfString defbbo(bbot.size(), "-1");
+        x.setBBO(defbbo.display(), bbot, NOMAD::EvalType::SGTE);
+
+        // ------------------------- //
+        //   Objective Prediction    //
+        // ------------------------- //
+        switch (formulation)
+        {
+            case NOMAD::SgtelibModelFormulationType::FS:
+                useStatisticalCriteria = (_diversification != 0);
+                break;
+            case NOMAD::SgtelibModelFormulationType::FSP:
+            case NOMAD::SgtelibModelFormulationType::EIS:
+            case NOMAD::SgtelibModelFormulationType::EFI:
+            case NOMAD::SgtelibModelFormulationType::EFIS:
+            case NOMAD::SgtelibModelFormulationType::EFIM:
+            case NOMAD::SgtelibModelFormulationType::EFIC:
+            case NOMAD::SgtelibModelFormulationType::PFI:
+                useStatisticalCriteria = true;
+                break;
+            case NOMAD::SgtelibModelFormulationType::D:
+                useStatisticalCriteria = false;
+                break;
+            case NOMAD::SgtelibModelFormulationType::EXTERN:
+            case NOMAD::SgtelibModelFormulationType::UNDEFINED:
+            default:
+                throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Forbiden formulation" );
+                break;
+        }
+
+        s = "Formulation: " + NOMAD::SgtelibModelFormulationTypeToString(formulation);
+        s += "; compute stat: " + NOMAD::boolToString(useStatisticalCriteria);
+        s += "; found feasible: " + NOMAD::boolToString(_modelAlgo->getFoundFeasible());
+        NOMAD::OutputQueue::Add(s, _displayLevel);
+
+        // Prediction
+        if ( formulation == NOMAD::SgtelibModelFormulationType::D )
+        {
+            d = _modelAlgo->getTrainingSet()->get_distance_to_closest(X_predict).get(0,0);
+            s = "d = " + d.display();
+            NOMAD::OutputQueue::Add(s, _displayLevel);
+        }
+        else if (formulation == NOMAD::SgtelibModelFormulationType::EXTERN)
+        {
+            throw SGTELIB::Exception(__FILE__, __LINE__,
+                                     "SgtelibModelEvaluator::eval_x: Formulation Extern should not been called in this context.");
+        }
+        else
+        {
+            NOMAD::OutputQueue::Add("Predict... ", _displayLevel);
+
+            auto model = _modelAlgo->getModel();
+            model->build();
+            model->check_ready(__FILE__,__FUNCTION__,__LINE__);
+
+            if (useStatisticalCriteria)
+            {
+                model->predict(X_predict, &M_predict, &STD_predict, &EI_predict, &CDF_predict);
+            }
+            else
+            {
+                model->predict(X_predict, &M_predict);
+            }
+
+            NOMAD::OutputQueue::Add("ok", _displayLevel);
+        }
+
+        // Get the prediction from the matrices
+        f = M_predict.get(0,0);
+
+        if (useStatisticalCriteria)
+        {
+            // If no feasible points is found so far, then sigma_f, ei and pi are bypassed.
+            if (_modelAlgo->getFoundFeasible())
+            {
+                sigma_f = STD_predict.get(0,0);
+                pi      = CDF_predict.get(0,0);
+                ei      = EI_predict.get(0,0);
+            }
+            else
+            {
+                sigma_f = 1.0; // This inhibits the exploration term in regard to the objective
+                pi      = 1.0; // This implies that pfi = pf
+                ei      = 1.0; // This implies that efi = pf
+            }
+            s = "F = " + f.display() + " +/- " + sigma_f.display();
+            NOMAD::OutputQueue::Add(s, _displayLevel);
+        }
+        else
+        {
+            s = "F = " + f.display();
+            NOMAD::OutputQueue::Add(s, _displayLevel);
+        }
+
+        // ====================================== //
+        // Constraints display                    //
+        // ====================================== //
+        s = "";
+        switch (_modelFeasibility)
+        {
+            case NOMAD::SgtelibModelFeasibilityType::C:
+                if (useStatisticalCriteria)
+                {
+                    for (size_t i = 1; i < nbModels; i++)
+                    {
+                        s += "C" + std::to_string(i) + " = " + std::to_string(M_predict.get(0,static_cast<int>(i)));
+                        s += " +/- " + std::to_string(STD_predict.get(0,static_cast<int>(i)));
+                        s += " (CDF : " + std::to_string(CDF_predict.get(0,static_cast<int>(i))) +  ")";
+                    }
+                }
+                else
+                {
+                    s += "C = [ ";
+                    for (size_t i = 1; i < nbModels; i++)
+                    {
+                        s += std::to_string(M_predict.get(0,static_cast<int>(i))) + " ";
+                        s += " ]";
+                    }
+                }
+                break;
+
+            case NOMAD::SgtelibModelFeasibilityType::H:
+                s += "Feasibility_Method : H (Aggregate prediction)";
+                s += "H = " + std::to_string(M_predict.get(0,1));
+                s += " +/- " + std::to_string(STD_predict.get(0,1));
+                s += " (CDF : " + std::to_string(CDF_predict.get(0,1)) + ")";
+                break;
+            case NOMAD::SgtelibModelFeasibilityType::B:
+                s += "Feasibility_Method : B (binary prediction)";
+                s += "B = " + std::to_string(M_predict.get(0,1));
+                s += " (CDF : " + std::to_string(CDF_predict.get(0,1)) + ")";
+                break;
+            case NOMAD::SgtelibModelFeasibilityType::M:
+                s += "Feasibility_Method : M (Biggest constraint prediction)";
+                s += "M = " + std::to_string(M_predict.get(0,1));
+                s += " +/- " + std::to_string(STD_predict.get(0,1));
+                s += " (CDF : " + std::to_string(CDF_predict.get(0,1)) + ")";
+                break;
+            case NOMAD::SgtelibModelFeasibilityType::UNDEFINED:
+            default:
+                s = "SGTELIB_MODEL_FEASIBILITY_UNDEFINED";
+                NOMAD::OutputQueue::Add(s, _displayLevel);
+                break;
+        }
+
+        // ====================================== //
+        // Computation of statistical criteria    //
+        // ====================================== //
+        if ( useStatisticalCriteria )
+        {
+            pf = 1; // General probability of feasibility
+            NOMAD::Double pfj; // Probability of feasibility for constrait cj
+            NOMAD::Double L2 = 0;
+
+            if (nbConstraints > 0)
+            {
+                // Use the CDF of each output in C
+                // If there is only one output in C (models B, H and M) then pf = CDF)
+                for (size_t i = 1; i < nbModels; i++)
+                {
+                    pfj = CDF_predict.get(0,static_cast<int>(i));
+                    L2 += max( 0 , M_predict.get(0,static_cast<int>(i))).pow2();
+                    pf *= pfj;
+                }
+            }   // end (if constraints are present)
+            if (!_modelAlgo->getFoundFeasible() && (pf == 0))
+            {
+                pf = 1.0/(1.0+L2);
+                s = "pf = 0 and L2 = " + L2.display() + " => pF = " + pf.display();
+                NOMAD::OutputQueue::Add(s, _displayLevel);
+            }
+            pfi = pi*pf;
+            efi = ei*pf;
+            mu = 4*pf*(1-pf);
+        }
+
+    } // pragma omp critical
+
+    // ====================================== //
+    // Application of the formulation         //
+    // ====================================== //
+    NOMAD::Double obj;
+    NOMAD::ArrayOfDouble newbbo(bbot.size(), -1);
+    size_t k;
+    switch (formulation)
+    {
+        case NOMAD::SgtelibModelFormulationType::FS:
+            // Define obj
+            obj = f - _diversification*sigma_f;
+            // Set constraints
+            k = 0;
+            for (size_t i = 0; i < bbot.size(); i++)
+            {
+                if (bbot[i] != NOMAD::BBOutputType::OBJ)
+                {
+                    newbbo[i] = M_predict.get(0,static_cast<int>(k+1)) - _diversification*STD_predict.get(0,static_cast<int>(k+1));
+                    k++;
+                }
+            }
+            break;
+
+        case NOMAD::SgtelibModelFormulationType::FSP:
+            // Define obj
+            obj = f - _diversification*sigma_f;
+            // Set constraints
+            for (size_t i = 0; i < bbot.size(); i++)
+            {
+                if (bbot[i] != NOMAD::BBOutputType::OBJ)
+                {
+                    newbbo[i] = 0.5 - pf;
+                }
+            }
+            break;
+
+        case NOMAD::SgtelibModelFormulationType::EIS:
+            // Define obj
+            obj = - ei - _diversification*sigma_f;
+            // Set constraints
+            k = 0;
+            for (size_t i = 0; i < bbot.size(); i++)
+            {
+                if ( bbot[i] != NOMAD::BBOutputType::OBJ )
+                {
+                    newbbo[i] = M_predict.get(0,static_cast<int>(k+1)) - _diversification*STD_predict.get(0,static_cast<int>(k+1));
+                    k++;
+                }
+            }
+            break;
+
+        case NOMAD::SgtelibModelFormulationType::EFI:
+            obj = -efi;
+            break;
+
+        case NOMAD::SgtelibModelFormulationType::EFIS:
+            obj = -efi - _diversification*sigma_f;
+            break;
+
+        case NOMAD::SgtelibModelFormulationType::EFIM:
+            obj = -efi - _diversification*sigma_f*mu;
+            break;
+
+        case NOMAD::SgtelibModelFormulationType::EFIC:
+            obj = -efi - _diversification*( ei*mu + pf*sigma_f);
+            break;
+
+        case NOMAD::SgtelibModelFormulationType::PFI:
+            obj = -pfi;
+            break;
+
+        case NOMAD::SgtelibModelFormulationType::D:
+            obj = -d;
+            break;
+
+        case NOMAD::SgtelibModelFormulationType::EXTERN:
+            s = "SgtelibModel formulation: " + NOMAD::SgtelibModelFormulationTypeToString(formulation);
+            NOMAD::OutputQueue::Add(s, _displayLevel);
+            break;
+
+        case NOMAD::SgtelibModelFormulationType::UNDEFINED:
+        default:
+            s = "SgtelibModel formulation: " + NOMAD::SgtelibModelFormulationTypeToString(formulation);
+            NOMAD::OutputQueue::Add(s, _displayLevel);
+            break;
+    }
+
+    // ------------------------- //
+    //   exclusion area          //
+    // ------------------------- //
+    if (_tc > 0.0)
+    {
+        penalty = _modelAlgo->getModel()->get_exclusion_area_penalty(X_predict, _tc).get(0,0);
+        obj += penalty;
+    }
+
+    // ------------------------- //
+    //   Set obj and BBO         //
+    // ------------------------- //
+    for (size_t i = 0; i < bbot.size(); i++)
+    {
+        if (bbot[i] == NOMAD::BBOutputType::OBJ)
+        {
+            newbbo[i] = obj;
+        }
+    }
+    x.setBBO(newbbo.display(), bbot, NOMAD::EvalType::SGTE);
+
+    evalH(newbbo, bbot, h);
+    x.setF(obj, NOMAD::EvalType::SGTE);
+    x.setH(h, NOMAD::EvalType::SGTE);
+
+    // ================== //
+    //       DISPLAY      //
+    // ================== //
+    if (useStatisticalCriteria)
+    {
+        s = "f_min                    f_min = " + std::to_string(_modelAlgo->getTrainingSet()->get_f_min());
+        NOMAD::OutputQueue::Add(s, _displayLevel);
+        s = "Probability of Feasibility PF  = " + pf.display();
+        NOMAD::OutputQueue::Add(s, _displayLevel);
+        s = "Feasibility Uncertainty    mu  = " + mu.display();
+        NOMAD::OutputQueue::Add(s, _displayLevel);
+        s = "Probability Improvement    PI  = " + pi.display();
+        NOMAD::OutputQueue::Add(s, _displayLevel);
+        s = "Exptected Improvement      EI  = " + ei.display();
+        NOMAD::OutputQueue::Add(s, _displayLevel);
+        s = "Proba. of Feasible Imp.    PFI = " + pfi.display();
+        NOMAD::OutputQueue::Add(s, _displayLevel);
+        s = "Expected Feasible Imp.     EFI = " + efi.display();
+        NOMAD::OutputQueue::Add(s, _displayLevel);
+    }
+    s = "Exclusion area penalty = " + penalty.display();
+    NOMAD::OutputQueue::Add(s, _displayLevel);
+    s = "Model Output = (" + x.getBBO(NOMAD::EvalType::SGTE) + ")";
+    NOMAD::OutputQueue::Add(s, _displayLevel);
+
+    if (!pf.isDefined() || !pi.isDefined())
+    {
+        throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+                                  "SgtelibModelEvaluator::eval_x: NaN values in pi or pf." );
+    }
+
+    // ================== //
+    // Exit Status        //
+    // ================== //
+    countEval = true;
+    x.setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, NOMAD::EvalType::SGTE);
+
+    // Convert back x to full space
+    x = x.makeFullSpacePointFromFixed(_fixedVariable);
+
+    // Always eval_ok = true
+    return true;
+}
+
+
+/*----------------------------------------------------------------*/
+/*     compute model h and f values given one blackbox output     */
+/*----------------------------------------------------------------*/
+void NOMAD::SgtelibModelEvaluator::evalH(const NOMAD::ArrayOfDouble& bbo,
+                                         const NOMAD::BBOutputTypeList& bbot,
+                                         NOMAD::Double &h)
+{   
+    // Note: This method must be reviewed if new BBOutputTypes are added.
+
+    const auto hMin = 0.0; // H_MIN not implemented
+
+    h = 0.0;
+    const size_t m = bbo.size();
+
+    if ( m != bbot.size() )
+    {
+        std::string s = "SgtelibModelEvaluator::evalH() called with an invalid bbo argument";
+        std::cerr << s << std::endl;
+        throw NOMAD::Exception ( __FILE__, __LINE__, s);
+    }
+
+    NOMAD::Double bboi;
+    for (size_t i = 0 ; i < m ; ++i)
+    {
+        bboi = bbo[i];
+        if (bboi.isDefined())
+        {
+            if (bbot[i] == NOMAD::BBOutputType::EB)
+            {
+                if ( bboi > hMin )
+                {
+                    h = +INF;
+                    return;
+                }
+            } 
+            else if (bbot[i] == NOMAD::BBOutputType::PB)
+            {
+               if ( bboi > hMin )
+                {
+                    // Only L2 is supported.
+                    h += bboi * bboi;
+                    /*
+                    switch ( hNorm )
+                    {
+                        case NOMAD::L1:
+                            h += bboi;
+                            break;
+                        case NOMAD::L2:
+                            h += bboi * bboi;
+                            break;
+                        case NOMAD::LINF:
+                            if ( bboi > h )
+                                h = bboi;
+                            break;
+                    }
+                    */
+                }
+            }
+
+        }
+    }
+    //if ( hNorm == NOMAD::L2 )
+    h = h.sqrt();
+
+} // end evalH
+
+

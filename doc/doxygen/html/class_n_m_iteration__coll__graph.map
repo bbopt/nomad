@@ -1,0 +1,6 @@
+<map id="NMIteration" name="NMIteration">
+<area shape="rect" id="node2" href="$class_iteration.html" title="Class for iteration of an Algorithm. " alt="" coords="31,267,100,293"/>
+<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,...). " alt="" coords="41,189,89,216"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="27,99,103,125"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="5,6,125,47"/>
+</map>

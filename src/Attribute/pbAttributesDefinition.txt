@@ -1,0 +1,333 @@
+###############################################################################
+######           Definition of Problem Parameters attributes          #########
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+DIMENSION
+size_t
+0
+\( Dimension of the optimization problem (required) \)
+\(
+
+. Number of variables
+
+. Argument: one positive integer
+
+. Example: DIMENSION 3
+
+\)
+\( basic dimension(s) dim(s) problem(s) prob pb(s) optimization size \)
+RESTART_ATTRIBUTE no
+################################################################################
+X0
+NOMAD::ArrayOfPoint
+-
+\( The initial point(s) \)
+\(
+
+. Vector of starting point(s)
+
+. Arguments: text file name or DIMENSION reals
+
+. More than one starting point can be defined. All points are evaluated:
+  X0 evaluations are not opportunistic.
+
+. May be infeasible
+
+. Cannot be outside bounds
+
+. Must respect fixed variables (parameter FIXED_VARIABLE)
+
+. Examples:
+    . X0 x0.txt
+
+    . X0   * 0.0    # First starting point
+      X0 1 * 1.0    # Second starting point
+
+    . X0 ( 0 1 2 )  # if DIMENSION = 3
+
+\)
+\( basic initial variable(s) var(s) init point(s) bound(s) lower upper cache start starting \)
+UNIQUE_ENTRY false
+RESTART_ATTRIBUTE no
+################################################################################
+LOWER_BOUND
+NOMAD::ArrayOfDouble
+-
+\( The optimization problem lower bounds for each variable \)
+\(
+
+. Lower bounds for each variable
+
+. Arguments: DIMENSION reals
+
+. Examples:
+    LOWER_BOUND * 0.0   # all variables are nonnegative
+    LOWER_BOUND 0-2 0.0 # the 3 first variables are nonnegative
+    LOWER_BOUND 0 0.0   # the first variable is nonnegative
+
+\)
+\( basic bound(s) lower variable(s) constraint(s) \)
+RESTART_ATTRIBUTE no
+################################################################################
+UPPER_BOUND
+NOMAD::ArrayOfDouble
+-
+\( The optimization problem upper bounds for each variable \)
+\(
+
+. Upper bounds for each variable
+
+. Arguments: DIMENSION reals
+
+. Examples:
+    UPPER_BOUND * 10.0   # all variables are less than or equal to 10.0
+    UPPER_BOUND 0-2 10.0 # the 3 first variables are less than or equal to 10.0
+    UPPER_BOUND 0 10.0   # the first variable is less than or equal to 10.0
+
+\)
+\( basic bound(s) upper variable(s) constraint(s) \)
+RESTART_ATTRIBUTE no
+################################################################################
+BB_INPUT_TYPE
+NOMAD::BBInputTypeList
+* R
+\( The variable blackbox input types \)
+\(
+
+. Blackbox input types
+
+. List of types for each variable
+
+. Available types:
+    . B: binary
+    . I: integer
+    . R: continuous
+
+. Examples:
+    . BB_INPUT_TYPE * I       # all variables are integers
+    . BB_INPUT_TYPE ( R I B ) # for all 3 variables
+    . BB_INPUT_TYPE 1-3 B     # NOT YET SUPPORTED ( variables 1 to 3 are binary )
+    . BB_INPUT_TYPE 0 I       # NOT YET SUPPORTED ( first variable is integer )
+
+\)
+\( basic blackbox(es) input(s) type(s) int integer(s) binary bin continuous
+categorical \)
+RESTART_ATTRIBUTE no
+################################################################################
+INITIAL_MESH_SIZE
+NOMAD::ArrayOfDouble
+-
+\( The initial mesh size of MADS \)
+\(
+
+. Initial mesh size
+
+. Arguments: one or DIMENSION positive real(s)
+
+. NOMAD uses one mesh size per variable.
+
+. Initial frame size is determined from initial mesh size when provided
+
+. Examples:
+    . INITIAL_MESH_SIZE 1.0          # for all variables
+    . INITIAL_MESH_SIZE 1 0.5        # for variable 1 only
+    . INITIAL_MESH_SIZE 2-4 0.25     # for variables 2 to 4
+
+\)
+\( advanced initial mesh size mads gmesh \)
+RESTART_ATTRIBUTE no
+################################################################################
+INITIAL_POLL_SIZE
+NOMAD::ArrayOfDouble
+-
+\( Deprecated, see INITIAL_FRAME_SIZE \)
+\(
+
+. This is a deprecated parameter from Nomad 3. Renamed INITIAL_FRAME_SIZE.
+
+\)
+\( advanced \)
+RESTART_ATTRIBUTE no
+################################################################################
+INITIAL_FRAME_SIZE
+NOMAD::ArrayOfDouble
+-
+\( The initial frame size of MADS \)
+\(
+
+. Initial frame size
+
+. Arguments: one or DIMENSION positive real(s)
+
+. Reinterpreted empty default:
+    10% of the range if bounds are defined, |x0|/10 otherwise
+
+. NOMAD uses one frame size per variable to achieve scaling
+
+. The initial mesh size is determined from initial frame size when provided, but
+providing both is not allowed.
+
+. Examples
+. INITIAL_FRAME_SIZE 1.0          # for all variables
+. INITIAL_FRAME_SIZE 1 0.5        # for variable 1 only
+. INITIAL_FRAME_SIZE 2-4 0.25     # for variable 2 to 4
+
+\)
+\( advanced intial poll frame mesh size mads gmesh \)
+RESTART_ATTRIBUTE no
+################################################################################
+MIN_POLL_SIZE
+NOMAD::ArrayOfDouble
+-
+\( Deprecated, see MIN_FRAME_SIZE \)
+\(
+
+. This is a deprecated parameter from Nomad 3. Renamed MIN_FRAME_SIZE.
+
+\)
+\( advanced \)
+RESTART_ATTRIBUTE no
+################################################################################
+MIN_FRAME_SIZE
+NOMAD::ArrayOfDouble
+-
+\( Termination criterion on minimal frame size of MADS \)
+\(
+
+. Minimum frame size. Can be set explicitely or automatically to 1 for
+  integer or binary variables (during check).
+
+. Arguments: same logic as INITIAL_FRAME_SIZE ('r' can be used)
+
+. Example: MIN_FRAME_SIZE r1E-5
+
+\)
+\( advanced min minimum poll frame size stop stopping terminate(s)
+termination(s) mads \)
+RESTART_ATTRIBUTE no
+################################################################################
+MIN_MESH_SIZE
+NOMAD::ArrayOfDouble
+-
+\( Termination criterion on minimal mesh size of MADS \)
+\(
+
+. Minimum mesh size
+
+. Arguments: same logic as INITIAL_MESH_SIZE ('r' can be used)
+
+. Example: MIN_MESH_SIZE r1E-5
+
+\)
+\( advanced min minimum frame mesh size stop stopping terminate(s) termination(s)
+mads \)
+RESTART_ATTRIBUTE no
+#################################################################################
+GRANULARITY
+NOMAD::ArrayOfDouble
+-
+\( The granularity of the variables \)
+\(
+
+. Set the granularity of variables to some specific values
+
+. Arguments: granularity indexes and values (positive)
+
+. Examples:
+    . GRANULARITY ( 0.01 0.0 0.01 ) # granularity of variables 0 and 2 are
+                                    # set to 0.01.
+      Variable 1 is real.
+    . GRANULARITY 0-1 0.01          # 2 first variables set granularity to 0.01
+    . GRANULARITY * 0.01            # all variables set to granularity 0.01
+
+\)
+\( advanced granular integer(s) variable(s) step \)
+RESTART_ATTRIBUTE no
+################################################################################
+FIXED_VARIABLE
+NOMAD::Point
+-
+\( Fix some variables to some specific values \)
+\(
+
+. Fix some variables to some specific values
+
+. Arguments: variable indexes and values
+
+. Values for fixed variables are optional. Values of X0 will be used.
+
+. Examples:
+    . FIXED_VARIABLE ( 0.0 - 0.0 )  # Variables 0 and 2 are fixed to value 0.0.
+                                    # Variable 1 is not fixed.
+
+    . FIXED_VARIABLE 0              # Variable 0 is fixed to its X0 value.
+    . FIXED_VARIABLE 2-4            # Variables 2, 3 and 4 are fixed
+                                    # to their X0 values.
+\)
+\( advanced fixed variable(s) \)
+RESTART_ATTRIBUTE no
+################################################################################
+STOP_IF_FEASIBLE
+bool
+false
+\( Stop algorithm once a feasible point is obtained \)
+\(
+
+. Stopping criterion on feasibility. Can be use directly. Used by
+  the PhaseOneSearch strategy to obtain a feasible point when EB constraints are
+  set and the starting point is infeasible.
+
+. Argument: boolean.
+
+. Example:
+    . STOP_IF_FEASIBLE true.
+    
+\)
+\( advanced stopping terminate(s) termination(s) phase one  \)
+RESTART_ATTRIBUTE no
+################################################################################
+EVAL_TYPE
+NOMAD::EvalType
+BB
+\( Type of evaluation \)
+\(
+. Type of evaluation currently being processed
+
+. Arguments: BB for blackbox evaluation or SGTE for surrogate evaluation.
+
+. Internal parameter. Should not be modified by the user.
+
+\)
+\( advanced internal \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################

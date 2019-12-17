@@ -1,0 +1,31 @@
+
+# PROBLEM PARAMETERS
+####################
+
+# Number of variables
+DIMENSION 10
+
+# Black box
+BB_EXE bb.exe
+BB_OUTPUT_TYPE OBJ PB PB EB
+
+# Starting point
+X0 ( 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 )
+
+
+# ALGORITHM PARAMETERS
+######################
+
+# Use Nelder Mead algorithm, not Mads, to solve this problem
+NM_OPTIMIZATION true
+
+# The algorithm terminates after that number black-box evaluations
+MAX_BB_EVAL 1000
+
+
+# DISPLAY PARAMETERS
+####################
+# Show more info - display degree = 3
+DISPLAY_DEGREE 3
+#STATS_FILE stats.txt BBE SOL OBJ
+

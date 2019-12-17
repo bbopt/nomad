@@ -1,0 +1,24 @@
+
+# PROBLEM PARAMETERS
+####################
+
+# Number of variables
+DIMENSION 10
+
+# Black box
+BB_EXE u.exe
+
+BB_OUTPUT_TYPE PB OBJ
+
+# ALGORITHM PARAMETERS
+######################
+LH_EVAL 100
+
+LOWER_BOUND * 0
+UPPER_BOUND * 30
+
+# Parameters for display degree
+DISPLAY_DEGREE 2
+DISPLAY_ALL_EVAL true
+
+DISPLAY_STATS BBE ( %2.2SOL ) BBO
