@@ -29,9 +29,9 @@ compile_args.append("-Wall")
 compile_args.append("-Wextra")
 compile_args.append("-pthread")
 link_args = []
-link_args.append(str(os.environ.get("NOMAD_HOME")) + "/build/release/lib/libnomadUtils.so.4.0.0")
-link_args.append(str(os.environ.get("NOMAD_HOME")) + "/build/release/lib/libnomadEval.so.4.0.0")
-link_args.append(str(os.environ.get("NOMAD_HOME")) + "/build/release/lib/libnomadAlgos.so.4.0.0")
+link_args.append(str(os.environ.get("NOMAD_HOME")) + "/build/release/lib/libnomadUtils.4.0.0.so")
+link_args.append(str(os.environ.get("NOMAD_HOME")) + "/build/release/lib/libnomadEval.4.0.0.so")
+link_args.append(str(os.environ.get("NOMAD_HOME")) + "/build/release/lib/libnomadAlgos.4.0.0.so")
 
 if (use_openmp):
     compile_args.append("-fopenmp")

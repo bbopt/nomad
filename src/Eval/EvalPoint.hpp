@@ -152,13 +152,13 @@ public:
     static void clearEvalSgte(EvalPoint& evalPoint) { evalPoint.clearEvalSgte(); }
 
     /// Get the objective function value of Eval of this EvalType
-    Double getF(const EvalType& evalType) const;
+    Double getF(const EvalType& evalType = NOMAD::EvalType::BB) const;
 
     /// Set the objective function value of the Eval of this EvalType
     void setF(const Double f, const EvalType& evalType);
 
     /// Get the infeasibility measure of the Eval of this EvalType
-    Double getH(const EvalType& evalType) const;
+    Double getH(const EvalType& evalType = NOMAD::EvalType::BB) const;
 
     /// Set the infeasibility measure of the Eval of this EvalType
     void setH(const Double &h, const EvalType& evalType);

@@ -442,8 +442,8 @@ static int runNomad(Callback cb,
 
         // Set the best feasible and best infeasible solutions
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList);
-        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList);
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB);
+        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB);
 
         if (nbInf > 0)
         {
