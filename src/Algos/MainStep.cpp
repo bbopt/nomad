@@ -568,7 +568,7 @@ void NOMAD::MainStep::displayVersion()
     std::string version = "Version ";
     version += NOMAD_VERSION_NUMBER;
     // Note: The "Beta" information is not part of the NOMAD_VERSION_NUMBER.
-    version += " Beta";
+    version += " Beta 1";
 #ifdef DEBUG
     version += " Debug.";
 #else
