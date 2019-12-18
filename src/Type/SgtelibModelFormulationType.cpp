@@ -54,13 +54,16 @@
 
 #include "../Type/SgtelibModelFormulationType.hpp"
 #include "../Util/Exception.hpp"
+#include "../Util/utils.hpp"
 
 
 // Convert a string (ex "FS", "FSP", "EIS"...)
 // to a NOMAD::SgtelibModelFormulationType.
-NOMAD::SgtelibModelFormulationType NOMAD::stringToSgtelibModelFormulationType(const std::string &s)
+NOMAD::SgtelibModelFormulationType NOMAD::stringToSgtelibModelFormulationType(const std::string &sConst)
 {
     auto ret = NOMAD::SgtelibModelFormulationType::UNDEFINED;
+    std::string s = sConst;
+    NOMAD::toupper(s);
 
     if (s == "FS")
     {

@@ -209,7 +209,9 @@ void NOMAD::PbParameters::checkAndComply( )
         throw NOMAD::InvalidParameter(__FILE__,__LINE__, s);
     }
     if ( mPS.isDefined() && ! mFS.isDefined())
+    {
         setAttributeValue("MIN_FRAME_SIZE", iPS );
+    }
     
     
     
@@ -261,10 +263,12 @@ void NOMAD::PbParameters::setGranularityAndBBInputType()
     auto bbInputType = getAttributeValueProtected<NOMAD::BBInputTypeList>("BB_INPUT_TYPE",false);
     auto lb = getAttributeValueProtected<NOMAD::ArrayOfDouble>("LOWER_BOUND",false);
     auto ub = getAttributeValueProtected<NOMAD::ArrayOfDouble>("UPPER_BOUND",false);
+    std::ostringstream oss;
     
     if (granularity.isDefined() && granularity.size() != n)
     {
-        std::string err = "Warning: Parameter GRANULARITY resized from ";
+        std::string err;
+        err = "Warning: Parameter GRANULARITY resized from ";
         err += std::to_string(granularity.size()) + " to " + std::to_string(n);
         err += ". Values may be lost.";
         std::cerr << err << std::endl;
@@ -330,6 +334,21 @@ void NOMAD::PbParameters::setGranularityAndBBInputType()
             break;
 
     }
+
+    if (!isSetByUser("BB_INPUT_TYPE"))
+    {
+        bbInputType.resize(n);
+        setAttributeValue("BB_INPUT_TYPE", bbInputType);
+    }
+
+    // By this point, bbInputType must be of size n.
+    if (n != bbInputType.size())
+    {
+        oss << "Error: BB_INPUT_TYPE " << bbInputType << " has dimension ";
+        oss << bbInputType.size() << " which is different from ";
+        oss << "problem dimension " << n;
+        throw NOMAD::InvalidParameter(__FILE__,__LINE__, oss.str());
+    }
     
     /*-----------------------------------------*/
     /*  Adjust granularity with BB_INPUT_TYPE  */
@@ -347,7 +366,6 @@ void NOMAD::PbParameters::setGranularityAndBBInputType()
                 // Ensure we have an integer
                 if (!granularity[i].isInteger())
                 {
-                    std::ostringstream oss;
                     oss << "Check: Invalid granularity[";
                     oss << i;
                     oss << "] = " << granularity[i];

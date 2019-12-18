@@ -54,13 +54,16 @@
 
 #include "../Type/SgtelibModelFeasibilityType.hpp"
 #include "../Util/Exception.hpp"
+#include "../Util/utils.hpp"
 
 
 // Convert a string (ex "C", "H", "B"...)
 // to a NOMAD::SgtelibModelFeasibilityType.
-NOMAD::SgtelibModelFeasibilityType NOMAD::stringToSgtelibModelFeasibilityType(const std::string &s)
+NOMAD::SgtelibModelFeasibilityType NOMAD::stringToSgtelibModelFeasibilityType(const std::string &sConst)
 {
     auto ret = NOMAD::SgtelibModelFeasibilityType::UNDEFINED;
+    std::string s = sConst;
+    NOMAD::toupper(s);
 
     if (s == "C")
     {

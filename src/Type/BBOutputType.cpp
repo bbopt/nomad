@@ -55,13 +55,16 @@
 #include "../Type/BBOutputType.hpp"
 #include "../Util/ArrayOfString.hpp"
 #include "../Util/Exception.hpp"
+#include "../Util/utils.hpp"
 
 
 // Convert a string (ex "OBJ", "EB", "PB"...)
 // to a NOMAD::BBOutputType.
-NOMAD::BBOutputType NOMAD::stringToBBOutputType(const std::string &s)
+NOMAD::BBOutputType NOMAD::stringToBBOutputType(const std::string &sConst)
 {
     NOMAD::BBOutputType ret = NOMAD::BBOutputType::BBO_UNDEFINED;
+    std::string s = sConst;
+    NOMAD::toupper(s);
 
     if (s == "OBJ")
     {
@@ -122,6 +125,7 @@ NOMAD::BBOutputTypeList NOMAD::stringToBBOutputTypeList(const std::string &s)
     }
     return bbOutputType;
 }
+
 
 // Convert a NOMAD::BBOutputTypeList into a string.
 std::string NOMAD::BBOutputTypeListToString( const BBOutputTypeList & bbotList )

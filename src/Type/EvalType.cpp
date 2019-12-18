@@ -54,14 +54,17 @@
 
 #include "../Type/EvalType.hpp"
 #include "../Util/Exception.hpp"
+#include "../Util/utils.hpp"
 
 
 // Convert a string ("BB", "SGTE")
 // to a NOMAD::EvalType.
 // "UNDEFINED" throws an exception, as well as any value other than "BB" or "SGTE".
-NOMAD::EvalType NOMAD::stringToEvalType(const std::string &s)
+NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst)
 {
     NOMAD::EvalType ret;
+    std::string s = sConst;
+    NOMAD::toupper(s);
 
     if (s == "BB")
     {

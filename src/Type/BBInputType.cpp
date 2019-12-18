@@ -55,11 +55,14 @@
 #include "../Type/BBInputType.hpp"
 #include "../Util/ArrayOfString.hpp"
 #include "../Util/Exception.hpp"
+#include "../Util/utils.hpp"
 
 // Convert a string ("R", "I", "B") to a NOMAD::BBInputType.
-NOMAD::BBInputType NOMAD::stringToBBInputType(const std::string &s)
+NOMAD::BBInputType NOMAD::stringToBBInputType(const std::string &sConst)
 {
     NOMAD::BBInputType ret = NOMAD::BBInputType::CONTINUOUS;
+    std::string s = sConst;
+    NOMAD::toupper(s);
 
     if (s == "R")
     {
