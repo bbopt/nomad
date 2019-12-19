@@ -111,12 +111,12 @@ int main (int argc, char **argv)
                 f -= (sum1 -2*prod1) / std::abs(sqrt(sum3));
             }
             // Scale
-            if (!isnan(f))
+            if (!std::isnan(f))
             {
                 f *= 1e-5;
             }
     
-            eval_ok = !isnan(f);
+            eval_ok = !std::isnan(f);
 
             g3 = - (f + 2000);
         }

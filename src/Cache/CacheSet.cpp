@@ -227,7 +227,7 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
     }
 
     bool inserted = false;
-    bool doEval = true;
+    bool doEval;
     std::pair<EvalPointSet::iterator,bool> ret;   // Return of the insert()
 #ifdef _OPENMP
     omp_set_lock(&_cacheLock);

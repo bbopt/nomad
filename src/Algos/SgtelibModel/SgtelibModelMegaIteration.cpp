@@ -97,8 +97,7 @@ bool NOMAD::SgtelibModelMegaIteration::runImp()
     else
     {
         // DEBUG - ensure OPPORTUNISM is off.
-        NOMAD::EvcInterface evcInterface(this);
-        auto evcParams = evcInterface.getEvaluatorControl()->getEvaluatorControlParams();
+        auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams();
         auto previousOpportunism = evcParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
         if (previousOpportunism)
         {

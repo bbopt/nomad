@@ -150,17 +150,14 @@ public:
     /// Display
     void display (std::ostream & out) const;
 
-private:
-    /// Helper functions that can trigger exception.
     /**
-     Exception is triggered if the BBOutputList and
-     the ArrayOfString have inconsistent size.
+     Verify if the BBOutputList and the ArrayOfString have consistent size.
+     A warning is displayed if this is not the case.
      \param bbOutputType    The list of blackbox output type -- \b IN.
      \param array           The array of string -- \b IN.
-     
+     \return                \c true if the sizes match 
      */
-    void checkSizeMatch(const BBOutputTypeList &bbOutputType,
-                        const ArrayOfString &array) const;
+    bool checkSizeMatch(const BBOutputTypeList &bbOutputType) const;
 
 };
 

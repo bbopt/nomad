@@ -195,10 +195,10 @@ void NOMAD::NMReflective::generateTrialPoints ()
     // Determine the centroid of Y
     std::set<NOMAD::EvalPoint>::iterator it;
     std::set<NOMAD::EvalPoint>::iterator itBeforeEnd = _nmY->end();
-    itBeforeEnd--;
+    --itBeforeEnd;
     int i=0;
     NOMAD::Point yc(n,0);
-    for ( it = _nmY->begin() ; it != itBeforeEnd ; it++,i++)
+    for (it = _nmY->begin() ; it != itBeforeEnd ; ++it, i++)
     {
         AddOutputInfo("y" + std::to_string(i) + ": " + (*it).display() );
         for (size_t k = 0 ; k < n ; ++k )
@@ -483,7 +483,7 @@ bool NOMAD::NMReflective::insertInYBest( const NOMAD::Point & x1 , const NOMAD::
     bool x2EvalOK = ( X2.getEvalStatus(evalType) == NOMAD::EvalStatusType::EVAL_OK );
     
     std::set<NOMAD::EvalPoint>::iterator itYn = _nmY->end();
-    itYn--;
+    --itYn;
     
     AddOutputDebug("Insertion/Deletion of points in Y: ");
     

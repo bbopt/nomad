@@ -89,12 +89,11 @@ NOMAD::Eval::Eval(std::shared_ptr<NOMAD::EvalParameters> params,
     auto bbOutputType = params->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
     
     
-    
     // Note: if bbOutput is not eval_ok, then _f and _h end up undefined Doubles.
     _f = computeF(bbOutputType);
     
     // Set H
-    setH (_computeH(*this, bbOutputType) );    
+    setH (_computeH(*this, bbOutputType));    
     _toBeRecomputed = false;
     
     if (_bbOutput.getEvalOk() && _f.isDefined())
@@ -349,8 +348,15 @@ void NOMAD::Eval::setBBOutputAndRecompute(const NOMAD::BBOutput& bbOutput,
                                           const NOMAD::BBOutputTypeList& bbOutputType)
 {
     setBBOutput(bbOutput);
-    setF(computeF(bbOutputType));
-    setH(_computeH(*this, bbOutputType));
+    if (!bbOutput.checkSizeMatch(bbOutputType))
+    {
+        _evalStatus = NOMAD::EvalStatusType::EVAL_ERROR;
+    }
+    else
+    {
+        setF(computeF(bbOutputType));
+        setH(_computeH(*this, bbOutputType));
+    }
     toRecompute(false);
 }
 

@@ -505,6 +505,7 @@ void NOMAD::EvalPoint::setBBO(const std::string &bbo,
     {
         switch (evalType)
         {
+            // Create new Eval
             case NOMAD::EvalType::SGTE:
                 _evalSgte = NOMAD::EvalUPtr(new NOMAD::Eval());
                 break;
@@ -516,7 +517,14 @@ void NOMAD::EvalPoint::setBBO(const std::string &bbo,
         eval = getEval(evalType);
     }
 
-    eval->setBBO(bbo, bboutputtypes, evalOk);
+    if (nullptr == eval)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "EvalPoint::setBBO: Could not create new Eval");
+    }
+    else
+    {
+        eval->setBBO(bbo, bboutputtypes, evalOk);
+    }
 
 }
 
@@ -551,7 +559,14 @@ void NOMAD::EvalPoint::setBBO(const NOMAD::BBOutput& bbo,
         }
         eval = getEval(evalType);
     }
-    eval->setBBOutput(bbo);
+    if (nullptr == eval)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "EvalPoint::setBBO: Could not create new Eval");
+    }
+    else
+    {
+        eval->setBBOutput(bbo);
+    }
 }
 
 
@@ -589,7 +604,14 @@ void NOMAD::EvalPoint::setEvalStatus(const NOMAD::EvalStatusType &evalStatus,
         eval = getEval(evalType);
     }
 
-    eval->setEvalStatus(evalStatus);
+    if (nullptr == eval)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "EvalPoint::setEvalStatus: Could not create new Eval");
+    }
+    else
+    {
+        eval->setEvalStatus(evalStatus);
+    }
 }
 
 

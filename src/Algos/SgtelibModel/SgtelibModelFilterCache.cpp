@@ -113,7 +113,7 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
 
     // Get used methods from parameter
     const size_t methodMax = 10;
-    bool useMethod[methodMax];
+    bool useMethod[methodMax] = { false };
     size_t nbMethods = 0;
     std::string filterParam = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_FILTER");
     for (size_t i = 0; i < methodMax; i++)
@@ -122,10 +122,6 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
         {
             useMethod[i] = true;
             nbMethods++;
-        }
-        else
-        {
-            useMethod[i] = false;
         }
     }
 
@@ -389,7 +385,6 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
     double dmin = 0;
     double dmax = 0;
     int nmax = 0;
-    int ni = -1;
     double deltaMNorm = 0;
     if (_modelAlgo->getDeltaMNorm().isDefined())
     {
@@ -431,6 +426,7 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
 
         case NOMAD::FilterSelectionMethod::METHOD_BEST_MIN_DIST:
             // Select the best point but with a minimum distance to points already selected
+            // dmin is 0 at this point
             s = "dmin = " + NOMAD::Double(dmin).display();
             NOMAD::OutputQueue::Add(s, _displayLevel);
             for (size_t i = 0; i < nbSgte; i++)
@@ -445,15 +441,15 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
                         iSelect = static_cast<int>(i);
                     }
                 }
-            }
-            if (-1 != iSelect)
-            {
-                s = "d = " + NOMAD::Double(_DTX[iSelect]).display();
-                NOMAD::OutputQueue::Add(s, _displayLevel);
-                s = "h select = " + NOMAD::Double(hmin).display();
-                NOMAD::OutputQueue::Add(s, _displayLevel);
+                if (-1 != iSelect)
+                {
+                    s = "d = " + NOMAD::Double(_DTX[iSelect]).display();
+                    NOMAD::OutputQueue::Add(s, _displayLevel);
+                    s = "h select = " + NOMAD::Double(hmin).display();
+                    NOMAD::OutputQueue::Add(s, _displayLevel);
 
-                dmin = _DTX[iSelect] + deltaMNorm;
+                    dmin = std::max(dmin, _DTX[iSelect] + deltaMNorm);
+                }
             }
             break;
 
@@ -486,7 +482,7 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
             {
                 if ( (!_keep[i]) && (_distIsolation[i] > 0) )
                 {
-                    ni = _nIsolation[i];
+                    int ni = _nIsolation[i];
                     // If criteria undef, then compute.
                     if (-1 == ni)
                     {
@@ -519,7 +515,7 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
             {
                 if ( (!_keep[i]) && (_DTX[i] > 0) )
                 {
-                    ni = _nDensity[i];
+                    int ni = _nDensity[i];
                     // If criteria undef, then compute.
                     if (-1 == ni)
                     {

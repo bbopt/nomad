@@ -459,7 +459,7 @@ void NOMAD::MainStep::printNumThreads() const
 bool NOMAD::MainStep::detectPhaseOne()
 {
     bool hasEBConstraints = false;
-    bool hasNoFeas = true;
+    bool hasNoFeas = !NOMAD::CacheBase::getInstance()->hasFeas();
 
     auto bbOutputTypeList = _allParams->getEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
     if (std::find(bbOutputTypeList.begin(), bbOutputTypeList.end(), NOMAD::BBOutputType::EB)
@@ -467,8 +467,6 @@ bool NOMAD::MainStep::detectPhaseOne()
     {
         hasEBConstraints = true;
     }
-
-    hasNoFeas = !NOMAD::CacheBase::getInstance()->hasFeas();
 
     return hasEBConstraints && hasNoFeas;
 }

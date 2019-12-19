@@ -781,25 +781,29 @@ std::size_t NOMAD::Double::nbDecimals( ) const
 {
     std::size_t nbDec;
     
-    if ( _value < _epsilon )
+    if (_value < _epsilon)
     {
         std::string str = "Error: nbDecimals of number smaller than EPSILON is not supported";
         throw NOMAD::Exception(__FILE__, __LINE__, str);
     }
     
-    NOMAD::Double rem ( _value );
-    int dec;
-    while ( true )
+    NOMAD::Double rem( _value );
+    int dec = std::floor(log10(rem.todouble()));
+    rem -= pow(10, dec);
+    while (rem._value >= _epsilon)
     {
-        dec = std::floor( log10 ( rem.todouble() ) );
-        rem -= pow( 10, dec ) ;
-        if ( rem._value < _epsilon )
-            break;
+        dec = std::floor(log10(rem.todouble()));
+        rem -= pow(10, dec);
     }
-    if ( dec > 0 )
+    if (dec > 0)
+    {
         nbDec = 0;
+    }
     else
-        nbDec = -dec ;
+    {
+        nbDec = -dec;
+    }
+
     return nbDec;
 }
 

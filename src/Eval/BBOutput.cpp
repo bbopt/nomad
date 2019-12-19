@@ -98,14 +98,15 @@ NOMAD::Double NOMAD::BBOutput::getObjective(const NOMAD::BBOutputTypeList &bbOut
     NOMAD::ArrayOfString array(_rawBBO);
     NOMAD::Double obj;
 
-    checkSizeMatch(bbOutputType, array);
-
-    for (size_t i = 0; i < array.size(); i++)
+    if (checkSizeMatch(bbOutputType))
     {
-        if (NOMAD::BBOutputType::OBJ == bbOutputType[i])
+        for (size_t i = 0; i < array.size(); i++)
         {
-            obj.atof(array[i]);
-            break;
+            if (NOMAD::BBOutputType::OBJ == bbOutputType[i])
+            {
+                obj.atof(array[i]);
+                break;
+            }
         }
     }
     return obj;
@@ -116,17 +117,18 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getConstraints(const NOMAD::BBOutputTypeLi
     NOMAD::ArrayOfString array(_rawBBO);
     NOMAD::ArrayOfDouble constraints;
     
-    checkSizeMatch(bbOutputType, array);
-    
-    for (size_t i = 0; i < array.size(); i++)
+    if (checkSizeMatch(bbOutputType))
     {
-        if ( NOMAD::BBOutputTypeIsConstraint(bbOutputType[i]) )
+        for (size_t i = 0; i < array.size(); i++)
         {
-            NOMAD::Double d;
-            d.atof(array[i]);
-            size_t constrSize = constraints.size();
-            constraints.resize(constrSize + 1);
-            constraints[constrSize] = d;
+            if ( NOMAD::BBOutputTypeIsConstraint(bbOutputType[i]) )
+            {
+                NOMAD::Double d;
+                d.atof(array[i]);
+                size_t constrSize = constraints.size();
+                constraints.resize(constrSize + 1);
+                constraints[constrSize] = d;
+            }
         }
     }
     
@@ -151,10 +153,12 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getBBOAsArrayOfDouble() const
 
 // Helper function.
 // Verify that the given output type list has the same size as the raw output.
-// Throw an exception if this is not the case.
-void NOMAD::BBOutput::checkSizeMatch(const NOMAD::BBOutputTypeList &bbOutputType,
-                                     const NOMAD::ArrayOfString &array) const
+// Show an error, and return false, if this is not the case.
+bool NOMAD::BBOutput::checkSizeMatch(const NOMAD::BBOutputTypeList &bbOutputType) const
 {
+    bool ret = true;
+    NOMAD::ArrayOfString array(_rawBBO);
+
     if (bbOutputType.size() != array.size())
     {
         std::string err = "Error: Parameter BB_OUTPUT_TYPE has " + NOMAD::itos(bbOutputType.size());
@@ -171,8 +175,11 @@ void NOMAD::BBOutput::checkSizeMatch(const NOMAD::BBOutputTypeList &bbOutputType
         }
         err += ":\n";
         err += _rawBBO;
-        throw NOMAD::Exception(__FILE__, __LINE__, err);
+        std::cerr << err << std::endl;
+        ret = false;
     }
+
+    return ret;
 }
 
 

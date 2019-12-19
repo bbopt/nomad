@@ -178,7 +178,10 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
     AddOutputInfo(subStepName, true, false);
 
     NOMAD::EvalPointSet trySet;
-    size_t nbCachePoints;
+
+    NOMAD::CacheInterface cacheInterface(this);
+    std::vector<NOMAD::EvalPoint> evalPointList;
+    size_t nbCachePoints = cacheInterface.getAllPoints(evalPointList);
 
     for (auto index : _indexSet)
     {
@@ -186,10 +189,6 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
         auto perturbation = computePerturbation(oraclePoint, index);
 
         // Loop on points of the cache
-        NOMAD::CacheInterface cacheInterface(this);
-        std::vector<NOMAD::EvalPoint> evalPointList;
-        nbCachePoints = cacheInterface.getAllPoints(evalPointList);
-
         for (auto xRef : evalPointList)
         {
             auto xTry = buildProjectionTrialPoint(xRef, perturbation);
@@ -199,7 +198,7 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
 
     s = std::to_string(_indexSet.size()) + " perturbation vectors";
     NOMAD::OutputQueue::Add(s, _displayLevel);
-    s = std::to_string(nbCachePoints) + " perturbation vectors";
+    s = std::to_string(nbCachePoints) + " cache points";
     NOMAD::OutputQueue::Add(s, _displayLevel);
     s = std::to_string(trySet.size()) + " projection candidates";
     NOMAD::OutputQueue::Add(s, _displayLevel);
