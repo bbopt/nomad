@@ -1,0 +1,14 @@
+language: cpp
+
+matrix:
+  include:
+    - os: linux
+      dist: bionic
+      compiler: gcc
+    - os: osx
+      osx_image: xcode11.3
+      compiler: clang
+
+script:
+  - cd src
+  - make NOOMP=1 USE_SGTELIB=0 VARIANT=debug
