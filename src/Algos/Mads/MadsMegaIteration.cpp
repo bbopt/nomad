@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -57,8 +58,9 @@
 
 void NOMAD::MadsMegaIteration::init()
 {
-    _name = getAlgoName() + NOMAD::MegaIteration::getName();
+    _name = NOMAD::MegaIteration::getName();
 }
+
 
 void NOMAD::MadsMegaIteration::startImp()
 {
@@ -79,19 +81,14 @@ void NOMAD::MadsMegaIteration::startImp()
     // Verify mesh stop conditions.
     _mainMesh->checkMeshForStopping( _stopReasons );
 
-    AddOutputDebug("Mesh Stop Reason: " + _stopReasons->getStopReasonAsString() );
+    OUTPUT_DEBUG_START
+    AddOutputDebug("Mesh Stop Reason: " + _stopReasons->getStopReasonAsString());
+    OUTPUT_DEBUG_END
     if ( ! _stopReasons->checkTerminate() )
     {
         // MegaIteration's barrier member is already in sub dimension.
-        auto allXFeasPtr = _barrier->getAllXFeas();
-        auto allXInfPtr  = _barrier->getAllXInf();
-
-        // Create local copies of xFeas and xInf points
-        std::vector<NOMAD::EvalPoint> allXFeas, allXInf;
-        std::transform(allXFeasPtr.begin(), allXFeasPtr.end(), std::back_inserter(allXFeas),
-                       [](NOMAD::EvalPointPtr evalPointPtr) -> NOMAD::EvalPoint { return *evalPointPtr; });
-        std::transform(allXInfPtr.begin(), allXInfPtr.end(), std::back_inserter(allXInf),
-                       [](NOMAD::EvalPointPtr evalPointPtr) -> NOMAD::EvalPoint { return *evalPointPtr; });
+        auto allXFeas = _barrier->getAllXFeas();
+        auto allXInf  = _barrier->getAllXInf();
 
         // Compute the number of xFeas and xInf points we want to use, to get at
         // most MAX_ITERATION_PER_MEGAITERATION iterations.
@@ -136,8 +133,11 @@ void NOMAD::MadsMegaIteration::startImp()
 
         size_t nbIter = _iterList.size();
 
+        OUTPUT_INFO_START
         AddOutputInfo(_name + " has " + NOMAD::itos(nbIter) + " iteration" + ((nbIter > 1)? "s" : "") + ".");
+        OUTPUT_INFO_END
 
+        OUTPUT_DEBUG_START
         AddOutputDebug("Iterations generated:");
         for (size_t i = 0; i < nbIter; i++)
         {
@@ -159,6 +159,7 @@ void NOMAD::MadsMegaIteration::startImp()
             AddOutputDebug("Mesh size:  " + meshSize.display());
             AddOutputDebug("Frame size: " + frameSize.display());
         }
+        OUTPUT_DEBUG_END
     }
 }
 
@@ -219,8 +220,10 @@ bool NOMAD::MadsMegaIteration::runImp()
 
     if ( _stopReasons->checkTerminate() )
     {
+        OUTPUT_DEBUG_START
         s = "MegaIteration: stopReason = " + _stopReasons->getStopReasonAsString() ;
         AddOutputDebug(s);
+        OUTPUT_DEBUG_END
         return false;
     }
 
@@ -241,8 +244,10 @@ bool NOMAD::MadsMegaIteration::runImp()
         if (successful)
         {
             bestSuccessYet = _megaIterationSuccess;
-            s = "MadsMegaIteration: new success " + NOMAD::enumStr(bestSuccessYet);
+            OUTPUT_DEBUG_START
+            s = _name + ": new success " + NOMAD::enumStr(bestSuccessYet);
             s += " stopReason = " + _stopReasons->getStopReasonAsString() ;
+            OUTPUT_DEBUG_END
             AddOutputDebug(s);
         }
 
@@ -258,7 +263,7 @@ bool NOMAD::MadsMegaIteration::runImp()
         for (size_t i = 0; i < _iterList.size(); i++)
         {
             // Get Mads ancestor to call terminate(k)
-            NOMAD::Mads* mads = const_cast<NOMAD::Mads*>(dynamic_cast<const NOMAD::Mads*>(getParentOfType<NOMAD::Mads*>()));
+            NOMAD::Mads* mads = getParentOfType<NOMAD::Mads*>();
             if (nullptr == mads)
             {
                 throw NOMAD::Exception(__FILE__, __LINE__, "Mads MegaIteration without Mads ancestor");
@@ -292,15 +297,19 @@ bool NOMAD::MadsMegaIteration::runImp()
 
             if (iterSuccessful)
             {
-                s = "MadsMegaIteration: new success " + NOMAD::enumStr(iterSuccess);
+                OUTPUT_DEBUG_START
+                s = _name + ": new success " + NOMAD::enumStr(iterSuccess);
                 AddOutputDebug(s);
+                OUTPUT_DEBUG_END
             }
 
             // Update MegaIteration's stop reason
             if (_stopReasons->checkTerminate())
             {
-                s = "MadsMegaIteration stop reason set to: " + _stopReasons->getStopReasonAsString();
+                OUTPUT_DEBUG_START
+                s = _name + " stop reason set to: " + _stopReasons->getStopReasonAsString();
                 AddOutputDebug(s);
+                OUTPUT_DEBUG_END
             }
 
             _nbIterRun++; // Count one more iteration.

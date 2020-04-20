@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -607,6 +608,29 @@ public:
         }
     }
 
+    /**
+     Overload of setSpValue for std::string -> ArrayOfString case.
+     Value is of type std::string, and it might need to be converted to an ArrayOfString for parameter name.
+     */
+    void setSpValue(const std::string& name, std::string value)
+    {
+        if (typeid(ArrayOfString).name() == _typeOfAttributes.at(name))
+        {
+            // Special case: Attribute type is an ArrayOfString, but user sets
+            // a string.
+            // Create an ArrayOfString and set its first element to the
+            // given string value.
+            ArrayOfString aos;
+            aos.add(value);
+
+            setSpValue(name, aos);
+        }
+        else
+        {
+            // Use default behaviour
+            setSpValueDefault(name, value);
+        }
+    }
 
     /**
      Overload of setSpValue for int -> size_t case.

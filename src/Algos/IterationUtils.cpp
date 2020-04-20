@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -44,7 +45,6 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#include "../Algos/CacheInterface.hpp"
 #include "../Algos/IterationUtils.hpp"
 #include "../Algos/EvcInterface.hpp"
 
@@ -64,7 +64,7 @@ void NOMAD::IterationUtils::init()
     _iterAncestor = const_cast<NOMAD::Iteration*>(iterParent);
     if (nullptr == _iterAncestor)
     {
-        auto iterAncestorConst = dynamic_cast<const NOMAD::Iteration*>(_parentStep->getParentOfType<NOMAD::Iteration*>());
+        auto iterAncestorConst = _parentStep->getParentOfType<NOMAD::Iteration*>();
         _iterAncestor = const_cast<NOMAD::Iteration*>(iterAncestorConst);
     }
     
@@ -75,7 +75,7 @@ void NOMAD::IterationUtils::init()
     _megaIterAncestor = const_cast<NOMAD::MegaIteration*>(megaIterParent);
     if (nullptr == _megaIterAncestor)
     {
-        auto megaIterAncestorConst = dynamic_cast<const NOMAD::MegaIteration*>(_parentStep->getParentOfType<NOMAD::MegaIteration*>());
+        auto megaIterAncestorConst = _parentStep->getParentOfType<NOMAD::MegaIteration*>();
         _megaIterAncestor = const_cast<NOMAD::MegaIteration*>(megaIterAncestorConst);
     }
     
@@ -90,26 +90,17 @@ void NOMAD::IterationUtils::init()
 bool NOMAD::IterationUtils::snapPointToBoundsAndProjectOnMesh(
                                 NOMAD::Point& point,
                                 const NOMAD::ArrayOfDouble& lowerBound,
-                                const NOMAD::ArrayOfDouble& upperBound,
-                                const std::shared_ptr<NOMAD::Point> frameCenter,
-                                const std::shared_ptr<NOMAD::MeshBase> mesh)
+                                const NOMAD::ArrayOfDouble& upperBound)
 {
     bool snapWorked = true;
     const NOMAD::Point point0 = point; // Remember first value in case snap does not work.
 
-    // Snap the points and the corresponding direction to the bounds
-    NOMAD::Point center;
-
-    if (nullptr != frameCenter)
+    if ( nullptr == _iterAncestor )
     {
-        center = *frameCenter;
-    }
-
-    if (nullptr == mesh)
-    {
+        // If no iterAncestor. Snap the points and the corresponding direction to the bounds
         if (!point.inBounds(lowerBound, upperBound))
         {
-            point.snapToBounds(lowerBound, upperBound, center, NOMAD::ArrayOfDouble());
+            point.snapToBounds(lowerBound, upperBound, NOMAD::ArrayOfDouble(), NOMAD::ArrayOfDouble());
             if (!point.inBounds(lowerBound, upperBound))
             {
                 snapWorked = false;
@@ -118,127 +109,135 @@ bool NOMAD::IterationUtils::snapPointToBoundsAndProjectOnMesh(
     }
     else
     {
-        bool firstProjectionWorked = false;
-
-        // These points are for debug info only.
-        NOMAD::Point pointBefore = point;
-        NOMAD::Point pointFirstProj = point;
-        NOMAD::Point pointSnap = point;
-
-        // First, project on mesh.
-        if (!mesh->verifyPointIsOnMesh(point, center))
+        // Case with iterAncestor.
+        
+        auto center = _iterAncestor->getFrameCenter();
+        auto mesh = _iterAncestor->getMesh();
+        
+        // No mesh --> just snap to bounds
+        if (nullptr == mesh)
         {
-            point = mesh->projectOnMesh(point, center);
-            if (mesh->verifyPointIsOnMesh(point, center))
+            if (!point.inBounds(lowerBound, upperBound))
             {
-                firstProjectionWorked = true;
+                point.snapToBounds(lowerBound, upperBound, *center, NOMAD::ArrayOfDouble());
+                if (!point.inBounds(lowerBound, upperBound))
+                {
+                    snapWorked = false;
+                }
             }
         }
-        pointFirstProj = point;
-        // Second, snap to bounds.
-        if (!point.inBounds(lowerBound, upperBound))
+        else
         {
-            point.snapToBounds(lowerBound, upperBound, center, mesh->getdeltaMeshSize());
-        }
-        pointSnap = point;
-        // Third, if needed, project on mesh again.
-        if (!mesh->verifyPointIsOnMesh(point, center))
-        {
-            point = mesh->projectOnMesh(point, center);
-        }
-
-        if (!point.inBounds(lowerBound, upperBound) || !mesh->verifyPointIsOnMesh(point, center))
-        {
-            snapWorked = false;
-
-            // Debug info
-            if (firstProjectionWorked)
+            bool firstProjectionWorked = false;
+            
+            // These points are for debug info only.
+            NOMAD::Point pointBefore = point;
+            NOMAD::Point pointFirstProj = point;
+            NOMAD::Point pointSnap = point;
+            
+            // First, project on mesh.
+            if (!mesh->verifyPointIsOnMesh(point, *center))
             {
-                NOMAD::OutputInfo outputInfo("Snap", "Warning: point was not snapped properly on mesh:", NOMAD::OutputLevel::LEVEL_DEBUG);
-                // First projection worked, but then the snapToBounds offset it from mesh.
-                outputInfo.addMsg("Point before projection:");
-                NOMAD::ArrayOfDouble debugPrecision(point.size(), 20);
-                outputInfo.addMsg(pointBefore.display(debugPrecision));
-                outputInfo.addMsg("Point after first projection:");
-                outputInfo.addMsg(pointFirstProj.display(debugPrecision));
-                outputInfo.addMsg("Point after snapping to bounds:");
-                outputInfo.addMsg(pointSnap.display(debugPrecision));
-                outputInfo.addMsg("Point after second projection:");
-                outputInfo.addMsg(point.display(debugPrecision));
-                outputInfo.addMsg("Lower bound: " + lowerBound.display(debugPrecision));
-                outputInfo.addMsg("Upper bound: " + upperBound.display(debugPrecision));
-                outputInfo.addMsg("Center: " + center.display(debugPrecision));
-                outputInfo.addMsg("Mesh size: " + mesh->getdeltaMeshSize().display(debugPrecision));
-                NOMAD::OutputQueue::Add(std::move(outputInfo));
+                point = mesh->projectOnMesh(point, *center);
+                if (mesh->verifyPointIsOnMesh(point, *center))
+                {
+                    firstProjectionWorked = true;
+                }
+            }
+            pointFirstProj = point;
+            // Second, snap to bounds.
+            if (!point.inBounds(lowerBound, upperBound))
+            {
+                point.snapToBounds(lowerBound, upperBound, *center, mesh->getdeltaMeshSize());
+            }
+            pointSnap = point;
+            // Third, if needed, project on mesh again.
+            if (!mesh->verifyPointIsOnMesh(point, *center))
+            {
+                point = mesh->projectOnMesh(point, *center);
+            }
+            
+            if (!point.inBounds(lowerBound, upperBound) || !mesh->verifyPointIsOnMesh(point, *center))
+            {
+                snapWorked = false;
+                
+                // Debug info
+                OUTPUT_DEBUG_START
+                if (firstProjectionWorked)
+                {
+                    NOMAD::OutputInfo outputInfo("Snap", "Warning: point was not snapped properly on mesh:", NOMAD::OutputLevel::LEVEL_DEBUG);
+                    // First projection worked, but then the snapToBounds offset it from mesh.
+                    outputInfo.addMsg("Point before projection:");
+                    NOMAD::ArrayOfDouble debugPrecision(point.size(), 20);
+                    outputInfo.addMsg(pointBefore.display(debugPrecision));
+                    outputInfo.addMsg("Point after first projection:");
+                    outputInfo.addMsg(pointFirstProj.display(debugPrecision));
+                    outputInfo.addMsg("Point after snapping to bounds:");
+                    outputInfo.addMsg(pointSnap.display(debugPrecision));
+                    outputInfo.addMsg("Point after second projection:");
+                    outputInfo.addMsg(point.display(debugPrecision));
+                    outputInfo.addMsg("Lower bound: " + lowerBound.display(debugPrecision));
+                    outputInfo.addMsg("Upper bound: " + upperBound.display(debugPrecision));
+                    outputInfo.addMsg("Center: " + center->display(debugPrecision));
+                    outputInfo.addMsg("Mesh size: " + mesh->getdeltaMeshSize().display(debugPrecision));
+                    NOMAD::OutputQueue::Add(std::move(outputInfo));
+                }
+                OUTPUT_DEBUG_END
             }
         }
     }
-
+    
     if (!snapWorked)
     {
         // Revert point to first value
         point = point0;
     }
-
+    else if (point0 != point)
+    {
+        // In the case we are working on an EvalPoint,
+        // Point is not the same. Tag will be updated.
+        auto evalPoint = dynamic_cast<NOMAD::EvalPoint*>(&point);
+        if (nullptr != evalPoint)
+        {
+            evalPoint->setTag(0);
+        }
+    }
+    
     return snapWorked;
 }
 
 
+// Sanity check.
 // Verify that all points in trialPoints are on the current mesh.
-// If a point is not on the mesh, issue a warning and remove it
-// from the set.
-void NOMAD::IterationUtils::verifyPointsAreOnMesh(const std::string& name)
+// If a point is not on the mesh -> exception.
+void NOMAD::IterationUtils::verifyPointsAreOnMesh(const std::string& name) const
 {
-    if ( nullptr == _iterAncestor )
-    {
-        _parentStep->AddOutputDebug("No ancestor, no mesh");
-        return;
-    }
-    
     auto mesh = _iterAncestor->getMesh();
-
-    if (nullptr == mesh)
-    {
-        _parentStep->AddOutputDebug("Points not on mesh. Mesh is empty.");
-        return;
-    }
-
-    NOMAD::EvalPointSet newTrialPoints;
-
-    // Get Iteration frame center. We suppose that if there is a mesh, there
-    // is a frame center
     auto frameCenter = _iterAncestor->getFrameCenter();
+    
     if (nullptr == frameCenter)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"No frame center on iteration");
     }
+    if (nullptr == mesh)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"No mesh on iteration");
+    }
 
     for (auto point : _trialPoints)
     {
-        if (mesh->verifyPointIsOnMesh(point, *frameCenter))
+        if (!mesh->verifyPointIsOnMesh(point, *frameCenter))
         {
-            newTrialPoints.insert(point);
-        }
-        else
-        {
-            std::string err = "Warning: this point (generated by " + name + ")";
+            std::string err = "This point (generated by " + name + ")";
             err += " is not on the mesh: " + point.display() + ".";
-            // Not displaying frame center nor mesh size.
-            // This is too much information for a regular user, and not
-            // useful enough for debug.
-            _parentStep->AddOutputWarning(err);
+            throw NOMAD::Exception(__FILE__,__LINE__,err);
         }
     }
-
-    _trialPoints.clear();
-    _trialPoints = newTrialPoints;
 }
 
 
 bool NOMAD::IterationUtils::evalTrialPoints(NOMAD::Step *step)
 {
-
-    
     bool foundBetter = false;
 
     // Send trial EvalPoints to EvaluatorControl
@@ -258,7 +257,10 @@ bool NOMAD::IterationUtils::evalTrialPoints(NOMAD::Step *step)
     // and the queue may be empty.
     _nbEvalPointsThatNeedEval = NOMAD::EvcInterface::getEvaluatorControl()->getQueueSize();
 
-    NOMAD::EvcInterface::getEvaluatorControl()->unlockQueue();
+    // When doSort is false, lexicographical order is used.
+    auto disable = step->getRunParams()->getAttributeValue<NOMAD::ArrayOfString>("DISABLE");
+    bool doSort = (-1 == disable.find("EVAL_SORT"));
+    NOMAD::EvcInterface::getEvaluatorControl()->unlockQueue(doSort);
 
     if (_nbEvalPointsThatNeedEval > 0)
     {
@@ -268,6 +270,32 @@ bool NOMAD::IterationUtils::evalTrialPoints(NOMAD::Step *step)
         {
             foundBetter = true;
         }
+
+        // Update trial points with evaluated trial points.
+        // Note: If cache is not used, Points that are not evaluated yet
+        // will be forgotten.
+        NOMAD::EvalPointSet evalPointSet;
+        for (auto evalPoint : evcInterface.getAllEvaluatedPoints())
+        {
+            evalPointSet.insert(evalPoint);
+        }
+        OUTPUT_DEBUG_START
+        std::string s;
+        s = "Number of trial points: " + std::to_string(_trialPoints.size());
+        _parentStep->AddOutputDebug(s);
+        s = "Number of trial points that needed eval: " + std::to_string(_nbEvalPointsThatNeedEval);
+        _parentStep->AddOutputDebug(s);
+        s = "Number of evaluated points: " + std::to_string(evalPointSet.size());
+        _parentStep->AddOutputDebug(s);
+        OUTPUT_DEBUG_END
+
+        _trialPoints.clear();
+        _trialPoints = evalPointSet;
+    }
+    else
+    {
+        // No new evaluation, clear trial point list.
+        _trialPoints.clear();
     }
     return foundBetter;
 }
@@ -275,17 +303,18 @@ bool NOMAD::IterationUtils::evalTrialPoints(NOMAD::Step *step)
 
 // Post-processing of the points after evaluation.
 // For instance, computation of a new hMax and update of the Barrier.
-void NOMAD::IterationUtils::postProcessing(const NOMAD::EvalType& evalType)
+bool NOMAD::IterationUtils::postProcessing(const NOMAD::EvalType& evalType)
 {
+    bool changeOccured = false;
     auto megaIterBarrier = _parentStep->getMegaIterationBarrier();
 
     // The post processing is done when a MegaIteration is used
     if ( megaIterBarrier == nullptr )
     {
-        return;
+        return false;
     }
 
-    auto xInf = _parentStep->getMegaIterationBarrier()->getFirstXInf();
+    auto xInf = megaIterBarrier->getFirstXInf();
     NOMAD::Double fxInf, hxInf;
     if (nullptr != xInf)
     {
@@ -294,37 +323,30 @@ void NOMAD::IterationUtils::postProcessing(const NOMAD::EvalType& evalType)
     }
 
     // Current hMax is hMax of the barrier.
-    auto hMax = _parentStep->getMegaIterationBarrier()->getHMax();
+    auto hMax = megaIterBarrier->getHMax();
     const auto hMaxRef = hMax;
 
     // Compute hMax in case of PARTIAL_SUCCESS.
     if (NOMAD::SuccessType::PARTIAL_SUCCESS == _success)
     {
         NOMAD::Double tempHMax;
+        // Trial point is already updated with its Eval.
         for (auto trialPoint : _trialPoints)
         {
             // We are looking for improving, non-dominating trial points.
             // I.e. h is better, but f is less good.
+
             // Note: Searching for updated trial points in the cache.
-            NOMAD::CacheInterface cacheInterface(_parentStep);
-            NOMAD::EvalPoint evalPoint;
-            if (!cacheInterface.find(trialPoint, evalPoint))
-            {
-                std::string err = "Error: Evaluated point ";
-                err += trialPoint.display();
-                err += " not found in cache";
-                throw NOMAD::Exception(__FILE__, __LINE__, err);
-            }
-            if (evalPoint.isFeasible(evalType))
+            if (trialPoint.isFeasible(evalType))
             {
                 // We are only interested in infeasible points, i.e., h > 0.
                 continue;
             }
 
-            NOMAD::Double ftrialPoint = evalPoint.getF(evalType);
-            NOMAD::Double htrialPoint = evalPoint.getH(evalType);
+            NOMAD::Double ftrialPoint = trialPoint.getF(evalType);
+            NOMAD::Double htrialPoint = trialPoint.getH(evalType);
 
-            bool evalOk = (NOMAD::EvalStatusType::EVAL_OK == evalPoint.getEvalStatus(evalType));
+            bool evalOk = (NOMAD::EvalStatusType::EVAL_OK == trialPoint.getEvalStatus(evalType));
 
             if (evalOk && (htrialPoint < hxInf)
                 && (ftrialPoint > fxInf))
@@ -351,13 +373,31 @@ void NOMAD::IterationUtils::postProcessing(const NOMAD::EvalType& evalType)
     }
 
     // Update hMax
-    if (hMaxRef != hMax)
+    if (hMax < hMaxRef)
     {
+        OUTPUT_DEBUG_START
         _parentStep->AddOutputDebug("hMax went from " + hMaxRef.tostring() + " to " + hMax.tostring());
+        OUTPUT_DEBUG_END
         _parentStep->getMegaIterationBarrier()->setHMax(hMax);
+        changeOccured = true;
+    }
+
+    // Update Barrier right away.
+    if (nullptr != _megaIterAncestor)
+    {
+        // Make a vector from the set _trialPoints
+        std::vector<NOMAD::EvalPoint> evalPointList;
+        std::copy(_trialPoints.begin(), _trialPoints.end(),
+                  std::back_inserter(evalPointList));
+        bool barrierModified = _megaIterAncestor->getBarrier()->updateWithPoints(evalPointList,
+                                    _parentStep->getEvalType(),
+                                    _parentStep->getRunParams()->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
+        changeOccured = changeOccured || barrierModified;
     }
 
     NOMAD::OutputQueue::Flush();
+
+    return changeOccured;
 }
 // End postProcessing
 
@@ -366,14 +406,18 @@ void NOMAD::IterationUtils::updatePointsWithFrameCenter()
 {
     if ( nullptr == _iterAncestor )
     {
+        OUTPUT_DEBUG_START
         _parentStep->AddOutputDebug("No ancestor, no frame center");
+        OUTPUT_DEBUG_END
         return;
     }
     
     auto frameCenter = _iterAncestor->getFrameCenter();
     if (nullptr == frameCenter)
     {
+        OUTPUT_DEBUG_START
         _parentStep->AddOutputDebug("Cannot update point with NULL frame center from iteration.");
+        OUTPUT_DEBUG_END
         return ;
     }
     
@@ -394,11 +438,13 @@ void NOMAD::IterationUtils::updatePointsWithFrameCenter()
         evalPoint->setPointFrom(frameCenterFull);
 
         // Debug info
+        OUTPUT_DEBUG_START
         std::string s = "Set pointFrom of point ";
         s += evalPoint->getX()->display();
         s += " to ";
         s += (nullptr == frameCenterFull) ? "NULL" : frameCenterFull->display();
         _parentStep->AddOutputDebug(s);
+        OUTPUT_DEBUG_END
     }
 }
 
@@ -411,5 +457,13 @@ bool NOMAD::IterationUtils::insertTrialPoint(const NOMAD::EvalPoint &evalPoint)
     // the Point part of the EvalPoints only.
 
     std::pair<NOMAD::EvalPointSet::iterator,bool> ret = _trialPoints.insert(evalPoint);
+    
+    OUTPUT_INFO_START
+    std::string s = "xt:";
+    s += (ret.second) ? " " : " not inserted: ";
+    s += evalPoint.display();
+    NOMAD::OutputInfo("",s,NOMAD::OutputLevel::LEVEL_INFO);
+    OUTPUT_INFO_END
+    
     return ret.second ;
 }

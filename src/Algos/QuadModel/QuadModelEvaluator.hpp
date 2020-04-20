@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -45,44 +46,64 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD400_MADSITERATIONUTILS__
-#define __NOMAD400_MADSITERATIONUTILS__
+#ifndef __NOMAD400_QUAD_MODEL_EVALUATION__
+#define __NOMAD400_QUAD_MODEL_EVALUATION__
 
-#include <stdexcept>
+#include "../../Algos/QuadModel/QuadModelIteration.hpp"
 
-#include "../../Algos/Step.hpp"
-#include "../../Algos/IterationUtils.hpp"
+#include "../../Eval/Evaluator.hpp"
 
+#include "../../Type/SgtelibModelFeasibilityType.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
-
-/// Class of utils for MADS iterations.
-/**
- This class has no utility for now.
- */
-class MadsIterationUtils : public IterationUtils
+/// Class for evaluating trial points as EvalType::SGTE.
+class QuadModelEvaluator : public Evaluator
 {
+private:
+    const std::shared_ptr<SGTELIB::Surrogate> _model;
+    std::string                _modelDisplay;
+    OutputLevel                _displayLevel;
+    Point                      _fixedVariable;
+
 public:
     /// Constructor
     /**
-     \param parentStep      The calling iteration Step.
+     Usually, Evaluators work in full dimension. In this case, the models may work better in subdimension. This is why a fixed variable is used.
      */
-    explicit MadsIterationUtils(const Step* parentStep)
-      : IterationUtils(parentStep)
+    explicit QuadModelEvaluator(const std::shared_ptr<EvalParameters>& evalParams,
+                                const std::shared_ptr<SGTELIB::Surrogate>& model,
+                                const std::string& modelDisplay,
+                                const Point& fixedVariable)
+      : NOMAD::Evaluator(evalParams, NOMAD::EvalType::SGTE),
+        _model(model),
+        _modelDisplay(modelDisplay),
+        _displayLevel(NOMAD::OutputLevel::LEVEL_INFO),
+        _fixedVariable(fixedVariable)
     {
         init();
     }
 
-private:
+    virtual ~QuadModelEvaluator();
     
-    /// Helper for constructor
     /**
-     Makes sure that there is a MadsIteration among the ancestors.
+     Points for evaluations are given in a block. Sgtelib models handle the points as a matrix and return a matrix for outputs.
      */
+    std::vector<bool> eval_block(NOMAD::Block &block,
+                                 const NOMAD::Double &hMax  __attribute__((unused)),
+                                 std::vector<bool> &countEval) const override;
+
+    static void evalH(const ArrayOfDouble& bbo,
+                      const BBOutputTypeList& bbot,
+                      Double &h);
+
+
+private:
     void init();
+
+
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD400_MADSITERATIONUTILS__
+#endif // __NOMAD400_QUAD_MODEL_EVALUATION__

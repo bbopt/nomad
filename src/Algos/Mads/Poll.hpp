@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -49,7 +50,7 @@
 
 #include <set>
 
-#include "../../Algos/Mads/MadsIterationUtils.hpp"
+#include "../../Algos/IterationUtils.hpp"
 
 #include "../../Eval/EvalPoint.hpp"
 
@@ -59,7 +60,7 @@
 /**
  Generate the trial points (Poll::startImp), launch evaluation (Poll::runImp) and postprocecssing (Poll::endImp).
  */
-class Poll: public Step , public MadsIterationUtils
+class Poll: public Step , public IterationUtils
 {
 
 
@@ -70,7 +71,7 @@ public:
      */
     explicit Poll(const Step* parentStep)
       : Step(parentStep),
-        MadsIterationUtils(parentStep)
+        IterationUtils(parentStep)
     {
         init();
     }

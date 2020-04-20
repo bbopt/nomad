@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -139,6 +140,7 @@ public:
 
     /// Insert evalPoint in cache.
     /**
+     * evalPoint's tag (mutable) is updated.
      * Return a boolean indicating if we should eval this point. \n
      * If insertion worked, the point was not in the cache before. Return true. \n
      * If insertion did not work, the point was in the cache before. \n
@@ -167,11 +169,11 @@ public:
      *
      * All eval points for which eval is inferior to refeval.
      
-     \param refeval         The point to find                                              -- \b IN.
-     \param comp            The comparison function                                        -- \b IN.
+     \param refeval                The point to find                                              -- \b IN.
+     \param comp                       The comparison function                                        -- \b IN.
      \param evalPointList   The eval points that verify comp()==true returned in a list    -- \b OUT.
-     \param evalType        Which eval (Blackbox or Surrogate) of the EvalPoint to look at  -- \b IN.
-     \return                The number of eval points found.
+     \param evalType              Which eval (Blackbox or Surrogate) of the EvalPoint to look at  -- \b IN.
+     \return                 The number of eval points found.
      */
     size_t find(const Eval &refeval,
              bool (*comp)(const Eval&, const Eval&),
@@ -195,18 +197,21 @@ public:
                      const bool findFeas,
                      const Double& hMax,
                      const Point& fixedVariable,
-                     const EvalType& evalType) const override;
+                     const EvalType& evalType,
+                     const Eval* refeval) const override;
     
     /// Find best feasible points, using operator<.
     /**
      \param evalPointList   The best feasible eval points in a list  -- \b OUT.
-     \param evalType        Which eval (Blackbox or Surrogate) of the EvalPoint to look at  -- \b IN.
      \param fixedVariable   Searching for a subproblem defined by this point -- \b IN.
-     \return                The number of eval points found.
+     \param evalType              Which eval (Blackbox or Surrogate) of the EvalPoint to look at  -- \b IN.
+     \param refeval                 The single best feasible eval point -- \b OUT
+     \return                 The number of eval points found.
      */
     virtual size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
                                 const Point& fixedVariable,
-                                const EvalType& evalType) const override;
+                                const EvalType& evalType,
+                                const Eval* refeval) const override;
 
     /// Test if cache contains a feasible point.
     /**
@@ -225,7 +230,8 @@ public:
     virtual size_t findBestInf(std::vector<EvalPoint> &evalPointList,
                             const Double& hMax,
                             const Point& fixedVariable,
-                            const EvalType& evalType) const override;
+                            const EvalType& evalType,
+                            const Eval* refeval) const override;
 
     /// Get all eval points within a distance of point X.
     /**
@@ -285,7 +291,7 @@ public:
     bool read() override;
 
     /// Display all points in cache.
-    std::ostream& displayAll(std::ostream& os) const;
+    std::string displayAll() const override;
     
     /** Display only EvalPoints that have an eval.
      * This method is used to write the cache file.
@@ -304,6 +310,8 @@ public:
     /// Call function func() on all EvalPoint in cache.
     void processOnAllPoints(void (*func)(EvalPoint&)) override;
 
+    void deleteSgteOnly() override;
+    
     /// Recompute F and H on a cache point.
     /**
       Helper for read - where only BBO is set.

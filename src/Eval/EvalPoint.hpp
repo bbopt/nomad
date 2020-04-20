@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -75,18 +76,17 @@
 */
 class EvalPoint : public Point
 {
-public:
-    static const std::string ptFrom; ///< Static string "<", used for indicating pointFrom in I/O
-
 private:
 
-    EvalUPtr _eval; ///< Value of the evaluation (truth / blackbox)
+    static size_t _currentTag;  ///< Value of the current tag
 
+    EvalUPtr _eval;       ///< Value of the evaluation (truth / blackbox)
 
-    EvalUPtr _evalSgte; ///< Value of the surrogate evaluation
+    EvalUPtr _evalSgte;   ///< Value of the surrogate evaluation
 
+    mutable size_t  _tag; ///< Tag: Ordinal representing the order of creation
 
-    short _numberEval; ///< Number of times \c *this point has been evaluated (blackbox only)
+    short    _numberEval; ///< Number of times \c *this point has been evaluated (blackbox only)
 
     std::shared_ptr<Point> _pointFrom; ///< The frame center which generated \c *this point (blackbox only)
 
@@ -206,6 +206,11 @@ public:
     /// Set evaluation status of the Eval of this EvalType
     void setEvalStatus(const EvalStatusType &evalStatus, const EvalType& evalType);
 
+    size_t getTag() const { return _tag; }
+    void setTag(const size_t tag) const { _tag = tag; } ///< Sets mutable _tag
+    void updateTag() const; ///< Modifies mutable _tag, and increments static _currentTag
+    static void resetCurrentTag(); ///< Reset tag numbers: Use with caution. Expected to be used in unit tests  and runner only.
+    
     short getNumberEval() const { return _numberEval; }
     void setNumberEval(const short numEval) { _numberEval = numEval; }
     void incNumberEval() { _numberEval++; }
@@ -333,6 +338,10 @@ typedef std::shared_ptr<EvalPoint> EvalPointPtr;
 
 /// Definition for block (vector) of EvalPointPtr
 typedef std::vector<EvalPointPtr> Block;
+
+/// Utility to find Point in EvalPoint vector
+bool findInList(const Point& point, const std::vector<EvalPoint>& evalPointList,
+                EvalPoint& foundEvalPoint);
 
 
 /// Class for eval point compare.

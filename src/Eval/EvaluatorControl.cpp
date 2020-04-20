@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -67,6 +68,9 @@ void NOMAD::EvaluatorControl::init()
     // Set opportunism.
     // The parameter will be re-read in run(), because it may change.
     _opportunisticEval = _evalContParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
+
+    // Similarly for USE_CACHE.
+    _updateCache = _evalContParams->getAttributeValue<bool>("USE_CACHE");
 }
 
 
@@ -78,13 +82,30 @@ void NOMAD::EvaluatorControl::destroy()
     {
         // Show warnings and debug info.
         // Do not scare the user if display degree is medium or low.
-        int displayDegree = NOMAD::OutputQueue::getInstance()->getDisplayDegree();
-        if (displayDegree >= 3)
-        {
-            std::cerr << "Warning: deleting EvaluatorControl with EvalPoints remaining." << std::endl;
-        }
-        bool showDebug = (displayDegree >= 4);
+        OUTPUT_INFO_START
+        std::cerr << "Warning: deleting EvaluatorControl with EvalPoints remaining." << std::endl;
+        OUTPUT_INFO_END
+        bool showDebug = false;
+        OUTPUT_DEBUG_START
+        showDebug = true;
+        OUTPUT_DEBUG_END
         clearQueue(false /* waitRunning */, showDebug);
+    }
+
+    if (!_evaluatedPoints.empty())
+    {
+        OUTPUT_INFO_START
+        std::cerr << "Warning: deleting EvaluatorControl with evaluated points remaining." << std::endl;
+        OUTPUT_INFO_END
+        OUTPUT_DEBUG_START
+        for (auto evalPoint : _evaluatedPoints)
+        {
+            std::string s = "Delete evaluated point: ";
+            s += evalPoint.display();
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+        }
+        OUTPUT_DEBUG_END
+        _evaluatedPoints.clear(); 
     }
 
 #ifdef _OPENMP
@@ -112,6 +133,31 @@ void NOMAD::EvaluatorControl::setNbEval(const size_t nbEval)
     {
         _nbEvalSentToEvaluator = nbEval - NOMAD::CacheBase::getNbCacheHits();
     }
+}
+
+
+bool NOMAD::EvaluatorControl::getOpportunisticEval() const
+{
+    return _evalContParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
+}
+
+
+bool NOMAD::EvaluatorControl::getUseCache() const
+{
+    return _evalContParams->getAttributeValue<bool>("USE_CACHE");
+}
+
+
+std::vector<NOMAD::EvalPoint> NOMAD::EvaluatorControl::getAllEvaluatedPoints()
+{
+    std::vector<NOMAD::EvalPoint> allEvaluatedPoints;
+
+    allEvaluatedPoints.insert(allEvaluatedPoints.end(),
+                              std::make_move_iterator(_evaluatedPoints.begin()), 
+                              std::make_move_iterator(_evaluatedPoints.end()));
+    _evaluatedPoints.clear();
+
+    return allEvaluatedPoints;
 }
 
 
@@ -169,15 +215,13 @@ void NOMAD::EvaluatorControl::unlockQueue(bool doSort)
     omp_unset_lock(&_evalQueueLock);
 #endif // _OPENMP
 
-#ifndef USE_PRIORITY_QUEUE
-    // When using a vector instead of priority, the EvalQueuePoints are added randomly.
-    // Sort them, using default sort, if doSort is true (default).
+    // The EvalQueuePoints are added randomly.
+    // Sort the queue, using default sort, if doSort is true (default).
     // In non-opportunistic context, it is useless to sort.
-    if (doSort && _opportunisticEval)
+    if (doSort && _opportunisticEval && _evalPointQueue.size() > 1)
     {
         sort(_comp);
     }
-#endif // USE_PRIORITY_QUEUE
 }
 
 
@@ -205,14 +249,10 @@ void NOMAD::EvaluatorControl::addToQueue(const NOMAD::EvalQueuePointPtr &evalQue
     }
 #endif // _OPENMP
 
-#ifdef USE_PRIORITY_QUEUE
-    _evalPointQueue.push(evalQueuePoint);
-#else
-
-    // CT Lexicographic order instead of inverse lexicographic order
-    _evalPointQueue.insert ( _evalPointQueue.begin() , evalQueuePoint );
-    //_evalPointQueue.push_back(evalQueuePoint);
-#endif // USE_PRIORITY_QUEUE
+    // Insert at the beginning of the queue. The points will be sorted when the
+    // queue is unlocked.
+    // If points are not sorted, they remain in reverse lexicographical order.
+    _evalPointQueue.insert(_evalPointQueue.begin(), evalQueuePoint);
 
 }
 
@@ -227,14 +267,9 @@ bool NOMAD::EvaluatorControl::popEvalPoint(NOMAD::EvalQueuePointPtr &evalQueuePo
 #endif // _OPENMP
     if (!_evalPointQueue.empty())
     {
-#ifdef USE_PRIORITY_QUEUE
-        evalQueuePoint = std::move(_evalPointQueue.top());
-        _evalPointQueue.pop();
-#else
         // Remove last element, simulate a "pop".
         evalQueuePoint = std::move(_evalPointQueue[_evalPointQueue.size()-1]);
         _evalPointQueue.erase(_evalPointQueue.end()-1);
-#endif // USE_PRIORITY_QUEUE
         success = true;
     }
 #ifdef _OPENMP
@@ -251,8 +286,7 @@ bool NOMAD::EvaluatorControl::popBlock(NOMAD::BlockForEval &block)
     bool popWorks = true;
     size_t blockSize = NOMAD::INF_SIZE_T;
     bool gotBlockSize = false;
-    
-
+     
     // NOTE: Some racing conditions may happen with value BB_MAX_BLOCK_SIZE.
     // As a workaround, try to get the attribute until no exception is thrown.
     while (!gotBlockSize)
@@ -284,18 +318,39 @@ bool NOMAD::EvaluatorControl::popBlock(NOMAD::BlockForEval &block)
 }
 
 
-#ifndef USE_PRIORITY_QUEUE
 void NOMAD::EvaluatorControl::sort(NOMAD::ComparePriority comp)
 {
 #ifdef _OPENMP
     omp_set_lock(&_evalQueueLock);
 #endif // _OPENMP
+
+    std::string s;
+    OUTPUT_DEBUG_START
+    s = "Evaluation queue before sort:";
+    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    for (auto evalPoint : _evalPointQueue)
+    {
+        s = "\t" + evalPoint->display();
+        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    }
+    OUTPUT_DEBUG_END
+
     std::sort(_evalPointQueue.begin(), _evalPointQueue.end(), comp);
+
+    OUTPUT_DEBUG_START
+    s = "Evaluation queue after sort:";
+    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    for (auto evalPoint : _evalPointQueue)
+    {
+        s = "\t" + evalPoint->display();
+        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    }
+    OUTPUT_DEBUG_END
+
 #ifdef _OPENMP
     omp_unset_lock(&_evalQueueLock);
 #endif // _OPENMP
 }
-#endif // USE_PRIORITY_QUEUE
 
 
 void NOMAD::EvaluatorControl::clearQueue(const bool waitRunning, const bool showDebug)
@@ -307,10 +362,12 @@ void NOMAD::EvaluatorControl::clearQueue(const bool waitRunning, const bool show
     {
         while (_currentlyRunning > 0)
         {
+            OUTPUT_INFO_START
             std::string s = "Waiting for " + NOMAD::itos(_currentlyRunning);
             s += " evaluations to complete.";
             NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_INFO);
             usleep(10000);
+            OUTPUT_INFO_END
         }
     }
 
@@ -318,20 +375,8 @@ void NOMAD::EvaluatorControl::clearQueue(const bool waitRunning, const bool show
     omp_set_lock(&_evalQueueLock);
 #endif // _OPENMP
 
-#ifdef USE_PRIORITY_QUEUE
-    while (!_evalPointQueue.empty())
-    {
-        if (showDebug)
-        {
-            std::string s = "Delete point from queue: ";
-            auto evalQueuePoint = std::move(_evalPointQueue.top());
-            s += evalQueuePoint.tostring();
-            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-        }
-        _evalPointQueue.pop();
-    }
-#else
     // Queue is a vector: Show all (if showDebug is true), then delete all.
+    OUTPUT_DEBUG_START
     if (showDebug)
     {
         for (auto evalQueuePoint : _evalPointQueue)
@@ -341,8 +386,8 @@ void NOMAD::EvaluatorControl::clearQueue(const bool waitRunning, const bool show
             NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
         }
     }
+    OUTPUT_DEBUG_END
     _evalPointQueue.clear();
-#endif // USE_PRIORITY_QUEUE
 
 #ifdef _OPENMP
     omp_unset_lock(&_evalQueueLock);
@@ -357,6 +402,7 @@ void NOMAD::EvaluatorControl::clearQueue(const bool waitRunning, const bool show
 // Points must already be in the cache.
 NOMAD::SuccessType NOMAD::EvaluatorControl::run()
 {
+
     // Master thread only:
     //  - Reset success
     //  - Set Barrier and flag OpportunisticEval
@@ -381,6 +427,7 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
         if (   NOMAD::AllStopReasons::checkEvalTerminate()
             || NOMAD::AllStopReasons::checkBaseTerminate())
         {
+            OUTPUT_DEBUG_START
             std::string sStopReason = "EvaluatorControl stop reason: ";
             sStopReason += (NOMAD::AllStopReasons::checkBaseTerminate())
                 ? NOMAD::AllStopReasons::getBaseStopReasonAsString() + " (Base) "
@@ -388,6 +435,7 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
 
             NOMAD::OutputQueue::Add(sStopReason, NOMAD::OutputLevel::LEVEL_DEBUG);
             NOMAD::OutputQueue::Flush();
+            OUTPUT_DEBUG_END
         }
         else
         {
@@ -397,12 +445,17 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
         }
 
         _opportunisticEval = _evalContParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
+        _updateCache = _evalContParams->getAttributeValue<bool>("USE_CACHE");
 
+        OUTPUT_DEBUG_START
         std::string s = "Start evaluation. Opportunism = ";
         s += NOMAD::boolToString(_opportunisticEval);
-        s += ", Barrier =";
-        s += ((nullptr == _barrier) ? " NULL" : "\n" + _barrier->display(4)); // Display a maximum of 4 xFeas and 4 xInf
+        s += ", UpdateCache = ";
+        s += NOMAD::boolToString(_updateCache);
+        s += ", Barrier";
+        s += ((nullptr == _barrier) ? " = NULL" : ":\n" + _barrier->display(4)); // Display a maximum of 4 xFeas and 4 xInf
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+        OUTPUT_DEBUG_END
 
     }
 
@@ -474,8 +527,10 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
             #pragma omp master
 #endif // _OPENMP
             {
+                OUTPUT_DEBUG_START
                 std::string s = "Queue is empty and we are done with evaluations.";
                 NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+                OUTPUT_DEBUG_END
             }
             break;
         }
@@ -499,9 +554,11 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
                 || _evalContParams->getAttributeValue<bool>("CLEAR_EVAL_QUEUE"))
                && _currentlyRunning > 0)
         {
+            OUTPUT_INFO_START
             std::string s = "Waiting for " + NOMAD::itos(_currentlyRunning);
             s += " evaluations to complete.";
             NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_INFO);
+            OUTPUT_INFO_END
             usleep(10000);
 
             // Update stopReason in case we found a success
@@ -523,14 +580,17 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
         if (_evalContParams->getAttributeValue<bool>("CLEAR_EVAL_QUEUE"))
         {
             // Remove remaining points from queue, to start fresh next time.
-            // Otherwise, we keep on evaluationg the points remaining in the queue.
+            // Otherwise, we keep on evaluating the points remaining in the queue.
+            OUTPUT_INFO_START
             NOMAD::OutputQueue::Add("Evaluation is done. Clear queue of " + NOMAD::itos(_evalPointQueue.size()) + " points.");
+            OUTPUT_INFO_END
             clearQueue(true /* waitRunning */, false /* showDebug */);
         }
 
         
-
-        NOMAD::OutputQueue::Add("EvaluatorControl stop reason: " + NOMAD::AllStopReasons::getEvalStopReasonAsString() , NOMAD::OutputLevel::LEVEL_DEBUG);
+        OUTPUT_DEBUG_START
+        NOMAD::OutputQueue::Add("EvaluatorControl stop reason: " + NOMAD::AllStopReasons::getEvalStopReasonAsString(), NOMAD::OutputLevel::LEVEL_DEBUG);
+        OUTPUT_DEBUG_END
         NOMAD::OutputQueue::Flush();
         
     }
@@ -566,6 +626,11 @@ bool NOMAD::EvaluatorControl::stopMainEval()
 
     // Update on max eval, valid for all threads
     doStopEval = doStopEval || reachedMaxStepEval() || reachedMaxEval();
+
+    // Inspect on base stop reason
+    bool doStopBase = NOMAD::AllStopReasons::checkBaseTerminate() ;
+
+    OUTPUT_DEBUG_START
     std::string s = "stopMainEval: return true because: ";
     if (doStopEval)
     {
@@ -573,16 +638,13 @@ bool NOMAD::EvaluatorControl::stopMainEval()
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
     }
 
-
-    // Inspect on base stop reason
-    bool doStopBase = NOMAD::AllStopReasons::checkBaseTerminate() ;
     if (doStopBase)
     {
         s += NOMAD::AllStopReasons::getBaseStopReasonAsString() ;
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
     }
-
     NOMAD::OutputQueue::Flush();
+    OUTPUT_DEBUG_END
 
     return ( doStopBase || doStopEval ) ;
 }
@@ -660,13 +722,13 @@ bool NOMAD::EvaluatorControl::reachedMaxEval() const
 bool NOMAD::EvaluatorControl::reachedMaxStepEval() const
 {
     bool ret = false;
-    size_t maxSgteEval  = NOMAD::INF_SIZE_T;
+    size_t maxSgteEval = NOMAD::INF_SIZE_T;
     try
     {
         // TODO: Default for NOMAD 3 is 10000. Default for NOMAD 4 is 100.
         // Look if/how we can increment the number of evaluations without 
         // increasing the time too much.
-        maxSgteEval = _evalContParams->getAttributeValue<size_t>("SGTELIB_MODEL_EVAL_NB");
+        maxSgteEval = _evalContParams->getAttributeValue<size_t>("MAX_SGTE_EVAL");
     }
     catch (NOMAD::Exception &e)
     {
@@ -695,7 +757,9 @@ bool NOMAD::EvaluatorControl::reachedMaxStepEval() const
     {
         if (ret)
         {
+            OUTPUT_DEBUG_START
             NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
         }
     }
 
@@ -712,12 +776,11 @@ void NOMAD::EvaluatorControl::displayDebugWaitingInfo(time_t &lastDisplayed) con
     time(&now);
     if (difftime(now, lastDisplayed) >= 1)
     {
-        if (NOMAD::OutputQueue::getInstance()->getDisplayDegree() >= 4)
-        {
-            std::string s = "Thread: " + NOMAD::itos(omp_get_thread_num());
-            s += " Waiting for points.";
-            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-        }
+        OUTPUT_DEBUG_START
+        std::string s = "Thread: " + NOMAD::itos(omp_get_thread_num());
+        s += " Waiting for points.";
+        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+        OUTPUT_DEBUG_END
         lastDisplayed = now;
     }
 #endif // _OPENMP
@@ -732,6 +795,7 @@ void NOMAD::EvaluatorControl::AddStatsInfo(const NOMAD::BlockForEval& block) con
     {
         return;
     }
+    OUTPUT_STATS_START
     for (auto it = block.begin(); it < block.end(); it++)
     {
         NOMAD::EvalQueuePointPtr evalQueuePoint = (*it);
@@ -765,6 +829,8 @@ void NOMAD::EvaluatorControl::AddStatsInfo(const NOMAD::BlockForEval& block) con
         stats->setBBO(evalQueuePoint->getBBO(NOMAD::EvalType::BB));
         stats->setEval(_nbEvalSentToEvaluator);
         stats->setCacheHits(NOMAD::CacheBase::getNbCacheHits());
+        stats->setCacheSize(NOMAD::CacheBase::getInstance()->size());
+        stats->setIterNum(evalQueuePoint->getK());
         stats->setTime(NOMAD::Clock::getTimeSinceStart());
         stats->setMeshIndex(unknownMeshIndex);
         stats->setMeshSize(evalQueuePoint->getMeshSize());
@@ -780,6 +846,7 @@ void NOMAD::EvaluatorControl::AddStatsInfo(const NOMAD::BlockForEval& block) con
         outputInfo.setStatsInfo(std::move(stats));
         NOMAD::OutputQueue::Add(std::move(outputInfo));
     }
+    OUTPUT_STATS_END
 }
 
 
@@ -818,10 +885,10 @@ void NOMAD::EvaluatorControl::computeSuccess(NOMAD::EvalQueuePointPtr evalQueueP
         NOMAD::EvalPointPtr xFeas, xInf;
         if (nullptr != _barrier)
         {
-            // Use first xFeas and xInf - their Eval must be equivalent, and it
-            // is the only part that is used for comparison.
-            xFeas = _barrier->getFirstXFeas();
-            xInf  = _barrier->getFirstXInf();
+            // Use best xFeas and xInf for comparison.
+            // Only the Eval part is used.
+            xFeas = _barrier->getRefBestFeas();
+            xInf  = _barrier->getRefBestInf();
         }
 
         NOMAD::ComputeSuccessType computeSuccessType;
@@ -830,7 +897,7 @@ void NOMAD::EvaluatorControl::computeSuccess(NOMAD::EvalQueuePointPtr evalQueueP
             // Feasible - Compare with xFeas
             success = computeSuccessType(evalQueuePoint, xFeas);
         }
-        else
+        else if (!evalQueuePoint->isFeasible(getEvalType()))
         {
             // Infeasible - Compare with xInf
             success = computeSuccessType(evalQueuePoint, xInf, hMax);
@@ -839,10 +906,12 @@ void NOMAD::EvaluatorControl::computeSuccess(NOMAD::EvalQueuePointPtr evalQueueP
 
     evalQueuePoint->setSuccess(success);
 
+    OUTPUT_DEBUG_START
     std::string s = NOMAD::evalTypeToString(getEvalType()) + " Evaluation done for ";
     s += evalQueuePoint->displayAll();
     s += ". Success found: " + NOMAD::enumStr(evalQueuePoint->getSuccess());
     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    OUTPUT_DEBUG_END
 }
 
 
@@ -893,12 +962,15 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
 
     // NOTE: Put everything in a single OutputInfo structure and then
     // add it to the OutputQueue all at once when the thread part is done.
+    std::string s_thread_info;
+    OUTPUT_DEBUG_START
     std::string s_thread_num = "0";
 #ifdef _OPENMP
     s_thread_num = NOMAD::itos(omp_get_thread_num());
 #endif // _OPENMP
-    std::string s_thread_info = "Thread = " + s_thread_num;
+    s_thread_info = "Thread = " + s_thread_num;
     // Use "EvaluatorControl" as originator.
+    OUTPUT_DEBUG_END
     NOMAD::OutputInfo evalInfo("EvaluatorControl", s_thread_info, NOMAD::OutputLevel::LEVEL_DEBUG);
 
     // Evaluation of the block
@@ -909,9 +981,22 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
             std::shared_ptr<NOMAD::EvalPoint> evalPoint = (*it);
             updateEvalStatusBeforeEval(*evalPoint);
         }
+        OUTPUT_INFO_START
         std::string startMsg = "Start evaluation of block of " + NOMAD::itos(block.size()) + " points.";
         evalInfo.addMsg(startMsg);
+        OUTPUT_INFO_END
+#ifdef TIME_STATS
+        double evalStartTime = NOMAD::Clock::getCPUTime();
+#endif // TIME_STATS
         evalOk = _evaluator->eval_block(block, hMax, countEval);
+#ifdef TIME_STATS
+#ifdef _OPENMP
+        #pragma omp critical(computeEvalTime)
+#endif // _OPENMP
+        {
+            _evalTime += NOMAD::Clock::getCPUTime() - evalStartTime;
+        }
+#endif // TIME_STATS
 
         // Note: _bbEval, _lapBbEval, _sgteEval, and _nbEvalSentToEvaluator are atomic.
         // Add evals that count to _bbEval, _lapBbEval and _sgteEval.
@@ -954,7 +1039,9 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
         {
             std::string modifMsg = "Warning: EvaluatorControl: Point ";
             modifMsg += evalPoint.display() + ": Eval ok but f not defined. Setting evalOk to false.";
+            OUTPUT_INFO_START
             evalInfo.addMsg(modifMsg);
+            OUTPUT_INFO_END
             std::cerr << modifMsg << std::endl;
 
             evalOk[index] = false;
@@ -968,14 +1055,27 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
             throw NOMAD::Exception(__FILE__, __LINE__, err);
         }
 
-        // Update cache
-        NOMAD::CacheBase::getInstance()->update(evalPoint, getEvalType());
+        if (_updateCache)
+        {
+            // Update cache
+            NOMAD::CacheBase::getInstance()->update(evalPoint, getEvalType());
+        }
+        // Also put points in _evaluatedPoints,
+        // so the user can get back evaluation info (especially if cache is not used)
+#ifdef _OPENMP
+        #pragma omp critical(addEvaluatedPoint)
+#endif // _OPENMP
+        {
+            _evaluatedPoints.push_back(evalPoint);
+        }
     }
 
     // One more block evaluated.
     _blockEval++;
 
+    OUTPUT_INFO_START
     NOMAD::OutputQueue::Add(std::move(evalInfo));
+    OUTPUT_INFO_END
 
     return evalOk;
 }
@@ -987,16 +1087,22 @@ void NOMAD::EvaluatorControl::updateEvalStatusBeforeEval(NOMAD::EvalPoint &evalP
     std::string err;
     // Find the EvalPoint in the cache and set its eval status to IN_PROGRESS.
     NOMAD::EvalPoint foundEvalPoint;
-    size_t nbFound = NOMAD::CacheBase::getInstance()->find(evalPoint, foundEvalPoint);
-    if (nbFound == 0)
+    if (_updateCache)
     {
-        err = "NOMAD::EvaluatorControl: updateEvalStatusBeforeEval: EvalPoint not found: ";
-        err += evalPoint.display();
-        //throw NOMAD::Exception(__FILE__, __LINE__, err);
-        // Don't throw an exception, for now - make it a Warning.
-        err = "Warning: " + err;
-        NOMAD::OutputQueue::Add(err);
-        return;
+        if (!NOMAD::CacheBase::getInstance()->find(evalPoint, foundEvalPoint))
+        {
+            err = "NOMAD::EvaluatorControl: updateEvalStatusBeforeEval: EvalPoint not found: ";
+            err += evalPoint.display();
+            //throw NOMAD::Exception(__FILE__, __LINE__, err);
+            // Don't throw an exception, for now - make it a Warning.
+            err = "Warning: " + err;
+            NOMAD::OutputQueue::Add(err);
+            return;
+        }
+    }
+    else
+    {
+        foundEvalPoint = evalPoint;
     }
 
     NOMAD::EvalStatusType evalStatus = foundEvalPoint.getEvalStatus(evalType);
@@ -1006,8 +1112,11 @@ void NOMAD::EvaluatorControl::updateEvalStatusBeforeEval(NOMAD::EvalPoint &evalP
         || evalStatus == NOMAD::EvalStatusType::EVAL_CONS_H_OVER
         || evalStatus == NOMAD::EvalStatusType::EVAL_OK)
     {
-        err = "Warning: Point " + foundEvalPoint.display() + " will be re-evaluated.";
-        NOMAD::OutputQueue::Add(err, NOMAD::OutputLevel::LEVEL_WARNING);
+        if (NOMAD::EvalType::BB == evalType)
+        {
+            err = "Warning: Point " + foundEvalPoint.display() + " will be re-evaluated.";
+            NOMAD::OutputQueue::Add(err, NOMAD::OutputLevel::LEVEL_WARNING);
+        }
     }
     else if (evalStatus == NOMAD::EvalStatusType::EVAL_IN_PROGRESS)
     {
@@ -1031,7 +1140,10 @@ void NOMAD::EvaluatorControl::updateEvalStatusBeforeEval(NOMAD::EvalPoint &evalP
     }
 
     evalPoint.setEvalStatus(NOMAD::EvalStatusType::EVAL_IN_PROGRESS, evalType);
-    NOMAD::CacheBase::getInstance()->update(evalPoint, evalType);
+    if (_updateCache)
+    {
+        NOMAD::CacheBase::getInstance()->update(evalPoint, evalType);
+    }
 }
 
 

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -80,6 +81,12 @@ protected:
     std::shared_ptr<MegaIteration>   _megaIteration;    ///< MegaIteration used to keep information between steps
 
     bool _endDisplay;
+
+#ifdef TIME_STATS
+    double _startTime;
+    double _totalRealAlgoTime;
+    double _totalCPUAlgoTime;
+#endif // TIME_STATS
     
 public:
     /// Constructor
@@ -98,6 +105,11 @@ public:
         _termination(nullptr),
         _megaIteration(nullptr),
         _endDisplay(true)
+#ifdef TIME_STATS
+        ,_startTime(0.0),
+        _totalRealAlgoTime(0.0),
+        _totalCPUAlgoTime(0.0)
+#endif // TIME_STATS
     {
         init();
     }
@@ -109,6 +121,7 @@ public:
     /* Get/Set */
     /*---------*/
     const std::shared_ptr<MegaIteration> getMegaIteration() const { return _megaIteration; }
+    void setMegaIteration(const std::shared_ptr<MegaIteration> megaIteration) { _megaIteration = megaIteration; }
 
     void setEndDisplay( bool endDisplay ) {_endDisplay = endDisplay; }
     
@@ -122,13 +135,13 @@ protected:
      If doing a hot restart get the algorithm ready to continue. \n
      If starting a new algorithm, reset the stop reason, the lap evaluation counter, and perform initialization.
      */
-    virtual void startImp() override ;
+    virtual void startImp() override;
 
     /// Default implementaion of the end tasks of an algorithm
     /**
      Display some information, reset the lap counters and save information for a potential hot restart.
      */
-    virtual void endImp() override ;
+    virtual void endImp() override;
 
     /// Each algorithm must implement its run tasks.
     /**
@@ -148,7 +161,7 @@ protected:
     void displayEvalCounts() const;
 
     /// Helper for hot restart
-    void hotRestartOnUserInterrupt() override ;
+    void hotRestartOnUserInterrupt() override;
 
 public:
     
@@ -165,7 +178,7 @@ public:
     bool terminate(size_t iteration);
         
     virtual void read(std::istream& is);
-    virtual void display(std::ostream& os) const ;
+    virtual void display(std::ostream& os) const;
     
 };
 

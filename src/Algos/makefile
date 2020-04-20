@@ -7,6 +7,9 @@ endif
 ifdef NOOMP
 $(info Not using OpenMP)
 endif
+ifneq ($(USE_SGTELIB), 0)
+    USE_SGTELIB = 1
+endif
 
 
 UNAME := $(shell uname)
@@ -23,13 +26,15 @@ LH_DIRNAME          = $(COMPONENT_DIRNAME)/LatinHypercubeSampling
 MADS_DIRNAME        = $(COMPONENT_DIRNAME)/Mads
 NM_DIRNAME          = $(COMPONENT_DIRNAME)/NelderMead
 PHASEONE_DIRNAME    = $(COMPONENT_DIRNAME)/PhaseOne
-SGTELIBMODEL_DIRNAME = $(COMPONENT_DIRNAME)/SgtelibModel
+SGTELIBMODEL_DIRNAME= $(COMPONENT_DIRNAME)/SgtelibModel
+QUADMODEL_DIRNAME   = $(COMPONENT_DIRNAME)/QuadModel
 
 LH_COMPONENT        = $(SRC_DIR)/$(LH_DIRNAME)
 MADS_COMPONENT      = $(SRC_DIR)/$(MADS_DIRNAME)
 NM_COMPONENT        = $(SRC_DIR)/$(NM_DIRNAME)
 PHASEONE_COMPONENT  = $(SRC_DIR)/$(PHASEONE_DIRNAME)
 SGTELIBMODEL_COMPONENT = $(SRC_DIR)/$(SGTELIBMODEL_DIRNAME)
+QUADMODEL_COMPONENT = $(SRC_DIR)/$(QUADMODEL_DIRNAME)
 
 ALL_FILES           = Algorithm AlgoStopReasons AllStopReasons CacheInterface \
                       EvcInterface Initialization Iteration IterationUtils \
@@ -50,11 +55,11 @@ ifndef NOOMP
 # Use OpenMP for parallelism (threads)
 CXXFLAGS            += -fopenmp
 endif
-ifdef USE_PRIORITY_QUEUE
-CXXFLAGS            += -DUSE_PRIORITY_QUEUE
-endif
 ifeq ($(USE_SGTELIB), 1)
 CXXFLAGS            += -DUSE_SGTELIB
+endif
+ifeq ($(TIME_STATS), 1)
+CXXFLAGS            += -DTIME_STATS
 endif
 
 
@@ -71,6 +76,7 @@ all: $(ALL_INCLUDE_HEADERS) $(ALL_OBJ)
 	@cd $(PHASEONE_COMPONENT) && $(MAKE) all
 ifeq ($(USE_SGTELIB), 1)
 	@cd $(SGTELIBMODEL_COMPONENT) && $(MAKE) all
+	@cd $(QUADMODEL_COMPONENT) && $(MAKE) all
 endif
 	@echo
 
@@ -91,3 +97,4 @@ clean:
 	@cd $(NM_COMPONENT) && $(MAKE) clean
 	@cd $(PHASEONE_COMPONENT) && $(MAKE) clean
 	@cd $(SGTELIBMODEL_COMPONENT) && $(MAKE) clean
+	@cd $(QUADMODEL_COMPONENT) && $(MAKE) clean

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -62,6 +63,7 @@
 #include "../Algos/Mads/Mads.hpp"
 #ifdef USE_SGTELIB
 #include "../Algos/SgtelibModel/SgtelibModel.hpp"
+#include "../Algos/QuadModel/QuadModelAlgo.hpp"
 #endif
 #include "../Algos/PhaseOne/PhaseOne.hpp"
 #include "../Algos/NelderMead/NM.hpp"
@@ -99,6 +101,10 @@ void NOMAD::MainStep::init()
 
     // Start the clock
     NOMAD::Clock::reset();
+
+    // Reset last successful dir
+    NOMAD::Direction dir(_pbParams->getAttributeValue<size_t>("DIMENSION"));
+    NOMAD::OrderByDirection::setLastSuccessfulDir(dir);
 }
 
 
@@ -232,6 +238,10 @@ void NOMAD::MainStep::startImp()
 
     // Currently this does nothing.
     NOMAD::EvcInterface::getEvaluatorControl()->start();
+    // VRM: Temporary: set comparison function for sorting eval queue.
+    // This should be refactored: getting sort parameters and sorting
+    // eval queue should all be managed inside EvaluatorControl::sort().
+    NOMAD::ComparePriority::setComp(NOMAD::OrderByDirection::comp);
 
     // TODO Create multiple subproblems / groups of variables.
     // Currently, we manage a single subproblem, based on the parameter
@@ -244,9 +254,11 @@ void NOMAD::MainStep::startImp()
     _subproblems.push_back(subproblem);
 
     // Create the Algorithms that we want to solve.
-    // Currently available: PhaseOne, Mads, LH, NM, SgtelibModel
+    // Currently available: PhaseOne, Mads, LH, NM, SgtelibModelEval,
+    // QuadModelOptimization
     // Note: These algorithm parameters are mutually exclusive:
-    // LH_EVAL NM_OPTIMIZATION SGTELIB_MODEL_EVAL.
+    // LH_EVAL NM_OPTIMIZATION QUAD_MODEL_OPTIMIZATION
+    // SGTELIB_MODEL_EVAL.
     // This is caught by checkAndComply().
     _algos.clear();
 
@@ -254,6 +266,7 @@ void NOMAD::MainStep::startImp()
     auto doNMOptimization = _allParams->getRunParams()->getAttributeValue<bool>("NM_OPTIMIZATION");
 #ifdef USE_SGTELIB
     bool doSgtelibModelEval = _allParams->getRunParams()->getAttributeValue<bool>("SGTELIB_MODEL_EVAL");
+    bool doQuadModelOpt = _allParams->getRunParams()->getAttributeValue<bool>("QUAD_MODEL_OPTIMIZATION");
 #endif
 
     if ( nbLHEval > 0 )
@@ -293,7 +306,7 @@ void NOMAD::MainStep::startImp()
 #ifdef USE_SGTELIB
     else if (doSgtelibModelEval)
     {
-        auto sgtelibModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::SgtelibModelStopType>>();
+        auto sgtelibModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
 
         // All the Sgtelib Model sample points are evaluated. No opportunism.
         _allParams->setAttributeValue("OPPORTUNISTIC_EVAL", false);
@@ -312,6 +325,21 @@ void NOMAD::MainStep::startImp()
                                                         nullptr);   // no mesh
         _algos.push_back(sgtelibModel);
     }
+    else if (doQuadModelOpt)
+    {
+        auto quadModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
+
+        // All the Sgtelib Model sample points are evaluated sequentially. No opportunism.
+        _allParams->setAttributeValue("OPPORTUNISTIC_EVAL", false);
+        _allParams->setAttributeValue("GENERATE_ALL_POINTS_BEFORE_EVAL", false);
+        _allParams->checkAndComply();
+
+        auto quadModelAlgo = std::make_shared<NOMAD::QuadModelAlgo>(this,
+                                                        quadModelStopReasons,
+                                                        _allParams->getRunParams(),
+                                                        getCurrentSubproblem()->getPbParams());
+        _algos.push_back(quadModelAlgo);
+    }
 #endif // USE_SGTELIB
     else
     {
@@ -328,26 +356,17 @@ void NOMAD::MainStep::startImp()
                                                               PhaseOneStopReasons,
                                                               _allParams->getRunParams(),
                                                               getCurrentSubproblem()->getPbParams());
+            // Ensure PhaseOne does not show found solutions
+            phaseOne->setEndDisplay(false);
             NOMAD::PhaseOne::setBBOutputTypes(_allParams->getEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
             _algos.push_back(phaseOne);
-
-            // TODO At this point, we may want to use setMegaIteration(), e.g. to ensure the MAX_ITERATION is not over.
-            // Based on the code for hot restart:
-            /*
-             // Create a GMesh and an MegaIteration with default values, to be filled
-             // by istream is.
-             auto barrier = std::make_shared<NOMAD::Barrier>();
-             int k = 0;
-             auto mesh = std::shared_ptr<NOMAD::MeshBase>(new NOMAD::GMesh(_allParams->getPbParams()));
-             NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
-             auto megaIter = std::shared_ptr<NOMAD::MegaIteration>(new NOMAD::MegaIteration(this, k, barrier, mesh, success));
-             setMegaIteration(megaIter);
-             */
 
             auto mads = std::make_shared<NOMAD::Mads>(this,
                                                       stopReasons ,
                                                       _allParams->getRunParams(),
                                                       getCurrentSubproblem()->getPbParams());
+            // Get MegaIteration from PhaseOne to continue optimization
+            mads->setMegaIteration(phaseOne->getMegaIteration());
             _algos.push_back(mads);
         }
         else
@@ -503,12 +522,14 @@ void NOMAD::MainStep::updateX0sFromCache() const
         // For this reason, use cache instance directly, not CacheInterface.
         auto fixedVariable = _allParams->getPbParams()->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE");
         NOMAD::CacheBase::getInstance()->findBestFeas(evalPointList,
-                                                fixedVariable, getEvalType());
+                                                fixedVariable, getEvalType(),
+                                                nullptr);
         if (0 == evalPointList.size())
         {
             auto hMax = _allParams->getRunParams()->getAttributeValue<NOMAD::Double>("H_MAX_0");
             NOMAD::CacheBase::getInstance()->findBestInf(evalPointList,
-                                                hMax, fixedVariable, getEvalType());
+                                                hMax, fixedVariable,
+                                                getEvalType(), nullptr);
         }
         if (0 == evalPointList.size())
         {

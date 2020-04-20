@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -53,10 +54,10 @@
 
 void NOMAD::SgtelibModelIteration::init()
 {
-    _name = getAlgoName() + NOMAD::Iteration::getName();
+    _name = NOMAD::Iteration::getName();
 
     // Initialize optimize member - model optimizer on sgte
-    auto modelAlgo = dynamic_cast<const NOMAD::SgtelibModel*>(getParentOfType<NOMAD::SgtelibModel*>());
+    auto modelAlgo = getParentOfType<NOMAD::SgtelibModel*>();
     _optimize = std::make_shared<NOMAD::SgtelibModelOptimize>(modelAlgo,
                                                     _runParams, _pbParams);
 }
@@ -82,7 +83,7 @@ bool NOMAD::SgtelibModelIteration::runImp()
 
     // Model Update is handled in start().
 
-    auto modelAlgo = dynamic_cast<const NOMAD::SgtelibModel*>(getParentOfType<NOMAD::SgtelibModel*>());
+    auto modelAlgo = getParentOfType<NOMAD::SgtelibModel*>();
     if (!_stopReasons->checkTerminate() && modelAlgo->isReady())
     {
         // Use the optimizer to find oracle points on this model

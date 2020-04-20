@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -194,7 +195,8 @@ int main (int argc, char **argv)
     NOMAD::CacheBase::getInstance()->resetNbCacheHits();
     NOMAD::EvcInterface::getEvaluatorControl()->setNbEval(0);
     std::vector<NOMAD::EvalPoint> bestFeasList;
-    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(), NOMAD::EvalType::BB);
+    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
+                                                  NOMAD::EvalType::BB, nullptr);
     // NB. Assuming the list is non-empty.
     NOMAD::Point x02 = *(bestFeasList[0].getX());
     initParams2(*params, x02);
@@ -212,7 +214,8 @@ int main (int argc, char **argv)
     // Part 3: FIXED_VARIABLE 3-4
     NOMAD::CacheBase::getInstance()->resetNbCacheHits();
     NOMAD::EvcInterface::getEvaluatorControl()->setNbEval(0);
-    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(), NOMAD::EvalType::BB);
+    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
+                                                  NOMAD::EvalType::BB, nullptr);
     NOMAD::Point x03 = *(bestFeasList[0].getX());
     initParams3(*params , x03);
     try
@@ -227,7 +230,8 @@ int main (int argc, char **argv)
     }
 
     // Final part: No fixed variable
-    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(), NOMAD::EvalType::BB);
+    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
+                                                  NOMAD::EvalType::BB, nullptr);
     NOMAD::Point x0final = *(bestFeasList[0].getX());
     initParamsFinal(*params,x0final);
     try

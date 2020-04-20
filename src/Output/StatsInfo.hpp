@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -87,11 +88,13 @@ enum class DisplayStatsType
     DS_BBO        ,    ///< All blackbox outputs
     DS_EVAL       ,    ///< Number of evaluations
     DS_CACHE_HITS ,    ///< Number of cache hits
+    DS_CACHE_SIZE ,    ///< Number of points in cache
+    DS_ITER_NUM   ,    ///< Iteration number
     DS_TIME       ,    ///< Wall-clock time
     DS_MESH_INDEX ,    ///< Mesh index
     DS_MESH_SIZE  ,    ///< Mesh size parameter Delta^m_k
     DS_DELTA_M    ,    ///< Same as \c DS_MESH_SIZE
-    DS_FRAME_SIZE  ,   ///< Frame size parameter Delta^f_k
+    DS_FRAME_SIZE ,    ///< Frame size parameter Delta^f_k
     DS_DELTA_F    ,    ///< Same as \c DS_FRAME_SIZE
     DS_SOL        ,    ///< Solution vector
     DS_THREAD_NUM ,    ///< Thread number in which this evaluation was done
@@ -125,6 +128,8 @@ private:
     std::string     _bbo;
     size_t          _eval;
     size_t          _cacheHits;
+    size_t          _cacheSize;
+    size_t          _iterNum;
     size_t          _time;
     ArrayOfDouble   _meshIndex;
     ArrayOfDouble   _meshSize;
@@ -163,6 +168,8 @@ public:
     void setBBO(const std::string& bbo)             { _bbo = bbo; }
     void setEval(const size_t eval)                 { _eval = eval; }
     void setCacheHits(const size_t cacheHits)       { _cacheHits = cacheHits; }
+    void setCacheSize(const size_t cacheSize)       { _cacheSize = cacheSize; }
+    void setIterNum(const size_t iterNum)           { _iterNum = iterNum; }
     void setTime(const size_t time)                 { _time = time; }
     void setMeshIndex(const ArrayOfDouble meshIndex) { _meshIndex = meshIndex; }
     void setMeshSize(const ArrayOfDouble meshSize)   { _meshSize = meshSize; }

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -55,8 +56,7 @@
 
 NOMAD::ComputeSuccessFunction NOMAD::ComputeSuccessType::_computeSuccessType = NOMAD::ComputeSuccessType::defaultComputeSuccessType;
 
-const std::string NOMAD::EvalPoint::ptFrom = "<";
-
+size_t NOMAD::EvalPoint::_currentTag = 0;
 
 /*---------------------------------------------------------------------*/
 /*                            Constructor 1                            */
@@ -65,6 +65,7 @@ NOMAD::EvalPoint::EvalPoint ()
   : Point(),
     _eval(nullptr),
     _evalSgte(nullptr),
+    _tag(0),
     _numberEval(0),
     _pointFrom(nullptr)
 {
@@ -78,6 +79,7 @@ NOMAD::EvalPoint::EvalPoint(size_t n)
   : NOMAD::Point(n),
     _eval(nullptr),
     _evalSgte(nullptr),
+    _tag(0),
     _numberEval(0),
     _pointFrom(nullptr)
 {
@@ -91,6 +93,7 @@ NOMAD::EvalPoint::EvalPoint(const NOMAD::Point &x)
   : Point(x),
     _eval(nullptr),
     _evalSgte(nullptr),
+    _tag(0),
     _numberEval(0),
     _pointFrom(nullptr)
 {
@@ -114,6 +117,7 @@ NOMAD::EvalPoint::EvalPoint(const NOMAD::EvalPoint &evalPoint)
 /*---------------------------------------------------------------------*/
 void NOMAD::EvalPoint::copyMembers(const NOMAD::EvalPoint &evalPoint)
 {
+    _tag = evalPoint._tag;
     _numberEval = evalPoint._numberEval;
 
     _eval = nullptr;
@@ -146,6 +150,7 @@ NOMAD::EvalPoint & NOMAD::EvalPoint::operator=(const NOMAD::EvalPoint &evalPoint
 
     Point::operator=(evalPoint);
 
+    _tag = evalPoint._tag;
     _numberEval = evalPoint._numberEval;
 
     _pointFrom = evalPoint._pointFrom;
@@ -196,6 +201,7 @@ bool NOMAD::EvalPoint::operator== (const NOMAD::EvalPoint &evalPoint) const
     // First compare Points.
     bool equal = Point::operator==(evalPoint);
 
+    // Ignore tag.
     // Ignore numberEval.
     // Ignore pointFrom.
 
@@ -615,6 +621,21 @@ void NOMAD::EvalPoint::setEvalStatus(const NOMAD::EvalStatusType &evalStatus,
 }
 
 
+// This method is declared const so we can use it inside a const method.
+void NOMAD::EvalPoint::updateTag() const
+{
+    if (_tag==0)
+    {
+        _currentTag++;
+        _tag = _currentTag;
+    }
+}
+void NOMAD::EvalPoint::resetCurrentTag()
+{
+    _currentTag = 0;
+}
+
+
 const std::shared_ptr<NOMAD::Point> NOMAD::EvalPoint::getPointFrom(const NOMAD::Point& fixedVariable) const
 {
     auto pointFrom = _pointFrom;
@@ -746,7 +767,8 @@ bool NOMAD::EvalPoint::toEval(short maxPointEval, const NOMAD::EvalType& evalTyp
 // but watch out for displayed precision.
 std::string NOMAD::EvalPoint::display(const NOMAD::ArrayOfDouble &format) const
 {
-    std::string s = NOMAD::Point::display(format);
+    std::string s = "#" + std::to_string(_tag) + " ";
+    s += NOMAD::Point::display(format);
     if (nullptr != _eval)
     {
         s += "\t";
@@ -759,7 +781,8 @@ std::string NOMAD::EvalPoint::display(const NOMAD::ArrayOfDouble &format) const
 // Show both eval and evalSgte. For debugging purposes.
 std::string NOMAD::EvalPoint::displayAll() const
 {
-    std::string s = NOMAD::Point::display();
+    std::string s = "#" + std::to_string(_tag) + " ";
+    s += NOMAD::Point::display();
     if (nullptr != _eval)
     {
         s += "\t";
@@ -866,22 +889,6 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalPoint &evalPoint)
 
         evalPoint = NOMAD::EvalPoint(point);
 
-        is >> s;
-        if (NOMAD::EvalPoint::ptFrom == s)
-        {
-            // Found start of pointFrom.
-            is >> pointFrom;
-            evalPoint.setPointFrom(std::make_shared<NOMAD::Point>(pointFrom));
-        }
-        else
-        {
-            // Put back whole read string to istream
-            for (unsigned i = 0; i < s.size(); i++)
-            {
-                is.unget();
-            }
-        }
-
         // Read Eval - if following field is an EvalStatus.
         is >> evalStatus;
         if (NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED != evalStatus)
@@ -912,6 +919,25 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalPoint &evalPoint)
     return is;
 }
 
+
+bool NOMAD::findInList(const NOMAD::Point& point,
+                       const std::vector<NOMAD::EvalPoint>& evalPointList,
+                       NOMAD::EvalPoint& foundEvalPoint)
+{
+    bool found = false;
+
+    for (auto evalPoint : evalPointList)
+    {
+        if (point == *evalPoint.getX())
+        {
+            foundEvalPoint = evalPoint;
+            found = true;
+            break;
+        }
+    }
+
+    return found;
+}
 
 
 #ifdef USE_UNORDEREDSET

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -67,7 +68,7 @@ NOMAD::OutputQueue::OutputQueue()
     _objWidth(),
     _hWidth(),
     _maxStepLevel(20),   // outputInfos with step level > 20 won't be printed.
-    _maxOutputLevel(NOMAD::OutputLevel::LEVEL_NORMAL),  // Level of details for display
+    _maxOutputLevel(NOMAD::OutputLevel::LEVEL_DEBUGDEBUG),  // Level of details for display
     _indentLevel(0),
     _blockStart("{"),
     _blockEnd("}")
@@ -161,7 +162,18 @@ void NOMAD::OutputQueue::initParameters(const std::shared_ptr<NOMAD::DisplayPara
 }
 
 
-//
+bool NOMAD::OutputQueue::goodLevel(const OutputLevel& outputLevel) const
+{
+    if (outputLevel <= _maxOutputLevel)
+    {
+        return true;
+    }
+
+    return (outputLevel <= NOMAD::OutputLevel::LEVEL_STATS
+            && !_statsFile.empty());
+}
+
+
 // Get level of details in output
 int NOMAD::OutputQueue::getDisplayDegree() const
 {
@@ -240,6 +252,11 @@ void NOMAD::OutputQueue::setDisplayDegree(const int displayDegree)
 // Add Output info
 void NOMAD::OutputQueue::add(NOMAD::OutputInfo outputInfo)
 {
+    if (!goodLevel(outputInfo.getOutputLevel()))
+    {
+        return;
+    }
+
 #ifdef _OPENMP
     // Acquire lock before adding a new element to the queue
     omp_set_lock(&_s_queue_lock);
@@ -252,6 +269,11 @@ void NOMAD::OutputQueue::add(NOMAD::OutputInfo outputInfo)
 
 void NOMAD::OutputQueue::add(const std::string & s, NOMAD::OutputLevel outputLevel)
 {
+    if (!goodLevel(outputLevel))
+    {
+        return;
+    }
+
     // Warning: No originator in this case
     OutputInfo outputInfo("", s, outputLevel);
 

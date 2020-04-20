@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -68,16 +69,17 @@ void NOMAD::Mads::init()
 bool NOMAD::Mads::runImp()
 {
     size_t k = 0;   // Iteration number
+    NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
+    bool runOk = true;
+    
     if (!_termination->terminate(k))
     {
         // Create mesh with default parameters values.
         std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
-        // Barrier constructor automatically finds the best points in the cache.
-        auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-        auto barrier = std::make_shared<NOMAD::Barrier>(hMax, getSubFixedVariable(), getEvalType());
-        NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
+        // TODO Review case hot restart.
+        /*
         if (nullptr != _megaIteration)
         {
             // Case hot restart
@@ -88,6 +90,15 @@ bool NOMAD::Mads::runImp()
             mesh    = (std::dynamic_pointer_cast<NOMAD::MadsMegaIteration> (_megaIteration ))->getMesh();
             megaIterSuccess = _megaIteration->getSuccessType();
         }
+        */
+
+        auto barrier = _initialization->getBarrier();
+
+        // Mads member _megaIteration is used for hot restart (read and write),
+        // as well as to keep values used in Mads::end(), and may be used for _termination.
+        // Update it here.
+        _megaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, k, barrier, mesh, megaIterSuccess);
+
 
         while (!_termination->terminate(k))
         {
@@ -109,17 +120,18 @@ bool NOMAD::Mads::runImp()
                 hotRestartOnUserInterrupt();
             }
         }
-
-        // Mads member _megaIteration is used for hot restart (read
-        // and write), as well as to keep values used in Mads::end(). Update it here.
-        _megaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, k, barrier, mesh, megaIterSuccess);
     }
 
+    else
+    {
+        runOk = false;
+    }
+    
     _termination->start();
     _termination->run();
     _termination->end();
 
-    return true;
+    return runOk;
 }
 
 

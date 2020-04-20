@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -44,6 +45,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
+#include "../../Algos/Mads/MadsMegaIteration.hpp"
 
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelEvaluator.hpp"
@@ -280,7 +283,11 @@ NOMAD::ArrayOfDouble NOMAD::SgtelibModel::getExtendedUpperBound() const
 // Start is executed when SgtelibModel is used as an algorithm on its own.
 void NOMAD::SgtelibModel::startImp()
 {
+
+    // Manages initialization among other things.
     NOMAD::Algorithm::startImp();
+    
+    
     // Comment to appear at the end of stats lines
     NOMAD::MainStep::setAlgoComment("(SgtelibModel)");
 
@@ -289,13 +296,11 @@ void NOMAD::SgtelibModel::startImp()
     NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(
                                 NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
 
-    // There is no upper step, so barrier is not inherited.
-    // Compute it from Cache.
-    // This barrier is used to compute X0s only.
+    // There is no upper step, so barrier is not inherited from an Algorithm Ancestor.
+    // Barrier was computed in the Initialization step.
     // This barrier is in subspace.
-    auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
     // X0s are found relative to BB, not SGTE
-    _barrierForX0s = std::make_shared<NOMAD::Barrier>(hMax, getSubFixedVariable(), NOMAD::EvalType::BB);
+    _barrierForX0s = _initialization->getBarrier();
 
 }
 
@@ -310,10 +315,18 @@ bool NOMAD::SgtelibModel::runImp()
         // This barrier is not the same as the _barrierForX0s member, which
         // is used for model optimization.
         // This barrier is used for MegaIteration management.
-        auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-        auto barrier = std::make_shared<NOMAD::Barrier>(hMax, getSubFixedVariable(), NOMAD::EvalType::BB);
+        std::vector<NOMAD::EvalPoint> evalPointList;
+        auto barrier = _initialization->getBarrier();
+        if (nullptr == barrier)
+        {
+            auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+            barrier = std::make_shared<NOMAD::Barrier>(hMax, getSubFixedVariable(),
+                                                       NOMAD::EvalType::BB);
+        }
         NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
+        // TODO fix this
+        /*
         if (nullptr != _megaIteration)
         {
             // Case hot restart
@@ -321,6 +334,7 @@ bool NOMAD::SgtelibModel::runImp()
             barrier = _megaIteration->getBarrier();
             megaIterSuccess = _megaIteration->getSuccessType();
         }
+        */
 
         while (!_termination->terminate(k))
         {
@@ -489,23 +503,13 @@ size_t NOMAD::SgtelibModel::getNbModels(const NOMAD::SgtelibModelFeasibilityType
 }
 
 
-std::vector<NOMAD::EvalPointPtr> NOMAD::SgtelibModel::getX0s() const
+std::vector<NOMAD::EvalPoint> NOMAD::SgtelibModel::getX0s() const
 {
-    std::vector<NOMAD::EvalPointPtr> x0s;
+    std::vector<NOMAD::EvalPoint> x0s;
 
     if (nullptr != _barrierForX0s)
     {
-        auto allBestFeas = _barrierForX0s->getAllXFeas();
-        auto allBestInf  = _barrierForX0s->getAllXInf();
-
-        for (auto bestFeas : allBestFeas)
-        {
-            x0s.push_back(bestFeas);
-        }
-        for (auto bestInf : allBestInf)
-        {
-            x0s.push_back(bestInf);
-        }
+        x0s = _barrierForX0s->getAllPoints();
     }
 
     return x0s;

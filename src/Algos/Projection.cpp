@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -58,6 +59,7 @@
 /*-------------------------------------------------------------------------------------*/
 
 #include "../Algos/CacheInterface.hpp"
+#include "../Algos/EvcInterface.hpp"
 #include "../Algos/Projection.hpp"
 #include "../Math/RNG.hpp"
 
@@ -90,7 +92,7 @@ void NOMAD::Projection::init()
     NOMAD::CacheInterface cacheInterface(this);
     cacheInterface.find(NOMAD::EvalPoint::hasSgteEval, _cacheSgte);
 
-    auto iter = dynamic_cast<const NOMAD::Iteration*>(getParentOfType<NOMAD::Iteration*>());
+    auto iter = getParentOfType<NOMAD::Iteration*>();
 
     if (nullptr != iter)
     {
@@ -280,13 +282,18 @@ void NOMAD::Projection::stdProjectedPoint(const NOMAD::EvalPoint& oraclePoint)
     // TODO This code is based on NOMAD 3's Sgtelib_Model code.
     // The goal here is to evaluate points according to the SgtelibModel.
     // This may not have its place in the Projection class.
-    NOMAD::CacheInterface cacheInterface(this);
-    const int maxNumEval = 1;
-    if (cacheInterface.smartInsert(evalPoint, maxNumEval, NOMAD::EvalType::SGTE))
+    bool doInsert = true;
+    if (NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
+    {
+        NOMAD::CacheInterface cacheInterface(this);
+        const int maxNumEval = 1;
+        doInsert = cacheInterface.smartInsert(evalPoint, maxNumEval, NOMAD::EvalType::SGTE);
+    }
+
+    if (doInsert)
     {
         insertTrialPoint(evalPoint);
     }
-
 }
 
 

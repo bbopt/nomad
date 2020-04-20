@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -412,6 +413,29 @@ bool SGTELIB::TrainingSet::add_points ( const Matrix & Xnew ,
   return true;
 }//
 
+/*--------------------------------------*/
+/*                 add_points           */
+/*--------------------------------------*/
+bool SGTELIB::TrainingSet::partial_reset_and_add_points ( const Matrix & Xnew ,
+                                        const Matrix & Znew )
+{
+    
+    if ( Xnew.get_nb_cols()!= _n || Znew.get_nb_cols() != _m)
+        return false;
+    
+    _X = Xnew ;
+    _Z = Znew;
+    
+    _p = Xnew.get_nb_rows();
+    
+    _Xs = SGTELIB::Matrix( "TrainingSet._Xs" , _p , _n );
+    _Zs = SGTELIB::Matrix( "TrainingSet._Zs" , _p , _m );
+    _Ds = SGTELIB::Matrix( "TrainingSet._Ds" , _p , _p );
+
+    _ready = false;
+    return true;
+}
+    
 /*--------------------------------------*/
 /*                 add_point            */
 /*--------------------------------------*/

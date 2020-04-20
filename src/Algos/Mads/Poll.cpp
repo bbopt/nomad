@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -154,11 +155,13 @@ void NOMAD::Poll::setPollDirections(std::list<NOMAD::Direction> &directions) con
         }
     }
 
+    OUTPUT_DEBUG_START
     std::list<NOMAD::Direction>::const_iterator it;
     for (it = directions.begin(); it != directions.end(); ++it)
     {
         AddOutputDebug("Poll direction: " + it->display());
     }
+    OUTPUT_DEBUG_END
 
     dirsUnit.clear();
 }
@@ -167,7 +170,9 @@ void NOMAD::Poll::setPollDirections(std::list<NOMAD::Direction> &directions) con
 // Generate new points to evaluate
 void NOMAD::Poll::generateTrialPoints()
 {
+    OUTPUT_INFO_START
     AddOutputInfo("Generate points for " + _name, true, false);
+    OUTPUT_INFO_END
     
     // Creation of the poll directions
     std::list<NOMAD::Direction> directions;
@@ -187,7 +192,9 @@ void NOMAD::Poll::generateTrialPoints()
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
     
+    OUTPUT_DEBUG_START
     AddOutputDebug("Frame center: " + frameCenter->display());
+    OUTPUT_DEBUG_END
     
     for (std::list<NOMAD::Direction>::iterator it = directions.begin(); it != directions.end() ; ++it)
     {
@@ -201,9 +208,7 @@ void NOMAD::Poll::generateTrialPoints()
         
         // Snap the points and the corresponding direction to the bounds
         if (snapPointToBoundsAndProjectOnMesh(pt, _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND"),
-                        _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND"),
-                        frameCenter,
-                        getIterationMesh()))
+                        _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND")))
         {
             if (pt != *frameCenter->getX())
             {
@@ -211,10 +216,12 @@ void NOMAD::Poll::generateTrialPoints()
                 // Add it to the list.
                 bool inserted = insertTrialPoint(NOMAD::EvalPoint(pt));
                 
+                OUTPUT_INFO_START
                 std::string s = "Generated point";
                 s += (inserted) ? ": " : " not inserted: ";
                 s += pt.display();
                 AddOutputInfo(s);
+                OUTPUT_INFO_END
             }
         }
     }
@@ -222,8 +229,10 @@ void NOMAD::Poll::generateTrialPoints()
     verifyPointsAreOnMesh(getName());
     updatePointsWithFrameCenter();
     
+    OUTPUT_INFO_START
     AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");
     AddOutputInfo("Generate points for " + _name, false, true);
+    OUTPUT_INFO_END
     
 }
 

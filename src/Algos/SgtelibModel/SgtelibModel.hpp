@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -57,7 +58,7 @@
 
 #include "../../nomad_nsbegin.hpp"
 
-/// Class for implementation algorithms using on Bastien Talgorn's sgtelib.
+/// Class for implementation algorithms using Bastien Talgorn's sgtelib.
 /**
  * When used as an algorithm by itself:
  * 1- Best points (with respect to blackbox evaluation) in the cache are found.
@@ -96,9 +97,9 @@ private:
     std::shared_ptr<MeshBase> _mesh; ///> Useful for sizes if a mesh is available.
 
 public:
-    // Constructor
+    /// Constructor
     explicit SgtelibModel(const Step* parentStep,
-                          std::shared_ptr<AlgoStopReasons<SgtelibModelStopType>> stopReasons,
+                          std::shared_ptr<AlgoStopReasons<ModelStopType>> stopReasons,
                           std::shared_ptr<Barrier> barrier,
                           const std::shared_ptr<RunParameters>& runParams,
                           const std::shared_ptr<PbParameters>& pbParams,
@@ -176,7 +177,7 @@ public:
 
     // Return X0s' from _barrierForX0s.
     // They are used for the sub-Mads initialization.
-    std::vector<EvalPointPtr> getX0s() const;
+    std::vector<EvalPoint> getX0s() const;
 
 private:
     void init();

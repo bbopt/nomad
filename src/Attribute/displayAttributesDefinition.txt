@@ -51,10 +51,12 @@ BBE OBJ
     BLK_EVA    : block evaluation calls
     BLK_SIZE   : number of points in the block
     CACHE_HITS : cache hits
+    CACHE_SIZE : cache size
     CONS_H     : infeasibility (h) value
     EVAL       : evaluations (includes cache hits)
     GEN_STEP   : name of the step that generated this point to evaluate
     H_MAX      : max infeasibility (h) acceptable
+    ITER_NUM   : iteration number in which this evaluation was done
     LAP        : number of lap evaluations since last reset
     MESH_INDEX : mesh index
     MESH_SIZE / DELTA_M : mesh size delta_k^m
@@ -97,7 +99,7 @@ RESTART_ATTRIBUTE yes
 ###############################################################################
 DISPLAY_ALL_EVAL
 bool
-true
+false
 \( Flag to display all evaluations \)
 \(
 
@@ -121,7 +123,7 @@ RESTART_ATTRIBUTE yes
 ###############################################################################
 DISPLAY_INFEASIBLE
 bool
-true
+false
 \( Flag to display infeasible \)
 \(
 
@@ -131,7 +133,7 @@ true
 
 . Argument: one boolean
 
-. Example: DISPLAY_INFEASIBLE yes
+. Example: DISPLAY_INFEASIBLE true
 
 \)
 \( advanced display(s) infeasible \)
@@ -166,7 +168,7 @@ NOMAD::ArrayOfString
 
 . File containing all successes in a formatted way (similar as DISPLAY_STATS in a file)
 
-. Displays more points with DISPLAY_ALL_EVAL=true
+. Displays more points when DISPLAY_ALL_EVAL is true
 
 . Arguments: one string (file name) and one list of strings (for the format of stats)
 

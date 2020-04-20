@@ -7,6 +7,9 @@ endif
 ifdef NOOMP
 $(info Not using OpenMP)
 endif
+ifneq ($(USE_SGTELIB), 0)
+    USE_SGTELIB = 1
+endif
 
 
 UNAME := $(shell uname)
@@ -22,9 +25,9 @@ BIN_DIR             = $(BUILD_DIR)/bin
 COMPONENT_DIRNAME   = Algos/Mads
 
 ALL_FILES           = GMesh LHSearchMethod Mads MadsInitialization MadsIteration \
-                      MadsIterationUtils MadsMegaIteration MadsUpdate MegaSearchPoll \
-                      NMSearchMethod Poll Search SearchMethod \
-                      SgtelibSearchMethod \
+                      MadsMegaIteration MadsUpdate MegaSearchPoll \
+                      NMSearchMethod Poll Search SearchMethodAlgo SearchMethodBase \
+                      SearchMethodSimple SgtelibSearchMethod QuadSearchMethod \
                       SpeculativeSearchMethod UserSearchMethod
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))
 ALL_HEADERS         = $(addsuffix .hpp, $(ALL_FILES))
@@ -41,11 +44,11 @@ ifndef NOOMP
 # Use OpenMP for parallelism (threads)
 CXXFLAGS            += -fopenmp
 endif
-ifdef USE_PRIORITY_QUEUE
-CXXFLAGS            += -DUSE_PRIORITY_QUEUE
-endif
 ifeq ($(USE_SGTELIB), 1)
 CXXFLAGS            += -DUSE_SGTELIB
+endif
+ifeq ($(TIME_STATS), 1)
+CXXFLAGS            += -DTIME_STATS
 endif
 
 

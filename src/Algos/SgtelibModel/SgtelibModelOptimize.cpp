@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -64,14 +65,15 @@ void NOMAD::SgtelibModelOptimize::init()
 
 void NOMAD::SgtelibModelOptimize::startImp()
 {
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
+    auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
     _displayLevel = (std::string::npos != modelDisplay.find("O"))
                         ? NOMAD::OutputLevel::LEVEL_INFO
                         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
 
+    OUTPUT_INFO_START
     std::string s;
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams();
-    s = "SGTELIB_MODEL_EVAL_NB: " + std::to_string(evcParams->getAttributeValue<size_t>("SGTELIB_MODEL_EVAL_NB"));
+    s = "MAX_SGTE_EVAL: " + std::to_string(evcParams->getAttributeValue<size_t>("MAX_SGTE_EVAL"));
     AddOutputInfo(s, _displayLevel);
     s = "BBOT: " + NOMAD::BBOutputTypeListToString(NOMAD::SgtelibModel::getBBOutputType());
     AddOutputInfo(s, _displayLevel);
@@ -82,6 +84,7 @@ void NOMAD::SgtelibModelOptimize::startImp()
     oss << "Run Parameters for SgtelibModelOptimize:" << std::endl;
     _optRunParams->display(oss, false);
     AddOutputInfo(oss.str(), NOMAD::OutputLevel::LEVEL_DEBUGDEBUG);
+    OUTPUT_INFO_END
 }
 
 
@@ -93,7 +96,6 @@ bool NOMAD::SgtelibModelOptimize::runImp()
     auto modelFormulation = _runParams->getAttributeValue<NOMAD::SgtelibModelFormulationType>("SGTELIB_MODEL_FORMULATION");
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams();
 
-
     if (NOMAD::SgtelibModelFormulationType::EXTERN == modelFormulation)
     {
         std::string modelDefinition = _runParams->getAttributeValue<std::string>("MODEL_DEFINITION");
@@ -103,7 +105,14 @@ bool NOMAD::SgtelibModelOptimize::runImp()
     {
         auto evalParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvalParams();
 
-        auto modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
+        // Enforce no opportunism and use no cache.
+        auto previousOpportunism = evcParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
+        auto previousUseCache = evcParams->getAttributeValue<bool>("USE_CACHE");
+        evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", false);
+        evcParams->setAttributeValue("USE_CACHE", false);
+        evcParams->checkAndComply();
+
+        auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
         auto diversification = _runParams->getAttributeValue<NOMAD::Double>("SGTELIB_MODEL_DIVERSIFICATION");
         auto modelFeasibility = _runParams->getAttributeValue<NOMAD::SgtelibModelFeasibilityType>("SGTELIB_MODEL_FEASIBILITY");
         double tc = _runParams->getAttributeValue<NOMAD::Double>("SGTELIB_MODEL_EXCLUSION_AREA").todouble();
@@ -129,6 +138,7 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         // Parameters for mads (_optRunParams and _optPbParams) are already updated.
         _mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams);
         _mads->setName(_mads->getName() + " (SgtelibModelOptimize)");
+        _mads->setEndDisplay(false);
         EvcInterface::getEvaluatorControl()->resetSgteEval();
         NOMAD::MainStep::setAlgoComment("(SgtelibModelOptimize)");
         _mads->start();
@@ -142,14 +152,19 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         // Get the solutions
         updateOraclePoints();
 
+        // Reset opportunism to previous values.
+        evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", previousOpportunism);
+        evcParams->setAttributeValue("USE_CACHE", previousUseCache);
+        evcParams->checkAndComply();
+
         // When we are done, restore mainEvaluator
         EvcInterface::getEvaluatorControl()->setEvaluator(std::move(mainEvaluator));
     }
 
     if (!optimizeOk)
     {
-        auto SgtelibModelStopReasons = NOMAD::AlgoStopReasons<NOMAD::SgtelibModelStopType>::get(_stopReasons);
-        SgtelibModelStopReasons->set(NOMAD::SgtelibModelStopType::MODEL_OPTIMIZER_FAIL);
+        auto sgteStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+        sgteStopReasons->set(NOMAD::ModelStopType::MODEL_OPTIMIZATION_FAIL);
     }
 
     return optimizeOk;
@@ -167,16 +182,22 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
 
     // Ensure there is no model used in model optimization.
     _optRunParams->setAttributeValue("SGTELIB_SEARCH", false);
-    _optRunParams->setAttributeValue("DISABLE", std::string("MODELS"));
+    _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
+    NOMAD::ArrayOfString disable;
+    disable.add(std::string("MODELS"));
+    _optRunParams->setAttributeValue("DISABLE", disable);
 
     // Use isotropic mesh
     _optRunParams->setAttributeValue("ANISOTROPIC_MESH", false);
 
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams();
-    std::string lhstr = std::to_string(int(evcParams->getAttributeValue<size_t>("SGTELIB_MODEL_EVAL_NB") * 0.3));
+    std::string lhstr = std::to_string(int(evcParams->getAttributeValue<size_t>("MAX_SGTE_EVAL") * 0.3));
     lhstr += " 0";
     NOMAD::LHSearchType lhSearch(lhstr);
     _optRunParams->setAttributeValue("LH_SEARCH", lhSearch);
+
+    // No hMax in the context of SgtelibModel
+    _optRunParams->setAttributeValue("H_MAX_0", NOMAD::Double(NOMAD::INF));
 
     // Disable user calls
     _optRunParams->setAttributeValue("USER_CALLS_ENABLED", false);
@@ -204,11 +225,13 @@ void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& 
     // Only looking into sgte evaluations here
     cacheInterface.findBestFeas(evalPointFeasList,
                                 getSubFixedVariable(),
-                                NOMAD::EvalType::SGTE);
+                                NOMAD::EvalType::SGTE,
+                                nullptr);
     cacheInterface.findBestInf(evalPointInfList,
                                hMax,
                                getSubFixedVariable(),
-                               NOMAD::EvalType::SGTE);
+                               NOMAD::EvalType::SGTE,
+                               nullptr);
 
     NOMAD::ArrayOfPoint x0s;
     for (auto evalPointX0 : evalPointFeasList)
@@ -232,9 +255,9 @@ void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& 
         // Get best points from upper Mads 
         for (auto evalPointX0 : _modelAlgo->getX0s())
         {
-            if (evalPointX0->inBounds(lowerBound, upperBound))
+            if (evalPointX0.inBounds(lowerBound, upperBound))
             {
-                x0s.push_back(*(evalPointX0->getX()));
+                x0s.push_back(*(evalPointX0.getX()));
             }
         }
     }
@@ -275,16 +298,11 @@ void NOMAD::SgtelibModelOptimize::updateOraclePoints()
 
     if (barrier)
     {
-        auto allBestFeas = barrier->getAllXFeas();
-        auto allBestInf  = barrier->getAllXInf();
+        auto allBestPoints = barrier->getAllPoints();
 
-        for (auto bestFeas : allBestFeas)
+        for (auto evalPoint : allBestPoints)
         {
-            _oraclePoints.insert(*bestFeas);
-        }
-        for (auto bestInf : allBestInf)
-        {
-            _oraclePoints.insert(*bestInf);
+            _oraclePoints.insert(evalPoint);
         }
     }
 

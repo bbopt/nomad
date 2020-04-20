@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -186,6 +187,10 @@ namespace SGTELIB {
     // add points:
     bool add_points ( const SGTELIB::Matrix & Xnew ,
                       const SGTELIB::Matrix & Znew  );
+      
+    bool partial_reset_and_add_points( const SGTELIB::Matrix & Xnew ,
+    const SGTELIB::Matrix & Znew  );
+      
     bool add_point  ( const double * xnew ,
                       const double * znew  );
 
@@ -253,6 +258,7 @@ namespace SGTELIB {
     double get_X_scaling_a ( int j) const { check_ready(); return _X_scaling_a[j]; };
 
     // Return the design matrix
+    const SGTELIB::Matrix & get_matrix_X ( void ) const { check_ready(); return _X; };
     const SGTELIB::Matrix & get_matrix_Xs ( void ) const { check_ready(); return _Xs; };
     const SGTELIB::Matrix & get_matrix_Zs ( void ) const { check_ready(); return _Zs; };
     const SGTELIB::Matrix & get_matrix_Ds ( void ) const { check_ready(); return _Ds; };

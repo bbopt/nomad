@@ -8,12 +8,6 @@ ifdef NOOMP
 $(info Not using OpenMP)
 endif
 
-ifdef USE_PRIORITY_QUEUE
-$(info Using priority queue for EvaluatorControl queue)
-else
-$(info Using vector for EvaluatorControl queue)
-endif
-
 
 UNAME := $(shell uname)
 
@@ -40,15 +34,15 @@ endif
 ifdef USE_UNORDEREDSET
 CXXFLAGS            += -DUSE_UNORDEREDSET
 endif
-ifdef USE_PRIORITY_QUEUE
-CXXFLAGS            += -DUSE_PRIORITY_QUEUE
-endif
 
 CXXFLAGS            += -std=c++14 -Wall -fpic
 
 ifndef NOOMP
 # Use OpenMP for parallelism (threads)
 CXXFLAGS            += -fopenmp
+endif
+ifeq ($(TIME_STATS), 1)
+CXXFLAGS            += -DTIME_STATS
 endif
 
 OBJFLAGS            = -c

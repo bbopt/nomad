@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -63,6 +64,7 @@
 #include "../nomad_nsbegin.hpp"
 
 class Step;
+class Algorithm;
 
 typedef std::function<void(const Step& step, bool &stop)> StepEndCbFunc;  ///< Type definitions for callback functions at the end of a step.
 typedef std::function<void(std::vector<std::string>& paramLines)> HotRestartCbFunc; ///< Type definitions for callback functions for hot restart.
@@ -99,11 +101,11 @@ public:
     /**
      */
     explicit Step()
-      : _parentStep( nullptr ),
+      : _parentStep(nullptr),
         _name("Main Step"),
-        _stopReasons( nullptr ),
-        _runParams( nullptr ),
-        _pbParams( nullptr )
+        _stopReasons(nullptr),
+        _runParams(nullptr),
+        _pbParams(nullptr)
     {
         init();
     }
@@ -116,16 +118,16 @@ public:
      \param pbParams        The problem parameters that control this step (null by default).
      */
     explicit Step(const Step* parentStep,
-                  const std::shared_ptr<RunParameters>   &runParams  = nullptr,
-                  const std::shared_ptr<PbParameters> &pbParams   = nullptr )
-    : _parentStep(parentStep),
-    _name("Step"),
-    _runParams (runParams),
-    _pbParams(pbParams)
+                  const std::shared_ptr<RunParameters>   &runParams = nullptr,
+                  const std::shared_ptr<PbParameters> &pbParams = nullptr)
+      : _parentStep(parentStep),
+        _name("Step"),
+        _runParams(runParams),
+        _pbParams(pbParams)
     {
-        if ( _parentStep == nullptr )
+        if (_parentStep == nullptr)
         {
-            throw Exception( __FILE__ , __LINE__ ,"Parent step is NULL. This constructor is for child steps having a parent only.");
+            throw Exception(__FILE__, __LINE__, "Parent step is NULL. This constructor is for child steps having a parent only.");
         }
         else
         {
@@ -143,18 +145,18 @@ public:
      \param pbParams        The problem parameters that control this step (null by default).
      */
     explicit Step(const Step* parentStep,
-                  std::shared_ptr<AllStopReasons>         stopReasons ,
-                  const std::shared_ptr<RunParameters>   &runParams  = nullptr,
-                  const std::shared_ptr<PbParameters>    &pbParams   = nullptr )
-    : _parentStep(parentStep),
-    _name("Step"),
-    _stopReasons(stopReasons),
-    _runParams (runParams),
-    _pbParams(pbParams)
+                  std::shared_ptr<AllStopReasons> stopReasons,
+                  const std::shared_ptr<RunParameters> &runParams = nullptr,
+                  const std::shared_ptr<PbParameters> &pbParams = nullptr)
+      : _parentStep(parentStep),
+        _name("Step"),
+        _stopReasons(stopReasons),
+        _runParams(runParams),
+        _pbParams(pbParams)
     {
-        if ( _stopReasons == nullptr )
+        if (nullptr == _stopReasons)
         {
-            throw Exception( __FILE__ , __LINE__ ,"StopReason is NULL. Must be provided for this child step.");
+            throw Exception(__FILE__, __LINE__, "StopReason is NULL. Must be provided for this child step.");
         }
 
         init();
@@ -201,7 +203,9 @@ public:
     std::shared_ptr<AllStopReasons> getAllStopReasons() const { return _stopReasons ; }
 
     /// Shortcut to get eval type from _pbParams
-    EvalType getEvalType() const;
+    const EvalType& getEvalType() const;
+
+    std::shared_ptr<RunParameters> getRunParams() const { return _runParams; }
 
     /// Interruption call by user.
     /**
@@ -246,7 +250,7 @@ public:
      parameter stopAtAlgo to false.
      */
     template<typename T>
-    const Step* getParentOfType(const bool stopAtAlgo = true) const
+    T getParentOfType(const bool stopAtAlgo = true) const
     {
         Step* retStep = nullptr;
 
@@ -265,23 +269,8 @@ public:
             step = const_cast<Step*>(step->getParentStep());
         }
 
-        return retStep;
+        return dynamic_cast<T>(retStep);
     }
-
-// CT maybe needed
-//    template<typename T>
-//    const Step* getStepOfType() const
-//    {
-//        Step* step = const_cast<Step*>(this);
-//        if (nullptr != dynamic_cast<T>(step))
-//        {
-//            return  step;
-//        }
-//        else
-//        {
-//            return step->getParentOfType<T>();
-//        }
-//    }
 
     bool isAnAlgorithm() const;
 

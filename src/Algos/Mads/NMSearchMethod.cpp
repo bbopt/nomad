@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -62,7 +63,7 @@ void NOMAD::NMSearchMethod::init()
     {
         _name = "Search (Nelder Mead optimization)";
     }
-    setComment("(NM)");
+    //setComment("(NMSearch)");
 
     auto nmSearch = _runParams->getAttributeValue<bool>("NM_SEARCH");
     setEnabled(nmSearch);
@@ -79,12 +80,6 @@ void NOMAD::NMSearchMethod::init()
     }
 }
 
-void NOMAD::NMSearchMethod::startImp()
-{
-    // When using the start of NMSearchMethod, the step by step NM algorithm is run
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
-    
-}
 
 bool NOMAD::NMSearchMethod::runImp()
 {
@@ -96,11 +91,7 @@ bool NOMAD::NMSearchMethod::runImp()
                                           nmStopReasons ,
                                           _runParams,
                                           _pbParams);
-    
-    if ( _runParams->getAttributeValue<bool>("GENERATE_ALL_POINTS_BEFORE_EVAL") )
-    {
-        nm->setEndDisplay(false);
-    }
+    nm->setEndDisplay(false);
     
     nm->start();
     bool foundBetter = nm->run();
@@ -110,17 +101,13 @@ bool NOMAD::NMSearchMethod::runImp()
 }
 
 
-void NOMAD::NMSearchMethod::generateTrialPoints()
+void NOMAD::NMSearchMethod::generateTrialPointsImp()
 {
-    // When using the option GENERATE_ALL_POINTS_BEFORE_EVAL, the trial points of one iteration of NM reflective steps are generated before being evaluated.
+    // The trial points of one iteration of NM reflective steps are generated (not evaluated).
     // The trial points are Reflect, Expansion, Inside and Outside Contraction NM points
     
-    // This function must be called only with the option to generate all points before evaluation.
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, true);
+    auto madsIteration = getParentOfType<MadsIteration*>();
     
-    AddOutputInfo("Generate points for " + _name, true, false);
-
-    auto madsIteration = dynamic_cast<const MadsIteration*>(getParentOfType<MadsIteration*>());
     NOMAD::NMAllReflective allReflective(this, madsIteration->getFrameCenter(), madsIteration->getMesh());
     allReflective.start();
     allReflective.end();
@@ -129,14 +116,7 @@ void NOMAD::NMSearchMethod::generateTrialPoints()
     auto trialPtsNM = allReflective.getTrialPoints();
     for (auto point : trialPtsNM)
     {
-        bool inserted = insertTrialPoint(point);
-        std::string s = "Generated point";
-        s += (inserted) ? ": " : " not inserted: ";
-        s += point.display();
-        AddOutputInfo(s);
+        insertTrialPoint(point);
     }
-    
-    AddOutputInfo("Generated " + std::to_string(getTrialPointsCount()) + " points");
-    AddOutputInfo("Generate points for " + _name, false, true);
     
 }

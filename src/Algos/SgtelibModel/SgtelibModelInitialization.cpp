@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -52,9 +53,8 @@
 
 void NOMAD::SgtelibModelInitialization::init()
 {
-    _name = getAlgoName() + "Initialization";
+    _name = NOMAD::Initialization::getName();
     verifyParentNotNull();
-
 }
 
 
@@ -190,6 +190,7 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     evcParams->checkAndComply();
     evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
 
+    auto evalPointList = evcInterface.getAllEvaluatedPoints();
     for (auto x0 : x0s)
     {
         NOMAD::EvalPoint evalPoint_x0(x0);
@@ -203,11 +204,20 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
         }
         else
         {
-            auto sgteStopReason = NOMAD::AlgoStopReasons<NOMAD::SgtelibModelStopType>::get(_stopReasons);
-            sgteStopReason->set(NOMAD::SgtelibModelStopType::X0_FAIL);
-
             AddOutputError("X0 evaluation failed for X0 = " + x0.display());
         }
+    }
+
+    if (evalOk)
+    {
+        // Construct barrier using x0s
+        auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax, getSubFixedVariable(), getEvalType(), evalPointList);
+    }
+    else
+    {
+        auto sgteStopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+        sgteStopReason->set(NOMAD::ModelStopType::X0_FAIL);
     }
 
     NOMAD::OutputQueue::Flush();

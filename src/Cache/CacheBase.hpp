@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -207,12 +208,16 @@ public:
         std::cerr << "Warning: processOnAllPoints is not implemented for this type of cache." << std::endl;
     }
 
+    virtual void deleteSgteOnly() = 0;
+
+    
+    
     /// Add a new EvalPoint to the cache.
     /**
      * If insertion worked, the point was not in the cache before. Return true.\n
      * If insertion did not work, the point was in the cache before.
        \c _nbCacheHits is incremented. Return false.
-     
+       \note This implementation calls smartInsert(). 
      \param  evalPoint   The eval point to insert in cache -- \b IN.
      \return             \c true if insertion works and \c false if not.
      */
@@ -230,6 +235,7 @@ public:
 
     /// Insert evalPoint in cache.
     /**
+     * evalPoint's tag (mutable) is updated.
      * If insertion worked, the point was not in the cache before. Return true.
      * If insertion did not work, the point was in the cache before.
       _nbCacheHits is incremented.
@@ -287,7 +293,8 @@ public:
                      const bool findFeas,
                      const Double& hMax,
                      const Point& fixedVariable,
-                     const EvalType& evalType) const = 0;
+                     const EvalType& evalType,
+                     const Eval* refeval) const = 0;
     
     
     /// Find best feasible points in the cache using operator<.
@@ -299,7 +306,8 @@ public:
      */
     virtual size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
                             const Point& fixedVariable,
-                            const EvalType& evalType) const = 0;
+                            const EvalType& evalType,
+                            const Eval* refeval) const = 0;
     
     /// Test if cache contains feasible points.
     /**
@@ -318,7 +326,8 @@ public:
     virtual size_t findBestInf(std::vector<EvalPoint> &evalPointList,
                             const Double& hMax,
                             const Point& fixedVariable,
-                            const EvalType& evalType) const = 0;
+                            const EvalType& evalType,
+                            const Eval* refeval) const = 0;
 
     /// Get all eval points within a distance of point X.
     /**
@@ -392,6 +401,13 @@ public:
      * Simple dump.
      */
     virtual bool write() const = 0;
+
+    /**
+     * \brief Display all points in cache.
+     *
+     * \note Used for debugging.
+     */
+    virtual std::string displayAll() const { return ""; }
 
     /// Read a cache file and load it.
     virtual bool read() = 0;

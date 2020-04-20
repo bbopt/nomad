@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -71,7 +72,12 @@ This class is used to set a seed for the random number generator and get a rando
 class RNG {
     
 public:
-     /// Get current seed
+    typedef uint32_t result_type;
+
+    static constexpr result_type min() { return 0; }
+    static constexpr result_type max() { return UINT32_MAX; }
+
+    /// Get current seed
     /**
      \return An integer in [0,UINT32_MAX].
      */
@@ -85,14 +91,18 @@ public:
      \param s   The seed -- \b IN.
      */
     static void setSeed(int s);
-
     
     /// Get a random integer
     /**
      \return    An integer in the interval [0,UINT32_MAX].
      */
-    static uint32_t rand();
-    
+    static result_type rand();
+
+    /// Functor to get a random integer
+    /**
+     \return    An integer in the interval [0,UINT32_MAX].
+     */
+    result_type operator()() { return rand(); }
     
     /// Get a random number having a normal distribution as double
     /**
@@ -161,6 +171,8 @@ private:
     static uint32_t _x, _y, _z;             ///< Current values for the random number generator
     
     static int _s;
+
+    
 };
 
 #include "../nomad_nsend.hpp"

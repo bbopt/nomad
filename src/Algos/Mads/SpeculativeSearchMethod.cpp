@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -59,12 +60,13 @@
 /* Multiple points: i=1, ..., SPECULATIVE_SEARCH_MAX           */
 /* d: direction of last success scaled to intersect the frame  */
 /*  x_t = x_{k-1} + d * i                                      */
-/* Trial points are snapped on bounds and projected on mesh    */
 /*-------------------------------------------------------------*/
 
 void NOMAD::SpeculativeSearchMethod::init()
 {
     _name = "Speculative Search Method";
+    
+    //setComment("(SpecSearch)");
 
     auto enable = _runParams->getAttributeValue<bool>("SPECULATIVE_SEARCH");
 
@@ -72,21 +74,23 @@ void NOMAD::SpeculativeSearchMethod::init()
 }
 
 
-void NOMAD::SpeculativeSearchMethod::generateTrialPoints()
+void NOMAD::SpeculativeSearchMethod::generateTrialPointsImp()
 {
-    // NOMAD::EvalPointSet trialPoints;
-    AddOutputInfo("Generate points for " + _name, true, false);
     bool canGenerate = true;
     std::shared_ptr<NOMAD::Point> pointFrom;
-
-    // Test that the frame center has a valid generating direction
-    std::shared_ptr<NOMAD::EvalPoint> frameCenter = getIterationFrameCenter();
+    
+    if (nullptr == _iterAncestor)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"SpeculativeSearchMethod: must have an iteration ancestor");
+    }
+    auto frameCenter = _iterAncestor->getFrameCenter();
     if (nullptr == frameCenter)
     {
         canGenerate = false;
     }
     else
     {
+        // Test that the frame center has a valid generating direction
         pointFrom = frameCenter->getPointFrom(getSubFixedVariable());
         if (nullptr == pointFrom || *pointFrom == *frameCenter)
         {
@@ -99,7 +103,11 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPoints()
         auto dir = NOMAD::Point::vectorize(*pointFrom, *frameCenter);
 
         // Make the direction intersect the frame
-        auto mesh = getIterationMesh();
+        auto mesh = _iterAncestor->getMesh();
+        if (nullptr == mesh)
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__,"SpeculativeSearchMethod: must have a mesh");
+        }
         NOMAD::ArrayOfDouble deltaFrameSize = mesh->getDeltaFrameSize();
         NOMAD::Double factor = NOMAD::INF;
         for (size_t i = 0; i < dir.size(); ++i)
@@ -116,36 +124,23 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPoints()
             throw NOMAD::Exception(__FILE__, __LINE__, err);
         }
 
+        OUTPUT_INFO_START
         AddOutputInfo("Direction before scaling: " + dir.display());
+        OUTPUT_INFO_END
         auto nbSearches = _runParams->getAttributeValue<size_t>("SPECULATIVE_SEARCH_MAX");
         for (size_t i = 1; i <= nbSearches; i++)
         {
             auto diri = dir;
             diri *= factor * i;
+            OUTPUT_INFO_START
             AddOutputInfo("Scaled direction on frame: " + diri.display());
-
+            OUTPUT_INFO_END
+            
             NOMAD::Point point = NOMAD::Point(*(frameCenter->getX()) + diri);
-    
-            if (snapPointToBoundsAndProjectOnMesh(point, 
-                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND"),
-                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND"),
-                                              frameCenter,
-                                              mesh))
-            {
-                // Make an EvalPoint from the Point.
-                NOMAD::EvalPoint evalPoint(point);
-    
-                // Test if the point could be inserted correctly
-                bool inserted = insertTrialPoint(evalPoint);
-                std::string s = "Generated point";
-                s += (inserted) ? ": " : " not inserted: ";
-                s += evalPoint.display();
-                AddOutputInfo(s);
-            }
+            
+            // Insert the point
+            insertTrialPoint(NOMAD::EvalPoint(point));
+
         }
     }
-
-    AddOutputInfo("Generated " + std::to_string(getTrialPointsCount()) + " points");
-    AddOutputInfo("Generate points for " + _name, false, true);
-
 }

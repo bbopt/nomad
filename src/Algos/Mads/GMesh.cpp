@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -638,9 +639,10 @@ NOMAD::Point NOMAD::GMesh::projectOnMesh(const NOMAD::Point& point,
         const NOMAD::Double deltaI = delta[i];
         bool frameCenterIsOnMesh = (frameCenter[i].isMultipleOf(deltaI));
 
+        NOMAD::Double diffProjFrameCenter = proj[i] - frameCenter[i];
         // Value which will be used in verifyPointIsOnMesh
         NOMAD::Double verifValueI = (frameCenterIsOnMesh) ? proj[i]
-                                           : proj[i] - frameCenter[i];
+                                           : diffProjFrameCenter;
 
         // Force verifValueI to be a multiple of deltaI.
         // nbTry = 0 means point is already on mesh.
@@ -651,8 +653,8 @@ NOMAD::Point NOMAD::GMesh::projectOnMesh(const NOMAD::Point& point,
         while (!verifValueI.isMultipleOf(deltaI) && nbTry <= maxNbTry)
         {
             NOMAD::Double newVerifValueI;
-            verifValueI = (verifValueI >= 0) ? verifValueI.nextMult(deltaI)
-                                             : - (-verifValueI).nextMult(deltaI);
+            verifValueI = (diffProjFrameCenter >= 0) ? verifValueI.nextMult(deltaI)
+                                                     : - (-verifValueI).nextMult(deltaI);
 
             proj[i] = (frameCenterIsOnMesh) ? verifValueI
                                             : verifValueI + frameCenter[i];

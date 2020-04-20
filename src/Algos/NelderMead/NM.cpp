@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -44,8 +45,10 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../../Algos/MainStep.hpp"
-#include "../../Algos/Mads/SearchMethod.hpp"
+#include "../../Algos/Mads/SearchMethodAlgo.hpp"
+#include "../../Algos/Mads/MadsMegaIteration.hpp"
 
 #include "../../Algos/EvcInterface.hpp"
 
@@ -94,11 +97,28 @@ bool NOMAD::NM::runImp()
     {
         size_t k = 0;   // Iteration number
 
-        // Barrier constructor automatically finds the best points in the cache.
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-        auto barrier = std::make_shared<NOMAD::Barrier>(hMax, getSubFixedVariable(), getEvalType());
+        std::shared_ptr<NOMAD::Barrier> barrier = nullptr;
+        
+        if (_runParams->getAttributeValue<bool>("NM_OPTIMIZATION"))
+        {
+            // Barrier was computed by Initialization.
+            barrier = _initialization->getBarrier();
+        }
+        else
+        {
+            // Get barrier from upper MadsMegaIteration, if available.
+            auto madsMegaIter = getParentOfType<NOMAD::MadsMegaIteration*>(false);
+            if (nullptr != madsMegaIter)
+            {
+                barrier = madsMegaIter->getBarrier();
+            }
+        }
+
         NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
+        // TODO fix this case
+        /*
         if (nullptr != _megaIteration)
         {
             // Case hot restart
@@ -106,10 +126,11 @@ bool NOMAD::NM::runImp()
             barrier = _megaIteration->getBarrier();
             megaIterSuccess = _megaIteration->getSuccessType();
         }
+        */
 
         while (!_termination->terminate(k))
         {
-            // Create an MegaIteration: manage multiple iterations.
+            // Create a MegaIteration: manage multiple iterations.
             NOMAD::NMMegaIteration megaIteration(this, k, barrier, megaIterSuccess);
             megaIteration.start();
             bool currentMegaIterSuccess = megaIteration.run();
@@ -118,7 +139,7 @@ bool NOMAD::NM::runImp()
             successful = successful || currentMegaIterSuccess;
 
             // Remember these values to construct the next MegaIteration.
-            k       = megaIteration.getK();
+            k       = megaIteration.getNextK();
             barrier = megaIteration.getBarrier();
             megaIterSuccess = megaIteration.getSuccessType();
 
@@ -146,12 +167,12 @@ bool NOMAD::NM::runImp()
         // Update the SearchMethod success type with best success found.
         if ( successful )
         {
-            // The parent can be a SearchMethod (NM-Mads Search) or not (NM standalone optimization)
-            auto searchMethodConst = dynamic_cast<const NOMAD::SearchMethod*>(_parentStep);
+            // The parent can be a SearchMethod (NM-Mads Search) or not (that is NM is a standalone optimization)
+            auto searchMethodConst = dynamic_cast<const NOMAD::SearchMethodBase*>(_parentStep);
 
-            if ( searchMethodConst != nullptr )
+            if (searchMethodConst != nullptr)
             {
-                auto searchMethod = const_cast<NOMAD::SearchMethod*>(searchMethodConst);
+                auto searchMethod = const_cast<NOMAD::SearchMethodBase*>(searchMethodConst);
                 searchMethod->setSuccessType(bestSuccess);
             }
 
