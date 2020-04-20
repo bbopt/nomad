@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -66,6 +67,8 @@ NOMAD::StatsInfo::StatsInfo()
     _bbo(),
     _eval(0),
     _cacheHits(0),
+    _cacheSize(0),
+    _iterNum(0),
     _time(0),
     _meshIndex(),
     _meshSize(),
@@ -162,6 +165,14 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     {
         ret = NOMAD::DisplayStatsType::DS_CACHE_HITS;
     }
+    else if (s == "CACHE_SIZE")
+    {
+        ret = NOMAD::DisplayStatsType::DS_CACHE_SIZE;
+    }
+    else if (s == "ITER_NUM")
+    {
+        ret = NOMAD::DisplayStatsType::DS_ITER_NUM;
+    }
     else if (s == "TIME")
     {
         ret = NOMAD::DisplayStatsType::DS_TIME;
@@ -241,6 +252,10 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "EVAL";
         case NOMAD::DisplayStatsType::DS_CACHE_HITS:
             return "CACHE_HITS";
+        case NOMAD::DisplayStatsType::DS_CACHE_SIZE:
+            return "CACHE_SIZE";
+        case NOMAD::DisplayStatsType::DS_ITER_NUM:
+            return "ITER_NUM";
         case NOMAD::DisplayStatsType::DS_TIME:
             return "TIME";
         case NOMAD::DisplayStatsType::DS_MESH_INDEX:
@@ -383,6 +398,14 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
         else if (NOMAD::DisplayStatsType::DS_CACHE_HITS == statsType)
         {
             out += NOMAD::itos(_cacheHits);
+        }
+        else if (NOMAD::DisplayStatsType::DS_CACHE_SIZE == statsType)
+        {
+            out += NOMAD::itos(_cacheSize);
+        }
+        else if (NOMAD::DisplayStatsType::DS_ITER_NUM == statsType)
+        {
+            out += NOMAD::itos(_iterNum);
         }
         else if (NOMAD::DisplayStatsType::DS_TIME == statsType)
         {

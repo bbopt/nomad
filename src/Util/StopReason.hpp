@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -60,7 +61,7 @@ enum class BaseStopType : int
 {
     STARTED                 ,  ///< Started (no stop)
     MAX_TIME_REACHED        ,  ///< Max time
-    INITIALIZATION_FAILED   ,  ///< Initilization failed to complete
+    INITIALIZATION_FAILED   ,  ///< Initialization failed to complete
     ERROR                   ,  ///< Error
     UNKNOWN_STOP_REASON     ,  ///< Unknown
     CTRL_C                  ,  ///< Ctrl-C
@@ -99,25 +100,27 @@ enum class LHStopType : int
     LAST
 };
 
-/// Stop type for Sgtelib model optimization
-enum class SgtelibModelStopType : int
+/// Stop type for all model based searches (sgtelib or quad) or optimization
+enum class ModelStopType : int
 {
-    STARTED                 ,  ///< Started
-    ORACLE_FAIL             ,  ///< Oracle failed generating points
-    MODEL_OPTIMIZER_FAIL    ,  ///< Model optimizer failed
-    NO_POINTS               ,  ///< No points to build model
-    NO_NEW_POINTS_FOUND     ,  ///< Models optimization did not find new points
-    EVAL_FAIL               ,  ///< Problem with Sgtelib evaluation
-    X0_FAIL                 ,  ///< Problem with starting point evaluation
-    ALL_POINTS_EVALUATED    ,  ///< No more points to evaluate
+    STARTED                  ,  ///< Started
+    ORACLE_FAIL              ,  ///< Oracle failed generating points
+    MODEL_OPTIMIZATION_FAIL  ,  ///< Model optimization has failed
+    INITIAL_FAIL             ,  ///< Cannot initialize model
+    NOT_ENOUGH_POINTS        ,  ///< Not enough points to build model
+    NO_NEW_POINTS_FOUND      ,  ///< Models optimization did not find new points
+    EVAL_FAIL                ,  ///< Problem with Sgtelib evaluation
+    X0_FAIL                  ,  ///< Problem with starting point evaluation
+    MODEL_SINGLE_PASS_COMPLETED , ///< A single pass has been completed
+    ALL_POINTS_EVALUATED     ,  ///< No more points to evaluate
     LAST
 };
+
 
 /// Stop type for Nelder Mead
 /**
  \todo check the stop type
  */
-
 enum class NMStopType : int
 {
     STARTED                     ,  ///< Started (no stop)

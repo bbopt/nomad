@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -51,19 +52,23 @@
 
 #include "../nomad_nsbegin.hpp"
 
-/// Class for initilization (step 0) of an Algorithm
+/// Class for initialization (step 0) of an Algorithm
 /**
- This an abstract class, each algorithm must implement its own initialization.
+ This an abstract class, each algorithm should probably implement an initialization.
  */
 class Initialization: public Step
 {
+protected:
+    std::shared_ptr<NOMAD::Barrier> _barrier;   ///< Barrier constructed from evaluated X0s
+
 public:
     /// Constructor
     /*
      \param parentStep      The parent of this step -- \b IN.
      */
     explicit Initialization(const Step* parentStep)
-    : Step(parentStep)
+      : Step(parentStep),
+        _barrier(nullptr)
     {
         init();
     }
@@ -76,6 +81,8 @@ public:
     {
         OutputQueue::Flush();
     }
+
+    std::shared_ptr<NOMAD::Barrier> getBarrier() const { return _barrier; }
 
 private:
     /// Helper for constructor

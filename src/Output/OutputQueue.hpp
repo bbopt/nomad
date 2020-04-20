@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -134,6 +135,26 @@ public:
 
     size_t getMaxStepLevel() const { return _maxStepLevel; }
     void setMaxStepLevel(const size_t maxStepLevel) { _maxStepLevel = maxStepLevel; }
+
+    bool goodLevel(const OutputLevel& outputLevel) const;
+    static bool GoodLevel(const OutputLevel& outputLevel)
+    {
+        return getInstance()->goodLevel(outputLevel);
+    }
+
+    // Macros for output
+#define OUTPUT_STATS_START if (NOMAD::OutputQueue::GoodLevel(NOMAD::OutputLevel::LEVEL_STATS)) {
+#define OUTPUT_INFO_START if (NOMAD::OutputQueue::GoodLevel(NOMAD::OutputLevel::LEVEL_INFO)) {
+#define OUTPUT_DEBUG_START if (NOMAD::OutputQueue::GoodLevel(NOMAD::OutputLevel::LEVEL_DEBUG)) {
+#define OUTPUT_STATS_END }
+#define OUTPUT_INFO_END }
+#define OUTPUT_DEBUG_END }
+//#define OUTPUT_STATS_START
+//#define OUTPUT_INFO_START
+//#define OUTPUT_DEBUG_START
+//#define OUTPUT_STATS_END
+//#define OUTPUT_INFO_END
+//#define OUTPUT_DEBUG_END
 
     int getDisplayDegree() const;
     void setDisplayDegree(const int displayDegree);

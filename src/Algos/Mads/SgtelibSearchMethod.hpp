@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -47,7 +48,7 @@
 #ifndef __NOMAD400_SGTELIBSEARCHMETHOD__
 #define __NOMAD400_SGTELIBSEARCHMETHOD__
 
-#include "../../Algos/Mads/SearchMethod.hpp"
+#include "../../Algos/Mads/SearchMethodAlgo.hpp"
 #ifdef USE_SGTELIB
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #endif
@@ -55,7 +56,7 @@
 #include "../../nomad_nsbegin.hpp"
 
 // \class SgtelibSearchMethod: Search method using library Sgtelib
-class SgtelibSearchMethod: public SearchMethod
+class SgtelibSearchMethod final: public SearchMethodAlgo
 {
 private:
     OutputLevel _displayLevel;
@@ -84,7 +85,7 @@ public:
      /param parentStep      The parent of this search step -- \b IN.
      */
     explicit SgtelibSearchMethod(const Step* parentStep )
-      : SearchMethod(parentStep),
+      : SearchMethodAlgo(parentStep),
         _displayLevel(OutputLevel::LEVEL_NORMAL)
 #ifdef USE_SGTELIB
         ,_modelAlgo(nullptr)
@@ -95,9 +96,15 @@ public:
 
 private:
     void init();
+    
+    bool runImp() override;
 
-    /// Generate new points to evaluate
-    void generateTrialPoints() override;
+    ///Generate new points (no evaluation)
+    /**
+     \copydoc SearchMethod::generateTrialPointsImp \n
+     This function is used only when a MADS search based on Quad Model with the option to generate all points before evaluation. It performs a single sub optimization (on the sgte) around all the points in the Barrier.
+     */
+    void generateTrialPointsImp() override;
 
 };
 

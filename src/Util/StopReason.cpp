@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -305,38 +306,42 @@ template<> bool NOMAD::StopReason<NOMAD::EvalStopType>::checkTerminate() const
 }
 
 
-// Dictionary function for SgtelibModelStopType
-template<> std::map<NOMAD::SgtelibModelStopType,std::string> & NOMAD::StopReason<NOMAD::SgtelibModelStopType>::dict() const
+// Dictionary function for ModelStopType
+template<> std::map<NOMAD::ModelStopType,std::string> & NOMAD::StopReason<NOMAD::ModelStopType>::dict() const
 {
-    static std::map<NOMAD::SgtelibModelStopType,std::string> dictionary = {
-        {NOMAD::SgtelibModelStopType::STARTED, "Started"},   // Set a the begining of a Step
-        {NOMAD::SgtelibModelStopType::ORACLE_FAIL, "Oracle failed generating points"},
+    static std::map<NOMAD::ModelStopType,std::string> dictionary = {
+        {NOMAD::ModelStopType::STARTED, "Started"},   // Set a the begining of a Step
+        {NOMAD::ModelStopType::ORACLE_FAIL, "Oracle failed generating points"},
 
-        {NOMAD::SgtelibModelStopType::MODEL_OPTIMIZER_FAIL, "Model Optimizer has failed"},
-        {NOMAD::SgtelibModelStopType::NO_POINTS, "No points to build model"},
-        {NOMAD::SgtelibModelStopType::NO_NEW_POINTS_FOUND, "Models optimization did not find new points"},
-        {NOMAD::SgtelibModelStopType::EVAL_FAIL, "Problem with Sgtelib Model evaluation"},
-        {NOMAD::SgtelibModelStopType::X0_FAIL, "Problem with starting point evaluation"},
-        {NOMAD::SgtelibModelStopType::ALL_POINTS_EVALUATED,"No more points to evaluate"}
+        {NOMAD::ModelStopType::MODEL_OPTIMIZATION_FAIL, "Model Optimization has failed"},
+        {NOMAD::ModelStopType::INITIAL_FAIL, "Cannot initialize model"},
+        {NOMAD::ModelStopType::NOT_ENOUGH_POINTS, "Not enough points to build model"},
+        {NOMAD::ModelStopType::NO_NEW_POINTS_FOUND, "Models optimization did not find new points"},
+        {NOMAD::ModelStopType::EVAL_FAIL, "Problem with Model evaluation"},
+        {NOMAD::ModelStopType::X0_FAIL, "Problem with starting point evaluation"},
+        {NOMAD::ModelStopType::ALL_POINTS_EVALUATED,"No more points to evaluate"},
+        {NOMAD::ModelStopType::MODEL_SINGLE_PASS_COMPLETED,"A single pass to create trial point has been completed successfully."}
     };
     return dictionary;
 }
 
 
-// Returns true only to terminate an SgtelibModel algorithm
-template<> bool NOMAD::StopReason<NOMAD::SgtelibModelStopType>::checkTerminate() const
+// Returns true only to terminate an model based algorithms (sgtelib, quad, ...)
+template<> bool NOMAD::StopReason<NOMAD::ModelStopType>::checkTerminate() const
 {
     switch ( _stopReason )
     {
-        case NOMAD::SgtelibModelStopType::STARTED:
-        case NOMAD::SgtelibModelStopType::ALL_POINTS_EVALUATED:
+        case NOMAD::ModelStopType::STARTED:
+        case NOMAD::ModelStopType::ALL_POINTS_EVALUATED:
+        case NOMAD::ModelStopType::MODEL_SINGLE_PASS_COMPLETED:
             return false;
             break;
-        case NOMAD::SgtelibModelStopType::MODEL_OPTIMIZER_FAIL:
-        case NOMAD::SgtelibModelStopType::NO_POINTS:
-        case NOMAD::SgtelibModelStopType::NO_NEW_POINTS_FOUND:
-        case NOMAD::SgtelibModelStopType::EVAL_FAIL:
-        case NOMAD::SgtelibModelStopType::X0_FAIL:
+        case NOMAD::ModelStopType::MODEL_OPTIMIZATION_FAIL:
+        case NOMAD::ModelStopType::INITIAL_FAIL:
+        case NOMAD::ModelStopType::NOT_ENOUGH_POINTS:
+        case NOMAD::ModelStopType::NO_NEW_POINTS_FOUND:
+        case NOMAD::ModelStopType::EVAL_FAIL:
+        case NOMAD::ModelStopType::X0_FAIL:
             return true;
             break;
         default:

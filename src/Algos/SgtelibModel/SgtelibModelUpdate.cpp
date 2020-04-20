@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -68,7 +69,7 @@ void NOMAD::SgtelibModelUpdate::init()
 
 void NOMAD::SgtelibModelUpdate::startImp()
 {
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
+    auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
     _displayLevel = (std::string::npos != modelDisplay.find("U"))
                         ? NOMAD::OutputLevel::LEVEL_INFO
                         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
@@ -92,8 +93,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
     auto modelFeasibility = _runParams->getAttributeValue<NOMAD::SgtelibModelFeasibilityType>("SGTELIB_MODEL_FEASIBILITY");
     auto modelFormulation = _runParams->getAttributeValue<NOMAD::SgtelibModelFormulationType>("SGTELIB_MODEL_FORMULATION");
 
-    const NOMAD::SgtelibModel* modelAlgoConst = dynamic_cast<const NOMAD::SgtelibModel*>(getParentOfType<NOMAD::SgtelibModel*>());
-    auto modelAlgo = const_cast<NOMAD::SgtelibModel*>(modelAlgoConst);
+    auto modelAlgo = getParentOfType<NOMAD::SgtelibModel*>();
     if (nullptr == modelAlgo)
     {
         s = "Error: In SgtelibModelUpdate, need a SgtelibModel parent.";
@@ -108,7 +108,9 @@ bool NOMAD::SgtelibModelUpdate::runImp()
     if (NOMAD::SgtelibModelFormulationType::EXTERN == modelFormulation)
     {
         // Extern SGTE. Early out
+        OUTPUT_INFO_START
         AddOutputInfo("FORMULATION: EXTERN.", _displayLevel);
+        OUTPUT_INFO_END
         return updateDone;
     }
 
@@ -121,7 +123,9 @@ bool NOMAD::SgtelibModelUpdate::runImp()
     auto add_Z = std::make_shared<SGTELIB::Matrix>("add_Z", 0, static_cast<int>(nbModels));
 
     // Go through cache points
+    OUTPUT_INFO_START
     AddOutputInfo("Review of the cache", _displayLevel);
+    OUTPUT_INFO_END
     int k = 0;
     NOMAD::Double v;
 
@@ -129,14 +133,18 @@ bool NOMAD::SgtelibModelUpdate::runImp()
     // 1- Get relevant points in cache, around current frame centers.
     //
     std::vector<NOMAD::EvalPoint> evalPointList;
-    // Get valid points: notably, they have a BB evaluation.
-    // Use CacheInterface to ensure the points are converted to subspace
-    NOMAD::CacheInterface cacheInterface(this);
-    cacheInterface.find(validForUpdate, evalPointList);
+    if (NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams()->getAttributeValue<bool>("USE_CACHE"))
+    {
+        // Get valid points: notably, they have a BB evaluation.
+        // Use CacheInterface to ensure the points are converted to subspace
+        NOMAD::CacheInterface cacheInterface(this);
+        cacheInterface.find(validForUpdate, evalPointList);
+    }
 
     // Minimum and maximum number of valid points to build a model
     const size_t minNbPoints = _runParams->getAttributeValue<size_t>("SGTELIB_MIN_POINTS_FOR_MODEL");
-    const size_t maxNbPoints = _runParams->getAttributeValue<size_t>("SGTELIB_MAX_POINTS_FOR_MODEL");
+    // Not using SGTELIB_MAX_POINTS_FOR_MODEL, see below.
+    //const size_t maxNbPoints = _runParams->getAttributeValue<size_t>("SGTELIB_MAX_POINTS_FOR_MODEL");
 
     // Select valid points that are close enough to frame centers
     // Compute distances that must not be violated for each variable.
@@ -151,7 +159,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
     radius *= radiusFactor;
 
     // Get all frame centers
-    auto megaIter = dynamic_cast<const NOMAD::SgtelibModelMegaIteration*>(getParentOfType<NOMAD::SgtelibModelMegaIteration*>());
+    auto megaIter = getParentOfType<NOMAD::SgtelibModelMegaIteration*>();
     auto allCenters = megaIter->getBarrier()->getAllPoints();
     size_t nbCenters = allCenters.size();
     std::vector<NOMAD::EvalPoint> evalPointListWithinRadius;
@@ -163,7 +171,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
              centerIndex++)
         {
             auto center = allCenters[centerIndex];
-            auto distances = NOMAD::Point::vectorize(*center->getX(), evalPoint);
+            auto distances = NOMAD::Point::vectorize(*center.getX(), evalPoint);
             distances = distances.abs();
             if (distances <= radius)
             {
@@ -176,12 +184,19 @@ bool NOMAD::SgtelibModelUpdate::runImp()
     evalPointList = evalPointListWithinRadius;
     size_t nbValidPoints = evalPointList.size();
 
+    /*
+    // This is not a safe way to select a subset of points.
+    // First, we should ensure that the frame center is part of that subset.
+    // Second, how to select the other points? The points closest to 
+    // the frame center seem like an interesting option.
     if (nbValidPoints > maxNbPoints)
     {
+        OUTPUT_INFO_START
         s = "SgtelibModel found " + std::to_string(nbValidPoints);
         s += " valid points to build model. Keep only ";
         s += std::to_string(maxNbPoints);
         AddOutputInfo(s);
+        OUTPUT_INFO_END
         // First, sort evalPointList by dominance
         std::sort(evalPointList.begin(), evalPointList.end());
         // Next, get first maxNbPoints points
@@ -193,15 +208,19 @@ bool NOMAD::SgtelibModelUpdate::runImp()
         evalPointList = evalPointListShort;
         nbValidPoints = evalPointList.size();
     }
+    */
 
     if (nbValidPoints < minNbPoints)
     {
         // If no points available, it is impossible to build a model.
-        auto sgteStopReason = NOMAD::AlgoStopReasons<NOMAD::SgtelibModelStopType>::get(_stopReasons);
-        sgteStopReason->set(NOMAD::SgtelibModelStopType::NO_POINTS);
+        auto sgteStopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+        sgteStopReason->set(NOMAD::ModelStopType::NOT_ENOUGH_POINTS);
 
-        AddOutputError("Sgtelib Model has not enough points to build model");
+        OUTPUT_INFO_START
+        AddOutputInfo("Sgtelib Model has not enough points to build model");
+        OUTPUT_INFO_END
     }
+    OUTPUT_INFO_START
     s = "Found " + std::to_string(nbValidPoints);
     s += " point";
     if (nbValidPoints > 1)
@@ -209,13 +228,16 @@ bool NOMAD::SgtelibModelUpdate::runImp()
         s += "s";
     }
     s += " in cache of size " + std::to_string(NOMAD::CacheBase::getInstance()->size());
-    AddOutputInfo(s, _displayLevel);
+    AddOutputInfo(s);
+    OUTPUT_INFO_END
 
     for (auto evalPoint : evalPointList)
     {
         NOMAD::Point x = *evalPoint.getX();
-        s = "xNew = " + x.display();
+        OUTPUT_INFO_START
+        s = "xNew = " + evalPoint.display();
         AddOutputInfo(s, _displayLevel);
+        OUTPUT_INFO_END
 
         for (size_t j = 0; j < n; j++)
         {
@@ -289,21 +311,29 @@ bool NOMAD::SgtelibModelUpdate::runImp()
     std::shared_ptr<SGTELIB::TrainingSet> trainingSet = modelAlgo->getTrainingSet();
     std::shared_ptr<SGTELIB::Surrogate> model = modelAlgo->getModel();
 
+    OUTPUT_INFO_START
     s = "Current nb of points: " + std::to_string(trainingSet->get_nb_points());
-    AddOutputInfo(s, _displayLevel);
+    AddOutputInfo(s, NOMAD::OutputLevel::LEVEL_INFO);
+    OUTPUT_INFO_END
 
     if (add_X->get_nb_rows() > 0)
     {
         // Build the model
+        OUTPUT_INFO_START
         AddOutputInfo("Add points...", _displayLevel);
+        OUTPUT_INFO_END
 
         trainingSet->add_points(*add_X, *add_Z);
 
+        OUTPUT_INFO_START
         AddOutputInfo("OK", _displayLevel);
         AddOutputInfo("Build model...", _displayLevel);
+        OUTPUT_INFO_END
 
         model->build();
+        OUTPUT_INFO_START
         AddOutputInfo("OK.", _displayLevel);
+        OUTPUT_INFO_END
     }
 
     //
@@ -313,10 +343,12 @@ bool NOMAD::SgtelibModelUpdate::runImp()
     bool ready = model->is_ready();
     modelAlgo->setReady(ready);
 
+    OUTPUT_INFO_START
     s = "New nb of points: " + std::to_string(trainingSet->get_nb_points());
-    AddOutputInfo(s, _displayLevel);
+    AddOutputInfo(s, NOMAD::OutputLevel::LEVEL_INFO);
     s = "Ready: " + NOMAD::boolToString(ready);
-    AddOutputInfo(s, _displayLevel);
+    AddOutputInfo(s, NOMAD::OutputLevel::LEVEL_INFO);
+    OUTPUT_INFO_END
 
     // Update the bounds of the model
     modelAlgo->setModelBounds(add_X);
@@ -350,8 +382,11 @@ bool NOMAD::SgtelibModelUpdate::validForUpdate(const NOMAD::EvalPoint& evalPoint
     {
         bbo = eval->getBBOutput().getBBOAsArrayOfDouble();
 
+        // Note: it could be discussed if points that have h > hMax should still be used
+        // to build the model. We validate them to comply with Nomad 3.
         if (   ! bbo.isComplete()
-            || ! (NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
+            || (   !(NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
+                && !(NOMAD::EvalStatusType::EVAL_CONS_H_OVER == eval->getEvalStatus()) )
             || ! eval->getF().isDefined() )
         {
             validPoint = false;

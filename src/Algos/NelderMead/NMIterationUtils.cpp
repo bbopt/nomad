@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -108,7 +109,9 @@ int NOMAD::NMIterationUtils::getRankDZ( ) const
     
     // For debugging
     std::ostringstream outDbg;
+    OUTPUT_DEBUG_START
     outDbg << "The rank of DZ=[";
+    OUTPUT_DEBUG_END
     
     
     // Create DZ
@@ -116,24 +119,32 @@ int NOMAD::NMIterationUtils::getRankDZ( ) const
     size_t j=0;
     while ( j < k )
     {
+        OUTPUT_DEBUG_START
         outDbg << " (" ;
+        OUTPUT_DEBUG_END
         for ( size_t i = 0; i < dim ; i++ )
         {
             DZ[j][i] = ((*itY)[i].todouble() - y0[i].todouble()  );
+            OUTPUT_DEBUG_START
             outDbg << DZ[j][i] << " ";
+            OUTPUT_DEBUG_END
         }
         j++;
         ++itY;
+        OUTPUT_DEBUG_START
         outDbg << ")" ;
+        OUTPUT_DEBUG_END
         
     }
     
     // Get the rank
     int rank= NOMAD::getRank(DZ , k , dim , _rankEps.todouble() );
     
+    OUTPUT_DEBUG_START
     outDbg << " ] equals " << rank;
     
     NOMAD::OutputQueue::Add(outDbg.str(), NOMAD::OutputLevel::LEVEL_DEBUG);
+    OUTPUT_DEBUG_END
     
     for (size_t i=0 ; i < k ; ++i)
         delete [] DZ[i];;
@@ -204,7 +215,9 @@ void NOMAD::NMIterationUtils::updateYCharacteristics()
     
     if ( success )
     {
+        OUTPUT_DEBUG_START
         NOMAD::OutputQueue::Add("The determinant of the matrix: det( [(y1-y0) (y2-y0) ... (ynf-y0)] ) = " + std::to_string(det), NOMAD::OutputLevel::LEVEL_DEBUG);
+        OUTPUT_DEBUG_END
         
         double nfact = 1;
 
@@ -220,13 +233,17 @@ void NOMAD::NMIterationUtils::updateYCharacteristics()
             _simplexVon = _simplexVol / pow(_simplexDiam,dim) ;
         else
         {
+            OUTPUT_DEBUG_START
             NOMAD::OutputQueue::Add("Cannot get the normalized volume of simplex Y because simplex diameter <=0. Let's continue. ", NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
             return;
         }
     }
     else
     {
+        OUTPUT_DEBUG_START
         NOMAD::OutputQueue::Add("Cannot get the volume of simplex Y because determinant failed. Continue", NOMAD::OutputLevel::LEVEL_DEBUG);
+        OUTPUT_DEBUG_END
     }
     return ;
 }
@@ -270,9 +287,12 @@ void NOMAD::NMIterationUtils::displayYInfo()const
     if ( nullptr == _nmY )
         NOMAD::Exception(__FILE__, __LINE__, "The iteration utils must have a simplex to work with");
     
+    OUTPUT_DEBUG_START
     NOMAD::OutputInfo dbgInfo("NM iteration utils", "", NOMAD::OutputLevel::LEVEL_DEBUG );
     
+    OUTPUT_INFO_START
     _parentStep->AddOutputInfo("Number of points in the simplex Y: " + std::to_string(_nmY->size()) );
+    OUTPUT_INFO_END
     
     if ( _simplexVol > 0 )
         dbgInfo.addMsg("The volume of the simplex: " + std::to_string( _simplexVol ) );
@@ -300,4 +320,5 @@ void NOMAD::NMIterationUtils::displayYInfo()const
     
     NOMAD::OutputQueue::Add(std::move(dbgInfo));
     NOMAD::OutputQueue::Flush();
+    OUTPUT_DEBUG_END
 }

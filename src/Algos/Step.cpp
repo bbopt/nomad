@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -116,8 +117,9 @@ NOMAD::Step::~Step()
 }
 
 
-NOMAD::EvalType NOMAD::Step::getEvalType() const
+const NOMAD::EvalType& NOMAD::Step::getEvalType() const
 {
+    /*
     NOMAD::EvalType evalType = NOMAD::EvalType::UNDEFINED;
     if (nullptr != _pbParams)
     {
@@ -125,6 +127,8 @@ NOMAD::EvalType NOMAD::Step::getEvalType() const
     }
 
     return evalType;
+    */
+    return _pbParams->getAttributeValue<NOMAD::EvalType>("EVAL_TYPE");
 }
 
 
@@ -186,16 +190,20 @@ void NOMAD::Step::runCallback(NOMAD::CallbackType callbackType,
 void NOMAD::Step::AddOutputInfo(const std::string& s, bool isBlockStart, bool isBlockEnd) const
 {
     // NB. Set the output level as LEVEL_INFO by default.
+    OUTPUT_INFO_START
     NOMAD::OutputInfo outputInfo(_name, s, NOMAD::OutputLevel::LEVEL_INFO, isBlockStart, isBlockEnd);
-
     NOMAD::OutputQueue::Add(std::move(outputInfo));
+    OUTPUT_INFO_END
 }
 
 
 void NOMAD::Step::AddOutputInfo(const std::string& s, NOMAD::OutputLevel outputLevel) const
 {
-    NOMAD::OutputInfo outputInfo(_name, s, outputLevel);
-    NOMAD::OutputQueue::Add(std::move(outputInfo));
+    if (NOMAD::OutputQueue::GoodLevel(outputLevel))
+    {
+        NOMAD::OutputInfo outputInfo(_name, s, outputLevel);
+        NOMAD::OutputQueue::Add(std::move(outputInfo));
+    }
 }
 
 
@@ -225,7 +233,9 @@ void NOMAD::Step::AddOutputHigh(const std::string& s) const
 
 void NOMAD::Step::AddOutputDebug(const std::string& s) const
 {
+    OUTPUT_DEBUG_START
     AddOutputInfo(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    OUTPUT_DEBUG_END
 }
 
 
@@ -260,8 +270,10 @@ void NOMAD::Step::defaultStart()
 {
     // Test shared_ptr here because MainStep has no stopReason
     if ( _stopReasons && ! _stopReasons->checkTerminate() )
+    {
         _stopReasons->setStarted();
-    
+    }
+
     AddOutputInfo("Start step " + getName() , true, false);
 }
 
@@ -335,7 +347,7 @@ std::string NOMAD::Step::getAlgoName() const
 const std::shared_ptr<NOMAD::MeshBase> NOMAD::Step::getIterationMesh() const
 {
     std::shared_ptr<NOMAD::MeshBase> mesh = nullptr;
-    const NOMAD::Iteration* iteration = dynamic_cast<const NOMAD::Iteration*>(getParentOfType<NOMAD::Iteration*>());
+    const NOMAD::Iteration* iteration = getParentOfType<NOMAD::Iteration*>();
 
     if (nullptr != iteration)
     {
@@ -349,7 +361,7 @@ const std::shared_ptr<NOMAD::MeshBase> NOMAD::Step::getIterationMesh() const
 const std::shared_ptr<NOMAD::EvalPoint> NOMAD::Step::getIterationFrameCenter() const
 {
     std::shared_ptr<NOMAD::EvalPoint> frameCenter = nullptr;
-    const NOMAD::Iteration* iteration = dynamic_cast<const NOMAD::Iteration*>(getParentOfType<NOMAD::Iteration*>());
+    const NOMAD::Iteration* iteration = getParentOfType<NOMAD::Iteration*>();
 
     if (nullptr != iteration)
     {
@@ -363,11 +375,24 @@ const std::shared_ptr<NOMAD::EvalPoint> NOMAD::Step::getIterationFrameCenter() c
 const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() const
 {
     std::shared_ptr<NOMAD::Barrier> barrier = nullptr;
-    const NOMAD::MegaIteration* itMgr = dynamic_cast<const NOMAD::MegaIteration*>(getParentOfType<NOMAD::MegaIteration*>());
+    NOMAD::MegaIteration* megaIter = nullptr;
 
-    if (nullptr != itMgr)
+    if (isAnAlgorithm())
     {
-        barrier = itMgr->getBarrier();
+        // An Algorithm has its own MegaIteration member. Get it.
+        auto algo = dynamic_cast<const NOMAD::Algorithm*>(this);
+        megaIter = algo->getMegaIteration().get();
+    }
+    else
+    {
+        // Get first parent of type MegaIteration.
+        auto constMegaIter = getParentOfType<NOMAD::MegaIteration*>();
+        megaIter = const_cast<NOMAD::MegaIteration*>(constMegaIter);
+    }
+
+    if (nullptr != megaIter)
+    {
+        barrier = megaIter->getBarrier();
     }
     return barrier;
 }
@@ -378,7 +403,7 @@ const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() con
 NOMAD::Point NOMAD::Step::getSubFixedVariable() const
 {
     // Argument false: go all the way up, do not stop at first Algorithm ancestor.
-    const NOMAD::MainStep* mainstep = dynamic_cast<const NOMAD::MainStep*>(getParentOfType<NOMAD::MainStep*>(false));
+    auto mainstep = getParentOfType<NOMAD::MainStep*>(false);
     NOMAD::Point fixedVariable;
 
     if (nullptr != mainstep)

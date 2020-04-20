@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -122,7 +123,7 @@ bool NOMAD::NMIteration::runImp()
         // The NM step type for the next pass
         stepType = reflect.getNextNMStepType() ;
 
-        // Update the type of success for passing to the MegeIteration
+        // Update the type of success for passing to the MegaIteration
         NOMAD::SuccessType success = reflect.getSuccessType();
         
         if ( success > _bestSuccess )
@@ -149,7 +150,7 @@ bool NOMAD::NMIteration::runImp()
         shrink.run();
         shrink.end();
 
-        // Update the type of success for passing to the MegeIteration
+        // Update the type of success for passing to the MegaIteration
         NOMAD::SuccessType success = shrink.getSuccessType();
         if ( success > _bestSuccess )
         {
@@ -158,13 +159,10 @@ bool NOMAD::NMIteration::runImp()
         }
     }
 
-    // Update MegaIteration success type with best success found.
-    // Pretty ugly.
     if ( iterationSuccess )
     {
-        auto megaIterConst = dynamic_cast<const NOMAD::MegaIteration*>(getParentOfType<NOMAD::MegaIteration*>());
-        auto megaIter = const_cast<NOMAD::MegaIteration*>(megaIterConst);
-        megaIter->setSuccessType(_bestSuccess);
+        // Update MegaIteration success type with best success found.
+        getParentOfType<NOMAD::MegaIteration*>()->setSuccessType(_bestSuccess);
     }
 
     // End of the iteration: iterationSuccess is true if we have a success.

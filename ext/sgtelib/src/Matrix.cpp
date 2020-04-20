@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -1619,30 +1620,6 @@ SGTELIB::Matrix SGTELIB::Matrix::ones ( const int nbRows , const int nbCols ) {
   // Fill with 1.0
   matrixOnes.fill(1.0);
   return matrixOnes;
-}//
-
-/*---------------------------*/
-/* random permutation matrix */
-/*---------------------------*/
-// Create a square matrix of size nbCols, with one 1.0 randomly 
-// placed in each col and in each row
-SGTELIB::Matrix SGTELIB::Matrix::random_permutation_matrix ( const int n ) {
-  // Init matrix
-  SGTELIB::Matrix perm("perm",n,n);
-
-  // Create random integer permutation
-  std::vector<int> v;
-
-  // Create order vector
-  for (int i=0; i<n; ++i) v.push_back(i); // 1 2 3 4 5 6 7 8 9
-
-  // shuffle
-  std::random_shuffle ( v.begin(), v.end() );
-
-  // Fill matrix
-  for (int i=0; i<n; ++i) perm.set(i,v[i],1.0);
-
-  return perm;
 }//
 
 /*---------------------------*/

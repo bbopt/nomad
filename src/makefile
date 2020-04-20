@@ -32,7 +32,7 @@ ifeq "$(wildcard $(SGTE_DIR))" ""
     else
         $(info Warning: Directory $(SGTE_DIR) does not exist.)
         $(info Here are your options:)
-        $(info    1- Get the Sgtelib library at: https://github.com/bastientalgorn/sgtelib/zipball/master)
+        $(info    1- Get the Sgtelib library at: https://github.com/bbopt/sgtelib/zipball/master)
         $(info       and unzip it as directory $(SGTE_DIR) )
         $(info )
         $(info    2- Developer: Follow git module instructions in $(NOMAD_HOME)/README_GITHUB.txt )
@@ -66,6 +66,7 @@ MADS_DIRNAME        = $(ALGO_DIRNAME)/Mads
 NM_DIRNAME          = $(ALGO_DIRNAME)/NelderMead
 PHASEONE_DIRNAME    = $(ALGO_DIRNAME)/PhaseOne
 SGTELIBMODEL_DIRNAME = $(ALGO_DIRNAME)/SgtelibModel
+QUADMODEL_DIRNAME   = $(ALGO_DIRNAME)/QuadModel
 
 ALGO_COMPONENT      = $(SRC_DIR)/$(ALGO_DIRNAME)
 ATTR_COMPONENT      = $(SRC_DIR)/$(ATTR_DIRNAME)
@@ -80,12 +81,13 @@ OUTPUT_COMPONENT    = $(SRC_DIR)/$(OUTPUT_DIRNAME)
 PARAM_COMPONENT     = $(SRC_DIR)/$(PARAM_DIRNAME)
 PHASEONE_COMPONENT  = $(SRC_DIR)/$(PHASEONE_DIRNAME)
 SGTELIBMODEL_COMPONENT = $(SRC_DIR)/$(SGTELIBMODEL_DIRNAME)
+QUADMODEL_COMPONENT = $(SRC_DIR)/$(QUADMODEL_DIRNAME)
 TYPE_COMPONENT      = $(SRC_DIR)/$(TYPE_DIRNAME)
 UTIL_COMPONENT      = $(SRC_DIR)/$(UTIL_DIRNAME)
 COMPONENTS          = $(ATTR_DIRNAME) $(CACHE_DIRNAME) $(EVAL_DIRNAME) \
                       $(LH_DIRNAME) $(MADS_DIRNAME) $(MATH_DIRNAME) \
                       $(NM_DIRNAME) $(NOMAD_DIRNAME) $(OUTPUT_DIRNAME) \
-                      $(PARAM_DIRNAME) $(SGTELIBMODEL_DIRNAME) \
+                      $(PARAM_DIRNAME) $(SGTELIBMODEL_DIRNAME) $(QUADMODEL_DIRNAME) \
                       $(TYPE_DIRNAME) $(UTIL_DIRNAME)
 INCLUDE_COMPONENTS  := $(addprefix $(INCLUDE_DIR)/,$(COMPONENTS))
 
@@ -106,10 +108,10 @@ ALGO_OBJ            := $(addprefix $(OBJ_DIR)/,$(ALGO_OBJ))
 LH_OBJ              = LH.o
 LH_OBJ              := $(addprefix $(OBJ_DIR)/,$(LH_OBJ))
 MADS_OBJ            = GMesh.o LHSearchMethod.o \
-                      Mads.o MadsInitialization.o MadsIteration.o MadsIterationUtils.o \
+                      Mads.o MadsInitialization.o MadsIteration.o \
                       MadsMegaIteration.o MegaSearchPoll.o MadsUpdate.o \
-                      NMSearchMethod.o Poll.o Search.o SearchMethod.o \
-                      SgtelibSearchMethod.o \
+                      NMSearchMethod.o Poll.o Search.o SearchMethodAlgo.o SearchMethodBase.o \
+                      SearchMethodSimple.o SgtelibSearchMethod.o QuadSearchMethod.o \
                       SpeculativeSearchMethod.o UserSearchMethod.o
 MADS_OBJ            := $(addprefix $(OBJ_DIR)/,$(MADS_OBJ))
 MATH_OBJ            = ArrayOfDouble.o ArrayOfPoint.o Direction.o Double.o LHS.o \
@@ -139,6 +141,15 @@ SGTELIBMODEL_OBJ    = SgtelibModel.o SgtelibModelEvaluator.o \
                       SgtelibModelOptimize.o \
                       SgtelibModelUpdate.o
 SGTELIBMODEL_OBJ    := $(addprefix $(OBJ_DIR)/,$(SGTELIBMODEL_OBJ))
+QUADMODEL_OBJ       = QuadModelAlgo.o QuadModelEvaluator.o \
+                      QuadModelInitialization.o \
+                      QuadModelIteration.o \
+                      QuadModelIterationUtils.o \
+                      QuadModelMegaIteration.o \
+	              QuadModelOptimize.o \
+                      QuadModelSinglePass.o \
+                      QuadModelUpdate.o
+QUADMODEL_OBJ       := $(addprefix $(OBJ_DIR)/,$(QUADMODEL_OBJ))
 TYPE_OBJ            = BBInputType.o BBOutputType.o EvalType.o LHSearchType.o \
                       SgtelibModelFeasibilityType.o SgtelibModelFormulationType.o
 TYPE_OBJ            := $(addprefix $(OBJ_DIR)/,$(TYPE_OBJ))
@@ -159,7 +170,7 @@ EVAL_OBJ_LIB        = $(CACHE_OBJ) $(EVAL_OBJ)
 ALGOS_OBJ_LIB       = $(ALGO_OBJ) $(MADS_OBJ) $(LH_OBJ) $(NM_OBJ) \
                       $(PHASEONE_OBJ)
 ifeq ($(USE_SGTELIB), 1)
-ALGOS_OBJ_LIB       += $(SGTELIBMODEL_OBJ)
+ALGOS_OBJ_LIB       += $(SGTELIBMODEL_OBJ) $(QUADMODEL_OBJ)
 endif
 OBJ_LIB             = $(UTILS_OBJ_LIB) $(EVAL_OBJ_LIB) $(ALGOS_OBJ_LIB)
 
@@ -215,6 +226,9 @@ CXXFLAGS            += -DUSE_UNORDEREDSET
 endif
 ifeq ($(USE_SGTELIB), 1)
 CXXFLAGS            += -DUSE_SGTELIB
+endif
+ifeq ($(TIME_STATS), 1)
+CXXFLAGS            += -DTIME_STATS
 endif
 
 CXXFLAGS            += -std=c++14 -Wall -Wextra -fpic
@@ -319,6 +333,8 @@ $(PHASEONE_OBJ) : $(ALGO_OBJ)
 $(SGTELIBMODEL_OBJ) : $(ALGO_OBJ)
 	@cd $(ALGO_COMPONENT) && $(MAKE) -j$(PAR) all
 
+$(QUADMODEL_OBJ) : $(ALGO_OBJ)
+	@cd $(ALGO_COMPONENT) && $(MAKE) -j$(PAR) all
 
 $(EXE) : $(INCLUDE_DIR) $(ATTR_EXE) $(LIB_DYNAMIC) $(NOMAD_COMPONENT)/nomad.hpp $(NOMAD_COMPONENT)/nomad.cpp
 	@cd $(NOMAD_COMPONENT) && $(MAKE) all LIB_DIR=$(LIB_DIR) LIB_DYNAMIC_LINK='$(LIB_DYNAMIC_LINK)'
@@ -366,4 +382,5 @@ $(SGTE_LIB_DYNAMIC): $(SGTE_OBJ) $(SGTE_LIB_DIR)/$(SGTE_LIB_DYNAMIC_NAME)
 
 clean:
 	@cd $(ATTR_COMPONENT) && $(MAKE) clean
+	@cd $(SGTE_SRC_DIR) && $(MAKE) clean
 	@rm -rf $(BUILD_DIR)

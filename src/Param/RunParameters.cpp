@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -158,6 +159,20 @@ void NOMAD::RunParameters::checkAndComply(
     
     setStaticParameters();
     
+    /*-------------------*/
+    /* Disable parameter */
+    /*-------------------*/
+    // Convert all disabled entries (MODELS, EVAL_SORT, ...) to upper case.
+    auto disabledConst = getAttributeValueProtected<NOMAD::ArrayOfString>("DISABLE", false);
+    NOMAD::ArrayOfString disabled;
+    for (size_t i = 0; i < disabledConst.size(); i++)
+    {
+        std::string disabledI = disabledConst[i];
+        NOMAD::toupper(disabledI);
+        disabled.add(disabledI);
+    }
+    setAttributeValue("DISABLE", disabled);
+
     /*---------------------------*/
     /* Sgtelib Search parameters */
     /*---------------------------*/
@@ -167,18 +182,23 @@ void NOMAD::RunParameters::checkAndComply(
     bool showDisableWarn = true;
 #endif
     // If dimension is too large, disable models.
+    disabled = getAttributeValueProtected<NOMAD::ArrayOfString>("DISABLE", false);
     if (n >= bigDim)
     {
-        setAttributeValue("DISABLE", std::string("MODELS"));
-        std::cerr << "Warning: Dimension is higher than " << bigDim << ". Models are disabled." << std::endl;
+        if (-1 == disabled.find("MODELS"))
+        {
+            disabled.add(std::string("MODELS"));
+            setAttributeValue("DISABLE", disabled);
+            std::cerr << "Warning: Dimension is higher than " << bigDim << ". Models are disabled." << std::endl;
 #ifdef USE_SGTELIB
-        showDisableWarn = false;
+            showDisableWarn = false;
 #endif
+        }
     }
 #ifdef USE_SGTELIB
     // If models are disabled, set SGTELIB_SEARCH to false.
-    auto disableModels = getAttributeValueProtected<std::string>("DISABLE", false);
-    if ("MODELS" == disableModels)
+    disabled = getAttributeValueProtected<NOMAD::ArrayOfString>("DISABLE", false);
+    if (disabled.find("MODELS") >= 0)
     {
         if (getAttributeValueProtected<bool>("SGTELIB_SEARCH", false))
         {
@@ -187,6 +207,14 @@ void NOMAD::RunParameters::checkAndComply(
                 std::cerr << "Warning: Models are disabled. SGTELIB_SEARCH set to false." << std::endl;
             }
             setAttributeValue("SGTELIB_SEARCH", false);
+        }
+        if (getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH", false))
+        {
+            if (showDisableWarn)
+            {
+                std::cerr << "Warning: Models are disabled. QUAD_MODEL_SEARCH set to false." << std::endl;
+            }
+            setAttributeValue("QUAD_MODEL_SEARCH", false);
         }
     }
 #endif
@@ -248,6 +276,13 @@ void NOMAD::RunParameters::checkAndComply(
         err += "search method, NOMAD must be recompiled using option USE_SGTELIB=1.";
         std::cerr << err << std::endl;
     }
+    if (getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH", false))
+    {
+        err = "Warning: Parameter QUAD_MODEL_SEARCH is set to true, but ";
+        err += "Quad Model sampling cannot be used. To be able to use Quad Model Search ";
+        err += "search method, NOMAD must be recompiled using option USE_SGTELIB=1.";
+        std::cerr << err << std::endl;
+    }
 #endif
 
     // Algorithm parameters: use an algorithm other than MADS.
@@ -255,7 +290,8 @@ void NOMAD::RunParameters::checkAndComply(
     bool useAlgoLH = (getAttributeValueProtected<size_t>("LH_EVAL", false) > 0);
     bool useAlgoNM = getAttributeValueProtected<bool>("NM_OPTIMIZATION", false);
     bool useAlgoSgtelibModel = getAttributeValueProtected<bool>("SGTELIB_MODEL_EVAL", false);
-    int totalAlgoSet = (int)useAlgoLH + (int)useAlgoNM + (int)useAlgoSgtelibModel;
+    bool useAlgoQuadOpt = getAttributeValueProtected<bool>("QUAD_MODEL_OPTIMIZATION", false);
+    int totalAlgoSet = (int)useAlgoLH + (int)useAlgoNM + (int)useAlgoSgtelibModel + (int)useAlgoQuadOpt;
     if (totalAlgoSet >= 2)
     {
         err = "Multiple parameters for algorithms are set. ";
@@ -271,6 +307,10 @@ void NOMAD::RunParameters::checkAndComply(
         if (useAlgoSgtelibModel)
         {
             err += " SGTELIB_MODEL_EVAL";
+        }
+        if (useAlgoQuadOpt)
+        {
+            err += " QUAD_MODEL_OPTIMIZATION";
         }
         err += ". Please review parameters settings and choose only one algorithm.";
         throw NOMAD::Exception(__FILE__,__LINE__, err);

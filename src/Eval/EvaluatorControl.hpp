@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -65,11 +66,7 @@
 
 #include <atomic>       // For atomic
 #include <time.h>
-#ifdef USE_PRIORITY_QUEUE
-#include <queue>        // For priority_queue
-#else
 #include <vector>
-#endif // USE_PRIORITY_QUEUE
 
 #include "../nomad_nsbegin.hpp"
 
@@ -89,15 +86,6 @@ private:
       /**
        \todo Have means to reorder the queue and change the comparison function during the run. \n
      */
-#ifdef USE_PRIORITY_QUEUE
-    /**
-     * Queue is implemented as a priority queue. Points are inserted according to their priority. \n
-     * Sorting the queue is not possible.
-     */
-    std::priority_queue<EvalQueuePointPtr,
-                        std::vector<EvalQueuePointPtr>,
-                        ComparePriority> _evalPointQueue;
-#else
     /**
      * The queue is implemented as a vector. Points are added at the end of
       the queue. Points are sorted using the _comp() which is called
@@ -106,7 +94,6 @@ private:
      */
     std::vector<EvalQueuePointPtr> _evalPointQueue;
     ComparePriority _comp;
-#endif // USE_PRIORITY_QUEUE
 
 #ifdef _OPENMP
     /// To lock the queue
@@ -119,6 +106,8 @@ private:
      */
     std::shared_ptr<Barrier> _barrier;
     bool _opportunisticEval; ///< Is opportunistic ?
+    bool _updateCache; ///< Update cache before and after optimization
+    std::vector<EvalPoint> _evaluatedPoints; ///< Where evaluated points are put temporarily
 
     SuccessType _success; ///< Success type of the last run
 
@@ -165,6 +154,10 @@ private:
     
     bool _doneWithEval;     ///< All evaluations done. The queue can be destroyed.
 
+#ifdef TIME_STATS
+    double _evalTime;  ///< Total time spent running evaluations
+#endif // TIME_STATS
+
 public:
     
     /// Constructor
@@ -178,17 +171,15 @@ public:
                               ComparePriority comp = ComparePriority() )
       : _evaluator(std::move(evaluator)),
         _evalContParams(evalContParams),
-#ifdef USE_PRIORITY_QUEUE
-        _evalPointQueue(comp),
-#else
         _evalPointQueue(),
         _comp(comp),
-#endif // USE_PRIORITY_QUEUE
 #ifdef _OPENMP
         _evalQueueLock(),
 #endif // _OPENMP
         _barrier(),
         _opportunisticEval(false),
+        _updateCache(true),
+        _evaluatedPoints(),
         _success(SuccessType::UNSUCCESSFUL),
         _currentlyRunning(0),
         _bbEval(0),
@@ -199,6 +190,9 @@ public:
         _blockEval(0),
         _nbEvalSentToEvaluator(0),
         _doneWithEval(false)
+#ifdef TIME_STATS
+        ,_evalTime(0.0)
+#endif // TIME_STATS
     {
         init();
     }
@@ -255,12 +249,25 @@ public:
     void resetLapBbEval ( void ) { _lapBbEval = 0; }
     size_t getLapBbEval ( void ) { return _lapBbEval; }
 
+#ifdef TIME_STATS
+    /// Get the total time spend in Evaluator
+    double getEvalTime() const { return _evalTime; }
+#endif // TIME_STATS
+    
     size_t getQueueSize() const { return _evalPointQueue.size(); }
 
     void setBarrier(const std::shared_ptr<Barrier> barrier) { _barrier = barrier; }
     const std::shared_ptr<Barrier> getBarrier() const { return _barrier; }
     
-    bool getOpportunisticEval() const { return _opportunisticEval; }
+    bool getOpportunisticEval() const;
+    bool getUseCache() const;
+
+    /// Get all points that were just evaluated. This is especially useful when cache is not used.
+    /**
+     \note              _evaluatedPoints is cleared
+     */
+    std::vector<EvalPoint> getAllEvaluatedPoints();
+
 
     /// Get the max infeasibility to keep a point in barrier
     Double getHMax() const
@@ -312,13 +319,11 @@ public:
     */
     bool popBlock(BlockForEval &block);
 
-#ifndef USE_PRIORITY_QUEUE
     /// Sort the queue with respect to the comparison function comp.
     void sort(ComparePriority comp);
   
     /// Use the default comparison function _comp.
     void sort() { sort(_comp); }
-#endif // USE_PRIORITY_QUEUE
 
     /// Clear queue.
     /**
@@ -399,7 +404,7 @@ public:
     /// Did we reach one of the evaluation parameters: MAX_EVAL, MAX_BB_EVAL, MAX_BLOCK_EVAL ?
     bool reachedMaxEval() const;
 
-    /// Did we reach Max LAP, SGTELIB_MODEL_EVAL_NB (temporary max evals)?
+    /// Did we reach Max LAP, MAX_SGTE_EVAL (temporary max evals)?
     bool reachedMaxStepEval() const;
 
 

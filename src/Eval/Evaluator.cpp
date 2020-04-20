@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -113,7 +114,30 @@ bool NOMAD::Evaluator::eval_x(NOMAD::EvalPoint &x,
 {
     // The user might have defined his own eval_x() for NOMAD::EvalPoint.
     // In the NOMAD code, we do not use this method.
-    return false;
+    //
+    // Implemented to be used by the Runner. In the case of the Runner, 
+    // eval_x is redefined. When batch mode is used (for instance for
+    // Styrene), this eval_x is called. So in fact we really want to 
+    // use the executable defined by BB_EXE.
+
+    _evalXDefined = NOMAD::EvalXDefined::USE_BB_EVAL;
+
+    // Create a block of one point and evaluate it.
+    NOMAD::Block block;
+    std::shared_ptr<NOMAD::EvalPoint> epp = std::make_shared<NOMAD::EvalPoint>(x);
+    block.push_back(epp);
+
+    std::vector<bool> countEvalVector(1, countEval);
+    std::vector<bool> evalOkVector(1, false);
+
+    // Call eval_block
+    evalOkVector = eval_block(block, hMax, countEvalVector);
+
+    // Update x and countEval
+    x = *epp;
+    countEval = countEvalVector[0];
+
+    return evalOkVector[0];
 }
 
 
@@ -243,8 +267,11 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
     }
 
     std::string cmd = bbExe + " " + tmpfile;
-    std::string s = "System command: " + cmd;
+    std::string s;
+    OUTPUT_DEBUG_START
+    s = "System command: " + cmd;
     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUGDEBUG);
+    OUTPUT_DEBUG_END
 
     FILE *fresult = popen(cmd.c_str(), "r");
     if (!fresult)

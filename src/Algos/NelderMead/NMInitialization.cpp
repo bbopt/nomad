@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -46,8 +47,6 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/CacheInterface.hpp"
-#include "../../Algos/EvcInterface.hpp"
-
 #include "../../Algos/NelderMead/NMInitialization.hpp"
 
 
@@ -92,6 +91,22 @@ void NOMAD::NMInitialization::startImp()
     
 }
 
+
+void NOMAD::NMInitialization::endImp()
+{
+    // Update _barrier member with evaluated _trialPoints for future use
+    // _trialPoints are already updated with Evals.
+    if (_trialPoints.size() > 0)
+    {
+        std::vector<NOMAD::EvalPoint> evalPointList;
+        std::copy(_trialPoints.begin(), _trialPoints.end(),
+                          std::back_inserter(evalPointList));
+        _barrier->updateWithPoints(evalPointList, getEvalType(),
+                                   _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
+    }
+}
+
+
 bool NOMAD::NMInitialization::checkCacheCanFormSimplex()
 {
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
@@ -126,7 +141,9 @@ void NOMAD::NMInitialization::generateTrialPoints()
 
     NOMAD::EvalPoint evalPoint_x0(x0);
     insertTrialPoint(evalPoint_x0);
+    OUTPUT_INFO_START
     AddOutputInfo("Using X0: " + evalPoint_x0.display());
+    OUTPUT_INFO_END
     
     // Method to generate simplex points using X0 adapted from fminsearch (matlab)
     const NOMAD::Double usualDelta = 0.05;    //  x0 + 5 percent
@@ -142,6 +159,8 @@ void NOMAD::NMInitialization::generateTrialPoints()
         insertTrialPoint(trialPoint);
     }
 
+    OUTPUT_INFO_START
     NOMAD::OutputQueue::Flush();
+    OUTPUT_INFO_END
 }
 

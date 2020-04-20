@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -55,7 +56,6 @@
 /*-----------------------------------*/
 std::shared_ptr<NOMAD::EvaluatorControl> NOMAD::EvcInterface::_evaluatorControl = nullptr;
 
-
 void NOMAD::EvcInterface::init()
 {
     verifyStepNotNull();
@@ -95,6 +95,7 @@ void NOMAD::EvcInterface::setEvaluatorControl(const std::shared_ptr<NOMAD::Evalu
 // If not, add it to EvaluatorControl's Queue.
 void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &trialPoints, bool useMesh)
 {
+    
     // Create EvalPoints and send them to EvaluatorControl
     if (nullptr == _evaluatorControl)
     {
@@ -103,7 +104,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
 
     // Currently, this method may be used inside an Iteration (Search or Poll, NM, ...),
     // or inside a MegaSearchPoll.
-    auto iteration = dynamic_cast<const NOMAD::Iteration*>(_step->getParentOfType<NOMAD::Iteration*>());
+    auto iteration = _step->getParentOfType<NOMAD::Iteration*>();
     auto megaSearchPoll = dynamic_cast<const NOMAD::MegaSearchPoll*>(_step);
     
     if (useMesh && nullptr == iteration && nullptr == megaSearchPoll)
@@ -113,8 +114,12 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
 
     if (trialPoints.size() > 0)
     {
+        OUTPUT_INFO_START
         _step->AddOutputInfo("Add points to eval queue for step " + _step->getName(), true, false);
+        OUTPUT_INFO_END
+        OUTPUT_DEBUG_START
         _step->AddOutputDebug(NOMAD::itos(trialPoints.size()) + " points to add to eval queue");
+        OUTPUT_DEBUG_END
     }
 
     for (auto trialPoint : trialPoints)
@@ -129,18 +134,42 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
         auto trialPointSub = trialPoint;    // Used to get iteration
         trialPoint = trialPoint.makeFullSpacePointFromFixed(_step->getSubFixedVariable());
 
+        // Compute if we should evaluate, maybe re-evaluate, this point
+        bool doEval = true;
         // maxNumberEval is used to compute if we should re-evaluate this point.
         // Default value is 1.
         // This will be a parameter in the future. Currently not implemented.
         const int maxNumberEval = 1;
-        bool doEval = NOMAD::CacheBase::getInstance()->smartInsert(trialPoint, maxNumberEval, _step->getEvalType());
+        if (_evaluatorControl->getUseCache())
+        {
+            doEval = NOMAD::CacheBase::getInstance()->smartInsert(trialPoint, maxNumberEval, _step->getEvalType());
+        }
+        else
+        {
+            // smartInsert would have taken care of updating tag, but since
+            // cache is not used, update tag here.
+            trialPoint.updateTag();
+            // Look in EvaluatorControl's Barrier if the point is already evaluated.
+            auto barrier = _evaluatorControl->getBarrier();
+            if (nullptr != barrier)
+            {
+                NOMAD::EvalPoint foundEvalPoint;
+                // Either point is not in barrier, or 
+                // point was evaluated, but not with the current eval type.
+                doEval = !findInList(*trialPoint.getX(), barrier->getAllPoints(), foundEvalPoint)
+                         || (nullptr == foundEvalPoint.getEval(_step->getEvalType()));
+                {
+                    doEval = true;
+                }
+            }
+        }
 
         if (doEval)
         {
             NOMAD::EvalQueuePointPtr evalQueuePoint(new NOMAD::EvalQueuePoint(trialPoint));
             if (useMesh && nullptr == iteration)
             {
-                iteration = megaSearchPoll->getIterForPoint(trialPointSub).get();
+                iteration = dynamic_cast<NOMAD::Iteration*>(megaSearchPoll->getIterForPoint(trialPointSub).get());
                 if (nullptr == iteration)
                 {
                     std::string s = _step->getName();
@@ -165,15 +194,20 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
             evalQueuePoint->setGenStep(_step->getName());
 
             _evaluatorControl->addToQueue(evalQueuePoint);
+            OUTPUT_DEBUG_START
             _step->AddOutputDebug("New point added to eval queue: " + trialPoint.display());
+            OUTPUT_DEBUG_END
         }
         else
         {
-            // Cache hit
-            _step->AddOutputDebug("Point already found in cache: " + trialPoint.display());
+            // Point already evaluated
+            OUTPUT_DEBUG_START
+            _step->AddOutputDebug("Point not re-evaluated: " + trialPoint.display());
+            OUTPUT_DEBUG_END
         }
     }
 
+    OUTPUT_DEBUG_START
     size_t evcNbPoints = _evaluatorControl->getQueueSize();
     if (evcNbPoints > 0)
     {
@@ -181,20 +215,25 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
         // There could be leftover points to evaluate from previous evaluations.
         _step->AddOutputDebug("Eval queue now has " + NOMAD::itos(evcNbPoints) + " points.");
     }
+    OUTPUT_DEBUG_END
 
+    OUTPUT_INFO_START
     if (trialPoints.size() > 0)
     {
         _step->AddOutputInfo("Add points to eval queue for step " + _step->getName(), false, true);
     }
 
     NOMAD::OutputQueue::Flush();
+    OUTPUT_INFO_END
 }
 
 
 void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::Barrier>& subBarrier)
 {
-    if ( subBarrier == nullptr )
+    if (subBarrier == nullptr)
+    {
         return;
+    }
 
     // Input is the barrier from MegaIteration, which may belong to a subspace.
     // EvaluatorControl's barrier must be in full dimension.
@@ -206,12 +245,12 @@ void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::Barrier>& subB
     fullBarrier->clearXInf();
     for (auto xFeas : subBarrier->getAllXFeas())
     {
-        auto xFeasFull = std::make_shared<NOMAD::EvalPoint>(xFeas->makeFullSpacePointFromFixed(fixedVariable));
+        auto xFeasFull = xFeas.makeFullSpacePointFromFixed(fixedVariable);
         fullBarrier->addXFeas(xFeasFull, _step->getEvalType());
     }
     for (auto xInf : subBarrier->getAllXInf())
     {
-        auto xInfFull = std::make_shared<NOMAD::EvalPoint>(xInf->makeFullSpacePointFromFixed(fixedVariable));
+        auto xInfFull = xInf.makeFullSpacePointFromFixed(fixedVariable);
         fullBarrier->addXInf(xInfFull);
     }
 
@@ -219,11 +258,28 @@ void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::Barrier>& subB
 }
 
 
+std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::getAllEvaluatedPoints()
+{
+    std::vector<NOMAD::EvalPoint> evaluatedPoints;
+
+    for (auto evalPoint : _evaluatorControl->getAllEvaluatedPoints())
+    {
+        // Convert from full to subspace dimension
+        evalPoint = evalPoint.makeSubSpacePointFromFixed(_step->getSubFixedVariable());
+        evaluatedPoints.push_back(evalPoint);
+    }
+
+    return evaluatedPoints;
+}
+
+
 // When points are generated and added to queue,
 // we can start evaluation.
 NOMAD::SuccessType NOMAD::EvcInterface::startEvaluation()
 {
+    OUTPUT_INFO_START
     _step->AddOutputInfo("Evaluate points for " + _step->getName(), true, false);
+    OUTPUT_INFO_END
 
     NOMAD::SuccessType success = NOMAD::SuccessType::UNSUCCESSFUL;
     std::shared_ptr<NOMAD::AllStopReasons> stopReasons = _step->getAllStopReasons();
@@ -234,13 +290,17 @@ NOMAD::SuccessType NOMAD::EvcInterface::startEvaluation()
         success = _evaluatorControl->run();
     }
 
+    OUTPUT_DEBUG_START
     std::string s = _step->getName() + ": " + NOMAD::enumStr(success);
     s += ". Stop reasons: " + stopReasons->getStopReasonAsString() ;
     _step->AddOutputDebug(s);
+    OUTPUT_DEBUG_END
 
+    OUTPUT_INFO_START
     NOMAD::OutputQueue::Flush();
 
     _step->AddOutputInfo("Evaluate points for " + _step->getName(), false, true);
+    OUTPUT_INFO_END
 
     return success;
 }

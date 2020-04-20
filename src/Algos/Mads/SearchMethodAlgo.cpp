@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -44,56 +45,4 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD400_SEARCHMETHOD__
-#define __NOMAD400_SEARCHMETHOD__
-
-#include "../../Algos/Mads/MadsIterationUtils.hpp"
-
-#include "../../nomad_nsbegin.hpp"
-
-// Class for generic search method of MADS. Run by Search.
-class SearchMethod: public Step , public MadsIterationUtils
-{
-private:
-    
-    bool _enabled; ///< Should this search method be used? Modified by parameters.
-
-    /// AlgoComment to show when this SearchMethod is used
-    std::string _comment;
-
-public:
-    /// Constructor
-    /**
-     /param parentStep      The parent of this search step -- \b IN.
-     */
-    explicit SearchMethod( const Step* parentStep )
-      : Step( parentStep ),
-        MadsIterationUtils ( parentStep ),
-        _enabled(true),
-        _comment("")
-    {
-        init();
-    }
-
-    // Get / Set
-    bool isEnabled() const { return _enabled; }
-    void setEnabled(const bool enabled) { _enabled = enabled; }
-
-    const std::string& getComment() const { return _comment; }
-    bool hasComment() const { return (!_comment.empty()); }
-    void setComment(const std::string& comment) { _comment = comment; }
-
-    // Step methods
-    virtual void startImp() override ;
-    virtual bool runImp() override ;
-    virtual void endImp() override ;
-
-protected:
-    void init();
-
-};
-
-#include "../../nomad_nsend.hpp"
-
-#endif // __NOMAD400_SEARCHMETHOD__
 

@@ -7,6 +7,9 @@ endif
 ifdef NOOMP
 $(info Not using OpenMP)
 endif
+ifneq ($(USE_SGTELIB), 0)
+    USE_SGTELIB = 1
+endif
 
 
 UNAME := $(shell uname)

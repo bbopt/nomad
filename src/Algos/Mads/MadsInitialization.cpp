@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -54,8 +55,7 @@
 
 void NOMAD::MadsInitialization::init()
 {
-    _name = getAlgoName() + "Initialization";
-
+    _name = NOMAD::Initialization::getName();
 }
 
 
@@ -126,6 +126,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
     auto x0s = _pbParams->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
 
     validateX0s();
+    auto evalType = getEvalType();
 
     // Add X0s that need evaluation to eval queue
     NOMAD::CacheInterface cacheInterface(this);
@@ -136,8 +137,8 @@ bool NOMAD::MadsInitialization::eval_x0s()
     for (size_t x0index = 0; x0index < x0s.size(); x0index++)
     {
         auto x0 = x0s[x0index];
-        NOMAD::EvalPoint evalPoint_x0(x0);
-        evalPointSet.insert(evalPoint_x0);
+        NOMAD::EvalPoint evalPointX0(x0);
+        evalPointSet.insert(evalPointX0);
     }
 
     // Add points to the eval queue.
@@ -163,33 +164,45 @@ bool NOMAD::MadsInitialization::eval_x0s()
     evcParams->checkAndComply();
     evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
 
-    bool x0failed = true;
+    bool x0Failed = true;
+
+    // Construct barrier using points evaluated by this step.
+    // The points are cleared from the EvaluatorControl.
+    auto evaluatedPoints = evcInterface.getAllEvaluatedPoints();
+    std::vector<NOMAD::EvalPoint> evalPointX0s;
     for (auto x0 : x0s)
     {
-        NOMAD::EvalPoint evalPoint_x0(x0);
-        cacheInterface.find(x0, evalPoint_x0);
-        auto evalType = getEvalType();
-        if (evalPoint_x0.isEvalOk(evalType))
+        NOMAD::EvalPoint evalPointX0(x0);
+
+        // Look for x0 in freshly evaluated points
+        bool x0Found = findInList(x0, evaluatedPoints, evalPointX0);
+
+        if (!x0Found)
+        {
+            auto barrier = NOMAD::EvcInterface::getEvaluatorControl()->getBarrier();
+            if (nullptr != barrier)
+            {
+                // Look for x0 in EvaluatorControl barrier
+                x0Found = findInList(x0, barrier->getAllPoints(), evalPointX0);
+            }
+            if (!x0Found && NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
+            {
+                // Look for x0 in cache
+                x0Found = (cacheInterface.find(x0, evalPointX0) > 0);
+            }
+        }
+
+        if (x0Found && evalPointX0.isEvalOk(evalType))
         {
             // evalOk is true if at least one evaluation is Ok
             evalOk = true;
+            evalPointX0s.push_back(evalPointX0);
 
-            s = "Using X0: ";
-            if (NOMAD::EvalType::BB == evalType)
-            {
-                // BB: Simple display
-                s += evalPoint_x0.display();
-            }
-            else
-            {
-                // Full display
-                s += evalPoint_x0.displayAll();
-            }
-            AddOutputInfo(s);
-            x0failed = false;   // At least one good X0.
+            x0Failed = false;   // At least one good X0.
         }
     }
-    if (x0failed)
+
+    if (x0Failed)
     {
         // All x0s failed. Show an error.
         auto madsStopReason = NOMAD::AlgoStopReasons<NOMAD::MadsStopType>::get(_stopReasons);
@@ -199,6 +212,22 @@ bool NOMAD::MadsInitialization::eval_x0s()
         {
             AddOutputError("X0 evaluation failed for X0 = " + x0.display());
         }
+    }
+    else
+    {
+        OUTPUT_INFO_START
+        for (auto evalPointX0 : evalPointX0s)
+        {
+            s = "Using X0: ";
+            // BB: Simple display. SGTE: Full display.
+            s += (NOMAD::EvalType::BB == evalType) ? evalPointX0.display() : evalPointX0.displayAll();
+        }
+        AddOutputInfo(s);
+        OUTPUT_INFO_END
+
+        // Construct barrier using x0s
+        auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax, getSubFixedVariable(), getEvalType(), evalPointX0s);
     }
 
     NOMAD::OutputQueue::Flush();

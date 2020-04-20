@@ -36,8 +36,8 @@ ifndef NOOMP
 # Use OpenMP for parallelism (threads)
 CXXFLAGS            += -fopenmp
 endif
-ifdef USE_PRIORITY_QUEUE
-CXXFLAGS            += -DUSE_PRIORITY_QUEUE
+ifeq ($(TIME_STATS), 1)
+CXXFLAGS            += -DTIME_STATS
 endif
 
 

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -52,14 +53,24 @@
 
 void NOMAD::Termination::init()
 {
+    // Usually, we do not have the Algorithm name yet, so we cannot use it here
+    // for _name
     _name = "Termination";
     verifyParentNotNull();
 }
+
+
+void NOMAD::Termination::startImp()
+{
+    _name = getAlgoName() + "Termination";
+}
+
 
 bool NOMAD::Termination::runImp()
 {
     return _stopReasons->checkTerminate() ;
 }
+
 
 bool NOMAD::Termination::terminate(size_t iteration)
 {
@@ -91,7 +102,7 @@ bool NOMAD::Termination::terminate(size_t iteration)
         // Max time reached
         _stopReasons->set(NOMAD::BaseStopType::MAX_TIME_REACHED);
     }
-    else if (_pbParams->getAttributeValue<bool>("STOP_IF_FEASIBLE") && NOMAD::CacheBase::getInstance()->hasFeas())
+    else if (_pbParams->getAttributeValue<bool>("STOP_IF_FEASIBLE") && solHasFeas())
     {
         _stopReasons->set(NOMAD::IterStopType::STOP_ON_FEAS );
     }
@@ -108,9 +119,26 @@ bool NOMAD::Termination::terminate(size_t iteration)
 }
 
 
+bool NOMAD::Termination::solHasFeas() const
+{
+    bool hasFeas = NOMAD::CacheBase::getInstance()->hasFeas();
+    if (!hasFeas)
+    {
+        // No feasible point in cache, but possibly in parent step's barrier.
+        if (nullptr != _parentStep)
+        {
+            auto barrier = _parentStep->getMegaIterationBarrier();
+            hasFeas = (nullptr != barrier && nullptr != barrier->getFirstXFeas());
+        }
+    }
+
+    return hasFeas;
+}
+
+
 void NOMAD::Termination::endImp()
 {
-    const NOMAD::Algorithm* currentAlgo = dynamic_cast<const NOMAD::Algorithm*>(getParentOfType<NOMAD::Algorithm*>());
+    const NOMAD::Algorithm* currentAlgo = getParentOfType<NOMAD::Algorithm*>();
     NOMAD::OutputLevel outputLevel = currentAlgo->isSubAlgo() ? NOMAD::OutputLevel::LEVEL_INFO
                                                               : NOMAD::OutputLevel::LEVEL_HIGH;
 

@@ -100,6 +100,25 @@ true
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
+USE_CACHE
+bool
+true
+\( Use cache in algorithms \)
+\(
+. When this parameter is false, the Cache is not used at all. Points may be
+  re-evaluated.
+
+. Recommended when DIMENSION is large and evaluations are not costly.
+
+. Cache may be used for top algorithm, and disabled for a sub-algorithm.
+
+. If CACHE_FILE is non-empty, cache file will still be read and written.
+
+\)
+\( advanced \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
 CLEAR_EVAL_QUEUE
 bool
 true
@@ -168,21 +187,21 @@ INF
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
-SGTELIB_MODEL_EVAL_NB
+MAX_SGTE_EVAL
 size_t
-100
+1000
 \( Max number of sgtelib model evaluations for each optimization of the surrogate problem \)
 \(
-. Max number of sgtelib model evaluations for each
-    optimization of the surrogate problem.
+. Max number of sgtelib model evaluations for each optimization of the surrogate
+  problem.
 
 . Argument: one integer > 0
 
 . Note: In NOMAD 3, the default is 10000. Early tests in NOMAD 4 show extremely
-  long resolution times for this value. The default value is set to 100 until
+  long resolution times for this value. The default value is set to 1000 until
   more investigation is done.
 
-. Example: SGTELIB_MODEL_EVAL_NB 5000
+. Example: MAX_SGTE_EVAL 5000
 \)
 \( advanced sgtelib search model model_search \)
 ALGO_COMPATIBILITY_CHECK yes

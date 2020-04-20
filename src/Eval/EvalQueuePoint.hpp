@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -101,7 +102,6 @@ public:
         _frameSize(),
         _k(0)
     {}
-
     
     
     void setSuccess(const SuccessType success) { _success = success; }
@@ -131,20 +131,31 @@ typedef std::shared_ptr<EvalQueuePoint> EvalQueuePointPtr;
 /// Block of EvalQueuePointPtrs
 typedef std::vector<EvalQueuePointPtr> BlockForEval;
 
+
+// Class for comparison using a direction.
+class OrderByDirection
+{
+private:
+    static NOMAD::Direction _lastSuccessfulDir;
+
+public:
+    // Get/Set
+    static void setLastSuccessfulDir(const NOMAD::Direction& dir) { _lastSuccessfulDir = dir; }
+    static NOMAD::Direction& getLastSuccessfulDir() { return _lastSuccessfulDir; }
+
+    static bool comp(NOMAD::EvalQueuePointPtr& point1, NOMAD::EvalQueuePointPtr& point2);
+};
+
+
 /// Class to compare priority of two EvalQueuePoint
 class ComparePriority
 {
 private:
-    std::function<bool(EvalQueuePointPtr &p1, EvalQueuePointPtr &p2)> _comp; ///< Comparison function between two eval queue points
+    static std::function<bool(EvalQueuePointPtr &p1, EvalQueuePointPtr &p2)> _comp; ///< Comparison function between two eval queue points
 
 public:
     /// Constructor
-    /**
-     \param comp Comparison function -- \b IN.
-     */
-    ComparePriority(const std::function<bool(EvalQueuePointPtr &p1, EvalQueuePointPtr &p2)> comp =  std::function<bool(EvalQueuePointPtr &p1, EvalQueuePointPtr &p2)>(defaultComp))
-      : _comp(comp)
-    {}
+    ComparePriority() {}
 
     ///  Function call operator
     /**
@@ -154,14 +165,23 @@ public:
      */
     bool operator()(EvalQueuePointPtr& p1, EvalQueuePointPtr& p2);
 
+    static void setComp(std::function<bool(EvalQueuePointPtr &p1, EvalQueuePointPtr &p2)> compFunction) { _comp = compFunction; }
 
-    /// Currently always returns false.
-    /**
+    /** Currently only compares iteration number (k). 
+     \todo Return a basic default like tag comparison or lexicographical order.
      \param p1  First eval queue point -- \b IN.
      \param p2  Second eval queue point -- \b IN.
      \return    \c true if p1 has a lower priority than p2. \c false otherwise.
      */
-    static bool defaultComp(EvalQueuePointPtr& p1, EvalQueuePointPtr& p2);
+    static bool basicDefaultComp(EvalQueuePointPtr& p1, EvalQueuePointPtr& p2);
+
+    /** Compare angle with last successful direction.
+     \todo figure out where the "last successful direction" comes from: is it on the points themselves, or from another structure? See unit test for EvaluatorControl. Detail that info here.
+     \param p1  First eval queue point -- \b IN.
+     \param p2  Second eval queue point -- \b IN.
+     \return    \c true if p1 is closer in angle to last successful direction than p2. \c false otherwise.
+     */
+    static bool lastSuccessfulDirComp(EvalQueuePointPtr& p1, EvalQueuePointPtr& p2);
 };
 
 

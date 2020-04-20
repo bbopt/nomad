@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -126,6 +127,7 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
     }
 
     // Display info
+    OUTPUT_INFO_START
     s = "Used method: ";
     if (NOMAD::SgtelibModelFormulationType::D == modelFormulation)
     {
@@ -143,6 +145,7 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
         s += "(total nb methods = " + NOMAD::itos(nbMethods) + ")";
     }
     NOMAD::OutputQueue::Add(s, _displayLevel);
+    OUTPUT_INFO_END
 
     if (0 == nbMethods)
     {
@@ -150,8 +153,10 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
         throw NOMAD::Exception(__FILE__, __LINE__, s);
     }
 
+    OUTPUT_INFO_START
     s = "Filter: Start greedy selection";
     NOMAD::OutputQueue::Add(s, _displayLevel);
+    OUTPUT_INFO_END
 
     // Find _nbCandidates points
     size_t nbKeep = 0;
@@ -182,8 +187,10 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
                 }
             }
         }
+        OUTPUT_INFO_START
         s = "Method " + NOMAD::FilterSelectionMethodDict.at(method);
         NOMAD::OutputQueue::Add(s, _displayLevel);
+        OUTPUT_INFO_END
 
         int iSelect = applyMethod(method);
 
@@ -192,8 +199,10 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
 
         if ( (iSelect >= 0) && (!_keep[iSelect]))
         {
+            OUTPUT_INFO_START
             s = "--> Selection of search point " + _cacheSgte[iSelect].displayAll();
             NOMAD::OutputQueue::Add(s, _displayLevel);
+            OUTPUT_INFO_END
 
             _keep[iSelect] = true;
             nbKeep++;
@@ -221,8 +230,10 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
         }
         else
         {
+            OUTPUT_INFO_START
             s = "Method " + NOMAD::FilterSelectionMethodDict.at(method) + " did not return a point";
             NOMAD::OutputQueue::Add(s, _displayLevel);
+            OUTPUT_INFO_END
 
             nbFail++;
         }
@@ -241,8 +252,10 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
         }
     }
 
+    OUTPUT_INFO_START
     s = "Cache filter found " + std::to_string(_oraclePoints.size()) + " points";
     AddOutputInfo(s);
+    OUTPUT_INFO_END
 
     return true;
 }
@@ -255,7 +268,7 @@ void NOMAD::SgtelibModelFilterCache::endImp()
 
 void NOMAD::SgtelibModelFilterCache::computeInitialValues()
 {
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
+    auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
     _displayLevel = (std::string::npos != modelDisplay.find("F"))
                                             ? NOMAD::OutputLevel::LEVEL_INFO
                                             : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
@@ -305,8 +318,10 @@ void NOMAD::SgtelibModelFilterCache::computeInitialValues()
     }
 
     //  Compute _DSS - distance between each pair of points of S
+    OUTPUT_INFO_START
     s = "Compute distances";
     NOMAD::OutputQueue::Add(s, _displayLevel);
+    OUTPUT_INFO_END
     for (size_t i = 0; i < nbSgte; i++)
     {
         _DSS[i][i] = 0;
@@ -320,8 +335,10 @@ void NOMAD::SgtelibModelFilterCache::computeInitialValues()
     //  Compute initial isolation distances
     // The isolation of a point i of the surrogate cache,
     // is the distance to the closest point that is better than i.
+    OUTPUT_INFO_START
     s = "Compute isolations";
     NOMAD::OutputQueue::Add(s, _displayLevel);
+    OUTPUT_INFO_END
 
     for (size_t i = 0; i < nbSgte; i++)
     {
@@ -427,8 +444,10 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
         case NOMAD::FilterSelectionMethod::METHOD_BEST_MIN_DIST:
             // Select the best point but with a minimum distance to points already selected
             // dmin is 0 at this point
+            OUTPUT_INFO_START
             s = "dmin = " + NOMAD::Double(dmin).display();
             NOMAD::OutputQueue::Add(s, _displayLevel);
+            OUTPUT_INFO_END
             for (size_t i = 0; i < nbSgte; i++)
             {
                 if ( (!_keep[i]) && (_DTX[i] >= dmin) )
@@ -443,10 +462,12 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
                 }
                 if (-1 != iSelect)
                 {
+                    OUTPUT_INFO_START
                     s = "d = " + NOMAD::Double(_DTX[iSelect]).display();
                     NOMAD::OutputQueue::Add(s, _displayLevel);
                     s = "h select = " + NOMAD::Double(hmin).display();
                     NOMAD::OutputQueue::Add(s, _displayLevel);
+                    OUTPUT_INFO_END
 
                     dmin = std::max(dmin, _DTX[iSelect] + deltaMNorm);
                 }

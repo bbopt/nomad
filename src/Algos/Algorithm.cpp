@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -49,6 +50,11 @@
 
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Algorithm.hpp"
+#ifdef TIME_STATS
+#include "../Algos/Mads/MadsIteration.hpp"
+#include "../Algos/Mads/Search.hpp"
+#include "../Util/Clock.hpp"
+#endif // TIME_STATS
 
 #include "../Math/RNG.hpp"
 
@@ -101,7 +107,12 @@ NOMAD::Algorithm::~Algorithm()
 
 void NOMAD::Algorithm::startImp()
 {
-
+#ifdef TIME_STATS
+    if (isMainAlgo())
+    {
+        _startTime = NOMAD::Clock::getCPUTime();
+    }
+#endif // TIME_STATS
     // Comment to appear at the end of stats lines
     // By default, nothing is added
     NOMAD::MainStep::setAlgoComment("");
@@ -127,12 +138,19 @@ void NOMAD::Algorithm::startImp()
         // Initialization.
         // Eval X0s.
 
-        // Ensure we do not count cache hits which may have been read in the cache.
-        NOMAD::CacheBase::resetNbCacheHits();
+        if (isMainAlgo())
+        {
+            // Ensure we do not count cache hits which may have been read in the cache.
+            NOMAD::CacheBase::resetNbCacheHits();
+        }
 
-        _initialization->start();
-        _initialization->run();
-        _initialization->end();
+        // Perform algo initialization only when available.
+        if (nullptr != _initialization)
+        {
+            _initialization->start();
+            _initialization->run();
+            _initialization->end();
+        }
 
     }
     else
@@ -142,21 +160,15 @@ void NOMAD::Algorithm::startImp()
         auto barrier = _megaIteration->getBarrier();
 
         // Update X0s
-        // Use best feasible, or best infeasible points.
-        auto bestFeasPoints = barrier->getAllXFeas();
-        auto bestInfPoints  = barrier->getAllXInf();
+        // Use best points.
+        auto bestPoints = barrier->getAllPoints();
 
         NOMAD::ArrayOfPoint x0s;
-        if (!bestFeasPoints.empty())
+        if (!bestPoints.empty())
         {
-            std::transform(bestFeasPoints.begin(), bestFeasPoints.end(), std::back_inserter(x0s),
-                       [](NOMAD::EvalPointPtr evalPointPtr) -> NOMAD::EvalPoint { return *evalPointPtr; });
+            std::transform(bestPoints.begin(), bestPoints.end(), std::back_inserter(x0s),
+                       [](NOMAD::EvalPoint evalPoint) -> NOMAD::EvalPoint { return evalPoint; });
 
-        }
-        else if (!bestInfPoints.empty())
-        {
-            std::transform(bestInfPoints.begin(), bestInfPoints.end(), std::back_inserter(x0s),
-                       [](NOMAD::EvalPointPtr evalPointPtr) -> NOMAD::EvalPoint { return *evalPointPtr; });
         }
         _pbParams->setAttributeValue<NOMAD::ArrayOfPoint>("X0", x0s);
         _pbParams->checkAndComply();
@@ -169,6 +181,13 @@ void NOMAD::Algorithm::endImp()
     if ( _endDisplay )
     {
         displayBestSolutions();
+#ifdef TIME_STATS
+        if (isMainAlgo())
+        {
+            _totalRealAlgoTime = NOMAD::Clock::getTimeSinceStart();
+            _totalCPUAlgoTime += NOMAD::Clock::getCPUTime() - _startTime;
+        }
+#endif // TIME_STATS
         displayEvalCounts();
     }
 
@@ -188,6 +207,12 @@ void NOMAD::Algorithm::endImp()
 
 void NOMAD::Algorithm::hotRestartOnUserInterrupt()
 {
+#ifdef TIME_STATS
+    if (isMainAlgo())
+    {
+        _totalCPUAlgoTime += NOMAD::Clock::getCPUTime() - _startTime;
+    }
+#endif // TIME_STATS
     hotRestartBeginHelper();
 
     // TODO: To investigate: Reset mesh because parameters have changed.
@@ -207,6 +232,12 @@ void NOMAD::Algorithm::hotRestartOnUserInterrupt()
     */
 
     hotRestartEndHelper();
+#ifdef TIME_STATS
+    if (isMainAlgo())
+    {
+        _startTime = NOMAD::Clock::getCPUTime();
+    }
+#endif // TIME_STATS
 }
 
 
@@ -248,8 +279,13 @@ void NOMAD::Algorithm::displayBestSolutions() const
     NOMAD::OutputInfo displaySolFeas(_name, sFeas, outputLevel);
 
     sFeas = "Best feasible solution";
-    size_t nbBestFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointList,
-                                    getSubFixedVariable(), getEvalType());
+    auto barrier = getMegaIterationBarrier();
+    if (nullptr != barrier)
+    {
+        evalPointList = barrier->getAllXFeas();
+    }
+    size_t nbBestFeas = evalPointList.size();
+
     if (0 == nbBestFeas)
     {
         sFeas += ":     Undefined.";
@@ -296,15 +332,14 @@ void NOMAD::Algorithm::displayBestSolutions() const
 
     // Display best infeasible solutions.
     std::string sInf;
-    auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-    if (nullptr != _megaIteration)
-    {
-        hMax = _megaIteration->getBarrier()->getHMax();
-    }
     NOMAD::OutputInfo displaySolInf(_name, sInf, outputLevel);
     sInf = "Best infeasible solution";
-    size_t nbBestInf = NOMAD::CacheBase::getInstance()->findBestInf(evalPointList,
-                                hMax, getSubFixedVariable(), getEvalType());
+    if (nullptr != barrier)
+    {
+        evalPointList = barrier->getAllXInf();
+    }
+    size_t nbBestInf = evalPointList.size();
+
     if (0 == nbBestInf)
     {
         sInf += ":   Undefined.";
@@ -370,6 +405,12 @@ void NOMAD::Algorithm::displayEvalCounts() const
     bool showNbEval         = (nbEval > bbEval);
     bool showLapBbEval      = isSub && (bbEval > lapBbEval && lapBbEval > 0);
 
+    // Output levels will be modulated depending on the counts and on the Algorithm level.
+    NOMAD::OutputLevel outputLevelHigh = isSub ? NOMAD::OutputLevel::LEVEL_INFO
+                                               : NOMAD::OutputLevel::LEVEL_HIGH;
+    NOMAD::OutputLevel outputLevelNormal = isSub ? NOMAD::OutputLevel::LEVEL_INFO
+                                                 : NOMAD::OutputLevel::LEVEL_NORMAL;
+
     // Padding for nice presentation
     std::string sFeedBbEval, sFeedLapBbEval, sFeedNbEvalNoCount, sFeedSgteEval,
                 sFeedTotalSgteEval, sFeedCacheHits, sFeedNbEval;
@@ -413,13 +454,33 @@ void NOMAD::Algorithm::displayEvalCounts() const
     std::string sTotalSgteEval  = "Total sgte evaluations: " + sFeedTotalSgteEval + NOMAD::itos(totalSgteEval);
     std::string sCacheHits      = "Cache hits: " + sFeedCacheHits + NOMAD::itos(nbCacheHits);
     std::string sNbEval         = "Total number of evaluations: " + sFeedNbEval + NOMAD::itos(nbEval);
-    
-    // Output levels will be modulated depending on the counts and on the Algorithm level.
-    NOMAD::OutputLevel outputLevelHigh = isSub ? NOMAD::OutputLevel::LEVEL_INFO
-                                               : NOMAD::OutputLevel::LEVEL_HIGH;
-    NOMAD::OutputLevel outputLevelNormal = isSub ? NOMAD::OutputLevel::LEVEL_INFO
-                                                 : NOMAD::OutputLevel::LEVEL_NORMAL;
 
+#ifdef TIME_STATS
+    std::string sTimeHeader     = "\nTime statistics:";
+    std::string sTotalRealTime  = "    Total real time:          " + std::to_string(_totalRealAlgoTime);
+    std::string sTotalCPUTime   = "    Total CPU time:           " + std::to_string(_totalCPUAlgoTime);
+    std::string sTimeEval       = "    Total time in Evaluator:  ";
+                sTimeEval      += std::to_string(NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime());
+    std::string sTimeIter       = "    Total time in Iterations: " + std::to_string(NOMAD::MadsIteration::getIterTime());
+    std::string sTimeSearch     = "        Search:             " + std::to_string(NOMAD::MadsIteration::getSearchTime());
+                sTimeSearch    += "\t(Eval: " + std::to_string(NOMAD::MadsIteration::getSearchEvalTime()) + ")";
+    std::string sTimePoll       = "        Poll:               " + std::to_string(NOMAD::MadsIteration::getPollTime());
+                sTimePoll      += "\t(Eval: " + std::to_string(NOMAD::MadsIteration::getPollEvalTime()) + ")";
+    std::string sTimeSearchesHeader  = "    Time for each search: ";
+    std::vector<double> searchTime = NOMAD::Search::getSearchTime();
+    std::vector<double> searchEvalTime = NOMAD::Search::getSearchEvalTime();
+    std::string sTimeSearch1    = "        Speculative search: " + std::to_string(searchTime[0]);
+                sTimeSearch1   += "\t(Eval: " + std::to_string(searchEvalTime[0]) + ")";
+    std::string sTimeSearch2    = "        User search:        " + std::to_string(searchTime[1]);
+                sTimeSearch2   += "\t(Eval: " + std::to_string(searchEvalTime[1]) + ")";
+    std::string sTimeSearch3    = "        Sgtelib search:     " + std::to_string(searchTime[2]);
+                sTimeSearch3   += "\t(Eval: " + std::to_string(searchEvalTime[2]) + ")";
+    std::string sTimeSearch4    = "        LH Search:          " + std::to_string(searchTime[3]);
+                sTimeSearch4   += "\t(Eval: " + std::to_string(searchEvalTime[3]) + ")";
+    std::string sTimeSearch5    = "        NM Search:          " + std::to_string(searchTime[4]);
+                sTimeSearch5   += "\t(Eval: " + std::to_string(searchEvalTime[4]) + ")";
+#endif // TIME_STATS
+    
     AddOutputInfo("", outputLevelHigh); // skip line
     // Always show number of blackbox evaluations
     AddOutputInfo(sBbEval, outputLevelHigh);
@@ -448,6 +509,23 @@ void NOMAD::Algorithm::displayEvalCounts() const
     {
         AddOutputInfo(sNbEval, outputLevelNormal);
     }
+#ifdef TIME_STATS
+    {
+        AddOutputInfo(sTimeHeader, outputLevelNormal);
+        AddOutputInfo(sTotalRealTime, outputLevelNormal);
+        AddOutputInfo(sTotalCPUTime, outputLevelNormal);
+        AddOutputInfo(sTimeEval, outputLevelNormal);
+        AddOutputInfo(sTimeIter, outputLevelNormal);
+        AddOutputInfo(sTimeSearch, outputLevelNormal);
+        AddOutputInfo(sTimePoll, outputLevelNormal);
+        AddOutputInfo(sTimeSearchesHeader, outputLevelNormal);
+        AddOutputInfo(sTimeSearch1, outputLevelNormal);
+        AddOutputInfo(sTimeSearch2, outputLevelNormal);
+        AddOutputInfo(sTimeSearch3, outputLevelNormal);
+        AddOutputInfo(sTimeSearch4, outputLevelNormal);
+        AddOutputInfo(sTimeSearch5, outputLevelNormal);
+    }
+#endif // TIME_STATS
 }
 
 
@@ -455,8 +533,7 @@ bool NOMAD::Algorithm::isSubAlgo() const
 {
     bool isSub = false;
 
-    // Get Parent algorithm. No need to cast: We only want to know if it exists.
-    const NOMAD::Step* parentAlgo = getParentOfType<NOMAD::Algorithm*>();
+    auto parentAlgo = getParentOfType<NOMAD::Algorithm*>();
     if (nullptr != parentAlgo)
     {
         isSub = true;

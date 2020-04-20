@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -57,7 +58,15 @@
 void NOMAD::NMMegaIteration::init()
 {
     _name = getAlgoName() + NOMAD::MegaIteration::getName();
+
+    // Get barrier from upper MadsMegaIteration, if available.
+    auto madsMegaIter = getParentOfType<NOMAD::MadsMegaIteration*>(false);
+    if (nullptr != madsMegaIter)
+    {
+        _barrier = madsMegaIter->getBarrier();
+    }
 }
+
 
 void NOMAD::NMMegaIteration::startImp()
 {
@@ -65,6 +74,7 @@ void NOMAD::NMMegaIteration::startImp()
     // Use xFeas or xInf if XFeas is not available.
     // During NM we use a single iteration object with several start, run, end for the various iterations of the algorithm.
 
+    size_t k = _k;  // Main iteration counter
 
     if ( ! _stopReasons->checkTerminate() )
     {
@@ -75,7 +85,7 @@ void NOMAD::NMMegaIteration::startImp()
         // Note: getParentOfType with argument "false" gets over the "Algorithm" parents.
         // Here, we are looking for a MadsMegaIteration which would be ancestor of
         // the NM (Algorithm) parent.
-        auto madsMegaIter = dynamic_cast<const NOMAD::MadsMegaIteration*>(getParentOfType<NOMAD::MadsMegaIteration*>(false));
+        auto madsMegaIter = getParentOfType<NOMAD::MadsMegaIteration*>(false);
         std::shared_ptr<NOMAD::MeshBase> mesh = nullptr;
 
         if ( madsMegaIter != nullptr )
@@ -87,21 +97,25 @@ void NOMAD::NMMegaIteration::startImp()
         {
             _nmIteration = std::make_shared<NOMAD::NMIteration>(this,
                                     std::make_shared<NOMAD::EvalPoint>(*bestXFeas),
-                                    0, /*counter at 0 for start */
+                                    k,
                                     mesh);
+            k++;
         }
         else if (nullptr != bestXInf)
         {
             _nmIteration = std::make_shared<NOMAD::NMIteration>(this,
                                     std::make_shared<NOMAD::EvalPoint>(*bestXInf),
-                                    0, /*counter at 0 for start */
+                                    k,
                                     mesh);
+            k++;
         }
 
+        OUTPUT_DEBUG_START
         auto frameCenter = _nmIteration->getFrameCenter();
         AddOutputDebug("Frame center: " + frameCenter->display());
         auto previousFrameCenter = frameCenter->getPointFrom();
         AddOutputDebug("Previous frame center: " + (previousFrameCenter ? previousFrameCenter->display() : "NULL"));
+        OUTPUT_DEBUG_END
     }
 }
 
@@ -113,8 +127,10 @@ bool NOMAD::NMMegaIteration::runImp()
     
     if ( _stopReasons->checkTerminate() )
     {
+        OUTPUT_DEBUG_START
         s = _name + ": stopReason = " + _stopReasons->getStopReasonAsString() ;
         AddOutputDebug(s);
+        OUTPUT_DEBUG_END
         return false;
     }
     
@@ -136,8 +152,10 @@ bool NOMAD::NMMegaIteration::runImp()
         
         if (iterSuccessful)
         {
+            OUTPUT_DEBUG_START
             s = _name + ": new success " + NOMAD::enumStr(getSuccessType());
             AddOutputDebug(s);
+            OUTPUT_DEBUG_END
         }
         
         if (_userInterrupt)
@@ -147,8 +165,10 @@ bool NOMAD::NMMegaIteration::runImp()
         
         nbMegaIter++;
     }
+    OUTPUT_DEBUG_START
     // Display MegaIteration's stop reason
     AddOutputDebug(_name + " stop reason set to: " + _stopReasons->getStopReasonAsString());
+    OUTPUT_DEBUG_END
     
     // MegaIteration is a success if either a better xFeas or
     // a dominating or partial success for xInf was found.

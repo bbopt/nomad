@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -107,7 +108,9 @@ void NOMAD::MegaSearchPoll::endImp()
 void NOMAD::MegaSearchPoll::generateTrialPoints()
 {
     verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, true);
+    OUTPUT_INFO_START
     AddOutputInfo("Generate points for " + _name, true, false);
+    OUTPUT_INFO_END
 
     NOMAD::EvalPointSet trialPoints;
 
@@ -154,8 +157,9 @@ void NOMAD::MegaSearchPoll::generateTrialPoints()
 
     }
 
+    OUTPUT_INFO_START
     AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");
-
     AddOutputInfo("Generate points for " + _name, false, true);
+    OUTPUT_INFO_END
 
 }
