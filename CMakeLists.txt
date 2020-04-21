@@ -19,7 +19,7 @@ if(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
     ")
 endif()
 
-#check compiler version
+# Check compiler version
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # require at least gcc 4
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8)
@@ -35,7 +35,8 @@ else()
     message(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang and GCC.")
 endif()
 
-#options
+# Options
+option(BUILD_CXX_EXAMPLES "Build examples" ON)
 
 # choose to build with unit tests
 # option(BUILD_TESTS "Build unit tests programs" OFF)
@@ -49,11 +50,15 @@ include(CMakePackageConfigHelpers)
 # special flag required
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# add sgtelib
+# Add sgtelib
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext)
 
-#add nomad directory
+# Add nomad directory
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+if (BUILD_CXX_EXAMPLES)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/examples)
+endif()
 
 #enable testing
 #if (BUILD_TESTS)
