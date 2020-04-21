@@ -36,17 +36,17 @@ endif()
 # require c++11
 set(CXX_STANDARD_REQUIRED 14)
 
-if(CMAKE_C_COMPILER_ID MATCHES "Clang\$")
-    set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp")
-    set(OpenMP_C_LIB_NAMES "omp")
-    set(OpenMP_omp_LIBRARY omp)
-endif()
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang\$")
-    set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp")
-    set(OpenMP_CXX_LIB_NAMES "omp")
-    set(OpenMP_omp_LIBRARY omp)
-endif()
+# if(CMAKE_C_COMPILER_ID MATCHES "Clang\$")
+#     set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp")
+#     set(OpenMP_C_LIB_NAMES "omp")
+#     set(OpenMP_omp_LIBRARY omp)
+# endif()
+#
+# if(CMAKE_CXX_COMPILER_ID MATCHES "Clang\$")
+#     set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp")
+#     set(OpenMP_CXX_LIB_NAMES "omp")
+#     set(OpenMP_omp_LIBRARY omp)
+# endif()
 
 find_package(OpenMP)
 
@@ -107,18 +107,18 @@ add_library (sgtelib SHARED ${SGTELIB_SOURCES})
 target_include_directories(sgtelib PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>)
-# if(OpenMP_CXX_FOUND)
-#     target_link_libraries(sgtelib PRIVATE OpenMP::OpenMP_CXX)
-# endif()
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(sgtelib OpenMP::OpenMP_CXX)#INTERFACE
+endif()
 
 # build executable sgtelib_main
 add_executable(sgtelib_main ${SGTELIB_SOURCES})
 target_include_directories(sgtelib_main PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>)
-# if(OpenMP_CXX_FOUND)
-#     target_link_libraries(sgtelib_main PRIVATE OpenMP::OpenMP_CXX)
-# endif()
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(sgtelib_main OpenMP::OpenMP_CXX)#INTERFACE
+endif()
 
 # installing executables and libraries
 install(TARGETS sgtelib_main sgtelib 
