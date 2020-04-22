@@ -395,7 +395,7 @@ target_include_directories(nomadAlgos PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SgtelibModel>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nomadAlgos>)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(nomadAlgos PUBLIC nomadUtils nomadEval sgtelib OpenMP::OpenMP_CXX)#PRIVATE
+    target_link_libraries(nomadAlgos PUBLIC nomadUtils nomadEval sgtelib PRIVATE OpenMP::OpenMP_CXX)#PRIVATE
 else()
     target_link_libraries(nomadAlgos nomadUtils nomadEval sgtelib)
 endif()
@@ -407,9 +407,9 @@ add_executable(WriteAttributeDefinitionFile ${ATTRIBUTE_SOURCES})
 target_include_directories(WriteAttributeDefinitionFile PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Attribute>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Attribute>)
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(WriteAttributeDefinitionFile INTERFACE OpenMP::OpenMP_CXX)
-endif()
+# if(OpenMP_CXX_FOUND)
+#     target_link_libraries(WriteAttributeDefinitionFile INTERFACE OpenMP::OpenMP_CXX)
+# endif()
 
 add_executable (nomad ${NOMAD_SOURCES}) 
 target_include_directories(nomad PUBLIC
@@ -417,7 +417,7 @@ target_include_directories(nomad PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Nomad>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Nomad>)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(nomad PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)#PRIVATE
+    target_link_libraries(nomad PUBLIC nomadAlgos nomadUtils nomadEval INTERFACE OpenMP::OpenMP_CXX)#PRIVATE
 else()
     target_link_libraries(nomad PUBLIC nomadAlgos nomadUtils nomadEval)
 endif()

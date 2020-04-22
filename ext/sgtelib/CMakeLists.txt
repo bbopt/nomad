@@ -48,7 +48,7 @@ set(CXX_STANDARD_REQUIRED 14)
 #     set(OpenMP_omp_LIBRARY omp)
 # endif()
 
-find_package(OpenMP)
+#find_package(OpenMP)
 
 # header files
 set(SGTELIB_HEADERS
@@ -107,18 +107,18 @@ add_library (sgtelib SHARED ${SGTELIB_SOURCES})
 target_include_directories(sgtelib PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>)
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(sgtelib OpenMP::OpenMP_CXX)#INTERFACE
-endif()
+# if(OpenMP_CXX_FOUND)
+#     target_link_libraries(sgtelib OpenMP::OpenMP_CXX)#INTERFACE
+# endif()
 
 # build executable sgtelib_main
 add_executable(sgtelib_main ${SGTELIB_SOURCES})
 target_include_directories(sgtelib_main PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>)
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(sgtelib_main OpenMP::OpenMP_CXX)#INTERFACE
-endif()
+# if(OpenMP_CXX_FOUND)
+#     target_link_libraries(sgtelib_main OpenMP::OpenMP_CXX)#INTERFACE
+# endif()
 
 # installing executables and libraries
 install(TARGETS sgtelib_main sgtelib 
