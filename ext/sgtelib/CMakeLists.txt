@@ -108,7 +108,7 @@ include(CMakePackageConfigHelpers)
 add_library (sgtelib SHARED ${SGTELIB_SOURCES})
 target_include_directories(sgtelib PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>)
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nomad/sgtelib>)
 # if(OpenMP_CXX_FOUND)
 #     target_link_libraries(sgtelib OpenMP::OpenMP_CXX)#INTERFACE
 # endif()
@@ -117,7 +117,7 @@ target_include_directories(sgtelib PUBLIC
 add_executable(sgtelib_main ${SGTELIB_SOURCES})
 target_include_directories(sgtelib_main PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>)
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nomad/sgtelib>)
 # if(OpenMP_CXX_FOUND)
 #     target_link_libraries(sgtelib_main OpenMP::OpenMP_CXX)#INTERFACE
 # endif()

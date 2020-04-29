@@ -6,7 +6,9 @@
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 # name of the project
-project (Nomad VERSION 4.0.0)
+project(Nomad
+    VERSION 4.0.0
+    LANGUAGES C CXX)
 
 # use standard compilers parameters for c++14
 set(CMAKE_CXX_STANDARD 14)
@@ -35,6 +37,13 @@ elseif (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 else()
     message(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang and GCC.")
 endif()
+
+# if (APPLE)
+#       set(CMAKE_MACOSX_RPATH ON)
+#       set(CMAKE_SKIP_BUILD_RPATH TRUE)
+#       set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+#       set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+# endif ()
 
 # Options
 option(BUILD_CXX_EXAMPLES "Build examples" ON)
