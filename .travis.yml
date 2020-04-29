@@ -5,6 +5,7 @@ matrix:
     - os: linux
       dist: bionic
       compiler: gcc
+      env: THREADING="openmp"
 
     # clang
     - os: osx
@@ -17,6 +18,7 @@ matrix:
       compiler: gcc
       env:
         - MATRIX_EVAL="brew install gcc && CC=gcc-7 && CXX=g++-7"
+        - THREADING="openmp"
 
 env:
   - OMP_NUM_THREADS=4
