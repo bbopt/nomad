@@ -5,10 +5,29 @@ matrix:
     - os: linux
       dist: bionic
       compiler: gcc
+
+    # clang
     - os: osx
       osx_image: xcode11.3
       compiler: clang
 
+    # gcc
+    - os: osx
+      osx_image: xcode11.3
+      compiler: gcc
+      env:
+        - MATRIX_EVAL="brew install gcc && CC=gcc-7 && CXX=g++-7"
+
+env:
+  - OMP_NUM_THREADS=4
+
+before_script:
+  - mkdir build
+  - cd build
+
 script:
-  - cd src
-  - make NOOMP=1 USE_SGTELIB=0 VARIANT=debug
+  # installation
+  - cmake ..
+  - make -j2 VERBOSE=1
+  # test simple c++ examples
+  - cd examples && ./basic_lib_example1 && ./basic_lib_example2 && ./basic_lib_example3 && ./exampleForCustomHComputation
