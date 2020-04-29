@@ -6,7 +6,7 @@
 #
 # ----------------------------------------------------------------------------
 # cmake version : the latest one
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 # name of the project
 project (sgtelib LANGUAGES CXX)
