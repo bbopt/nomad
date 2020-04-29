@@ -9,8 +9,9 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 project (Nomad VERSION 4.0.0)
 
 # use standard compilers parameters for c++14
-SET(CMAKE_CXX_STANDARD 14 )
-SET(CMAKE_CXX_STANDARD_REQUIRED ON )
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Disable in-source builds to prevent source tree corruption.
 if(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")

@@ -33,8 +33,10 @@ else()
     message(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang and GCC.")
 endif()
 
-# require c++11
+# fix standard compilation with c++14
 set(CXX_STANDARD_REQUIRED 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # if(CMAKE_C_COMPILER_ID MATCHES "Clang\$")
 #     set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp")
