@@ -20,7 +20,7 @@ endif()
 # check compiler version
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # require at least gcc 4
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7)
         message(FATAL_ERROR "GCC version < 4 has not been tested for Nomad!")
     endif()
 elseif (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") 
