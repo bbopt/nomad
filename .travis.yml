@@ -16,8 +16,10 @@ matrix:
     - os: osx
       osx_image: xcode11.3
       compiler: gcc
-      env:
-        - MATRIX_EVAL="brew install gcc && CC=gcc-7 && CXX=g++-7"
+      before_install:
+        - rm -rf /usr/local/include/c++
+        - brew update
+        - brew install gcc && export CC=gcc-7 && export CXX=g++-7
         - THREADING="openmp"
 
 env:
