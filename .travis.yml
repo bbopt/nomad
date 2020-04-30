@@ -19,7 +19,7 @@ matrix:
       before_install:
         - rm -rf /usr/local/include/c++
         - brew update
-        - brew install gcc && export CC=gcc-7 && export CXX=g++-7
+        - brew install gcc && export CC=gcc-9 && export CXX=g++-9
         - THREADING="openmp"
 
 env:
