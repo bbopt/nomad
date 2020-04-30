@@ -18,7 +18,6 @@ matrix:
       compiler: gcc
       before_install:
         - rm -rf /usr/local/include/c++
-        - brew update
         - export CC=gcc && export CXX=g++
         - THREADING="openmp"
 
