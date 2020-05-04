@@ -78,11 +78,11 @@ set(EVAL_SOURCES
     Eval/EvaluatorControl.cpp)
 
 # Interfaces
-# set(INTERFACE_SOURCES
-#     Interfaces/NomadStdCInterface.cpp)
-#
-# set(INTERFACE_HEADERS
-#     Interfaces/NomadStdCinterface.h)
+set(INTERFACE_SOURCES
+    Interfaces/NomadStdCInterface.cpp)
+
+set(INTERFACE_HEADERS
+    Interfaces/NomadStdCinterface.h)
 
 # Math
 set(MATH_HEADERS
@@ -426,20 +426,20 @@ else()
     target_link_libraries(nomad PUBLIC nomadAlgos nomadUtils nomadEval)
 endif()
 
-# external link
-# add_library (nomadInterface SHARED ${INTERFACE_SOURCES})
-# target_include_directories(nomadInterface PUBLIC
-#     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Interface>
-#     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nomadInterface>
-# )
-# # if(OpenMP_CXX_FOUND)
-# #     target_link_libraries(nomadInterface PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
-# # else()
-#     target_link_libraries(nomadInterface PUBLIC nomadAlgos nomadUtils nomadEval)
-#     # endif()
+# external C interface
+add_library (nomadInterface SHARED ${INTERFACE_SOURCES})
+target_include_directories(nomadInterface PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Interfaces>
+    $<INSTALL_INTERFACE:include/nomad>
+    )
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(nomadInterface PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
+else()
+    target_link_libraries(nomadInterface PUBLIC nomadAlgos nomadUtils nomadEval)
+endif()
 
 # installing executables and libraries
-install(TARGETS nomad WriteAttributeDefinitionFile nomadUtils nomadEval nomadAlgos # nomadInterface
+install(TARGETS nomad WriteAttributeDefinitionFile nomadUtils nomadEval nomadAlgos nomadInterface
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad)
@@ -459,9 +459,8 @@ install(FILES ${CACHE_HEADERS}
 install(FILES ${EVAL_HEADERS}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Eval)
 
-# install(FILES ${INTERFACE_HEADERS}
-#     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Interfaces
-#     )
+install(FILES ${INTERFACE_HEADERS}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Interfaces)
 
 install(FILES ${MATH_HEADERS}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Math)
