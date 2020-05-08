@@ -197,86 +197,78 @@ bool setNomadGranularityBBInputs(NomadProblem nomad_problem, double *granularity
 }
 
 // Display parameters
-bool setNomadDisplayDegree(NomadProblem *nomad_problem, int display_degree)
+bool setNomadDisplayDegree(NomadProblem nomad_problem, int display_degree)
 {
+    bool is_valid = false;
+    if ((display_degree >= 0) && (display_degree <= 3)) 
+    {
+        is_valid = true;
+        nomad_problem->display_degree = display_degree;
+    }
+    else
+    {
+        std::cerr << "DISPLAY_DEGREE can only take values between 0 and 3 included" << std::endl;
+    }
+    return is_valid;
+}
+
+bool setNomadDisplayAllEval(NomadProblem nomad_problem, bool display_all_eval)
+{
+    nomad_problem->display_all_eval = display_all_eval;
     return true;
 }
 
-bool setNomadDisplayAllEval(NomadProblem *nomad_problem, bool display_all_eval)
+bool setNomadDisplayInfeasible(NomadProblem nomad_problem, bool display_infeasible)
 {
+    nomad_problem->display_infeasible = display_infeasible;
     return true;
 }
 
-bool setNomadDisplayInfeasible(NomadProblem *nomad_problem, bool display_infeasible)
+bool setNomadDisplayUnsuccessful(NomadProblem nomad_problem, bool display_unsuccessful)
 {
-    return true;
-}
-
-bool setNomadDisplayUnsuccessful(NomadProblem *nomad_problem, bool display_unsuccessful)
-{
+    nomad_problem->display_unsuccessful = display_unsuccessful;
     return true;
 }
 
 // Eval parameters
-bool setNomadOpportunisticEval(NomadProblem *nomad_problem, bool opportunistic_eval)
+bool setNomadOpportunisticEval(NomadProblem nomad_problem, bool opportunistic_eval)
 {
+    nomad_problem->opportunistic_eval= opportunistic_eval;
     return true;
 }
 
-bool setNomadUseCache(NomadProblem *nomad_problem, bool use_cache)
+bool setNomadUseCache(NomadProblem nomad_problem, bool use_cache)
 {
-    return true;
-}
-
-// Run parameters
-bool setNomadLHSearchParams(NomadProblem *nomad_problem, int lh_search_init, int lh_search_iter)
-{
-    return true;
-}
-
-bool setNomadSpeculativeSearch(NomadProblem *nomad_problem, bool speculative_search)
-{
-    return true;
-}
-
-bool setNomadNMSearch(NomadProblem *nomad_problem, bool nm_search)
-{
-    return true;
-}
-
-// TODO think about conversion string c c++
-
-// Display parameters
-bool addNomadBoolDispParam(NomadProblem nomad_problem,
-                           char *keyword,
-                           bool flag)
-{
-    nomad_problem->p->getDispParams()->setAttributeValue(keyword, flag);
-    return true;
-}
-
-bool addNomadValDispParam(NomadProblem nomad_problem,
-                          char *keyword,
-                          int flag)
-{
-    nomad_problem->p->getDispParams()->setAttributeValue(keyword, flag);
-    return true;
-}
-
-bool addNomadStringDispParam(NomadProblem nomad_problem,
-                             char *keyword,
-                             char *param_str)
-{
-    nomad_problem->p->getDispParams()->setAttributeValue(keyword, param_str);
+    nomad_problem->use_cache = use_cache;
     return true;
 }
 
 // Run parameters
-bool addNomadBoolRunParam(NomadProblem nomad_problem,
-                          char *keyword,
-                          bool flag)
+bool setNomadLHSearchParams(NomadProblem nomad_problem, int lh_search_init, int lh_search_iter)
 {
-    nomad_problem->p->getRunParams()->setAttributeValue(keyword, flag);
+    bool is_valid = false;
+    if ((lh_search_init < 0) || (lh_search_iter < 0)) 
+    {
+        std::cerr << "The LH_SEARCH must be positive or null" << std::endl;
+    }
+    else
+    {
+        is_valid=true;
+        nomad_problem->lh_search_init = lh_search_init;
+        nomad_problem->lh_search_iter = lh_search_iter;
+    }
+    return is_valid;
+}
+
+bool setNomadSpeculativeSearch(NomadProblem nomad_problem, bool speculative_search)
+{
+    nomad_problem->speculative_search = speculative_search;
+    return true;
+}
+
+bool setNomadNMSearch(NomadProblem nomad_problem, bool nm_search)
+{
+    nomad_problem->nm_search = nm_search;
     return true;
 }
 
