@@ -3,6 +3,7 @@
 #include "../Algos/EvcInterface.hpp"
 #include "../Nomad/nomad.hpp"
 #include "../Param/AllParameters.hpp"
+#include "../Type/LHSearchType.hpp"
 
 #include <string.h>
 #include <iostream>
@@ -10,7 +11,7 @@
 struct NomadProblemInfo
 {
 
-    // parameters of the problem
+    // parameters of the Nomad problem
     std::shared_ptr<NOMAD::AllParameters> p;
 
     // pointer to the black box function, whose arguments are:
@@ -32,8 +33,29 @@ struct NomadProblemInfo
     double *x_ub; // upper bounds (can be null)
 
     char *type_bb_outputs; // follow the conventions of Nomad.
+    char *type_bb_inputs;  // If null, all variables will be considered as real;
+    // otherwise, follow the conventions of Nomad.
 
-    int max_bb_eval; // maximum number of evaluations allowed
+    double *granularity_bb_inputs; // by default, set to 0
+
+    // display attributes
+    int display_degree;
+    bool display_all_eval;
+    bool display_infeasible;
+    bool display_unsuccessful;
+
+    // eval parameters
+    int max_bb_eval;         // maximum number of evaluations allowed.
+    bool opportunistic_eval; // boolean fixing if the search is opportunistic or not
+    bool use_cache;          // uses the cache or not
+
+    // run parameters
+    int lh_search_init;      // number of points evaluated by the LH before starting the optimization
+    int lh_search_iter;      // number of points evaluated by the LH at each iteration
+    bool speculative_search; // boolean fixing if applies speculative search or not
+    bool nm_search;          // uses the nelder mead search flag
+
+    // TODO: add models
 };
 
 NomadProblem createNomadProblem(
@@ -42,6 +64,7 @@ NomadProblem createNomadProblem(
     int nb_outputs,               // number of outputs
     double *x_lb,                 // lower bounds (can be null)
     double *x_ub,                 // upper bounds (can be null)
+    char *type_bb_inputs,         // follow the convention of Nomad (can be null)
     char *type_bb_outputs,        // follow the conventions of Nomad.
     int max_bb_eval               // maximum number of evaluations allowed
 )
@@ -53,10 +76,10 @@ NomadProblem createNomadProblem(
     }
     NomadProblem retval = new NomadProblemInfo;
 
+    // problems parameters
     retval->bb_single = bb_single;
     retval->nb_inputs = nb_inputs;
     retval->nb_outputs = nb_outputs;
-    retval->max_bb_eval = max_bb_eval;
 
     if (x_lb != nullptr)
     {
@@ -84,8 +107,41 @@ NomadProblem createNomadProblem(
         retval->x_ub = nullptr;
     }
 
+    if (type_bb_inputs != nullptr)
+    {
+        retval->type_bb_inputs = new char[strlen(type_bb_inputs) + 1];
+        strcpy(retval->type_bb_inputs, type_bb_inputs);
+    }
+    else
+    {
+        retval->type_bb_inputs = nullptr;
+    }
+
     retval->type_bb_outputs = new char[strlen(type_bb_outputs) + 1];
     strcpy(retval->type_bb_outputs, type_bb_outputs);
+
+    retval->granularity_bb_inputs = new double[nb_inputs];
+    for (int i = 0; i < nb_inputs; ++i)
+    {
+        retval->granularity_bb_inputs[i] = 0.0;
+    }
+
+    // display parameters: default options
+    retval->display_degree = 2;
+    retval->display_all_eval = false;
+    retval->display_infeasible = false;
+    retval->display_unsuccessful = true;
+
+    // eval parameters
+    retval->max_bb_eval = max_bb_eval;
+    retval->opportunistic_eval = true; // boolean fixing if the search is opportunistic or not
+    retval->use_cache = true;          // uses the cache or not
+
+    // run parameters
+    retval->lh_search_init = 0;        // number of points evaluated by the LH before starting the optimization
+    retval->lh_search_iter = 0;        // number of points evaluated by the LH at each iteration
+    retval->speculative_search = true; // by default, applies speculative search
+    retval->nm_search = true;          // uses the nelder mead search flag
 
     retval->p = std::make_shared<NOMAD::AllParameters>();
 
@@ -94,6 +150,7 @@ NomadProblem createNomadProblem(
 
 void freeNomadProblem(NomadProblem nomad_problem)
 {
+    // problem parameters
     if (!nomad_problem->x_lb)
     {
         delete[] nomad_problem->x_lb;
@@ -104,7 +161,87 @@ void freeNomadProblem(NomadProblem nomad_problem)
     }
     nomad_problem->bb_single = nullptr;
     delete[] nomad_problem->type_bb_outputs;
+
+    if (!nomad_problem->type_bb_inputs)
+    {
+        delete[] nomad_problem->type_bb_inputs;
+    }
+
+    delete[] nomad_problem->granularity_bb_inputs;
+
+    // problem parameters
     nomad_problem->p = nullptr;
+}
+
+// Problem parameters
+bool setNomadGranularityBBInputs(NomadProblem nomad_problem, double *granularity_bb_inputs)
+{
+    bool is_valid = true;
+    for (int i = 0; i < nomad_problem->nb_inputs; ++i)
+    {
+        if (granularity_bb_inputs[i] < 0)
+        {
+            std::cerr << "The granularity must be positive" << std::endl;
+            is_valid = false;
+            break;
+        }
+    }
+    if (is_valid)
+    {
+        for (int i = 0; i < nomad_problem->nb_inputs; ++i)
+        {
+            nomad_problem->granularity_bb_inputs[i] = granularity_bb_inputs[i];
+        }
+    }
+    return is_valid;
+}
+
+// Display parameters
+bool setNomadDisplayDegree(NomadProblem *nomad_problem, int display_degree)
+{
+    return true;
+}
+
+bool setNomadDisplayAllEval(NomadProblem *nomad_problem, bool display_all_eval)
+{
+    return true;
+}
+
+bool setNomadDisplayInfeasible(NomadProblem *nomad_problem, bool display_infeasible)
+{
+    return true;
+}
+
+bool setNomadDisplayUnsuccessful(NomadProblem *nomad_problem, bool display_unsuccessful)
+{
+    return true;
+}
+
+// Eval parameters
+bool setNomadOpportunisticEval(NomadProblem *nomad_problem, bool opportunistic_eval)
+{
+    return true;
+}
+
+bool setNomadUseCache(NomadProblem *nomad_problem, bool use_cache)
+{
+    return true;
+}
+
+// Run parameters
+bool setNomadLHSearchParams(NomadProblem *nomad_problem, int lh_search_init, int lh_search_iter)
+{
+    return true;
+}
+
+bool setNomadSpeculativeSearch(NomadProblem *nomad_problem, bool speculative_search)
+{
+    return true;
+}
+
+bool setNomadNMSearch(NomadProblem *nomad_problem, bool nm_search)
+{
+    return true;
 }
 
 // TODO think about conversion string c c++
@@ -227,14 +364,14 @@ public:
 };
 
 bool solveNomadProblem(NomadProblem nomad_problem,
-                      double *x0,
-                      bool *exists_feas_sol,
-                      double *bb_best_x_feas,
-                      double *bb_best_feas_outputs,
-                      bool *exists_inf_sol,
-                      double *bb_best_x_inf,
-                      double *bb_best_inf_outputs,
-                      NomadUserDataPtr data_user_ptr)
+                       double *x0,
+                       bool *exists_feas_sol,
+                       double *bb_best_x_feas,
+                       double *bb_best_feas_outputs,
+                       bool *exists_inf_sol,
+                       double *bb_best_x_inf,
+                       double *bb_best_inf_outputs,
+                       NomadUserDataPtr data_user_ptr)
 {
     if (!x0 || !exists_feas_sol || !bb_best_x_feas || !bb_best_feas_outputs || !exists_inf_sol || !bb_best_x_inf || !bb_best_inf_outputs)
     {
@@ -242,12 +379,28 @@ bool solveNomadProblem(NomadProblem nomad_problem,
         return 1;
     }
     // Configure main parameters
+
+    // 1- pb parameters
     nomad_problem->p->getPbParams()->setAttributeValue("DIMENSION", nomad_problem->nb_inputs);
 
     // TODO : check according to C string C++string
     std::string type_bb_outputs_wrap(nomad_problem->type_bb_outputs);
     nomad_problem->p->getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE",
                                                          NOMAD::stringToBBOutputTypeList(type_bb_outputs_wrap));
+
+    if (!nomad_problem->type_bb_inputs)
+    {
+        std::string type_bb_inputs_wrap(nomad_problem->type_bb_inputs);
+        nomad_problem->p->getEvalParams()->setAttributeValue("BB_INPUT_TYPE",
+                                                             NOMAD::stringToBBInputType(type_bb_inputs_wrap));
+    }
+
+    NOMAD::ArrayOfDouble granular_params(nomad_problem->nb_inputs);
+    for (size_t i = 0; i < nomad_problem->nb_inputs; ++i)
+    {
+        granular_params[i] = nomad_problem->granularity_bb_inputs[i];
+    }
+    nomad_problem->p->getPbParams()->setAttributeValue("GRANULARITY", granular_params);
 
     // Fix bounds
     if (nomad_problem->x_lb != nullptr)
@@ -270,26 +423,38 @@ bool solveNomadProblem(NomadProblem nomad_problem,
         nomad_problem->p->getPbParams()->setAttributeValue("UPPER_BOUND", ub);
     }
 
-
-    // starting points
-    if (x0 != nullptr) {
+    // 2- starting points
+    if (x0 != nullptr)
+    {
         NOMAD::Point start_x0(nomad_problem->nb_inputs);
-        for (size_t i = 0; i < nomad_problem->nb_inputs; ++i) {
+        for (size_t i = 0; i < nomad_problem->nb_inputs; ++i)
+        {
             start_x0[i] = x0[i];
         }
         nomad_problem->p->getPbParams()->setAttributeValue("X0", start_x0);
     }
 
-    // Fix max bb evaluations
-    nomad_problem->p->getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", nomad_problem->max_bb_eval);
+    // 3- display attributes
+    nomad_problem->p->getDispParams()->setAttributeValue("DISPLAY_DEGREE", nomad_problem->display_degree);
+    nomad_problem->p->getDispParams()->setAttributeValue("DISPLAY_ALL_EVAL", nomad_problem->display_all_eval);
+    nomad_problem->p->getDispParams()->setAttributeValue("DISPLAY_INFEASIBLE", nomad_problem->display_infeasible);
+    nomad_problem->p->getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL", nomad_problem->display_unsuccessful);
+    nomad_problem->p->getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL ( SOL ) OBJ CONS_H H_MAX"));
 
+    // 4- eval parameters
+    nomad_problem->p->getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", nomad_problem->max_bb_eval);
+    nomad_problem->p->getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL", nomad_problem->opportunistic_eval);
+    nomad_problem->p->getEvaluatorControlParams()->setAttributeValue("USE_CACHE", nomad_problem->opportunistic_eval);
     // TODO : for the moment allow only one blackbox call.
     nomad_problem->p->getEvaluatorControlParams()->setAttributeValue<size_t>("BB_MAX_BLOCK_SIZE", 1);
 
-    // TODO: For the moment, let these attributes
-    nomad_problem->p->getDispParams()->setAttributeValue("DISPLAY_DEGREE", 2);
-    nomad_problem->p->getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL ( SOL ) OBJ CONS_H H_MAX"));
+    // 5- run parameters
+    std::string lh_search_str = std::to_string(nomad_problem->lh_search_init) + " " + std::to_string(nomad_problem->lh_search_iter);
+    nomad_problem->p->getRunParams()->setAttributeValue("LH_EVAL", NOMAD::LHSearchType(lh_search_str));
+    nomad_problem->p->getRunParams()->setAttributeValue("SPECULATIVE_SEARCH", nomad_problem->speculative_search);
+    nomad_problem->p->getRunParams()->setAttributeValue("NM_SEARCH", nomad_problem->nm_search);
 
+    // do not allow restart
     nomad_problem->p->getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
     nomad_problem->p->getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
 
@@ -392,6 +557,7 @@ bool solveNomadProblem(NomadProblem nomad_problem,
         printf("NOMAD exception (report to developper):\n%s\n", e.what());
     }
 
+    // clean cache at the end of the iteration
     NOMAD::OutputQueue::Flush();
     NOMAD::CacheBase::getInstance()->clear();
 

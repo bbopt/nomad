@@ -30,29 +30,36 @@ extern "C"
         int nb_outputs,               // number of outputs
         double *x_lb,                 // lower bounds (can be null)
         double *x_ub,                 // upper bounds (can be null)
+        char *type_bb_inputs,         // follow the convention of Nomad
         char *type_bb_outputs,        // follow the conventions of Nomad.
         int max_bb_eval               // maximum number of evaluations allowed
     );
 
     void freeNomadProblem(NomadProblem nomad_problem);
 
+    // Problem parameters
+    bool setNomadGranularityBBInputs(NomadProblem nomad_problem, double *granularity_bb_inputs);
+
     // Display parameters
-    bool addNomadBoolDispParam(NomadProblem nomad_problem,
-                               char *keyword,
-                               bool flag);
+    bool setNomadDisplayDegree(NomadProblem nomad_problem, int display_degree);
+    
+    bool setNomadDisplayAllEval(NomadProblem nomad_problem, bool display_all_eval);
 
-    bool addNomadValDispParam(NomadProblem nomad_problem,
-                              char *keyword,
-                              int flag);
+    bool setNomadDisplayInfeasible(NomadProblem nomad_problem, bool display_infeasible);
 
-    bool addNomadStringDispParam(NomadProblem nomad_problem,
-                                 char *keyword,
-                                 char *param_str);
+    bool setNomadDisplayUnsuccessful(NomadProblem nomad_problem, bool display_unsuccessful);
+
+    // Eval parameters
+    bool setNomadOpportunisticEval(NomadProblem nomad_problem, bool opportunistic_eval);
+
+    bool setNomadUseCache(NomadProblem nomad_problem, bool use_cache);
 
     // Run parameters
-    bool addNomadBoolRunParam(NomadProblem nomad_problem,
-                              char *keyword,
-                              bool flag);
+    bool setNomadLHSearchParams(NomadProblem nomad_problem, int lh_search_init, int lh_search_iter);
+    
+    bool setNomadSpeculativeSearch(NomadProblem nomad_problem, bool speculative_search);
+
+    bool setNomadNMSearch(NomadProblem nomad_problem, bool nm_search);
 
     // Add other methods according to preferences (to discuss with Christophe and Viviane)
 
