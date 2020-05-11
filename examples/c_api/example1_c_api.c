@@ -58,11 +58,6 @@
 
 #include "Interfaces/NomadStdCInterface.h"
 
-//#include "Algos/MainStep.hpp"
-//#include "Cache/CacheSet.hpp"
-//#include "Nomad/nomad.hpp"
-//#include "Util/fileutils.hpp"
-
 /*----------------------------------------*/
 /*               The problem              */
 /*----------------------------------------*/
