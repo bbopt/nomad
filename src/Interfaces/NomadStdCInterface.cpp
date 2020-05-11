@@ -20,6 +20,7 @@ struct NomadProblemInfo
     // bb_inputs: array of bb_inputs
     // nb_outputs: number of blackbox outputs
     // bb_outputs: array of bb_outputs
+    // count_eval: indicates if the black box counter has to be incremented or not
     // must return true if works, otherwise false.
     // WARNING: all arrays must be allocated before and deallocated after.
     Callback_BB_single bb_single;
@@ -328,7 +329,7 @@ public:
         try
         {
             // call function
-            eval_ok = _bb_single(_nbInputs, bb_inputs, _nbOutputs, bb_outputs, _data_user_ptr);
+            eval_ok = _bb_single(_nbInputs, bb_inputs, _nbOutputs, bb_outputs, &countEval, _data_user_ptr);
 
             // collect outputs parameters
             auto bbOutputType = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
@@ -351,7 +352,6 @@ public:
         delete[] bb_inputs;
         delete[] bb_outputs;
 
-        countEval = true;
         return eval_ok;
     }
 };

@@ -61,7 +61,7 @@
 /*----------------------------------------*/
 /*               The problem              */
 /*----------------------------------------*/
-bool example1_bb(int nb_inputs, double *x, int nb_outputs, double *bb_outputs, NomadUserDataPtr data)
+bool example1_bb(int nb_inputs, double *x, int nb_outputs, double *bb_outputs, bool *count_eval, NomadUserDataPtr data)
 {
     bool eval_ok = false;
 
@@ -107,6 +107,9 @@ bool example1_bb(int nb_inputs, double *x, int nb_outputs, double *bb_outputs, N
     bb_outputs[1] = g2;
     bb_outputs[2] = f;
     bb_outputs[3] = c2000;
+
+    // count evaluation
+    *count_eval = true;
 
     return eval_ok;
 }

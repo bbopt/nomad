@@ -18,7 +18,7 @@ extern "C"
     typedef void *NomadUserDataPtr;
 
     // Blackbox functions types (TODO add for blackbox block evaluation functions functions ?)
-    typedef bool (*Callback_BB_single)(int, double *, int, double *, NomadUserDataPtr);
+    typedef bool (*Callback_BB_single)(int, double *, int, double *, bool *, NomadUserDataPtr);
     
     // TODO add blackbox output types ?
 
