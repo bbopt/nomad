@@ -1,6 +1,7 @@
 #include "../Interfaces/NomadStdCInterface.h"
 
 #include "../Algos/EvcInterface.hpp"
+#include "../Math/RNG.hpp"
 #include "../Nomad/nomad.hpp"
 #include "../Param/AllParameters.hpp"
 #include "../Type/LHSearchType.hpp"
@@ -253,7 +254,7 @@ bool setNomadLHSearchParams(NomadProblem nomad_problem, int lh_search_init, int 
     }
     else
     {
-        is_valid=true;
+        is_valid = true;
         nomad_problem->lh_search_init = lh_search_init;
         nomad_problem->lh_search_iter = lh_search_iter;
     }
@@ -380,7 +381,7 @@ bool solveNomadProblem(NomadProblem nomad_problem,
     nomad_problem->p->getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE",
                                                          NOMAD::stringToBBOutputTypeList(type_bb_outputs_wrap));
 
-    if (!nomad_problem->type_bb_inputs)
+    if (nomad_problem->type_bb_inputs != nullptr)
     {
         std::string type_bb_inputs_wrap(nomad_problem->type_bb_inputs);
         nomad_problem->p->getEvalParams()->setAttributeValue("BB_INPUT_TYPE",
@@ -442,7 +443,7 @@ bool solveNomadProblem(NomadProblem nomad_problem,
 
     // 5- run parameters
     std::string lh_search_str = std::to_string(nomad_problem->lh_search_init) + " " + std::to_string(nomad_problem->lh_search_iter);
-    nomad_problem->p->getRunParams()->setAttributeValue("LH_EVAL", NOMAD::LHSearchType(lh_search_str));
+    nomad_problem->p->getRunParams()->setAttributeValue("LH_SEARCH", NOMAD::LHSearchType(lh_search_str));
     nomad_problem->p->getRunParams()->setAttributeValue("SPECULATIVE_SEARCH", nomad_problem->speculative_search);
     nomad_problem->p->getRunParams()->setAttributeValue("NM_SEARCH", nomad_problem->nm_search);
 
@@ -537,9 +538,15 @@ bool solveNomadProblem(NomadProblem nomad_problem,
 
         // reset parameters in case someone wants to restart an optimization again
         nomad_problem->p->resetToDefaultValues();
-
+        
+        // clear cache
         NOMAD::OutputQueue::Flush();
         NOMAD::CacheBase::getInstance()->clear();
+        // set counter to 0
+        NOMAD::CacheBase::getInstance()->resetNbCacheHits();
+        NOMAD::EvcInterface::getEvaluatorControl()->setNbEval(0);
+        // set seed to default for deterministic option
+        NOMAD::RNG::resetPrivateSeedToDefault();
 
         return 0;
     }
@@ -552,6 +559,9 @@ bool solveNomadProblem(NomadProblem nomad_problem,
     // clean cache at the end of the iteration
     NOMAD::OutputQueue::Flush();
     NOMAD::CacheBase::getInstance()->clear();
+    
+    // set seed to 0 for deterministic option
+    NOMAD::RNG::resetPrivateSeedToDefault();
 
     return -1;
 }

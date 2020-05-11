@@ -33,12 +33,22 @@ target_include_directories(basic_lib_example3 PUBLIC
 
 # Advanced cpp examples in library mode
 add_executable(exampleForCustomHComputation advanced/library/exampleForCustomHComputation/example.cpp)
-target_link_libraries(exampleForCustomHComputation PUBLIC nomadAlgos nomadUtils nomadEval)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(exampleForCustomHComputation PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
 else()
     target_link_libraries(exampleForCustomHComputation PUBLIC nomadAlgos nomadUtils nomadEval)
 endif()
 target_include_directories(exampleForCustomHComputation PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+# C api examples
+add_executable(example1_c_api c_api/example1_c_api.c)
+if (OpenMP_CXX_FOUND)
+    target_link_libraries(example1_c_api PUBLIC nomadInterface nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
+else()
+    target_link_libraries(example1_c_api PUBLIC nomadInterface nomadAlgos nomadUtils nomadEval)
+endif()
+target_include_directories(example1_c_api PUBLIC
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
