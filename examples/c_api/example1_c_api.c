@@ -47,7 +47,7 @@
 /*---------------------------------------------------------------------------------*/
 /**
  \file   example1_c_api.c
- \brief  c api example for Nomad
+ \brief  c api example 1 for Nomad
  \author Ludovic Salomon
  \date   2020
  */

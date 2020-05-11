@@ -52,3 +52,13 @@ endif()
 target_include_directories(example1_c_api PUBLIC
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+add_executable(example2_c_api c_api/example2_c_api.c)
+    if (OpenMP_CXX_FOUND)
+        target_link_libraries(example2_c_api PUBLIC nomadInterface nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
+    else()
+        target_link_libraries(example2_c_api PUBLIC nomadInterface nomadAlgos nomadUtils nomadEval)
+    endif()
+    target_include_directories(example2_c_api PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
