@@ -538,13 +538,14 @@ bool solveNomadProblem(NomadProblem nomad_problem,
 
         // reset parameters in case someone wants to restart an optimization again
         nomad_problem->p->resetToDefaultValues();
-        
+
         // clear cache
         NOMAD::OutputQueue::Flush();
         NOMAD::CacheBase::getInstance()->clear();
         // set counter to 0
         NOMAD::CacheBase::getInstance()->resetNbCacheHits();
-        NOMAD::EvcInterface::getEvaluatorControl()->setNbEval(0);
+        NOMAD::EvcInterface::getEvaluatorControl()->setBbEval(0);
+        NOMAD::EvalPoint::resetCurrentTag();
         // set seed to default for deterministic option
         NOMAD::RNG::resetPrivateSeedToDefault();
 
@@ -559,7 +560,8 @@ bool solveNomadProblem(NomadProblem nomad_problem,
     // clean cache at the end of the iteration
     NOMAD::OutputQueue::Flush();
     NOMAD::CacheBase::getInstance()->clear();
-    
+
+    NOMAD::EvalPoint::resetCurrentTag();
     // set seed to 0 for deterministic option
     NOMAD::RNG::resetPrivateSeedToDefault();
 

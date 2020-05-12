@@ -60,7 +60,7 @@
 
 bool moustache_bb(int nb_inputs, double *x, int nb_outputs, double *bb_outputs, bool *count_eval, NomadUserDataPtr data)
 {
-    bool eval_ok = false;
+    bool eval_ok = true;
 
     double f = -x[0];
     double g = -(fabs(cos(x[0])) + 0.1) * sin(x[0]) + 2;

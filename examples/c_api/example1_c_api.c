@@ -63,7 +63,7 @@
 /*----------------------------------------*/
 bool example1_bb(int nb_inputs, double *x, int nb_outputs, double *bb_outputs, bool *count_eval, NomadUserDataPtr data)
 {
-    bool eval_ok = false;
+    bool eval_ok = true;
 
     // based on G2
     double f = 1e+20, g1 = 1e+20, g2 = 1e+20;
