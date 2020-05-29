@@ -384,8 +384,8 @@ bool solveNomadProblem(NomadProblem nomad_problem,
     if (nomad_problem->type_bb_inputs != nullptr)
     {
         std::string type_bb_inputs_wrap(nomad_problem->type_bb_inputs);
-        nomad_problem->p->getEvalParams()->setAttributeValue("BB_INPUT_TYPE",
-                                                             NOMAD::stringToBBInputType(type_bb_inputs_wrap));
+        nomad_problem->p->getPbParams()->setAttributeValue("BB_INPUT_TYPE",
+                                                             NOMAD::stringToBBInputTypeList(type_bb_inputs_wrap));
     }
 
     NOMAD::ArrayOfDouble granular_params(nomad_problem->nb_inputs);
