@@ -142,7 +142,7 @@ int main(int argc, char **argv)
     setNomadGranularityBBInputs(nomad_pb, granularity_params);
 
     setNomadDisplayDegree(nomad_pb, 2);
-    setNomadDisplayAllEval(nomad_pb, false);
+    setNomadDisplayAllEval(nomad_pb, true);
     setNomadDisplayUnsuccessful(nomad_pb, false);
 
     // run problem
@@ -199,6 +199,7 @@ int main(int argc, char **argv)
     printf("\n");
     printf("Relaunch second time solving !\n");
     printf("\n");
+    setNomadDisplayAllEval(nomad_pb, false);
     solveNomadProblem(nomad_pb, x0,
                       &exists_feas, x_feas_sol, outputs_feas_sol,
                       &exists_infeas, x_inf_sol, outputs_inf_sol,
