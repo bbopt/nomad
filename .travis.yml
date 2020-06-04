@@ -30,7 +30,14 @@ before_script:
 
 script:
   # installation
-  - cmake ..
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      cmake -DNOMAD_WITH_OPENMP=OFF ..
+    fi
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      cmake ..
+    fi
   - make -j2 VERBOSE=1
   # test simple c++ examples and c examples
   - cd examples && ./basic_lib_example1 && ./basic_lib_example2 && ./basic_lib_example3 && ./exampleForCustomHComputation && ./example1_c_api && ./example2_c_api
