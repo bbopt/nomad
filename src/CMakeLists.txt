@@ -326,20 +326,10 @@ set(SGTELIBMODEL_SOURCES
     Algos/SgtelibModel/SgtelibModelOptimize.cpp
     Algos/SgtelibModel/SgtelibModelUpdate.cpp)
 
-# if(CMAKE_C_COMPILER_ID MATCHES "Clang\$")
-#     set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp")
-#     set(OpenMP_C_LIB_NAMES "omp")
-#     set(OpenMP_omp_LIBRARY omp)
-# endif()
-#
-# if(CMAKE_CXX_COMPILER_ID MATCHES "Clang\$")
-#     set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp")
-#     set(OpenMP_CXX_LIB_NAMES "omp")
-#     set(OpenMP_omp_LIBRARY omp)
-# endif()
-
 # require openMP package
-find_package(OpenMP)
+if(NOMAD_WITH_OPENMP)
+    find_package(OpenMP REQUIRED)
+endif()
 
 # build libraries
 
@@ -411,9 +401,6 @@ add_executable(WriteAttributeDefinitionFile ${ATTRIBUTE_SOURCES})
 target_include_directories(WriteAttributeDefinitionFile PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Attribute>
     $<INSTALL_INTERFACE:include/nomad>)
-# if(OpenMP_CXX_FOUND)
-#     target_link_libraries(WriteAttributeDefinitionFile INTERFACE OpenMP::OpenMP_CXX)
-# endif()
 
 add_executable (nomad ${NOMAD_SOURCES}) 
 target_include_directories(nomad PUBLIC

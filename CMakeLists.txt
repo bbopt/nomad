@@ -39,6 +39,11 @@ else()
 endif()
 
 # Options
+
+# build Nomad with openMP (only work with gcc compiler)
+option(NOMAD_WITH_OPENMP "Enable OpenMP flags." ON)
+
+# build Nomad examples
 option(NOMAD_WITH_EXAMPLES "Build Nomad examples." ON)
 
 # choose to build with unit tests

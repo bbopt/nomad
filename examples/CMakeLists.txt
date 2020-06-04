@@ -1,4 +1,6 @@
-find_package(OpenMP)
+if(NOMAD_WITH_OPENMP)
+    find_package(OpenMP REQUIRED)
+endif()
 
 # Basic cpp examples in library mode
 add_executable(basic_lib_example1 basic/library/example1/example1_lib.cpp)
