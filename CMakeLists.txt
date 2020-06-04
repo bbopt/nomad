@@ -39,7 +39,7 @@ else()
 endif()
 
 # Options
-option(BUILD_CXX_EXAMPLES "Build examples" ON)
+option(NOMAD_WITH_EXAMPLES "Build Nomad examples." ON)
 
 # choose to build with unit tests
 # option(BUILD_TESTS "Build unit tests programs" OFF)
@@ -59,6 +59,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext)
 # Add nomad directory
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-if (BUILD_CXX_EXAMPLES)
+if (NOMAD_WITH_EXAMPLES)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/examples)
 endif()
