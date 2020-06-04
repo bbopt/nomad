@@ -38,13 +38,6 @@ else()
     message(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang and GCC.")
 endif()
 
-# if (APPLE)
-#       set(CMAKE_MACOSX_RPATH ON)
-#       set(CMAKE_SKIP_BUILD_RPATH TRUE)
-#       set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-#       set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-# endif ()
-
 # Options
 option(BUILD_CXX_EXAMPLES "Build examples" ON)
 
@@ -69,9 +62,3 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 if (BUILD_CXX_EXAMPLES)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/examples)
 endif()
-
-#enable testing
-#if (BUILD_TESTS)
-#    enable_testing()
-#	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/unit_tests)
-#endif(BUILD_TESTS)
