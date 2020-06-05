@@ -334,8 +334,9 @@ endif()
 # build libraries
 
 # Some headers are dynamically generated and have to be taken into account before
-add_custom_target(
-    write_attributes
+add_custom_command(
+    PRE_BUILD
+    OUTPUT cacheAttributesDefinition.hpp displayAttributesDefinition.hpp evalAttributesDefinition.hpp evaluatorControlAttributesDefinition.hpp pbAttributesDefinition.hpp runAttributesDefinition.hpp
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/cacheAttributesDefinition.txt ${CMAKE_CURRENT_BINARY_DIR}/cacheAttributesDefinition.txt
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/displayAttributesDefinition.txt ${CMAKE_CURRENT_BINARY_DIR}/displayAttributesDefinition.txt
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evalAttributesDefinition.txt ${CMAKE_CURRENT_BINARY_DIR}/evalAttributesDefinition.txt
@@ -350,6 +351,9 @@ add_custom_target(
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/pbAttributesDefinition.hpp ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/pbAttributesDefinition.hpp
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/runAttributesDefinition.hpp ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinition.hpp
     DEPENDS WriteAttributeDefinitionFile)
+
+add_custom_target(write_attributes
+    DEPENDS cacheAttributesDefinition.hpp displayAttributesDefinition.hpp evalAttributesDefinition.hpp evaluatorControlAttributesDefinition.hpp pbAttributesDefinition.hpp runAttributesDefinition.hpp)
 
 # Utils
 add_library (nomadUtils SHARED ${MATH_SOURCES} ${OUTPUT_SOURCES} ${PARAM_SOURCES} ${TYPE_SOURCES} ${UTIL_SOURCES})
