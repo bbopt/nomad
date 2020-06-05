@@ -41,3 +41,4 @@ script:
   - make -j2 VERBOSE=1
   # test simple c++ examples and c examples
   - cd examples && ./basic_lib_example1 && ./basic_lib_example2 && ./basic_lib_example3 && ./exampleForCustomHComputation && ./example1_c_api && ./example2_c_api
+  - make install
