@@ -342,7 +342,7 @@ add_custom_target(
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evaluatorControlAttributesDefinition.txt ${CMAKE_CURRENT_BINARY_DIR}/evaluatorControlAttributesDefinition.txt
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/pbAttributesDefinition.txt ${CMAKE_CURRENT_BINARY_DIR}/pbAttributesDefinition.txt
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinition.txt ${CMAKE_CURRENT_BINARY_DIR}/runAttributesDefinition.txt
-    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/WriteAttributeDefinitionFile
+    COMMAND WriteAttributeDefinitionFile
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/cacheAttributesDefinition.hpp ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/cacheAttributesDefinition.hpp
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/displayAttributesDefinition.hpp ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/displayAttributesDefinition.hpp
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/evalAttributesDefinition.hpp ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evalAttributesDefinition.hpp
