@@ -426,7 +426,7 @@ else()
 endif()
 
 # installing executables and libraries
-install(TARGETS nomad WriteAttributeDefinitionFile nomadUtils nomadEval nomadAlgos nomadInterface
+install(TARGETS nomad nomadUtils nomadEval nomadAlgos nomadInterface
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad)
