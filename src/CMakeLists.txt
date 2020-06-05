@@ -82,7 +82,7 @@ set(INTERFACE_SOURCES
     Interfaces/NomadStdCInterface.cpp)
 
 set(INTERFACE_HEADERS
-    Interfaces/NomadStdCinterface.h)
+    Interfaces/NomadStdCInterface.h)
 
 # Math
 set(MATH_HEADERS
