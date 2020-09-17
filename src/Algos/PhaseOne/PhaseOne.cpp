@@ -117,7 +117,7 @@ void NOMAD::PhaseOne::endImp()
 
     // Reset success computation function
     NOMAD::EvcInterface::getEvaluatorControl()->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
-    // VRM THIS ALSO HAS TO BE FIXED
+    // Note: This should be non-static
     NOMAD::Eval::setComputeSuccessTypeFunction(NOMAD::Eval::defaultComputeSuccessType);
     NOMAD::Eval::setComputeHFunction(NOMAD::Eval::defaultComputeH);
 

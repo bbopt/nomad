@@ -221,7 +221,7 @@ void NOMAD::MainStep::startImp()
 
     // Currently this does nothing.
     NOMAD::EvcInterface::getEvaluatorControl()->start();
-    // VRM: Temporary: set comparison function for sorting eval queue.
+    // Note: Temporary: set comparison function for sorting eval queue.
     // This should be refactored: getting sort parameters and sorting
     // eval queue should all be managed inside EvaluatorControl::sort().
     NOMAD::ComparePriority::setComp(NOMAD::OrderByDirection::comp);
