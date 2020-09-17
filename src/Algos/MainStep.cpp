@@ -530,7 +530,7 @@ void NOMAD::MainStep::displayVersion()
     std::string version = "Version ";
     version += NOMAD_VERSION_NUMBER;
     // Note: The "Beta" information is not part of the NOMAD_VERSION_NUMBER.
-    version += " Beta 1";
+    version += " (develop September 2020)";
 #ifdef DEBUG
     version += " Debug.";
 #else
