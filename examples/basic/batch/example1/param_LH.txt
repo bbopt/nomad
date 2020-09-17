@@ -43,7 +43,7 @@ TMP_DIR /tmp
 # DISPLAY PARAMETERS
 ####################
 DISPLAY_DEGREE 2
-# Default value for DISPLAY_ALL_EVAL is true. 
+# Default value for DISPLAY_ALL_EVAL is true.
 DISPLAY_ALL_EVAL false
 DISPLAY_INFEASIBLE true
 DISPLAY_UNSUCCESSFUL false

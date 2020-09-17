@@ -41,7 +41,7 @@ endif
 CXXFLAGS           += -L$(LIB_DIR)
 
 ifeq ($(UNAME), Linux)
-CXXFLAGS_LIBS = -Wl,-rpath,$(LIB_DIR) 
+CXXFLAGS_LIBS = -Wl,-rpath,$(LIB_DIR)
 endif
 
 INCLFLAGS           = -I$(INCLUDE_DIR)
@@ -57,6 +57,6 @@ NMOpt.exe: $(INCLUDE_DIR) $(OBJ_DIR) NMOpt.cpp
 u.exe: u.cpp
 	g++ -o u.exe u.cpp
 
-clean: 
+clean:
 	rm -f *.o *.exe cache.txt
 

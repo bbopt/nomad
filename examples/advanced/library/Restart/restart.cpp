@@ -1,55 +1,10 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
 /*  example of a program that makes NOMAD restarts after failed iterations  */
 /*--------------------------------------------------------------------------*/
 #include "Nomad/nomad.hpp"
+#include "Algos/EvcInterface.hpp"
 #include "Algos/MegaIteration.hpp"
+#include "Cache/CacheBase.hpp"
 #include "Type/LHSearchType.hpp"
 
 /*----------------------------------------*/
@@ -58,14 +13,14 @@
 class My_Evaluator : public NOMAD::Evaluator
 {
 private:
-    
+
 public:
     My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
-    
+
     ~My_Evaluator() {}
-    
+
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override;
 };
 
@@ -80,7 +35,7 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
     NOMAD::Double c1 = 0.0 , c2 = 0.0;
     for ( int i = 0 ; i < 5 ; i++ )
     {
-        
+
         c1 += (x[i]-1).pow2();
         c2 += (x[i]+1).pow2();
     }
@@ -91,9 +46,9 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
     bbo += " " + constr1.tostring();
     bbo += " " + constr2.tostring();
     x.setBBO(bbo, bbOutputType, getEvalType());
-    
+
     countEval = true; // count a black-box evaluation
-    
+
     return true;       // the evaluation succeeded
 }
 
