@@ -1,0 +1,12 @@
+XCode/
+*.vscode
+VisualStudio/**
+build/
+builds/
+dev_tests/*.txt
+examples/**/*.exe
+examples/**/cache.txt
+src/*.txt
+src/nbproject/
+*.swp
+src/Attribute/*.hpp
