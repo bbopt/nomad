@@ -1,55 +1,11 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/CacheInterface.hpp"
+#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelEvaluator.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelOptimize.hpp"
+#include "../../Algos/SubproblemManager.hpp"
+#include "../../Output/OutputQueue.hpp"
 #include "../../Type/LHSearchType.hpp"
 
 void NOMAD::SgtelibModelOptimize::init()
@@ -72,7 +28,7 @@ void NOMAD::SgtelibModelOptimize::startImp()
 
     OUTPUT_INFO_START
     std::string s;
-    auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams();
+    auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
     s = "MAX_SGTE_EVAL: " + std::to_string(evcParams->getAttributeValue<size_t>("MAX_SGTE_EVAL"));
     AddOutputInfo(s, _displayLevel);
     s = "BBOT: " + NOMAD::BBOutputTypeListToString(NOMAD::SgtelibModel::getBBOutputType());
@@ -94,23 +50,20 @@ bool NOMAD::SgtelibModelOptimize::runImp()
     std::string s;
 
     auto modelFormulation = _runParams->getAttributeValue<NOMAD::SgtelibModelFormulationType>("SGTELIB_MODEL_FORMULATION");
-    auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams();
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
 
     if (NOMAD::SgtelibModelFormulationType::EXTERN == modelFormulation)
     {
         std::string modelDefinition = _runParams->getAttributeValue<std::string>("MODEL_DEFINITION");
-        evcParams->setAttributeValue("BB_EXE", modelDefinition);
+        evc->getEvalParams()->setAttributeValue("BB_EXE", modelDefinition);
     }
     else
     {
-        auto evalParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvalParams();
-
         // Enforce no opportunism and use no cache.
-        auto previousOpportunism = evcParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
-        auto previousUseCache = evcParams->getAttributeValue<bool>("USE_CACHE");
-        evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", false);
-        evcParams->setAttributeValue("USE_CACHE", false);
-        evcParams->checkAndComply();
+        auto previousOpportunism = evc->getOpportunisticEval();
+        auto previousUseCache = evc->getUseCache();
+        evc->setOpportunisticEval(false);
+        evc->setUseCache(false);
 
         auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
         auto diversification = _runParams->getAttributeValue<NOMAD::Double>("SGTELIB_MODEL_DIVERSIFICATION");
@@ -123,14 +76,19 @@ bool NOMAD::SgtelibModelOptimize::runImp()
             throw NOMAD::Exception(__FILE__, __LINE__, s);
         }
 
-        auto ev = std::make_unique<NOMAD::SgtelibModelEvaluator>(                                                                                  evalParams, _modelAlgo, modelDisplay,
+        auto ev = std::make_shared<NOMAD::SgtelibModelEvaluator>(
+                                                evc->getEvalParams(), _modelAlgo, modelDisplay,
                                                 diversification, modelFeasibility, tc,
-                                                getSubFixedVariable());
+                                                NOMAD::SubproblemManager::getSubFixedVariable(this));
 
         // Replace the EvaluatorControl's evaluator with this one
         // we just created
-        auto mainEvaluator = EvcInterface::getEvaluatorControl()->getEvaluatorUPtr();
-        EvcInterface::getEvaluatorControl()->setEvaluator(std::move(ev));
+        auto previousEvaluator = evc->setEvaluator(ev);
+        if (nullptr == previousEvaluator)
+        {
+            std::cerr << "Warning: QuadModelOptimize: Could not set SGTE Evaluator" << std::endl;
+            return false;
+        }
 
         auto madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
 
@@ -139,26 +97,24 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         _mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams);
         _mads->setName(_mads->getName() + " (SgtelibModelOptimize)");
         _mads->setEndDisplay(false);
-        EvcInterface::getEvaluatorControl()->resetSgteEval();
-        NOMAD::MainStep::setAlgoComment("(SgtelibModelOptimize)");
+        evc->resetSgteEval();
+        setAlgoComment("(SgtelibModelOptimize)");
         _mads->start();
         optimizeOk = _mads->run();
         _mads->end();
-        NOMAD::MainStep::resetPreviousAlgoComment();
+        resetPreviousAlgoComment();
+        evc->resetSgteEval();
+        evc->setEvaluator(previousEvaluator);
 
         // Note: No need to check the Mads stop reason: It is not a stop reason
         // for SgtelibModel.
-        
+
         // Get the solutions
         updateOraclePoints();
 
         // Reset opportunism to previous values.
-        evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", previousOpportunism);
-        evcParams->setAttributeValue("USE_CACHE", previousUseCache);
-        evcParams->checkAndComply();
-
-        // When we are done, restore mainEvaluator
-        EvcInterface::getEvaluatorControl()->setEvaluator(std::move(mainEvaluator));
+        evc->setOpportunisticEval(previousOpportunism);
+        evc->setUseCache(previousUseCache);
     }
 
     if (!optimizeOk)
@@ -190,7 +146,7 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
     // Use isotropic mesh
     _optRunParams->setAttributeValue("ANISOTROPIC_MESH", false);
 
-    auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams();
+    auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
     std::string lhstr = std::to_string(int(evcParams->getAttributeValue<size_t>("MAX_SGTE_EVAL") * 0.3));
     lhstr += " 0";
     NOMAD::LHSearchType lhSearch(lhstr);
@@ -224,12 +180,10 @@ void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& 
 
     // Only looking into sgte evaluations here
     cacheInterface.findBestFeas(evalPointFeasList,
-                                getSubFixedVariable(),
                                 NOMAD::EvalType::SGTE,
                                 nullptr);
     cacheInterface.findBestInf(evalPointInfList,
                                hMax,
-                               getSubFixedVariable(),
                                NOMAD::EvalType::SGTE,
                                nullptr);
 
@@ -252,7 +206,7 @@ void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& 
     // (_barrierForX0s).
     if (0 == x0s.size())
     {
-        // Get best points from upper Mads 
+        // Get best points from upper Mads
         for (auto evalPointX0 : _modelAlgo->getX0s())
         {
             if (evalPointX0.inBounds(lowerBound, upperBound))
@@ -272,10 +226,6 @@ void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& 
         _optPbParams->setAttributeValue("INITIAL_FRAME_SIZE", initialFrameSize);
     }
 
-    // Ensure that optimization will be done using SGTE evals. All sub
-    // steps will use SGTE.
-    _optPbParams->setAttributeValue("EVAL_TYPE", NOMAD::EvalType::SGTE);
-
     // We do not want certain warnings appearing in sub-optimization.
     _optPbParams->doNotShowWarnings();
 
@@ -284,7 +234,7 @@ void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& 
 }
 
 
-// Oracle points are the best feasible and infeasible points found by 
+// Oracle points are the best feasible and infeasible points found by
 // running Mads member. Get them using the barrier.
 void NOMAD::SgtelibModelOptimize::updateOraclePoints()
 {

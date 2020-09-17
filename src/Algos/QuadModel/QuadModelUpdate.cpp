@@ -1,59 +1,11 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/CacheInterface.hpp"
+#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/QuadModel/QuadModelAlgo.hpp"
-#include "../../Algos/QuadModel/QuadModelEvaluator.hpp"
-#include "../../Algos/QuadModel/QuadModelMegaIteration.hpp"
+#include "../../Algos/QuadModel/QuadModelIteration.hpp"
 #include "../../Algos/QuadModel/QuadModelUpdate.hpp"
-#include "../../Type/SgtelibModelFeasibilityType.hpp"
-#include "../../Type/SgtelibModelFormulationType.hpp"
-#include "../../../ext/sgtelib/src/Surrogate.hpp"
+#include "../../Cache/CacheBase.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 NOMAD::QuadModelUpdate::~QuadModelUpdate()
 {
@@ -64,8 +16,8 @@ void NOMAD::QuadModelUpdate::init()
 {
     _name = "QuadModel Update";
     verifyParentNotNull();
-}
 
+}
 
 // Update the SGTELIB::TrainingSet and SGTELIB::Surrogate contained in the
 // ancestor QuadModel (modelAlgo).
@@ -79,14 +31,14 @@ bool NOMAD::QuadModelUpdate::runImp()
 {
     std::string s;  // Used for output
     bool updateSuccess = false;
-    
+
     const NOMAD::QuadModelIteration * iter = getParentOfType<NOMAD::QuadModelIteration*>();
 
     if (nullptr == iter)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Update must have a Iteration among its ancestors.");
     }
-    
+
     auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     const auto bbot = NOMAD::QuadModelAlgo::getBBOutputType();
     size_t nbConstraints = NOMAD::getNbConstraints(bbot);
@@ -99,26 +51,48 @@ bool NOMAD::QuadModelUpdate::runImp()
     // Matrices to stock all points to send to the model
     auto add_X = std::make_shared<SGTELIB::Matrix>("add_X", 0, static_cast<int>(n));
     auto add_Z = std::make_shared<SGTELIB::Matrix>("add_Z", 0, static_cast<int>(nbModels));
-    
+
     auto model=iter->getModel();
     auto trainingSet=iter->getTrainingSet();
-    
+
 
     // Go through cache points
     AddOutputInfo("Review of the cache", _displayLevel);
-    int k = 0;
     NOMAD::Double v;
 
+    _radiuses = NOMAD::ArrayOfDouble(n,INF);
     //
     // 1- Get relevant points in cache, around current frame centers.
     //
     std::vector<NOMAD::EvalPoint> evalPointList;
-    if (NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams()->getAttributeValue<bool>("USE_CACHE"))
+    if (NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
     {
+        _frameCenter = iter->getFrameCenter()->getX();
+        NOMAD::EvalPoint frameCenterEvalPoint;
+        NOMAD::CacheInterface cacheInterface(this);
+        if (0 == cacheInterface.find(*_frameCenter, frameCenterEvalPoint))
+        {
+            // In the context of using the cache, ensure the frame center is in it.
+            cacheInterface.smartInsert(*iter->getFrameCenter());
+        }
+
+        // Select valid points that are close enough to frame centers
+        // Compute distances that must not be violated for each variable.
+        // Get a Delta (frame size) if available.
+
+        if (nullptr != iter->getMesh())
+        {
+            _radiuses = iter->getMesh()->getDeltaFrameSize();
+
+            // Multiply by radius parameter
+            auto radiusFactor = _runParams->getAttributeValue<NOMAD::Double>("MODEL_RADIUS_FACTOR");
+            _radiuses *= radiusFactor;
+        }
+
         // Get valid points: notably, they have a BB evaluation.
         // Use CacheInterface to ensure the points are converted to subspace
-        NOMAD::CacheInterface cacheInterface(this);
-        cacheInterface.find(validForUpdate, evalPointList);
+        auto crit = [&](const EvalPoint& evalPoint){return this->isValidForIncludeInModel(evalPoint);};
+        cacheInterface.find(crit, evalPointList, true /*find in subspace*/);
     }
 
     // Minimum and maximum number of valid points to build a model
@@ -126,55 +100,24 @@ bool NOMAD::QuadModelUpdate::runImp()
     // not using SGTELIB_MAX_POINTS_FOR_MODEL, see justification below.
     //const size_t maxNbPoints = _runParams->getAttributeValue<size_t>("SGTELIB_MAX_POINTS_FOR_MODEL");
 
-    // Select valid points that are close enough to frame centers
-    // Compute distances that must not be violated for each variable.
-    // Get a Delta (frame size) if available.
-    NOMAD::ArrayOfDouble radius(n, 1.0);
-    if (nullptr != iter->getMesh())
-    {
-        radius = iter->getMesh()->getDeltaFrameSize();
-        
-        // Multiply by radius parameter
-        auto radiusFactor = _runParams->getAttributeValue<NOMAD::Double>("MODEL_RADIUS_FACTOR");
-        radius *= radiusFactor;
-    }
-    else  // No mesh is required when the algo is not a sub-algo of Mads
-    {
-        radius *= INF;
-    }
-    
 
-    // Get the iteration frame center
-    auto center = iter->getFrameCenter();
-    std::vector<NOMAD::EvalPoint> evalPointListWithinRadius;
-    for (auto evalPoint : evalPointList)
-    {
-        auto distances = NOMAD::Point::vectorize(*center->getX(), evalPoint);
-        distances = distances.abs();
-        if (distances <= radius)
-        {
-            // This evalPoint is within radius. Keep it.
-            evalPointListWithinRadius.push_back(evalPoint);
-        }
-    }
-    evalPointList = evalPointListWithinRadius;
     size_t nbValidPoints = evalPointList.size();
 
     /*
     // This is not a safe way to select a subset of points.
     // First, we should ensure that the frame center is part of that subset.
-    // Second, how to select the other points? The points closest to 
+    // Second, how to select the other points? The points closest to
     // the frame center seem like an interesting option.
     if (nbValidPoints > maxNbPoints)
     {
-        
+
         OUTPUT_INFO_START
         s = "QuadModel found " + std::to_string(nbValidPoints);
         s += " valid points to build model. Keep only ";
         s += std::to_string(maxNbPoints);
         AddOutputInfo(s);
         OUTPUT_INFO_END
-        
+
         // First, sort evalPointList by dominance
         std::sort(evalPointList.begin(), evalPointList.end());
         // Next, get first maxNbPoints points
@@ -228,7 +171,7 @@ bool NOMAD::QuadModelUpdate::runImp()
 
         NOMAD::ArrayOfDouble bbo = evalPoint.getEval(NOMAD::EvalType::BB)->getBBOutput().getBBOAsArrayOfDouble();
         // Constraints
-        k = 1;
+        int k = 1;
         for (size_t j = 0; j < bbo.size(); j++)
         {
             if (NOMAD::isConstraint(bbot[j]))
@@ -272,7 +215,7 @@ bool NOMAD::QuadModelUpdate::runImp()
         s="! ok";
         updateSuccess = false;
     }
-    
+
     OUTPUT_INFO_START
     s = "New nb of points: " + std::to_string(trainingSet->get_nb_points());
     AddOutputInfo(s, NOMAD::OutputLevel::LEVEL_INFO);
@@ -283,7 +226,20 @@ bool NOMAD::QuadModelUpdate::runImp()
     return updateSuccess;
 }
 
-bool NOMAD::QuadModelUpdate::validForUpdate(const NOMAD::EvalPoint& evalPoint)
+
+bool NOMAD::QuadModelUpdate::isValidForIncludeInModel(const EvalPoint& evalPoint) const
+{
+    if ( ! _frameCenter->NOMAD::ArrayOfDouble::isComplete() || ! _radiuses.isComplete() )
+    {
+        std::cerr << "QuadModelUpdate : isValidForIncludeInModel : frameCenter or radiuses not defined  " << std::endl;
+    }
+
+    return (isValidForUpdate(evalPoint) && NOMAD::ArrayOfDouble(*evalPoint.getX() - *_frameCenter).abs() <= _radiuses ) ;
+
+}
+
+
+bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint) const
 {
     // Verify that the point is valid
     // - Not a NaN

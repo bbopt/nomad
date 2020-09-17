@@ -1,57 +1,13 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/SgtelibSearchMethod.hpp"
 #ifdef USE_SGTELIB
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #endif
+#include "../../Cache/CacheBase.hpp"
+#include "../../Output/OutputQueue.hpp"
 //
 // Reference: File Sgtelib_Model_Search.cpp in NOMAD 3.9.1
 // Author: Bastien Talgorn
@@ -94,10 +50,7 @@ void NOMAD::SgtelibSearchMethod::init()
             OUTPUT_INFO_END
             setEnabled(false);
         }
-    }
 
-    if (isEnabled())
-    {
         auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
         _displayLevel = modelDisplay.empty()
                             ? NOMAD::OutputLevel::LEVEL_DEBUGDEBUG
@@ -124,7 +77,7 @@ bool NOMAD::SgtelibSearchMethod::runImp()
     generateTrialPoints();
 
     bool foundBetter = evalTrialPoints(this);
-    
+
     return foundBetter;
 }
 
@@ -134,13 +87,6 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsImp()
 #ifdef USE_SGTELIB
     std::string s;
     NOMAD::EvalPointSet oraclePoints;
-
-    // Sanity check.
-    // Expecting evalType to be BB (Not SGTE)
-    if (NOMAD::EvalType::BB != getEvalType())
-    {
-        throw NOMAD::Exception(__FILE__,__LINE__,"Expecting EvalType to be BB in " + _name);
-    }
 
     // Get Iteration
     const NOMAD::MadsIteration* iteration = getParentOfType<NOMAD::MadsIteration*>();
@@ -160,15 +106,11 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsImp()
 
     else if (!_stopReasons->checkTerminate())
     {
-        auto mesh = iteration->getMesh();
-        auto frameCenter = iteration->getFrameCenter();
-        NOMAD::ArrayOfDouble deltaMeshSize = mesh->getdeltaMeshSize();
-
         // Initial displays
         OUTPUT_INFO_START
         s = "Number of cache points: " + std::to_string(NOMAD::CacheBase::getInstance()->size());
         AddOutputInfo(s, _displayLevel);
-        s = "Mesh size parameter: " + deltaMeshSize.display();
+        s = "Mesh size parameter: " + iteration->getMesh()->getdeltaMeshSize().display();
         AddOutputInfo(s, _displayLevel);
         NOMAD::OutputQueue::Flush();
         OUTPUT_INFO_END

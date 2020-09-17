@@ -1,50 +1,3 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 /*-------------------------------------------------------------------------------------*/
 /**
  \file   Projection.hpp
@@ -62,6 +15,7 @@
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Projection.hpp"
 #include "../Math/RNG.hpp"
+#include "../Output/OutputQueue.hpp"
 
 NOMAD::Projection::Projection(const NOMAD::Step* parentStep,
                               const NOMAD::EvalPointSet &oraclePoints)
@@ -234,12 +188,12 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
     _indexSet.clear();
     trySet.clear();
     keep.clear();
-    
+
 
     // Evaluate projection trial points
     // in the surrogate model
     // TODO Analyse from NOMAD 3 and see if we can do something similiar
-    // in NOMAD 4. It may not be worth it, it seems more like an 
+    // in NOMAD 4. It may not be worth it, it seems more like an
     // issue of sorting the points accorting to a SgtelibModel, and
     // that would be better done in the EvaluatorControl.
     //evaluateProjectionTrialPoints(trySet, ev, keep, bestEvalPoint);
@@ -341,7 +295,7 @@ NOMAD::EvalPoint NOMAD::Projection::buildProjectionTrialPoint(const NOMAD::Point
 }
 
 
-void NOMAD::Projection::doGreedySelection(const NOMAD::EvalPoint &oraclePoint, 
+void NOMAD::Projection::doGreedySelection(const NOMAD::EvalPoint &oraclePoint,
                                                 const NOMAD::EvalPointSet& trySet,
                                                 std::vector<bool>& keep)
 {

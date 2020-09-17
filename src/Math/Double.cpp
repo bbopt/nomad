@@ -1,50 +1,3 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 /**
  \file   Double.cpp
  \brief  Custom class for double-precision reals (implementation)
@@ -54,6 +7,7 @@
  */
 #include <iomanip>  // For std::setprecision
 #include "../Math/Double.hpp"
+#include "../Util/defines.hpp"
 
 /*-----------------------------------*/
 /*   static members initialization   */
@@ -205,12 +159,12 @@ std::istream & NOMAD::operator>> ( std::istream & in , NOMAD::Double & d )
 {
     std::string s;
     in >> s;
-    
+
     if ( !in.fail() && !d.atof (s) )
     {
         in.setstate ( std::ios::failbit );
     }
-    
+
     return in;
 }
 
@@ -223,7 +177,7 @@ bool NOMAD::Double::atof(const std::string &ss)
     std::string s = ss;
     NOMAD::toupper(s);
 
-    if ( ss == NOMAD::Double::_undefStr 
+    if ( ss == NOMAD::Double::_undefStr
         || ss == NOMAD::DEFAULT_UNDEF_STR_1
         || ss == NOMAD::DEFAULT_UNDEF_STR_HYPHEN
         || ss == "-" + NOMAD::Double::_undefStr
@@ -233,7 +187,7 @@ bool NOMAD::Double::atof(const std::string &ss)
         _defined = false;
         return true;
     }
-    
+
     if ( s == "INF" ||  s == "+INF" ||
         s == "NOMAD::INF" || s == "+NOMAD::INF" ||
         ss == NOMAD::Double::_infStr ||
@@ -243,24 +197,24 @@ bool NOMAD::Double::atof(const std::string &ss)
         _defined = true;
         return true;
     }
-    
+
     if ( s == "-INF" || s == "-NOMAD::INF" || ss == ("-" + NOMAD::Double::_infStr) )
     {
         _value   = -NOMAD::INF;
         _defined = true;
         return true;
     }
-    
+
     if ( s.empty() || (s.size() == 1 && !isdigit(s[0])) )
     {
         return false;
     }
-    
+
     if ( !isdigit(s[0]) && s[0] != '+' && s[0] != '-' && s[0] != '.' )
     {
         return false;
     }
-    
+
     size_t n = s.size();
     for ( size_t k = 1 ; k < n ; ++k )
     {
@@ -284,7 +238,7 @@ bool NOMAD::Double::atof(const std::string &ss)
             }
         }
     }
-    
+
     *this = std::atof ( s.c_str() );
     return true;
 }
@@ -524,7 +478,7 @@ std::string NOMAD::Double::display(const int prec, const size_t refWidth) const
             width = refWidth;
         }
 
-        // If the number of decimals in _value is greater then prec, then 
+        // If the number of decimals in _value is greater then prec, then
         // output it as is so it gets truncated.
         // Ex: 447.000774493 -> 447.000774
         // If it is smaller, use the string and complete with space padding.
@@ -567,7 +521,7 @@ std::string NOMAD::Double::display(const int prec, const size_t refWidth) const
 
     return oss.str();
 }
-        
+
 
 /*------------------------------------------*/
 /*              display with format         */
@@ -764,9 +718,9 @@ int NOMAD::Double::round ( void ) const
     if ( !_defined )
         throw NotDefined ( "Double.cpp" , __LINE__ ,
                            "NOMAD::Double::round(): value not defined" );
-    
+
     double d = (_value < 0.0 ? -std::floor(.5-_value) : std::floor(.5+_value));
-  
+
     if ( d > NOMAD::P_INF_INT || d < NOMAD::M_INF_INT )
         throw InvalidValue ( "Double.cpp" , __LINE__ ,
                            "NOMAD::Double::round(): value cannot be rounded to integer because it is outside of range" );
@@ -781,13 +735,13 @@ int NOMAD::Double::round ( void ) const
 std::size_t NOMAD::Double::nbDecimals( ) const
 {
     std::size_t nbDec;
-    
+
     if (_value < _epsilon)
     {
         std::string str = "Error: nbDecimals of number smaller than EPSILON is not supported";
         throw NOMAD::Exception(__FILE__, __LINE__, str);
     }
-    
+
     NOMAD::Double rem( _value );
     int dec = std::floor(log10(rem.todouble()));
     rem -= pow(10, dec);
@@ -821,7 +775,7 @@ const NOMAD::Double NOMAD::Double::roundd () const
     }
 
     return (_value < 0.0 ? -std::floor(.5-_value) : std::floor(.5+_value));
-    
+
 }
 
 
@@ -880,7 +834,7 @@ const NOMAD::Double NOMAD::Double::sqrt ( void ) const
     if ( *this < 0.0 )
         throw NOMAD::Double::InvalidValue ( "Double.cpp" , __LINE__ ,
                                             "NOMAD::Double::sqrt(x): x < 0" );
-    
+
     return std::sqrt ( _value );
 }
 
@@ -894,43 +848,43 @@ const NOMAD::Double NOMAD::Double::sqrt ( void ) const
 // of Computation, 39(160):563–569, 1982. doi:10.1090/S0025-5718-1982-0669649-2.
 //
 // The error will be in [0;2]
-const NOMAD::Double NOMAD::Double::relErr ( const Double & x ) const
+const NOMAD::Double NOMAD::Double::relErr ( const NOMAD::Double & x ) const
 {
     if ( !_defined || !x._defined )
         throw NotDefined ( "Double.cpp" , __LINE__ ,
                            "NOMAD::Double::rel_err(): one of the values is not defined" );
-    
+
     // 1. test if x==y:
     if ( this == &x || _value == x._value )
         return 0.0;
-    
+
     double diff = fabs ( _value - x._value );
-    
+
     // 2. test if one of the values is zero:
     if ( _value == 0.0 || x._value == 0.0 )
     {
-        
+
         // we return min{2,|x-y|} (instead of 1):
         if ( diff > 2.0 )
             return 2.0;
         return diff;
     }
-    
+
     // 3. compute the original error:
     double a   = fabs ( _value   );
     double b   = fabs ( x._value );
     double err = diff / ( (a<b) ? b : a );
-    
+
     // 4. test if we have opposite signs:
     if ( _value * x._value < 0.0 )
     {
-        
+
         // the original error gives err in ]1;2] : we check if |x-y| < 1
         // and if so we return |x-y| :
         if ( diff < 1.0 )
             return diff;
     }
-    
+
     // we return the original error:
     return err;
 }
@@ -977,7 +931,7 @@ bool NOMAD::Double::isMultipleOf(const NOMAD::Double &granularity) const
         isMult = false;
     }
     else
-    { 
+    {
         // Ignore granularity that is undefined or too small.
         isMult = true;
     }
@@ -1017,19 +971,19 @@ bool NOMAD::Double::compWithUndef ( const NOMAD::Double & d ) const
 {
     if ( this == &d )
         return false;
-    
+
     bool d1d = isDefined();
     bool d2d = d.isDefined();
-    
+
     if ( !d1d && !d2d )
         return false;
-    
+
     if ( !d1d )
         return true;
-    
+
     if ( !d2d )
         return false;
-    
+
     return ( *this < d );
 }
 
@@ -1044,17 +998,17 @@ void NOMAD::Double::projectToMesh ( const NOMAD::Double & ref   ,
 {
     if ( !_defined )
         return;
-    
+
     NOMAD::Double v0 = ( ref._defined ) ? ref : 0.0;
-    
+
     if ( delta._defined && delta != 0.0 )
     {
-        
+
         *this = v0 + ( (*this-v0) / delta).roundd() * delta;
-        
+
         if ( ub._defined && *this > ub )
             *this = ub;
-        
+
         if ( lb._defined && *this < lb )
             *this = lb;
     }

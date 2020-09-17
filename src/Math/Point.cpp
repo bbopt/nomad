@@ -1,50 +1,3 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 /**
  \file   Point.cpp
  \brief  Custom class for points (implementation)
@@ -181,20 +134,39 @@ NOMAD::Double NOMAD::Point::dist(const NOMAD::Point& X, const NOMAD::Point& Y)
 
 NOMAD::Point NOMAD::Point::makeFullSpacePointFromFixed(const NOMAD::Point &fixedVariable) const
 {
-    NOMAD::Point fullSpacePoint = fixedVariable;
-    if (0 == fullSpacePoint.size())
+    size_t nbFixed = fixedVariable.nbDefined();
+    size_t fullSpaceDim = fixedVariable.size();
+    size_t subSpaceDim = fullSpaceDim - nbFixed;
+
+    if (size() != subSpaceDim)
     {
-        // fixedVariable not defined - set it to a point of full dimension, with undefined values.
-        fullSpacePoint.resize(size());
+        std::string s = "Error converting point " + this->NOMAD::Point::display();
+        s += " (size " + std::to_string(this->size()) + ")";
+        s += " to full space defined by fixed variable " + fixedVariable.NOMAD::Point::display();
+        s += " (size " + std::to_string(fixedVariable.size()) + ")";
+        s += ": point should be of size " + std::to_string(fixedVariable.size());
+        s += " - " + std::to_string(nbFixed) + " = " + std::to_string(fixedVariable.size()-nbFixed);
+        throw NOMAD::Exception(__FILE__,__LINE__,s);
     }
 
-    size_t iSub = 0;
-    for (size_t i = 0; i < fullSpacePoint.size() && iSub < _n; i++)
+    NOMAD::Point fullSpacePoint = fixedVariable;
+
+    if (0 == nbFixed)
     {
-        if (!fullSpacePoint[i].isDefined())
+        // Fallback case.
+        // no fixed variable defined - full space point is equal to this.
+        fullSpacePoint = *this;
+    }
+    else
+    {
+        size_t iSub = 0;
+        for (size_t i = 0; i < fullSpacePoint.size() && iSub < _n; i++)
         {
-            fullSpacePoint[i] = _array[iSub];
-            iSub++;
+            if (!fullSpacePoint[i].isDefined())
+            {
+                fullSpacePoint[i] = _array[iSub];
+                iSub++;
+            }
         }
     }
 
@@ -202,28 +174,56 @@ NOMAD::Point NOMAD::Point::makeFullSpacePointFromFixed(const NOMAD::Point &fixed
 }
 
 
-NOMAD::Point NOMAD::Point::makeSubSpacePointFromFixed(const NOMAD::Point &fixedVariable) const
+NOMAD::Point NOMAD::Point::makeSubSpacePointFromFixed(const NOMAD::Point &fixedVariable, const bool verifyValues) const
 {
+    size_t nbFixed = fixedVariable.nbDefined();
     size_t fullSpaceDim = fixedVariable.size();
-    if (0 == fullSpaceDim)
+    size_t subSpaceDim = fullSpaceDim - nbFixed;
+
+    if (size() != fullSpaceDim)
     {
-        // fixedVariable not defined - set fullSpaceDim to sub space dimension.
-        fullSpaceDim = size();
+        std::string s = "Error converting point " + this->NOMAD::Point::display();
+        s += " (size " + std::to_string(this->size()) + ")";
+        s += " to subspace defined by fixed variable " + fixedVariable.NOMAD::Point::display();
+        s += " (size " + std::to_string(fixedVariable.size()) + ")";
+        s += ": they should have the same size.";
+        throw NOMAD::Exception(__FILE__,__LINE__,s);
     }
-    size_t subSpaceDim = fullSpaceDim - fixedVariable.nbDefined();
+
     NOMAD::Point subSpacePoint(subSpaceDim);
 
-    size_t iSub = 0;
-    for (size_t i = 0; i < fullSpaceDim && i < _n; i++)
+    if (0 == nbFixed)
     {
-        if (i >= fixedVariable.size() || !fixedVariable[i].isDefined())
+        // Fallback case.
+        // no fixed variable defined - sub space point is equal to this.
+        subSpacePoint = *this;
+    }
+    else
+    {
+        size_t iSub = 0;
+        for (size_t i = 0; i < fullSpaceDim && i < _n; i++)
         {
-            subSpacePoint[iSub] = _array[i];
-            iSub++;
+            if (i >= fixedVariable.size() || !fixedVariable[i].isDefined())
+            {
+                subSpacePoint[iSub] = _array[i];
+                iSub++;
+            }
+            else if (verifyValues && fixedVariable[i].isDefined() && _array[i] != fixedVariable[i])
+            {
+                std::string s = "Error converting point " + this->display();
+                s += " to subspace defined by fixed variable " + fixedVariable.display();
+                throw NOMAD::Exception(__FILE__,__LINE__,s);
+            }
         }
     }
 
     return subSpacePoint;
+}
+
+
+NOMAD::Point NOMAD::Point::projectPointToSubspace(const NOMAD::Point &fixedVariable) const
+{
+    return makeSubSpacePointFromFixed(fixedVariable, false);
 }
 
 

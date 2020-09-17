@@ -20,6 +20,7 @@ BIN_DIR             = $(BUILD_DIR)/bin
 COMPONENT_DIRNAME   = Attribute
 ALL_FILES           = cacheAttributesDefinition displayAttributesDefinition \
                       evalAttributesDefinition evaluatorControlAttributesDefinition \
+                      evaluatorControlGlobalAttributesDefinition \
                       pbAttributesDefinition runAttributesDefinition
 
 ALL_HEADERS         = $(addsuffix .hpp, $(ALL_FILES))

@@ -1,50 +1,3 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 /**
  \file   utils.cpp
  \brief  Utility functions
@@ -53,6 +6,9 @@
  \see    utils.hpp
  */
 #include <algorithm>    // for for_each
+#ifdef _OPENMP
+#include <omp.h>
+#endif // _OPENMP
 #include "../Util/Exception.hpp"
 #include "../Util/utils.hpp"
 
@@ -138,7 +94,7 @@ bool NOMAD::atoi ( const std::string & s , int & i )
         }
         return false;
     }
-    
+
     std::string ts = s;
     NOMAD::toupper(ts);
     if ( ts == "INF" || ts == "+INF" )
@@ -151,7 +107,7 @@ bool NOMAD::atoi ( const std::string & s , int & i )
         i = NOMAD::M_INF_INT;
         return true;
     }
-    
+
     for ( size_t k = 0 ; k < n ; ++k )
     {
         if ( !isdigit(s[k]) )
@@ -169,12 +125,12 @@ bool NOMAD::atoi ( const std::string & s , int & i )
 bool NOMAD::atost ( const std::string & s , size_t & st )
 {
     st = NOMAD::INF_SIZE_T;
-    
+
     if ( s.empty() )
     {
         return false;
     }
-    
+
     std::string ts = s;
     NOMAD::toupper(ts);
     if ( ts == "INF" || ts == "+INF" )
@@ -191,7 +147,7 @@ bool NOMAD::atost ( const std::string & s , size_t & st )
             throw NOMAD::Exception(__FILE__, __LINE__, "Invalid value for size_t. Value must be >0");
         st = static_cast<size_t>(i);
     }
-    
+
     return success;
 }
 
@@ -233,6 +189,85 @@ std::string NOMAD::enumStr(NOMAD::SuccessType success)
     }
 
     return str;
+}
+
+// Convert a string to index range
+bool NOMAD::stringToIndexRange(const std::string & s           ,
+                               size_t            & i           ,
+                               size_t            & j           ,
+                               bool               check_order   )
+{
+    if ( s.empty() )
+        return false;
+
+// For now we accept only range i-j and -j
+//    if ( s == "*" )
+//    {
+//        if ( !n )
+//            return false;
+//        i = 0;
+//        j = *n-1;
+//        return true;
+//    }
+
+    if ( s[0] == '-' )
+    {
+
+        size_t ns = s.size();
+        if ( ns > 1 && s[1] == '-' )
+            return false;
+
+        std::string ss = s;
+        ss.erase ( ss.begin() );
+
+        if ( NOMAD::stringToIndexRange ( ss , i , j , false ) )
+        {
+            i = -i;
+            return true;
+        }
+        return false;
+    }
+
+    std::istringstream in (s);
+    std::string        s1;
+
+    getline ( in , s1 , '-' );
+
+    if (in.fail())
+        return false;
+
+    size_t k , n1 = s1.size();
+
+    if ( n1 >= s.size() - 1 )
+    {
+        for ( k = 0 ; k < n1 ; ++k )
+            if (!isdigit(s1[k]))
+                return false;
+        if ( ! atost ( s1 , i ) )
+            return false;
+        if ( n1 == s.size() )
+        {
+            j = i;
+            return true;
+        }
+        return false;
+    }
+
+    std::string s2;
+    getline (in, s2);
+
+    if (in.fail())
+        return false;
+
+    size_t n2 = s2.size();
+    for ( k = 0 ; k < n2 ; ++k )
+        if ( !isdigit(s2[k]) )
+            return false;
+
+    if ( ! atost ( s1, i ) || ! atost ( s2 , j ) )
+        return false;
+
+    return !check_order || i <= j;
 }
 
 
@@ -449,3 +484,12 @@ bool NOMAD::validFormat(std::string &s)
     return isValid;
 }
 
+
+int NOMAD::getThreadNum()
+{
+    int threadNum = 0;
+#ifdef _OPENMP
+    threadNum = omp_get_thread_num();
+#endif // _OPENMP
+    return threadNum;
+}

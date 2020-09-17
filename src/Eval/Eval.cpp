@@ -1,50 +1,3 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 /**
  \file   Eval.cpp
  \brief  Evaluation at a point (implementation)
@@ -88,15 +41,15 @@ NOMAD::Eval::Eval(std::shared_ptr<NOMAD::EvalParameters> params,
     _bbOutput(bbOutput)
 {
     auto bbOutputType = params->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
-    
-    
+
+
     // Note: if bbOutput is not eval_ok, then _f and _h end up undefined Doubles.
     _f = computeF(bbOutputType);
-    
+
     // Set H
-    setH (_computeH(*this, bbOutputType));    
+    setH (_computeH(*this, bbOutputType));
     _toBeRecomputed = false;
-    
+
     if (_bbOutput.getEvalOk() && _f.isDefined())
     {
         _evalStatus = NOMAD::EvalStatusType::EVAL_OK;
@@ -145,20 +98,20 @@ NOMAD::Double NOMAD::Eval::defaultComputeH(const NOMAD::Eval& eval, const NOMAD:
 
     if (eval.getBBOutput().getEvalOk())
     {
-        
+
         size_t bboIndex = 0;
         for (auto bbOutputType : bbOutputTypeList)
         {
-            
+
             if ( NOMAD::BBOutputTypeIsConstraint(bbOutputType) )
             {
- 
+
                 /// The computeHComponent function has default version using cons*cons for PB constraint.
                 /// The default function can be replaced by a custom one using the Eval::setComputeHComponent static function.
                 NOMAD::Double hComp = _computeHComponent(bbOutputType , bboIndex, bbo[bboIndex]);
-                
+
                 /// Aggregate the H component for a given constraint to H.
-                
+
                 // Violated Extreme Barrier constraint:
                 // Set h to infinity and break.
                 if (NOMAD::INF == hComp)
@@ -178,7 +131,7 @@ NOMAD::Double NOMAD::Eval::defaultComputeH(const NOMAD::Eval& eval, const NOMAD:
 
     // Failsafe: If at least one PB constraint is positive, h must be set
     // to at least epsilon so that the Eval is recognized as infeasible.
-    // Catch cases such as constraint violated by 1e-8, which gives h = 1e-16 
+    // Catch cases such as constraint violated by 1e-8, which gives h = 1e-16
     // which is considered as 0.
     if (hPos && (0 == h))
     {
@@ -198,7 +151,7 @@ NOMAD::Double NOMAD::Eval::defaultComputeHComponent( const NOMAD::BBOutputType &
         std::string str = "H component must be computed from BB output that is a constraint";
         throw NOMAD::Exception(__FILE__, __LINE__, str);
     }
-    
+
     NOMAD::Double h = 0.0;
     if (bbo > 0)
     {
@@ -211,7 +164,7 @@ NOMAD::Double NOMAD::Eval::defaultComputeHComponent( const NOMAD::BBOutputType &
             h = bbo * bbo;
         }
     }
-    
+
     return h;
 }
 
@@ -467,9 +420,9 @@ bool NOMAD::Eval::compEvalFindBest(const NOMAD::Eval &eval1, const NOMAD::Eval &
 }
 
 
-NOMAD::SuccessType NOMAD::Eval::defaultComputeSuccessType(const Eval* eval1,
-                                                          const Eval* eval2,
-                                                          const Double& hMax)
+NOMAD::SuccessType NOMAD::Eval::defaultComputeSuccessType(const NOMAD::Eval* eval1,
+                                                          const NOMAD::Eval* eval2,
+                                                          const NOMAD::Double& hMax)
 {
     // NOT_EVALUATED,      // Not evaluated yet
     // UNSUCCESSFUL,       // Failure

@@ -1,55 +1,11 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 
 #include <signal.h>
 
-#include "../Algos/EvcInterface.hpp"
 #include "../Algos/Algorithm.hpp"
+#include "../Algos/EvcInterface.hpp"
+#include "../Algos/SubproblemManager.hpp"
+#include "../Cache/CacheBase.hpp"
+#include "../Output/OutputQueue.hpp"
 #ifdef TIME_STATS
 #include "../Algos/Mads/MadsIteration.hpp"
 #include "../Algos/Mads/Search.hpp"
@@ -58,16 +14,14 @@
 
 #include "../Math/RNG.hpp"
 
-#include "../Param/AllParameters.hpp"  // Used for hot restart only.
 
 #include "../Util/fileutils.hpp"
 
 
 void NOMAD::Algorithm::init()
 {
-
     _name = "AGenericAlgorithmHasNoName";
-    
+
     // Verifications that throw Exceptions to the Constructor if not validated.
     verifyParentNotNull();
 
@@ -87,12 +41,23 @@ void NOMAD::Algorithm::init()
         throw NOMAD::Exception(__FILE__, __LINE__,
                                "Valid stop reasons must be provided to the Algorithm constructor.");
 
+    // Check pbParams if needed, ex. if a copy of PbParameters was given to the Algorithm constructor.
+    _pbParams->checkAndComply();
+
     // Instanciate generic algorithm termination
     _termination    = std::make_unique<NOMAD::Termination>( this );
 
+    // Update SubproblemManager
+    NOMAD::Point fullFixedVariable = isMainAlgo() ? _pbParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE")
+                                   : NOMAD::SubproblemManager::getSubFixedVariable(_parentStep);
+
+    NOMAD::Subproblem subproblem(_pbParams, fullFixedVariable);
+    NOMAD::SubproblemManager::addSubproblem(this, subproblem);
+    _pbParams = subproblem.getPbParams();
+    _pbParams->checkAndComply();
 
     /** Step::userInterrupt() will be called if CTRL-C is pressed.
-     * Currently, the master thread will wait for all evaluations to be complete.
+     * Currently, the main thread will wait for all evaluations to be complete.
      * \todo Propage interruption to all threads, for all parallel evaluations of blackbox.
      */
     signal(SIGINT, userInterrupt);
@@ -102,6 +67,7 @@ void NOMAD::Algorithm::init()
 
 NOMAD::Algorithm::~Algorithm()
 {
+    NOMAD::SubproblemManager::removeSubproblem(this);
 }
 
 
@@ -115,7 +81,7 @@ void NOMAD::Algorithm::startImp()
 #endif // TIME_STATS
     // Comment to appear at the end of stats lines
     // By default, nothing is added
-    NOMAD::MainStep::setAlgoComment("");
+    setAlgoComment("");
 
     // All stop reasons are reset.
     _stopReasons->setStarted();
@@ -200,8 +166,8 @@ void NOMAD::Algorithm::endImp()
         saveInformationForHotRestart();
     }
 
-    // Reset stats comment 
-    NOMAD::MainStep::resetPreviousAlgoComment();
+    // Reset stats comment
+    resetPreviousAlgoComment();
 }
 
 
@@ -277,12 +243,14 @@ void NOMAD::Algorithm::displayBestSolutions() const
     NOMAD::OutputLevel outputLevel = isSubAlgo() ? NOMAD::OutputLevel::LEVEL_INFO
                                                  : NOMAD::OutputLevel::LEVEL_VERY_HIGH;
     NOMAD::OutputInfo displaySolFeas(_name, sFeas, outputLevel);
+    auto fixedVariable = NOMAD::SubproblemManager::getSubFixedVariable(this);
 
     sFeas = "Best feasible solution";
     auto barrier = getMegaIterationBarrier();
     if (nullptr != barrier)
     {
         evalPointList = barrier->getAllXFeas();
+        NOMAD::convertPointListToFull(evalPointList, fixedVariable);
     }
     size_t nbBestFeas = evalPointList.size();
 
@@ -337,6 +305,7 @@ void NOMAD::Algorithm::displayBestSolutions() const
     if (nullptr != barrier)
     {
         evalPointList = barrier->getAllXInf();
+        NOMAD::convertPointListToFull(evalPointList, fixedVariable);
     }
     size_t nbBestInf = evalPointList.size();
 
@@ -480,7 +449,7 @@ void NOMAD::Algorithm::displayEvalCounts() const
     std::string sTimeSearch5    = "        NM Search:          " + std::to_string(searchTime[4]);
                 sTimeSearch5   += "\t(Eval: " + std::to_string(searchEvalTime[4]) + ")";
 #endif // TIME_STATS
-    
+
     AddOutputInfo("", outputLevelHigh); // skip line
     // Always show number of blackbox evaluations
     AddOutputInfo(sBbEval, outputLevelHigh);

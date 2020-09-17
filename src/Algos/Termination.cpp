@@ -1,54 +1,8 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 
 #include "../Algos/Algorithm.hpp"
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Termination.hpp"
+#include "../Cache/CacheBase.hpp"
 #include "../Util/Clock.hpp"
 
 void NOMAD::Termination::init()
@@ -80,7 +34,7 @@ bool NOMAD::Termination::terminate(size_t iteration)
         // A stop condition was already reached.
         return stop;
     }
-    
+
     // Set stopReason due to criterions other than AlgoStopReasons<>
     auto maxIterations = _runParams->getAttributeValue<size_t>("MAX_ITERATIONS");
     auto maxTime = _runParams->getAttributeValue<size_t>("MAX_TIME");
@@ -110,8 +64,8 @@ bool NOMAD::Termination::terminate(size_t iteration)
     {
         // Need to check on MaxEval and MaxBBEval a last time because in evaluatorControl
         // the stop reason may have been set due to all queue points evaluated.
-        stop = NOMAD::EvcInterface::getEvaluatorControl()->reachedMaxEval();
-        stop = stop || NOMAD::EvcInterface::getEvaluatorControl()->reachedMaxStepEval();
+        auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+        stop = evc->reachedMaxEval() || evc->reachedMaxStepEval();
     }
 
     stop = stop || _stopReasons->checkTerminate() ;
@@ -142,16 +96,37 @@ void NOMAD::Termination::endImp()
     NOMAD::OutputLevel outputLevel = currentAlgo->isSubAlgo() ? NOMAD::OutputLevel::LEVEL_INFO
                                                               : NOMAD::OutputLevel::LEVEL_HIGH;
 
-    if ( _stopReasons->checkTerminate() )
+    if (_stopReasons->checkTerminate())
     {
-        std::string termination_info = "A termination criterion is reached: ";
-        termination_info += _stopReasons->getStopReasonAsString() ;
-        AddOutputInfo(termination_info, outputLevel);
+        std::string terminationInfo = "A termination criterion is reached: ";
+        terminationInfo += _stopReasons->getStopReasonAsString();
+        auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+        if (_stopReasons->testIf(NOMAD::EvalStopType::MAX_BB_EVAL_REACHED))
+        {
+            terminationInfo += " " + NOMAD::itos(evc->getBbEval());
+        }
+        else if (_stopReasons->testIf(NOMAD::EvalStopType::MAX_EVAL_REACHED))
+        {
+            terminationInfo += " " + NOMAD::itos(evc->getNbEval());
+        }
+        else if (_stopReasons->testIf(NOMAD::EvalStopType::MAX_BLOCK_EVAL_REACHED))
+        {
+            terminationInfo += " " + NOMAD::itos(evc->getBlockEval());
+        }
+        else if (_stopReasons->testIf(NOMAD::EvalStopType::MAX_SGTE_EVAL_REACHED))
+        {
+            terminationInfo += " " + NOMAD::itos(evc->getTotalSgteEval());
+        }
+        else if (_stopReasons->testIf(NOMAD::EvalStopType::LAP_MAX_BB_EVAL_REACHED))
+        {
+            terminationInfo += " " + NOMAD::itos(evc->getLapBbEval());
+        }
+        AddOutputInfo(terminationInfo, outputLevel);
     }
     else
     {
-        std::string termination_info = "No termination criterion reached";
-        AddOutputInfo(termination_info, outputLevel);
+        std::string terminationInfo = "No termination criterion reached";
+        AddOutputInfo(terminationInfo, outputLevel);
     }
 
 }

@@ -1,50 +1,3 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 /**
  \file   Evaluator.hpp
  \brief  Evaluation of blackbox functions.
@@ -58,7 +11,6 @@
 
 #include "../Eval/BBOutput.hpp"
 #include "../Eval/EvalPoint.hpp"
-#include "../Math/Double.hpp"
 #include "../Param/EvalParameters.hpp"
 #include "../Type/EvalType.hpp"
 
@@ -78,9 +30,9 @@ class Barrier;
 /// Class for the evaluator
 /**
  * Evaluation of a point can be done by calling an external executable
- * (provided in BB_EXE parameter) or by redifining the evaluation function
+ * (provided in BB_EXE parameter) or by redefining the evaluation function
  * Evaluator::eval_x(). /n
- * To evaluate a block of points, the user must redifine Evaluator::eval_block() or make sure the external executable can evaluate all the provided points. /n
+ * To evaluate a block of points, the user must redefine Evaluator::eval_block() or make sure the external executable can evaluate all the provided points. /n
  *
  */
 class Evaluator
@@ -109,7 +61,7 @@ public:
      \param evalXDefined    Flag.
      */
     explicit Evaluator(const std::shared_ptr<EvalParameters> &evalParams,
-                       const EvalType evalType = NOMAD::EvalType::BB,
+                       const EvalType evalType = EvalType::BB,
                        int nbThreads = 0,
                        const EvalXDefined evalXDefined = EvalXDefined::EVAL_BLOCK_DEFINED_BY_USER);
 

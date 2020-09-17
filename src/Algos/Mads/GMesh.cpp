@@ -1,50 +1,5 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
+
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/GMesh.hpp"
 #include "../../Output/OutputQueue.hpp"
 
@@ -81,13 +36,13 @@ void NOMAD::GMesh::init()
 void NOMAD::GMesh::checkMeshForStopping( std::shared_ptr<NOMAD::AllStopReasons> stopReasons ) const
 {
     bool stop = true;
-    
+
     // GMesh is the mesh for Mads
     // stopReasons must be AlgoStopReasons<MadsStopType>
     auto madsStopReasons = NOMAD::AlgoStopReasons<NOMAD::MadsStopType>::get( stopReasons );
 
-    
-    // General case, when min mesh size is reached, stop reason 
+
+    // General case, when min mesh size is reached, stop reason
     // MIN_MESH_SIZE_REACHED is set.
     // Special case: if all variables are granular, MAX_EVAL is automatically
     // set. Always continue looking, even if the min mesh size is reached,
@@ -110,9 +65,10 @@ void NOMAD::GMesh::checkMeshForStopping( std::shared_ptr<NOMAD::AllStopReasons> 
     {
         for (size_t i = 0; i < _n; i++)
         {
-            if (getdeltaMeshSize(i) > _minMeshSize[i])
+            if (getdeltaMeshSize(i).todouble() >= _minMeshSize[i].todouble())
             {
                 stop = false;
+                break;
             }
         }
     }
@@ -127,9 +83,10 @@ void NOMAD::GMesh::checkMeshForStopping( std::shared_ptr<NOMAD::AllStopReasons> 
         stop = true;
         for (size_t i = 0; i < _n; i++)
         {
-            if (_minFrameSize[i].isDefined() && getDeltaFrameSize(i) > _minFrameSize[i])
+            if (_minFrameSize[i].isDefined() && getDeltaFrameSize(i).todouble() >= _minFrameSize[i].todouble())
             {
                 stop = false;
+                break;
             }
         }
         if (stop)
@@ -148,7 +105,6 @@ void NOMAD::GMesh::updatedeltaMeshSize()
     // other mesh parameters being updated.
 }
 
-
 // Update frame size after a successful Search or Frame step.
 // In GMesh, big Delta and small delta are updated simultaneously as a
 // result of the implementation.
@@ -158,7 +114,7 @@ bool NOMAD::GMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction,
                                          bool anisotropicMesh)
 {
     bool oneFrameSizeChanged = false;
-    
+
     NOMAD::Double minRho = NOMAD::INF;
     for (size_t i = 0; i < _n ; i++)
     {
@@ -167,10 +123,10 @@ bool NOMAD::GMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction,
             minRho = NOMAD::min(minRho, getRho(i));
         }
     }
-    
+
     for (size_t i = 0 ; i < _n ; i++)
     {
-        
+
         bool frameSizeIChanged = false;
         // Test for producing anisotropic mesh
         if ( ! anisotropicMesh
@@ -178,19 +134,7 @@ bool NOMAD::GMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction,
             || ( _granularity[i] == 0  && _frameSizeExp[i] < _initFrameSizeExp[i] && getRho(i) > minRho*minRho )
             )
         {
-            if (_frameSizeMant[i] == 1)
-            {
-                _frameSizeMant[i] = 2;
-            }
-            else if (_frameSizeMant[i] == 2)
-            {
-                _frameSizeMant[i] = 5;
-            }
-            else
-            {
-                _frameSizeMant[i] = 1;
-                ++_frameSizeExp[i];
-            }
+            getLargerMantExp(_frameSizeMant[i], _frameSizeExp[i]);
             frameSizeIChanged = true;
             oneFrameSizeChanged = true;
         }
@@ -362,23 +306,29 @@ NOMAD::Double NOMAD::GMesh::getRho(size_t i) const
 /*       if (granularity > 0)                                   */
 /*           delta^k = granularity * max (1.0, delta^k )        */
 /*--------------------------------------------------------------*/
-// If delta is under min mesh size, return min mesh size.
+NOMAD::ArrayOfDouble NOMAD::GMesh::getdeltaMeshSize() const
+{
+    return MeshBase::getdeltaMeshSize();
+}
+
+
 NOMAD::Double NOMAD::GMesh::getdeltaMeshSize(size_t i) const
 {
     NOMAD::Double deltai = getdeltaMeshSize(_frameSizeExp[i], _initFrameSizeExp[i], _granularity[i]);
 
-    if (deltai < _minMeshSize[i])
-    {
-        deltai = _minMeshSize[i];
-    }
+// TODO make sure that this is not required (test on problems)
+//    if (deltai < _minMeshSize[i])
+//    {
+//        deltai = _minMeshSize[i];
+//    }
 
     return deltai;
 }
 
 
-NOMAD::Double NOMAD::GMesh::getdeltaMeshSize(const NOMAD::Double frameSizeExp,
-                                             const NOMAD::Double initFrameSizeExp,
-                                             const NOMAD::Double granularity) const
+NOMAD::Double NOMAD::GMesh::getdeltaMeshSize(const NOMAD::Double& frameSizeExp,
+                                             const NOMAD::Double& initFrameSizeExp,
+                                             const NOMAD::Double& granularity) const
 {
     NOMAD::Double diff  = frameSizeExp - initFrameSizeExp;
     NOMAD::Double exp   = frameSizeExp - diff.abs();
@@ -394,34 +344,50 @@ NOMAD::Double NOMAD::GMesh::getdeltaMeshSize(const NOMAD::Double frameSizeExp,
 }
 
 
-NOMAD::ArrayOfDouble NOMAD::GMesh::getdeltaMeshSize() const
-{
-    return MeshBase::getdeltaMeshSize();
-}
-
-
 /*--------------------------------------------------------------*/
 /*  get Delta_i  (frame size parameter)                          */
 /*       Delta^k = a^k *10^{b^k}                                */
 /*--------------------------------------------------------------*/
+NOMAD::ArrayOfDouble NOMAD::GMesh::getDeltaFrameSize() const
+{
+    return MeshBase::getDeltaFrameSize();
+}
+
+
 NOMAD::Double NOMAD::GMesh::getDeltaFrameSize(const size_t i) const
+{
+    return getDeltaFrameSize(_granularity[i], _frameSizeMant[i], _frameSizeExp[i]);
+}
+
+
+NOMAD::Double NOMAD::GMesh::getDeltaFrameSize(const NOMAD::Double& granularity, const NOMAD::Double& frameSizeMant, const NOMAD::Double& frameSizeExp) const
 {
     NOMAD::Double dMinGran = 1.0;
 
-    if (_granularity[i] > 0)
+    if (granularity > 0)
     {
-        dMinGran = _granularity[i];
+        dMinGran = granularity;
     }
 
-    NOMAD::Double Delta = dMinGran * _frameSizeMant[i] * pow(10, _frameSizeExp[i].todouble());
+    NOMAD::Double Delta = dMinGran * frameSizeMant * pow(10, frameSizeExp.todouble());
 
     return Delta;
 }
 
 
-NOMAD::ArrayOfDouble NOMAD::GMesh::getDeltaFrameSize() const
+NOMAD::ArrayOfDouble NOMAD::GMesh::getDeltaFrameSizeCoarser() const
 {
-    return MeshBase::getDeltaFrameSize();
+    return MeshBase::getDeltaFrameSizeCoarser();
+}
+
+
+NOMAD::Double NOMAD::GMesh::getDeltaFrameSizeCoarser(const size_t i) const
+{
+    NOMAD::Double frameSizeMant = _frameSizeMant[i];
+    NOMAD::Double frameSizeExp  = _frameSizeExp[i];
+    getLargerMantExp(frameSizeMant, frameSizeExp);
+
+    return getDeltaFrameSize(_granularity[i], frameSizeMant, frameSizeExp);
 }
 
 
@@ -519,7 +485,7 @@ void NOMAD::GMesh::checkFrameSizeIntegrity(const NOMAD::Double &frameSizeExp,
     // frameSizeMant must be 1, 2 or 5.
 
     bool hasError = false;
-    std::string err = "Error: Integrity Check";
+    std::string err = "Error: Integrity check";
     if (!frameSizeExp.isInteger())
     {
         hasError = true;
@@ -653,8 +619,17 @@ NOMAD::Point NOMAD::GMesh::projectOnMesh(const NOMAD::Point& point,
         while (!verifValueI.isMultipleOf(deltaI) && nbTry <= maxNbTry)
         {
             NOMAD::Double newVerifValueI;
-            verifValueI = (diffProjFrameCenter >= 0) ? verifValueI.nextMult(deltaI)
-                                                     : - (-verifValueI).nextMult(deltaI);
+
+            if (0 == nbTry && _granularity[i] > 0 && _granularity[i].isInteger()
+                && frameCenter[i].isInteger())
+            {
+                verifValueI = verifValueI.roundd();
+            }
+            else
+            {
+                verifValueI = (diffProjFrameCenter >= 0) ? verifValueI.nextMult(deltaI)
+                                                         : - (-verifValueI).nextMult(deltaI);
+            }
 
             proj[i] = (frameCenterIsOnMesh) ? verifValueI
                                             : verifValueI + frameCenter[i];
@@ -714,7 +689,19 @@ NOMAD::Point NOMAD::GMesh::projectOnMesh(const NOMAD::Point& point,
 }
 
 
-
-
-
-
+void NOMAD::GMesh::getLargerMantExp(NOMAD::Double &frameSizeMant, NOMAD::Double &frameSizeExp) const
+{
+    if (frameSizeMant == 1)
+    {
+        frameSizeMant = 2;
+    }
+    else if (frameSizeMant == 2)
+    {
+        frameSizeMant = 5;
+    }
+    else
+    {
+        frameSizeMant = 1;
+        ++frameSizeExp;
+    }
+}

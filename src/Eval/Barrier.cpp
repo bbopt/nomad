@@ -1,50 +1,3 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 
 #include "../Cache/CacheBase.hpp"
 #include "../Eval/Barrier.hpp"
@@ -52,7 +5,7 @@
 
 void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
                           const NOMAD::EvalType& evalType,
-                          const std::vector<EvalPoint> evalPointList)
+                          const std::vector<EvalPoint>& evalPointList)
 {
     std::vector<NOMAD::EvalPoint> cachePoints;
 
@@ -82,6 +35,8 @@ void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
 
     // Constructor's call to update should not update ref best points.
     updateWithPoints(evalPointList, evalType, true);    // true: keep all points
+
+    setN();
 
 
     // Check: xFeas or xInf could be non-evaluated, but not both.
@@ -117,6 +72,35 @@ void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
     }
 
     checkHMax();
+}
+
+
+void NOMAD::Barrier::setN()
+{
+    bool isSet = (0 != _n);
+    std::string s;
+
+    for (auto evalPoint : getAllPoints())
+    {
+        if (!isSet)
+        {
+            _n = evalPoint.size();
+            isSet = true;
+        }
+        else if (evalPoint.size() != _n)
+        {
+            s = "Barrier has points of size " + std::to_string(_n) + " and of size ";
+            s += std::to_string(evalPoint.size());
+            throw NOMAD::Exception(__FILE__, __LINE__, s);
+        }
+    }
+    if (!isSet)
+    {
+        s = "Barrier could not set point size";
+        throw NOMAD::Exception(__FILE__, __LINE__, s);
+    }
+
+
 }
 
 
@@ -274,6 +258,19 @@ bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalP
 
     for (auto evalPoint : evalPointList)
     {
+        // All points should be of the same size inside a Barrier.
+        if (0 == _n)
+        {
+            //Set _n
+            _n = evalPoint.size();
+        }
+        else if (evalPoint.size() != _n)
+        {
+            s = "Barrier update: Barrier points are of dimension " + std::to_string(_n);
+            s += ". Trying to add this point of dimension " + std::to_string(evalPoint.size());
+            s += ": " + evalPoint.display();
+            throw NOMAD::Exception(__FILE__, __LINE__, s);
+        }
         OUTPUT_DEBUG_START
         s = "Point suggested to update barrier: " + evalPoint.display();
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
@@ -472,8 +469,8 @@ std::string NOMAD::Barrier::display(const size_t max) const
 
     for (auto xFeas : allXFeas)
     {
-        s += "X_FEAS " + xFeas.display() + "\n";
-        nbXFeas++; 
+        s += "X_FEAS " + xFeas.displayAll() + "\n";
+        nbXFeas++;
         if (nbXFeas >= max && allXFeas.size() > max)
         {
             s += "... (total " + std::to_string(allXFeas.size()) + ")\n";
@@ -482,8 +479,8 @@ std::string NOMAD::Barrier::display(const size_t max) const
     }
     for (auto xInf : allXInf)
     {
-        s += "X_INF " + xInf.display() + "\n"; 
-        nbXInf++; 
+        s += "X_INF " + xInf.displayAll() + "\n";
+        nbXInf++;
 
         if (nbXInf >= max && allXInf.size() > max)
         {
@@ -492,8 +489,8 @@ std::string NOMAD::Barrier::display(const size_t max) const
         }
     }
     s += "H_MAX " + getHMax().tostring() + "\n";
-    s += "Ref Best Feasible:   " + (_refBestFeas ? _refBestFeas->display() : "NULL") + "\n";
-    s += "Ref Best Infeasible: " + (_refBestInf ? _refBestInf->display() : "NULL") + "\n";
+    s += "Ref Best Feasible:   " + (_refBestFeas ? _refBestFeas->displayAll() : "NULL") + "\n";
+    s += "Ref Best Infeasible: " + (_refBestInf ? _refBestInf->displayAll() : "NULL") + "\n";
 
 
     return s;

@@ -25,6 +25,7 @@ COMPONENT_DIRNAME   = Param
 
 ALL_FILES           = AllParameters AttributeFactory Attribute CacheParameters \
                       DisplayParameters EvalParameters EvaluatorControlParameters \
+                      EvaluatorControlGlobalParameters \
                       ParameterEntries ParameterEntry Parameters ParametersNomad3 \
                       PbParameters RunParameters TypeAttribute
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))

@@ -1,65 +1,15 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 
 #ifndef __NOMAD400_STEP__
 #define __NOMAD400_STEP__
 
-#include <stdexcept>
-
-#include "../Algos/AllStopReasons.hpp"
 #include "../Algos/MeshBase.hpp"
 #include "../Eval/Barrier.hpp"
-#include "../Eval/EvaluatorControl.hpp"
 #include "../Output/OutputInfo.hpp"
-#include "../Output/OutputQueue.hpp"
+#include "../Param/PbParameters.hpp"
 #include "../Param/RunParameters.hpp"
 #include "../Type/CallbackType.hpp"
 #include "../Type/EvalType.hpp"
+#include "../Util/AllStopReasons.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -202,10 +152,8 @@ public:
 
     std::shared_ptr<AllStopReasons> getAllStopReasons() const { return _stopReasons ; }
 
-    /// Shortcut to get eval type from _pbParams
-    const EvalType& getEvalType() const;
-
     std::shared_ptr<RunParameters> getRunParams() const { return _runParams; }
+    std::shared_ptr<PbParameters> getPbParams() const { return _pbParams; }
 
     /// Interruption call by user.
     /**
@@ -240,7 +188,7 @@ public:
     void AddOutputHigh(const std::string& s) const;
     void AddOutputDebug(const std::string& s) const;
     void AddOutputInfo(OutputInfo outputInfo) const;
-    
+
     /// Template function to get the parent of given type.
     /**
      * Starting with parent of current Step, and going through ancestors,
@@ -272,6 +220,7 @@ public:
         return dynamic_cast<T>(retStep);
     }
 
+
     bool isAnAlgorithm() const;
 
     /**
@@ -282,6 +231,13 @@ public:
      to compute Step names as sub-steps of algorithms.
      */
     std::string getAlgoName() const;
+
+    /**
+      Get and set comment that will be showed in normal display for additional information.
+    **/
+    virtual std::string getAlgoComment() const;
+    virtual void setAlgoComment(const std::string& algoComment, const bool force = false);
+    virtual void resetPreviousAlgoComment(const bool force = false);
 
     /**
      \return The MeshBase for the first Iteration ancestor of this Step.
@@ -299,12 +255,6 @@ public:
     const std::shared_ptr<Barrier> getMegaIterationBarrier() const;
 
     /**
-     /return The fixedVariable Point for the associated Subproblem.
-     If no Subproblem is available, return a default Point (of size 0).
-     */
-    Point getSubFixedVariable() const;
-    
-    /**
     Start of the Step. Initialize values for the run.
     */
     void start() ;
@@ -313,7 +263,7 @@ public:
     Placeholder to be implemented in derived classes. Called by start.
     */
     virtual void startImp() = 0 ;
-    
+
     /**
      * Perform main step task.
      * Main part of the Step
@@ -326,12 +276,12 @@ public:
     Placeholder to be implemented in derived classes. Called by run.
     */
     virtual bool runImp() = 0 ;
-    
+
     /**
      * End of the Step. Clean up structures, flush output.
     */
     void end();
-    
+
     /**
     Placeholder to be implemented by derived classes. Called by end.
     */
@@ -363,12 +313,12 @@ private:
     // Default callbacks. They do nothing.
     static void defaultStepEnd(const Step& step  __attribute__((unused)), bool &stop) { stop = false; }
     static void defaultHotRestart(std::vector<std::string>& paramLines  __attribute__((unused))) {};
-    
+
     /**
      Default task always executed when start() is called
      */
     void defaultStart();
-    
+
     /**
      Default task always executed when end() is called
      */

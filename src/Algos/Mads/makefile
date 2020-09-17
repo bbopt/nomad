@@ -24,10 +24,13 @@ BIN_DIR             = $(BUILD_DIR)/bin
 
 COMPONENT_DIRNAME   = Algos/Mads
 
-ALL_FILES           = GMesh LHSearchMethod Mads MadsInitialization MadsIteration \
+ALL_FILES           = DoublePollMethod GMesh LHSearchMethod Mads MadsInitialization \
+                      MadsIteration \
                       MadsMegaIteration MadsUpdate MegaSearchPoll \
-                      NMSearchMethod Poll Search SearchMethodAlgo SearchMethodBase \
-                      SearchMethodSimple SgtelibSearchMethod QuadSearchMethod \
+                      NMSearchMethod NP1UniPollMethod Ortho2NPollMethod Poll \
+                      PollMethodBase Search SearchMethodAlgo SearchMethodBase \
+                      SearchMethodSimple SgtelibSearchMethod SinglePollMethod \
+                      QuadSearchMethod \
                       SpeculativeSearchMethod UserSearchMethod
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))
 ALL_HEADERS         = $(addsuffix .hpp, $(ALL_FILES))

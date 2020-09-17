@@ -1,55 +1,11 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
-#include "../../Algos/SgtelibModel/SgtelibModel.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelInitialization.hpp"
+#include "../../Cache/CacheBase.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 void NOMAD::SgtelibModelInitialization::init()
 {
@@ -152,7 +108,8 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     // Add X0s that need evaluation to eval queue
     NOMAD::CacheInterface cacheInterface(this);
     NOMAD::EvcInterface evcInterface(this);
-    evcInterface.getEvaluatorControl()->lockQueue();
+    auto evc = evcInterface.getEvaluatorControl();
+    evc->lockQueue();
 
     NOMAD::EvalPointSet evalPointSet;
     for (size_t x0index = 0; x0index < x0s.size(); x0index++)
@@ -168,29 +125,19 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     evcInterface.keepPointsThatNeedEval(evalPointSet, false);   // false: no mesh
 
     // Enforce no opportunism.
-    auto evcParams = evcInterface.getEvaluatorControl()->getEvaluatorControlParams();
-    auto previousOpportunism = evcParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
-    evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", false);
-    evcParams->checkAndComply();
+    auto previousOpportunism = evc->getOpportunisticEval();
+    evc->setOpportunisticEval(false);
 
-    evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
+    evc->unlockQueue(false); // false: do not sort eval queue
 
     // Evaluate all x0s. Ignore returned success type.
     // Note: EvaluatorControl would not be able to compare/compute success since there is no barrier.
-    // Sanity check
-    if (NOMAD::EvalType::BB != getEvalType())
-    {
-        throw NOMAD::Exception(__FILE__,__LINE__,"Sgte evaluation of X0 must be using blackbox");
-    }
     evcInterface.startEvaluation();
 
     // Reset opportunism to previous values.
-    evcInterface.getEvaluatorControl()->lockQueue();
-    evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", previousOpportunism);
-    evcParams->checkAndComply();
-    evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
+    evc->setOpportunisticEval(previousOpportunism);
 
-    auto evalPointList = evcInterface.getAllEvaluatedPoints();
+    auto evalPointList = evcInterface.retrieveAllEvaluatedPoints();
     for (auto x0 : x0s)
     {
         NOMAD::EvalPoint evalPoint_x0(x0);
@@ -212,7 +159,7 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     {
         // Construct barrier using x0s
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-        _barrier = std::make_shared<NOMAD::Barrier>(hMax, getSubFixedVariable(), getEvalType(), evalPointList);
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this), evc->getEvalType(), evalPointList);
     }
     else
     {

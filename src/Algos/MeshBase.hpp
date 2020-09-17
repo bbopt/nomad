@@ -1,50 +1,3 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 /**
  * \file   MeshBase.hpp
  * \brief  Base class for mesh
@@ -55,25 +8,22 @@
 #ifndef __NOMAD400_MESHBASE__
 #define __NOMAD400_MESHBASE__
 
-#include <memory>
+#include <memory>   // for shared_ptr
 
-#include "AlgoStopReasons.hpp"
 #include "../Math/ArrayOfDouble.hpp"
 #include "../Math/Direction.hpp"
 #include "../Math/Point.hpp"
-
 #include "../Param/PbParameters.hpp"
-
-#include "../Algos/AlgoStopReasons.hpp"
+#include "../Util/AllStopReasons.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
 /// The generic class for meshes (discretization of design variables space).
 /**
  \note To be implemented by the derived mesh used by an algorithm.
- 
+
  \note This class encompasses the mesh discretization and the frame on it.
- 
+
  * In the algorithm, we have delta for mesh size parameter and
   Delta for frame size parameter. To avoid confusion in function calls,
   using deltaMeshSize and DeltaFrameSize in function names.
@@ -129,7 +79,7 @@ public:
     /// Enlarge frame size.
     /**
      * Update frame size (big Delta) after a success.
-    
+
      * The successful direction is used to ensure integrity of the mesh (no variable collapse).
 
      \param direction          The direction of success of the iteration       -- \b IN.
@@ -158,7 +108,7 @@ public:
      \return        The ratio frame/mesh size rho^k for index i.
      */
     virtual Double getRho(const size_t i) const = 0;
-    
+
     /// Access to the ratio of frame size / mesh size parameter rho^k.
     /**
      \return The ratio frame/mesh size rho^k.
@@ -171,8 +121,7 @@ public:
      \return        The mesh size parameter delta^k.
      */
     virtual Double getdeltaMeshSize(const size_t i) const = 0;
-    
-    
+
     /// Access to the mesh size parameter delta^k.
     /**
      \return The mesh size parameter delta^k.
@@ -185,13 +134,25 @@ public:
      \return        The frame size parameter Delta^k.
      */
     virtual Double getDeltaFrameSize(const size_t i) const = 0;
-    
+
     // Access to the frame size parameter Delta^k.
     /**
      \return The frame size parameter Delta^k.
      */
     virtual ArrayOfDouble getDeltaFrameSize() const;
 
+    // Access to the frame size one shift coarser than the actual frame size.
+    /**
+     \param i       Index of the dimension of interest -- \b IN.
+     \return        The frame size parameter Delta^k.
+     */
+    virtual Double getDeltaFrameSizeCoarser(const size_t i) const = 0;
+
+    // Access to the frame size one shift coarser than the actual frame size.
+    /**
+     \return The frame size parameter Delta^k.
+     */
+    virtual ArrayOfDouble getDeltaFrameSizeCoarser() const;
 
     /**
      Setting deltaMeshSize and DeltaFrameSize should be done together.
@@ -201,7 +162,7 @@ public:
     virtual void setDeltas(const size_t i,
                            const Double &deltaMeshSize,
                            const Double &deltaFrameSize) = 0;
-    
+
     /**
      Setting deltaMeshSize and DeltaFrameSize should be done together.
      This is easier and does not seem to be a constraint for
@@ -212,7 +173,6 @@ public:
 
     /// Scale and project the ith component of a vector on the mesh
     /**
-     
      \param i   The vector component number         -- \b IN.
      \param l   The vector component value          -- \b IN.
      \return    The ith component of a vector after mesh scaling and projection.

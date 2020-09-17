@@ -1,54 +1,12 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/CacheInterface.hpp"
+#include "../../Algos/EvcInterface.hpp"
+#include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/MadsUpdate.hpp"
-#include "../../Output/OutputInfo.hpp"
+#include "../../Algos/SubproblemManager.hpp"
+#include "../../Eval/ComputeSuccessType.hpp"
+#include "../../Eval/EvalQueuePoint.hpp"    // For OrderByDirection
+#include "../../Output/OutputQueue.hpp"
 
 void NOMAD::MadsUpdate::init()
 {
@@ -82,7 +40,7 @@ bool NOMAD::MadsUpdate::runImp()
     OUTPUT_DEBUG_END
 
     // Barrier is already updated from previous steps.
-    // Get ref best feasible and infeasible, and then update 
+    // Get ref best feasible and infeasible, and then update
     // reference values.
     auto refBestFeas = barrier->getRefBestFeas();
     auto refBestInf  = barrier->getRefBestInf();
@@ -97,7 +55,7 @@ bool NOMAD::MadsUpdate::runImp()
         // Compute success
         // Get which of newBestFeas and newBestInf is improving
         // the solution. Check newBestFeas first.
-        NOMAD::ComputeSuccessType computeSuccess;
+        NOMAD::ComputeSuccessType computeSuccess(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
         std::shared_ptr<NOMAD::EvalPoint> newBest;
         NOMAD::SuccessType success = computeSuccess(newBestFeas, refBestFeas);
         if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
@@ -130,7 +88,7 @@ bool NOMAD::MadsUpdate::runImp()
                 // newBestInf is the improving point.
                 newBest = newBestInf;
                 OUTPUT_DEBUG_START
-                std::string s = "Update: improving infeasible point";
+                s = "Update: improving infeasible point";
                 if (refBestInf)
                 {
                     s+= " from\n    " + refBestInf->display() + "\n";
@@ -143,7 +101,7 @@ bool NOMAD::MadsUpdate::runImp()
         if (success == NOMAD::SuccessType::UNSUCCESSFUL)
         {
             OUTPUT_DEBUG_START
-            std::string s = "Update: no success found";
+            s = "Update: no success found";
             AddOutputDebug(s);
             OUTPUT_DEBUG_END
         }
@@ -171,7 +129,7 @@ bool NOMAD::MadsUpdate::runImp()
         // This is the value from the previous MegaIteration. If it
         // was not evaluated, ignore the test.
         // It is possible that the MegaIteration found a partial success,
-        // and then the EvaluatorControl found a full success before 
+        // and then the EvaluatorControl found a full success before
         // Update is run.
         // For this reason, only test the boolean value success vs. failure.
         const bool megaIterSuccessful = (megaIter->getSuccessType() >= NOMAD::SuccessType::PARTIAL_SUCCESS);
@@ -180,7 +138,7 @@ bool NOMAD::MadsUpdate::runImp()
             && (   (successful != megaIterSuccessful)
                 || (NOMAD::SuccessType::NOT_EVALUATED == success)) )
         {
-            std::string s = "Warning: MegaIteration success type: ";
+            s = "Warning: MegaIteration success type: ";
             s += NOMAD::enumStr(megaIter->getSuccessType());
             s += ". Is different than computed success type: " + NOMAD::enumStr(success);
             if (refBestFeas)
@@ -207,46 +165,57 @@ bool NOMAD::MadsUpdate::runImp()
             // Compute new direction for main mesh.
             // The direction is related to the frame center which generated
             // newBest.
-            auto pointFromPtr = newBest->getPointFrom(); 
+            auto pointFromPtr = newBest->getPointFrom();
             auto pointNewPtr = newBest->getX();
             if (nullptr == pointFromPtr)
             {
-                std::string s = "Update cannot compute new direction for successful point: pointFromPtr is NULL ";
+                s = "Update cannot compute new direction for successful point: pointFromPtr is NULL ";
                 s += newBest->display();
                 throw NOMAD::Exception(__FILE__,__LINE__, s);
             }
             // PointFrom is in full dimension. Convert it to subproblem
             // to compute direction.
-            auto fixedVariable = _parentStep->getSubFixedVariable();
+            auto fixedVariable = NOMAD::SubproblemManager::getSubFixedVariable(this);
             auto pointFromSub = std::make_shared<NOMAD::Point>(pointFromPtr->makeSubSpacePointFromFixed(fixedVariable));
 
             NOMAD::Direction dir = NOMAD::Point::vectorize(*pointFromSub, *pointNewPtr);
             OUTPUT_INFO_START
             std::string dirStr = "New direction " + dir.display();
             AddOutputInfo(dirStr);
-            AddOutputInfo("Last Iteration Successful.");
+            if (success == NOMAD::SuccessType::PARTIAL_SUCCESS)
+            {
+                AddOutputInfo("Last Iteration Improving. Delta remains the same.");
+            }
+            else
+            {
+                AddOutputInfo("Last Iteration Successful.");
+            }
             OUTPUT_INFO_END
+
             // This computed direction will be used to sort points. Update values.
             // Use full space.
             auto pointNewFull = std::make_shared<NOMAD::Point>(pointNewPtr->makeFullSpacePointFromFixed(fixedVariable));
             NOMAD::Direction dirFull = NOMAD::Point::vectorize(*pointFromPtr, *pointNewFull);
             NOMAD::OrderByDirection::setLastSuccessfulDir(dirFull);
 
-            // Update frame size for main mesh
-            auto anisotropyFactor = _runParams->getAttributeValue<NOMAD::Double>("ANISOTROPY_FACTOR");
-            bool anistropicMesh = _runParams->getAttributeValue<bool>("ANISOTROPIC_MESH");
+            if (success >= NOMAD::SuccessType::FULL_SUCCESS)
+            {
+                // Update frame size for main mesh
+                auto anisotropyFactor = _runParams->getAttributeValue<NOMAD::Double>("ANISOTROPY_FACTOR");
+                bool anistropicMesh = _runParams->getAttributeValue<bool>("ANISOTROPIC_MESH");
 
-            if (mesh->enlargeDeltaFrameSize(dir, anisotropyFactor, anistropicMesh))
-            {
-                OUTPUT_INFO_START
-                AddOutputInfo("Delta is enlarged.");
-                OUTPUT_INFO_END
-            }
-            else
-            {
-                OUTPUT_INFO_START
-                AddOutputInfo("Delta is not enlarged.");
-                OUTPUT_INFO_END
+                if (mesh->enlargeDeltaFrameSize(dir, anisotropyFactor, anistropicMesh))
+                {
+                    OUTPUT_INFO_START
+                    AddOutputInfo("Delta is enlarged.");
+                    OUTPUT_INFO_END
+                }
+                else
+                {
+                    OUTPUT_INFO_START
+                    AddOutputInfo("Delta is not enlarged.");
+                    OUTPUT_INFO_END
+                }
             }
         }
         else

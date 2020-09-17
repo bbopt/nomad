@@ -1,57 +1,12 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 
 // Generic
 #include "../Algos/Algorithm.hpp"
+#include "../Algos/EvcInterface.hpp"
 #include "../Algos/Iteration.hpp"
 #include "../Algos/MainStep.hpp"
 #include "../Algos/MegaIteration.hpp"
 #include "../Algos/Step.hpp"
+#include "../Output/OutputQueue.hpp"
 
 /*-----------------------------------*/
 /*   static members initialization   */
@@ -86,10 +41,10 @@ void NOMAD::Step::userInterrupt(int signalValue)
         // hotRestartOnUserInterrupt(). Here we are in a static method
         // so we cannot call it.
     }
-    
+
     // Set this stop reason to be tested by EvaluatorControl
     NOMAD::AllStopReasons::set( NOMAD::BaseStopType::CTRL_C );
-    
+
     NOMAD::Step::_userInterrupt = true;
 }
 
@@ -114,21 +69,6 @@ void NOMAD::Step::init()
 NOMAD::Step::~Step()
 {
     NOMAD::OutputQueue::Flush();
-}
-
-
-const NOMAD::EvalType& NOMAD::Step::getEvalType() const
-{
-    /*
-    NOMAD::EvalType evalType = NOMAD::EvalType::UNDEFINED;
-    if (nullptr != _pbParams)
-    {
-        evalType = _pbParams->getAttributeValue<NOMAD::EvalType>("EVAL_TYPE");
-    }
-
-    return evalType;
-    */
-    return _pbParams->getAttributeValue<NOMAD::EvalType>("EVAL_TYPE");
 }
 
 
@@ -343,6 +283,38 @@ std::string NOMAD::Step::getAlgoName() const
 }
 
 
+std::string NOMAD::Step::getAlgoComment() const
+{
+    std::string algoComment;
+    const NOMAD::MainStep* mainstep = getParentOfType<NOMAD::MainStep*>(false);
+    if (nullptr != mainstep)
+    {
+        algoComment = mainstep->getAlgoComment();
+    }
+    return algoComment;
+}
+
+
+void NOMAD::Step::setAlgoComment(const std::string& algoComment, const bool force)
+{
+    NOMAD::MainStep* mainstep = getParentOfType<NOMAD::MainStep*>(false);
+    if (nullptr != mainstep)
+    {
+        mainstep->setAlgoComment(algoComment, force);
+    }
+}
+
+
+void NOMAD::Step::resetPreviousAlgoComment(const bool force)
+{
+    NOMAD::MainStep* mainstep = getParentOfType<NOMAD::MainStep*>(false);
+    if (nullptr != mainstep)
+    {
+        mainstep->resetPreviousAlgoComment(force);
+    }
+}
+
+
 // Get MeshBase from the Iteration ancestor.
 const std::shared_ptr<NOMAD::MeshBase> NOMAD::Step::getIterationMesh() const
 {
@@ -395,30 +367,6 @@ const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() con
         barrier = megaIter->getBarrier();
     }
     return barrier;
-}
-
-
-// Return fixedVariable Point for the Subproblem of the MainStep ancestor.
-// If no MainStep is available, return a default Point (of size 0).
-NOMAD::Point NOMAD::Step::getSubFixedVariable() const
-{
-    // Argument false: go all the way up, do not stop at first Algorithm ancestor.
-    auto mainstep = getParentOfType<NOMAD::MainStep*>(false);
-    NOMAD::Point fixedVariable;
-
-    if (nullptr != mainstep)
-    {
-        fixedVariable = mainstep->getCurrentSubproblem()->getFixedVariable();
-    }
-    else if (_showWarnings)
-    {
-        // It is expected to find a MainStep as ancestor.
-        // Show warning.
-        std::cerr << "Warning: No Subproblem found for step " << getName() << std::endl;
-    }
-
-
-    return fixedVariable;
 }
 
 
