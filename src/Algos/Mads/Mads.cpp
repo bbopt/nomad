@@ -46,23 +46,20 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include <signal.h>
-
-#include "../../Algos/EvcInterface.hpp"
-#include "../../Algos/MainStep.hpp"
 #include "../../Algos/Mads/GMesh.hpp"
 #include "../../Algos/Mads/Mads.hpp"
-#include "../../Math/RNG.hpp"
-#include "../../Param/AllParameters.hpp"  // Used for hot restart only.
+#include "../../Algos/Mads/MadsInitialization.hpp"
+#include "../../Algos/Mads/MadsMegaIteration.hpp"
+#include "../../Output/OutputQueue.hpp"
 #include "../../Util/fileutils.hpp"
 
 void NOMAD::Mads::init()
 {
     _name = "MADS";
-    
+
     // Instanciate Mads initialization class
     _initialization = std::make_unique<NOMAD::MadsInitialization>( this );
-    
+
 }
 
 
@@ -72,11 +69,10 @@ bool NOMAD::Mads::runImp()
     NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
     bool runOk = true;
-    
+
     if (!_termination->terminate(k))
     {
-        // Create mesh with default parameters values.
-        std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+        std::shared_ptr<NOMAD::MeshBase> mesh;
 
         // TODO Review case hot restart.
         /*
@@ -85,13 +81,14 @@ bool NOMAD::Mads::runImp()
             // Case hot restart
             k       = _megaIteration->getK();
             barrier = _megaIteration->getBarrier();
-            
+
             // Downcast from MegaIteration to MadsMegaIteration
             mesh    = (std::dynamic_pointer_cast<NOMAD::MadsMegaIteration> (_megaIteration ))->getMesh();
             megaIterSuccess = _megaIteration->getSuccessType();
         }
         */
 
+        mesh = dynamic_cast<NOMAD::MadsInitialization*>(_initialization.get())->getMesh();
         auto barrier = _initialization->getBarrier();
 
         // Mads member _megaIteration is used for hot restart (read and write),
@@ -126,7 +123,7 @@ bool NOMAD::Mads::runImp()
     {
         runOk = false;
     }
-    
+
     _termination->start();
     _termination->run();
     _termination->end();
@@ -155,7 +152,7 @@ void NOMAD::Mads::readInformationForHotRestart()
             // NOTE: Working in full dimension
             auto barrier = std::make_shared<NOMAD::Barrier>(NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB);
             std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
-            
+
             _megaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, 0, barrier, mesh, NOMAD::SuccessType::NOT_EVALUATED);
 
             // Here we use Algorithm::operator>>

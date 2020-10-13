@@ -60,7 +60,7 @@ Manager for Mads iterations.
  - Generate a lot of points over multiple meshes, using different Search and Poll strategies.
  - Evaluate points
  - Post-processing
- 
+
  \note As an hypothesis, the time load is taken by the evaluation,
   which is parallelized over all evaluations simultaneously.
   The iteration generation, including trial points generation,
@@ -68,19 +68,19 @@ Manager for Mads iterations.
   It is also preferable to keep parallelization to the only place where
   it matters the most to avoid errors.
   There is no parallelization at the algorithmic level.
-  Algorithms are run in master thread only.
+  Algorithms are run in main thread only; Secundary threads are available for evaluations.
 */
 class MadsMegaIteration: public MegaIteration
 {
-private:
-    
+protected:
+
     /**
      Main mesh that holds the mesh size and frame size that we would use in the standard MADS algorithm or other Mesh-based algorithm.
      */
     std::shared_ptr<MeshBase> _mainMesh;
 
     void init();
-    
+
 public:
     /// Constructor
     /**
@@ -109,20 +109,20 @@ public:
      For now, not using other frame centers.
      */
     virtual void startImp() override ;
-    
+
     /// Implementation of the run tasks for MADS mega iteration.
     /**
      Manages the generation of points: either all poll and search points are generated all together before starting evaluation using the MegaSearchPoll or they are generated using a MadsIteration with search and poll separately. A run parameter controls the behavior.
      */
     virtual bool runImp() override;
-    
-    
+
+
     const std::shared_ptr<MeshBase> getMesh() const          { return _mainMesh; }
     void setMesh(const std::shared_ptr<MeshBase> &mesh)      { _mainMesh = mesh; }
-    
+
     void read(  std::istream& is ) override;
     void display(  std::ostream& os ) const override ;
-    
+
 private:
 
     /// Helper for start()

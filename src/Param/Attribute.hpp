@@ -63,12 +63,12 @@
 /// An attribute contains all meta data about a Nomad parameter except its type,  default and current value.
 /**
  TypeAttribute is the templated class that derives from an Attribute and completes the values (current and initial) and type for a Nomad parameter. A specific type of attribute is obtained by calling the templated AttributeFactory::Create function.\n
- 
+
  A Nomad parameter has a name, some help and info, some  keywords and some additional flags :
  - Attribute::_uniqueEntry, a flag for a parameter that cannot appear more than once in a file.
  - Attribute::_algoCompatibilityCheck, a flag for a parameter that can be used to check if two sets of parameters can produce the same run.
  - Attribute::_restartAttribute, a flag for a parameter that can be changed when doing a restart. \n
- 
+
  */
 class Attribute {
 public:
@@ -80,7 +80,7 @@ public:
     virtual bool isForAlgoCompatibilityCheck() { return _algoCompatibilityCheck; }
     virtual bool isRestartAttribute() { return _restartAttribute; }
     virtual bool getParamFromUniqueEntry() { return _uniqueEntry; }
-    
+
     void setShortInfo(const std::string& s) { _shortInfo = s; }
     void setHelpInfo(const std::string& s) { _helpInfo = s; }
     void setKeywords(const std::string& s) { _keywords = s; }
@@ -98,7 +98,7 @@ public:
     virtual void resetToDefaultValue() = 0;
 
     Attribute (const std::string& Name, bool algoCompatibilityCheck,
-               bool restartAttribute, bool uniqueEntry, 
+               bool restartAttribute, bool uniqueEntry,
                const std::string& ShortInfo,
                const std::string& HelpInfo, const std::string& Keywords)
         : _name(Name),
@@ -111,7 +111,7 @@ public:
     {}
 
     Attribute (const std::string& Name, bool algoCompatibilityCheck,
-               bool restartAttribute, bool uniqueEntry, 
+               bool restartAttribute, bool uniqueEntry,
                const std::string& ShortInfo, const std::string& HelpInfo)
         : _name(Name),
           _shortInfo(ShortInfo),
@@ -120,7 +120,7 @@ public:
           _restartAttribute(restartAttribute),
           _uniqueEntry(uniqueEntry)
     {}
-    
+
     Attribute (const std::string& Name, bool algoCompatibilityCheck,
                bool restartAttribute, bool uniqueEntry, const std::string& ShortInfo)
         : _name(Name),

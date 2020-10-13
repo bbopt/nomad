@@ -49,20 +49,8 @@
 #ifndef __NOMAD400_MADS__
 #define __NOMAD400_MADS__
 
-#include "../../Eval/EvaluatorControl.hpp"
-
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
-#include "../../Algos/Step.hpp"
-
-// Mads specific
-#include "../../Algos/Mads/MadsInitialization.hpp"
-#include "../../Algos/Mads/MadsMegaIteration.hpp"
-
-#include "../../Param/RunParameters.hpp"
-#include "../../Param/PbParameters.hpp"
-#include "../../Param/EvalParameters.hpp"
-#include "../../Param/DisplayParameters.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -91,8 +79,7 @@ public:
     {
         init();
     }
-    
-    
+
 
 private:
     ///  Initialization of class, to be used by Constructor.
@@ -104,12 +91,12 @@ private:
      \return \c true
      */
     virtual bool runImp() override;
-    
+
     /// Helper for start()
     void readInformationForHotRestart() override ;
-    
-    
-    
+
+
+
 };
 
 #include "../../nomad_nsend.hpp"

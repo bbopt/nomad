@@ -46,10 +46,10 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/NMSearchMethod.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/EvcInterface.hpp"
-
 #include "../../Algos/NelderMead/NM.hpp"
 #include "../../Algos/NelderMead/NMAllReflective.hpp"
 
@@ -85,18 +85,18 @@ bool NOMAD::NMSearchMethod::runImp()
 {
     // NM is an algorithm with its own stop reasons.
     auto nmStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::NMStopType>>();
-    
+
     // Create the NM algorithm with its own stop reason
     auto nm = std::make_shared<NOMAD::NM>(this,
                                           nmStopReasons ,
                                           _runParams,
                                           _pbParams);
     nm->setEndDisplay(false);
-    
+
     nm->start();
     bool foundBetter = nm->run();
     nm->end();
-    
+
     return foundBetter;
 }
 
@@ -105,9 +105,9 @@ void NOMAD::NMSearchMethod::generateTrialPointsImp()
 {
     // The trial points of one iteration of NM reflective steps are generated (not evaluated).
     // The trial points are Reflect, Expansion, Inside and Outside Contraction NM points
-    
+
     auto madsIteration = getParentOfType<MadsIteration*>();
-    
+
     NOMAD::NMAllReflective allReflective(this, madsIteration->getFrameCenter(), madsIteration->getMesh());
     allReflective.start();
     allReflective.end();
@@ -118,5 +118,5 @@ void NOMAD::NMSearchMethod::generateTrialPointsImp()
     {
         insertTrialPoint(point);
     }
-    
+
 }

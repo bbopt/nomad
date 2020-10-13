@@ -57,8 +57,6 @@
 #ifndef __NOMAD400_CALLBACK_TYPE__
 #define __NOMAD400_CALLBACK_TYPE__
 
-#include <sstream>
-
 #include "../nomad_nsbegin.hpp"
 
 enum class CallbackType

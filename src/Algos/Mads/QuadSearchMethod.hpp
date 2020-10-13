@@ -64,13 +64,13 @@ class QuadSearchMethod final : public SearchMethodSimple
 {
 private:
     OutputLevel _displayLevel;
-/*----------------------------------------------------------------------*/
+
 public:
     /// Constructor
     /**
      /param parentStep      The parent of this search step -- \b IN.
      */
-    explicit QuadSearchMethod(const Step* parentStep )
+    explicit QuadSearchMethod(const Step* parentStep)
       : SearchMethodSimple(parentStep),
         _displayLevel(OutputLevel::LEVEL_NORMAL)
     {
@@ -78,13 +78,13 @@ public:
     }
 
 private:
-    
+
     /// Helper for constructor.
     /**
      Test if the Quad Search is enabled or not. Test if the Sgtelib library has been linked. Manage displays.
      */
     void init();
-    
+
     ///Generate new points (no evaluation)
     /**
      \copydoc SearchMethodSimple::generateTrialPointsImp \n

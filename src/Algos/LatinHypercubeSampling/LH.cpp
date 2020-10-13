@@ -47,10 +47,10 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/EvcInterface.hpp"
-
 #include "../../Algos/LatinHypercubeSampling/LH.hpp"
-
 #include "../../Math/LHS.hpp"
+#include "../../Output/OutputQueue.hpp"
+
 void NOMAD::LH::init()
 {
     _name = "Latin Hypercube Sampling";
@@ -62,7 +62,7 @@ void NOMAD::LH::startImp()
 {
 
     // Comment to appear at the end of stats lines
-    NOMAD::MainStep::setAlgoComment("(LH)");
+    setAlgoComment("(LH)");
 
     generateTrialPoints();
 
@@ -94,10 +94,8 @@ void NOMAD::LH::generateTrialPoints()
         throw NOMAD::Exception(__FILE__,__LINE__,_name + " requires a complete upper bound vector");
     }
 
-    int seed = _runParams->getAttributeValue<int>("SEED");
-
     // Apply Latin Hypercube algorithm
-    NOMAD::LHS lhs(n, lhEvals, lowerBound, upperBound, seed);
+    NOMAD::LHS lhs(n, lhEvals, lowerBound, upperBound);
     auto pointVector = lhs.Sample();
 
     for (auto point : pointVector)
@@ -151,6 +149,6 @@ void NOMAD::LH::endImp()
     EvcInterface::getEvaluatorControl()->clearQueue();
 
     // reset to the previous stats comment
-    NOMAD::MainStep::resetPreviousAlgoComment();
+    resetPreviousAlgoComment();
 
 }

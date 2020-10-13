@@ -112,6 +112,21 @@ bool atoi(const char c, int &i);
  */
 bool atost(const std::string &s, size_t &st);
 
+/// Convert a string with format "i-j" into two size_t i and j.
+/**
+
+ \param  s The string              -- \b IN.
+ \param  i The first index \c i  -- \b OUT.
+ \param  j The second index \c j -- \b OUT.
+ \param  check_order A boolean indicating if \c i and \c j are to be compared
+ -- \b IN -- \b optional (default = \c true).
+ \return A boolean equal to \c true if the conversion was possible.
+ */
+bool stringToIndexRange ( const std::string & s                  ,
+                          size_t            & i                  ,
+                          size_t            & j                  ,
+                          bool                check_order = true   );
+
 
 /// Convert a success type to a string.
 std::string enumStr(SuccessType success);
@@ -149,6 +164,9 @@ void getFormat(const std::string &s,
 bool separateFormat(const std::string &s, std::string &format, std::string &tag);
 
 bool validFormat(std::string &s);
+
+// For OpenMP threads
+int getThreadNum();
 
 
 #include "../nomad_nsend.hpp"

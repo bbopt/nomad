@@ -46,16 +46,17 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/CacheInterface.hpp"
-#include "../../Algos/Mads/QuadSearchMethod.hpp"
+#include "../../Cache/CacheBase.hpp"
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/EvcInterface.hpp"
-#include "../../Algos/QuadModel/QuadModelAlgo.hpp"
+#include "../../Algos/Mads/QuadSearchMethod.hpp"
 #include "../../Algos/QuadModel/QuadModelInitialization.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 void NOMAD::QuadModelInitialization::init()
 {
     _name = getAlgoName() + "Initialization";
-    
+
     _qmStopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get( _stopReasons );
 
 }
@@ -71,12 +72,12 @@ NOMAD::QuadModelInitialization::~QuadModelInitialization()
 
 void NOMAD::QuadModelInitialization::startImp()
 {
-    
+
     if ( ! _stopReasons->checkTerminate() )
     {
         // For a standalone optimization (no Search Method), X0s points must be evaluated if available, otherwise, the cache can be used.
         // Do nothing if this is part of a Search Method.
-        
+
         auto searchMethodConst = getParentOfType<NOMAD::QuadSearchMethod*>(false);
 
         if ( searchMethodConst == nullptr )
@@ -85,14 +86,14 @@ void NOMAD::QuadModelInitialization::startImp()
             generateTrialPoints();
         }
     }
-    
+
 }
 
 
 bool NOMAD::QuadModelInitialization::runImp()
 {
     bool doContinue = ! _stopReasons->checkTerminate();
-    
+
     // For a standalone optimization (no Search method), X0s points must be evaluated if available, otherwise, the cache can be used.
     // Do nothing if this is part of a sub-optimization.
     auto searchMethodConst = getParentOfType<NOMAD::QuadSearchMethod*>(false);
@@ -101,7 +102,7 @@ bool NOMAD::QuadModelInitialization::runImp()
     {
         // For a standalone quad model optimization, evaluate the X0s
         bool evalOk = eval_x0s();
-        
+
         doContinue = ! _stopReasons->checkTerminate();
         if ( ! doContinue || ! evalOk )
             _qmStopReason->set(NOMAD::ModelStopType::X0_FAIL);
@@ -118,7 +119,7 @@ void NOMAD::QuadModelInitialization::generateTrialPoints()
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     bool validX0available = false;
     std::string err;
-    
+
     for (auto x0 : x0s )
     {
         if (!x0.isComplete() || x0.size() != n)
@@ -131,7 +132,7 @@ void NOMAD::QuadModelInitialization::generateTrialPoints()
             // Add it to the list (local or in Search method).
             validX0available = insertTrialPoint(NOMAD::EvalPoint(x0));;
         }
-        
+
     }
 
     if (validX0available)
@@ -169,32 +170,18 @@ bool NOMAD::QuadModelInitialization::eval_x0s()
 
     // Add X0s that need evaluation to eval queue
     NOMAD::EvcInterface evcInterface(this);
-    evcInterface.getEvaluatorControl()->lockQueue();
+    auto evc = evcInterface.getEvaluatorControl();
 
     // Enforce no opportunism.
-    auto evcParams = evcInterface.getEvaluatorControl()->getEvaluatorControlParams();
-    auto previousOpportunism = evcParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
-    evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", false);
-    evcParams->checkAndComply();
-
-    evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
+    auto previousOpportunism = evc->getOpportunisticEval();
+    evc->setOpportunisticEval(false);
 
     // Evaluate all x0s. Ignore returned success type.
     // Note: EvaluatorControl would not be able to compare/compute success since there is no barrier.
-    // Sanity check
-    if (NOMAD::EvalType::BB != getEvalType())
-    {
-        throw NOMAD::Exception(__FILE__,__LINE__,"Evaluation of X0 must be using blackbox");
-    }
-    
     evalOk = evalTrialPoints(this);
-    
-    // Reset opportunism to previous values.
-    evcInterface.getEvaluatorControl()->lockQueue();
-    evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", previousOpportunism);
-    evcParams->checkAndComply();
-    evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
 
+    // Reset opportunism to previous values.
+    evc->setOpportunisticEval(previousOpportunism);
 
     NOMAD::OutputQueue::Flush();
 

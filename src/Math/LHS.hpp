@@ -50,7 +50,6 @@
 #define __NOMAD400_LHS__
 
 #include <vector>
-#include "../Math/Double.hpp"
 #include "../Math/Point.hpp"
 using namespace std;
 
@@ -75,7 +74,6 @@ private:
     size_t _p;  ///< number of samples
     ArrayOfDouble    _lowerBound; ///< lower bounds
     ArrayOfDouble    _upperBound; ///< upper bounds
-    int _seed; ///< seed
 
 public:
     /// Constructor
@@ -84,44 +82,30 @@ public:
      \param p               Number of samples -- \b IN.
      \param lowerBound      Lower bounds -- \b IN.
      \param upperBound      Upper bounds -- \b IN.
-     \param seed            Seed -- \b IN (Opt) (default = 2920).
      */
     explicit LHS(const size_t n,
                  const size_t p,
                  const ArrayOfDouble lowerBound,
-                 const ArrayOfDouble upperBound,
-                 const int seed = 2920);
-
-    /// Get seed for random generation
-    /**
-     \return Seed.
-     */
-    int     getSeed(void) const     { return _seed; }
-    
-    /// Set seed for random generation
-    /**
-     \param seed  Random generation seed -- \b IN.
-     */
-    void    setSeed(const int seed) { _seed = seed; }
+                 const ArrayOfDouble upperBound);
 
     /// Get lower bound
     /**
      \return Lower bound as \c ArrayOfDouble.
      */
     ArrayOfDouble getLowerBound() const                  { return _lowerBound; }
-    
+
     /// Set lower bound
     /**
      \param lowerBound  An \c ArrayOfDouble for lower bound -- \b IN.
      */
     void setLowerBound(const ArrayOfDouble lowerBound)   { _lowerBound = lowerBound; }
-    
+
     /// Get upper bound
     /**
      \return Upper bound as \c ArrayOfDouble.
      */
     ArrayOfDouble    getUpperBound(void) const           { return _upperBound; }
-    
+
     /// Set upper bound
     /**
      \param upperBound  An \c ArrayOfDouble for upper bound -- \b IN.

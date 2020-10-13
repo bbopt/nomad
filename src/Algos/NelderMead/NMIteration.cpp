@@ -47,8 +47,8 @@
 /*---------------------------------------------------------------------------------*/
 
 #include <algorithm>    // For std::merge and std::unique
-#include <sstream>
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/NelderMead/NMIteration.hpp"
 #include "../../Algos/NelderMead/NMUpdate.hpp"
 #include "../../Algos/NelderMead/NMMegaIteration.hpp"
@@ -102,7 +102,7 @@ bool NOMAD::NMIteration::runImp()
 
     // Start with the REFLECT step
     NMStepType stepType = NMStepType::REFLECT;
-    
+
     bool nmOpt = _runParams->getAttributeValue<bool>("NM_OPTIMIZATION");
     bool nmSearchStopOnSuccess = _runParams->getAttributeValue<bool>("NM_SEARCH_STOP_ON_SUCCESS");
 
@@ -125,7 +125,7 @@ bool NOMAD::NMIteration::runImp()
 
         // Update the type of success for passing to the MegaIteration
         NOMAD::SuccessType success = reflect.getSuccessType();
-        
+
         if ( success > _bestSuccess )
         {
             // NM Search can be stopped on success

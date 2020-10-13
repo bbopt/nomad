@@ -54,6 +54,7 @@
  */
 
 #include "../Cache/CacheBase.hpp"
+#include "../Util/fileutils.hpp"
 
 
 // Initialize CacheBase class.

@@ -57,8 +57,8 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <limits>
-#include <limits.h>
+#include <limits.h> // For INT_MAX
+#include <limits>   // For numeric_limits
 #include <cstdlib>
 #include <memory>   // For shared_ptr, unique_ptr
 

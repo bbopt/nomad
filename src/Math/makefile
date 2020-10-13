@@ -21,7 +21,7 @@ BIN_DIR             = $(BUILD_DIR)/bin
 COMPONENT_DIRNAME   = Math
 
 ALL_FILES           = ArrayOfDouble ArrayOfPoint Direction \
-                      Double LHS MatrixUtils Point RNG
+                      Double LHS MatrixUtils Point RandomPickup RNG
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))
 ALL_HEADERS         = $(addsuffix .hpp, $(ALL_FILES))
 ALL_INCLUDE_HEADERS = $(addprefix $(INCLUDE_DIR)/$(COMPONENT_DIRNAME)/,$(ALL_HEADERS))

@@ -52,10 +52,10 @@
 using namespace std;
 
 int main ( int argc , char ** argv ) {
-    
+
     double f = 1e20, c1 = 1e20 , c2 = 1e20;
     double x[5];
-    
+
     if ( argc >= 2 ) {
         c1 = 0.0 , c2 = 0.0;
         ifstream in ( argv[1] );

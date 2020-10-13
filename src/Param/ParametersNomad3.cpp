@@ -101,7 +101,7 @@ int NOMAD::AllParameters::get_max_iterations() const
     if ( max_iterations < NOMAD::P_INF_INT )
         n3_max_iterations = static_cast<int>(max_iterations);
     return n3_max_iterations;
-    
+
 }
 
 

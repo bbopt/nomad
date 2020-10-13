@@ -51,8 +51,7 @@
 #include <set>
 
 #include "../../Algos/IterationUtils.hpp"
-
-#include "../../Eval/EvalPoint.hpp"
+#include "../../Algos/Mads/PollMethodBase.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -60,8 +59,14 @@
 /**
  Generate the trial points (Poll::startImp), launch evaluation (Poll::runImp) and postprocecssing (Poll::endImp).
  */
-class Poll: public Step , public IterationUtils
+class Poll: public Step, public IterationUtils
 {
+private:
+    std::shared_ptr<PollMethodBase> _pollMethod; ///< Unlike for search, a single Poll method is executed
+#ifdef TIME_STATS
+    static double  _pollTime;        ///< Total time spent running the poll
+    static double  _pollEvalTime;    ///< Total time spent evaluating poll points
+#endif // TIME_STATS
 
 
 public:
@@ -86,7 +91,14 @@ public:
      */
     void generateTrialPoints() override ;
 
-    
+#ifdef TIME_STATS
+    /// Time stats
+    static std::vector<double> getPollTime()       { return _pollTime; }
+    static std::vector<double> getPollEvalTime()   { return _pollEvalTime; }
+#endif // TIME_STATS
+
+
+
 private:
     /// Helper for constructor
     void init();
@@ -96,37 +108,19 @@ private:
      Call to generate trial points and test for mesh precision
      */
     virtual void    startImp() override ;
-    
+
     /// Implementation for run tasks for MADS poll.
     /**
      Start trial points evaluation.
      \return Flag \c true if found better solution \c false otherwise.
      */
     virtual bool    runImp() override;
-    
+
     /// Implementation for end tasks for MADS poll.
     /**
      Call the IterationUtils::postProcessing of the points.
      */
     virtual void    endImp() override ;
-    
-    /*------------------------------*/
-    /* Private methods used by poll */
-    /*------------------------------*/
-    
-    /// Helper for Poll::generateTrialPoints
-    /**
-     - A single direction on unit n-sphere is computed (Poll::computeDirOnUnitSphere).
-     - This direction is transformed into 2n directions on a unit n-sphere using the householder transformation.
-     - The 2n directions are scaled and projected on the mesh.
-     
-     \param directions  The directions obtained for this poll -- \b OUT.
-     */
-    void setPollDirections(std::list<Direction> &directions) const;
-
-    /// Helper for Poll::generateTrialPoints
-    void householder(const Direction &dir, bool completeTo2n, Direction ** H) const;
-
 
 };
 

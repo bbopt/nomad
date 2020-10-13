@@ -46,9 +46,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "Algos/MainStep.hpp"
-#include "Eval/Evaluator.hpp"
-#include "Param/AllParameters.hpp"
+#include "Nomad/nomad.hpp"
 
 /*----------------------------------------*/
 /*               The problem              */
@@ -144,9 +142,9 @@ void initParams(NOMAD::AllParameters &p)
     p.getPbParams()->setAttributeValue("UPPER_BOUND", ub);
 
     // the algorithm terminates after MAX_BB_EVAL black-box evaluations, or MAX_EVAL total evaluations (including cache hits).
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", 1000);
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", 1000);
-    p.getEvaluatorControlParams()->setAttributeValue("BB_MAX_BLOCK_SIZE", (size_t)8);
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", 1000);
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_EVAL", 1000);
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("BB_MAX_BLOCK_SIZE", (size_t)8);
     // When using blocks, OpenMP is "disabled" - only one thread is used.
     p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP", 1);
 

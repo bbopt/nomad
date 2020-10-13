@@ -140,7 +140,7 @@ public:
     const Point* getX() const { return dynamic_cast<const Point*>(this); }
 
     /// Get the Eval part of this EvalPoint, using the right EvalType (BB or SGTE)
-    Eval* getEval(const EvalType& evalType = NOMAD::EvalType::BB) const;
+    Eval* getEval(const EvalType& evalType = EvalType::BB) const;
 
     /// Set the Eval part of this EvalPoint, using the right EvalType (BB or SGTE)
     void setEval(const Eval& eval, const EvalType& evalType);
@@ -152,13 +152,13 @@ public:
     static void clearEvalSgte(EvalPoint& evalPoint) { evalPoint.clearEvalSgte(); }
 
     /// Get the objective function value of Eval of this EvalType
-    Double getF(const EvalType& evalType = NOMAD::EvalType::BB) const;
+    Double getF(const EvalType& evalType = EvalType::BB) const;
 
     /// Set the objective function value of the Eval of this EvalType
     void setF(const Double f, const EvalType& evalType);
 
     /// Get the infeasibility measure of the Eval of this EvalType
-    Double getH(const EvalType& evalType = NOMAD::EvalType::BB) const;
+    Double getH(const EvalType& evalType = EvalType::BB) const;
 
     /// Set the infeasibility measure of the Eval of this EvalType
     void setH(const Double &h, const EvalType& evalType);
@@ -175,7 +175,7 @@ public:
     */
     void setBBO(const std::string &bbo,
                 const BBOutputTypeList &bboutputtypes,
-                const EvalType& evalType = NOMAD::EvalType::BB,
+                const EvalType& evalType = EvalType::BB,
                 const bool evalOk = true);
 
     /// Set the true or surrogate blackbox output from a \c string.
@@ -187,7 +187,7 @@ public:
      */
     void setBBO(const std::string &bbo,
                 const std::string &sBBOutputTypes,
-                const EvalType& evalType = NOMAD::EvalType::BB,
+                const EvalType& evalType = EvalType::BB,
                 const bool evalOk = true);
 
     /// Set the true or surrogate blackbox output.
@@ -197,7 +197,7 @@ public:
      \param evalOk          Flag for evaluation status  -- \b IN.
      */
     void setBBO(const BBOutput &bbo,
-                const EvalType& evalType = NOMAD::EvalType::BB,
+                const EvalType& evalType = EvalType::BB,
                 const bool evalOk = true);
 
     /// Get evaluation status of the Eval of this EvalType
@@ -210,7 +210,7 @@ public:
     void setTag(const size_t tag) const { _tag = tag; } ///< Sets mutable _tag
     void updateTag() const; ///< Modifies mutable _tag, and increments static _currentTag
     static void resetCurrentTag(); ///< Reset tag numbers: Use with caution. Expected to be used in unit tests  and runner only.
-    
+
     short getNumberEval() const { return _numberEval; }
     void setNumberEval(const short numEval) { _numberEval = numEval; }
     void incNumberEval() { _numberEval++; }
@@ -368,6 +368,12 @@ public:
     typedef std::set<EvalPoint, EvalPointCompare> EvalPointSet;
 #endif
 
+/// Definition for EvalPointList
+typedef std::vector<EvalPoint> EvalPointList;
+
+void convertPointListToSub(EvalPointList &evalPointList,  const Point& fixedVariable);
+void convertPointListToFull(EvalPointList &evalPointList, const Point& fixedVariable);
+
 
 #include "../nomad_nsend.hpp"
 
@@ -397,85 +403,5 @@ namespace std {
 }
 #endif // USE_UNORDEREDSET
 
-
-#include "../nomad_nsbegin.hpp"
-/// Definition for compute success type function.
-/**
- A function of this type compares two EvalPoints, and returns the SuccessType resulting from the comparison. The function is a member of ComputeSuccessType class and set using ComputeSuccessType::setComputeSuccessTypeFunction. \n For example, computing success type is changed when doing PhaseOne, or optimizing a surrogate instead of blackbox.
-*/
-typedef std::function<SuccessType(const EvalPointPtr &p1,
-                                  const EvalPointPtr &p2,
-                                  const Double& hMax)> ComputeSuccessFunction;
-
-class ComputeSuccessType
-{
-private:
-    /** The function to compute success type
-     * It needs to be static so that it is the same function used
-     * everywhere around the algorithm.
-     */
-    static ComputeSuccessFunction _computeSuccessType;
-
-public:
-
-    /// Constructor
-    ComputeSuccessType() {}
-
-    static void setComputeSuccessTypeFunction(const ComputeSuccessFunction &computeSuccessType)
-    {
-        _computeSuccessType = computeSuccessType;
-    }
-
-    /// Set default function for comparing EvalPoints, depending if the evaluation is surrogate or blackbox
-    static void setDefaultComputeSuccessTypeFunction(const EvalType& evalType);
-
-    /// Function call operator
-    /**
-     \param p1      First eval point -- \b IN.
-     \param p2      Second eval point -- \b IN.
-     \param hMax    Max acceptable infeasibility to keep point in barrier -- \b IN.
-     \return        Success type of p1 over p2, considering hMax
-     */
-    SuccessType operator()(const EvalPointPtr& p1,
-                           const EvalPointPtr& p2,
-                           const Double& hMax = INF);
-
-
-    /// Function for default compute
-    /**
-     \param evalPoint1 First eval queue point -- \b IN.
-     \param evalPoint2 Second eval queue point -- \b IN.
-     \param hMax       Max acceptable infeasibility to keep point in barrier   -- \b IN.
-     \return           Success type.
-     */
-    static SuccessType defaultComputeSuccessType(const EvalPointPtr& evalPoint1,
-                                                 const EvalPointPtr& evalPoint2,
-                                                 const Double& hMax = INF);
-
-    /// Function to compute success type when in PhaseOne.
-    /**
-     \param evalPoint   First eval queue point -- \b IN.
-     \param xInf        Second eval queue point -- \b IN.
-     \param hMax        Max acceptable infeasibility to keep point in barrier -- \b IN.
-     \return            Success type.
-     */
-    static SuccessType computeSuccessTypePhaseOne(
-                                const EvalPointPtr& evalPoint,
-                                const EvalPointPtr& xInf,
-                                const Double& hMax __attribute__((unused)));
-
-    /// Function to compute success type for a surrogate evaluation.
-    /**
-     \param evalPoint1  First eval queue point -- \b IN.
-     \param evalPoint2  Second eval queue point -- \b IN.
-     \param hMax        Max acceptable infeasibility to keep point in barrier   -- \b IN.
-     \return            Success type.
-     */
-    static SuccessType computeSuccessTypeSgte(const EvalPointPtr& evalPoint1,
-                                              const EvalPointPtr& evalPoint2,
-                                              const Double& hMax = INF);
-
-};
-#include "../nomad_nsend.hpp"
 
 #endif // __NOMAD400_EVALPOINT__

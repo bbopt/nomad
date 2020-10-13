@@ -55,25 +55,22 @@
 #ifndef __NOMAD400_MESHBASE__
 #define __NOMAD400_MESHBASE__
 
-#include <memory>
+#include <memory>   // for shared_ptr
 
-#include "AlgoStopReasons.hpp"
 #include "../Math/ArrayOfDouble.hpp"
 #include "../Math/Direction.hpp"
 #include "../Math/Point.hpp"
-
 #include "../Param/PbParameters.hpp"
-
-#include "../Algos/AlgoStopReasons.hpp"
+#include "../Util/AllStopReasons.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
 /// The generic class for meshes (discretization of design variables space).
 /**
  \note To be implemented by the derived mesh used by an algorithm.
- 
+
  \note This class encompasses the mesh discretization and the frame on it.
- 
+
  * In the algorithm, we have delta for mesh size parameter and
   Delta for frame size parameter. To avoid confusion in function calls,
   using deltaMeshSize and DeltaFrameSize in function names.
@@ -129,7 +126,7 @@ public:
     /// Enlarge frame size.
     /**
      * Update frame size (big Delta) after a success.
-    
+
      * The successful direction is used to ensure integrity of the mesh (no variable collapse).
 
      \param direction          The direction of success of the iteration       -- \b IN.
@@ -158,7 +155,7 @@ public:
      \return        The ratio frame/mesh size rho^k for index i.
      */
     virtual Double getRho(const size_t i) const = 0;
-    
+
     /// Access to the ratio of frame size / mesh size parameter rho^k.
     /**
      \return The ratio frame/mesh size rho^k.
@@ -171,8 +168,7 @@ public:
      \return        The mesh size parameter delta^k.
      */
     virtual Double getdeltaMeshSize(const size_t i) const = 0;
-    
-    
+
     /// Access to the mesh size parameter delta^k.
     /**
      \return The mesh size parameter delta^k.
@@ -185,13 +181,25 @@ public:
      \return        The frame size parameter Delta^k.
      */
     virtual Double getDeltaFrameSize(const size_t i) const = 0;
-    
+
     // Access to the frame size parameter Delta^k.
     /**
      \return The frame size parameter Delta^k.
      */
     virtual ArrayOfDouble getDeltaFrameSize() const;
 
+    // Access to the frame size one shift coarser than the actual frame size.
+    /**
+     \param i       Index of the dimension of interest -- \b IN.
+     \return        The frame size parameter Delta^k.
+     */
+    virtual Double getDeltaFrameSizeCoarser(const size_t i) const = 0;
+
+    // Access to the frame size one shift coarser than the actual frame size.
+    /**
+     \return The frame size parameter Delta^k.
+     */
+    virtual ArrayOfDouble getDeltaFrameSizeCoarser() const;
 
     /**
      Setting deltaMeshSize and DeltaFrameSize should be done together.
@@ -201,7 +209,7 @@ public:
     virtual void setDeltas(const size_t i,
                            const Double &deltaMeshSize,
                            const Double &deltaFrameSize) = 0;
-    
+
     /**
      Setting deltaMeshSize and DeltaFrameSize should be done together.
      This is easier and does not seem to be a constraint for
@@ -212,7 +220,6 @@ public:
 
     /// Scale and project the ith component of a vector on the mesh
     /**
-     
      \param i   The vector component number         -- \b IN.
      \param l   The vector component value          -- \b IN.
      \return    The ith component of a vector after mesh scaling and projection.

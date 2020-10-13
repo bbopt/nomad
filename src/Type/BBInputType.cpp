@@ -112,17 +112,17 @@ NOMAD::BBInputTypeList NOMAD::stringToBBInputTypeList(const std::string &s)
         {
             throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized string for NOMAD::BBInputType: " + s);
         }
-        
+
         aos.erase(arraysize-1);
         aos.erase(0);
         arraysize -= 2;
-        
+
         for (size_t i = 0; i < arraysize; i++)
         {
             bbInputType.push_back(NOMAD::stringToBBInputType(aos[i]));
         }
     }
-    
+
     // Manage the 'all of the same type (*)' situation
     if (s.find("*") < std::string::npos)
     {
@@ -132,15 +132,15 @@ NOMAD::BBInputTypeList NOMAD::stringToBBInputTypeList(const std::string &s)
         {
             ss+=aos[i];
         }
-        
+
         bbInputType.push_back(NOMAD::stringToBBInputType(ss));
     }
-    
+
     if (arraysize > 0 && bbInputType.size() == 0)
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized string for NOMAD::BBInputType: " + s);
     }
-    
+
     return bbInputType;
 }
 

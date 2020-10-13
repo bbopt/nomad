@@ -46,11 +46,14 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
-
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Algos/Mads/GMesh.hpp"
 #include "../../Algos/Mads/MadsInitialization.hpp"
+#include "../../Cache/CacheBase.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 
 void NOMAD::MadsInitialization::init()
@@ -61,6 +64,8 @@ void NOMAD::MadsInitialization::init()
 
 bool NOMAD::MadsInitialization::runImp()
 {
+    _initialMesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+
     bool doContinue = ! _stopReasons->checkTerminate();
 
     if (doContinue)
@@ -126,12 +131,13 @@ bool NOMAD::MadsInitialization::eval_x0s()
     auto x0s = _pbParams->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
 
     validateX0s();
-    auto evalType = getEvalType();
 
     // Add X0s that need evaluation to eval queue
     NOMAD::CacheInterface cacheInterface(this);
     NOMAD::EvcInterface evcInterface(this);
-    evcInterface.getEvaluatorControl()->lockQueue();
+    auto evc = evcInterface.getEvaluatorControl();
+    auto evalType = evc->getEvalType();
+    evc->lockQueue();
 
     NOMAD::EvalPointSet evalPointSet;
     for (size_t x0index = 0; x0index < x0s.size(); x0index++)
@@ -147,28 +153,22 @@ bool NOMAD::MadsInitialization::eval_x0s()
     evcInterface.keepPointsThatNeedEval(evalPointSet, false);   // false: no mesh
 
     // Enforce no opportunism.
-    auto evcParams = evcInterface.getEvaluatorControl()->getEvaluatorControlParams();
-    auto previousOpportunism = evcParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
-    evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", false);
-    evcParams->checkAndComply();
-
-    evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
+    auto previousOpportunism = evc->getOpportunisticEval();
+    evc->setOpportunisticEval(false);
+    evc->unlockQueue(false); // false: do not sort eval queue
 
     // Evaluate all x0s. Ignore returned success type.
     // Note: EvaluatorControl would not be able to compare/compute success since there is no barrier.
     evcInterface.startEvaluation();
 
     // Reset opportunism to previous values.
-    evcInterface.getEvaluatorControl()->lockQueue();
-    evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", previousOpportunism);
-    evcParams->checkAndComply();
-    evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
+    evc->setOpportunisticEval(previousOpportunism);
 
     bool x0Failed = true;
 
     // Construct barrier using points evaluated by this step.
     // The points are cleared from the EvaluatorControl.
-    auto evaluatedPoints = evcInterface.getAllEvaluatedPoints();
+    auto evaluatedPoints = evcInterface.retrieveAllEvaluatedPoints();
     std::vector<NOMAD::EvalPoint> evalPointX0s;
     for (auto x0 : x0s)
     {
@@ -179,13 +179,13 @@ bool NOMAD::MadsInitialization::eval_x0s()
 
         if (!x0Found)
         {
-            auto barrier = NOMAD::EvcInterface::getEvaluatorControl()->getBarrier();
+            auto barrier = evc->getBarrier();
             if (nullptr != barrier)
             {
                 // Look for x0 in EvaluatorControl barrier
                 x0Found = findInList(x0, barrier->getAllPoints(), evalPointX0);
             }
-            if (!x0Found && NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
+            if (!x0Found && evc->getUseCache())
             {
                 // Look for x0 in cache
                 x0Found = (cacheInterface.find(x0, evalPointX0) > 0);
@@ -227,7 +227,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
 
         // Construct barrier using x0s
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-        _barrier = std::make_shared<NOMAD::Barrier>(hMax, getSubFixedVariable(), getEvalType(), evalPointX0s);
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this), evalType, evalPointX0s);
     }
 
     NOMAD::OutputQueue::Flush();

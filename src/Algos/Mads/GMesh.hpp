@@ -143,8 +143,6 @@ private:
                               Double &frameSizeExp,
                               const Double &granularity) const;
 public:
-
-
     Double getRho(const size_t i) const override;
     ArrayOfDouble getRho() const override { return MeshBase::getRho(); }
 
@@ -153,17 +151,25 @@ public:
 private:
 
     /// Helper function
-    Double getdeltaMeshSize(const Double frameSizeExp,
-                                   const Double initFrameSizeExp,
-                                   const Double granularity) const;
+    Double getdeltaMeshSize(const Double& frameSizeExp,
+                            const Double& initFrameSizeExp,
+                            const Double& granularity) const;
 public:
 
     //
     // The documentation of overriden function is provided in the base class.
     //
 
-    Double getDeltaFrameSize(const size_t i) const override;
     ArrayOfDouble getDeltaFrameSize() const override;
+    Double getDeltaFrameSize(const size_t i) const override;
+    ArrayOfDouble getDeltaFrameSizeCoarser() const override;
+    Double getDeltaFrameSizeCoarser(const size_t i) const override;
+
+private:
+    /// Helper function
+    Double getDeltaFrameSize(const Double& granularity, const Double& frameSizeMant, const Double& frameSizeExp) const;
+
+public:
 
     void setDeltas(const ArrayOfDouble &deltaMeshSize,
                    const ArrayOfDouble &deltaFrameSize) override;
@@ -228,6 +234,8 @@ private:
      */
     int roundFrameSizeMant(const Double &mant);
 
+    /// Helper for enlargeDeltaFrameSize and getDeltaFrameSizeCoarser.
+    void getLargerMantExp(Double &frameSizeMant, Double &frameSizeExp) const;
 };
 
 

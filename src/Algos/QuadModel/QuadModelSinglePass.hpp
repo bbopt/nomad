@@ -48,9 +48,9 @@
 #ifndef __NOMAD400_QUAD_MODEL_SINGLE_PASS__
 #define __NOMAD400_QUAD_MODEL_SINGLE_PASS__
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/QuadModel/QuadModelIteration.hpp"
 #include "../../Algos/QuadModel/QuadModelIterationUtils.hpp"
-#include "../../Algos/Mads/MadsIteration.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -61,7 +61,7 @@
  */
 class QuadModelSinglePass final: public QuadModelIteration, public QuadModelIterationUtils
 {
-    
+
 public:
     /// Constructor
     /**
@@ -71,23 +71,23 @@ public:
      */
     explicit QuadModelSinglePass(const Step* parentStep,
                                  const std::shared_ptr<EvalPoint>& frameCenter,
-                                 const std::shared_ptr<NOMAD::MeshBase>& madsMesh)
+                                 const std::shared_ptr<MeshBase>& madsMesh)
       : QuadModelIteration(parentStep, frameCenter, 0, madsMesh),
         QuadModelIterationUtils(parentStep)
     {
         _stopReasons = std::make_shared<AlgoStopReasons<ModelStopType>>();
     }
     // No Destructor needed - keep defaults.
-    
+
     /// Implementation of start task. Nothing to do.
     void startImp() override {}
-    
+
     /// Implementation of run task. Nothing to do.
     bool runImp() override { return  false;}
-    
+
     /// Implementation of run task. Nothing to do.
     void endImp() override {}
-    
+
     /// Generate trial points
     /**
      - Update the quadratic model.

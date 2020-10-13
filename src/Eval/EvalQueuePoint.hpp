@@ -64,14 +64,14 @@
 
 
 /**
- *  Elements of the evalutaion queue:
+ *  Elements of the evaluation queue:
  * - evalPoint: Point to eval and its Eval. It is what goes in the cache.
  * - success: result of the comparison of evalPoint's eval with EvaluatorControl's barrier
  */
 class EvalQueuePoint : public EvalPoint
 {
 private:
-
+    const EvalType  _evalType;          ///< Must this point be evaluated by BB or by SGTE evaluator
     SuccessType     _success;           ///< Result of the comparison of evalPoint's eval with barrier
     bool            _relativeSuccess;   ///< Did better than the previous evaluation
 
@@ -80,33 +80,37 @@ private:
 
     ArrayOfDouble _meshSize; ///< Remenbers size of mesh that created point.
     ArrayOfDouble _frameSize; ///< Remenbers size of frame that created point.
-    
+
     // TODO Support Mesh Index
     //ArrayOfDouble _meshIndex();
 
     size_t _k; ///< The number of the iteration that generated this point. For sorting purposes.
+    int _threadAlgoNum; ///< Remembers the number of the main thread that created point.
 
 public:
-    
+
     /// Constructor
     /**
      \param evalPoint       The point to eval and its evaluation. It is what goes in the cache.-- \b IN.
      */
-    explicit EvalQueuePoint(const EvalPoint &evalPoint)
+    explicit EvalQueuePoint(const EvalPoint& evalPoint, const EvalType& evalType)
       : EvalPoint(evalPoint),
+        _evalType(evalType),
         _success(SuccessType::NOT_EVALUATED),
         _relativeSuccess(false),
         _comment(""),
         _genStep(""),
         _meshSize(),
         _frameSize(),
-        _k(0)
+        _k(0),
+        _threadAlgoNum(0)
     {}
-    
-    
+
+    const EvalType& getEvalType() const { return _evalType; }
+
     void setSuccess(const SuccessType success) { _success = success; }
-    SuccessType getSuccess() const { return _success; }
-    
+    const SuccessType& getSuccess() const { return _success; }
+
     void setRelativeSuccess(const bool relativeSuccess) { _relativeSuccess = relativeSuccess; }
     bool getRelativeSuccess() const { return _relativeSuccess; }
 
@@ -120,9 +124,12 @@ public:
     const ArrayOfDouble& getMeshSize() const { return _meshSize; }
     void setFrameSize(const ArrayOfDouble& frameSize) { _frameSize = frameSize; };
     const ArrayOfDouble& getFrameSize() const { return _frameSize; }
-    
+
     void setK(const size_t k) { _k = k; };
     size_t getK() const { return _k; }
+
+    void setThreadAlgo(const int threadAlgoNum) { _threadAlgoNum = threadAlgoNum; };
+    int getThreadAlgo() const { return _threadAlgoNum; }
 };
 
 /// Smart pointer to EvalQueuePoint
@@ -136,14 +143,14 @@ typedef std::vector<EvalQueuePointPtr> BlockForEval;
 class OrderByDirection
 {
 private:
-    static NOMAD::Direction _lastSuccessfulDir;
+    static Direction _lastSuccessfulDir;
 
 public:
     // Get/Set
-    static void setLastSuccessfulDir(const NOMAD::Direction& dir) { _lastSuccessfulDir = dir; }
-    static NOMAD::Direction& getLastSuccessfulDir() { return _lastSuccessfulDir; }
+    static void setLastSuccessfulDir(const Direction& dir) { _lastSuccessfulDir = dir; }
+    static Direction& getLastSuccessfulDir() { return _lastSuccessfulDir; }
 
-    static bool comp(NOMAD::EvalQueuePointPtr& point1, NOMAD::EvalQueuePointPtr& point2);
+    static bool comp(EvalQueuePointPtr& point1, EvalQueuePointPtr& point2);
 };
 
 
@@ -167,7 +174,7 @@ public:
 
     static void setComp(std::function<bool(EvalQueuePointPtr &p1, EvalQueuePointPtr &p2)> compFunction) { _comp = compFunction; }
 
-    /** Currently only compares iteration number (k). 
+    /** Currently only compares iteration number (k).
      \todo Return a basic default like tag comparison or lexicographical order.
      \param p1  First eval queue point -- \b IN.
      \param p2  Second eval queue point -- \b IN.

@@ -46,11 +46,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "Nomad/nomad.hpp"
 #include "Algos/EvcInterface.hpp"
-#include "Algos/MainStep.hpp"
-#include "Eval/Evaluator.hpp"
-#include "Param/AllParameters.hpp"
-
+#include "Cache/CacheBase.hpp"
 
 
 void initParams1(NOMAD::AllParameters &p)
@@ -70,8 +68,8 @@ void initParams1(NOMAD::AllParameters &p)
     upperBound[2] = 7.0;
     p.getPbParams()->setAttributeValue("UPPER_BOUND", upperBound);  // ( 5 6 7 - - )
 
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", size_t(1000));
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", size_t(1000));
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_EVAL", size_t(1000));
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", size_t(1000));
 
     p.getDispParams()->setAttributeValue("DISPLAY_DEGREE", 2);
     p.getDispParams()->setAttributeValue("DISPLAY_ALL_EVAL", true);
@@ -83,7 +81,7 @@ void initParams1(NOMAD::AllParameters &p)
     p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ PB EB"));
 
     p.getRunParams()->setAttributeValue("NM_OPTIMIZATION",true);
-    
+
     p.getRunParams()->setAttributeValue("HOT_RESTART_ON_USER_INTERRUPT", false);
     p.getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
     p.getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);

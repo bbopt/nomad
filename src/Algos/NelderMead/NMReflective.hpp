@@ -48,10 +48,8 @@
 #ifndef __NOMAD400_NMREFLECTIVE__
 #define __NOMAD400_NMREFLECTIVE__
 
-#include <set>
-
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
-
+#include "../../Algos/Step.hpp"
 #include "../../Eval/EvalPoint.hpp"
 
 #include "../../nomad_nsbegin.hpp"
@@ -75,7 +73,7 @@ private:
     Double _delta, _deltaE, _deltaOC, _deltaIC;
 
     EvalPoint _xr, _xe, _xoc, _xic;
-    
+
     std::vector<EvalPoint> _nmY0; ///< Vector of undominated points extracted from simplex (the simplex has a loose ordering-->tied points can exist).
     std::vector<EvalPoint> _nmYn;  ///< Vector of dominated points extracted from simplex (the simplex has a loose ordering-->tied points can exist).
 

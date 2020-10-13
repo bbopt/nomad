@@ -26,20 +26,22 @@ LH_DIRNAME          = $(COMPONENT_DIRNAME)/LatinHypercubeSampling
 MADS_DIRNAME        = $(COMPONENT_DIRNAME)/Mads
 NM_DIRNAME          = $(COMPONENT_DIRNAME)/NelderMead
 PHASEONE_DIRNAME    = $(COMPONENT_DIRNAME)/PhaseOne
-SGTELIBMODEL_DIRNAME= $(COMPONENT_DIRNAME)/SgtelibModel
 QUADMODEL_DIRNAME   = $(COMPONENT_DIRNAME)/QuadModel
+SGTELIBMODEL_DIRNAME = $(COMPONENT_DIRNAME)/SgtelibModel
+SSDMADS_DIRNAME     = $(COMPONENT_DIRNAME)/SSDMads
 
 LH_COMPONENT        = $(SRC_DIR)/$(LH_DIRNAME)
 MADS_COMPONENT      = $(SRC_DIR)/$(MADS_DIRNAME)
 NM_COMPONENT        = $(SRC_DIR)/$(NM_DIRNAME)
 PHASEONE_COMPONENT  = $(SRC_DIR)/$(PHASEONE_DIRNAME)
-SGTELIBMODEL_COMPONENT = $(SRC_DIR)/$(SGTELIBMODEL_DIRNAME)
 QUADMODEL_COMPONENT = $(SRC_DIR)/$(QUADMODEL_DIRNAME)
+SGTELIBMODEL_COMPONENT = $(SRC_DIR)/$(SGTELIBMODEL_DIRNAME)
+SSDMADS_COMPONENT   = $(SRC_DIR)/$(SSDMADS_DIRNAME)
 
-ALL_FILES           = Algorithm AlgoStopReasons AllStopReasons CacheInterface \
+ALL_FILES           = Algorithm AlgoStopReasons CacheInterface \
                       EvcInterface Initialization Iteration IterationUtils \
                       MainStep MegaIteration MeshBase Projection \
-                      Step Subproblem Termination
+                      Step Subproblem SubproblemManager Termination
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))
 ALL_HEADERS         = $(addsuffix .hpp, $(ALL_FILES))
 ALL_INCLUDE_HEADERS = $(addprefix $(INCLUDE_DIR)/$(COMPONENT_DIRNAME)/,$(ALL_HEADERS))
@@ -75,9 +77,10 @@ all: $(ALL_INCLUDE_HEADERS) $(ALL_OBJ)
 	@cd $(NM_COMPONENT) && $(MAKE) all
 	@cd $(PHASEONE_COMPONENT) && $(MAKE) all
 ifeq ($(USE_SGTELIB), 1)
-	@cd $(SGTELIBMODEL_COMPONENT) && $(MAKE) all
 	@cd $(QUADMODEL_COMPONENT) && $(MAKE) all
+	@cd $(SGTELIBMODEL_COMPONENT) && $(MAKE) all
 endif
+	@cd $(SSDMADS_COMPONENT) && $(MAKE) all
 	@echo
 
 $(OBJ_DIR)/%.o: %.cpp %.hpp
@@ -96,5 +99,6 @@ clean:
 	@cd $(MADS_COMPONENT) && $(MAKE) clean
 	@cd $(NM_COMPONENT) && $(MAKE) clean
 	@cd $(PHASEONE_COMPONENT) && $(MAKE) clean
-	@cd $(SGTELIBMODEL_COMPONENT) && $(MAKE) clean
 	@cd $(QUADMODEL_COMPONENT) && $(MAKE) clean
+	@cd $(SGTELIBMODEL_COMPONENT) && $(MAKE) clean
+	@cd $(SSDMADS_COMPONENT) && $(MAKE) clean

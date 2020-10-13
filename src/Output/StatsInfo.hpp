@@ -55,11 +55,9 @@
 #ifndef __NOMAD400_STATSINFO__
 #define __NOMAD400_STATSINFO__
 
-#include <iostream>
 #include <memory>   // For unique_ptr
 #include <vector>
 #include "../Math/ArrayOfDouble.hpp"
-#include "../Math/Double.hpp"
 #include "../Math/Point.hpp"
 #include "../Util/ArrayOfString.hpp"
 
@@ -97,6 +95,7 @@ enum class DisplayStatsType
     DS_FRAME_SIZE ,    ///< Frame size parameter Delta^f_k
     DS_DELTA_F    ,    ///< Same as \c DS_FRAME_SIZE
     DS_SOL        ,    ///< Solution vector
+    DS_THREAD_ALGO,    ///< Thread number for the algorithm 
     DS_THREAD_NUM ,    ///< Thread number in which this evaluation was done
     DS_GEN_STEP   ,    ///< Name of the step in which this point was generated
     //DS_VAR        ,    ///< One variable
@@ -138,6 +137,7 @@ private:
     size_t          _sgte;
     size_t          _totalSgte;
     Point           _sol;
+    int             _threadAlgoNum;
     int             _threadNum;
     bool            _relativeSuccess;   ///> Used for priting star, or when DISPLAY_ALL_EVAL is false.
     std::string     _comment;   ///> General comment, ex. Algorithm from where this point was generated.
@@ -178,6 +178,7 @@ public:
     void setSgte(const size_t sgte)                 { _sgte = sgte; }
     void setTotalSgte(const size_t totalSgte)       { _totalSgte = totalSgte; }
     void setSol(const Point sol)                    { _sol = sol; }
+    void setThreadAlgo(const int threadAlgoNum)     { _threadAlgoNum = threadAlgoNum; }
     void setThreadNum(const int threadNum)          { _threadNum = threadNum; }
     void setRelativeSuccess(bool relativeSuccess)   { _relativeSuccess = relativeSuccess; }
     void setComment(const std::string& comment)     { _comment = comment; }

@@ -46,10 +46,13 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
-#include "../../Algos/SgtelibModel/SgtelibModel.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelInitialization.hpp"
+#include "../../Cache/CacheBase.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 void NOMAD::SgtelibModelInitialization::init()
 {
@@ -152,7 +155,8 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     // Add X0s that need evaluation to eval queue
     NOMAD::CacheInterface cacheInterface(this);
     NOMAD::EvcInterface evcInterface(this);
-    evcInterface.getEvaluatorControl()->lockQueue();
+    auto evc = evcInterface.getEvaluatorControl();
+    evc->lockQueue();
 
     NOMAD::EvalPointSet evalPointSet;
     for (size_t x0index = 0; x0index < x0s.size(); x0index++)
@@ -168,29 +172,19 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     evcInterface.keepPointsThatNeedEval(evalPointSet, false);   // false: no mesh
 
     // Enforce no opportunism.
-    auto evcParams = evcInterface.getEvaluatorControl()->getEvaluatorControlParams();
-    auto previousOpportunism = evcParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
-    evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", false);
-    evcParams->checkAndComply();
+    auto previousOpportunism = evc->getOpportunisticEval();
+    evc->setOpportunisticEval(false);
 
-    evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
+    evc->unlockQueue(false); // false: do not sort eval queue
 
     // Evaluate all x0s. Ignore returned success type.
     // Note: EvaluatorControl would not be able to compare/compute success since there is no barrier.
-    // Sanity check
-    if (NOMAD::EvalType::BB != getEvalType())
-    {
-        throw NOMAD::Exception(__FILE__,__LINE__,"Sgte evaluation of X0 must be using blackbox");
-    }
     evcInterface.startEvaluation();
 
     // Reset opportunism to previous values.
-    evcInterface.getEvaluatorControl()->lockQueue();
-    evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", previousOpportunism);
-    evcParams->checkAndComply();
-    evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
+    evc->setOpportunisticEval(previousOpportunism);
 
-    auto evalPointList = evcInterface.getAllEvaluatedPoints();
+    auto evalPointList = evcInterface.retrieveAllEvaluatedPoints();
     for (auto x0 : x0s)
     {
         NOMAD::EvalPoint evalPoint_x0(x0);
@@ -212,7 +206,7 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     {
         // Construct barrier using x0s
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-        _barrier = std::make_shared<NOMAD::Barrier>(hMax, getSubFixedVariable(), getEvalType(), evalPointList);
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this), evc->getEvalType(), evalPointList);
     }
     else
     {

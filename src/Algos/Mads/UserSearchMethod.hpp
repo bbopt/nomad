@@ -60,14 +60,14 @@ public:
     /**
      \param parentStep      The parent of this search step -- \b IN.
      */
-    explicit UserSearchMethod(const Step* parentStep )
-      : SearchMethodSimple(parentStep )
+    explicit UserSearchMethod(const Step* parentStep)
+      : SearchMethodSimple(parentStep)
     {
         init();
     }
 
 private:
-    
+
     /// Helper for constructor
     void init();
 
@@ -77,7 +77,7 @@ private:
      */
     virtual void generateTrialPointsImp() override
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "User search not implemented.");
+        throw Exception(__FILE__, __LINE__, "User search not implemented.");
     };
 
 };

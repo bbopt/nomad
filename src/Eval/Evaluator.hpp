@@ -58,7 +58,6 @@
 
 #include "../Eval/BBOutput.hpp"
 #include "../Eval/EvalPoint.hpp"
-#include "../Math/Double.hpp"
 #include "../Param/EvalParameters.hpp"
 #include "../Type/EvalType.hpp"
 
@@ -78,9 +77,9 @@ class Barrier;
 /// Class for the evaluator
 /**
  * Evaluation of a point can be done by calling an external executable
- * (provided in BB_EXE parameter) or by redifining the evaluation function
+ * (provided in BB_EXE parameter) or by redefining the evaluation function
  * Evaluator::eval_x(). /n
- * To evaluate a block of points, the user must redifine Evaluator::eval_block() or make sure the external executable can evaluate all the provided points. /n
+ * To evaluate a block of points, the user must redefine Evaluator::eval_block() or make sure the external executable can evaluate all the provided points. /n
  *
  */
 class Evaluator
@@ -109,7 +108,7 @@ public:
      \param evalXDefined    Flag.
      */
     explicit Evaluator(const std::shared_ptr<EvalParameters> &evalParams,
-                       const EvalType evalType = NOMAD::EvalType::BB,
+                       const EvalType evalType = EvalType::BB,
                        int nbThreads = 0,
                        const EvalXDefined evalXDefined = EvalXDefined::EVAL_BLOCK_DEFINED_BY_USER);
 

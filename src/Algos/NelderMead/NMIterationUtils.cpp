@@ -46,19 +46,19 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
-#include "../../Algos/NelderMead/NMIteration.hpp"
 #include "../../Math/MatrixUtils.hpp"
-
+#include "../../Output/OutputQueue.hpp"
 
 void NOMAD::NMIterationUtils::setStopReason ( ) const
 {
     auto nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get ( _parentStep->getAllStopReasons() );
-    
+
     if ( nmStopReason == nullptr )
         throw NOMAD::Exception(__FILE__,__LINE__,"NMReflect must have a NM stop reason.");
-    
-    
+
+
     switch ( _currentStepType )
     {
         case NMStepType::REFLECT:
@@ -93,27 +93,27 @@ int NOMAD::NMIterationUtils::getRankDZ( ) const
 {
     if ( nullptr == _nmY )
         NOMAD::Exception(__FILE__, __LINE__, "The iteration utils must have a simplex to work with");
-    
+
     // The dimension of DZ (k) is related to Y
     size_t k = _nmY->size() - 1 ;
-    
+
     std::set<EvalPoint>::iterator itY = _nmY->begin();
-    
+
     const NOMAD::Point & y0 = (*itY);
     const size_t dim = y0.size();
-    
+
     // DZ : vector of yk-y0 (multidimensional array)
     double ** DZ = new double *[k];
     for (size_t i = 0 ; i < k ; ++i )
         DZ[i]=new double [dim];
-    
+
     // For debugging
     std::ostringstream outDbg;
     OUTPUT_DEBUG_START
     outDbg << "The rank of DZ=[";
     OUTPUT_DEBUG_END
-    
-    
+
+
     // Create DZ
     ++itY;
     size_t j=0;
@@ -134,22 +134,22 @@ int NOMAD::NMIterationUtils::getRankDZ( ) const
         OUTPUT_DEBUG_START
         outDbg << ")" ;
         OUTPUT_DEBUG_END
-        
+
     }
-    
+
     // Get the rank
     int rank= NOMAD::getRank(DZ , k , dim , _rankEps.todouble() );
-    
+
     OUTPUT_DEBUG_START
     outDbg << " ] equals " << rank;
-    
+
     NOMAD::OutputQueue::Add(outDbg.str(), NOMAD::OutputLevel::LEVEL_DEBUG);
     OUTPUT_DEBUG_END
-    
+
     for (size_t i=0 ; i < k ; ++i)
         delete [] DZ[i];;
     delete [] DZ;
-    
+
     return rank;
 }
 
@@ -159,38 +159,38 @@ void NOMAD::NMIterationUtils::updateYCharacteristics()
 {
     if ( nullptr == _nmY )
         NOMAD::Exception(__FILE__, __LINE__, "The iteration utils must have a simplex to work with");
-    
+
     // Update Y diameter
     // -----------------
     updateYDiameter();
-    
-    
+
+
     // Update Y volumes
     // ----------------
     _simplexVon = -1;
     _simplexVol = -1;
-    
+
     std::set<NOMAD::EvalPoint>::iterator it1 = _nmY->begin();
     const size_t dim = (*it1).size();
-    
+
     if ( _nmY->size() != dim + 1 )
         NOMAD::Exception(__FILE__, __LINE__, "Cannot get the volume of simplex Y when its dimension is not dimPb+1");
-    
+
     const NOMAD::Point * y0 = (*it1).getX(); // y0: first element of Y
-    
+
     if ( y0->size() != dim )
         NOMAD::Exception(__FILE__, __LINE__, "Cannot get the volume of simplex Y when dimension of an element is not dimPb");
-    
+
     // Update volume
     //---------------
-    
+
     // V : vector of yk-y0 ( for determinant, need square array (n x n) )
     double ** V = new double *[dim];
     for (size_t i = 0 ; i < dim ; i++ )
     {
         V[i] = new double [dim];
     }
-    
+
     int j = 0;
     ++it1; // Go the second element of Y
     while ( it1 != _nmY->end() )
@@ -201,24 +201,24 @@ void NOMAD::NMIterationUtils::updateYCharacteristics()
         }
         ++it1;
         j++;
-        
+
     }
-    
+
     // Get determinant of DZ
     double det;
-    
+
     bool success = NOMAD::getDeterminant(V, det , dim);
-    
+
     for ( size_t i = 0; i < dim ; i++ )
         delete [] V[i];
     delete [] V;
-    
+
     if ( success )
     {
         OUTPUT_DEBUG_START
         NOMAD::OutputQueue::Add("The determinant of the matrix: det( [(y1-y0) (y2-y0) ... (ynf-y0)] ) = " + std::to_string(det), NOMAD::OutputLevel::LEVEL_DEBUG);
         OUTPUT_DEBUG_END
-        
+
         double nfact = 1;
 
         // !n
@@ -226,9 +226,9 @@ void NOMAD::NMIterationUtils::updateYCharacteristics()
         {
             nfact*=i;
         }
-        
+
         _simplexVol = fabs(det) / nfact;  // Use fact(n) for volume
-        
+
         if ( _simplexDiam > 0 )
             _simplexVon = _simplexVol / pow(_simplexDiam,dim) ;
         else
@@ -255,7 +255,7 @@ void NOMAD::NMIterationUtils::updateYDiameter()
 {
     std::set<NOMAD::EvalPoint>::const_iterator it1;
     std::set<NOMAD::EvalPoint>::iterator it2;
-    
+
     _simplexDiam = 0;
     for (it1 = _nmY->begin(); it1 != _nmY->end(); ++it1)
     {
@@ -265,7 +265,7 @@ void NOMAD::NMIterationUtils::updateYDiameter()
         {
             const NOMAD::Direction DZ((*it1) - (*it2));
             const double lengthDZ = DZ.norm().todouble();
-            
+
             if ( lengthDZ > _simplexDiam )
             {
                 _simplexDiam = lengthDZ;
@@ -275,7 +275,7 @@ void NOMAD::NMIterationUtils::updateYDiameter()
             ++it2;
         }
     }
-    
+
     return ;
 }
 
@@ -286,29 +286,29 @@ void NOMAD::NMIterationUtils::displayYInfo()const
 {
     if ( nullptr == _nmY )
         NOMAD::Exception(__FILE__, __LINE__, "The iteration utils must have a simplex to work with");
-    
+
     OUTPUT_DEBUG_START
     NOMAD::OutputInfo dbgInfo("NM iteration utils", "", NOMAD::OutputLevel::LEVEL_DEBUG );
-    
+
     OUTPUT_INFO_START
     _parentStep->AddOutputInfo("Number of points in the simplex Y: " + std::to_string(_nmY->size()) );
     OUTPUT_INFO_END
-    
+
     if ( _simplexVol > 0 )
         dbgInfo.addMsg("The volume of the simplex: " + std::to_string( _simplexVol ) );
     else
         dbgInfo.addMsg("WARNING: Evaluation of the simplex volume failed.");
-    
+
     if ( _simplexDiam > 0 )
         dbgInfo.addMsg("The diameter of the simplex: " + std::to_string( _simplexDiam ) );
     else
         dbgInfo.addMsg( "WARNING: Evaluation of the simplex diameter failed.");
-    
+
     if ( _simplexVon > 0 )
         dbgInfo.addMsg("The normalized volume of the simplex: " + std::to_string( _simplexVon ) );
     else
         dbgInfo.addMsg( "WARNING: Evaluation of the simplex normalized volume failed." );
-    
+
     std::set<NOMAD::EvalPoint>::iterator itY;
     dbgInfo.addMsg("The simplex Y contains: ");
     for (itY =_nmY->begin(); itY != _nmY->end(); ++itY)
@@ -316,8 +316,8 @@ void NOMAD::NMIterationUtils::displayYInfo()const
         dbgInfo.addMsg( (*itY).display()) ;
     }
     getRankDZ();
-    
-    
+
+
     NOMAD::OutputQueue::Add(std::move(dbgInfo));
     NOMAD::OutputQueue::Flush();
     OUTPUT_DEBUG_END

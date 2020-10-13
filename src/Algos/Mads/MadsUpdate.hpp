@@ -48,8 +48,6 @@
 #ifndef __NOMAD400_MADSUPDATE__
 #define __NOMAD400_MADSUPDATE__
 
-#include "../../Algos/Mads/Mads.hpp"
-
 #include "../../Algos/Step.hpp"
 
 #include "../../nomad_nsbegin.hpp"
@@ -62,21 +60,21 @@ class MadsUpdate: public Step
 {
 public:
     // Constructor
-    explicit MadsUpdate(const Step* parentStep )
-      : Step(parentStep )
+    explicit MadsUpdate(const Step* parentStep)
+      : Step(parentStep)
     {
         init();
     }
 
 
 private:
-    
+
     /// Helper for constructor to check for valid ancestor.
     void init();
 
     /// No implementation is required for start.
     virtual void    startImp() override {}
-    
+
     /// Implementation of the run tasks.
     /**
      Gets the best feasible point (xFeas) and best infeasible point (xInf)
@@ -87,10 +85,10 @@ private:
      accordingly.
      */
     virtual bool    runImp()   override;
-    
+
     /// No implementation is required for start.
     virtual void    endImp()   override {}
-    
+
 };
 
 #include "../../nomad_nsend.hpp"

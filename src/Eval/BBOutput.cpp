@@ -117,7 +117,7 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getConstraints(const NOMAD::BBOutputTypeLi
 {
     NOMAD::ArrayOfString array(_rawBBO);
     NOMAD::ArrayOfDouble constraints;
-    
+
     if (checkSizeMatch(bbOutputType))
     {
         for (size_t i = 0; i < array.size(); i++)
@@ -132,7 +132,7 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getConstraints(const NOMAD::BBOutputTypeLi
             }
         }
     }
-    
+
     return constraints;
 }
 
@@ -141,7 +141,7 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getBBOAsArrayOfDouble() const
 {
     NOMAD::ArrayOfString array(_rawBBO);
     NOMAD::ArrayOfDouble bbo ( array.size() );
-    
+
     for (size_t i = 0; i < array.size(); i++)
     {
         NOMAD::Double d;

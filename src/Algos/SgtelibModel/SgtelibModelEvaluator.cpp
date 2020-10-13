@@ -46,11 +46,11 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/SgtelibModel/SgtelibModelEvaluator.hpp"
-
-#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
+#include "../../Algos/SgtelibModel/SgtelibModelEvaluator.hpp"
+#include "../../Output/OutputQueue.hpp"
 #include "../../Type/SgtelibModelFormulationType.hpp"
+
 #include "../../../ext/sgtelib/src/Surrogate.hpp"
 
 // Constructor
@@ -521,7 +521,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
 void NOMAD::SgtelibModelEvaluator::evalH(const NOMAD::ArrayOfDouble& bbo,
                                          const NOMAD::BBOutputTypeList& bbot,
                                          NOMAD::Double &h)
-{   
+{
     // Note: This method must be reviewed if new BBOutputTypes are added.
 
     const auto hMin = 0.0; // H_MIN not implemented
@@ -549,7 +549,7 @@ void NOMAD::SgtelibModelEvaluator::evalH(const NOMAD::ArrayOfDouble& bbo,
                     h = +INF;
                     return;
                 }
-            } 
+            }
             else if (bbot[i] == NOMAD::BBOutputType::PB)
             {
                if ( bboi > hMin )

@@ -109,15 +109,6 @@ public:
     }
 
 
-    /// Destructor
-    /**
-     When iteration is done, Flush prints output queue.
-     */
-    virtual ~NMIteration()
-    {
-        OutputQueue::Flush();
-    }
-
     // Get/Set
 
     const std::shared_ptr<EvalPoint> getFrameCenter() const override { return _simplexCenter ; }

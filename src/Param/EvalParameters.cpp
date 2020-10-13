@@ -45,12 +45,10 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#include "../Math/RNG.hpp"
+
 #include "../Param/EvalParameters.hpp"
-
-#include <iomanip>  // For std::setprecision
-
-
+#include "../Type/BBOutputType.hpp"
+#include "../Util/fileutils.hpp"
 
 /*----------------------------------------*/
 /*         initializations (private)      */
@@ -63,7 +61,7 @@ void NOMAD::EvalParameters::init()
     {
         #include "../Attribute/evalAttributesDefinition.hpp"
         registerAttributes( _definition );
-        
+
     }
     catch ( NOMAD::Exception & e)
     {
@@ -85,7 +83,7 @@ void NOMAD::EvalParameters::checkAndComply( const std::shared_ptr<NOMAD::RunPara
         // Early out
         return;
     }
-    
+
     // Update BB_EXE if it was set by user:
     // - Set full path
     // - Remove '$' indicating a global call (e.g. python, perl)
@@ -121,7 +119,7 @@ void NOMAD::EvalParameters::checkAndComply( const std::shared_ptr<NOMAD::RunPara
             throw NOMAD::Exception(__FILE__, __LINE__, "BB_EXE needs to be an executable file: " + bbExe);
         }
     }
-    
+
     // The default value is empty: set a single OBJ
     auto bbOType = getAttributeValueProtected<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE", false);
     if ( bbOType.size() == 0 )
@@ -130,9 +128,9 @@ void NOMAD::EvalParameters::checkAndComply( const std::shared_ptr<NOMAD::RunPara
         setAttributeValue("BB_OUTPUT_TYPE", bbOType );
     }
 
-    
+
     _toBeChecked = false;
-    
+
 }
 // End checkAndComply()
 

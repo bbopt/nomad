@@ -48,8 +48,8 @@
 #ifndef __NOMAD400_MEGAITERATION__
 #define __NOMAD400_MEGAITERATION__
 
-
 #include "../Algos/Iteration.hpp"
+#include "../Algos/Step.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -70,7 +70,7 @@
   It is also preferable to keep parallelization to the only place where
   it matters the most to avoid errors. \n
   There is no parallelization at the algorithmic level.
-  The algorithms are run in master thread only.
+  The algorithms are run in main thread(s) only; other threads are available for evaluations.
 */
 class MegaIteration: public Step
 {
@@ -89,7 +89,7 @@ protected:
 
     size_t _k;          ///< Main counter
     size_t _nbIterRun;  ///< Number of iterations run within this MegaIteration
-    
+
     /**
      Success type of this step. Initialized with the run of the previous
      mega iteration, so that the update step knows what to do
@@ -148,19 +148,19 @@ public:
     /*---------*/
     /* Others  */
     /*---------*/
-    
+
     virtual void read(std::istream& is);
     virtual void display(std::ostream& os) const ;
 
 private:
     /// Helper for constructor
     void init();
-  
+
 protected:
-    
+
     virtual void startImp()    override = 0;
     virtual bool runImp()      override = 0;
-    
+
     /// Implementation of the end task.
     /**
      Perform callback check for user termination and clear the iteration list.

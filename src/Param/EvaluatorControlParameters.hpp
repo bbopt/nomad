@@ -53,7 +53,7 @@
 
 #include "../nomad_nsbegin.hpp"
 
-/// The class for all Cache parameters.
+/// The class for EvaluatorControl parameters that may be different between main threads.
 /**
 - Register all parameters during construction.
 - Implement the checkAndComply function for sanity check.
@@ -67,12 +67,12 @@ public:
     {
         init();
     }
-    
+
     /// Check the sanity of parameters.
     void checkAndComply( );
-    
+
 private:
-    
+
     /// Helper for constructor
     /**
      Register and set default values for all evaluator control attributes. The information to register all the attributes is contained in evaluatorControlAttributesDefinition.hpp as a set of strings to be interpreted. This file is created by the writeAttributeDefinition executable, called automatically by makefile when the evaluatorControlAttributeDefinition.txt file is modified.

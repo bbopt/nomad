@@ -48,6 +48,7 @@
 
 #include "../Math/LHS.hpp"
 #include "../Math/RNG.hpp"
+#include "../Math/RandomPickup.hpp"
 #include "../Util/Exception.hpp"
 
 #include <algorithm>    // for shuffle
@@ -57,13 +58,11 @@
 NOMAD::LHS::LHS(size_t n,
                 size_t p,
                 NOMAD::ArrayOfDouble lowerBound,
-                NOMAD::ArrayOfDouble upperBound,
-                int seed)
+                NOMAD::ArrayOfDouble upperBound)
 :   _n(n),
     _p(p),
     _lowerBound(lowerBound),
-    _upperBound(upperBound),
-    _seed(seed)
+    _upperBound(upperBound)
 {
     if (!_lowerBound.isComplete())
     {
@@ -77,8 +76,6 @@ NOMAD::LHS::LHS(size_t n,
         s += upperBound.display();
         throw NOMAD::Exception(__FILE__, __LINE__, s);
     }
-
-    std::srand(_seed);
 }
 
 
@@ -126,13 +123,13 @@ std::vector<NOMAD::Point> NOMAD::LHS::Sample() const
 // Output: Random permutation of the vector (1, 2, .., p)
 std::vector<size_t> NOMAD::LHS::Permutation(const size_t p)
 {
-    std::vector<size_t> v;
-    for (size_t j = 1; j <= p; j++)
-    {
-        v.push_back(j);
-    }
+    NOMAD::RandomPickup rp(p);
 
-    std::shuffle(v.begin(), v.end(), NOMAD::RNG());
+    std::vector<size_t> v;
+    for (size_t j = 0; j < p ; j++)
+    {
+        v.push_back(rp.pickup()+1);
+    }
 
     return v;
 }

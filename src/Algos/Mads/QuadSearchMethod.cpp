@@ -47,10 +47,10 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/Mads/MadsIteration.hpp"
-#include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/QuadSearchMethod.hpp"
+#include "../../Algos/QuadModel/QuadModelAlgo.hpp"
+#include "../../Output/OutputQueue.hpp"
 
-#include "../../../ext/sgtelib/src/Surrogate_Factory.hpp"
 //
 // Reference: File Sgtelib_Model_Search.cpp in NOMAD 3.9.1
 // Author: Bastien Talgorn
@@ -62,7 +62,7 @@ void NOMAD::QuadSearchMethod::init()
     verifyParentNotNull();
 
     const auto parentSearch = getParentStep()->getParentOfType<NOMAD::QuadSearchMethod*>(false);
-    
+
     setEnabled((nullptr == parentSearch) && _runParams->getAttributeValue<bool>("QUAD_MODEL_SEARCH"));
 #ifndef USE_SGTELIB
     if (isEnabled())
@@ -94,10 +94,7 @@ void NOMAD::QuadSearchMethod::init()
             OUTPUT_INFO_END
             setEnabled(false);
         }
-    }
 
-    if (isEnabled())
-    {
         auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
         _displayLevel = modelDisplay.empty()
                             ? NOMAD::OutputLevel::LEVEL_DEBUGDEBUG
@@ -105,7 +102,7 @@ void NOMAD::QuadSearchMethod::init()
     }
 #endif
 }
- 
+
 
 void NOMAD::QuadSearchMethod::generateTrialPointsImp()
 {
@@ -114,18 +111,18 @@ void NOMAD::QuadSearchMethod::generateTrialPointsImp()
     if ( ! _stopReasons->checkTerminate() )
     {
         auto madsIteration = getParentOfType<MadsIteration*>();
-        
+
         // MegaIteration's barrier member is already in sub dimension.
         auto bestXFeas = madsIteration->getMegaIterationBarrier()->getFirstXFeas();
         auto bestXInf  = madsIteration->getMegaIterationBarrier()->getFirstXInf();
-        
+
         if (nullptr != bestXFeas)
         {
             NOMAD::QuadModelSinglePass singlePassFeas(this, bestXFeas, madsIteration->getMesh());
-            
+
             // Generate the trial points
             singlePassFeas.generateTrialPoints();
-            
+
             // Pass the generated trial pts to this
             auto trialPtsSinglePassFeas = singlePassFeas.getTrialPoints();
             for (auto point : trialPtsSinglePassFeas)
@@ -136,7 +133,7 @@ void NOMAD::QuadSearchMethod::generateTrialPointsImp()
         if (nullptr != bestXInf)
         {
             NOMAD::QuadModelSinglePass singlePassInf(this, bestXInf, madsIteration->getMesh());
-            
+
             // Generate the trial points
             singlePassInf.generateTrialPoints();
 

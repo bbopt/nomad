@@ -52,7 +52,7 @@
 
 void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
                           const NOMAD::EvalType& evalType,
-                          const std::vector<EvalPoint> evalPointList)
+                          const std::vector<EvalPoint>& evalPointList)
 {
     std::vector<NOMAD::EvalPoint> cachePoints;
 
@@ -82,6 +82,8 @@ void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
 
     // Constructor's call to update should not update ref best points.
     updateWithPoints(evalPointList, evalType, true);    // true: keep all points
+
+    setN();
 
 
     // Check: xFeas or xInf could be non-evaluated, but not both.
@@ -117,6 +119,35 @@ void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
     }
 
     checkHMax();
+}
+
+
+void NOMAD::Barrier::setN()
+{
+    bool isSet = (0 != _n);
+    std::string s;
+
+    for (auto evalPoint : getAllPoints())
+    {
+        if (!isSet)
+        {
+            _n = evalPoint.size();
+            isSet = true;
+        }
+        else if (evalPoint.size() != _n)
+        {
+            s = "Barrier has points of size " + std::to_string(_n) + " and of size ";
+            s += std::to_string(evalPoint.size());
+            throw NOMAD::Exception(__FILE__, __LINE__, s);
+        }
+    }
+    if (!isSet)
+    {
+        s = "Barrier could not set point size";
+        throw NOMAD::Exception(__FILE__, __LINE__, s);
+    }
+
+
 }
 
 
@@ -274,6 +305,19 @@ bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalP
 
     for (auto evalPoint : evalPointList)
     {
+        // All points should be of the same size inside a Barrier.
+        if (0 == _n)
+        {
+            //Set _n
+            _n = evalPoint.size();
+        }
+        else if (evalPoint.size() != _n)
+        {
+            s = "Barrier update: Barrier points are of dimension " + std::to_string(_n);
+            s += ". Trying to add this point of dimension " + std::to_string(evalPoint.size());
+            s += ": " + evalPoint.display();
+            throw NOMAD::Exception(__FILE__, __LINE__, s);
+        }
         OUTPUT_DEBUG_START
         s = "Point suggested to update barrier: " + evalPoint.display();
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
@@ -472,8 +516,8 @@ std::string NOMAD::Barrier::display(const size_t max) const
 
     for (auto xFeas : allXFeas)
     {
-        s += "X_FEAS " + xFeas.display() + "\n";
-        nbXFeas++; 
+        s += "X_FEAS " + xFeas.displayAll() + "\n";
+        nbXFeas++;
         if (nbXFeas >= max && allXFeas.size() > max)
         {
             s += "... (total " + std::to_string(allXFeas.size()) + ")\n";
@@ -482,8 +526,8 @@ std::string NOMAD::Barrier::display(const size_t max) const
     }
     for (auto xInf : allXInf)
     {
-        s += "X_INF " + xInf.display() + "\n"; 
-        nbXInf++; 
+        s += "X_INF " + xInf.displayAll() + "\n";
+        nbXInf++;
 
         if (nbXInf >= max && allXInf.size() > max)
         {
@@ -492,8 +536,8 @@ std::string NOMAD::Barrier::display(const size_t max) const
         }
     }
     s += "H_MAX " + getHMax().tostring() + "\n";
-    s += "Ref Best Feasible:   " + (_refBestFeas ? _refBestFeas->display() : "NULL") + "\n";
-    s += "Ref Best Infeasible: " + (_refBestInf ? _refBestInf->display() : "NULL") + "\n";
+    s += "Ref Best Feasible:   " + (_refBestFeas ? _refBestFeas->displayAll() : "NULL") + "\n";
+    s += "Ref Best Infeasible: " + (_refBestInf ? _refBestInf->displayAll() : "NULL") + "\n";
 
 
     return s;

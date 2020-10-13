@@ -48,6 +48,7 @@
 
 #include "Algos/EvcInterface.hpp"
 #include "Algos/MainStep.hpp"
+#include "Cache/CacheBase.hpp"
 #include "Eval/Evaluator.hpp"
 #include "Param/AllParameters.hpp"
 
@@ -73,8 +74,8 @@ void initParams1(NOMAD::AllParameters &p)
     NOMAD::ArrayOfDouble granularity(n, 0.01);
     p.getPbParams()->setAttributeValue("GRANULARITY", granularity);
 
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", size_t(1000));
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", size_t(1000));
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_EVAL", size_t(1000));
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", size_t(1000));
 
     p.getDispParams()->setAttributeValue("DISPLAY_DEGREE", 2);
     p.getDispParams()->setAttributeValue("DISPLAY_ALL_EVAL", false);
@@ -126,8 +127,8 @@ void initParams2(NOMAD::AllParameters &p, const NOMAD::Point& x0)
     fixedVariable[3] = x0[3];
     p.getPbParams()->setAttributeValue("FIXED_VARIABLE", fixedVariable);
 
-    //p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", 2000);
-    //p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", 2000);
+    //p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_EVAL", 2000);
+    //p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", 2000);
 
     // parameters validation
     p.checkAndComply();

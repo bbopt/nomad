@@ -48,9 +48,8 @@
 #ifndef __NOMAD400_MEGASEARCHPOLL__
 #define __NOMAD400_MEGASEARCHPOLL__
 
-#include "../../Algos/Mads/MadsIteration.hpp"
-
 #include "../../Algos/IterationUtils.hpp"
+#include "../../Algos/Mads/MadsIteration.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -60,7 +59,7 @@
  Calling the run function starts the evaluaions.
  The postprocessing is performed when calling the end funcion.
  */
-class MegaSearchPoll: public Step , public IterationUtils
+class MegaSearchPoll: public Step, public IterationUtils
 {
 private:
     /**
@@ -96,21 +95,21 @@ public:
     const std::shared_ptr<MadsIteration> getIterForPoint(const EvalPoint& point) const;
 
 private:
-    
+
     /// Generate the trial poins for the search and poll steps.
     /**
      Call MegaSearchPoll::generateTrialPoints.
      */
     virtual void    startImp() override;
-    
+
     ///Start evaluations
     virtual bool    runImp() override;
-    
+
     /**
      Call for postprocessing: computation of a new hMax and update of the barrier.
      */
     virtual void    endImp() override ;
-    
+
     void init();
 
     /// Generate new points to evaluate
@@ -119,7 +118,7 @@ private:
      */
     void generateTrialPoints() override ;
 
-    
+
 };
 
 #include "../../nomad_nsend.hpp"

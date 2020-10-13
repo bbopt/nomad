@@ -46,14 +46,12 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include <sstream>
-
-#include "../../Algos/Mads/GMesh.hpp"
+//#include "../../Algos/Mads/GMesh.hpp" // Code using GMesh is commented out
+#include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/MadsUpdate.hpp"
 #include "../../Algos/Mads/MegaSearchPoll.hpp"
-
-#include "../../Algos/EvcInterface.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 
 void NOMAD::MadsMegaIteration::init()

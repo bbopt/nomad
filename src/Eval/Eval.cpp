@@ -88,15 +88,15 @@ NOMAD::Eval::Eval(std::shared_ptr<NOMAD::EvalParameters> params,
     _bbOutput(bbOutput)
 {
     auto bbOutputType = params->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
-    
-    
+
+
     // Note: if bbOutput is not eval_ok, then _f and _h end up undefined Doubles.
     _f = computeF(bbOutputType);
-    
+
     // Set H
-    setH (_computeH(*this, bbOutputType));    
+    setH (_computeH(*this, bbOutputType));
     _toBeRecomputed = false;
-    
+
     if (_bbOutput.getEvalOk() && _f.isDefined())
     {
         _evalStatus = NOMAD::EvalStatusType::EVAL_OK;
@@ -145,20 +145,20 @@ NOMAD::Double NOMAD::Eval::defaultComputeH(const NOMAD::Eval& eval, const NOMAD:
 
     if (eval.getBBOutput().getEvalOk())
     {
-        
+
         size_t bboIndex = 0;
         for (auto bbOutputType : bbOutputTypeList)
         {
-            
+
             if ( NOMAD::BBOutputTypeIsConstraint(bbOutputType) )
             {
- 
+
                 /// The computeHComponent function has default version using cons*cons for PB constraint.
                 /// The default function can be replaced by a custom one using the Eval::setComputeHComponent static function.
                 NOMAD::Double hComp = _computeHComponent(bbOutputType , bboIndex, bbo[bboIndex]);
-                
+
                 /// Aggregate the H component for a given constraint to H.
-                
+
                 // Violated Extreme Barrier constraint:
                 // Set h to infinity and break.
                 if (NOMAD::INF == hComp)
@@ -178,7 +178,7 @@ NOMAD::Double NOMAD::Eval::defaultComputeH(const NOMAD::Eval& eval, const NOMAD:
 
     // Failsafe: If at least one PB constraint is positive, h must be set
     // to at least epsilon so that the Eval is recognized as infeasible.
-    // Catch cases such as constraint violated by 1e-8, which gives h = 1e-16 
+    // Catch cases such as constraint violated by 1e-8, which gives h = 1e-16
     // which is considered as 0.
     if (hPos && (0 == h))
     {
@@ -198,7 +198,7 @@ NOMAD::Double NOMAD::Eval::defaultComputeHComponent( const NOMAD::BBOutputType &
         std::string str = "H component must be computed from BB output that is a constraint";
         throw NOMAD::Exception(__FILE__, __LINE__, str);
     }
-    
+
     NOMAD::Double h = 0.0;
     if (bbo > 0)
     {
@@ -211,7 +211,7 @@ NOMAD::Double NOMAD::Eval::defaultComputeHComponent( const NOMAD::BBOutputType &
             h = bbo * bbo;
         }
     }
-    
+
     return h;
 }
 
@@ -467,9 +467,9 @@ bool NOMAD::Eval::compEvalFindBest(const NOMAD::Eval &eval1, const NOMAD::Eval &
 }
 
 
-NOMAD::SuccessType NOMAD::Eval::defaultComputeSuccessType(const Eval* eval1,
-                                                          const Eval* eval2,
-                                                          const Double& hMax)
+NOMAD::SuccessType NOMAD::Eval::defaultComputeSuccessType(const NOMAD::Eval* eval1,
+                                                          const NOMAD::Eval* eval2,
+                                                          const NOMAD::Double& hMax)
 {
     // NOT_EVALUATED,      // Not evaluated yet
     // UNSUCCESSFUL,       // Failure

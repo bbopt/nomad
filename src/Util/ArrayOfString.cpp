@@ -185,7 +185,7 @@ bool NOMAD::ArrayOfString::operator== (const NOMAD::ArrayOfString &array) const
 std::string NOMAD::ArrayOfString::display() const
 {
     std::string s;
-    
+
     if ( size() == 0 )
         s += " - ";
 
@@ -212,12 +212,12 @@ NOMAD::ArrayOfString::splitString(const std::string & inputString,
                                   const std::string & separators)
 {
     std::vector<std::string> array;
-    
+
     if (inputString.size() == 0)
     {
         return array;
     }
-    
+
     size_t splitIndex = 0, index1 = 0, length;
 
     // Fill array with strings found in inputString.

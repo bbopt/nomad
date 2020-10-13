@@ -53,8 +53,8 @@
  \see    CacheSet.hpp
  */
 #include "../Cache/CacheSet.hpp"
-#include "../Math/Point.hpp"
 #include "../Output/OutputQueue.hpp"
+#include "../Util/fileutils.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -206,7 +206,6 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
                                   const short maxNumberEval,
                                   const EvalType& evalType)
 {
-    
     verifyPointComplete(evalPoint);
     verifyPointSize(evalPoint);
 
@@ -243,8 +242,8 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
         // Point already inserted, but not evaluated.
         // NOTE: We do not know if this point is in the evaluation queue yet, or not.
         // We do not know here if the evaluation queue is cleared between runs.
-        // TODO: Clear this out. For now, set doEval to true, but this could
-        // mean that the point is evaluated twice.
+        // If doEval is set to true, the point could be evaluated twice.
+        // If doEval is set to false, there might be cases where it is not evaluated at all.
 
         // Only warn outside of sgte context.
         if (NOMAD::EvalType::BB == evalType)
@@ -300,7 +299,7 @@ size_t NOMAD::CacheSet::find(const NOMAD::Point x, std::vector<NOMAD::EvalPoint>
 
 
 size_t NOMAD::CacheSet::find(const NOMAD::Eval &refeval,
-                             bool (*comp)(const NOMAD::Eval&, const NOMAD::Eval&),
+                             std::function<bool(const NOMAD::Eval&, const NOMAD::Eval&)> comp,
                              std::vector<NOMAD::EvalPoint> &evalPointList,
                              const EvalType& evalType) const
 {
@@ -325,7 +324,7 @@ size_t NOMAD::CacheSet::find(const NOMAD::Eval &refeval,
 
 
 // Get best eval points, using comp()
-size_t NOMAD::CacheSet::findBest(bool (*comp)(const NOMAD::Eval&, const NOMAD::Eval&),
+size_t NOMAD::CacheSet::findBest( std::function<bool(const NOMAD::Eval&, const NOMAD::Eval&)> comp,
                      std::vector<NOMAD::EvalPoint> &evalPointList,
                      const bool findFeas,
                      const NOMAD::Double& hMax,
@@ -435,10 +434,10 @@ size_t NOMAD::CacheSet::findBestInf(std::vector<NOMAD::EvalPoint> &evalPointList
 
 
 
-size_t NOMAD::CacheSet::find(NOMAD::Point X,
-                 NOMAD::Double distance,
-                 std::vector<NOMAD::EvalPoint> &evalPointList,
-                 int maxEvalPoints) const
+size_t NOMAD::CacheSet::find(const NOMAD::Point & X,
+                             std::function<bool(const NOMAD::Point&, const NOMAD::EvalPoint &)> crit,
+                             std::vector<NOMAD::EvalPoint> &evalPointList,
+                             int maxEvalPoints) const
 {
     verifyPointComplete(X);
     verifyPointSize(X);
@@ -463,7 +462,7 @@ size_t NOMAD::CacheSet::find(NOMAD::Point X,
             continue; // Points are in different dimensions -skip.
         }
 
-        if (NOMAD::Point::dist(X, *it) <= distance)
+        if (crit(X, *it))
         {
             NOMAD::EvalPoint evalPoint(*it);
             evalPointList.push_back(evalPoint);
@@ -477,8 +476,8 @@ size_t NOMAD::CacheSet::find(NOMAD::Point X,
 }
 
 
-size_t NOMAD::CacheSet::find(bool (*crit)(const NOMAD::EvalPoint&),
-                     std::vector<NOMAD::EvalPoint> &evalPointList) const
+size_t NOMAD::CacheSet::find(std::function<bool(const EvalPoint&)> crit,
+                             std::vector<NOMAD::EvalPoint> &evalPointList) const
 {
     evalPointList.clear();
     EvalPointSet::const_iterator it;
@@ -494,6 +493,24 @@ size_t NOMAD::CacheSet::find(bool (*crit)(const NOMAD::EvalPoint&),
     return evalPointList.size();
 }
 
+size_t NOMAD::CacheSet::find(std::function<bool(const EvalPoint&)> crit1,
+                             std::function<bool(const EvalPoint&)> crit2,
+                             std::vector<NOMAD::EvalPoint> &evalPointList) const
+{
+    evalPointList.clear();
+
+    EvalPointSet::const_iterator it;
+    for (it = _cache.begin(); it != _cache.end(); ++it)
+    {
+        if ( crit1(*it) && crit2(*it) )
+        {
+            NOMAD::EvalPoint evalPoint(*it);
+            evalPointList.push_back(evalPoint);
+        }
+    }
+    return evalPointList.size();
+}
+
 
 // Update EvalPoint in cache.
 // Look for Point and update the Eval part.
@@ -503,7 +520,7 @@ size_t NOMAD::CacheSet::find(bool (*crit)(const NOMAD::EvalPoint&),
 bool NOMAD::CacheSet::update(const NOMAD::EvalPoint& evalPoint, const EvalType& evalType)
 {
     bool updateOk = false;
-    
+
     if (nullptr == evalPoint.getEval(evalType))
     {
         // Cannot update to a null Eval. Warn the user.
@@ -548,6 +565,9 @@ bool NOMAD::CacheSet::clear()
 
     // Note: We might not want to reset - in that case, remove this line.
     resetNbCacheHits();
+
+    // Reset size of points in cache
+    _n = 0;
 
     return true;
 }

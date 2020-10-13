@@ -46,9 +46,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "Algos/MainStep.hpp"
-#include "Eval/Evaluator.hpp"
-#include "Param/AllParameters.hpp"
+#include "Nomad/nomad.hpp"
 
 /*----------------------------------------*/
 /*               The problem              */
@@ -129,8 +127,8 @@ void initParams(NOMAD::AllParameters &p)
     // the algorithm terminates after 100 black-box evaluations,
     // or 100 total evaluations, including cache hits and evalutions for
     // which countEval was false.
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", 100);
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", 200);
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", 100);
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_EVAL", 200);
 
     p.getRunParams()->setAttributeValue("H_MAX_0", NOMAD::Double(10000000));
 

@@ -76,10 +76,10 @@ private:
     virtual void startImp() override;
     virtual bool runImp() override;
     void endImp() override {};
-    
+
     /// Insert X0s for evaluation or (exclusive) check cache
     void generateTrialPoints() override;
-    
+
     /// Eval X0s, using blackbox.
     bool eval_x0s();
 

@@ -68,20 +68,20 @@
  - ParameterEntries stores all the parameters provided in a file.
  */
 class ParameterEntries : private Uncopyable {
-    
+
 private:
-    
+
     /// List of ParameterEntry objects (the entries).
     std::multiset<std::shared_ptr<ParameterEntry>, ParameterEntryComp> _entries;
-    
+
 public:
-    
+
     /// Constructor.
     explicit ParameterEntries ( void ) {}
-    
+
     /// Destructor.
     virtual ~ParameterEntries ( void );
-    
+
     /// Find a specific entry in a set.
     /**
      \param  name The name of the wanted ParameterEntry object -- \b IN.
@@ -90,22 +90,22 @@ public:
      or \c nullptr otherwise.
      */
     std::shared_ptr<ParameterEntry> find ( const std::string & name ) const;
-    
+
     /// Insert a new entry in the list of entries.
     /**
      \param entry A pointer to the new ParameterEntry object -- \b IN.
      */
     void insert(std::shared_ptr<ParameterEntry> entry);
-    
+
     /// Erase an entry from the list of entries.
     /**
      \param entry A pointer to the ParameterEntry object to erase -- \b IN.
      */
     void erase(std::shared_ptr<ParameterEntry> entry);
-    
+
     /// Erase all entries.
     void eraseAll();
-    
+
     /// Find a non-interpreted entry.
     /**
      \return A pointer to the first ParameterEntry that has not been
@@ -116,7 +116,7 @@ public:
 
     /// Find all non-interpreted entries
     std::vector<std::shared_ptr<ParameterEntry>> findAllNonInterpreted() const;
-    
+
     /// Display.
     /**
      \param out The std::ostream object -- \b IN.

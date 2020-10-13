@@ -46,14 +46,16 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Cache/CacheBase.hpp"
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelEvaluator.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelMegaIteration.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelUpdate.hpp"
+#include "../../Output/OutputQueue.hpp"
 #include "../../Type/SgtelibModelFeasibilityType.hpp"
 #include "../../Type/SgtelibModelFormulationType.hpp"
-#include "../../../ext/sgtelib/src/Surrogate.hpp"
+
 
 NOMAD::SgtelibModelUpdate::~SgtelibModelUpdate()
 {
@@ -133,7 +135,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
     // 1- Get relevant points in cache, around current frame centers.
     //
     std::vector<NOMAD::EvalPoint> evalPointList;
-    if (NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams()->getAttributeValue<bool>("USE_CACHE"))
+    if (NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
     {
         // Get valid points: notably, they have a BB evaluation.
         // Use CacheInterface to ensure the points are converted to subspace
@@ -187,7 +189,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
     /*
     // This is not a safe way to select a subset of points.
     // First, we should ensure that the frame center is part of that subset.
-    // Second, how to select the other points? The points closest to 
+    // Second, how to select the other points? The points closest to
     // the frame center seem like an interesting option.
     if (nbValidPoints > maxNbPoints)
     {

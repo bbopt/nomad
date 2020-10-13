@@ -49,7 +49,9 @@
 /*  example of a program that makes NOMAD restarts after failed iterations  */
 /*--------------------------------------------------------------------------*/
 #include "Nomad/nomad.hpp"
+#include "Algos/EvcInterface.hpp"
 #include "Algos/MegaIteration.hpp"
+#include "Cache/CacheBase.hpp"
 #include "Type/LHSearchType.hpp"
 
 /*----------------------------------------*/
@@ -58,14 +60,14 @@
 class My_Evaluator : public NOMAD::Evaluator
 {
 private:
-    
+
 public:
     My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
-    
+
     ~My_Evaluator() {}
-    
+
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override;
 };
 
@@ -80,7 +82,7 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
     NOMAD::Double c1 = 0.0 , c2 = 0.0;
     for ( int i = 0 ; i < 5 ; i++ )
     {
-        
+
         c1 += (x[i]-1).pow2();
         c2 += (x[i]+1).pow2();
     }
@@ -91,9 +93,9 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
     bbo += " " + constr1.tostring();
     bbo += " " + constr2.tostring();
     x.setBBO(bbo, bbOutputType, getEvalType());
-    
+
     countEval = true; // count a black-box evaluation
-    
+
     return true;       // the evaluation succeeded
 }
 

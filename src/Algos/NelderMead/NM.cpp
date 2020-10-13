@@ -46,16 +46,15 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/MainStep.hpp"
-#include "../../Algos/Mads/SearchMethodAlgo.hpp"
-#include "../../Algos/Mads/MadsMegaIteration.hpp"
-
 #include "../../Algos/EvcInterface.hpp"
+#include "../../Algos/Mads/SearchMethodBase.hpp"
+#include "../../Algos/Mads/MadsMegaIteration.hpp"
+#include "../../Util/fileutils.hpp"
 
 // NM specific
+#include "../../Algos/NelderMead/NM.hpp"
 #include "../../Algos/NelderMead/NMInitialization.hpp"
 #include "../../Algos/NelderMead/NMMegaIteration.hpp"
-#include "../../Algos/NelderMead/NM.hpp"
 
 void NOMAD::NM::init()
 {
@@ -73,7 +72,7 @@ void NOMAD::NM::startImp()
 {
 
     // Comment to appear at the end of stats lines
-    NOMAD::MainStep::setAlgoComment("(NM)");
+    setAlgoComment("(NM)");
 
     // All stop reasons are reset.
     _stopReasons->setStarted();
@@ -97,9 +96,8 @@ bool NOMAD::NM::runImp()
     {
         size_t k = 0;   // Iteration number
 
-        auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
         std::shared_ptr<NOMAD::Barrier> barrier = nullptr;
-        
+
         if (_runParams->getAttributeValue<bool>("NM_OPTIMIZATION"))
         {
             // Barrier was computed by Initialization.

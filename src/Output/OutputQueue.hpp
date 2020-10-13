@@ -143,9 +143,9 @@ public:
     }
 
     // Macros for output
-#define OUTPUT_STATS_START if (NOMAD::OutputQueue::GoodLevel(NOMAD::OutputLevel::LEVEL_STATS)) {
-#define OUTPUT_INFO_START if (NOMAD::OutputQueue::GoodLevel(NOMAD::OutputLevel::LEVEL_INFO)) {
-#define OUTPUT_DEBUG_START if (NOMAD::OutputQueue::GoodLevel(NOMAD::OutputLevel::LEVEL_DEBUG)) {
+#define OUTPUT_STATS_START if (OutputQueue::GoodLevel(OutputLevel::LEVEL_STATS)) {
+#define OUTPUT_INFO_START if (OutputQueue::GoodLevel(OutputLevel::LEVEL_INFO)) {
+#define OUTPUT_DEBUG_START if (OutputQueue::GoodLevel(OutputLevel::LEVEL_DEBUG)) {
 #define OUTPUT_STATS_END }
 #define OUTPUT_INFO_END }
 #define OUTPUT_DEBUG_END }

@@ -159,12 +159,11 @@ const NOMAD::Double NOMAD::Direction::cos(const NOMAD::Direction& dir1,
     return cos;
 }
 
-
 /*--------------------------------------------------*/
 /*  Compute a random direction on a unit N-Sphere   */
 /*  See http://en.wikipedia.org/wiki/N-sphere       */
 /*--------------------------------------------------*/
-bool NOMAD::Direction::computeDirOnUnitSphere(NOMAD::Direction &randomDir)
+void NOMAD::Direction::computeDirOnUnitSphere(NOMAD::Direction &randomDir)
 {
     size_t i;
     NOMAD::Double norm, d;
@@ -179,8 +178,8 @@ bool NOMAD::Direction::computeDirOnUnitSphere(NOMAD::Direction &randomDir)
 
     if (0 == norm)
     {
-        // it failed
-        return false;
+        std::string err("Cannot compute a random direction on unit sphere");
+        throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
     for (i = 0; i < n; ++i)
@@ -188,8 +187,6 @@ bool NOMAD::Direction::computeDirOnUnitSphere(NOMAD::Direction &randomDir)
         randomDir[i] /= norm;
     }
 
-    // it worked
-    return true;
 }
 
 

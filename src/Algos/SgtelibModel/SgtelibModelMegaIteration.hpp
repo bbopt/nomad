@@ -85,14 +85,14 @@ public:
     /// Generate new points to evaluate
     void generateTrialPoints() override;
 
-    
+
 private:
     void init();
 
     virtual void startImp() override ;
     virtual bool runImp() override;
     virtual void endImp() override;
-    
+
     // Helper for generateTrialPoints()
     void generateIterations();
     void runIterationsAndSetTrialPoints();

@@ -49,19 +49,10 @@
 #ifndef __NOMAD400_ALGORITHM__
 #define __NOMAD400_ALGORITHM__
 
-#include "../Eval/EvaluatorControl.hpp"
-
 #include "../Algos/Initialization.hpp"
 #include "../Algos/MegaIteration.hpp"
 #include "../Algos/Step.hpp"
 #include "../Algos/Termination.hpp"
-
-#include "../Param/RunParameters.hpp"
-#include "../Param/PbParameters.hpp"
-#include "../Param/EvalParameters.hpp"
-#include "../Param/DisplayParameters.hpp"
-
-#include "../Util/StopReason.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -75,7 +66,7 @@
 class Algorithm: public Step
 {
 protected:
-    
+
     std::unique_ptr<Initialization>  _initialization;   ///< To initialize the algorithm (X0)
     std::unique_ptr<Termination>     _termination;      ///< To verify termination conditions
     std::shared_ptr<MegaIteration>   _megaIteration;    ///< MegaIteration used to keep information between steps
@@ -87,7 +78,7 @@ protected:
     double _totalRealAlgoTime;
     double _totalCPUAlgoTime;
 #endif // TIME_STATS
-    
+
 public:
     /// Constructor
     /**
@@ -124,12 +115,12 @@ public:
     void setMegaIteration(const std::shared_ptr<MegaIteration> megaIteration) { _megaIteration = megaIteration; }
 
     void setEndDisplay( bool endDisplay ) {_endDisplay = endDisplay; }
-    
+
 
 protected:
     ///  Helper for Constructor.
     void init();
-    
+
     /// Default implementation of the start tasks of an algorithm
     /**
      If doing a hot restart get the algorithm ready to continue. \n
@@ -137,7 +128,7 @@ protected:
      */
     virtual void startImp() override;
 
-    /// Default implementaion of the end tasks of an algorithm
+    /// Default implementation of the end tasks of an algorithm
     /**
      Display some information, reset the lap counters and save information for a potential hot restart.
      */
@@ -164,22 +155,21 @@ protected:
     void hotRestartOnUserInterrupt() override;
 
 public:
-    
     /**
      Sub-algo: an algorithm can be part of an algorithm.
      */
     bool isSubAlgo() const;
     bool isMainAlgo() const { return !isSubAlgo(); }
-    
+
     /*---------*/
     /* Others  */
     /*---------*/
     /// Verify if this Algorithm is ready to be terminated
     bool terminate(size_t iteration);
-        
+
     virtual void read(std::istream& is);
     virtual void display(std::ostream& os) const;
-    
+
 };
 
 /// Operator to write parameters used for hot restart.

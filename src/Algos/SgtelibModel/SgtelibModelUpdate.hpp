@@ -45,11 +45,11 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-
 #ifndef __NOMAD400_SGTELIB_MODEL_UPDATE__
 #define __NOMAD400_SGTELIB_MODEL_UPDATE__
 
 #include "../../Algos/Step.hpp"
+#include "../../Output/OutputInfo.hpp"  // for OutputLevel
 
 #include "../../nomad_nsbegin.hpp"
 

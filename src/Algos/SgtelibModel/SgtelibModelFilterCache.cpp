@@ -47,9 +47,11 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/CacheInterface.hpp"
+#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelFilterCache.hpp"
 #include "../../Type/SgtelibModelFormulationType.hpp"
-#include "../../../ext/sgtelib/src/Surrogate.hpp"
+#include "../../Output/OutputQueue.hpp"
+
 
 NOMAD::SgtelibModelFilterCache::~SgtelibModelFilterCache()
 {
@@ -362,7 +364,7 @@ void NOMAD::SgtelibModelFilterCache::computeInitialValues()
             _hmaxThreshold = std::max(_hmaxThreshold, _hmax[i]);
         }
     }
-    
+
 }
 
 

@@ -48,9 +48,9 @@
 #ifndef __NOMAD400_NMALLREFLECTIVE__
 #define __NOMAD400_NMALLREFLECTIVE__
 
-#include "../../Algos/NelderMead/NMMegaIteration.hpp"
+#include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Algos/NelderMead/NMIteration.hpp"
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
-#include "../../Algos/Mads/MadsIteration.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -69,7 +69,7 @@ public:
      */
     explicit NMAllReflective(const Step* parentStep,
                              const std::shared_ptr<EvalPoint>& frameCenter,
-                             const std::shared_ptr<NOMAD::MeshBase>& madsMesh)
+                             const std::shared_ptr<MeshBase>& madsMesh)
       : NMIteration(parentStep, frameCenter, 0, madsMesh),
         NMIterationUtils(parentStep)
     {
@@ -77,9 +77,9 @@ public:
     }
     // No Destructor needed - keep defaults.
 
-    
+
 private:
-    
+
     /// Implementation of start tasks.
     /**
      - call the default Iteration::startImp
@@ -89,13 +89,13 @@ private:
      - update points with frame center.
      */
     void startImp() override ;
-    
+
     /// Implementation of run task. Nothing to do.
     bool runImp() override { return  false;}
-    
+
     /// Implementation of run task. Nothing to do.
     void endImp() override {}
-    
+
     void generateTrialPoints() override;
 
 };

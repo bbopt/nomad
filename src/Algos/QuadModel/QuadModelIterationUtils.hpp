@@ -49,12 +49,9 @@
 #ifndef __NOMAD400_QUADMODELITERATIONUTILS__
 #define __NOMAD400_QUADMODELITERATIONUTILS__
 
-#include <stdexcept>
-
-#include "../../Algos/Step.hpp"
 #include "../../Algos/IterationUtils.hpp"
-
-#include "../../../ext/sgtelib/src/Surrogate_Factory.hpp"
+#include "../../../ext/sgtelib/src/Surrogate.hpp"
+#include "../../../ext/sgtelib/src/TrainingSet.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -65,7 +62,7 @@ class QuadModelIterationUtils : public IterationUtils
 private:
 
     void init();
-    
+
 protected:
     std::shared_ptr<SGTELIB::TrainingSet>   _trainingSet;
     std::shared_ptr<SGTELIB::Surrogate>     _model;

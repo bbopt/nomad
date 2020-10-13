@@ -102,10 +102,10 @@ int main (int argc, char **argv)
                     }
                 }
             }
-        
+
             g1 = -prod2 + 0.75;
             g2 = sum2 -7.5 * n;
-       
+
             f = 10*g1 + 10*g2;
             if (0.0 != sum3)
             {
@@ -116,7 +116,7 @@ int main (int argc, char **argv)
             {
                 f *= 1e-5;
             }
-    
+
             eval_ok = !std::isnan(f);
 
             g3 = - (f + 2000);

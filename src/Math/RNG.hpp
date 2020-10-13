@@ -48,7 +48,7 @@
 /**
  \file   RNG.hpp
  \brief  Custom class for random number generator
- \author Christophe Tribes and Sebastien Le Digabel 
+ \author Christophe Tribes and Sebastien Le Digabel
  \date   2011-09-28
  \see    RNG.cpp
  */
@@ -70,7 +70,7 @@ This class is used to set a seed for the random number generator and get a rando
  http://madrabbit.org/~ray/code/xorshf96.c with period 2^96-1
  */
 class RNG {
-    
+
 public:
     typedef uint32_t result_type;
 
@@ -85,13 +85,13 @@ public:
     {
         return _s;
     }
-    
+
     /// Set seed
     /**
      \param s   The seed -- \b IN.
      */
     static void setSeed(int s);
-    
+
     /// Get a random integer
     /**
      \return    An integer in the interval [0,UINT32_MAX].
@@ -103,7 +103,7 @@ public:
      \return    An integer in the interval [0,UINT32_MAX].
      */
     result_type operator()() { return rand(); }
-    
+
     /// Get a random number having a normal distribution as double
     /**
      \param a   Lower bound  -- \b IN.
@@ -114,7 +114,7 @@ public:
     {
         return a+((b-a)*RNG::rand())/UINT32_MAX;
     }
-    
+
     /// Get a random number using a normal distribution centered on 0
     /**
      * Get a random number approaching a normal distribution (N(0,Var)) as double
@@ -125,19 +125,19 @@ public:
      \return        A double in the interval [-sqrt(3*Var);+sqrt(3*Var)].
      */
     static double normalRandMean0(double Var = 1, int Nsample = 12);
-    
-    
+
+
     /// Get a random number approaching a normal distribution N(Mean,Var) as double.
     /**
      A series of Nsample random numbers Xi in the interval [-sqrt(3*Var);+sqrt(3*Var)] is used -> E[Xi] = 0, Var(Xi) = var. \n
      See http://en.wikipedia.org/wiki/Central_limit_theorem
-     
+
      \param Mean    Mean of the target normal distribution        -- \b IN.
      \param Var     Variance of the target normal distribution    -- \b IN.
      \return        A random number.
      */
     static double normalRand(double Mean = 0, double Var = 1);
-    
+
     /// Reset seed to its default value
     static void resetPrivateSeedToDefault()
     {
@@ -164,15 +164,15 @@ public:
         _y = y;
         _z = z;
     }
-    
+
 private:
-    
+
     static uint32_t x_def, y_def, z_def;    ///< Initial values for the random number generator
     static uint32_t _x, _y, _z;             ///< Current values for the random number generator
-    
+
     static int _s;
 
-    
+
 };
 
 #include "../nomad_nsend.hpp"

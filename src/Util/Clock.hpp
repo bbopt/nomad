@@ -63,9 +63,9 @@
 #pragma warning(disable:4275)
 #pragma warning(disable:4251)
 #ifdef DLL_EXPORTS
-#define DLL_API __declspec(dllexport) 
+#define DLL_API __declspec(dllexport)
 #else
-#define DLL_API __declspec(dllimport) 
+#define DLL_API __declspec(dllimport)
 #endif
 #else
 #define DLL_API
@@ -82,25 +82,25 @@
  \endcode
  */
 class DLL_API Clock {
-    
+
 private:
-    
+
     static time_t       _real_t0;          ///< Wall clock time measurement.
     static clock_t      _CPU_t0;           ///< CPU time measurement.
     static const double _D_CLOCKS_PER_SEC; ///< System constant for CPU time measurement.
-    
+
 public:
-    // No need for constructor. All is static.    
-    
+    // No need for constructor. All is static.
+
     /// Reset the clock.
     static void reset();
-    
+
     /// Get wall clock time.
     /**
      \return The time elapsed since _real_t0
      */
     static size_t getRealTime();
-    
+
     /// Get the CPU time.
     /**
      \return The CPU time elapsed since _CPU_t0

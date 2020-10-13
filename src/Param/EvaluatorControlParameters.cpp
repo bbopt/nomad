@@ -46,9 +46,6 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-
-#include <iomanip>  // For std::setprecision
-#include "../Math/RNG.hpp"
 #include "../Param/EvaluatorControlParameters.hpp"
 
 
@@ -62,46 +59,38 @@ void NOMAD::EvaluatorControlParameters::init()
     try
     {
         #include "../Attribute/evaluatorControlAttributesDefinition.hpp"
-        registerAttributes( _definition );
-        
+        registerAttributes(_definition);
+
         // Note: we cannot call checkAndComply() here, the default values
         // are not valid, for instance DIMENSION, X0, etc.
-        
+
     }
-    catch ( NOMAD::Exception & e)
+    catch (NOMAD::Exception & e)
     {
         std::string errorMsg = "Attribute registration failed: ";
         errorMsg += e.what();
         throw NOMAD::Exception(__FILE__,__LINE__, errorMsg);
     }
-    
+
 }
 
 /*----------------------------------------*/
 /*            check the parameters        */
 /*----------------------------------------*/
-void NOMAD::EvaluatorControlParameters::checkAndComply( )
+void NOMAD::EvaluatorControlParameters::checkAndComply()
 {
     checkInfo();
-    
+
     if (!toBeChecked())
     {
         // Early out
         return;
     }
-    
-    if (getAttributeValueProtected<size_t>("MAX_BB_EVAL",false ) <= 0)
-    {
-        setAttributeValue("MAX_BB_EVAL", NOMAD::INF_SIZE_T );
-    }
-    
-    if (getAttributeValueProtected<size_t>("MAX_EVAL",false) <= 0)
-    {
-        setAttributeValue("MAX_EVAL", NOMAD::INF_SIZE_T );
-    }
-    
+
+    // Nothing specific to verify for now
+
     _toBeChecked = false;
-    
+
 }
 // End checkAndComply()
 

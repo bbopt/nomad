@@ -370,7 +370,7 @@ void NOMAD::OutputQueue::flushBlock(const NOMAD::OutputInfo &outputInfo)
                 throw NOMAD::Exception(__FILE__, __LINE__, "OutputQueue has more block ends than block starts.");
             }
         }
-    
+
         // Verify step level is high enough in the tree to be displayed.
         if (_indentLevel <= (int)_maxStepLevel)
         {
@@ -381,9 +381,9 @@ void NOMAD::OutputQueue::flushBlock(const NOMAD::OutputInfo &outputInfo)
                 {
                     endBlock();
                 }
-    
+
                 std::cout << msg[i];
-    
+
                 if (outputInfo.isBlockStart())
                 {
                     startBlock();
@@ -401,8 +401,8 @@ void NOMAD::OutputQueue::flushBlock(const NOMAD::OutputInfo &outputInfo)
                 std::cout << "........................................" << std::endl;
             }
         }
-    
-    
+
+
         if (outputInfo.isBlockStart())
         {
             _indentLevel++;

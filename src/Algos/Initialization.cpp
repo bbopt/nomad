@@ -46,6 +46,13 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 #include "../Algos/Initialization.hpp"
+#include "../Output/OutputQueue.hpp"
+
+NOMAD::Initialization::~Initialization()
+{
+    NOMAD::OutputQueue::Flush();
+}
+
 
 void NOMAD::Initialization::init()
 {

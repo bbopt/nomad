@@ -48,9 +48,9 @@
 #ifndef __NOMAD400_SGTELIB_MODEL__
 #define __NOMAD400_SGTELIB_MODEL__
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/EvcInterface.hpp"
-#include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #include "../../Type/SgtelibModelFeasibilityType.hpp"
 #include "../../Type/SgtelibModelFormulationType.hpp"
 #include "../../../ext/sgtelib/src/Surrogate.hpp"
@@ -111,8 +111,8 @@ public:
         _nbModels(0),
         _ready(false),
         _foundFeasible(false),
-        _modelLowerBound(pbParams->getAttributeValue<size_t>("DIMENSION"), +INF),
-        _modelUpperBound(pbParams->getAttributeValue<size_t>("DIMENSION"), -INF),
+        _modelLowerBound(pbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
+        _modelUpperBound(pbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _mesh(mesh)
     {
         init();
@@ -143,7 +143,7 @@ public:
 
 
     // Utility function to get BB_OUTPUT_TYPE parameter, which is buried in Evaluator.
-    static BBOutputTypeList getBBOutputType() 
+    static BBOutputTypeList getBBOutputType()
     {
         if (nullptr == EvcInterface::getEvaluatorControl()
             || nullptr == EvcInterface::getEvaluatorControl()->getEvalParams())

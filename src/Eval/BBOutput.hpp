@@ -54,14 +54,11 @@
  */
 
 
-
 #ifndef __NOMAD400_BB_OUTPUT__
 #define __NOMAD400_BB_OUTPUT__
 
 #include "../Type/BBOutputType.hpp"
 #include "../Math/ArrayOfDouble.hpp"
-#include "../Math/Double.hpp"
-#include "../Util/ArrayOfString.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -108,14 +105,14 @@ public:
      \return                The objective value (single objective).
      */
     Double getObjective(const BBOutputTypeList &bbOutputType) const;
-    
+
     /// Get the constraints from raw blackbox evaluation
     /**
      \param bbOutputType    The list of blackbox output types -- \b IN.
      \return                The constraints as a an array of values.
      */
     ArrayOfDouble getConstraints(const BBOutputTypeList &bbOutputType) const;
-    
+
     /// Set each blackbox output separately from a string.
     /**
      \param bbOutputString    The string returned by blackbox evaluation -- \b IN.
@@ -140,8 +137,8 @@ public:
      \return    A single string containing the raw blackbox outputs.
      */
     const std::string& getBBO() const { return _rawBBO; }
-    
-    
+
+
     /// Get the blackbox outputs separately.
     /**
      \return    An array of double of the blackbox outputs.
@@ -152,10 +149,10 @@ public:
     void display (std::ostream & out) const;
 
     /**
-     Verify if the BBOutputList and the ArrayOfString have consistent size.
+     Verify if the BBOutputList and the raw BBO have consistent size.
      A warning is displayed if this is not the case.
      \param bbOutputType    The list of blackbox output type -- \b IN.
-     \return                \c true if the sizes match 
+     \return                \c true if the sizes match
      */
     bool checkSizeMatch(const BBOutputTypeList &bbOutputType) const;
 

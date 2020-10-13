@@ -56,21 +56,26 @@
 /**
  The run function of this step validates and evaluates X0(s).
  */
-class MadsInitialization: public Initialization
+class MadsInitialization final: public Initialization
 {
+private:
+    std::shared_ptr<MeshBase> _initialMesh;
+
 public:
     /// Constructor
     /*
      \param parentStep      The parent of this step -- \b IN.
      */
     explicit MadsInitialization(const Step* parentStep)
-      : Initialization(parentStep)
+      : Initialization(parentStep),
+        _initialMesh(nullptr)
     {
         init();
     }
-    
+
     virtual ~MadsInitialization() {}
 
+    std::shared_ptr<MeshBase> getMesh() const { return _initialMesh; }
 
 private:
     void init();

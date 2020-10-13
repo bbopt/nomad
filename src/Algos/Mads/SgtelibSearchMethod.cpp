@@ -46,12 +46,15 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/SgtelibSearchMethod.hpp"
 #ifdef USE_SGTELIB
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #endif
+#include "../../Cache/CacheBase.hpp"
+#include "../../Output/OutputQueue.hpp"
 //
 // Reference: File Sgtelib_Model_Search.cpp in NOMAD 3.9.1
 // Author: Bastien Talgorn
@@ -94,10 +97,7 @@ void NOMAD::SgtelibSearchMethod::init()
             OUTPUT_INFO_END
             setEnabled(false);
         }
-    }
 
-    if (isEnabled())
-    {
         auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
         _displayLevel = modelDisplay.empty()
                             ? NOMAD::OutputLevel::LEVEL_DEBUGDEBUG
@@ -124,7 +124,7 @@ bool NOMAD::SgtelibSearchMethod::runImp()
     generateTrialPoints();
 
     bool foundBetter = evalTrialPoints(this);
-    
+
     return foundBetter;
 }
 
@@ -134,13 +134,6 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsImp()
 #ifdef USE_SGTELIB
     std::string s;
     NOMAD::EvalPointSet oraclePoints;
-
-    // Sanity check.
-    // Expecting evalType to be BB (Not SGTE)
-    if (NOMAD::EvalType::BB != getEvalType())
-    {
-        throw NOMAD::Exception(__FILE__,__LINE__,"Expecting EvalType to be BB in " + _name);
-    }
 
     // Get Iteration
     const NOMAD::MadsIteration* iteration = getParentOfType<NOMAD::MadsIteration*>();
@@ -160,15 +153,11 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsImp()
 
     else if (!_stopReasons->checkTerminate())
     {
-        auto mesh = iteration->getMesh();
-        auto frameCenter = iteration->getFrameCenter();
-        NOMAD::ArrayOfDouble deltaMeshSize = mesh->getdeltaMeshSize();
-
         // Initial displays
         OUTPUT_INFO_START
         s = "Number of cache points: " + std::to_string(NOMAD::CacheBase::getInstance()->size());
         AddOutputInfo(s, _displayLevel);
-        s = "Mesh size parameter: " + deltaMeshSize.display();
+        s = "Mesh size parameter: " + iteration->getMesh()->getdeltaMeshSize().display();
         AddOutputInfo(s, _displayLevel);
         NOMAD::OutputQueue::Flush();
         OUTPUT_INFO_END

@@ -49,6 +49,8 @@
 #define __NOMAD400_MADSITERATION__
 
 #include "../../Algos/Iteration.hpp"
+#include "../../Algos/MeshBase.hpp"
+#include "../../Eval/EvalPoint.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -62,7 +64,7 @@ private:
     const std::shared_ptr<EvalPoint> _frameCenter; ///< Center around which the points are generated
     const std::shared_ptr<MeshBase>  _mesh;        ///< Mesh on which the points are
     SuccessType                      _success;     ///< Success type of this iteration
-    
+
 #ifdef TIME_STATS
     /// Time counters
     static double       _iterTime;          ///< Total time spent running this class
@@ -96,15 +98,6 @@ public:
         init();
     }
 
-
-    /// Destructor
-    /**
-     When iteration is done, Flush prints output queue.
-     */
-    virtual ~MadsIteration()
-    {
-        OutputQueue::Flush();
-    }
 
     // Gets/Sets
 
@@ -146,9 +139,9 @@ public:
 private:
     /// Helper for constructor
     void init();
-    
+
     virtual void startImp() override;
-    
+
     /// Implementation of the run tasks of MADS algorithm.
     /**
      Run a MADS iteration: a Search step followed by a Poll step depending on the stop reasons and successes.

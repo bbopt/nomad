@@ -181,20 +181,39 @@ NOMAD::Double NOMAD::Point::dist(const NOMAD::Point& X, const NOMAD::Point& Y)
 
 NOMAD::Point NOMAD::Point::makeFullSpacePointFromFixed(const NOMAD::Point &fixedVariable) const
 {
-    NOMAD::Point fullSpacePoint = fixedVariable;
-    if (0 == fullSpacePoint.size())
+    size_t nbFixed = fixedVariable.nbDefined();
+    size_t fullSpaceDim = fixedVariable.size();
+    size_t subSpaceDim = fullSpaceDim - nbFixed;
+
+    if (size() != subSpaceDim)
     {
-        // fixedVariable not defined - set it to a point of full dimension, with undefined values.
-        fullSpacePoint.resize(size());
+        std::string s = "Error converting point " + this->NOMAD::Point::display();
+        s += " (size " + std::to_string(this->size()) + ")";
+        s += " to full space defined by fixed variable " + fixedVariable.NOMAD::Point::display();
+        s += " (size " + std::to_string(fixedVariable.size()) + ")";
+        s += ": point should be of size " + std::to_string(fixedVariable.size());
+        s += " - " + std::to_string(nbFixed) + " = " + std::to_string(fixedVariable.size()-nbFixed);
+        throw NOMAD::Exception(__FILE__,__LINE__,s);
     }
 
-    size_t iSub = 0;
-    for (size_t i = 0; i < fullSpacePoint.size() && iSub < _n; i++)
+    NOMAD::Point fullSpacePoint = fixedVariable;
+
+    if (0 == nbFixed)
     {
-        if (!fullSpacePoint[i].isDefined())
+        // Fallback case.
+        // no fixed variable defined - full space point is equal to this.
+        fullSpacePoint = *this;
+    }
+    else
+    {
+        size_t iSub = 0;
+        for (size_t i = 0; i < fullSpacePoint.size() && iSub < _n; i++)
         {
-            fullSpacePoint[i] = _array[iSub];
-            iSub++;
+            if (!fullSpacePoint[i].isDefined())
+            {
+                fullSpacePoint[i] = _array[iSub];
+                iSub++;
+            }
         }
     }
 
@@ -202,28 +221,56 @@ NOMAD::Point NOMAD::Point::makeFullSpacePointFromFixed(const NOMAD::Point &fixed
 }
 
 
-NOMAD::Point NOMAD::Point::makeSubSpacePointFromFixed(const NOMAD::Point &fixedVariable) const
+NOMAD::Point NOMAD::Point::makeSubSpacePointFromFixed(const NOMAD::Point &fixedVariable, const bool verifyValues) const
 {
+    size_t nbFixed = fixedVariable.nbDefined();
     size_t fullSpaceDim = fixedVariable.size();
-    if (0 == fullSpaceDim)
+    size_t subSpaceDim = fullSpaceDim - nbFixed;
+
+    if (size() != fullSpaceDim)
     {
-        // fixedVariable not defined - set fullSpaceDim to sub space dimension.
-        fullSpaceDim = size();
+        std::string s = "Error converting point " + this->NOMAD::Point::display();
+        s += " (size " + std::to_string(this->size()) + ")";
+        s += " to subspace defined by fixed variable " + fixedVariable.NOMAD::Point::display();
+        s += " (size " + std::to_string(fixedVariable.size()) + ")";
+        s += ": they should have the same size.";
+        throw NOMAD::Exception(__FILE__,__LINE__,s);
     }
-    size_t subSpaceDim = fullSpaceDim - fixedVariable.nbDefined();
+
     NOMAD::Point subSpacePoint(subSpaceDim);
 
-    size_t iSub = 0;
-    for (size_t i = 0; i < fullSpaceDim && i < _n; i++)
+    if (0 == nbFixed)
     {
-        if (i >= fixedVariable.size() || !fixedVariable[i].isDefined())
+        // Fallback case.
+        // no fixed variable defined - sub space point is equal to this.
+        subSpacePoint = *this;
+    }
+    else
+    {
+        size_t iSub = 0;
+        for (size_t i = 0; i < fullSpaceDim && i < _n; i++)
         {
-            subSpacePoint[iSub] = _array[i];
-            iSub++;
+            if (i >= fixedVariable.size() || !fixedVariable[i].isDefined())
+            {
+                subSpacePoint[iSub] = _array[i];
+                iSub++;
+            }
+            else if (verifyValues && fixedVariable[i].isDefined() && _array[i] != fixedVariable[i])
+            {
+                std::string s = "Error converting point " + this->display();
+                s += " to subspace defined by fixed variable " + fixedVariable.display();
+                throw NOMAD::Exception(__FILE__,__LINE__,s);
+            }
         }
     }
 
     return subSpacePoint;
+}
+
+
+NOMAD::Point NOMAD::Point::projectPointToSubspace(const NOMAD::Point &fixedVariable) const
+{
+    return makeSubSpacePointFromFixed(fixedVariable, false);
 }
 
 

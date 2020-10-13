@@ -48,13 +48,9 @@
 #ifndef __NOMAD400_QUAD_MODEL_ALGO__
 #define __NOMAD400_QUAD_MODEL_ALGO__
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/EvcInterface.hpp"
-
-#include "../../Type/SgtelibModelFeasibilityType.hpp"
-#include "../../Type/SgtelibModelFormulationType.hpp"
-#include "../../../ext/sgtelib/src/Surrogate.hpp"
-#include "../../../ext/sgtelib/src/TrainingSet.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -81,11 +77,10 @@ class QuadModelAlgo: public Algorithm
 {
 public:
     /// Constructor
-    explicit QuadModelAlgo(
-                          const Step* parentStep,
-                          std::shared_ptr<AlgoStopReasons<ModelStopType>> stopReasons,
-                          const std::shared_ptr<RunParameters>& runParams,
-                          const std::shared_ptr<PbParameters>& pbParams )
+    explicit QuadModelAlgo(const Step* parentStep,
+                           std::shared_ptr<AlgoStopReasons<ModelStopType>> stopReasons,
+                           const std::shared_ptr<RunParameters>& runParams,
+                           const std::shared_ptr<PbParameters>& pbParams)
       : Algorithm(parentStep, stopReasons, runParams, pbParams)
     {
         init();
@@ -94,7 +89,7 @@ public:
     virtual ~QuadModelAlgo();
 
     // Utility function to get BB_OUTPUT_TYPE parameter, which is buried in Evaluator.
-    static BBOutputTypeList getBBOutputType() 
+    static BBOutputTypeList getBBOutputType()
     {
         if (nullptr == EvcInterface::getEvaluatorControl()
             || nullptr == EvcInterface::getEvaluatorControl()->getEvalParams())
@@ -105,7 +100,7 @@ public:
     }
 
     void readInformationForHotRestart() override {}
-    
+
 private:
     void init();
 

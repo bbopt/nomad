@@ -78,17 +78,11 @@ public:
         init();
     }
 
-
     /// Destructor
     /**
      When iteration is done, Flush prints output queue.
      */
-    virtual ~Iteration()
-    {
-
-        OutputQueue::Flush();
-    }
-
+    virtual ~Iteration();
 
     // Get/Set
 
@@ -97,7 +91,7 @@ public:
      Iteration number is incremented when calling the default Iteration::start().
      */
     size_t getK() const { return _k; }
-    
+
     /// Increment iteration number by one
     /// To be used only when a single Iteration is used over and over, e.g. Nelder Mead
     void incK() { _k++; }
@@ -111,9 +105,9 @@ public:
      \return \c nullptr for algorithms that do not use a frame center. Otherwise, this function must be reimplemented in algorithm specific iteration (for example, MadsIteration, NMIteration, ...).
      */
     virtual const std::shared_ptr<EvalPoint> getFrameCenter() const { return nullptr; }
-    
+
 protected:
-    
+
     /**
      This must be implemented when an algorithm has its own iteration.
      */

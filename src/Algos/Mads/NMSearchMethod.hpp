@@ -70,21 +70,21 @@ public:
         init();
     }
 
-    
+
     /**
      Execute (start, run, end) of the NM algorithm. Returns a \c true flag if the algorithm found better point.
      */
     virtual bool runImp() override ;
-    
-    
+
+
 private:
-    
+
     /// Helper for constructor.
     /**
      Test if the NM search is enabled or not. Set the maximum number of trial points.
      */
     void init();
-    
+
     ///Generate new points (no evaluation)
     /**
      \copydoc SearchMethodAlgo::generateTrialPointsImp \n

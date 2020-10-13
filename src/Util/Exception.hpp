@@ -58,7 +58,7 @@
 #include <sstream>
 
 #include "../nomad_nsbegin.hpp"
-    
+
 /// Custom class for exceptions.
 /**
  * NOMAD uses this type of exceptions.
@@ -72,18 +72,18 @@
  */
 class Exception : public std::exception
 {
-    
+
 private:
-    
+
     mutable std::string _what;  ///< Error message.
     std::string         _file;  ///< File where the exception is thrown.
     size_t              _line;  ///< Line number at which the exception is thrown.
 
 protected:
     std::string         _typeMsg;   ///< Basic exception message indicating the type of exception
-    
+
 public:
-    
+
     /// Constructor.
     /**
      \param file A string corresponding to the file where the
@@ -98,10 +98,10 @@ public:
         _line(line),
         _typeMsg("")
     {}
-    
+
     /// Destructor.
     virtual ~Exception() throw() {}
-    
+
     /// Access to the error message.
     /**
      \return A string with the error message.

@@ -61,17 +61,17 @@ class NMUpdate: public Step
 {
 public:
     // Constructor
-    explicit NMUpdate(const Step* parentStep )
-      : Step(parentStep )
+    explicit NMUpdate(const Step* parentStep)
+      : Step(parentStep)
     {
         init();
     }
-    
+
     /**
      No start task is required
      */
     virtual void    startImp() override {}
-    
+
     /**
      * No run required. Nothing to do.
      * In MADS algorithm, Update enlarges or refines the mesh.
@@ -81,7 +81,7 @@ public:
      \return \c true (always).
      */
     virtual bool    runImp() override { return true; }
-    
+
     /**
      No end task is required
      */

@@ -45,35 +45,27 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#include "../../Algos/EvcInterface.hpp"
 
 #include "../../Algos/Mads/SearchMethodSimple.hpp"
 
 bool NOMAD::SearchMethodSimple::runImp()
 {
-    
+
     bool foundBetter = false;
     if ( ! _stopReasons->checkTerminate() )
     {
         foundBetter = evalTrialPoints(this);
-        
-        // Update barrier
-        postProcessing(getEvalType());
     }
-    
+
     return foundBetter;
 }
 
+
 void NOMAD::SearchMethodSimple::startImp()
 {
-    
-    // Comment to appear at the end of stats lines
-    //NOMAD::MainStep::setAlgoComment(getComment());
-    
     if ( ! _stopReasons->checkTerminate() )
     {
         // Create EvalPoints and snap to bounds and snap on mesh
         generateTrialPoints();
-    
     }
 }

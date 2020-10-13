@@ -118,7 +118,7 @@ public:
      * The POLL_SIZE parameters have been renamed
      FRAME_SIZE in Nomad 4. For compatibility with
      Nomad 3, the old function name is used.
-     
+
      \return The \c INITIAL_FRAME_SIZE parameter.
      */
     const ArrayOfDouble& get_initial_poll_size() const;
@@ -131,7 +131,7 @@ public:
      * The ***_POLL_SIZE parameters have been renamed
      ***_FRAME_SIZE in Nomad 4. For compatibility with
      Nomad 3, the old function name is used.
-     
+
      \return The \c MIN_FRAME_SIZE parameter.
      */
     const ArrayOfDouble & get_min_poll_size() const;

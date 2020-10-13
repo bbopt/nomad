@@ -65,8 +65,9 @@ LH_DIRNAME          = $(ALGO_DIRNAME)/LatinHypercubeSampling
 MADS_DIRNAME        = $(ALGO_DIRNAME)/Mads
 NM_DIRNAME          = $(ALGO_DIRNAME)/NelderMead
 PHASEONE_DIRNAME    = $(ALGO_DIRNAME)/PhaseOne
-SGTELIBMODEL_DIRNAME = $(ALGO_DIRNAME)/SgtelibModel
 QUADMODEL_DIRNAME   = $(ALGO_DIRNAME)/QuadModel
+SGTELIBMODEL_DIRNAME = $(ALGO_DIRNAME)/SgtelibModel
+SSDMADS_DIRNAME     = $(ALGO_DIRNAME)/SSDMads
 
 ALGO_COMPONENT      = $(SRC_DIR)/$(ALGO_DIRNAME)
 ATTR_COMPONENT      = $(SRC_DIR)/$(ATTR_DIRNAME)
@@ -80,8 +81,9 @@ NOMAD_COMPONENT     = $(SRC_DIR)/$(NOMAD_DIRNAME)
 OUTPUT_COMPONENT    = $(SRC_DIR)/$(OUTPUT_DIRNAME)
 PARAM_COMPONENT     = $(SRC_DIR)/$(PARAM_DIRNAME)
 PHASEONE_COMPONENT  = $(SRC_DIR)/$(PHASEONE_DIRNAME)
-SGTELIBMODEL_COMPONENT = $(SRC_DIR)/$(SGTELIBMODEL_DIRNAME)
 QUADMODEL_COMPONENT = $(SRC_DIR)/$(QUADMODEL_DIRNAME)
+SGTELIBMODEL_COMPONENT = $(SRC_DIR)/$(SGTELIBMODEL_DIRNAME)
+SSDMADS_COMPONENT   = $(SRC_DIR)/$(SSDMADS_DIRNAME)
 TYPE_COMPONENT      = $(SRC_DIR)/$(TYPE_DIRNAME)
 UTIL_COMPONENT      = $(SRC_DIR)/$(UTIL_DIRNAME)
 COMPONENTS          = $(ATTR_DIRNAME) $(CACHE_DIRNAME) $(EVAL_DIRNAME) \
@@ -96,26 +98,31 @@ ATTR_EXE            = WriteAttributeDefinitionFile
 ATTR_EXE            := $(addprefix $(BIN_DIR)/,$(ATTR_EXE))
 CACHE_OBJ           = CacheBase.o CacheSet.o
 CACHE_OBJ           := $(addprefix $(OBJ_DIR)/,$(CACHE_OBJ))
-EVAL_OBJ            = Barrier.o BBInput.o BBOutput.o CallbackType.o \
+EVAL_OBJ            = Barrier.o BBInput.o BBOutput.o \
+                      ComputeSuccessType.o \
                       Eval.o EvalPoint.o \
-                      EvalQueuePoint.o EvaluatorControl.o Evaluator.o
+                      EvalQueuePoint.o EvaluatorControl.o Evaluator.o \
+                      EvcMainThreadInfo.o
 EVAL_OBJ            := $(addprefix $(OBJ_DIR)/,$(EVAL_OBJ))
 ALGO_OBJ            = Algorithm.o CacheInterface.o EvcInterface.o Initialization.o  \
                       Iteration.o IterationUtils.o MainStep.o MegaIteration.o MeshBase.o \
-                      Projection.o Step.o Subproblem.o \
+                      Projection.o Step.o Subproblem.o SubproblemManager.o \
                       Termination.o
 ALGO_OBJ            := $(addprefix $(OBJ_DIR)/,$(ALGO_OBJ))
 LH_OBJ              = LH.o
 LH_OBJ              := $(addprefix $(OBJ_DIR)/,$(LH_OBJ))
-MADS_OBJ            = GMesh.o LHSearchMethod.o \
+MADS_OBJ            = DoublePollMethod.o GMesh.o LHSearchMethod.o \
                       Mads.o MadsInitialization.o MadsIteration.o \
                       MadsMegaIteration.o MegaSearchPoll.o MadsUpdate.o \
-                      NMSearchMethod.o Poll.o Search.o SearchMethodAlgo.o SearchMethodBase.o \
-                      SearchMethodSimple.o SgtelibSearchMethod.o QuadSearchMethod.o \
+                      NMSearchMethod.o NP1UniPollMethod.o Ortho2NPollMethod.o \
+                      Poll.o PollMethodBase.o Search.o SearchMethodAlgo.o \
+                      SearchMethodBase.o \
+                      SearchMethodSimple.o SgtelibSearchMethod.o SinglePollMethod.o \
+                      QuadSearchMethod.o \
                       SpeculativeSearchMethod.o UserSearchMethod.o
 MADS_OBJ            := $(addprefix $(OBJ_DIR)/,$(MADS_OBJ))
 MATH_OBJ            = ArrayOfDouble.o ArrayOfPoint.o Direction.o Double.o LHS.o \
-                      MatrixUtils.o Point.o RNG.o
+                      MatrixUtils.o Point.o RandomPickup.o RNG.o
 MATH_OBJ            := $(addprefix $(OBJ_DIR)/,$(MATH_OBJ))
 NM_OBJ              = NM.o NMAllReflective.o NMInitialization.o \
                       NMInitializeSimplex.o NMIteration.o NMIterationUtils.o \
@@ -127,12 +134,22 @@ OUTPUT_OBJ          := $(addprefix $(OBJ_DIR)/,$(OUTPUT_OBJ))
 PARAM_OBJ           = AllParameters.o \
                       CacheParameters.o DisplayParameters.o \
                       EvaluatorControlParameters.o EvalParameters.o \
+                      EvaluatorControlGlobalParameters.o \
                       ParameterEntry.o ParameterEntries.o \
                       Parameters.o ParametersNomad3.o PbParameters.o \
                       RunParameters.o
-PARAM_OBJ           := $(addprefix $(OBJ_DIR)/,$(PARAM_OBJ))
-PHASEONE_OBJ        = PhaseOne.o 
-PHASEONE_OBJ        := $(addprefix $(OBJ_DIR)/,$(PHASEONE_OBJ)) 
+PARAM_OBJ          := $(addprefix $(OBJ_DIR)/,$(PARAM_OBJ))
+PHASEONE_OBJ        = PhaseOne.o
+PHASEONE_OBJ       := $(addprefix $(OBJ_DIR)/,$(PHASEONE_OBJ))
+QUADMODEL_OBJ       = QuadModelAlgo.o QuadModelEvaluator.o \
+                      QuadModelInitialization.o \
+                      QuadModelIteration.o \
+                      QuadModelIterationUtils.o \
+                      QuadModelMegaIteration.o \
+                      QuadModelOptimize.o \
+                      QuadModelSinglePass.o \
+                      QuadModelUpdate.o
+QUADMODEL_OBJ       := $(addprefix $(OBJ_DIR)/,$(QUADMODEL_OBJ))
 SGTELIBMODEL_OBJ    = SgtelibModel.o SgtelibModelEvaluator.o \
                       SgtelibModelFilterCache.o \
                       SgtelibModelInitialization.o \
@@ -141,20 +158,13 @@ SGTELIBMODEL_OBJ    = SgtelibModel.o SgtelibModelEvaluator.o \
                       SgtelibModelOptimize.o \
                       SgtelibModelUpdate.o
 SGTELIBMODEL_OBJ    := $(addprefix $(OBJ_DIR)/,$(SGTELIBMODEL_OBJ))
-QUADMODEL_OBJ       = QuadModelAlgo.o QuadModelEvaluator.o \
-                      QuadModelInitialization.o \
-                      QuadModelIteration.o \
-                      QuadModelIterationUtils.o \
-                      QuadModelMegaIteration.o \
-	              QuadModelOptimize.o \
-                      QuadModelSinglePass.o \
-                      QuadModelUpdate.o
-QUADMODEL_OBJ       := $(addprefix $(OBJ_DIR)/,$(QUADMODEL_OBJ))
-TYPE_OBJ            = BBInputType.o BBOutputType.o EvalType.o LHSearchType.o \
-                      SgtelibModelFeasibilityType.o SgtelibModelFormulationType.o
+SSDMADS_OBJ         = SSDMads.o SSDMadsMegaIteration.o
+SSDMADS_OBJ        := $(addprefix $(OBJ_DIR)/,$(SSDMADS_OBJ))
+TYPE_OBJ            = BBInputType.o BBOutputType.o CallbackType.o DirectionType.o EvalType.o LHSearchType.o \
+                      ListOfVariableGroup.o SgtelibModelFeasibilityType.o SgtelibModelFormulationType.o
 TYPE_OBJ            := $(addprefix $(OBJ_DIR)/,$(TYPE_OBJ))
-UTIL_OBJ            = ArrayOfString.o Clock.o Exception.o fileutils.o \
-                      StopReason.o utils.o
+UTIL_OBJ            = AllStopReasons.o ArrayOfString.o Clock.o Exception.o \
+                      fileutils.o StopReason.o utils.o
 UTIL_OBJ            := $(addprefix $(OBJ_DIR)/,$(UTIL_OBJ))
 
 SGTE_OBJ            = Kernel.o Matrix.o Metrics.o sgtelib_help.o sgtelib.o \
@@ -168,7 +178,7 @@ SGTE_OBJ            := $(addprefix $(SGTE_OBJ_DIR)/,$(SGTE_OBJ))
 UTILS_OBJ_LIB       = $(MATH_OBJ) $(OUTPUT_OBJ) $(PARAM_OBJ) $(TYPE_OBJ) $(UTIL_OBJ)
 EVAL_OBJ_LIB        = $(CACHE_OBJ) $(EVAL_OBJ)
 ALGOS_OBJ_LIB       = $(ALGO_OBJ) $(MADS_OBJ) $(LH_OBJ) $(NM_OBJ) \
-                      $(PHASEONE_OBJ)
+                      $(PHASEONE_OBJ) $(SSDMADS_OBJ)
 ifeq ($(USE_SGTELIB), 1)
 ALGOS_OBJ_LIB       += $(SGTELIBMODEL_OBJ) $(QUADMODEL_OBJ)
 endif
@@ -200,9 +210,9 @@ SGTE_LIB_DYNAMIC_NAME     = lib$(SGTE_NAME).so
 SGTE_LIB_DYNAMIC          = $(LIB_DIR)/$(SGTE_LIB_DYNAMIC_NAME)
 LIB_DYNAMIC_SGTE          = -l$(SGTE_NAME)
 else
-SGTE_NAME                 = 
-SGTE_LIB_DYNAMIC_NAME     = 
-SGTE_LIB_DYNAMIC          = 
+SGTE_NAME                 =
+SGTE_LIB_DYNAMIC_NAME     =
+SGTE_LIB_DYNAMIC          =
 LIB_DYNAMIC_SGTE          =
 endif
 
@@ -276,7 +286,7 @@ endif
 
 lib_only: $(INCLUDE_DIR) $(OBJ_DIR) $(OBJ_LIB) $(LIB_DYNAMIC)
 
-$(OBJ_DIR): 
+$(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
 
 $(ATTR_EXE) :
@@ -330,10 +340,13 @@ $(NM_OBJ) : $(ALGO_OBJ)
 $(PHASEONE_OBJ) : $(ALGO_OBJ)
 	@cd $(ALGO_COMPONENT) && $(MAKE) -j$(PAR) all
 
+$(QUADMODEL_OBJ) : $(ALGO_OBJ)
+	@cd $(ALGO_COMPONENT) && $(MAKE) -j$(PAR) all
+
 $(SGTELIBMODEL_OBJ) : $(ALGO_OBJ)
 	@cd $(ALGO_COMPONENT) && $(MAKE) -j$(PAR) all
 
-$(QUADMODEL_OBJ) : $(ALGO_OBJ)
+$(SSDMADS_OBJ) : $(ALGO_OBJ)
 	@cd $(ALGO_COMPONENT) && $(MAKE) -j$(PAR) all
 
 $(EXE) : $(INCLUDE_DIR) $(ATTR_EXE) $(LIB_DYNAMIC) $(NOMAD_COMPONENT)/nomad.hpp $(NOMAD_COMPONENT)/nomad.cpp
@@ -382,5 +395,5 @@ $(SGTE_LIB_DYNAMIC): $(SGTE_OBJ) $(SGTE_LIB_DIR)/$(SGTE_LIB_DYNAMIC_NAME)
 
 clean:
 	@cd $(ATTR_COMPONENT) && $(MAKE) clean
-	@cd $(SGTE_SRC_DIR) && $(MAKE) clean
+	#@cd $(SGTE_SRC_DIR) && $(MAKE) clean
 	@rm -rf $(BUILD_DIR)

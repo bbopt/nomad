@@ -48,10 +48,8 @@
 #ifndef __NOMAD400_OUTPUTINFO__
 #define __NOMAD400_OUTPUTINFO__
 
-#include <iostream>
 #include <vector>
 #include "../Output/StatsInfo.hpp"
-#include "../Util/ArrayOfString.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -111,7 +109,7 @@ public:
 
     const ArrayOfString& getMsg() const { return _msg; }
     void addMsg(const std::string& msg) { _msg.add(msg); }
-    
+
     void addMsgAndSol(const std::string& msg, const Point& point);
 
     const OutputLevel& getOutputLevel() const { return _outputLevel; }

@@ -92,7 +92,7 @@ bool NOMAD::StatsInfo::alwaysDisplay(const bool displayInfeasible, const bool di
     {
         doDisplay = false;
     }
-    else if (_bbe <= 1) 
+    else if (_bbe <= 1)
     {
         // Always display X0 evaluation
         doDisplay = true;
@@ -202,6 +202,10 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     {
         ret = NOMAD::DisplayStatsType::DS_SOL;
     }
+    else if (s == "THREAD_ALGO")
+    {
+        ret = NOMAD::DisplayStatsType::DS_THREAD_ALGO;
+    }
     else if (s == "THREAD_NUM")
     {
         ret = NOMAD::DisplayStatsType::DS_THREAD_NUM;
@@ -274,6 +278,8 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "SGTE";
         case NOMAD::DisplayStatsType::DS_SOL:
             return "SOL";
+        case NOMAD::DisplayStatsType::DS_THREAD_ALGO:
+            return "THREAD_ALGO";
         case NOMAD::DisplayStatsType::DS_THREAD_NUM:
             return "THREAD_NUM";
         case NOMAD::DisplayStatsType::DS_GEN_STEP:
@@ -438,6 +444,10 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
             // Here, use displayNoPar() to have the same output as NOMAD 3
             // (no additional parenthesis).
             out += _sol.displayNoPar(solFormat);
+        }
+        else if (NOMAD::DisplayStatsType::DS_THREAD_ALGO == statsType)
+        {
+            out += NOMAD::itos(_threadAlgoNum);
         }
         else if (NOMAD::DisplayStatsType::DS_THREAD_NUM == statsType)
         {

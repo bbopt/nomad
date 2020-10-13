@@ -49,7 +49,6 @@
 #define __NOMAD400_BARRIER__
 
 #include "../Eval/EvalPoint.hpp"
-#include "../Math/Double.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -57,7 +56,7 @@
 class Barrier
 {
 private:
-    
+
     std::vector<EvalPoint> _xFeas;  ///< Current feasible incumbent solutions
     std::vector<EvalPoint> _xInf;   ///< Current infeasible incumbent solutions
 
@@ -65,6 +64,14 @@ private:
     EvalPointPtr _refBestInf;       ///< Previous first infeasible incumbent
 
     Double _hMax;                   ///< Maximum acceptable value for h
+
+    /// Dimension of the points in the barrier.
+    /**
+     * Used for verification only.
+     * To be reviewed when we address category variables.
+       /see _n in CacheBase.
+     */
+    size_t _n;
 
 public:
     /// Constructor
@@ -78,16 +85,17 @@ public:
     Barrier(const Double& hMax = INF,
             const Point& fixedVariable = Point(),
             const EvalType& evalType = EvalType::BB,
-            const std::vector<EvalPoint> evalPointList = std::vector<EvalPoint>())
+            const std::vector<EvalPoint>& evalPointList = std::vector<EvalPoint>())
       : _xFeas(),
         _xInf(),
         _refBestFeas(nullptr),
         _refBestInf(nullptr),
-        _hMax(hMax)
+        _hMax(hMax),
+        _n(0)
     {
         init(fixedVariable, evalType, evalPointList);
     }
-    
+
     /*-----------------*/
     /* Feasible points */
     /*-----------------*/
@@ -99,24 +107,25 @@ public:
 
     /// Update ref best feasible and ref best infeasible values.
     void updateRefBests();
-    
+
     ///  Get the first feasible point in the barrier.
     /**
      * If there is no feasible point, return a \c nullptr
      \return A single feasible eval point.
      */
     EvalPointPtr getFirstXFeas() const;
-    
+
     ///  Get the point that was previously the first feasible point in the barrier.
     /**
      * If there is no feasible point, return a \c nullptr
      \return A single feasible eval point.
      */
     EvalPointPtr getRefBestFeas() const { return _refBestFeas; }
+    void setRefBestFeas(const EvalPointPtr refBestFeas) { _refBestFeas = refBestFeas; }
 
     /// Number of feasible points in the barrier.
     size_t nbXFeas() const { return _xFeas.size(); }
-    
+
     /// Add a feasible point in the barrier.
     /**
      * If the point is feasible it is added, if not an exception is triggered.
@@ -124,10 +133,10 @@ public:
      \param evalType    Which eval (Blackbox or Surrogate) of the EvalPoint to use to verify feasibility  -- \b IN.
      */
     void addXFeas(const EvalPoint &xFeas, const EvalType& evalType);
-    
+
     /// Remove feasible points from the barrier.
     void clearXFeas();
-    
+
     /*-------------------*/
     /* Infeasible points */
     /*-------------------*/
@@ -136,32 +145,32 @@ public:
      \return All the eval points that are infeasible.
      */
     const std::vector<EvalPoint> getAllXInf() const { return _xInf; }
-    
+
     ///  Get the first infeasible point in the barrier.
     /**
      * If there is no infeasible point, return a \c nullptr
      \return A single infeasible eval point.
      */
     EvalPointPtr getFirstXInf() const;
-    
+
     ///  Get the point that was previously the first infeasible point in the barrier.
     /**
      * If there is no feasible point, return a \c nullptr
      \return A single feasible eval point.
      */
     EvalPointPtr getRefBestInf() const { return _refBestInf; }
-    //void setRefBestInf(const EvalPointPtr refBestInf) { _refBestInf = refBestInf; }
+    void setRefBestInf(const EvalPointPtr refBestInf) { _refBestInf = refBestInf; }
 
     /// Number of infeasible points in the barrier.
     size_t nbXInf() const { return _xInf.size(); }
-    
+
     /// Add an infeasible point in the barrier.
     /**
      * If the point is nullptr an exception is triggered.
      \param xInf   The eval point to add -- \b IN.
      */
     void addXInf(const EvalPoint &xInf);
-    
+
     /// Remove infeasible points from the barrier.
     void clearXInf();
 
@@ -173,7 +182,7 @@ public:
 
     /// Get the current hMax of the barrier.
     Double getHMax() const { return _hMax; }
-    
+
     /// Set the hMax of the barrier
     /**
      \param hMax    The hMax -- \b IN.
@@ -186,7 +195,7 @@ public:
      * \return true if the Barrier was updated, false otherwise
      * \note Input EvalPoints are already in subproblem dimention
      */
-    bool updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalPointList,
+    bool updateWithPoints(const std::vector<EvalPoint>& evalPointList,
                           const EvalType& evalType,
                           const bool keepAllPoints);
 
@@ -200,7 +209,7 @@ public:
     std::string display(const size_t max = INF_SIZE_T) const;
 
 private:
-    
+
     /**
      * \brief Helper function for constructor.
      *
@@ -211,8 +220,13 @@ private:
      */
     void init(const Point& fixedVariable,
               const EvalType& evalType,
-              const std::vector<EvalPoint> evalPointList);
-    
+              const std::vector<EvalPoint>& evalPointList);
+
+    /**
+     * \brief Helper function for init/constructor.
+     */
+    void setN();
+
     /**
      * \brief Helper function for init/constructor.
      *
@@ -226,21 +240,21 @@ private:
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
     void checkXFeas(const EvalType& evalType);
-    
+
     /**
      * \brief Helper function for insertion.
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
     void checkXFeasIsFeas(const EvalType& evalType);
-    
+
     /**
      * \brief Helper function for insertion.
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
     void checkXInf();
-    
+
     /**
      * \brief Helper function for init/setHMax.
      *

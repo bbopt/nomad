@@ -46,11 +46,10 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include <sstream>
-
-#include "../../Algos/EvcInterface.hpp"
-#include "../../Algos/Mads/MadsMegaIteration.hpp"
+#include "../../Algos/QuadModel/QuadModelIteration.hpp"
 #include "../../Algos/QuadModel/QuadModelMegaIteration.hpp"
+#include "../../Cache/CacheBase.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 
 void NOMAD::QuadModelMegaIteration::init()
@@ -72,10 +71,8 @@ void NOMAD::QuadModelMegaIteration::startImp()
     // Create an iteration for a frame center.
     // Use xFeas or xInf if XFeas is not available.
     // Use a single iteration object with several start, run, end for the various iterations of the algorithm.
-    
+
     // TODO if it performs well: use all barrier points
-    
-    size_t k = _k;  // Main iteration counter
 
     if ( ! _stopReasons->checkTerminate() )
     {
@@ -91,8 +88,7 @@ void NOMAD::QuadModelMegaIteration::startImp()
                                             0,/*counter at 0 for start */
                                             nullptr);
             _iterList.push_back(sqmIteration);
-            k++;
-            
+
         }
         else if (nullptr != bestXInf)
         {
@@ -102,7 +98,6 @@ void NOMAD::QuadModelMegaIteration::startImp()
                                             0,  /*counter at 0 for start */
                                             nullptr);
             _iterList.push_back(sqmIteration);
-            k++;
         }
 
         size_t nbIter = _iterList.size();
@@ -123,16 +118,16 @@ void NOMAD::QuadModelMegaIteration::startImp()
             AddOutputDebug("Frame center: " + frameCenter->display());
             auto previousFrameCenter = frameCenter->getPointFrom();
             AddOutputDebug("Previous frame center: " + (previousFrameCenter ? previousFrameCenter->display() : "NULL"));
-            
+
             if (nullptr != sqmIteration->getMesh())
             {
                 NOMAD::ArrayOfDouble meshSize  = sqmIteration->getMesh()->getdeltaMeshSize();
                 NOMAD::ArrayOfDouble frameSize = sqmIteration->getMesh()->getDeltaFrameSize();
-            
+
                 AddOutputDebug("Mesh size:  " + meshSize.display());
                 AddOutputDebug("Frame size: " + frameSize.display());
             }
-            
+
             NOMAD::OutputQueue::Flush();
         }
     }
@@ -143,37 +138,37 @@ bool NOMAD::QuadModelMegaIteration::runImp()
 {
     bool successful = false;
     std::string s;
-    
+
     if (_iterList.empty())
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "No iterations to run");
     }
-    
-    
+
+
     for (size_t i = 0; i < _iterList.size(); i++)
     {
-        
+
         auto sqmIteration = _iterList[i];
         if ( sqmIteration == nullptr )
         {
             throw NOMAD::Exception(__FILE__, __LINE__, "No iteration to run");
         }
-        
+
         if (!_stopReasons->checkTerminate())
         {
             sqmIteration->start();
-            
+
             bool iterSuccessful = sqmIteration->run();          // Is this iteration successful
             successful = iterSuccessful || successful;  // Is the whole MegaIteration successful
-            
+
             sqmIteration->end();
-            
+
             if (iterSuccessful)
             {
                 s = _name + ": new success " + NOMAD::enumStr(getSuccessType());
                 AddOutputDebug(s);
             }
-            
+
             if (_userInterrupt)
             {
                 hotRestartOnUserInterrupt();
@@ -182,8 +177,8 @@ bool NOMAD::QuadModelMegaIteration::runImp()
     }
     // Display MegaIteration's stop reason
     AddOutputDebug(_name + " stop reason set to: " + _stopReasons->getStopReasonAsString());
-    
-    
+
+
     // MegaIteration is a success if either a better xFeas or
     // a dominating or partial success for xInf was found.
     // See Algorithm 12.2 from DFBO.

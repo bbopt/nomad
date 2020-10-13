@@ -47,19 +47,7 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/QuadModel/QuadModelEvaluator.hpp"
-#include "../../Algos/QuadModel/QuadModelIteration.hpp"
-
-#include "../../Algos/EvcInterface.hpp"
-
-#include "../../Type/SgtelibModelFormulationType.hpp"
-
-
-#include "../../../ext/sgtelib/src/Surrogate.hpp"
-
-
-
-  
-
+#include "../../Output/OutputQueue.hpp"
 
 // Destructor
 NOMAD::QuadModelEvaluator::~QuadModelEvaluator()
@@ -72,7 +60,7 @@ void NOMAD::QuadModelEvaluator::init()
     _displayLevel = (std::string::npos != _modelDisplay.find("X"))
                         ? NOMAD::OutputLevel::LEVEL_INFO
                         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
-    
+
     if ( nullptr == _model)
     {
             throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: a model is required (nullptr)");
@@ -96,11 +84,16 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
         throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: eval_block called with an empty block");
     }
 
+    // points were sent to the evaluator in full space.
+    // Convert points to subspace, because model is in subspace.
+    for (size_t i = 0; i < block.size(); i++)
+    {
+        block[i] = std::make_shared<NOMAD::EvalPoint>(block[i]->makeSubSpacePointFromFixed(_fixedVariable));
+    }
+
     size_t m = block.size();
+    size_t n = block[0]->size();
 
-    auto x = *(*(block.begin()));
-
-    size_t n = x.size();
     const auto bbot = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
 
     size_t nbConstraints = NOMAD::getNbConstraints(bbot);
@@ -112,7 +105,6 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
     SGTELIB::Matrix X_predict("X_predict", static_cast<int>(m), static_cast<int>(n));
 
     int j = 0;
-    // Verify all points are completely defined
     for (auto it = block.begin(); it != block.end(); it++, j++)
     {
         if (!(*it)->isComplete())
@@ -120,16 +112,13 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
             throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: Incomplete point " + (*it)->display());
         }
 
-        // Convert x to subspace, because model is in subspace.
-        x = (*it)->makeSubSpacePointFromFixed(_fixedVariable);
-
-        std::string s = "X" + itos(j) +" =" + x.display();
+        std::string s = "X" + itos(j) +" =" + (*it)->display();
         NOMAD::OutputQueue::Add(s, _displayLevel);
 
         // Set the input matrix
-        for (size_t i = 0; i < n; i++)
+        for (size_t i = 0; i < (*it)->size(); i++)
         {
-            X_predict.set(j, static_cast<int>(i), x[i].todouble());
+            X_predict.set(j, static_cast<int>(i), (*(*it))[i].todouble());
         }
 
         // Reset point outputs
@@ -138,7 +127,7 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
         // work around by constructing a suitable string.
         // Note: Why set some default values on bbo?
         NOMAD::ArrayOfString defbbo(bbot.size(), "-1");
-        x.setBBO(defbbo.display(), bbot, NOMAD::EvalType::SGTE);
+        (*it)->setBBO(defbbo.display(), bbot, NOMAD::EvalType::SGTE);
 
     }
 
@@ -154,7 +143,7 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
 #pragma omp critical(SgtelibEvalX)
 #endif // _OPENMP
     {
-    
+
     _model->check_ready(__FILE__,__FUNCTION__,__LINE__);
 
     _model->predict(X_predict, &M_predict);
@@ -165,9 +154,7 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
     // Verify all points are completely defined
     for (auto it = block.begin(); it != block.end(); it++, j++)
     {
-        x = (*it)->makeSubSpacePointFromFixed(_fixedVariable);
-
-        std::string s = "X" + itos(j) +": " + x.display();
+        std::string s = "X" + itos(j) +": " + (*it)->display();
         NOMAD::OutputQueue::Add(s, _displayLevel);
         // ====================================== //
         // Output display                    //
@@ -214,6 +201,13 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
         (*it)->setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, NOMAD::EvalType::SGTE);
 
     }
+
+    // Convert points back to full space.
+    for (size_t i = 0; i < block.size(); i++)
+    {
+        block[i] = std::make_shared<NOMAD::EvalPoint>(block[i]->makeFullSpacePointFromFixed(_fixedVariable));
+    }
+
     return evalOk;
 }
 
@@ -225,7 +219,7 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
 void NOMAD::QuadModelEvaluator::evalH(const NOMAD::ArrayOfDouble& bbo,
                                          const NOMAD::BBOutputTypeList& bbot,
                                          NOMAD::Double &h)
-{   
+{
     // Note: This method must be reviewed if new BBOutputTypes are added.
 
     const auto hMin = 0.0; // H_MIN not implemented
@@ -253,7 +247,7 @@ void NOMAD::QuadModelEvaluator::evalH(const NOMAD::ArrayOfDouble& bbo,
                     h = +INF;
                     return;
                 }
-            } 
+            }
             else if (bbot[i] == NOMAD::BBOutputType::PB)
             {
                if ( bboi > hMin )

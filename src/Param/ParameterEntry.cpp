@@ -128,14 +128,14 @@ _hasBeenInterpreted   ( false )
             }
 
             // vector:
-            if ( s.size() > 1 && ( s[0] == '[' || s[0] == '(' ) ) 
+            if ( s.size() > 1 && ( s[0] == '[' || s[0] == '(' ) )
             {
                 _values.push_back ( s[0]=='[' ? "[" : "(" );
                 s.erase(s.begin());
             }
             size_t  sm1 = s.size() - 1;
             char c   = s[sm1];
-            if ( s.size() > 1 && ( c == ']' || c == ')' ) ) 
+            if ( s.size() > 1 && ( c == ']' || c == ')' ) )
             {
                 s.resize(sm1);
                 _values.push_back (s);
@@ -157,7 +157,7 @@ _hasBeenInterpreted   ( false )
 /*------------------------------*/
 void NOMAD::ParameterEntry::display(std::ostream &out) const
 {
-    if ( _ok ) 
+    if ( _ok )
     {
         out << _name << ": ";
         std::list<std::string>::const_iterator end = _values.end();

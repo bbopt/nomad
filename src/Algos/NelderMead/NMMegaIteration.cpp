@@ -46,14 +46,10 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include <sstream>
-
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
-
 #include "../../Algos/NelderMead/NMMegaIteration.hpp"
-#include "../../Algos/NelderMead/NMInitializeSimplex.hpp"
+#include "../../Output/OutputQueue.hpp"
 
-#include "../../Algos/EvcInterface.hpp"
 
 void NOMAD::NMMegaIteration::init()
 {
@@ -73,8 +69,6 @@ void NOMAD::NMMegaIteration::startImp()
     // Create a Nelder Mead iteration for a frame center.
     // Use xFeas or xInf if XFeas is not available.
     // During NM we use a single iteration object with several start, run, end for the various iterations of the algorithm.
-
-    size_t k = _k;  // Main iteration counter
 
     if ( ! _stopReasons->checkTerminate() )
     {
@@ -97,17 +91,17 @@ void NOMAD::NMMegaIteration::startImp()
         {
             _nmIteration = std::make_shared<NOMAD::NMIteration>(this,
                                     std::make_shared<NOMAD::EvalPoint>(*bestXFeas),
-                                    k,
+                                    _k,
                                     mesh);
-            k++;
+            _k++;
         }
         else if (nullptr != bestXInf)
         {
             _nmIteration = std::make_shared<NOMAD::NMIteration>(this,
                                     std::make_shared<NOMAD::EvalPoint>(*bestXInf),
-                                    k,
+                                    _k,
                                     mesh);
-            k++;
+            _k++;
         }
 
         OUTPUT_DEBUG_START
@@ -124,7 +118,7 @@ bool NOMAD::NMMegaIteration::runImp()
 {
     bool successful = false;
     std::string s;
-    
+
     if ( _stopReasons->checkTerminate() )
     {
         OUTPUT_DEBUG_START
@@ -133,23 +127,23 @@ bool NOMAD::NMMegaIteration::runImp()
         OUTPUT_DEBUG_END
         return false;
     }
-    
+
     if ( _nmIteration == nullptr )
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "No iteration to run");
     }
-    
+
     const size_t maxIter = _runParams->getAttributeValue<size_t>("MAX_ITERATION_PER_MEGAITERATION");
     size_t nbMegaIter = 0;
     while ( ! _stopReasons->checkTerminate() && nbMegaIter < maxIter )
     {
         _nmIteration->start();
-        
+
         bool iterSuccessful = _nmIteration->run();          // Is this iteration successful
         successful = iterSuccessful || successful;  // Is the whole MegaIteration successful
-        
+
         _nmIteration->end();
-        
+
         if (iterSuccessful)
         {
             OUTPUT_DEBUG_START
@@ -157,23 +151,23 @@ bool NOMAD::NMMegaIteration::runImp()
             AddOutputDebug(s);
             OUTPUT_DEBUG_END
         }
-        
+
         if (_userInterrupt)
         {
             hotRestartOnUserInterrupt();
         }
-        
+
         nbMegaIter++;
     }
     OUTPUT_DEBUG_START
     // Display MegaIteration's stop reason
     AddOutputDebug(_name + " stop reason set to: " + _stopReasons->getStopReasonAsString());
     OUTPUT_DEBUG_END
-    
+
     // MegaIteration is a success if either a better xFeas or
     // a dominating or partial success for xInf was found.
     // See Algorithm 12.2 from DFBO.
-    
+
     // return true if we have a partial or full success.
     return successful;
 }

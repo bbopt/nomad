@@ -40,7 +40,7 @@ endif
 CXXFLAGS           += -L$(LIB_DIR)
 
 ifeq ($(UNAME), Linux)
-CXXFLAGS_LIBS = -Wl,-rpath,$(LIB_DIR) 
+CXXFLAGS_LIBS = -Wl,-rpath,$(LIB_DIR)
 endif
 
 INCLFLAGS           = -I$(INCLUDE_DIR)
@@ -52,6 +52,6 @@ all: restart.exe
 restart.exe: $(INCLUDE_DIR) $(OBJ_DIR) restart.cpp
 	$(COMPILE) -o $@ restart.cpp $(LIB_DYNAMIC)
 
-clean: 
+clean:
 	rm -f *.exe *.o
 

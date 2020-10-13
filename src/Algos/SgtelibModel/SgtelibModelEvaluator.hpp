@@ -52,6 +52,7 @@
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #include "../../Eval/Evaluator.hpp"
 #include "../../Type/SgtelibModelFeasibilityType.hpp"
+#include "../../Output/OutputInfo.hpp"  // for OutputLevel
 
 #include "../../nomad_nsbegin.hpp"
 

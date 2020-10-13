@@ -51,8 +51,9 @@
  \author Viviane Rochon Montplaisir
  \date   February 2019
  */
-#include "Subproblem.hpp"
+#include "../Algos/Subproblem.hpp"
 #include "../Output/OutputQueue.hpp"
+#include "../Type/BBInputType.hpp"
 
 
 /*------------*/
@@ -67,12 +68,9 @@ void NOMAD::Subproblem::init()
     }
 
     // Compute new dimension
-    auto nbFixed = _fixedVariable.nbDefined();
-    const size_t refDimension = _refPbParams->getAttributeValue<size_t>("DIMENSION");
-    _dimension = refDimension - nbFixed;
+    NOMAD::Point subFixedVariable = _refPbParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE");
+    _dimension = subFixedVariable.size() - subFixedVariable.nbDefined();
 
-    std::string s = "FIXED_VARIABLE set to " + _fixedVariable.display();
-    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_INFO);
 
     setupProblemParameters();
 }
@@ -105,6 +103,7 @@ void NOMAD::Subproblem::setupProblemParameters()
     const auto refMinMeshSize   = _refPbParams->getAttributeValue<NOMAD::ArrayOfDouble>("MIN_MESH_SIZE");
     const auto refMinFrameSize   = _refPbParams->getAttributeValue<NOMAD::ArrayOfDouble>("MIN_FRAME_SIZE");
     const auto refGranularity   = _refPbParams->getAttributeValue<NOMAD::ArrayOfDouble>("GRANULARITY");
+    const auto refListVariableGroup = _refPbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP");
 
     // Initialize new arrays
     NOMAD::ArrayOfPoint x0s;
@@ -113,17 +112,22 @@ void NOMAD::Subproblem::setupProblemParameters()
         NOMAD::Point x0(n);
         x0s.push_back(x0);
     }
-    NOMAD::Point fixedVariable(n);
+    NOMAD::Point subFixedVariable(n);
     NOMAD::ArrayOfDouble lb(n), ub(n);
     NOMAD::BBInputTypeList bbInputType;
     NOMAD::ArrayOfDouble initialMeshSize(n), initialFrameSize(n), minMeshSize(n), minFrameSize(n);
     NOMAD::ArrayOfDouble granularity(n);
+    NOMAD::ListOfVariableGroup listVariableGroup = refListVariableGroup ;
+
+    // Compute new fixed variable.
+    // Current value of _fixedVariable contains only values from parent. Merge in values from _refPbParams.
+    NOMAD::Point refFixedVariable = _refPbParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE");
 
     // Compute new values, simply using the values on the positions of non-fixed variables.
     size_t i = 0;
     for (size_t refIndex = 0; refIndex < refDimension; refIndex++)
     {
-        if (_fixedVariable[refIndex].isDefined())
+        if (refFixedVariable[refIndex].isDefined())
         {
             continue;
         }
@@ -144,10 +148,12 @@ void NOMAD::Subproblem::setupProblemParameters()
 
         i++;
     }
+    resetVariableGroupsAgainstFixedVariables( listVariableGroup, refFixedVariable );
+
 
     // Set new values to _subPbParams
     _subPbParams->setAttributeValue("X0", x0s);
-    _subPbParams->setAttributeValue("FIXED_VARIABLE", fixedVariable);
+    _subPbParams->setAttributeValue("FIXED_VARIABLE", subFixedVariable);    // No fixed variable defined in the subproblem
     _subPbParams->setAttributeValue("LOWER_BOUND", lb);
     _subPbParams->setAttributeValue("UPPER_BOUND", ub);
     _subPbParams->setAttributeValue("BB_INPUT_TYPE", bbInputType);
@@ -156,8 +162,96 @@ void NOMAD::Subproblem::setupProblemParameters()
     _subPbParams->setAttributeValue("MIN_MESH_SIZE", minMeshSize);
     _subPbParams->setAttributeValue("MIN_FRAME_SIZE", minFrameSize);
     _subPbParams->setAttributeValue("GRANULARITY", granularity);
+    _subPbParams->setAttributeValue("VARIABLE_GROUP", listVariableGroup);
 
-    
+    _subPbParams->doNotShowWarnings();
+
     _subPbParams->checkAndComply();
 
+    // Only now, conbine refFixedVariable into _fixedVariable.
+    // Verify that refFixedVariable is of the dimension of the subproblem defined by _fixedVariable.
+    if (refFixedVariable.size() == _fixedVariable.size())
+    {
+        refFixedVariable = refFixedVariable.makeSubSpacePointFromFixed(_fixedVariable);
+    }
+    const size_t subdim1 = _fixedVariable.size() - _fixedVariable.nbDefined();
+    if (refFixedVariable.size() != subdim1)
+    {
+        std::string s = "Expecting FIXED_VARIABLE to be of size "  + std::to_string(subdim1);
+        s += ". Current FIXED_VARIABLE is of size " + std::to_string(refFixedVariable.size());
+        s += ": " + refFixedVariable.display();
+        throw NOMAD::Exception(__FILE__,__LINE__, s);
+    }
+
+    for (size_t refIndex = 0, newIndex = 0; refIndex < _fixedVariable.size(); refIndex++)
+    {
+        if (!_fixedVariable[refIndex].isDefined())
+        {
+            _fixedVariable[refIndex] = refFixedVariable[newIndex];
+            newIndex++;
+        }
+    }
+
+    OUTPUT_INFO_START
+    std::string s = "FIXED_VARIABLE set to " + _fixedVariable.display();
+    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_INFO);
+    OUTPUT_INFO_END
+
 }
+
+// If a variable is fixed, its index must be removed from the group of variables
+// All the indices above the fixed variable index must be decreased by one
+void NOMAD::Subproblem::resetVariableGroupsAgainstFixedVariables(NOMAD::ListOfVariableGroup & lvg, const NOMAD::Point & fixedVar) const
+{
+    if (lvg.size() == 0 || !fixedVar.isDefined())
+        return;
+
+    // Put the indices of fixed variables in a single set.
+    const size_t n = fixedVar.size();
+    std::set<size_t> indicesToRemove;
+    for (size_t i=0 ; i < n ; i++ )
+    {
+        if (fixedVar[i].isDefined())
+        {
+            indicesToRemove.insert(i);
+        }
+    }
+
+    NOMAD::ListOfVariableGroup updatedLvg;
+    while (indicesToRemove.size()!=0)
+    {
+        updatedLvg.clear();
+        auto itIndexBegin = indicesToRemove.begin();
+
+        // Remove an index in a variable group. Decrement by one all indices (in all variable groups) above the index to remove.
+        for (auto vg: lvg)
+        {
+            NOMAD::VariableGroup updatedVariableGroup;
+            for (auto index : vg)
+            {
+                // Do not include an index equal to the index to remove.
+                // Include and decrement indices above the index to remove.
+                // Include indices below the index to remove.
+                if (index > *itIndexBegin )
+                    updatedVariableGroup.insert(index-1);
+                else if (index < *itIndexBegin )
+                    updatedVariableGroup.insert(index);
+
+            }
+            // A variable group can be empty -> do not include.
+            if (updatedVariableGroup.size() != 0)
+                updatedLvg.push_back(updatedVariableGroup);
+        }
+
+        // Remove index from the set of indices. Decrement remaining indices that are smaller than the index to remove.
+        std::set<size_t> updatedIndicesToRemove;
+        for ( std::set<size_t>::iterator itIndex = ++itIndexBegin; itIndex != indicesToRemove.end() ; itIndex++ )
+        {
+            updatedIndicesToRemove.insert((*itIndex)-1);
+        }
+        indicesToRemove = updatedIndicesToRemove;
+        lvg = updatedLvg;
+    }
+
+}
+

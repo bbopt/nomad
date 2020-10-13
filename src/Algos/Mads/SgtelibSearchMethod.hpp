@@ -84,7 +84,7 @@ public:
     /**
      /param parentStep      The parent of this search step -- \b IN.
      */
-    explicit SgtelibSearchMethod(const Step* parentStep )
+    explicit SgtelibSearchMethod(const Step* parentStep)
       : SearchMethodAlgo(parentStep),
         _displayLevel(OutputLevel::LEVEL_NORMAL)
 #ifdef USE_SGTELIB
@@ -96,7 +96,7 @@ public:
 
 private:
     void init();
-    
+
     bool runImp() override;
 
     ///Generate new points (no evaluation)

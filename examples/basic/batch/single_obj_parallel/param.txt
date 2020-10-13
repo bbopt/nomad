@@ -4,7 +4,7 @@ BB_EXE         "$perl parallel_BBWrapper.pl"
 
 BB_MAX_BLOCK_SIZE 4
 
-BB_OUTPUT_TYPE OBJ PB EB  
+BB_OUTPUT_TYPE OBJ PB EB
 
 X0             ( 0 0 0 0 0 )  # starting point
 
@@ -15,6 +15,6 @@ UPPER_BOUND    ( 5 6 7 - - )  # x_1 <= 5, x_2 <= 6, x_3 <= 7
 MAX_BLOCK_EVAL     20         # the algorithm terminates when
                               # 20 blocks have been evaluated
 
-TMP_DIR /tmp							  
-DISPLAY_DEGREE 2 
+TMP_DIR /tmp
+DISPLAY_DEGREE 2
 DISPLAY_STATS BLK_EVA BLK_SIZE OBJ

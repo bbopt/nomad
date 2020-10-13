@@ -100,7 +100,7 @@ public:
      \return The number of points for secondary LH searches.
      */
     size_t getNbIteration() const { return _lhsearch1; }
-    
+
     /// Comparison operator \c ==.
     /**
      \param lhst    The right-hand side object -- \b IN.
@@ -110,15 +110,15 @@ public:
     {
         return (( _enable == lhst._enable) && ( _lhsearch0 == lhst._lhsearch0 ) && ( _lhsearch1 == lhst._lhsearch1 )) ;
     }
-    
+
     /// Comparison operator \c !=.
     /**
      \param lhst    The right-hand side object -- \b IN.
      \return        A boolean equal to \c true if  \c *this \c != \c array.
      */
     bool operator!= (const LHSearchType &lhst ) const { return !(*this == lhst); }
-    
-    
+
+
 };
 
 

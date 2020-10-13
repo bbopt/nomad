@@ -47,13 +47,13 @@
 /*---------------------------------------------------------------------------------*/
 
 #include <algorithm>    // For std::merge and std::unique
-#include <sstream>
 
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/Mads/Search.hpp"
 #include "../../Algos/Mads/Poll.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 #ifdef TIME_STATS
 #include "../../Algos/EvcInterface.hpp"

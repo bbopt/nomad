@@ -77,13 +77,13 @@ public:
     virtual bool terminate(size_t iteration);
 
     virtual void    startImp() override; ///< Will update the step name
-    
+
     /// Implementation for run task of algorithm Termination.
     /**
      \return \c true is a stop reason requires termination of an algorithm, \c false otherwise.
      */
     virtual bool    runImp()   override;
-    
+
     /// Implementation for end tasks of algorithm Termination.
     /**
      Upon completing an algorithm run, this end function is called to display termination info.
@@ -91,7 +91,7 @@ public:
     virtual void    endImp()   override;
 
 private:
-    
+
     /// Helper for constructor
     void init();
 

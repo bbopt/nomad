@@ -49,17 +49,14 @@
 #ifndef __NOMAD400_STEP__
 #define __NOMAD400_STEP__
 
-#include <stdexcept>
-
-#include "../Algos/AllStopReasons.hpp"
 #include "../Algos/MeshBase.hpp"
 #include "../Eval/Barrier.hpp"
-#include "../Eval/EvaluatorControl.hpp"
 #include "../Output/OutputInfo.hpp"
-#include "../Output/OutputQueue.hpp"
+#include "../Param/PbParameters.hpp"
 #include "../Param/RunParameters.hpp"
 #include "../Type/CallbackType.hpp"
 #include "../Type/EvalType.hpp"
+#include "../Util/AllStopReasons.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -202,10 +199,8 @@ public:
 
     std::shared_ptr<AllStopReasons> getAllStopReasons() const { return _stopReasons ; }
 
-    /// Shortcut to get eval type from _pbParams
-    const EvalType& getEvalType() const;
-
     std::shared_ptr<RunParameters> getRunParams() const { return _runParams; }
+    std::shared_ptr<PbParameters> getPbParams() const { return _pbParams; }
 
     /// Interruption call by user.
     /**
@@ -240,7 +235,7 @@ public:
     void AddOutputHigh(const std::string& s) const;
     void AddOutputDebug(const std::string& s) const;
     void AddOutputInfo(OutputInfo outputInfo) const;
-    
+
     /// Template function to get the parent of given type.
     /**
      * Starting with parent of current Step, and going through ancestors,
@@ -272,6 +267,7 @@ public:
         return dynamic_cast<T>(retStep);
     }
 
+
     bool isAnAlgorithm() const;
 
     /**
@@ -282,6 +278,13 @@ public:
      to compute Step names as sub-steps of algorithms.
      */
     std::string getAlgoName() const;
+
+    /**
+      Get and set comment that will be showed in normal display for additional information.
+    **/
+    virtual std::string getAlgoComment() const;
+    virtual void setAlgoComment(const std::string& algoComment, const bool force = false);
+    virtual void resetPreviousAlgoComment(const bool force = false);
 
     /**
      \return The MeshBase for the first Iteration ancestor of this Step.
@@ -299,12 +302,6 @@ public:
     const std::shared_ptr<Barrier> getMegaIterationBarrier() const;
 
     /**
-     /return The fixedVariable Point for the associated Subproblem.
-     If no Subproblem is available, return a default Point (of size 0).
-     */
-    Point getSubFixedVariable() const;
-    
-    /**
     Start of the Step. Initialize values for the run.
     */
     void start() ;
@@ -313,7 +310,7 @@ public:
     Placeholder to be implemented in derived classes. Called by start.
     */
     virtual void startImp() = 0 ;
-    
+
     /**
      * Perform main step task.
      * Main part of the Step
@@ -326,12 +323,12 @@ public:
     Placeholder to be implemented in derived classes. Called by run.
     */
     virtual bool runImp() = 0 ;
-    
+
     /**
      * End of the Step. Clean up structures, flush output.
     */
     void end();
-    
+
     /**
     Placeholder to be implemented by derived classes. Called by end.
     */
@@ -363,12 +360,12 @@ private:
     // Default callbacks. They do nothing.
     static void defaultStepEnd(const Step& step  __attribute__((unused)), bool &stop) { stop = false; }
     static void defaultHotRestart(std::vector<std::string>& paramLines  __attribute__((unused))) {};
-    
+
     /**
      Default task always executed when start() is called
      */
     void defaultStart();
-    
+
     /**
      Default task always executed when end() is called
      */

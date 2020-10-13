@@ -46,8 +46,6 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include <sstream>
-
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelIteration.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelUpdate.hpp"

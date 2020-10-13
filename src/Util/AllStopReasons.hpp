@@ -48,7 +48,6 @@
 #ifndef __NOMAD400_ALLSTOPREASONS__
 #define __NOMAD400_ALLSTOPREASONS__
 
-#include "../Util/Exception.hpp"
 #include "../Util/StopReason.hpp"
 
 #include "../nomad_nsbegin.hpp"
@@ -61,7 +60,7 @@
  - a ::BaseStopType for high level stop reasons.
  - a ::EvalStopType for evaluation stop reasons.
  - an ::IterStopType for stop reasons during iteration of an algorithm (for example, maximum iteration number reached).
- 
+
  The static stop reasons ::BaseStopType and ::EvalStopType are shared.
  */
 class AllStopReasons
@@ -71,158 +70,100 @@ public:
     explicit AllStopReasons ()
     {
     }
-    
+
     /// Destructor
     virtual ~AllStopReasons()
     {}
 
 private:
-    static StopReason<BaseStopType> _baseStopReason ; ///< A single base stop reason is considered for NOMAD.
-    static StopReason<EvalStopType> _evalStopReason ; ///< A single evaluation stop reason is considered for NOMAD.
+    static StopReason<BaseStopType> _baseStopReason; ///< A single base stop reason is considered for NOMAD.
+    static StopReason<EvalStopType> _evalStopReason; ///< A single eval stop reason is considered for NOMAD.
     StopReason<IterStopType> _iterStopReason; ///< An iteration stop reason.
 
-
 public:
-    
-    
     /*---------*/
     /* Get/Set */
     /*---------*/
 
-    StopReason<BaseStopType> & getBaseStopReason() { return _baseStopReason; }
-    StopReason<EvalStopType> & getEvalStopReason() { return _evalStopReason; }
-    StopReason<IterStopType> & getIterStopReason() { return _iterStopReason; }
-    
-    static void set( BaseStopType s )
+    static const StopReason<BaseStopType>& getBaseStopReason() { return _baseStopReason; }
+    static const StopReason<EvalStopType>& getEvalStopReason() { return _evalStopReason; }
+    const StopReason<IterStopType>& getIterStopReason() const { return _iterStopReason; }
+
+    static void set(const BaseStopType& s)
     {
         _baseStopReason.set(s);
     }
-    
-    static void set( EvalStopType s )
+
+    static void set(const EvalStopType& s)
     {
         _evalStopReason.set(s);
     }
-    
-    void set( IterStopType s )
+
+    void set(const IterStopType& s)
     {
         _iterStopReason.set(s);
     }
-    
+
     /*---------*/
     /* Other   */
     /*---------*/
-    
+
     /// Test static BaseStopType
-    static bool testIf ( BaseStopType s )
+    static bool testIf(const BaseStopType& s)
     {
-        return ( _baseStopReason.get() == s );
+        return (_baseStopReason.get() == s);
     }
-    
+
     /// Test static EvalStopType
-    static bool testIf ( EvalStopType s )
+    static bool testIf (const EvalStopType& s)
     {
-        return ( _evalStopReason.get() == s );
+        return (_evalStopReason.get() == s);
     }
-    
+
     /// Test IterStopType
-    bool testIf ( IterStopType s )
+    bool testIf (IterStopType s)
     {
-        return ( _iterStopReason.get() == s );
+        return (_iterStopReason.get() == s);
     }
-    
+
     /// Reset all stop reasons to their default STARTED state
-    virtual void setStarted ()
-    {
-        _baseStopReason.setStarted();
-        _evalStopReason.setStarted();
-        _iterStopReason.setStarted();
-    }
+    virtual void setStarted();
 
     /// Get the stop reason that requires termination as a string.
     /**
      If no termination is required, an empty string is returned.
      */
-    virtual std::string getStopReasonAsString() const
-    {
-        std::string stopReason="";
-        bool flagTerminate = false;
-        
-        if ( _baseStopReason.checkTerminate() )
-        {
-            stopReason += _baseStopReason.getStopReasonAsString() + " (Base stop reason) ";
-            flagTerminate = true;
-        }
-        if ( _evalStopReason.checkTerminate() )
-        {
-            stopReason += _evalStopReason.getStopReasonAsString() + " (Eval stop reason) ";
-            flagTerminate = true;
-        }
-        
-        if ( _iterStopReason.checkTerminate() )
-        {
-            stopReason += _iterStopReason.getStopReasonAsString() + " (Iteration stop reason) ";
-            flagTerminate = true;
-        }
-        
-        if ( ! flagTerminate )
-            stopReason = "No termination (all). ";
-        
-        return stopReason;
-        
-    }
-    
-    
+    virtual std::string getStopReasonAsString() const;
+
+
     /// Get the eval stop reason as a string.
     /**
     \return An empty string is in STARTED state, the stop reason otherwise.
      */
-    static std::string getEvalStopReasonAsString()
-    {
-        std::string stopReason="";
-        
-        if ( ! _evalStopReason.isStarted() )
-            stopReason += _evalStopReason.getStopReasonAsString() + " (Eval) ";
-        
-        return stopReason;
-        
-    }
-    
+    static std::string getEvalStopReasonAsString();
+
     /// Get the base stop reason as a string.
     /**
      \return An empty string is in STARTED state, the stop reason otherwise.
      */
-    static std::string getBaseStopReasonAsString()
-    {
-        std::string stopReason="";
-        
-        if ( ! _baseStopReason.isStarted() )
-            stopReason += _baseStopReason.getStopReasonAsString() + " (Eval) ";
-        
-        return stopReason;
-        
-    }
+    static std::string getBaseStopReasonAsString();
 
     /// Check if among all stop reasons, one requires a termination.
     /**
      \see StopReason::checkTerminate()
-     
+
      \return \c true if a termination is required, \c false otherwise.
      */
-    virtual bool checkTerminate () const
+    virtual bool checkTerminate() const;
+
+    static bool checkBaseTerminate()
     {
-        return ( _baseStopReason.checkTerminate()
-                || _evalStopReason.checkTerminate()
-                || _iterStopReason.checkTerminate() );
+        return _baseStopReason.checkTerminate();
     }
-    
-    static bool checkBaseTerminate ()
+
+    static bool checkEvalTerminate()
     {
-        return _baseStopReason.checkTerminate () ;
-    }
-    
-    static bool checkEvalTerminate ()
-    {
-        return _evalStopReason.checkTerminate () ;
+        return _evalStopReason.checkTerminate();
     }
 };
 

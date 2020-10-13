@@ -100,6 +100,17 @@ NOMAD::ArrayOfDouble NOMAD::MeshBase::getDeltaFrameSize() const
 }
 
 
+NOMAD::ArrayOfDouble NOMAD::MeshBase::getDeltaFrameSizeCoarser() const
+{
+    NOMAD::ArrayOfDouble Delta(_n);
+    for (size_t i = 0; i < _n; i++)
+    {
+        Delta[i] = getDeltaFrameSizeCoarser(i);
+    }
+    return Delta;
+}
+
+
 void NOMAD::MeshBase::setDeltas(const NOMAD::ArrayOfDouble &deltaMeshSize,
                                 const NOMAD::ArrayOfDouble &deltaFrameSize)
 {
@@ -147,12 +158,12 @@ bool NOMAD::MeshBase::verifyPointIsOnMesh(const NOMAD::Point& point, const NOMAD
         NOMAD::Double deltaI = getdeltaMeshSize(i);
 
         if (!centerI.isMultipleOf(deltaI))
-        {   
+        {
             // Rebase point on the mesh centered on center Point
             pointRebaseI -= centerI;
         }
         if (!pointRebaseI.isMultipleOf(deltaI))
-        {   
+        {
             isOnMesh = false;
             break;
         }
@@ -199,7 +210,7 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::MeshBase& mesh)
             break;
         }
     }
-    
+
     mesh.setDeltas(deltaMeshSize, deltaFrameSize);
 
     return is;

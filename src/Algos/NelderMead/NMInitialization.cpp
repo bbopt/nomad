@@ -46,14 +46,15 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/CacheInterface.hpp"
+#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/NelderMead/NMInitialization.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 
 
 void NOMAD::NMInitialization::init()
 {
     _name = getAlgoName() + "Initialization";
-    
+
     _nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get( _stopReasons );
 }
 
@@ -61,7 +62,7 @@ void NOMAD::NMInitialization::init()
 bool NOMAD::NMInitialization::runImp()
 {
     bool doContinue = ! _stopReasons->checkTerminate();
-    
+
     if (doContinue)
     {
         // For a standalone NM, evaluate the trial points generated during start (simplex is created later)
@@ -77,7 +78,7 @@ bool NOMAD::NMInitialization::runImp()
 
 void NOMAD::NMInitialization::startImp()
 {
-    
+
     if ( ! _stopReasons->checkTerminate() )
     {
         // If needed, generate trial points and put them in cache to form simplex
@@ -88,21 +89,21 @@ void NOMAD::NMInitialization::startImp()
             generateTrialPoints();
         }
     }
-    
+
 }
 
 
 void NOMAD::NMInitialization::endImp()
 {
-    // Update _barrier member with evaluated _trialPoints for future use
+    // Construct _barrier member with evaluated _trialPoints for future use
     // _trialPoints are already updated with Evals.
     if (_trialPoints.size() > 0)
     {
         std::vector<NOMAD::EvalPoint> evalPointList;
         std::copy(_trialPoints.begin(), _trialPoints.end(),
                           std::back_inserter(evalPointList));
-        _barrier->updateWithPoints(evalPointList, getEvalType(),
-                                   _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
+        auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this), NOMAD::EvcInterface::getEvaluatorControl()->getEvalType(), evalPointList);
     }
 }
 
@@ -114,7 +115,7 @@ bool NOMAD::NMInitialization::checkCacheCanFormSimplex()
         return false;
     // TODO
     return false;
-        
+
 }
 
 // Generate trial points to form a simplex
@@ -144,7 +145,7 @@ void NOMAD::NMInitialization::generateTrialPoints()
     OUTPUT_INFO_START
     AddOutputInfo("Using X0: " + evalPoint_x0.display());
     OUTPUT_INFO_END
-    
+
     // Method to generate simplex points using X0 adapted from fminsearch (matlab)
     const NOMAD::Double usualDelta = 0.05;    //  x0 + 5 percent
     const NOMAD::Double zeroDelta = 0.00025;  //
@@ -155,7 +156,7 @@ void NOMAD::NMInitialization::generateTrialPoints()
             trialPoint[j] *= (1 + usualDelta );
         else
             trialPoint[j] = zeroDelta;
-        
+
         insertTrialPoint(trialPoint);
     }
 
@@ -163,4 +164,3 @@ void NOMAD::NMInitialization::generateTrialPoints()
     NOMAD::OutputQueue::Flush();
     OUTPUT_INFO_END
 }
-

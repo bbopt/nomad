@@ -49,11 +49,7 @@
 #define __NOMAD400_QUAD_MODEL_MEGAITERATION__
 
 
-
-#include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/MegaIteration.hpp"
-
-#include "../../Algos/QuadModel/QuadModelIteration.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -66,7 +62,7 @@
 */
 class QuadModelMegaIteration: public MegaIteration
 {
-    
+
 public:
     /// Constructor
     /**
@@ -85,15 +81,15 @@ public:
     }
 
     virtual ~QuadModelMegaIteration();
-    
+
 private:
-    
+
     void init();
 
     virtual void startImp() override ;
     virtual bool runImp() override;
     virtual void endImp() override;
-    
+
 
 };
 

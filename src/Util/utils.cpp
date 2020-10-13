@@ -53,6 +53,9 @@
  \see    utils.hpp
  */
 #include <algorithm>    // for for_each
+#ifdef _OPENMP
+#include <omp.h>
+#endif // _OPENMP
 #include "../Util/Exception.hpp"
 #include "../Util/utils.hpp"
 
@@ -138,7 +141,7 @@ bool NOMAD::atoi ( const std::string & s , int & i )
         }
         return false;
     }
-    
+
     std::string ts = s;
     NOMAD::toupper(ts);
     if ( ts == "INF" || ts == "+INF" )
@@ -151,7 +154,7 @@ bool NOMAD::atoi ( const std::string & s , int & i )
         i = NOMAD::M_INF_INT;
         return true;
     }
-    
+
     for ( size_t k = 0 ; k < n ; ++k )
     {
         if ( !isdigit(s[k]) )
@@ -169,12 +172,12 @@ bool NOMAD::atoi ( const std::string & s , int & i )
 bool NOMAD::atost ( const std::string & s , size_t & st )
 {
     st = NOMAD::INF_SIZE_T;
-    
+
     if ( s.empty() )
     {
         return false;
     }
-    
+
     std::string ts = s;
     NOMAD::toupper(ts);
     if ( ts == "INF" || ts == "+INF" )
@@ -191,7 +194,7 @@ bool NOMAD::atost ( const std::string & s , size_t & st )
             throw NOMAD::Exception(__FILE__, __LINE__, "Invalid value for size_t. Value must be >0");
         st = static_cast<size_t>(i);
     }
-    
+
     return success;
 }
 
@@ -233,6 +236,85 @@ std::string NOMAD::enumStr(NOMAD::SuccessType success)
     }
 
     return str;
+}
+
+// Convert a string to index range
+bool NOMAD::stringToIndexRange(const std::string & s           ,
+                               size_t            & i           ,
+                               size_t            & j           ,
+                               bool               check_order   )
+{
+    if ( s.empty() )
+        return false;
+
+// For now we accept only range i-j and -j
+//    if ( s == "*" )
+//    {
+//        if ( !n )
+//            return false;
+//        i = 0;
+//        j = *n-1;
+//        return true;
+//    }
+
+    if ( s[0] == '-' )
+    {
+
+        size_t ns = s.size();
+        if ( ns > 1 && s[1] == '-' )
+            return false;
+
+        std::string ss = s;
+        ss.erase ( ss.begin() );
+
+        if ( NOMAD::stringToIndexRange ( ss , i , j , false ) )
+        {
+            i = -i;
+            return true;
+        }
+        return false;
+    }
+
+    std::istringstream in (s);
+    std::string        s1;
+
+    getline ( in , s1 , '-' );
+
+    if (in.fail())
+        return false;
+
+    size_t k , n1 = s1.size();
+
+    if ( n1 >= s.size() - 1 )
+    {
+        for ( k = 0 ; k < n1 ; ++k )
+            if (!isdigit(s1[k]))
+                return false;
+        if ( ! atost ( s1 , i ) )
+            return false;
+        if ( n1 == s.size() )
+        {
+            j = i;
+            return true;
+        }
+        return false;
+    }
+
+    std::string s2;
+    getline (in, s2);
+
+    if (in.fail())
+        return false;
+
+    size_t n2 = s2.size();
+    for ( k = 0 ; k < n2 ; ++k )
+        if ( !isdigit(s2[k]) )
+            return false;
+
+    if ( ! atost ( s1, i ) || ! atost ( s2 , j ) )
+        return false;
+
+    return !check_order || i <= j;
 }
 
 
@@ -449,3 +531,12 @@ bool NOMAD::validFormat(std::string &s)
     return isValid;
 }
 
+
+int NOMAD::getThreadNum()
+{
+    int threadNum = 0;
+#ifdef _OPENMP
+    threadNum = omp_get_thread_num();
+#endif // _OPENMP
+    return threadNum;
+}

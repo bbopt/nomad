@@ -50,8 +50,6 @@
 
 #include "../../Algos/Mads/SearchMethodBase.hpp"
 
-#include "../../Algos/Step.hpp"
-
 #include "../../nomad_nsbegin.hpp"
 
 /// Class to manage the SearchMethods used by MADS algorithm during its search step.
@@ -100,19 +98,19 @@ private:
      Just perform a sanity check on GENERATE_ALL_POINTS_BEFORE_EVAL that must be false.
      */
     virtual void startImp() override;
-    
+
     /// The implementation of run tasks.
     /**
       Perform start+run+end for all search methods in the vector _searchMethods.
      */
     virtual bool runImp() override;
-    
+
     /// Implementation of the end tasks
     /**
       If a sub optimization is used during search we probably set a stop reason to terminate. The parent optimization must go on. The stop reason is set to started if sub optimization reached its evaluation budget.
      */
     virtual void endImp() override;
-    
+
     /**
      Identify if there is at least one search enabled. If there are none, do not print Search step at all.
      */

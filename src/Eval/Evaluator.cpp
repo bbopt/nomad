@@ -47,6 +47,7 @@
 /*---------------------------------------------------------------------------------*/
 #include "../Eval/Evaluator.hpp"
 #include "../Output/OutputQueue.hpp"
+#include "../Util/fileutils.hpp"
 #include <fstream>  // For ofstream
 #include <stdio.h>  // For popen
 
@@ -88,9 +89,6 @@ NOMAD::Evaluator::Evaluator(
         std::string tmpfilestr = tmppath + "nomadtmp." + std::to_string(pid) + "." + std::to_string(threadNum);
         _tmpFiles.push_back(tmpfilestr);
     }
-
-    // Set default function to compute success according to evalType.
-    NOMAD::ComputeSuccessType::setDefaultComputeSuccessTypeFunction(evalType);
 }
 
 
@@ -115,9 +113,9 @@ bool NOMAD::Evaluator::eval_x(NOMAD::EvalPoint &x,
     // The user might have defined his own eval_x() for NOMAD::EvalPoint.
     // In the NOMAD code, we do not use this method.
     //
-    // Implemented to be used by the Runner. In the case of the Runner, 
+    // Implemented to be used by the Runner. In the case of the Runner,
     // eval_x is redefined. When batch mode is used (for instance for
-    // Styrene), this eval_x is called. So in fact we really want to 
+    // Styrene), this eval_x is called. So in fact we really want to
     // use the executable defined by BB_EXE.
 
     _evalXDefined = NOMAD::EvalXDefined::USE_BB_EVAL;
@@ -144,7 +142,7 @@ bool NOMAD::Evaluator::eval_x(NOMAD::EvalPoint &x,
 // Default eval_block: for block
 // This is used even for blocks of 1 point.
 // If we never go through this eval_block(),
-// it means that eval_block was redefined by the user, 
+// it means that eval_block was redefined by the user,
 // using library mode.
 std::vector<bool> NOMAD::Evaluator::eval_block(NOMAD::Block &block,
                                                const NOMAD::Double &hMax,
@@ -233,10 +231,7 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
     }
 
     // Write a temp file for x0 and give that file as argument to bbExe.
-    int threadNum = 0;
-#ifdef _OPENMP
-    threadNum = omp_get_thread_num();
-#endif
+    int threadNum = NOMAD::getThreadNum();
     std::string tmpfile = _tmpFiles[threadNum];
 
     // System command

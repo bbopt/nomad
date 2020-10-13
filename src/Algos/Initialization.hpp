@@ -59,7 +59,7 @@
 class Initialization: public Step
 {
 protected:
-    std::shared_ptr<NOMAD::Barrier> _barrier;   ///< Barrier constructed from evaluated X0s
+    std::shared_ptr<Barrier> _barrier;   ///< Barrier constructed from evaluated X0s
 
 public:
     /// Constructor
@@ -72,24 +72,21 @@ public:
     {
         init();
     }
-    
+
     /// Destructor
     /**
      Upon destruction, print all that is in the output queue.
      */
-    virtual ~Initialization()
-    {
-        OutputQueue::Flush();
-    }
+    virtual ~Initialization();
 
-    std::shared_ptr<NOMAD::Barrier> getBarrier() const { return _barrier; }
+    std::shared_ptr<Barrier> getBarrier() const { return _barrier; }
 
 private:
     /// Helper for constructor
     void init();
 
 public:
-    
+
     virtual void startImp()    override {}
     virtual bool runImp()      override = 0;
     virtual void endImp()      override {}

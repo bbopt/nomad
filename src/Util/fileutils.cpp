@@ -296,7 +296,7 @@ void NOMAD::removeComments(std::string &line)
     }
 
 }
-    
+
 
 void NOMAD::completeFileName(std::string &filename,
                                         const std::string &problemDir,

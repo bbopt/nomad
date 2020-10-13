@@ -145,13 +145,13 @@ int main (int argc, char ** argv)
                 else
                 {
                     TheMainStep->setParamFileName(paramfilename);
-                    
+
                     // Reads parameters
                     TheMainStep->start();
-                    
+
                     // Creates the EvaluatorControl, Mads, and runs Mads.
                     TheMainStep->run();
-                    
+
                     TheMainStep->end();
                 }
             }

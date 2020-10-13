@@ -46,13 +46,13 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include <sstream>
-
+#include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Cache/CacheBase.hpp"
+#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelFilterCache.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelIteration.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelMegaIteration.hpp"
-
-#include "../../Algos/EvcInterface.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 
 void NOMAD::SgtelibModelMegaIteration::init()
@@ -99,14 +99,6 @@ bool NOMAD::SgtelibModelMegaIteration::runImp()
     }
     else
     {
-        // DEBUG - ensure OPPORTUNISM is off.
-        auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams();
-        auto previousOpportunism = evcParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
-        if (previousOpportunism)
-        {
-            throw NOMAD::Exception(__FILE__,__LINE__,"Parameter OPPORTUNISTIC_EVAL should be false");
-        }
-
         foundBetter = evalTrialPoints(this);
     }
 
@@ -124,7 +116,7 @@ bool NOMAD::SgtelibModelMegaIteration::runImp()
 
 void NOMAD::SgtelibModelMegaIteration::endImp()
 {
-    postProcessing(getEvalType());
+    postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
 
     // Clear sgte info from cache.
     // Very important so we don't have false info in a later MegaIteration.
@@ -180,7 +172,7 @@ void NOMAD::SgtelibModelMegaIteration::runIterationsAndSetTrialPoints()
         }
         // downcast from Iteration to SgtelibModelIteration
         std::shared_ptr<NOMAD::SgtelibModelIteration> iteration = std::dynamic_pointer_cast<NOMAD::SgtelibModelIteration>(_iterList[i]);
-        
+
         if (nullptr == iteration)
         {
             throw NOMAD::Exception(__FILE__, __LINE__, "Invalid shared pointer cast");
@@ -237,12 +229,12 @@ void NOMAD::SgtelibModelMegaIteration::runIterationsAndSetTrialPoints()
         }
 
         _k++;   // Count one more iteration.
-        
+
         if (_userInterrupt)
         {
             hotRestartOnUserInterrupt();
         }
-            
+
     }
 }
 
@@ -259,7 +251,7 @@ void NOMAD::SgtelibModelMegaIteration::filterCache()
 {
     // Select additonal candidates out of the cache
     int nbCandidates = _runParams->getAttributeValue<int>("SGTELIB_MODEL_CANDIDATES_NB");
-    auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams();
+    auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
 
     if (nbCandidates < 0)
     {

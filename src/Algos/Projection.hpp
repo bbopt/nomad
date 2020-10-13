@@ -50,6 +50,7 @@
 #define __NOMAD400_PROJECTION__
 
 #include "../Algos/IterationUtils.hpp"
+#include "../Algos/Step.hpp"
 
 #include "../nomad_nsbegin.hpp"
 

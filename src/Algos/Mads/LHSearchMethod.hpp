@@ -65,7 +65,7 @@ public:
     {
         init();
     }
-    
+
     /**
      \copydoc SearchMethodSimple::generateTrialPointsImp \n
      \note For the LH search method for Mads, the generation of points uses LHS with bounds determined from the frame size and frame center of the currrent iteration of Mads.

@@ -52,7 +52,7 @@
 #include <stdexcept>
 
 #include "../Algos/Iteration.hpp"
-#include "../Algos/Algorithm.hpp"
+#include "../Algos/MegaIteration.hpp"
 #include "../Algos/Step.hpp"
 
 #include "../nomad_nsbegin.hpp"
@@ -70,7 +70,7 @@ protected:
     EvalPointSet _trialPoints; ///< The points generated during the start(). Used for run() and postProcessing().
 
     size_t _nbEvalPointsThatNeedEval;
-    
+
 
 protected:
 
@@ -97,11 +97,6 @@ private:
      Used when evaluating trial points without mesh and frame center.
      */
     bool _fromAlgo;
-    
-    /**
-    Flag: True if the trial points have been snapped to bounds and mesh. False otherwise. \n
-    */
-    bool _hasBeenSnapped;
 
 
 public:
@@ -115,8 +110,7 @@ public:
         _parentStep(parentStep),
         _success(SuccessType::NOT_EVALUATED),
         _iterAncestor(nullptr),
-        _fromAlgo(false),
-        _hasBeenSnapped(false)
+        _fromAlgo(false)
     {
         init();
     }
@@ -176,7 +170,7 @@ public:
 //    bool snapPointToBounds(Point& point,
 //                            const ArrayOfDouble& lowerBound,
 //                            const ArrayOfDouble& upperBound);
-    
+
     /// Snap a given trial point to the bounds and project on mesh
     /**
      * Used by classes that generate points: SearchMethods, Poll, etc,

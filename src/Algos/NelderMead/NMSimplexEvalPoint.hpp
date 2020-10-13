@@ -56,7 +56,6 @@
 class NMSimplexEvalPointCompare
 {
 public:
-
     bool operator() (const EvalPoint& lhs, const EvalPoint& rhs) const;
 };
 

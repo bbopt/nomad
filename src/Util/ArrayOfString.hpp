@@ -86,7 +86,7 @@ public:
      */
     explicit ArrayOfString(const std::string & inputString,
                            const std::string & separators = " ");
-        
+
     /// Destructor.
     virtual ~ArrayOfString();
 

@@ -47,23 +47,23 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/EvcInterface.hpp"
-
 #include "../../Algos/Mads/MegaSearchPoll.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/Search.hpp"
 #include "../../Algos/Mads/Poll.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 void NOMAD::MegaSearchPoll::init()
 {
     _name = "MegaSearchPoll";
     verifyParentNotNull();
-    
+
     auto megaIter = dynamic_cast<const NOMAD::MadsMegaIteration*>( _megaIterAncestor );
     if (nullptr == megaIter)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"An instance of class MegaSearch must have a MadsMegaIteration among its ancestors");
     }
-    
+
 }
 
 
@@ -100,7 +100,7 @@ bool NOMAD::MegaSearchPoll::runImp()
 
 void NOMAD::MegaSearchPoll::endImp()
 {
-    postProcessing(getEvalType());
+    postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
 }
 
 

@@ -46,9 +46,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../Eval/Eval.hpp"
-#include "../Math/RNG.hpp"
+#include "../Math/RNG.hpp"  // for setSeed()
 #include "../Param/RunParameters.hpp"
+#include "../Util/fileutils.hpp"
 
 #include "../nomad_version.hpp"
 
@@ -67,7 +67,7 @@ void NOMAD::RunParameters::init()
     {
         #include "../Attribute/runAttributesDefinition.hpp"
         registerAttributes( _definition );
-    
+
         // Registered attributes using defined keywords (not in preprocessed special header file)
         registerAttribute<NOMAD::Double>("EPSILON", NOMAD::DEFAULT_EPSILON, false,
             " NOMAD precision for comparison of values ",
@@ -79,10 +79,10 @@ void NOMAD::RunParameters::init()
             " NOMAD version number (for runner) ",
             " \n \n . NOMAD version number (optional) \n  . If not compatible with current version will trigger exception \n " ," advanced nomad version(s) release(s) revision(s) " );
         registerAttribute<std::string>("INF_STR", NOMAD::DEFAULT_INF_STR, false,
-            "String for infinite values", 
+            "String for infinite values",
             " \n \n . String for infinite values \n "," advanced string(s) inf(inite) value(s) ");
         registerAttribute<std::string>("PROBLEM_DIR", std::string(".") + NOMAD::DIR_SEP , false,
-            "Problem directory " , 
+            "Problem directory " ,
             "\n \n . Problem directory \n . To complete \n "," problem dir(ectory) folder(s) ");
         // Note: we cannot call checkAndComply() here, the default values
         // are not valid.
@@ -100,18 +100,18 @@ void NOMAD::RunParameters::init()
 /*            check the parameters        */
 /*----------------------------------------*/
 void NOMAD::RunParameters::checkAndComply(
-        const std::shared_ptr<NOMAD::EvaluatorControlParameters>& evaluatorControlParams,
+        const std::shared_ptr<NOMAD::EvaluatorControlGlobalParameters>& evaluatorControlGlobalParams,
         const std::shared_ptr<NOMAD::PbParameters>& pbParams)
 {
     std::string err;
     checkInfo();
-    
+
     if (!toBeChecked())
     {
         // Early out
         return;
     }
-    
+
     // check the non-interpreted parameters:
     //const std::shared_ptr<NOMAD::ParameterEntry> pe = getNonInterpretedParamEntry();
     std::vector<std::shared_ptr<NOMAD::ParameterEntry>> allNonInterp = getAllNonInterpretedParamEntries();
@@ -135,30 +135,30 @@ void NOMAD::RunParameters::checkAndComply(
             }
         }
     }
-    
+
     auto problemDir = getAttributeValueProtected<std::string>("PROBLEM_DIR", false);
-    
+
     auto seed = getAttributeValueProtected<int>("SEED" ,false);
     if ( seed < 0)
     {
         throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: SEED must be non-negative" );
     }
-    
+
     // CT todo modify to manage retro-compatiblity
     auto version_number = getAttributeValueProtected<std::string>("NOMAD_VERSION", false);
     if ( version_number != NOMAD_VERSION_NUMBER )
     {
        throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: VERSION_NUMBER is not compatible" );
     }
-    
+
     auto anisotropyFactor = getAttributeValueProtected<NOMAD::Double>("ANISOTROPY_FACTOR", false);
     if ( anisotropyFactor <= 0)
     {
         throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: ANISOTROPY_FACTOR must be positive" );
     }
-    
+
     setStaticParameters();
-    
+
     /*-------------------*/
     /* Disable parameter */
     /*-------------------*/
@@ -239,22 +239,27 @@ void NOMAD::RunParameters::checkAndComply(
     /* Parallelism related parameters */
     /*--------------------------------*/
     // Ensure we can get value for BB_MAX_BLOCK_SIZE without throwing an exception.
-    if (evaluatorControlParams->toBeChecked())
+    if (evaluatorControlGlobalParams->toBeChecked())
     {
-        evaluatorControlParams->checkAndComply();
+        evaluatorControlGlobalParams->checkAndComply();
     }
-    auto blockSize = evaluatorControlParams->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE");
-    if (0 == blockSize)
+    auto bbBlockSize = evaluatorControlGlobalParams->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE");
+    if (0 == bbBlockSize)
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Parameter BB_MAX_BLOCK_SIZE must be positive");
     }
+    auto sgteBlockSize = evaluatorControlGlobalParams->getAttributeValue<size_t>("SGTE_MAX_BLOCK_SIZE");
+    if (0 == sgteBlockSize)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Parameter SGTE_MAX_BLOCK_SIZE must be positive");
+    }
 #ifdef _OPENMP
-    else if (blockSize > 1)
+    else if (bbBlockSize > 1)
     {
         if (getAttributeValueProtected<int>("NB_THREADS_OPENMP", false) != 1)
         {
             std::cerr << "Warning: Parallelism management: BB_MAX_BLOCK_SIZE is ";
-            std::cerr << "larger than 1 (value is " << blockSize << "). ";
+            std::cerr << "larger than 1 (value is " << bbBlockSize << "). ";
             std::cerr << "Setting parameter NB_THREADS_OPENMP to 1." << std::endl;
         }
         setAttributeValue("NB_THREADS_OPENMP", 1);
@@ -285,13 +290,29 @@ void NOMAD::RunParameters::checkAndComply(
     }
 #endif
 
+    // SSD-Mads parameters
+    bool useAlgoSSDMads = getAttributeValueProtected<bool>("SSD_MADS_OPTIMIZATION", false);
+    if (useAlgoSSDMads)
+    {
+        const size_t nbVariablesInSubproblem = getAttributeValueProtected<size_t>("SSD_MADS_NB_VAR_IN_SUBPROBLEM", false);
+        size_t nbMadsSubproblem = getAttributeValueProtected<size_t>("SSD_MADS_NB_SUBPROBLEM", false);
+        // Distribute all the variables between subproblems of reduced dimension.
+        if (nbMadsSubproblem == INF_SIZE_T)
+        {
+            nbMadsSubproblem = std::round(n/nbVariablesInSubproblem)+1; // Add an additional mads for the pollster
+        }
+        setAttributeValue("SSD_MADS_NB_SUBPROBLEM", nbMadsSubproblem);
+    }
+
     // Algorithm parameters: use an algorithm other than MADS.
     // They are mutually-exclusive.
     bool useAlgoLH = (getAttributeValueProtected<size_t>("LH_EVAL", false) > 0);
     bool useAlgoNM = getAttributeValueProtected<bool>("NM_OPTIMIZATION", false);
-    bool useAlgoSgtelibModel = getAttributeValueProtected<bool>("SGTELIB_MODEL_EVAL", false);
     bool useAlgoQuadOpt = getAttributeValueProtected<bool>("QUAD_MODEL_OPTIMIZATION", false);
-    int totalAlgoSet = (int)useAlgoLH + (int)useAlgoNM + (int)useAlgoSgtelibModel + (int)useAlgoQuadOpt;
+    bool useAlgoSgtelibModel = getAttributeValueProtected<bool>("SGTELIB_MODEL_EVAL", false);
+    int totalAlgoSet = (int)useAlgoLH + (int)useAlgoNM + (int)useAlgoQuadOpt
+                       + (int)useAlgoSgtelibModel + (int)useAlgoSSDMads;
+
     if (totalAlgoSet >= 2)
     {
         err = "Multiple parameters for algorithms are set. ";
@@ -304,18 +325,22 @@ void NOMAD::RunParameters::checkAndComply(
         {
             err += " NM_OPTIMIZATION";
         }
-        if (useAlgoSgtelibModel)
-        {
-            err += " SGTELIB_MODEL_EVAL";
-        }
         if (useAlgoQuadOpt)
         {
             err += " QUAD_MODEL_OPTIMIZATION";
         }
+        if (useAlgoSgtelibModel)
+        {
+            err += " SGTELIB_MODEL_EVAL";
+        }
+        if (useAlgoSSDMads)
+        {
+            err += " SSD_MADS_OPTIMIZATION";
+        }
         err += ". Please review parameters settings and choose only one algorithm.";
         throw NOMAD::Exception(__FILE__,__LINE__, err);
     }
-    
+
     /*------------------------*/
     /* Hot restart parameters */
     /* Update file names      */
@@ -326,7 +351,7 @@ void NOMAD::RunParameters::checkAndComply(
         NOMAD::completeFileName(hotRestartFileName, problemDir);
         setAttributeValue("HOT_RESTART_FILE", hotRestartFileName);
     }
-    
+
 
     auto hMax = getAttributeValueProtected<NOMAD::Double>("H_MAX_0", false);
     if (hMax <= 0)
@@ -348,7 +373,7 @@ void NOMAD::RunParameters::setStaticParameters()
     NOMAD::Double::setEpsilon ( getAttributeValueProtected<NOMAD::Double>("EPSILON",false).todouble() );
     NOMAD::Double::setUndefStr ( getAttributeValueProtected<std::string>("UNDEF_STR",false) );
     NOMAD::Double::setInfStr ( getAttributeValueProtected<std::string>("INF_STR",false) );
-    
+
     // Reset parameter values from these static values, to ensure coherence.
     // This is bad because we have twice the same value for some parameters.
     setAttributeValue ( "SEED", NOMAD::RNG::getSeed() );

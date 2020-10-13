@@ -45,16 +45,11 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-
 #ifndef __NOMAD400_QUAD_MODEL_OPTIMIZE__
 #define __NOMAD400_QUAD_MODEL_OPTIMIZE__
 
-#include "../../Algos/Mads/Mads.hpp"
-
 #include "../../Algos/Step.hpp"
 #include "../../Algos/QuadModel/QuadModelIterationUtils.hpp"
-
-#include "../../Algos/QuadModel/QuadModelAlgo.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -70,20 +65,17 @@ class QuadModelOptimize : public Step, public QuadModelIterationUtils
 private:
 
     OutputLevel                         _displayLevel;
-    
+
     ArrayOfDouble _modelLowerBound; ///> Lower bound: min of trainingSet points
     ArrayOfDouble _modelUpperBound; ///> Upper bound: max of trainingSet points
     Point         _modelFixedVar;   ///> Fixed variables: fixed variables detected from trainingSet
 
-    
+
     const std::shared_ptr<PbParameters> _refPbParams; ///< Reference to the original problem parameters.
 
     std::shared_ptr<RunParameters>      _optRunParams; ///< run parameters for model optimization
     std::shared_ptr<PbParameters>       _optPbParams; ///< pb parameters for model optimization
-    
-    
-    bool _previousEvcParamOpportunism ; ///<  Keep track of EvaluatorControl opportunisme to reset to previous value after optimization.
-    size_t _previousEvcParamBbMaxBlockSize; ///<  Keep track of EvaluatorControl BB max block size to reset to previous value after optimization.
+
 
 public:
     /// Constructor
@@ -95,13 +87,12 @@ public:
       : Step(parentStep),
       QuadModelIterationUtils (parentStep),
         _displayLevel(OutputLevel::LEVEL_INFO),
-        _modelLowerBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), +INF),
-        _modelUpperBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), -INF),
-        _modelFixedVar(refPbParams->getAttributeValue<size_t>("DIMENSION"), NOMAD::Double()),
+        _modelLowerBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
+        _modelUpperBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
+        _modelFixedVar(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _refPbParams(refPbParams),
         _optRunParams(nullptr),
-        _optPbParams(nullptr),
-        _previousEvcParamOpportunism(false)
+        _optPbParams(nullptr)
     {
         init();
     }
@@ -117,8 +108,8 @@ public:
      - best feasible and best infeasible (if available) are inserted as trial points.
      */
     void generateTrialPoints() override;
-    
-    
+
+
 private:
     void init();
 

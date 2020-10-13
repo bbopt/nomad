@@ -48,7 +48,6 @@
 #ifndef __NOMAD400_CACHEPARAMETERS__
 #define __NOMAD400_CACHEPARAMETERS__
 
-
 #include "../Param/Parameters.hpp"
 #include "../Param/RunParameters.hpp"
 
@@ -68,7 +67,7 @@ public:
     {
         init();
     }
-    
+
     /// Check the sanity of parameters.
     /**
      RunParameters is needed to obtain the value of PROBLEM_DIR parameter.

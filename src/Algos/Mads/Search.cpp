@@ -53,6 +53,7 @@
 #include "../../Algos/Mads/LHSearchMethod.hpp"
 #include "../../Algos/Mads/NMSearchMethod.hpp"
 #include "../../Algos/Mads/UserSearchMethod.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 #ifdef TIME_STATS
 #include "../../Algos/EvcInterface.hpp"
@@ -75,7 +76,7 @@ void NOMAD::Search::init()
     auto sgtelibSearch          = std::make_shared<NOMAD::SgtelibSearchMethod>(this);
     auto lhSearch               = std::make_shared<NOMAD::LHSearchMethod>(this);
     auto nmSearch               = std::make_shared<NOMAD::NMSearchMethod>(this);
-    
+
 
     // The search methods will be executed in the same order
     // as they are inserted.
@@ -108,7 +109,7 @@ void NOMAD::Search::startImp()
 
 bool NOMAD::Search::runImp()
 {
-    bool foundBetter = false;
+    bool searchSuccessful = false;
     std::string s;
 
     // Sanity check. The runImp function should be called only when trial points are generated and evaluated for each search method separately.
@@ -132,7 +133,7 @@ bool NOMAD::Search::runImp()
     s = "Going through all search methods until we get a success";
     AddOutputDebug(s);
     OUTPUT_DEBUG_END
-    for (size_t i = 0; !foundBetter && i < _searchMethods.size(); i++)
+    for (size_t i = 0; !searchSuccessful && i < _searchMethods.size(); i++)
     {
         auto searchMethod = _searchMethods[i];
         bool enabled = searchMethod->isEnabled();
@@ -146,8 +147,9 @@ bool NOMAD::Search::runImp()
         double searchEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
 #endif // TIME_STATS
         searchMethod->start();
-        foundBetter = searchMethod->run();
+        searchMethod->run();
         success = searchMethod->getSuccessType();
+        searchSuccessful = (success >= NOMAD::SuccessType::FULL_SUCCESS);
         if (success > bestSuccessYet)
         {
             bestSuccessYet = success;
@@ -159,13 +161,13 @@ bool NOMAD::Search::runImp()
 #endif // TIME_STATS
 
 
-        if (foundBetter)
+        if (searchSuccessful)
         {
-            // Do not go through the other search methods if we found
-            // an improving solution.
+            // Do not go through the other search methods if a search is
+            // successful.
             OUTPUT_INFO_START
             s = searchMethod->getName();
-            s += " found an improving solution. Stop reason: ";
+            s += " is successful. Stop reason: ";
             s += _stopReasons->getStopReasonAsString() ;
 
             AddOutputInfo(s);
@@ -176,7 +178,7 @@ bool NOMAD::Search::runImp()
 
     setSuccessType(bestSuccessYet);
 
-    return foundBetter;
+    return searchSuccessful;
 }
 
 
@@ -220,7 +222,7 @@ void NOMAD::Search::generateTrialPoints()
             }
         }
     }
-    
+
     // Sanity check
     verifyPointsAreOnMesh(getName());
 }

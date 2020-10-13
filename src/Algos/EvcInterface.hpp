@@ -49,10 +49,7 @@
 #ifndef __NOMAD400_EVCINTERFACE__
 #define __NOMAD400_EVCINTERFACE__
 
-#include "../Algos/MainStep.hpp"
-#include "../Algos/MeshBase.hpp"
 #include "../Algos/Step.hpp"
-
 #include "../Eval/EvaluatorControl.hpp"
 
 #include "../nomad_nsbegin.hpp"
@@ -65,11 +62,11 @@
 class EvcInterface
 {
 private:
-    
-    Step* _step; /// The step that uses the EvaluatorControl
+    const Step* _step;      ///< Step that uses the EvaluatorControl
+    Point _fixedVariable;   ///< Full dimension point including fixed variables
 
     static std::shared_ptr<EvaluatorControl> _evaluatorControl; ///< Static EvaluatorControl
-    
+
 public:
     /// Constructor
     /**
@@ -89,7 +86,7 @@ public:
     {
         return _evaluatorControl;
     }
-    
+
     /**
      If the evaluatorControl attribute is NULL, throws an exception.
      */
@@ -101,24 +98,24 @@ public:
      Set the barrier to a full space barrier.
      */
     void setBarrier(const std::shared_ptr<Barrier>& subBarrier);
-    
+
     /// Get all evaluated points
     /**
      \note              _evaluatedPoints is cleared
      */
-    std::vector<NOMAD::EvalPoint> getAllEvaluatedPoints();
+    std::vector<EvalPoint> retrieveAllEvaluatedPoints();
 
 
     /*---------------*/
     /* Other Methods */
     /*-------------- */
-    
+
     // This method may be used by MegaIteration, or by a SearchMethod or by Poll
     /**
      *  For each point, look if it is in the cache.
      *  If it is, count a cache hit.
      *  If not, convert it to an EvalQueuePoint and add it to EvaluatorControl's Queue.
-     
+
      \param trialPoints The trial points -- \b IN/OUT.
      \param useMesh     Flag to use mesh or not -- \b IN.
      */
@@ -135,10 +132,10 @@ public:
      Useful for X0. \n
      This method will convert a point from subspace to full space
      before calling EvaluatorControl's method of the same name.
-     
-     \param evalPoint  The poin to evaluate -- \b IN/OUT.
-     \param hMax       The max infeasibility for keeping points in barrier -- \b IN.
-     \return           \c true if evaluation worked (evalOk), \c false otherwise.
+
+     \param evalPoint   The poin to evaluate -- \b IN/OUT.
+     \param hMax        The max infeasibility for keeping points in barrier -- \b IN.
+     \return            \c true if evaluation worked (evalOk), \c false otherwise.
     */
     bool evalSinglePoint(EvalPoint &evalPoint, const Double &hMax = INF);
 
@@ -151,7 +148,7 @@ private:
      Utility that throws an exception when not verified.
      */
     void verifyStepNotNull();
-    
+
     /// Helper for init and setEvaluatorControl
     /**
      Utility that throws an exception when not verified.

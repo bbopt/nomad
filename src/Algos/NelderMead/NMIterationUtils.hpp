@@ -49,12 +49,10 @@
 #ifndef __NOMAD400_NMITERATIONUTILS__
 #define __NOMAD400_NMITERATIONUTILS__
 
-#include <stdexcept>
-
-#include "../../Algos/Step.hpp"
 #include "../../Algos/IterationUtils.hpp"
-
-#include "../../Algos/NelderMead/NMMegaIteration.hpp"
+#include "../../Algos/NelderMead/NMIteration.hpp"
+#include "../../Algos/NelderMead/NMSimplexEvalPoint.hpp"
+#include "../../Algos/Step.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -135,7 +133,7 @@ public:
         _simplexDiamPt1(nullptr),
         _simplexDiamPt2(nullptr),
         _rankEps(DEFAULT_EPSILON),
-        _currentStepType(NOMAD::NMStepType::UNSET),
+        _currentStepType(NMStepType::UNSET),
         _nmY(nullptr)
     {
         auto iter = dynamic_cast<const NMIteration*>(_iterAncestor);

@@ -70,17 +70,17 @@ public:
     {
         init();
     }
-    
+
 private:
     void init();
-    
+
     /// Generate new points to evaluate
     /**
      \copydoc SearchMethodSimple::generateTrialPointsImp \n
      The speculative search generates points in the direction of success.
      */
     void generateTrialPointsImp() override;
-    
+
 };
 
 #include "../../nomad_nsend.hpp"

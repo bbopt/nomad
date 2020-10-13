@@ -64,6 +64,7 @@ BBE OBJ
     OBJ        : objective function value
     SGTE       : number of surrogate evaluations since last reset
     SOL        : current feasible iterate
+    THREAD_ALGO: Thread number for the algorithm
     THREAD_NUM : thread number in which this evaluation was done
     TOTAL_SGTE : total number of surrogate evaluations
     TIME       : real time in seconds
@@ -88,7 +89,7 @@ int
     . 'MIN', 'MINIMAL', 'MINIMAL_DISPLAY',
     . 'NORMAL', 'NORMAL_DISPLAY',
     . 'FULL', 'FULL_DISPLAY'
-    
+
 . Example:
     DISPLAY_DEGREE 2    # basic: normal display
 
@@ -191,7 +192,7 @@ NOMAD::ArrayOfDouble
 
 . SOL_FORMAT is computed from BB_OUTPUT_TYPE and GRANULARITY
   parameters.
- 
+
 . Gives the format precision for display of SOL. May also be used for
   other ArrayOfDouble of the same DIMENSION (ex. bounds, deltas).
 

@@ -52,10 +52,7 @@
  \date   2017
  */
 
-#include "Algos/MainStep.hpp"
-#include "Cache/CacheSet.hpp"
 #include "Nomad/nomad.hpp"
-#include "Util/fileutils.hpp"
 
 /*----------------------------------------*/
 /*               The problem              */
@@ -66,9 +63,9 @@ public:
     My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
-    
+
     ~My_Evaluator() {}
-    
+
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override
     {
         bool eval_ok = false;
@@ -76,7 +73,7 @@ public:
         NOMAD::Double f = 1e+20, g1 = 1e+20, g2 = 1e+20;
         NOMAD::Double sum1 = 0.0, sum2 = 0.0, sum3 = 0.0, prod1 = 1.0, prod2 = 1.0;
         size_t n = x.size();
-        
+
         try
         {
             for (size_t i = 0; i < n ; i++)
@@ -97,10 +94,10 @@ public:
                     }
                 }
             }
-            
+
             g1 = -prod2 + 0.75;
             g2 = sum2 -7.5 * n;
-            
+
             f = 10*g1 + 10*g2;
             if (0.0 != sum3)
             {
@@ -111,17 +108,17 @@ public:
             {
                 f *= 1e-5;
             }
-            
+
             NOMAD::Double c2000 = -f-2000;
             auto bbOutputType = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
             std::string bbo = g1.tostring();
             bbo += " " + g2.tostring();
             bbo += " " + f.tostring();
             bbo += " " + c2000.tostring();
-            
+
             const NOMAD::EvalType& evalType = getEvalType();
             x.setBBO(bbo, bbOutputType, evalType);
-            
+
             eval_ok = true;
         }
         catch (std::exception &e)
@@ -130,7 +127,7 @@ public:
             err += e.what();
             throw std::logic_error(err);
         }
-        
+
         countEval = true;
         return eval_ok;
     }
@@ -150,7 +147,7 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->setAttributeValue( "X0", NOMAD::Point(n, 7.0) );
 
     allParams->getPbParams()->setAttributeValue("GRANULARITY", NOMAD::ArrayOfDouble(n, 0.0000001));
-    
+
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes;
     bbOutputTypes.push_back(NOMAD::BBOutputType::PB);     // g1
@@ -158,7 +155,7 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     bbOutputTypes.push_back(NOMAD::BBOutputType::OBJ);    // f
     bbOutputTypes.push_back(NOMAD::BBOutputType::EB);     // c2000
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
-    
+
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
     allParams->setAttributeValue("DISPLAY_ALL_EVAL", false);
     allParams->setAttributeValue("DISPLAY_UNSUCCESSFUL", false);
@@ -166,10 +163,10 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
     allParams->getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
 
-    
+
     // Parameters validation
     allParams->checkAndComply();
-    
+
 }
 
 
@@ -178,7 +175,7 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
 /*------------------------------------------*/
 int main (int argc, char **argv)
 {
-    
+
     NOMAD::MainStep TheMainStep;
 
     auto params = std::make_shared<NOMAD::AllParameters>();
@@ -187,19 +184,19 @@ int main (int argc, char **argv)
 
     std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
     TheMainStep.setEvaluator(std::move(ev));
-    
+
     try
     {
         TheMainStep.start();
         TheMainStep.run();
         TheMainStep.end();
     }
-    
+
     catch(std::exception &e)
     {
         std::cerr << "\nNOMAD has been interrupted (" << e.what() << ")\n\n";
     }
-    
+
     return 0;
 }
 

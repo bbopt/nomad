@@ -63,7 +63,7 @@ void NOMAD::LHSearchMethod::init()
 
 void NOMAD::LHSearchMethod::generateTrialPointsImp()
 {
-    
+
     if (nullptr == _iterAncestor)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"LHSearchMethod: must have an iteration ancestor");
@@ -78,15 +78,14 @@ void NOMAD::LHSearchMethod::generateTrialPointsImp()
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"LHSearchMethod: must have a frameCenter");
     }
- 
+
     auto lhSearch = _runParams->getAttributeValue<NOMAD::LHSearchType>("LH_SEARCH");
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     size_t p = (0 == _iterAncestor->getK()) ? lhSearch.getNbInitial() : lhSearch.getNbIteration();
     auto lowerBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
     auto upperBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
-    int seed = _runParams->getAttributeValue<int>("SEED");
-    
-    
+
+
     // Update undefined values of lower and upper bounds to use values based
     // on DeltaFrameSize.
     // Based on the code in NOMAD 3, but slightly different.
@@ -108,7 +107,7 @@ void NOMAD::LHSearchMethod::generateTrialPointsImp()
     }
 
     // Apply Latin Hypercube algorithm
-    NOMAD::LHS lhs(n, p, lowerBound, upperBound, seed);
+    NOMAD::LHS lhs(n, p, lowerBound, upperBound);
     auto pointVector = lhs.Sample();
 
     // Insert the point. Projection on mesh and snap to bounds is done in SearchMethod

@@ -87,7 +87,7 @@ public:
      */
     explicit BBInput(const BBInputTypeList& bbInputTypeList,
                      const Point& point);
-    
+
     /*---------*/
     /* Get/Set */
     /*---------*/

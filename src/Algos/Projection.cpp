@@ -62,6 +62,7 @@
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Projection.hpp"
 #include "../Math/RNG.hpp"
+#include "../Output/OutputQueue.hpp"
 
 NOMAD::Projection::Projection(const NOMAD::Step* parentStep,
                               const NOMAD::EvalPointSet &oraclePoints)
@@ -234,12 +235,12 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
     _indexSet.clear();
     trySet.clear();
     keep.clear();
-    
+
 
     // Evaluate projection trial points
     // in the surrogate model
     // TODO Analyse from NOMAD 3 and see if we can do something similiar
-    // in NOMAD 4. It may not be worth it, it seems more like an 
+    // in NOMAD 4. It may not be worth it, it seems more like an
     // issue of sorting the points accorting to a SgtelibModel, and
     // that would be better done in the EvaluatorControl.
     //evaluateProjectionTrialPoints(trySet, ev, keep, bestEvalPoint);
@@ -341,7 +342,7 @@ NOMAD::EvalPoint NOMAD::Projection::buildProjectionTrialPoint(const NOMAD::Point
 }
 
 
-void NOMAD::Projection::doGreedySelection(const NOMAD::EvalPoint &oraclePoint, 
+void NOMAD::Projection::doGreedySelection(const NOMAD::EvalPoint &oraclePoint,
                                                 const NOMAD::EvalPointSet& trySet,
                                                 std::vector<bool>& keep)
 {

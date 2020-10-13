@@ -48,14 +48,6 @@
 #ifndef __NOMAD400_PBPARAMETERS__
 #define __NOMAD400_PBPARAMETERS__
 
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <set>
-#include <typeindex>
-#include <typeinfo>
-
-#include "../Type/BBInputType.hpp"
 #include "../Param/Parameters.hpp"
 
 #include "../nomad_nsbegin.hpp"
@@ -78,42 +70,44 @@ public:
     {
         init();
     }
-    
+
     /**
      The copy constructor is not implemented in the parent class to allow some control over what parameters can be copied or not. Use the deep copy function of parameters: Parameters::copyParameters.
      */
     PbParameters& operator=(const PbParameters& params) { copyParameters(params) ; return *this; }
-    
+
     /**
      The copy constructor is not implemented in the parent class to allow some control over what parameters can be copied or not. Use the deep copy function of parameters: Parameters::copyParameters.
      */
     PbParameters(const PbParameters& params) : PbParameters() { copyParameters(params); }
-    
+
     /// Check the sanity of parameters.
     void checkAndComply( );
 
     /// Do not show certain warnings
     void doNotShowWarnings() { _showWarningMeshSizeRedefined = false; }
-    
+
 private:
     /// Helper for constructor
     /**
      Register and set default values for all problem attributes. The information to register all the attributes is contained in pbAttributesDefinition.hpp as a set of strings to be interpreted. This file is created by the writeAttributeDefinition executable, called automatically by makefile when the pbAttributeDefinition.txt file is modified.
      */
     void init() override ;
-    
+
     ///  Helper for checkAndComply()
     void setGranularityAndBBInputType();
     ///  Helper for checkAndComply()
-    void setFixedVariables();
+    void setVariableGroups();
     ///  Helper for checkAndComply()
-    void checkX0AgainstBounds();
+    void setFixedVariables();
     ///  Helper for checkAndComply()
     void setMinMeshParameters(const std::string &paramName);
     ///  Helper for checkAndComply()
     void setInitialMeshParameters();
     ///  Helper for checkAndComply()
     void checkX0ForGranularity() const;
+    ///  Helper for checkAndComply()
+    void checkX0AgainstBounds() const;
     ///  Helper for checkAndComply()
     void checkForGranularity(const std::string &paramName) const;
     ///  Helper for checkAndComply()

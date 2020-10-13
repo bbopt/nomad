@@ -67,10 +67,10 @@ public:
 
     /**
          An empty (disabled) startImp is required for a search method that launches an iterative algorithm during the run.
-     
+
      */
     void startImp() override {}
-    
+
     /**
      - Pure virtual function.
      - This function must be implemented for algo based search methods that can perform several iterations.
@@ -80,7 +80,7 @@ public:
      - This function is used only when the option to generate all points before evaluation is disabled, that is the ::generateTrialPointsImp is not called.
      */
     virtual bool runImp() override = 0 ;
-        
+
     /**
      - Pure virtual function.
      - This function must be implemented for algo based search methods that can perform a single iteration for generating points.

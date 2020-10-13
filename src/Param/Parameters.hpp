@@ -55,15 +55,12 @@
 #include <typeindex>
 #include <typeinfo>
 
-#include "../Util/defines.hpp"
 #include "../Math/Double.hpp"
 #include "../Math/Point.hpp"
 #include "../Math/ArrayOfPoint.hpp"
-#include "../Param/Attribute.hpp"
+#include "../Type/ListOfVariableGroup.hpp"
 #include "../Param/AttributeFactory.hpp"
 #include "../Param/ParameterEntries.hpp"
-#include "../Util/ArrayOfString.hpp"
-#include "../Util/fileutils.hpp"
 
 
 #include "../nomad_nsbegin.hpp"
@@ -103,23 +100,37 @@ struct AttributeDefinition
 
 
 /// Exception class for an invalid parameter.
-class InvalidParameter : public NOMAD::Exception
+class InvalidParameter : public Exception
 {
 public:
     /// Constructor.
     InvalidParameter(const std::string& file,
                      int line,
                      const std::string& msg)
-      : NOMAD::Exception(file, line, msg)
+      : Exception(file, line, msg)
     {
-        _typeMsg = "Invalid Parameter";
+        _typeMsg = "Invalid Parameter.";
+    }
+};
+
+/// Exception class for a parameter that has not been checked.
+class ParameterToBeChecked : public Exception
+{
+public:
+    /// Constructor.
+    ParameterToBeChecked(const std::string& file,
+                     int line,
+                     const std::string& msg)
+      : Exception(file, line, msg)
+    {
+        _typeMsg = "Parameter to be checked.";
     }
 };
 
 
 /// Abstract class for the NOMAD parameters.
 /**
- Several types of parameters control the execution of Nomad: RunParameters, PbParameters, CacheParameters, DisplayParameters, EvalParameters and EvaluatorControlParameters. \n
+ Several types of parameters control the execution of Nomad: RunParameters, PbParameters, CacheParameters, DisplayParameters, EvalParameters, EvaluatorControlGlobalParameters and EvaluatorControlParameters. \n
 
  All the parameters to control a NOMAD run can be obtained from a single parameter file (see Parameters::readParamFileAndSetEntries) or set using the attribute name and value (see the templated function Parameters::setAttributeValue). \n
 
@@ -209,7 +220,7 @@ protected:
     /**
      An attribute is defined by some meta data provided in the structure AttributeDefinition. This structure contains a series of string that are translated into Attribute -s- when calling Parameters::registerAttributes. \n
 
-     This definition is provided as an "initializer list" of a vector of several strings: _definition = { {"attribute1_name","attribute1_type","attribute1_defaultValue",....},{"attribute2_name","attribute2_type",....},...} in the header files for specific attribute definition files: cacheAttributesDefinition.hpp, displayAttributesDefinition.hpp, evalAttributesDefinition.hpp, evaluatorControlAttributesDefinition.hpp, pbAttributesDefinition.hpp and runAttributesDefinition.hpp. These files are programmatically created from their equivalent text files (*.txt) by the WriteAttributeDefinition.exe binary. This pre-processing task is automatically performed (by makefile) if an attribute definition is modified in a text file.\n
+     This definition is provided as an "initializer list" of a vector of several strings: _definition = { {"attribute1_name","attribute1_type","attribute1_defaultValue",....},{"attribute2_name","attribute2_type",....},...} in the header files for specific attribute definition files: cacheAttributesDefinition.hpp, displayAttributesDefinition.hpp, evalAttributesDefinition.hpp, evaluatorControlAttributesDefinition.hpp, evaluatorControlGlobalAttributesDefinition.hpp, pbAttributesDefinition.hpp and runAttributesDefinition.hpp. These files are programmatically created from their equivalent text files (*.txt) by the WriteAttributeDefinition.exe binary. This pre-processing task is automatically performed (by makefile) if an attribute definition is modified in a text file.\n
 
      */
     std::vector<AttributeDefinition> _definition;
@@ -288,6 +299,9 @@ private:
     /// Helper for read
     size_t readValuesForArrayOfPoint(const ParameterEntry &pe, Point &point);
 
+    /// Helper for read
+    size_t readValuesForVariableGroup(const ParameterEntry &pe, VariableGroup &vg);
+
 protected:
     /*-------------------*/
     /* registerAttribute   */
@@ -350,7 +364,9 @@ protected:
 
     const std::string& getAttributeType(const std::string& name)
     {
-        return _typeOfAttributes[name];
+        auto namecaps = name;
+        toupper(namecaps);
+        return _typeOfAttributes[namecaps];
     }
 
     SPtrAtt getAttribute(std::string name) const;
@@ -401,7 +417,7 @@ protected:
             {
                 std::string err = "In getAttributeValue<T> the attribute ";
                 err += name + " has not been checked";
-                throw Exception(__FILE__,__LINE__, err);
+                throw ParameterToBeChecked(__FILE__,__LINE__, err);
             }
             return sp->getValue();
         }
@@ -432,12 +448,14 @@ protected:
     template<typename T> const Point&
     getAttributeValueProtected(const std::string &name, type<Point>, bool flagCheckException, bool flagDefault = false) const
     {
-        if (typeid(ArrayOfPoint).name() == _typeOfAttributes.at(name))
+        auto namecaps = name;
+        toupper(namecaps);
+        if (typeid(ArrayOfPoint).name() == _typeOfAttributes.at(namecaps))
         {
             // Special case: Attribute type is an ArrayOfPoint, but user asks to
             // return a Point.
             // Get the ArrayOfPoint and return its first element.
-            const ArrayOfPoint & aop = getSpValue<ArrayOfPoint>(name, flagCheckException, flagDefault);
+            const ArrayOfPoint & aop = getSpValue<ArrayOfPoint>(namecaps, flagCheckException, flagDefault);
             if (aop.size() >= 1)
             {
                 return aop[0];
@@ -451,7 +469,7 @@ protected:
         }
 
         // Default behaviour
-        return getSpValue<T>(name, flagCheckException, flagDefault);
+        return getSpValue<T>(namecaps, flagCheckException, flagDefault);
     }
 
 
@@ -478,7 +496,9 @@ public:
     template<typename T> const T&
     getAttributeValue(const std::string &name, bool flagDefault = false) const
     {
-        return getAttributeValueProtected<T>(name,true,flagDefault);
+        auto namecaps = name;
+        toupper(namecaps);
+        return getAttributeValueProtected<T>(namecaps,true,flagDefault);
     }
 
     /**
@@ -517,10 +537,12 @@ public:
     {
 
         std::string typeTName = typeid(T).name();
+        auto namecaps = name;
+        toupper(namecaps);
         auto att = getAttribute(name);
 
         // Must use map access with "at" (not []) because the function is const
-        if (typeTName != _typeOfAttributes.at(name))
+        if (typeTName != _typeOfAttributes.at(namecaps))
         {
             std::string err = "In isAttributeDefaultValue<T> : the attribute " + name;
             err += " is not of type T = " + typeTName;
@@ -673,7 +695,9 @@ public:
             throw Exception(__FILE__, __LINE__, err);
         }
 
-        setSpValue(name, value);
+        auto namecaps = name;
+        toupper(namecaps);
+        setSpValue(namecaps, value);
 
         _toBeChecked = true;
     }

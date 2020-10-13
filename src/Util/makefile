@@ -20,8 +20,8 @@ BIN_DIR             = $(BUILD_DIR)/bin
 
 COMPONENT_DIRNAME   = Util
 
-ALL_FILES           = ArrayOfString Clock Copyright defines Exception fileutils \
-                      StopReason Uncopyable utils
+ALL_FILES           = AllStopReasons ArrayOfString Clock Copyright defines \
+                      Exception fileutils StopReason Uncopyable utils
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))
 ALL_HEADERS         = $(addsuffix .hpp, $(ALL_FILES))
 ALL_INCLUDE_HEADERS = $(addprefix $(INCLUDE_DIR)/$(COMPONENT_DIRNAME)/,$(ALL_HEADERS))

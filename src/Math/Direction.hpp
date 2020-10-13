@@ -58,7 +58,6 @@
 
 #include <numeric>
 #include "../Math/ArrayOfDouble.hpp"
-#include "../Math/Double.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -148,19 +147,19 @@ public:
     /// Compute a random direction on a unit N-Sphere
     /**
      \param randomDir of the desired dimension -- \b IN/OUT
-     \return \c true if the direction was computed, \c false if the process failed
      */
-    static bool computeDirOnUnitSphere(Direction &randomDir);
+    static void computeDirOnUnitSphere(Direction &randomDir);
+
 
     /// Householder transformation
-    /** Householder transformation to generate _nc directions from a given direction. Also computes H[i+nc] = -H[i] (completion to 2n directions).
+    /** Householder transformation to generate n directions from a given direction. Also computes H[i+n] = -H[i] (completion to 2n directions).
     \param dir given direciton -- \b IN.
     \param completeTo2n completion to 2n directions -- \b IN.
     \param H matrix for Househoulder transformation -- \b OUT.
     */
-    static void householder(const NOMAD::Direction &dir,
+    static void householder(const Direction &dir,
                             bool completeTo2n,
-                            NOMAD::Direction ** H);
+                            Direction ** H);
 
 };
 

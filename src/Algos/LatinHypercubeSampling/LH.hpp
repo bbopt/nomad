@@ -48,9 +48,6 @@
 #ifndef __NOMAD400_LH__
 #define __NOMAD400_LH__
 
-#include "../../Eval/EvalPoint.hpp"
-
-
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/IterationUtils.hpp"

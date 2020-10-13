@@ -46,10 +46,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-
-#include <iomanip>  // For std::setprecision
-#include "../Math/RNG.hpp"
 #include "../Param/CacheParameters.hpp"
+#include "../Util/fileutils.hpp"
 
 /*----------------------------------------*/
 /*         initializations (private)      */
@@ -77,17 +75,17 @@ void NOMAD::CacheParameters::init()
 void NOMAD::CacheParameters::checkAndComply( std::shared_ptr<NOMAD::RunParameters> runParams )
 {
     checkInfo();
-    
+
     if (!toBeChecked())
     {
         // Early out
         return;
     }
-    
+
     /*----------------------------*/
     /* Update cache file names    */
     /*----------------------------*/
-    auto problemDir = runParams->getAttributeValue<string>("PROBLEM_DIR",false);
+    auto problemDir = runParams->getAttributeValue<std::string>("PROBLEM_DIR",false);
     std::string cacheFileName = getAttributeValueProtected<std::string>("CACHE_FILE",false);
     if (!cacheFileName.empty())
     {
@@ -109,9 +107,9 @@ void NOMAD::CacheParameters::checkAndComply( std::shared_ptr<NOMAD::RunParameter
             setAttributeValue("CACHE_FILE", cacheFileName);
         }
     }
-    
+
     _toBeChecked = false;
-    
+
 }
 // End checkAndComply()
 

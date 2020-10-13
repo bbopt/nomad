@@ -48,11 +48,7 @@
 #ifndef __NOMAD400_NMINITIALIZESIMPLEX__
 #define __NOMAD400_NMINITIALIZESIMPLEX__
 
-#include <set>
-
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
-
-#include "../../Eval/EvalPoint.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -62,40 +58,38 @@
  */
 class NMInitializeSimplex: public Step, public NMIterationUtils
 {
-private:
-    
 public:
     /// Constructor
     /**
      \param parentStep The parent of this NM step
      */
-    explicit NMInitializeSimplex(const Step* parentStep )
-      : Step( parentStep ) ,
-        NMIterationUtils ( parentStep )
+    explicit NMInitializeSimplex(const Step* parentStep)
+      : Step(parentStep) ,
+        NMIterationUtils(parentStep)
     {
         init();
     }
     virtual ~NMInitializeSimplex() {}
-    
+
     /// No new points are generated
     void generateTrialPoints() override {}
-    
+
 private:
     /// Helper for constructor
     void init();
 
     /// No start task is required.
     virtual void    startImp() override {}
-    
+
     /// Implementation of the run task for simplex initialization.
     /**
      Calls createSimplex if required.
      */
     virtual bool    runImp() override ;
-    
+
     /// No start task is required
     virtual void    endImp() override {}
-    
+
     /// Helper for run
     /**
      From the Cache or from the Barrier, a set of points within a radius of the current frame center is considered before creating the initial simplex. The radius depends on a two given parameters and the frame size.
@@ -104,7 +98,7 @@ private:
      */
     bool createSimplex();
 
-    
+
     /// Check evaluation point outputs before the integration into Nelder Mead simplex set
     /**
      Helper for createSimplex

@@ -47,13 +47,12 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/CacheInterface.hpp"
+#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/QuadModel/QuadModelAlgo.hpp"
-#include "../../Algos/QuadModel/QuadModelEvaluator.hpp"
-#include "../../Algos/QuadModel/QuadModelMegaIteration.hpp"
+#include "../../Algos/QuadModel/QuadModelIteration.hpp"
 #include "../../Algos/QuadModel/QuadModelUpdate.hpp"
-#include "../../Type/SgtelibModelFeasibilityType.hpp"
-#include "../../Type/SgtelibModelFormulationType.hpp"
-#include "../../../ext/sgtelib/src/Surrogate.hpp"
+#include "../../Cache/CacheBase.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 NOMAD::QuadModelUpdate::~QuadModelUpdate()
 {
@@ -64,8 +63,8 @@ void NOMAD::QuadModelUpdate::init()
 {
     _name = "QuadModel Update";
     verifyParentNotNull();
-}
 
+}
 
 // Update the SGTELIB::TrainingSet and SGTELIB::Surrogate contained in the
 // ancestor QuadModel (modelAlgo).
@@ -79,14 +78,14 @@ bool NOMAD::QuadModelUpdate::runImp()
 {
     std::string s;  // Used for output
     bool updateSuccess = false;
-    
+
     const NOMAD::QuadModelIteration * iter = getParentOfType<NOMAD::QuadModelIteration*>();
 
     if (nullptr == iter)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Update must have a Iteration among its ancestors.");
     }
-    
+
     auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     const auto bbot = NOMAD::QuadModelAlgo::getBBOutputType();
     size_t nbConstraints = NOMAD::getNbConstraints(bbot);
@@ -99,26 +98,48 @@ bool NOMAD::QuadModelUpdate::runImp()
     // Matrices to stock all points to send to the model
     auto add_X = std::make_shared<SGTELIB::Matrix>("add_X", 0, static_cast<int>(n));
     auto add_Z = std::make_shared<SGTELIB::Matrix>("add_Z", 0, static_cast<int>(nbModels));
-    
+
     auto model=iter->getModel();
     auto trainingSet=iter->getTrainingSet();
-    
+
 
     // Go through cache points
     AddOutputInfo("Review of the cache", _displayLevel);
-    int k = 0;
     NOMAD::Double v;
 
+    _radiuses = NOMAD::ArrayOfDouble(n,INF);
     //
     // 1- Get relevant points in cache, around current frame centers.
     //
     std::vector<NOMAD::EvalPoint> evalPointList;
-    if (NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlParams()->getAttributeValue<bool>("USE_CACHE"))
+    if (NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
     {
+        _frameCenter = iter->getFrameCenter()->getX();
+        NOMAD::EvalPoint frameCenterEvalPoint;
+        NOMAD::CacheInterface cacheInterface(this);
+        if (0 == cacheInterface.find(*_frameCenter, frameCenterEvalPoint))
+        {
+            // In the context of using the cache, ensure the frame center is in it.
+            cacheInterface.smartInsert(*iter->getFrameCenter());
+        }
+
+        // Select valid points that are close enough to frame centers
+        // Compute distances that must not be violated for each variable.
+        // Get a Delta (frame size) if available.
+
+        if (nullptr != iter->getMesh())
+        {
+            _radiuses = iter->getMesh()->getDeltaFrameSize();
+
+            // Multiply by radius parameter
+            auto radiusFactor = _runParams->getAttributeValue<NOMAD::Double>("MODEL_RADIUS_FACTOR");
+            _radiuses *= radiusFactor;
+        }
+
         // Get valid points: notably, they have a BB evaluation.
         // Use CacheInterface to ensure the points are converted to subspace
-        NOMAD::CacheInterface cacheInterface(this);
-        cacheInterface.find(validForUpdate, evalPointList);
+        auto crit = [&](const EvalPoint& evalPoint){return this->isValidForIncludeInModel(evalPoint);};
+        cacheInterface.find(crit, evalPointList, true /*find in subspace*/);
     }
 
     // Minimum and maximum number of valid points to build a model
@@ -126,55 +147,24 @@ bool NOMAD::QuadModelUpdate::runImp()
     // not using SGTELIB_MAX_POINTS_FOR_MODEL, see justification below.
     //const size_t maxNbPoints = _runParams->getAttributeValue<size_t>("SGTELIB_MAX_POINTS_FOR_MODEL");
 
-    // Select valid points that are close enough to frame centers
-    // Compute distances that must not be violated for each variable.
-    // Get a Delta (frame size) if available.
-    NOMAD::ArrayOfDouble radius(n, 1.0);
-    if (nullptr != iter->getMesh())
-    {
-        radius = iter->getMesh()->getDeltaFrameSize();
-        
-        // Multiply by radius parameter
-        auto radiusFactor = _runParams->getAttributeValue<NOMAD::Double>("MODEL_RADIUS_FACTOR");
-        radius *= radiusFactor;
-    }
-    else  // No mesh is required when the algo is not a sub-algo of Mads
-    {
-        radius *= INF;
-    }
-    
 
-    // Get the iteration frame center
-    auto center = iter->getFrameCenter();
-    std::vector<NOMAD::EvalPoint> evalPointListWithinRadius;
-    for (auto evalPoint : evalPointList)
-    {
-        auto distances = NOMAD::Point::vectorize(*center->getX(), evalPoint);
-        distances = distances.abs();
-        if (distances <= radius)
-        {
-            // This evalPoint is within radius. Keep it.
-            evalPointListWithinRadius.push_back(evalPoint);
-        }
-    }
-    evalPointList = evalPointListWithinRadius;
     size_t nbValidPoints = evalPointList.size();
 
     /*
     // This is not a safe way to select a subset of points.
     // First, we should ensure that the frame center is part of that subset.
-    // Second, how to select the other points? The points closest to 
+    // Second, how to select the other points? The points closest to
     // the frame center seem like an interesting option.
     if (nbValidPoints > maxNbPoints)
     {
-        
+
         OUTPUT_INFO_START
         s = "QuadModel found " + std::to_string(nbValidPoints);
         s += " valid points to build model. Keep only ";
         s += std::to_string(maxNbPoints);
         AddOutputInfo(s);
         OUTPUT_INFO_END
-        
+
         // First, sort evalPointList by dominance
         std::sort(evalPointList.begin(), evalPointList.end());
         // Next, get first maxNbPoints points
@@ -228,7 +218,7 @@ bool NOMAD::QuadModelUpdate::runImp()
 
         NOMAD::ArrayOfDouble bbo = evalPoint.getEval(NOMAD::EvalType::BB)->getBBOutput().getBBOAsArrayOfDouble();
         // Constraints
-        k = 1;
+        int k = 1;
         for (size_t j = 0; j < bbo.size(); j++)
         {
             if (NOMAD::isConstraint(bbot[j]))
@@ -272,7 +262,7 @@ bool NOMAD::QuadModelUpdate::runImp()
         s="! ok";
         updateSuccess = false;
     }
-    
+
     OUTPUT_INFO_START
     s = "New nb of points: " + std::to_string(trainingSet->get_nb_points());
     AddOutputInfo(s, NOMAD::OutputLevel::LEVEL_INFO);
@@ -283,7 +273,20 @@ bool NOMAD::QuadModelUpdate::runImp()
     return updateSuccess;
 }
 
-bool NOMAD::QuadModelUpdate::validForUpdate(const NOMAD::EvalPoint& evalPoint)
+
+bool NOMAD::QuadModelUpdate::isValidForIncludeInModel(const EvalPoint& evalPoint) const
+{
+    if ( ! _frameCenter->NOMAD::ArrayOfDouble::isComplete() || ! _radiuses.isComplete() )
+    {
+        std::cerr << "QuadModelUpdate : isValidForIncludeInModel : frameCenter or radiuses not defined  " << std::endl;
+    }
+
+    return (isValidForUpdate(evalPoint) && NOMAD::ArrayOfDouble(*evalPoint.getX() - *_frameCenter).abs() <= _radiuses ) ;
+
+}
+
+
+bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint) const
 {
     // Verify that the point is valid
     // - Not a NaN

@@ -54,8 +54,6 @@
  */
 #include "../Eval/EvalPoint.hpp"
 
-NOMAD::ComputeSuccessFunction NOMAD::ComputeSuccessType::_computeSuccessType = NOMAD::ComputeSuccessType::defaultComputeSuccessType;
-
 size_t NOMAD::EvalPoint::_currentTag = 0;
 
 /*---------------------------------------------------------------------*/
@@ -277,97 +275,6 @@ bool NOMAD::EvalPoint::operator== (const NOMAD::EvalPoint &evalPoint) const
 bool NOMAD::EvalPoint::operator<(const NOMAD::EvalPoint & ep) const
 {
     return this->dominates(ep, NOMAD::EvalType::BB);
-}
-
-
-/*--------------------------*/
-/* Class ComputeSuccessType */
-/*--------------------------*/
-NOMAD::SuccessType NOMAD::ComputeSuccessType::defaultComputeSuccessType(
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
-                                const NOMAD::Double& hMax)
-{
-    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
-
-    if (nullptr != evalPoint1)
-    {
-        if (nullptr == evalPoint2)
-        {
-            if (evalPoint1->getH(NOMAD::EvalType::BB) > hMax)
-            {
-                // Even if evalPoint2 is NULL, this case is still 
-                // not a success.
-                success = NOMAD::SuccessType::UNSUCCESSFUL;
-            }
-            else
-            {
-                success = NOMAD::SuccessType::FULL_SUCCESS;
-            }
-        }
-        else
-        {
-            success = NOMAD::Eval::defaultComputeSuccessType(evalPoint1->getEval(NOMAD::EvalType::BB),
-                                                             evalPoint2->getEval(NOMAD::EvalType::BB),
-                                                             hMax);
-        }
-    }
-
-    return success;
-}
-
-
-NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypePhaseOne(
-                            const std::shared_ptr<NOMAD::EvalPoint>& evalPoint,
-                            const std::shared_ptr<NOMAD::EvalPoint>& xInf,
-                            const NOMAD::Double& hMax)
-{
-    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
-
-    if (nullptr != evalPoint)
-    {
-        if (nullptr == xInf)
-        {
-            success = NOMAD::SuccessType::FULL_SUCCESS;
-        }
-        else
-        {
-            success = NOMAD::Eval::computeSuccessTypePhaseOne(evalPoint->getEval(NOMAD::EvalType::BB),
-                                                              xInf->getEval(NOMAD::EvalType::BB), hMax);
-        }
-    }
-
-    return success;
-}
-
-
-NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeSgte(
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
-                                const NOMAD::Double& hMax)
-{
-    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
-    const NOMAD::EvalType evalTypeSgte = NOMAD::EvalType::SGTE;
-
-    if (nullptr != evalPoint1)
-    {
-        if (evalPoint1->getH(evalTypeSgte) > hMax)
-        {
-            success = NOMAD::SuccessType::UNSUCCESSFUL;
-        }
-        else if (nullptr == evalPoint2)
-        {
-            success = NOMAD::SuccessType::FULL_SUCCESS;
-        }
-        else
-        {
-            success = NOMAD::Eval::defaultComputeSuccessType(evalPoint1->getEval(evalTypeSgte),
-                                                             evalPoint2->getEval(evalTypeSgte),
-                                                             hMax);
-        }
-    }
-
-    return success;
 }
 
 
@@ -641,7 +548,7 @@ const std::shared_ptr<NOMAD::Point> NOMAD::EvalPoint::getPointFrom(const NOMAD::
     auto pointFrom = _pointFrom;
     if (nullptr != pointFrom)
     {
-        pointFrom = std::make_shared<NOMAD::Point>(pointFrom->makeSubSpacePointFromFixed(fixedVariable));
+        pointFrom = std::make_shared<NOMAD::Point>(pointFrom->projectPointToSubspace(fixedVariable));
     }
 
     return pointFrom;
@@ -815,34 +722,6 @@ bool NOMAD::EvalPoint::hasBbEval(const NOMAD::EvalPoint& evalPoint)
 }
 
 
-/*---------------------------*/
-/* Class ComputeSuccessType  */
-/*---------------------------*/
-void NOMAD::ComputeSuccessType::setDefaultComputeSuccessTypeFunction(const NOMAD::EvalType& evalType)
-{
-    switch (evalType)
-    {
-        case NOMAD::EvalType::BB:
-            setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
-            break;
-        case NOMAD::EvalType::SGTE:
-            setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
-            break;
-        case NOMAD::EvalType::UNDEFINED:
-        default:
-            break;
-    }
-}
-
-
-NOMAD::SuccessType NOMAD::ComputeSuccessType::operator()(const NOMAD::EvalPointPtr& p1,
-                                                         const NOMAD::EvalPointPtr& p2,
-                                                         const NOMAD::Double& hMax)
-{
-    return _computeSuccessType(p1, p2, hMax);
-}
-
-
 std::ostream& NOMAD::operator<<(std::ostream& os, const NOMAD::EvalPoint &evalPoint)
 {
     // Example:
@@ -937,6 +816,30 @@ bool NOMAD::findInList(const NOMAD::Point& point,
     }
 
     return found;
+}
+
+
+void NOMAD::convertPointListToSub(NOMAD::EvalPointList &evalPointList, const NOMAD::Point& fixedVariable)
+{
+    for (size_t i = 0; i < evalPointList.size(); i++)
+    {
+        if (evalPointList[i].size() == fixedVariable.size())
+        {
+            evalPointList[i] = evalPointList[i].makeSubSpacePointFromFixed(fixedVariable);
+        }
+    }
+}
+
+
+void NOMAD::convertPointListToFull(NOMAD::EvalPointList &evalPointList, const NOMAD::Point& fixedVariable)
+{
+    for (size_t i = 0; i < evalPointList.size(); i++)
+    {
+        if (evalPointList[i].size() == fixedVariable.size() - fixedVariable.nbDefined())
+        {
+            evalPointList[i] = evalPointList[i].makeFullSpacePointFromFixed(fixedVariable);
+        }
+    }
 }
 
 

@@ -48,7 +48,6 @@
 #ifndef __NOMAD400_SGTELIB_MODEL_INITIALIZATION__
 #define __NOMAD400_SGTELIB_MODEL_INITIALIZATION__
 
-#include "../../Algos/Algorithm.hpp"
 #include "../../Algos/Initialization.hpp"
 
 #include "../../nomad_nsbegin.hpp"

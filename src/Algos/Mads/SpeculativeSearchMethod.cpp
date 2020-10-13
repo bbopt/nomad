@@ -51,8 +51,9 @@
  \author Christophe Tribes and Sebastien Le Digabel
  \date   2018-03-1
  */
-#include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/SpeculativeSearchMethod.hpp"
+#include "../../Algos/SubproblemManager.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 /*-------------------------------------------------------------*/
 /*                     MADS speculative search                 */
@@ -65,7 +66,7 @@
 void NOMAD::SpeculativeSearchMethod::init()
 {
     _name = "Speculative Search Method";
-    
+
     //setComment("(SpecSearch)");
 
     auto enable = _runParams->getAttributeValue<bool>("SPECULATIVE_SEARCH");
@@ -78,7 +79,7 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsImp()
 {
     bool canGenerate = true;
     std::shared_ptr<NOMAD::Point> pointFrom;
-    
+
     if (nullptr == _iterAncestor)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"SpeculativeSearchMethod: must have an iteration ancestor");
@@ -91,7 +92,7 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsImp()
     else
     {
         // Test that the frame center has a valid generating direction
-        pointFrom = frameCenter->getPointFrom(getSubFixedVariable());
+        pointFrom = frameCenter->getPointFrom(NOMAD::SubproblemManager::getSubFixedVariable(this));
         if (nullptr == pointFrom || *pointFrom == *frameCenter)
         {
             canGenerate = false;
@@ -135,9 +136,9 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsImp()
             OUTPUT_INFO_START
             AddOutputInfo("Scaled direction on frame: " + diri.display());
             OUTPUT_INFO_END
-            
+
             NOMAD::Point point = NOMAD::Point(*(frameCenter->getX()) + diri);
-            
+
             // Insert the point
             insertTrialPoint(NOMAD::EvalPoint(point));
 

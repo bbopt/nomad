@@ -73,14 +73,7 @@ public:
     {
         init();
     }
-    
 
-    /// \brief Destructor
-    /// When iteration is done, Flush prints output queue.
-    virtual ~SgtelibModelIteration()
-    {
-        OutputQueue::Flush();
-    }
 
     // Get/Set
     /// Return oracle points found by the Optimizer

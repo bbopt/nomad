@@ -54,9 +54,8 @@
 #ifndef __NOMAD400_NOMAD__
 #define __NOMAD400_NOMAD__
 
-#include "../Algos/EvcInterface.hpp"
 #include "../Algos/MainStep.hpp"
-#include "../Cache/CacheSet.hpp"
+#include "../Output/OutputQueue.hpp"
 #include "../Util/fileutils.hpp"
 
 #endif // __NOMAD400_NOMAD__

@@ -46,17 +46,11 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/CacheInterface.hpp"
-#include "../../Algos/EvcInterface.hpp"
-#include "../../Algos/NelderMead/NMIteration.hpp"
-#include "../../Algos/NelderMead/NMMegaIteration.hpp"
 #include "../../Algos/NelderMead/NMUpdate.hpp"
-#include "../../Output/OutputInfo.hpp"
 
 void NOMAD::NMUpdate::init()
 {
     _name = getAlgoName() + "Update";
     verifyParentNotNull();
-
 }
 

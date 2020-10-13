@@ -47,9 +47,11 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../Algos/EvcInterface.hpp"
-
-#include "../Algos/Mads/MadsIteration.hpp"
+#include "../Algos/Iteration.hpp"
 #include "../Algos/Mads/MegaSearchPoll.hpp"
+#include "../Algos/SubproblemManager.hpp"
+#include "../Cache/CacheBase.hpp"
+#include "../Output/OutputQueue.hpp"
 
 /*-----------------------------------*/
 /*   static members initialization   */
@@ -60,6 +62,8 @@ void NOMAD::EvcInterface::init()
 {
     verifyStepNotNull();
     verifyEvaluatorControlNotNull();
+
+    _fixedVariable = NOMAD::SubproblemManager::getSubFixedVariable(_step);
 }
 
 
@@ -95,7 +99,8 @@ void NOMAD::EvcInterface::setEvaluatorControl(const std::shared_ptr<NOMAD::Evalu
 // If not, add it to EvaluatorControl's Queue.
 void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &trialPoints, bool useMesh)
 {
-    
+    NOMAD::EvalType evalType = _evaluatorControl->getEvalType();
+
     // Create EvalPoints and send them to EvaluatorControl
     if (nullptr == _evaluatorControl)
     {
@@ -106,7 +111,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
     // or inside a MegaSearchPoll.
     auto iteration = _step->getParentOfType<NOMAD::Iteration*>();
     auto megaSearchPoll = dynamic_cast<const NOMAD::MegaSearchPoll*>(_step);
-    
+
     if (useMesh && nullptr == iteration && nullptr == megaSearchPoll)
     {
         throw NOMAD::Exception(__FILE__,__LINE__, _step->getName() + ": In keepPointsThatNeedEval: need a parent of type Iteration or MegaSearchPoll");
@@ -132,7 +137,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
         // First, convert trial point to full dimension, since we are
         // now only working with the cache and the EvaluatorControl.
         auto trialPointSub = trialPoint;    // Used to get iteration
-        trialPoint = trialPoint.makeFullSpacePointFromFixed(_step->getSubFixedVariable());
+        trialPoint = trialPoint.makeFullSpacePointFromFixed(_fixedVariable);
 
         // Compute if we should evaluate, maybe re-evaluate, this point
         bool doEval = true;
@@ -142,7 +147,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
         const int maxNumberEval = 1;
         if (_evaluatorControl->getUseCache())
         {
-            doEval = NOMAD::CacheBase::getInstance()->smartInsert(trialPoint, maxNumberEval, _step->getEvalType());
+            doEval = NOMAD::CacheBase::getInstance()->smartInsert(trialPoint, maxNumberEval, evalType);
         }
         else
         {
@@ -154,10 +159,10 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
             if (nullptr != barrier)
             {
                 NOMAD::EvalPoint foundEvalPoint;
-                // Either point is not in barrier, or 
+                // Either point is not in barrier, or
                 // point was evaluated, but not with the current eval type.
                 doEval = !findInList(*trialPoint.getX(), barrier->getAllPoints(), foundEvalPoint)
-                         || (nullptr == foundEvalPoint.getEval(_step->getEvalType()));
+                         || (nullptr == foundEvalPoint.getEval(evalType));
                 {
                     doEval = true;
                 }
@@ -166,7 +171,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
 
         if (doEval)
         {
-            NOMAD::EvalQueuePointPtr evalQueuePoint(new NOMAD::EvalQueuePoint(trialPoint));
+            NOMAD::EvalQueuePointPtr evalQueuePoint(new NOMAD::EvalQueuePoint(trialPoint, evalType));
             if (useMesh && nullptr == iteration)
             {
                 iteration = dynamic_cast<NOMAD::Iteration*>(megaSearchPoll->getIterForPoint(trialPointSub).get());
@@ -188,15 +193,25 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
                     evalQueuePoint->setK(iteration->getK());
                 }
             }
-                
 
-            evalQueuePoint->setComment(NOMAD::MainStep::getAlgoComment());
+            evalQueuePoint->setComment(_step->getAlgoComment());
             evalQueuePoint->setGenStep(_step->getName());
+#ifdef _OPENMP
+            evalQueuePoint->setThreadAlgo(omp_get_thread_num());
+#endif // _OPENMP
 
-            _evaluatorControl->addToQueue(evalQueuePoint);
-            OUTPUT_DEBUG_START
-            _step->AddOutputDebug("New point added to eval queue: " + trialPoint.display());
-            OUTPUT_DEBUG_END
+            if (_evaluatorControl->addToQueue(evalQueuePoint))
+            {
+                OUTPUT_DEBUG_START
+                _step->AddOutputDebug("New point added to eval queue: " + trialPoint.display());
+                OUTPUT_DEBUG_END
+            }
+            else
+            {
+                OUTPUT_DEBUG_START
+                _step->AddOutputDebug("Point not added to eval queue: " + trialPoint.display());
+                OUTPUT_DEBUG_END
+            }
         }
         else
         {
@@ -237,7 +252,6 @@ void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::Barrier>& subB
 
     // Input is the barrier from MegaIteration, which may belong to a subspace.
     // EvaluatorControl's barrier must be in full dimension.
-    auto fixedVariable = _step->getSubFixedVariable();
     auto fullBarrier = std::make_shared<NOMAD::Barrier>(*subBarrier);
 
     // Clear xFeas and xInf lists and recompute them
@@ -245,27 +259,37 @@ void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::Barrier>& subB
     fullBarrier->clearXInf();
     for (auto xFeas : subBarrier->getAllXFeas())
     {
-        auto xFeasFull = xFeas.makeFullSpacePointFromFixed(fixedVariable);
-        fullBarrier->addXFeas(xFeasFull, _step->getEvalType());
+        auto xFeasFull = xFeas.makeFullSpacePointFromFixed(_fixedVariable);
+        fullBarrier->addXFeas(xFeasFull, _evaluatorControl->getEvalType());
     }
     for (auto xInf : subBarrier->getAllXInf())
     {
-        auto xInfFull = xInf.makeFullSpacePointFromFixed(fixedVariable);
+        auto xInfFull = xInf.makeFullSpacePointFromFixed(_fixedVariable);
         fullBarrier->addXInf(xInfFull);
+    }
+    auto refBestFeas = subBarrier->getRefBestFeas();
+    auto refBestInf  = subBarrier->getRefBestInf();
+    if (nullptr != refBestFeas)
+    {
+        fullBarrier->setRefBestFeas(std::make_shared<NOMAD::EvalPoint>(refBestFeas->makeFullSpacePointFromFixed(_fixedVariable)));
+    }
+    if (nullptr != refBestInf)
+    {
+        fullBarrier->setRefBestInf(std::make_shared<NOMAD::EvalPoint>(refBestInf->makeFullSpacePointFromFixed(_fixedVariable)));
     }
 
     _evaluatorControl->setBarrier(fullBarrier);
 }
 
 
-std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::getAllEvaluatedPoints()
+std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::retrieveAllEvaluatedPoints()
 {
     std::vector<NOMAD::EvalPoint> evaluatedPoints;
 
-    for (auto evalPoint : _evaluatorControl->getAllEvaluatedPoints())
+    for (auto evalPoint : _evaluatorControl->retrieveAllEvaluatedPoints())
     {
         // Convert from full to subspace dimension
-        evalPoint = evalPoint.makeSubSpacePointFromFixed(_step->getSubFixedVariable());
+        evalPoint = evalPoint.makeSubSpacePointFromFixed(_fixedVariable);
         evaluatedPoints.push_back(evalPoint);
     }
 
@@ -306,13 +330,14 @@ NOMAD::SuccessType NOMAD::EvcInterface::startEvaluation()
 }
 
 
-bool NOMAD::EvcInterface::evalSinglePoint(NOMAD::EvalPoint &evalPoint, const NOMAD::Double &hMax)
+bool NOMAD::EvcInterface::evalSinglePoint(NOMAD::EvalPoint &evalPoint,
+                                          const NOMAD::Double &hMax)
 {
     // Convert to full dimension before calling EvaluatorControl
-    evalPoint = evalPoint.makeFullSpacePointFromFixed(_step->getSubFixedVariable());
-    bool ret = _evaluatorControl->evalSinglePoint(evalPoint, hMax);
+    evalPoint = evalPoint.makeFullSpacePointFromFixed(_fixedVariable);
+    bool ret = _evaluatorControl->evalSinglePoint(evalPoint, NOMAD::getThreadNum(), hMax);
     // Convert back to subspace dimension
-    evalPoint = evalPoint.makeSubSpacePointFromFixed(_step->getSubFixedVariable());
+    evalPoint = evalPoint.makeSubSpacePointFromFixed(_fixedVariable);
 
     return ret;
 }

@@ -48,8 +48,6 @@
 #ifndef __NOMAD400_NMMEGAITERATION__
 #define __NOMAD400_NMMEGAITERATION__
 
-
-
 #include "../../Algos/MegaIteration.hpp"
 #include "../../Algos/NelderMead/NMIteration.hpp"
 
@@ -70,7 +68,7 @@ protected:
     std::shared_ptr<NMIteration> _nmIteration;
 
 private:
-    
+
     void init();
 
 public:
@@ -96,14 +94,14 @@ public:
     void display(  std::ostream& os ) const override ;
 
 private:
-    
+
     /// Implementation of start task.
     /**
      Create a Nelder Mead iteration for a current incumbent: use xFeas or xInf from the barrier. \n
      \note Running the algorithm requires a single iteration object with several start, run, end for the various iterations of the algorithm. This allows to easily maintain a proper simplex in a single NMIteration object.
      */
     virtual void startImp() override ;
-    
+
     /// Implementation of run task.
     /**
      The algorithm iterations are started, ran and ended sequentially until a stop reason to terminate is obtained. \n

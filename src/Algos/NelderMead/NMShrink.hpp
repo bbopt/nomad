@@ -48,11 +48,8 @@
 #ifndef __NOMAD400_NMSHRINK__
 #define __NOMAD400_NMSHRINK__
 
-#include <set>
-
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
-
-#include "../../Eval/EvalPoint.hpp"
+#include "../../Algos/Step.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -86,13 +83,13 @@ public:
      - call NMShrink::generateTrialPoints
      */
     virtual void    startImp() override ;
-    
+
     /// Implementation of the run task for simplex shrink.
     /**
      Evaluate the trial points.
      */
     virtual bool    runImp() override ;
-    
+
     /// Implementation of the end task for simplex shrink.
      /**
       Call default IterationUtils::postProcessing.
@@ -104,10 +101,10 @@ public:
      The new shrunk simplex is obtained with the formula y[k] = y0[k] + _gamma*(yi[k]-y0[k]). Where y0 is the frame center and yi are elements of the previous simplex. Gamma must be a parameter in ]0;1]
      */
     void generateTrialPoints() override;
-    
-    
+
+
 private:
-    
+
     /// Helper for constructor
     void init();
 

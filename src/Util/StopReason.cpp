@@ -133,6 +133,18 @@ template<> std::map<NOMAD::PhaseOneStopType,std::string> & NOMAD::StopReason<NOM
 }
 
 
+// Dictionary function for SSDMadsStopType
+template<> std::map<NOMAD::SSDMadsStopType,std::string> & NOMAD::StopReason<NOMAD::SSDMadsStopType>::dict() const
+{
+    static std::map<NOMAD::SSDMadsStopType,std::string> dictionary = {
+        {NOMAD::SSDMadsStopType::STARTED,"Started"},   // Set a the begining of a Step
+        {NOMAD::SSDMadsStopType::X0_FAIL,"Problem with starting point evaluation"}
+        //{NOMAD::SSDMadsStopType::MADS_FAIL,"Mads has terminated but no feasible point obtained"}
+    };
+    return dictionary;
+}
+
+
 // Returns true only to terminate an algorithm using PhaseOne (Mads, ...)
 template<> bool NOMAD::StopReason<NOMAD::PhaseOneStopType>::checkTerminate() const
 {
@@ -150,6 +162,25 @@ template<> bool NOMAD::StopReason<NOMAD::PhaseOneStopType>::checkTerminate() con
     }
     return false;
 }
+
+
+template<> bool NOMAD::StopReason<NOMAD::SSDMadsStopType>::checkTerminate() const
+{
+    switch ( _stopReason )
+    {
+        case NOMAD::SSDMadsStopType::X0_FAIL:
+        //case NOMAD::SSDMadsStopType::MADS_FAIL:
+            return true;
+            break;
+        case NOMAD::SSDMadsStopType::STARTED:
+            return false;
+            break;
+        default:
+            NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for terminate");
+    }
+    return false;
+}
+
 
 // Dictionary function for LHStopType
 template<> std::map<NOMAD::LHStopType,std::string> & NOMAD::StopReason<NOMAD::LHStopType>::dict() const
@@ -271,6 +302,7 @@ template<> std::map<NOMAD::EvalStopType,std::string> & NOMAD::StopReason<NOMAD::
         {NOMAD::EvalStopType::STARTED,                  "Started"},   // Set a the begining of an EvaluatorControl Run
         {NOMAD::EvalStopType::MAX_BB_EVAL_REACHED,      "Max number of blackbox evaluations"},
         {NOMAD::EvalStopType::LAP_MAX_BB_EVAL_REACHED,  "Max number of blackbox evaluations for a sub algorithm run (lap run)"},
+        {NOMAD::EvalStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED,  "Max number of blackbox evaluations for a subproblem run"},
         {NOMAD::EvalStopType::MAX_EVAL_REACHED,         "Max number of total evaluations"},
         {NOMAD::EvalStopType::OPPORTUNISTIC_SUCCESS,    "Success found and opportunistic strategy is used"},
         {NOMAD::EvalStopType::EMPTY_LIST_OF_POINTS,     "Tried to eval an empty list"},
@@ -288,6 +320,7 @@ template<> bool NOMAD::StopReason<NOMAD::EvalStopType>::checkTerminate() const
     {
         case NOMAD::EvalStopType::MAX_BB_EVAL_REACHED:
         case NOMAD::EvalStopType::LAP_MAX_BB_EVAL_REACHED:
+        case NOMAD::EvalStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED:
         case NOMAD::EvalStopType::MAX_EVAL_REACHED:
         case NOMAD::EvalStopType::MAX_BLOCK_EVAL_REACHED:
             return true;

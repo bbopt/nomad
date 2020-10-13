@@ -49,6 +49,7 @@
 #include "../Algos/Algorithm.hpp"
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Termination.hpp"
+#include "../Cache/CacheBase.hpp"
 #include "../Util/Clock.hpp"
 
 void NOMAD::Termination::init()
@@ -80,7 +81,7 @@ bool NOMAD::Termination::terminate(size_t iteration)
         // A stop condition was already reached.
         return stop;
     }
-    
+
     // Set stopReason due to criterions other than AlgoStopReasons<>
     auto maxIterations = _runParams->getAttributeValue<size_t>("MAX_ITERATIONS");
     auto maxTime = _runParams->getAttributeValue<size_t>("MAX_TIME");
@@ -110,8 +111,8 @@ bool NOMAD::Termination::terminate(size_t iteration)
     {
         // Need to check on MaxEval and MaxBBEval a last time because in evaluatorControl
         // the stop reason may have been set due to all queue points evaluated.
-        stop = NOMAD::EvcInterface::getEvaluatorControl()->reachedMaxEval();
-        stop = stop || NOMAD::EvcInterface::getEvaluatorControl()->reachedMaxStepEval();
+        auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+        stop = evc->reachedMaxEval() || evc->reachedMaxStepEval();
     }
 
     stop = stop || _stopReasons->checkTerminate() ;
@@ -142,16 +143,37 @@ void NOMAD::Termination::endImp()
     NOMAD::OutputLevel outputLevel = currentAlgo->isSubAlgo() ? NOMAD::OutputLevel::LEVEL_INFO
                                                               : NOMAD::OutputLevel::LEVEL_HIGH;
 
-    if ( _stopReasons->checkTerminate() )
+    if (_stopReasons->checkTerminate())
     {
-        std::string termination_info = "A termination criterion is reached: ";
-        termination_info += _stopReasons->getStopReasonAsString() ;
-        AddOutputInfo(termination_info, outputLevel);
+        std::string terminationInfo = "A termination criterion is reached: ";
+        terminationInfo += _stopReasons->getStopReasonAsString();
+        auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+        if (_stopReasons->testIf(NOMAD::EvalStopType::MAX_BB_EVAL_REACHED))
+        {
+            terminationInfo += " " + NOMAD::itos(evc->getBbEval());
+        }
+        else if (_stopReasons->testIf(NOMAD::EvalStopType::MAX_EVAL_REACHED))
+        {
+            terminationInfo += " " + NOMAD::itos(evc->getNbEval());
+        }
+        else if (_stopReasons->testIf(NOMAD::EvalStopType::MAX_BLOCK_EVAL_REACHED))
+        {
+            terminationInfo += " " + NOMAD::itos(evc->getBlockEval());
+        }
+        else if (_stopReasons->testIf(NOMAD::EvalStopType::MAX_SGTE_EVAL_REACHED))
+        {
+            terminationInfo += " " + NOMAD::itos(evc->getTotalSgteEval());
+        }
+        else if (_stopReasons->testIf(NOMAD::EvalStopType::LAP_MAX_BB_EVAL_REACHED))
+        {
+            terminationInfo += " " + NOMAD::itos(evc->getLapBbEval());
+        }
+        AddOutputInfo(terminationInfo, outputLevel);
     }
     else
     {
-        std::string termination_info = "No termination criterion reached";
-        AddOutputInfo(termination_info, outputLevel);
+        std::string terminationInfo = "No termination criterion reached";
+        AddOutputInfo(terminationInfo, outputLevel);
     }
 
 }

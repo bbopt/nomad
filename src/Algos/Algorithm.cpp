@@ -48,8 +48,11 @@
 
 #include <signal.h>
 
-#include "../Algos/EvcInterface.hpp"
 #include "../Algos/Algorithm.hpp"
+#include "../Algos/EvcInterface.hpp"
+#include "../Algos/SubproblemManager.hpp"
+#include "../Cache/CacheBase.hpp"
+#include "../Output/OutputQueue.hpp"
 #ifdef TIME_STATS
 #include "../Algos/Mads/MadsIteration.hpp"
 #include "../Algos/Mads/Search.hpp"
@@ -58,16 +61,14 @@
 
 #include "../Math/RNG.hpp"
 
-#include "../Param/AllParameters.hpp"  // Used for hot restart only.
 
 #include "../Util/fileutils.hpp"
 
 
 void NOMAD::Algorithm::init()
 {
-
     _name = "AGenericAlgorithmHasNoName";
-    
+
     // Verifications that throw Exceptions to the Constructor if not validated.
     verifyParentNotNull();
 
@@ -87,12 +88,23 @@ void NOMAD::Algorithm::init()
         throw NOMAD::Exception(__FILE__, __LINE__,
                                "Valid stop reasons must be provided to the Algorithm constructor.");
 
+    // Check pbParams if needed, ex. if a copy of PbParameters was given to the Algorithm constructor.
+    _pbParams->checkAndComply();
+
     // Instanciate generic algorithm termination
     _termination    = std::make_unique<NOMAD::Termination>( this );
 
+    // Update SubproblemManager
+    NOMAD::Point fullFixedVariable = isMainAlgo() ? _pbParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE")
+                                   : NOMAD::SubproblemManager::getSubFixedVariable(_parentStep);
+
+    NOMAD::Subproblem subproblem(_pbParams, fullFixedVariable);
+    NOMAD::SubproblemManager::addSubproblem(this, subproblem);
+    _pbParams = subproblem.getPbParams();
+    _pbParams->checkAndComply();
 
     /** Step::userInterrupt() will be called if CTRL-C is pressed.
-     * Currently, the master thread will wait for all evaluations to be complete.
+     * Currently, the main thread will wait for all evaluations to be complete.
      * \todo Propage interruption to all threads, for all parallel evaluations of blackbox.
      */
     signal(SIGINT, userInterrupt);
@@ -102,6 +114,7 @@ void NOMAD::Algorithm::init()
 
 NOMAD::Algorithm::~Algorithm()
 {
+    NOMAD::SubproblemManager::removeSubproblem(this);
 }
 
 
@@ -115,7 +128,7 @@ void NOMAD::Algorithm::startImp()
 #endif // TIME_STATS
     // Comment to appear at the end of stats lines
     // By default, nothing is added
-    NOMAD::MainStep::setAlgoComment("");
+    setAlgoComment("");
 
     // All stop reasons are reset.
     _stopReasons->setStarted();
@@ -200,8 +213,8 @@ void NOMAD::Algorithm::endImp()
         saveInformationForHotRestart();
     }
 
-    // Reset stats comment 
-    NOMAD::MainStep::resetPreviousAlgoComment();
+    // Reset stats comment
+    resetPreviousAlgoComment();
 }
 
 
@@ -277,12 +290,14 @@ void NOMAD::Algorithm::displayBestSolutions() const
     NOMAD::OutputLevel outputLevel = isSubAlgo() ? NOMAD::OutputLevel::LEVEL_INFO
                                                  : NOMAD::OutputLevel::LEVEL_VERY_HIGH;
     NOMAD::OutputInfo displaySolFeas(_name, sFeas, outputLevel);
+    auto fixedVariable = NOMAD::SubproblemManager::getSubFixedVariable(this);
 
     sFeas = "Best feasible solution";
     auto barrier = getMegaIterationBarrier();
     if (nullptr != barrier)
     {
         evalPointList = barrier->getAllXFeas();
+        NOMAD::convertPointListToFull(evalPointList, fixedVariable);
     }
     size_t nbBestFeas = evalPointList.size();
 
@@ -337,6 +352,7 @@ void NOMAD::Algorithm::displayBestSolutions() const
     if (nullptr != barrier)
     {
         evalPointList = barrier->getAllXInf();
+        NOMAD::convertPointListToFull(evalPointList, fixedVariable);
     }
     size_t nbBestInf = evalPointList.size();
 
@@ -480,7 +496,7 @@ void NOMAD::Algorithm::displayEvalCounts() const
     std::string sTimeSearch5    = "        NM Search:          " + std::to_string(searchTime[4]);
                 sTimeSearch5   += "\t(Eval: " + std::to_string(searchEvalTime[4]) + ")";
 #endif // TIME_STATS
-    
+
     AddOutputInfo("", outputLevelHigh); // skip line
     // Always show number of blackbox evaluations
     AddOutputInfo(sBbEval, outputLevelHigh);

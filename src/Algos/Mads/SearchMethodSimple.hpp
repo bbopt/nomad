@@ -69,7 +69,7 @@ public:
       : SearchMethodBase( parentStep )
     {
     }
-    
+
     /// Intermediate function called to generate the trial points
     /**
      - Call for the intermediate base SearchMethodBase::generateTrialPoints (call generateTrialPointsImp, snap on bounds and mesh).
@@ -77,20 +77,20 @@ public:
      - Update the points with frame center
      */
     void startImp() override;
-       
+
     /// Function called to evaluate the trial points
     /**
      - Evaluate the trial points and update the barrier.
      - The projection of trial points on bounds and on mesh is performed before this function is called and after the function SearchMethodBase::generateTrialPointsImp is called.
      */
     bool runImp() override;
-    
+
     /**
      - Pure virtual function.
      - The derived class must provide the implementation that generate the trial point.
      */
     virtual void generateTrialPointsImp() override = 0 ;
-    
+
 };
 
 #include "../../nomad_nsend.hpp"

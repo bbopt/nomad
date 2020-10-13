@@ -45,13 +45,13 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-
 #ifndef __NOMAD400_SGTELIB_MODEL_OPTIMIZE__
 #define __NOMAD400_SGTELIB_MODEL_OPTIMIZE__
 
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/Step.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
+#include "../../Output/OutputInfo.hpp"  // for OutputLevel
 
 #include "../../nomad_nsbegin.hpp"
 

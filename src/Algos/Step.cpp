@@ -48,10 +48,12 @@
 
 // Generic
 #include "../Algos/Algorithm.hpp"
+#include "../Algos/EvcInterface.hpp"
 #include "../Algos/Iteration.hpp"
 #include "../Algos/MainStep.hpp"
 #include "../Algos/MegaIteration.hpp"
 #include "../Algos/Step.hpp"
+#include "../Output/OutputQueue.hpp"
 
 /*-----------------------------------*/
 /*   static members initialization   */
@@ -86,10 +88,10 @@ void NOMAD::Step::userInterrupt(int signalValue)
         // hotRestartOnUserInterrupt(). Here we are in a static method
         // so we cannot call it.
     }
-    
+
     // Set this stop reason to be tested by EvaluatorControl
     NOMAD::AllStopReasons::set( NOMAD::BaseStopType::CTRL_C );
-    
+
     NOMAD::Step::_userInterrupt = true;
 }
 
@@ -114,21 +116,6 @@ void NOMAD::Step::init()
 NOMAD::Step::~Step()
 {
     NOMAD::OutputQueue::Flush();
-}
-
-
-const NOMAD::EvalType& NOMAD::Step::getEvalType() const
-{
-    /*
-    NOMAD::EvalType evalType = NOMAD::EvalType::UNDEFINED;
-    if (nullptr != _pbParams)
-    {
-        evalType = _pbParams->getAttributeValue<NOMAD::EvalType>("EVAL_TYPE");
-    }
-
-    return evalType;
-    */
-    return _pbParams->getAttributeValue<NOMAD::EvalType>("EVAL_TYPE");
 }
 
 
@@ -343,6 +330,38 @@ std::string NOMAD::Step::getAlgoName() const
 }
 
 
+std::string NOMAD::Step::getAlgoComment() const
+{
+    std::string algoComment;
+    const NOMAD::MainStep* mainstep = getParentOfType<NOMAD::MainStep*>(false);
+    if (nullptr != mainstep)
+    {
+        algoComment = mainstep->getAlgoComment();
+    }
+    return algoComment;
+}
+
+
+void NOMAD::Step::setAlgoComment(const std::string& algoComment, const bool force)
+{
+    NOMAD::MainStep* mainstep = getParentOfType<NOMAD::MainStep*>(false);
+    if (nullptr != mainstep)
+    {
+        mainstep->setAlgoComment(algoComment, force);
+    }
+}
+
+
+void NOMAD::Step::resetPreviousAlgoComment(const bool force)
+{
+    NOMAD::MainStep* mainstep = getParentOfType<NOMAD::MainStep*>(false);
+    if (nullptr != mainstep)
+    {
+        mainstep->resetPreviousAlgoComment(force);
+    }
+}
+
+
 // Get MeshBase from the Iteration ancestor.
 const std::shared_ptr<NOMAD::MeshBase> NOMAD::Step::getIterationMesh() const
 {
@@ -395,30 +414,6 @@ const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() con
         barrier = megaIter->getBarrier();
     }
     return barrier;
-}
-
-
-// Return fixedVariable Point for the Subproblem of the MainStep ancestor.
-// If no MainStep is available, return a default Point (of size 0).
-NOMAD::Point NOMAD::Step::getSubFixedVariable() const
-{
-    // Argument false: go all the way up, do not stop at first Algorithm ancestor.
-    auto mainstep = getParentOfType<NOMAD::MainStep*>(false);
-    NOMAD::Point fixedVariable;
-
-    if (nullptr != mainstep)
-    {
-        fixedVariable = mainstep->getCurrentSubproblem()->getFixedVariable();
-    }
-    else if (_showWarnings)
-    {
-        // It is expected to find a MainStep as ancestor.
-        // Show warning.
-        std::cerr << "Warning: No Subproblem found for step " << getName() << std::endl;
-    }
-
-
-    return fixedVariable;
 }
 
 

@@ -49,10 +49,9 @@
 #define __NOMAD400_PHASE_ONE__
 
 #include "../../Eval/EvalPoint.hpp"
-
-#include "../../Algos/Mads/Mads.hpp"
-
+#include "../../Algos/Algorithm.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Algos/Mads/Mads.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -63,11 +62,11 @@
 class PhaseOne: public Algorithm
 {
 private:
-    
+
     std::shared_ptr<Mads>    _mads;
     std::shared_ptr<AlgoStopReasons<MadsStopType>>    _madsStopReasons;
-    
-    
+
+
     /**
       The list of ::BBOutputType parameters used for this Phase One.
       Used to recompute h values at the end of Phase One.
@@ -75,7 +74,7 @@ private:
       needs to be static.
      */
     static BBOutputTypeList _bboutputtypes;
-    
+
 public:
     /// Constructor
     /**
@@ -88,32 +87,32 @@ public:
                       std::shared_ptr<AlgoStopReasons<PhaseOneStopType>> stopReasons,
                       const std::shared_ptr<RunParameters>& runParams,
                       const std::shared_ptr<PbParameters>& refPbParams)
-    : Algorithm(parentStep, stopReasons, runParams, std::make_shared<PbParameters>(*refPbParams)),
-    _mads(nullptr)
+      : Algorithm(parentStep, stopReasons, runParams, std::make_shared<PbParameters>(*refPbParams)),
+        _mads(nullptr)
     {
         init();
     }
     virtual ~PhaseOne() {}
-    
+
     static void setBBOutputTypes(const BBOutputTypeList& bboutputtypes) { _bboutputtypes = bboutputtypes; }
-    
+
     /**
      - Setup EvalPoint success computation to be based on h rather than f.
      - Recompute points in cache.
      - Setup stop if feasible criterion.
      - Setup Mads
-     
+
      */
     virtual void    startImp() override;
     virtual bool    runImp()   override;
     virtual void    endImp()   override;
-    
+
     virtual void readInformationForHotRestart() override;
-    
+
 private:
     /// Helper for constructor
     void init();
-    
+
     /*------------------------*/
     /* Private helper methods */
     /*------------------------*/
@@ -121,12 +120,12 @@ private:
      Static function called by Cache::processOnAllPoints().
      */
     static void recomputeH(EvalPoint& evalPoint);
-    
+
     /**
      Static function called by Cache::processOnAllPoints().
      */
     static void recomputeHPB(EvalPoint& evalPoint);
-    
+
 };
 
 #include "../../nomad_nsend.hpp"
