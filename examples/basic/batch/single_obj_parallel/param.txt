@@ -18,3 +18,5 @@ MAX_BLOCK_EVAL     20         # the algorithm terminates when
 TMP_DIR /tmp
 DISPLAY_DEGREE 2
 DISPLAY_STATS BLK_EVA BLK_SIZE OBJ
+
+MAIN_STATS_FILE detailedStats.txt
