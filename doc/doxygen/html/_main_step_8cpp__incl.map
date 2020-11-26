@@ -1,42 +1,52 @@
-<map id="/home/montvivi/Git/nomad.4.0.0/src/Algos/MainStep.cpp" name="/home/montvivi/Git/nomad.4.0.0/src/Algos/MainStep.cpp">
-<area shape="rect" id="node2" href="$_cache_set_8hpp.html" title="Simple implementation of Cache derived from CacheBase, using set or unordered_set. " alt="" coords="1264,440,1419,467"/>
-<area shape="rect" id="node24" href="$_cache_interface_8hpp.html" title="../Algos/CacheInterface.hpp" alt="" coords="1891,291,2071,317"/>
-<area shape="rect" id="node35" href="$_evc_interface_8hpp.html" title="../Algos/EvcInterface.hpp" alt="" coords="2087,208,2251,235"/>
-<area shape="rect" id="node36" href="$_main_step_8hpp.html" title="Main Step to hold MADS. " alt="" coords="2096,291,2243,317"/>
-<area shape="rect" id="node39" href="$_l_h_8hpp.html" title="../Algos/LatinHypercubeSampling\l/LH.hpp" alt="" coords="2647,110,2857,151"/>
-<area shape="rect" id="node42" href="$_mads_8hpp.html" title="../Algos/Mads/Mads.hpp" alt="" coords="2973,208,3131,235"/>
-<area shape="rect" id="node45" href="$_phase_one_8hpp.html" title="../Algos/PhaseOne/PhaseOne.hpp" alt="" coords="2881,117,3097,144"/>
-<area shape="rect" id="node46" href="$_n_m_8hpp.html" title="../Algos/NelderMead\l/NM.hpp" alt="" coords="3987,201,4124,242"/>
-<area shape="rect" id="node47" href="$_clock_8hpp.html" title="Clock class (headers) " alt="" coords="4369,971,4481,997"/>
-<area shape="rect" id="node49" href="$fileutils_8hpp.html" title="Utility functions about files (headers) " alt="" coords="2903,813,3021,840"/>
-<area shape="rect" id="node3" href="$_cache_base_8hpp.html" title="Base class for cache. " alt="" coords="1613,515,1776,541"/>
-<area shape="rect" id="node8" href="$_eval_8hpp.html" title="Evaluation at a point. " alt="" coords="1501,664,1608,691"/>
-<area shape="rect" id="node6" href="$_eval_point_8hpp.html" title="Evaluation point. " alt="" coords="1459,589,1597,616"/>
-<area shape="rect" id="node21" href="$_point_8hpp.html" title="Point. " alt="" coords="946,664,1064,691"/>
-<area shape="rect" id="node15" href="$nomad__nsbegin_8hpp.html" title="../nomad_nsbegin.hpp" alt="" coords="3163,1053,3309,1080"/>
-<area shape="rect" id="node17" href="$nomad__nsend_8hpp.html" title="../nomad_nsend.hpp" alt="" coords="1043,1053,1179,1080"/>
-<area shape="rect" id="node23" href="$_cache_parameters_8hpp.html" title="../Param/CacheParameters.hpp" alt="" coords="2150,739,2351,765"/>
-<area shape="rect" id="node10" href="$_b_b_output_8hpp.html" title="Output of a Blackbox evaluation. " alt="" coords="1323,739,1464,765"/>
-<area shape="rect" id="node13" href="$_double_8hpp.html" title="Custom class for double&#45;precision reals (headers) " alt="" coords="1473,888,1601,915"/>
-<area shape="rect" id="node18" href="$_eval_parameters_8hpp.html" title="../Param/EvalParameters.hpp" alt="" coords="2834,739,3021,765"/>
-<area shape="rect" id="node11" href="$_array_of_double_8hpp.html" title="Base class to be used for an array of n Double values, as base class for Point and Direction..." alt="" coords="973,813,1147,840"/>
-<area shape="rect" id="node14" href="$defines_8hpp.html" title="Definitions. " alt="" coords="2421,971,2539,997"/>
-<area shape="rect" id="node16" href="$nomad__version_8hpp.html" title="nomad_version.hpp" alt="" coords="3170,1128,3301,1155"/>
-<area shape="rect" id="node19" href="$_run_parameters_8hpp.html" title="../Param/RunParameters.hpp" alt="" coords="2540,813,2727,840"/>
-<area shape="rect" id="node22" href="$_direction_8hpp.html" title="Direction. " alt="" coords="905,739,1044,765"/>
-<area shape="rect" id="node25" href="$_step_8hpp.html" title="Step.hpp" alt="" coords="2451,365,2524,392"/>
-<area shape="rect" id="node27" href="$_all_stop_reasons_8hpp.html" title="../Algos/AllStopReasons.hpp" alt="" coords="3503,739,3685,765"/>
-<area shape="rect" id="node28" href="$_mesh_base_8hpp.html" title="Base class for mesh. " alt="" coords="893,589,1045,616"/>
-<area shape="rect" id="node31" href="$_barrier_8hpp.html" title="../Eval/Barrier.hpp" alt="" coords="1952,515,2075,541"/>
-<area shape="rect" id="node32" href="$_evaluator_control_8hpp.html" title="Management for evaluation. " alt="" coords="1896,440,2075,467"/>
-<area shape="rect" id="node33" href="$_output_queue_8hpp.html" title="../Output/OutputQueue.hpp" alt="" coords="2149,515,2325,541"/>
-<area shape="rect" id="node29" href="$_algo_stop_reasons_8hpp.html" title="AlgoStopReasons.hpp" alt="" coords="3849,664,3996,691"/>
-<area shape="rect" id="node30" href="$_pb_parameters_8hpp.html" title="../Param/PbParameters.hpp" alt="" coords="2375,739,2555,765"/>
-<area shape="rect" id="node34" href="$_display_parameters_8hpp.html" title="../Param/DisplayParameters.hpp" alt="" coords="2757,664,2963,691"/>
-<area shape="rect" id="node37" href="$_subproblem_8hpp.html" title="Subproblem of lesser dimension than the original problem. " alt="" coords="755,589,869,616"/>
-<area shape="rect" id="node38" href="$_all_parameters_8hpp.html" title="../Param/AllParameters.hpp" alt="" coords="2543,589,2721,616"/>
-<area shape="rect" id="node40" href="$_algorithm_8hpp.html" title="../../Algos/Algorithm.hpp" alt="" coords="2992,291,3149,317"/>
-<area shape="rect" id="node41" href="$_iteration_utils_8hpp.html" title="../../Algos/IterationUtils.hpp" alt="" coords="2665,208,2839,235"/>
-<area shape="rect" id="node43" href="$_mads_initialization_8hpp.html" title="../../Algos/Mads/MadsInitialization.hpp" alt="" coords="1655,971,1891,997"/>
-<area shape="rect" id="node44" href="$_mads_mega_iteration_8hpp.html" title="../../Algos/Mads/MadsMega\lIteration.hpp" alt="" coords="1916,963,2092,1005"/>
+<map id="/home/nomad/Git/nomad/src/Algos/MainStep.cpp" name="/home/nomad/Git/nomad/src/Algos/MainStep.cpp">
+<area shape="rect" id="node1" title="Main Step to hold MADS." alt="" coords="3353,5,3537,47"/>
+<area shape="rect" id="node2" href="$_cache_set_8hpp.html" title="Simple implementation of Cache derived from CacheBase, using set or unordered_set." alt="" coords="905,415,1071,442"/>
+<area shape="rect" id="node16" href="$_algo_stop_reasons_8hpp.html" title=" " alt="" coords="3663,259,3878,285"/>
+<area shape="rect" id="node18" href="$_evc_interface_8hpp.html" title=" " alt="" coords="2383,333,2566,360"/>
+<area shape="rect" id="node26" href="$_main_step_8hpp.html" title="Main Step to hold MADS, or other Algorithms." alt="" coords="976,259,1139,285"/>
+<area shape="rect" id="node31" href="$_subproblem_manager_8hpp.html" title=" " alt="" coords="3049,259,3285,285"/>
+<area shape="rect" id="node33" href="$_l_h_8hpp.html" title=" " alt="" coords="3093,169,3331,211"/>
+<area shape="rect" id="node36" href="$_mads_8hpp.html" title=" " alt="" coords="3405,177,3581,203"/>
+<area shape="rect" id="node37" href="$_mads_iteration_8hpp.html" title=" " alt="" coords="686,259,917,285"/>
+<area shape="rect" id="node38" href="$_search_8hpp.html" title=" " alt="" coords="2825,95,3010,121"/>
+<area shape="rect" id="node40" href="$_n_m_8hpp.html" title=" " alt="" coords="3961,169,4114,211"/>
+<area shape="rect" id="node41" href="$_phase_one_8hpp.html" title=" " alt="" coords="3250,95,3486,121"/>
+<area shape="rect" id="node42" href="$_s_s_d_mads_8hpp.html" title=" " alt="" coords="3657,177,3885,203"/>
+<area shape="rect" id="node43" href="$_output_queue_8hpp.html" title=" " alt="" coords="4198,415,4394,442"/>
+<area shape="rect" id="node44" href="$_output_direct_to_file_8hpp.html" title=" " alt="" coords="4419,408,4597,449"/>
+<area shape="rect" id="node45" href="$_clock_8hpp.html" title="Clock class (headers)" alt="" coords="4539,647,4664,673"/>
+<area shape="rect" id="node47" href="$fileutils_8hpp.html" title="Utility functions about files (headers)" alt="" coords="4806,572,4943,599"/>
+<area shape="rect" id="node3" href="$_cache_base_8hpp.html" title="Base class for cache." alt="" coords="1613,497,1792,524"/>
+<area shape="rect" id="node6" href="$_eval_point_8hpp.html" title="Evaluation point." alt="" coords="1285,572,1440,599"/>
+<area shape="rect" id="node9" href="$nomad__nsbegin_8hpp.html" title=" " alt="" coords="3316,721,3481,748"/>
+<area shape="rect" id="node11" href="$nomad__nsend_8hpp.html" title=" " alt="" coords="910,721,1063,748"/>
+<area shape="rect" id="node4" title=" " alt="" coords="1669,572,1736,599"/>
+<area shape="rect" id="node5" title=" " alt="" coords="4350,647,4413,673"/>
+<area shape="rect" id="node15" href="$_cache_parameters_8hpp.html" title=" " alt="" coords="1957,647,2179,673"/>
+<area shape="rect" id="node7" title=" " alt="" coords="1283,647,1325,673"/>
+<area shape="rect" id="node8" href="$_eval_8hpp.html" title="Evaluation at a point." alt="" coords="1349,647,1472,673"/>
+<area shape="rect" id="node12" href="$_point_8hpp.html" title="Point." alt="" coords="1699,647,1831,673"/>
+<area shape="rect" id="node13" href="$_eval_type_8hpp.html" title="Types for Evaluation: Blackbox, Surrogate." alt="" coords="2621,647,2776,673"/>
+<area shape="rect" id="node10" href="$nomad__version_8hpp.html" title=" " alt="" coords="3323,796,3474,823"/>
+<area shape="rect" id="node14" title=" " alt="" coords="3856,721,3931,748"/>
+<area shape="rect" id="node17" title=" " alt="" coords="4899,721,4976,748"/>
+<area shape="rect" id="node21" href="$_all_stop_reasons_8hpp.html" title=" " alt="" coords="2355,647,2546,673"/>
+<area shape="rect" id="node25" href="$_exception_8hpp.html" title="Custom class for exceptions (headers)" alt="" coords="3817,647,3970,673"/>
+<area shape="rect" id="node19" href="$_step_8hpp.html" title=" " alt="" coords="2724,415,2855,442"/>
+<area shape="rect" id="node24" href="$_evaluator_control_8hpp.html" title="Management for evaluation." alt="" coords="955,647,1157,673"/>
+<area shape="rect" id="node20" href="$_mesh_base_8hpp.html" title="Base class for mesh." alt="" coords="2233,572,2402,599"/>
+<area shape="rect" id="node22" href="$_output_info_8hpp.html" title=" " alt="" coords="4248,497,4427,524"/>
+<area shape="rect" id="node23" href="$_stats_info_8hpp.html" title="Class for Stats info and display." alt="" coords="4400,572,4568,599"/>
+<area shape="rect" id="node27" href="$_algorithm_8hpp.html" title=" " alt="" coords="3441,333,3607,360"/>
+<area shape="rect" id="node28" href="$_evaluator_8hpp.html" title="Evaluation of blackbox functions." alt="" coords="1917,497,2072,524"/>
+<area shape="rect" id="node29" href="$_all_parameters_8hpp.html" title=" " alt="" coords="2733,572,2931,599"/>
+<area shape="rect" id="node30" href="$_display_parameters_8hpp.html" title=" " alt="" coords="2851,647,3082,673"/>
+<area shape="rect" id="node32" href="$_subproblem_8hpp.html" title="Subproblem of lesser dimension than the original problem." alt="" coords="1465,572,1645,599"/>
+<area shape="rect" id="node34" href="$_iteration_utils_8hpp.html" title=" " alt="" coords="2826,259,3025,285"/>
+<area shape="rect" id="node35" href="$_iteration_8hpp.html" title=" " alt="" coords="2147,333,2304,360"/>
+<area shape="rect" id="node39" href="$_search_method_base_8hpp.html" title=" " alt="" coords="2800,169,3019,211"/>
+<area shape="rect" id="node46" title=" " alt="" coords="4572,721,4631,748"/>
+<area shape="rect" id="node48" title=" " alt="" coords="5099,647,5173,673"/>
+<area shape="rect" id="node49" title=" " alt="" coords="5001,647,5074,673"/>
+<area shape="rect" id="node50" href="$defines_8hpp.html" title="Definitions." alt="" coords="4739,647,4875,673"/>
 </map>

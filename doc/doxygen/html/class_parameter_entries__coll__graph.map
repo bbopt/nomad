@@ -1,3 +1,10 @@
 <map id="ParameterEntries" name="ParameterEntries">
-<area shape="rect" id="node2" href="$class_uncopyable.html" title="Base class for uncopyable classes. " alt="" coords="5,20,93,47"/>
+<area shape="rect" id="node1" title="Store and manage ParameterEntry." alt="" coords="9,408,143,435"/>
+<area shape="rect" id="node2" href="$class_uncopyable.html" title="Base class for uncopyable classes." alt="" coords="5,304,104,331"/>
+<area shape="rect" id="node3" title=" " alt="" coords="129,289,343,345"/>
+<area shape="rect" id="node4" title=" " alt="" coords="179,185,381,227"/>
+<area shape="rect" id="node5" href="$class_parameter_entry.html" title="Parameter entry." alt="" coords="368,304,491,331"/>
+<area shape="rect" id="node6" title="STL class." alt="" coords="407,96,494,123"/>
+<area shape="rect" id="node8" title=" " alt="" coords="531,193,696,219"/>
+<area shape="rect" id="node7" title="STL class." alt="" coords="381,5,520,47"/>
 </map>

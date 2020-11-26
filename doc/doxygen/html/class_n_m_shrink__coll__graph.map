@@ -1,15 +1,52 @@
 <map id="NMShrink" name="NMShrink">
-<area shape="rect" id="node2" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,...). " alt="" coords="1041,335,1090,361"/>
-<area shape="rect" id="node7" href="$class_mega_iteration.html" title="Class to manage the iterations. " alt="" coords="1264,232,1365,259"/>
-<area shape="rect" id="node6" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="1550,232,1645,259"/>
-<area shape="rect" id="node9" href="$class_iteration.html" title="Class for iteration of an Algorithm. " alt="" coords="1280,283,1349,309"/>
-<area shape="rect" id="node3" title="STL class. " alt="" coords="179,225,255,252"/>
-<area shape="rect" id="node14" href="$class_double.html" title="Custom class for double&#45;precision reals. " alt="" coords="371,71,434,97"/>
-<area shape="rect" id="node13" href="$class_array_of_double.html" title="Class for the representation of an array of n values. " alt="" coords="555,137,661,164"/>
-<area shape="rect" id="node17" href="$class_b_b_output.html" title="Class for the representation of the output of a blackbox evaluation. " alt="" coords="363,225,442,252"/>
-<area shape="rect" id="node11" href="$class_eval_point.html" title="Class for the representation of an evaluation point. " alt="" coords="1027,165,1103,192"/>
-<area shape="rect" id="node4" title="STL class. " alt="" coords="6,218,127,259"/>
-<area shape="rect" id="node5" href="$class_n_m_iteration_utils.html" title="NMIterationUtils" alt="" coords="1696,115,1811,141"/>
-<area shape="rect" id="node12" href="$class_point.html" title="Class for the representation of a point. " alt="" coords="778,137,830,164"/>
-<area shape="rect" id="node16" href="$class_eval.html" title="Class for the representation of an evaluation at a point. " alt="" coords="585,188,631,215"/>
+<area shape="rect" id="node1" title="Class for shrink step for NM algorithm." alt="" coords="5199,633,5284,660"/>
+<area shape="rect" id="node2" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="3199,347,3249,373"/>
+<area shape="rect" id="node30" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="4773,497,4879,524"/>
+<area shape="rect" id="node31" href="$class_mega_iteration.html" title="Class to manage the iterations." alt="" coords="4432,497,4545,524"/>
+<area shape="rect" id="node34" href="$class_iteration.html" title="Class for iteration of an Algorithm." alt="" coords="3445,369,3523,396"/>
+<area shape="rect" id="node3" title=" " alt="" coords="2792,245,3040,272"/>
+<area shape="rect" id="node4" href="$class_run_parameters.html" title="The class for the parameters defining the type of optimization/task to perform." alt="" coords="2445,243,2566,269"/>
+<area shape="rect" id="node5" href="$class_parameters.html" title="Abstract class for the NOMAD parameters." alt="" coords="2079,241,2175,268"/>
+<area shape="rect" id="node23" href="$class_pb_parameters.html" title="The class for the parameters defining the optimization problem." alt="" coords="2449,293,2561,320"/>
+<area shape="rect" id="node6" title=" " alt="" coords="1683,234,1839,275"/>
+<area shape="rect" id="node7" title="STL class." alt="" coords="1365,241,1522,268"/>
+<area shape="rect" id="node8" title=" " alt="" coords="927,241,965,268"/>
+<area shape="rect" id="node9" href="$class_parameter_entries.html" title="Store and manage ParameterEntry." alt="" coords="1693,300,1828,327"/>
+<area shape="rect" id="node10" href="$class_uncopyable.html" title="Base class for uncopyable classes." alt="" coords="1394,292,1493,319"/>
+<area shape="rect" id="node11" title=" " alt="" coords="1336,343,1551,399"/>
+<area shape="rect" id="node12" title=" " alt="" coords="845,350,1047,391"/>
+<area shape="rect" id="node13" href="$class_parameter_entry.html" title="Parameter entry." alt="" coords="502,372,625,399"/>
+<area shape="rect" id="node14" title="STL class." alt="" coords="193,448,280,475"/>
+<area shape="rect" id="node17" href="$struct_attribute_definition.html" title=" " alt="" coords="492,96,635,123"/>
+<area shape="rect" id="node18" title=" " alt="" coords="659,194,821,235"/>
+<area shape="rect" id="node37" href="$class_double.html" title="Custom class for double&#45;precision reals." alt="" coords="1727,653,1795,680"/>
+<area shape="rect" id="node41" href="$class_array_of_double.html" title="Class for the representation of an array of n values." alt="" coords="2068,620,2187,647"/>
+<area shape="rect" id="node44" href="$class_b_b_output.html" title="Class for the representation of the output of a blackbox evaluation." alt="" coords="1575,763,1659,789"/>
+<area shape="rect" id="node15" title="STL class." alt="" coords="5,441,144,482"/>
+<area shape="rect" id="node16" title=" " alt="" coords="1071,63,1312,89"/>
+<area shape="rect" id="node19" title="STL class." alt="" coords="1690,183,1831,209"/>
+<area shape="rect" id="node20" title="STL class." alt="" coords="1352,175,1535,217"/>
+<area shape="rect" id="node21" title="STL class." alt="" coords="873,175,1019,217"/>
+<area shape="rect" id="node22" title=" " alt="" coords="2797,297,3035,324"/>
+<area shape="rect" id="node24" title=" " alt="" coords="2826,418,3006,459"/>
+<area shape="rect" id="node25" href="$class_all_stop_reasons.html" title="Class combining all stop reasons that are not algorithmic stop reasons." alt="" coords="2444,439,2567,465"/>
+<area shape="rect" id="node26" href="$class_stop_reason.html" title=" " alt="" coords="2021,502,2234,543"/>
+<area shape="rect" id="node27" href="$class_stop_reason.html" title=" " alt="" coords="2022,400,2233,427"/>
+<area shape="rect" id="node28" href="$class_stop_reason.html" title=" " alt="" coords="2017,451,2237,477"/>
+<area shape="rect" id="node29" href="$class_n_m_iteration_utils.html" title="Class of utils for NM iterations." alt="" coords="5020,633,5149,660"/>
+<area shape="rect" id="node32" title=" " alt="" coords="4141,431,4319,473"/>
+<area shape="rect" id="node33" title=" " alt="" coords="3799,427,4003,453"/>
+<area shape="rect" id="node35" title=" " alt="" coords="4133,548,4327,575"/>
+<area shape="rect" id="node36" href="$class_barrier.html" title="Class for barrier following algorithm 12.2 of DFBO." alt="" coords="3867,545,3934,572"/>
+<area shape="rect" id="node43" href="$class_eval.html" title="Class for the representation of an evaluation at a point." alt="" coords="2102,687,2153,713"/>
+<area shape="rect" id="node38" title=" " alt="" coords="3393,597,3575,624"/>
+<area shape="rect" id="node39" href="$class_eval_point.html" title="Class for the representation of an evaluation point." alt="" coords="3183,620,3265,647"/>
+<area shape="rect" id="node46" title=" " alt="" coords="3379,547,3589,573"/>
+<area shape="rect" id="node47" title=" " alt="" coords="3613,650,3775,691"/>
+<area shape="rect" id="node40" href="$class_point.html" title="Class for the representation of a point." alt="" coords="2478,620,2533,647"/>
+<area shape="rect" id="node45" title=" " alt="" coords="2825,569,3007,596"/>
+<area shape="rect" id="node42" title=" " alt="" coords="2591,687,2768,713"/>
+<area shape="rect" id="node48" title=" " alt="" coords="4721,349,4931,390"/>
+<area shape="rect" id="node49" title="STL class." alt="" coords="4434,267,4543,293"/>
+<area shape="rect" id="node50" title=" " alt="" coords="4211,267,4249,293"/>
 </map>
