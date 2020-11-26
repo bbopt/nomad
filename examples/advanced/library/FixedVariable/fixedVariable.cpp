@@ -84,7 +84,7 @@ void initParams1(NOMAD::AllParameters &p)
     p.getDispParams()->setAttributeValue("MAX_DISPLAY_STEP_LEVEL", 20);
     p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("BBE THREAD_NUM ( SOL ) OBJ"));
 
-    p.getEvalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
     p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("PB OBJ"));
 
     p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES", false);
