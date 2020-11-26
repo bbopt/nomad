@@ -93,6 +93,34 @@ bool NOMAD::BBOutput::getCountEval(const BBOutputTypeList &bbOutputType) const
     return countEval;
 }
 
+bool NOMAD::BBOutput::isComplete(const NOMAD::BBOutputTypeList &bbOutputType) const
+{
+    NOMAD::ArrayOfString array(_rawBBO);
+    if (checkSizeMatch(bbOutputType))
+    {
+        for (size_t i = 0; i < array.size(); i++)
+        {
+            if (NOMAD::BBOutputType::OBJ == bbOutputType[i]
+                || NOMAD::BBOutputType::PB == bbOutputType[i]
+                || NOMAD::BBOutputType::EB == bbOutputType[i])
+            {
+                NOMAD::Double outValue;
+                outValue.atof(array[i]);
+                if (!outValue.isDefined())
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    else
+    {
+        return false;
+    }
+
+    return true;
+}
+
 
 NOMAD::Double NOMAD::BBOutput::getObjective(const NOMAD::BBOutputTypeList &bbOutputType) const
 {
@@ -112,6 +140,7 @@ NOMAD::Double NOMAD::BBOutput::getObjective(const NOMAD::BBOutputTypeList &bbOut
     }
     return obj;
 }
+
 
 NOMAD::ArrayOfDouble NOMAD::BBOutput::getConstraints(const NOMAD::BBOutputTypeList &bbOutputType) const
 {

@@ -47,7 +47,6 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/EvcInterface.hpp"
-#include "../../Algos/Mads/SearchMethodBase.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Util/fileutils.hpp"
 
@@ -64,16 +63,13 @@ void NOMAD::NM::init()
         _name += " One Iteration";
     }
 
-    // Instanciate NM initialization class
+    // Instantiate NM initialization class
     _initialization = std::make_unique<NOMAD::NMInitialization>( this );
 }
 
+
 void NOMAD::NM::startImp()
 {
-
-    // Comment to appear at the end of stats lines
-    setAlgoComment("(NM)");
-
     // All stop reasons are reset.
     _stopReasons->setStarted();
 
@@ -86,11 +82,12 @@ void NOMAD::NM::startImp()
 
 }
 
+
 bool NOMAD::NM::runImp()
 {
-    bool successful = false;
+    _algoSuccessful = false;
 
-    NOMAD::SuccessType bestSuccess = NOMAD::SuccessType::NOT_EVALUATED;
+    _algoBestSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
     if ( ! _stopReasons->checkTerminate() )
     {
@@ -115,17 +112,6 @@ bool NOMAD::NM::runImp()
 
         NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
-        // TODO fix this case
-        /*
-        if (nullptr != _megaIteration)
-        {
-            // Case hot restart
-            k       = _megaIteration->getK();
-            barrier = _megaIteration->getBarrier();
-            megaIterSuccess = _megaIteration->getSuccessType();
-        }
-        */
-
         while (!_termination->terminate(k))
         {
             // Create a MegaIteration: manage multiple iterations.
@@ -134,16 +120,16 @@ bool NOMAD::NM::runImp()
             bool currentMegaIterSuccess = megaIteration.run();
             megaIteration.end();
 
-            successful = successful || currentMegaIterSuccess;
+            _algoSuccessful = _algoSuccessful || currentMegaIterSuccess;
 
             // Remember these values to construct the next MegaIteration.
             k       = megaIteration.getNextK();
             barrier = megaIteration.getBarrier();
             megaIterSuccess = megaIteration.getSuccessType();
 
-            if ( megaIterSuccess > bestSuccess )
+            if ( megaIterSuccess > _algoBestSuccess )
             {
-                bestSuccess = megaIterSuccess;
+                _algoBestSuccess = megaIterSuccess;
             }
 
             if (_userInterrupt)
@@ -152,7 +138,7 @@ bool NOMAD::NM::runImp()
             }
         }
 
-        // TODO -->for hot restart make sure to save the simplex (maybe as X0s)
+        // Issue #372: For hot restart make sure to save the simplex (maybe as X0s)
         // _megaIteration is used for hot restart (read
         // and write), as well as to keep values used in Mads::end(). Update it here.
         _megaIteration = std::make_shared<NOMAD::NMMegaIteration>(this, k, barrier, megaIterSuccess);
@@ -160,25 +146,9 @@ bool NOMAD::NM::runImp()
         _termination->start();
         _termination->run();
         _termination->end();
-
-        // CT TODO Maybe move this (and the equivalent in Mads) into Algorithm::end(). Need to add _megaIterSuccess and _bestSuccess as private attributes of Algorithm. Do not forget initialization.
-        // Update the SearchMethod success type with best success found.
-        if ( successful )
-        {
-            // The parent can be a SearchMethod (NM-Mads Search) or not (that is NM is a standalone optimization)
-            auto searchMethodConst = dynamic_cast<const NOMAD::SearchMethodBase*>(_parentStep);
-
-            if (searchMethodConst != nullptr)
-            {
-                auto searchMethod = const_cast<NOMAD::SearchMethodBase*>(searchMethodConst);
-                searchMethod->setSuccessType(bestSuccess);
-            }
-
-        }
-
     }
 
-    return successful;
+    return _algoSuccessful;
 }
 
 
@@ -198,7 +168,7 @@ void NOMAD::NM::readInformationForHotRestart()
 
             // Create a GMesh and a MegaIteration with default values, to be filled
             // by istream is.
-            // TODO Fix potential bug with Hot Restart
+            // Issue #372: Fix potential bug with Hot Restart
             // Note: Assuming the barrier read is in the same subspace as the current subspace.
             // This could be fixed if we write and read the barrier in full subspace.
             auto barrier = std::make_shared<NOMAD::Barrier>();
@@ -212,4 +182,9 @@ void NOMAD::NM::readInformationForHotRestart()
             NOMAD::read<NM>(*this, hotRestartFile);
         }
     }
+}
+
+void NOMAD::NM::endImp()
+{
+    NOMAD::Algorithm::endImp();
 }

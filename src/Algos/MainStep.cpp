@@ -62,8 +62,13 @@
 // Specific algos
 #include "../Algos/LatinHypercubeSampling/LH.hpp"
 #include "../Algos/Mads/Mads.hpp"
+#include "../Algos/Mads/MadsIteration.hpp"
+#include "../Algos/Mads/Search.hpp"
 #include "../Algos/NelderMead/NM.hpp"
 #include "../Algos/PhaseOne/PhaseOne.hpp"
+#ifdef _OPENMP
+#include "../Algos/PSDMads/PSDMads.hpp"
+#endif
 #ifdef USE_SGTELIB
 #include "../Algos/QuadModel/QuadModelAlgo.hpp"
 #include "../Algos/SgtelibModel/SgtelibModel.hpp"
@@ -71,6 +76,7 @@
 #include "../Algos/SSDMads/SSDMads.hpp"
 
 #include "../Output/OutputQueue.hpp"
+#include "../Output/OutputDirectToFile.hpp"
 #include "../Util/Clock.hpp"
 #include "../Util/fileutils.hpp"
 
@@ -99,10 +105,6 @@ void NOMAD::MainStep::init()
 
     // Start the clock
     NOMAD::Clock::reset();
-
-    // Reset last successful dir
-    NOMAD::Direction dir(_pbParams->getAttributeValue<size_t>("DIMENSION"));
-    NOMAD::OrderByDirection::setLastSuccessfulDir(dir);
 }
 
 
@@ -112,52 +114,11 @@ NOMAD::MainStep::~MainStep()
 }
 
 
-// Set _algoComment, and push the current algo comment to _prevAlgoComment pile.
-// Do not push an empty string on an empty pile, it is irrelevant.
-// If force = true, do not set a new algo comment until this comment is reset.
-void NOMAD::MainStep::setAlgoComment(const std::string& algoComment, const bool force)
-{
-    if (!_forceAlgoComment)
-    {
-        // Push algo comment to _prevAlgoComment
-        if (!_prevAlgoComment.empty() || !_algoComment.empty())
-        {
-            _prevAlgoComment.push_back(_algoComment);
-        }
-        _algoComment = algoComment;
-    }
-    if (force)
-    {
-        _forceAlgoComment = true;
-    }
-}
-
-
-// Pop the previous algo comment from the _prevAlgoComment pile.
-void NOMAD::MainStep::resetPreviousAlgoComment(const bool force)
-{
-    if (!_forceAlgoComment || force)
-    {
-        if (_prevAlgoComment.empty())
-        {
-            _algoComment = "";
-        }
-        else
-        {
-            // Remove last element, simulate a "pop".
-            _algoComment = std::move(_prevAlgoComment[_prevAlgoComment.size()-1]);
-            _prevAlgoComment.erase(_prevAlgoComment.end()-1);
-        }
-        if (_forceAlgoComment)
-        {
-            _forceAlgoComment = false;
-        }
-    }
-}
-
-
 void NOMAD::MainStep::startImp()
 {
+#ifdef TIME_STATS
+    _startTime = NOMAD::Clock::getCPUTime();
+#endif // TIME_STATS
 
     if (nullptr == _allParams)
     {
@@ -197,6 +158,7 @@ void NOMAD::MainStep::startImp()
     }
 
     NOMAD::OutputQueue::getInstance()->initParameters( _allParams->getDispParams() );
+    NOMAD::OutputDirectToFile::getInstance()->init( _allParams->getDispParams() );
 
     createCache();
     updateX0sFromCache();
@@ -210,33 +172,37 @@ void NOMAD::MainStep::startImp()
         _evaluator = std::shared_ptr<NOMAD::Evaluator>(
                         new NOMAD::Evaluator(_allParams->getEvalParams(),
                                              NOMAD::EvalType::BB,
-                                             getNumThreads(),
                                              NOMAD::EvalXDefined::USE_BB_EVAL));
     }
 
-    auto evaluatorControl = std::make_shared<NOMAD::EvaluatorControl>(_evaluator,
+    auto evaluatorControl = NOMAD::EvcInterface::getEvaluatorControl();
+    if (nullptr == evaluatorControl)
+    {
+        std::unique_ptr<NOMAD::EvaluatorControlParameters> evalContParams(new NOMAD::EvaluatorControlParameters(*_allParams->getEvaluatorControlParams()));
+        evalContParams->checkAndComply();
+        evaluatorControl = std::make_shared<NOMAD::EvaluatorControl>(_evaluator,
                                                                       _allParams->getEvaluatorControlGlobalParams(),
-                                                                      _allParams->getEvaluatorControlParams());
-    NOMAD::EvcInterface::setEvaluatorControl(evaluatorControl);
+                                                                      std::move(evalContParams));
+        NOMAD::EvcInterface::setEvaluatorControl(std::move(evaluatorControl));
+    }
 
     // Currently this does nothing.
     NOMAD::EvcInterface::getEvaluatorControl()->start();
-    // Note: Temporary: set comparison function for sorting eval queue.
-    // This should be refactored: getting sort parameters and sorting
-    // eval queue should all be managed inside EvaluatorControl::sort().
-    NOMAD::ComparePriority::setComp(NOMAD::OrderByDirection::comp);
 
     // Create the Algorithms that we want to solve.
     // Currently available: PhaseOne, Mads, LH, NM, SgtelibModelEval,
     // QuadModelOptimization
     // Note: These algorithm parameters are mutually exclusive:
-    // LH_EVAL NM_OPTIMIZATION QUAD_MODEL_OPTIMIZATION
+    // LH_EVAL NM_OPTIMIZATION PSD_MADS_OPTIMIZATION QUAD_MODEL_OPTIMIZATION
     // SGTELIB_MODEL_EVAL SSD_MADS_OPTIMIZATION.
     // This is caught by checkAndComply().
     _algos.clear();
 
     auto nbLHEval = _allParams->getRunParams()->getAttributeValue<size_t>("LH_EVAL");
     auto doNMOptimization = _allParams->getRunParams()->getAttributeValue<bool>("NM_OPTIMIZATION");
+#ifdef _OPENMP
+    bool doPSDMads = _allParams->getRunParams()->getAttributeValue<bool>("PSD_MADS_OPTIMIZATION");
+#endif
 #ifdef USE_SGTELIB
     bool doQuadModelOpt = _allParams->getRunParams()->getAttributeValue<bool>("QUAD_MODEL_OPTIMIZATION");
     bool doSgtelibModelEval = _allParams->getRunParams()->getAttributeValue<bool>("SGTELIB_MODEL_EVAL");
@@ -277,6 +243,19 @@ void NOMAD::MainStep::startImp()
                                               _allParams->getPbParams());
         _algos.push_back(nm);
     }
+#ifdef _OPENMP
+    else if (doPSDMads)
+    {
+        auto PSDMadsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>(); // A PSD-MADS is a MADS with respect to stop reasons.
+        auto psd = std::make_shared<NOMAD::PSDMads>(this,
+                                                    _evaluator,
+                                                    _allParams->getEvaluatorControlParams(),
+                                                    PSDMadsStopReasons,
+                                                    _allParams->getRunParams(),
+                                                    _allParams->getPbParams());
+        _algos.push_back(psd);
+    }
+#endif
 #ifdef USE_SGTELIB
     else if (doQuadModelOpt)
     {
@@ -341,6 +320,7 @@ void NOMAD::MainStep::startImp()
                                                               _allParams->getPbParams());
             // Ensure PhaseOne does not show found solutions
             phaseOne->setEndDisplay(false);
+
             NOMAD::PhaseOne::setBBOutputTypes(_allParams->getEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
             _algos.push_back(phaseOne);
 
@@ -369,6 +349,8 @@ void NOMAD::MainStep::startImp()
 bool NOMAD::MainStep::runImp()
 {
     bool ret = false;
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    evc->restart();
 
     for (auto algo : _algos)
     {
@@ -382,24 +364,21 @@ bool NOMAD::MainStep::runImp()
         // Note: always use default(none) and never default(shared), which is much
         // too risky.
 #ifdef _OPENMP
-#pragma omp parallel default(none) shared(algo,ret)
+#pragma omp parallel default(none) shared(algo,evc,ret)
 #endif // _OPENMP
         {
             printNumThreads();
 
             // Start evaluatorControl on all threads
-            NOMAD::EvcInterface::getEvaluatorControl()->restart();
-            NOMAD::EvcInterface::getEvaluatorControl()->run();
+            evc->run();
 
-            // Start algorithms on master thread only.
-#ifdef _OPENMP
-#pragma omp master
-#endif // _OPENMP
+            if (evc->isMainThread(NOMAD::getThreadNum()))
             {
-                // Algo run is done in master thread only.
+                // Algo run is done in main thread(s) only.
                 ret = algo->run();
-                // When algo is done, evaluatorControl is ready to quit all threads.
-                NOMAD::EvcInterface::getEvaluatorControl()->stop();
+
+                // When algo is done, evaluatorControl will wait for all main threads to be done.
+                evc->stop();
             }
         }   // End of parallel region.
         algo->end();
@@ -417,6 +396,12 @@ bool NOMAD::MainStep::runImp()
 void NOMAD::MainStep::endImp()
 {
     _algos.clear();
+
+#ifdef TIME_STATS
+   _totalCPUTime += NOMAD::Clock::getCPUTime() - _startTime;
+#endif // TIME_STATS
+
+    displayDetailedStats();
 }
 
 
@@ -562,8 +547,6 @@ void NOMAD::MainStep::displayUsage( const char* exeName )
       + "Version        : " + strExeName + " -v\n" \
       + "Usage          : " + strExeName + " -u\n\n";
 
-    // TODO          + "Developer help : " + strExeName + " -d keyword(s) (or 'all')\n"
-
     NOMAD::OutputQueue::Add(usage, NOMAD::OutputLevel::LEVEL_ERROR);
 
 }
@@ -577,7 +560,7 @@ void NOMAD::MainStep::displayVersion()
     std::string version = "Version ";
     version += NOMAD_VERSION_NUMBER;
     // Note: The "Beta" information is not part of the NOMAD_VERSION_NUMBER.
-    version += " (develop September 2020)";
+    version += " Beta 2";
 #ifdef DEBUG
     version += " Debug.";
 #else
@@ -699,9 +682,153 @@ void NOMAD::MainStep::resetComponentsBetweenOptimization()
     NOMAD::CacheBase::getInstance()->clear();
     // Reset static tag counter
     NOMAD::EvalPoint::resetCurrentTag();
-    // Reset last successful direction
-    NOMAD::Direction dir;
-    NOMAD::OrderByDirection::setLastSuccessfulDir(dir);
     // Reset SubproblemManager map
     NOMAD::SubproblemManager::reset();
 }
+
+void NOMAD::MainStep::displayDetailedStats() const
+{
+    // Display detailed stats
+    std::string mainStatsFile = _allParams->getAttributeValue<std::string>("MAIN_STATS_FILE");
+
+    if (mainStatsFile.empty() || mainStatsFile.compare("-") == 0)
+    {
+        return;
+    }
+
+    NOMAD::ArrayOfString s1,s2;
+
+#ifndef TIME_STATS
+    s1.add("Total real time (s):");
+    s2.add(std::to_string(NOMAD::Clock::getTimeSinceStart()));
+#endif
+
+    s1.add("Blackbox evaluations:");
+    size_t bbEval = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
+    s2.add(NOMAD::itos(bbEval));
+
+    s1.add("Cache hits:");
+    size_t nbCacheHits = NOMAD::CacheBase::getNbCacheHits();
+    s2.add(NOMAD::itos(nbCacheHits));
+
+    s1.add("Total number of evaluations:");
+    size_t nbEval = NOMAD::EvcInterface::getEvaluatorControl()->getNbEval();
+    s2.add(NOMAD::itos(nbEval));
+
+    s1.add("Blackbox evaluations that are not counted:");
+    int nbEvalNoCount = static_cast<int>(nbEval - bbEval - nbCacheHits);
+    s2.add(NOMAD::itos(nbEvalNoCount));
+
+    s1.add("Blackbox evaluations that are not ok:");
+    size_t nbEvalNotOk = NOMAD::EvcInterface::getEvaluatorControl()->getBbEvalNotOk();
+    s2.add(NOMAD::itos(nbEvalNotOk));
+
+    s1.add("Blackbox feasible evaluations:");
+    size_t nbFeasBBEval = NOMAD::EvcInterface::getEvaluatorControl()->getFeasBbEval();
+    s2.add(NOMAD::itos(nbFeasBBEval));
+
+    s1.add("Blackbox feasible success evaluations:");
+    size_t nbRelSucc = NOMAD::EvcInterface::getEvaluatorControl()->getNbRelativeSuccess();
+    s2.add(NOMAD::itos(nbRelSucc));
+
+    s1.add("Block evaluations:");
+    size_t blkEval = NOMAD::EvcInterface::getEvaluatorControl()->getBlockEval();
+    s2.add(NOMAD::itos(blkEval));
+
+    s1.add("Total surrogate evaluations:");
+    size_t totalSgteEval = NOMAD::EvcInterface::getEvaluatorControl()->getTotalSgteEval();
+    s2.add(NOMAD::itos(totalSgteEval));
+
+    s1.add("PhaseOne success evaluations:");
+    size_t nbPhaseOneSucc = NOMAD::EvcInterface::getEvaluatorControl()->getNbPhaseOneSuccess();
+    s2.add(NOMAD::itos(nbPhaseOneSucc));
+
+    s1.add("Index of the best feasible evaluation:");
+    size_t indexFeasEval = NOMAD::EvcInterface::getEvaluatorControl()->getIndexFeasEval();
+    s2.add(NOMAD::itos(indexFeasEval));
+
+    s1.add("Index of the best infeasible evaluation:");
+    size_t indexInfeasEval = NOMAD::EvcInterface::getEvaluatorControl()->getIndexInfeasEval();
+    s2.add(NOMAD::itos(indexInfeasEval));
+
+    s1.add("Index of evaluation block containing the best feasible solution:");
+    size_t indexSuccBlock = NOMAD::EvcInterface::getEvaluatorControl()->getIndexSuccBlockEval();
+    s2.add(NOMAD::itos(indexSuccBlock));
+
+#ifdef TIME_STATS
+    s1.add("");
+    s2.add("");
+
+    s1.add("Time statistics (s)");
+    s2.add("");
+
+    s1.add("Total real time:");
+    s2.add(std::to_string(NOMAD::Clock::getTimeSinceStart()));
+
+    s1.add("Total CPU time:");
+    s2.add(std::to_string(_totalCPUTime));
+
+    s1.add("Total time in Evaluator:");
+    s2.add(std::to_string(NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime()));
+
+    s1.add("Total time in Mads Iterations:");
+    s2.add(std::to_string(NOMAD::MadsIteration::getIterTime()));
+
+    s1.add("Total time in Search:");
+    s2.add(std::to_string(NOMAD::MadsIteration::getSearchTime())
+        +" (Eval: "
+        + std::to_string(NOMAD::MadsIteration::getSearchEvalTime())
+        +")");
+
+    s1.add("Total time in Poll:");
+    s2.add(std::to_string(NOMAD::MadsIteration::getPollTime())
+          +" (Eval: "
+          + std::to_string(NOMAD::MadsIteration::getPollEvalTime())
+          +")");
+
+    std::vector<double> searchTime = NOMAD::Search::getSearchTime();
+    std::vector<double> searchEvalTime = NOMAD::Search::getSearchEvalTime();
+    s1.add("Total time in Speculative Search:");
+    s2.add(std::to_string(searchTime[0])
+          + " (Eval: "
+          + std::to_string(searchEvalTime[0])
+          + ")");
+
+    s1.add("Total time in User Search:");
+    s2.add(std::to_string(searchTime[1])
+          + " (Eval: "
+          + std::to_string(searchEvalTime[1])
+          + ")");
+
+    s1.add("Total time in Sgtelib Search:");
+    s2.add(std::to_string(searchTime[2])
+          + " (Eval: "
+          + std::to_string(searchEvalTime[2])
+          + ")");
+
+    s1.add("Total time in LH Search:");
+    s2.add(std::to_string(searchTime[3])
+          + " (Eval: "
+          + std::to_string(searchEvalTime[3])
+          + ")");
+
+    s1.add("Total time in NM Search:");
+    s2.add(std::to_string(searchTime[4])
+          + " (Eval: "
+          + std::to_string(searchEvalTime[4])
+          + ")");
+
+#endif // TIME_STATS
+
+    NOMAD::ArrayOfString paddedStats = NOMAD::ArrayOfString::combineAndAddPadding(s1,s2);
+    std::ofstream mainStatsStream;
+    // Open main stats file and clear it (trunc)
+    mainStatsStream.open(mainStatsFile.c_str(), std::ofstream::out | std::ios::trunc);
+    if (mainStatsStream.fail())
+    {
+        std::cerr << "Warning: could not open main stats file " << mainStatsFile << std::endl;
+    }
+    mainStatsStream << paddedStats << std::endl;
+    mainStatsStream.close();
+}
+

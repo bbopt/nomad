@@ -199,7 +199,7 @@ public:
      \param fixedVariable   Fixed values given as a point,
      \param verifyValues    If true, the Point's values must be the same as the ones defined by fixedVariable.
      \return                Sub space point.
-     \seealso projectPointToSubspace
+     \see projectPointToSubspace
      */
     Point makeSubSpacePointFromFixed(const Point &fixedVariable, const bool verifyValues = true) const;
 
@@ -209,7 +209,7 @@ public:
      \param fixedVariable   Fixed values given as a point,
      \return                Sub space point.
      \note the Point's values are not verified.
-     \seealso makeSubSpacePointFromFixed
+     \see makeSubSpacePointFromFixed
      */
     Point projectPointToSubspace(const Point &fixedVariable) const;
 

@@ -163,9 +163,14 @@ void NOMAD::Poll::endImp()
 // Generate new points to evaluate
 void NOMAD::Poll::generateTrialPoints()
 {
-
-    // Sanity check. The generateTrialPoints function should be called only when trial points are generated for all each search method. After that all trials points evaluated at once.
+    // Sanity check. The generateTrialPoints function should be called only
+    // when trial points are also generated for each search method (MegaSearchPoll).
+    // After generation, all trials points evaluated at once.
     verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, true);
+
+    OUTPUT_INFO_START
+    AddOutputInfo("Generate points for " + _name, true, false);
+    OUTPUT_INFO_END
 
     _pollMethod->generateTrialPoints();
 
@@ -180,7 +185,7 @@ void NOMAD::Poll::generateTrialPoints()
     verifyPointsAreOnMesh(getName());
 
     OUTPUT_INFO_START
-    AddOutputInfo("Generate points for " + _name, true, false);
+    AddOutputInfo("Generated " + std::to_string(getTrialPointsCount()) + " points");
+    AddOutputInfo("Generate points for " + _name, false, true);
     OUTPUT_INFO_END
-
 }

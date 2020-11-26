@@ -109,15 +109,7 @@ void NOMAD::MadsMegaIteration::startImp()
             k++;
         }
 
-        // Add iterations for larger meshes
-        // NOTE: A preliminary test gave not so good results
-        // when using larger meshes. Skip for now.
-        // TODO: Control if we have the bandwith to generate
-        // a lot of Iterations, thus a lot of trial points,
-        // or not.
-        // TODO: Work on adding finer meshes too. There is more work
-        // to do because a solution on a larger mesh is on the
-        // main mesh, but not a solution on a finer mesh.
+        // Add iteration for larger meshes (see issue (feature) #386)
         /*
         if (xFeasDefined)
         {
@@ -162,7 +154,7 @@ void NOMAD::MadsMegaIteration::startImp()
 }
 
 
-// Commenting this out. Currently not used.
+// Add iteration for larger meshes (see issue (feature) #386)
 /*
 bool NOMAD::MadsMegaIteration::addIterationsForLargerMeshes(const NOMAD::EvalPoint& x0, size_t &k)
 {
@@ -245,8 +237,8 @@ bool NOMAD::MadsMegaIteration::runImp()
             OUTPUT_DEBUG_START
             s = _name + ": new success " + NOMAD::enumStr(bestSuccessYet);
             s += " stopReason = " + _stopReasons->getStopReasonAsString() ;
-            OUTPUT_DEBUG_END
             AddOutputDebug(s);
+            OUTPUT_DEBUG_END
         }
 
         // Note: Delta (frame size) will be updated in the Update step next time it is called.
@@ -258,6 +250,8 @@ bool NOMAD::MadsMegaIteration::runImp()
     }
     else
     {
+        bool iterSuccessful = false;    // Is the iteration successful.
+        // Break as soon as an iteration is successful (full success only).
         for (size_t i = 0; i < _iterList.size(); i++)
         {
             // Get Mads ancestor to call terminate(k)
@@ -267,7 +261,7 @@ bool NOMAD::MadsMegaIteration::runImp()
                 throw NOMAD::Exception(__FILE__, __LINE__, "Mads MegaIteration without Mads ancestor");
             }
             if (_stopReasons->checkTerminate()
-                || _stopReasons->testIf(NOMAD::EvalStopType::OPPORTUNISTIC_SUCCESS)
+                || iterSuccessful
                 || mads->terminate(_iterList[i]->getK()))
             {
                 break;
@@ -283,7 +277,7 @@ bool NOMAD::MadsMegaIteration::runImp()
 
             madsIteration->start();
 
-            bool iterSuccessful = madsIteration->run();          // Is this iteration successful
+            iterSuccessful = madsIteration->run();
             // Compute MegaIteration success
             NOMAD::SuccessType iterSuccess = madsIteration->getSuccessType();
             if (iterSuccess > bestSuccessYet)

@@ -119,18 +119,27 @@ protected:
      */
     size_t _n;
 
+    /// Signals that the cache should stop waiting for points to be evaluated.
+    /**
+     * For methods that allow waiting for a point to be evaluated:
+     * If the whole optimization is done, stop waitings for points
+     * that will never be evaluated.
+     */
+    bool _stopWaiting;
+
     /*---------*/
     /* Methods */
     /*---------*/
 
     /// Protected constructor.
     /**
-     * Called only by derived object to instanciate the singleton
+     * Called only by derived object to instantiate the singleton
      \param cacheParams The cache parameters -- \b IN.
      */
     explicit CacheBase(const std::shared_ptr<CacheParameters>& cacheParams)
       : _cacheParams (cacheParams),
-        _n(0)
+        _n(0),
+        _stopWaiting(false)
     {
         init();
     }
@@ -151,7 +160,7 @@ public:
     {
         if (nullptr == _single)
         {
-            std::string err = "Cannot get instance. A non-virtual object derived from CacheBase must be instanciated first. For example, call CacheSet::setInstance() ONCE before calling CacheBase::getInstance()" ;
+            std::string err = "Cannot get instance. A non-virtual object derived from CacheBase must be instantiated first. For example, call CacheSet::setInstance() ONCE before calling CacheBase::getInstance()" ;
             throw Exception(__FILE__, __LINE__, err);
         }
 
@@ -175,6 +184,8 @@ public:
     std::string getFileName() const { return _filename; }
 
     void setMaxSize(const size_t maxSize) { _maxSize = maxSize; }
+
+    void setStopWaiting(const bool stopWaiting) { _stopWaiting = stopWaiting; }
 
     /*---------------*/
     /* Other methods */
@@ -203,8 +214,12 @@ public:
     {
         std::cerr << "Warning: processOnAllPoints is not implemented for this type of cache." << std::endl;
     }
+    virtual void processOnAllPoints(void (*func)(EvalPoint&) __attribute__((unused)), const int mainThreadNum __attribute__((unused)))
+    {
+        std::cerr << "Warning: processOnAllPoints is not implemented for this type of cache." << std::endl;
+    }
 
-    virtual void deleteSgteOnly() = 0;
+    virtual void deleteSgteOnly(const int mainThreadNum) = 0;
 
 
 
@@ -225,9 +240,11 @@ public:
 
      \param x           The point to find                       -- \b IN.
      \param evalPoint   The returned eval point that matches x  -- \b IN.
+     \param evalType    If not UNDEFINED, wait for the point to have an evaluation for this evaltype. -- \b IN.
      \return            The number of eval points found.
      */
-    virtual size_t find(const Point & x, EvalPoint &evalPoint) const = 0;
+    virtual size_t find(const Point & x, EvalPoint &evalPoint,
+                        const EvalType evalType = EvalType::UNDEFINED) const = 0;
 
     /// Insert evalPoint in cache.
     /**
@@ -269,9 +286,9 @@ public:
      \return                The number of points found.
      */
     virtual size_t find(const Eval &refeval,
-                     std::function<bool(const Eval&, const Eval&)> comp,
-                     std::vector<EvalPoint> &evalPointList,
-                     const EvalType& evalType = EvalType::BB) const = 0;
+                        std::function<bool(const Eval&, const Eval&)> comp,
+                        std::vector<EvalPoint> &evalPointList,
+                        const EvalType& evalType = EvalType::BB) const = 0;
 
 
     /// Get best eval points, using comp(). Only the points with eval status EVAL_OK are considered.
@@ -282,22 +299,24 @@ public:
      \param hMax                         The hmax to detect feasibility                             -- \b IN.
      \param fixedVariable     Searching for a subproblem defined by this point -- \b IN.
      \param evalType                Which Eval of the EvalPoint to look at  -- \b IN.
+     \param refeval                  The upper bound eval reference to accelerate the search  (can be nullptr)   -- \b IN.
      \return                 The number of eval points found.
      */
     virtual size_t findBest(std::function<bool(const Eval&, const Eval&)> comp,
                             std::vector<EvalPoint> &evalPointList,
                             const bool findFeas,
                             const Double& hMax,
-                     const Point& fixedVariable,
-                     const EvalType& evalType,
-                     const Eval* refeval) const = 0;
+                            const Point& fixedVariable,
+                            const EvalType& evalType,
+                            const Eval* refeval) const = 0;
 
 
     /// Find best feasible points in the cache using operator<.
     /**
-     \param evalPointList   The best feasible eval points in a list  -- \b OUT.
+     \param evalPointList  The best feasible eval points in a list  -- \b OUT.
      \param fixedVariable  Searching for a subproblem defined by this point -- \b IN.
-     \param evalType        Which eval (Blackbox or Surrogate) of the EvalPoint to look at  -- \b IN.
+     \param evalType             Which eval (Blackbox or Surrogate) of the EvalPoint to look at  -- \b IN.
+     \param refeval               The upper bound eval reference to accelerate the search  (can be nullptr)   -- \b IN.
      \return                The number of eval points found.
      */
     virtual size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
@@ -313,10 +332,11 @@ public:
 
     /// Find best infeasible points, with h <= hMax, using operator< (pure virtual).
     /**
-     \param evalPointList   The best infeasible eval points in a list  -- \b OUT.
-     \param hMax            Select a point if h <= hMax                -- \b IN.
+     \param evalPointList  The best infeasible eval points in a list  -- \b OUT.
+     \param hMax                      Select a point if h <= hMax                -- \b IN.
      \param fixedVariable  Searching for a subproblem defined by this point -- \b IN.
-     \param evalType        Which eval (Blackbox or Surrogate) of the EvalPoint to look at  -- \b IN.
+     \param evalType             Which eval (Blackbox or Surrogate) of the EvalPoint to look at  -- \b IN.
+     \param refeval                The upper bound eval reference to accelerate the search  (can be nullptr)   -- \b IN.
      \return                The number of eval points found.
      */
     virtual size_t findBestInf(std::vector<EvalPoint> &evalPointList,
@@ -397,7 +417,7 @@ public:
     virtual bool clear() = 0;
 
     /// Clear all sgte evaluations from the cache.
-    virtual void clearSgte() = 0;
+    virtual void clearSgte(const int mainThreadNum) = 0;
 
     /**
      * \brief Purge the cache from elements with higher f.

@@ -61,6 +61,10 @@ NOMAD::StatsInfo::StatsInfo()
     _consH(),
     _hMax(),
     _bbe(0),
+    _feasBBE(0),
+    _infBBE(0),
+    _nbRelativeSuccess(0),
+    _PhaseOneSuccess(0),
     _algoBBE(0),
     _blkEva(0),
     _blkSize(0),
@@ -77,10 +81,12 @@ NOMAD::StatsInfo::StatsInfo()
     _sgte(0),
     _totalSgte(0),
     _sol(),
+    _threadAlgoNum(0),
     _threadNum(0),
     _relativeSuccess(false),
     _comment(""),
-    _genStep("")
+    _genStep(""),
+    _success(NOMAD::SuccessType::NOT_EVALUATED)
 {
 }
 
@@ -140,6 +146,22 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     else if (s == "BBE")
     {
         ret = NOMAD::DisplayStatsType::DS_BBE;
+    }
+    else if (s == "FEAS_BBE")
+    {
+        ret = NOMAD::DisplayStatsType::DS_FEAS_BBE;
+    }
+    else if (s == "INF_BBE")
+    {
+        ret = NOMAD::DisplayStatsType::DS_INF_BBE;
+    }
+    else if (s == "REL_SUCC")
+    {
+        ret = NOMAD::DisplayStatsType::DS_REL_SUCC;
+    }
+    else if (s == "PHASE_ONE_SUCC")
+    {
+        ret = NOMAD::DisplayStatsType::DS_PHASE_ONE_SUCC;
     }
     else if (s == "ALGO_BBE")
     {
@@ -214,6 +236,10 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     {
         ret = NOMAD::DisplayStatsType::DS_GEN_STEP;
     }
+    else if (s == "SUCCESS_TYPE")
+    {
+        ret = NOMAD::DisplayStatsType::DS_SUCCESS_TYPE;
+    }
     else if (s == "TOTAL_SGTE")
     {
         ret = NOMAD::DisplayStatsType::DS_TOTAL_SGTE;
@@ -244,6 +270,14 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "H_MAX";
         case NOMAD::DisplayStatsType::DS_BBE:
             return "BBE";
+        case NOMAD::DisplayStatsType::DS_FEAS_BBE:
+            return "FEAS_BBE";
+        case NOMAD::DisplayStatsType::DS_INF_BBE:
+            return "INF_BBE";
+        case NOMAD::DisplayStatsType::DS_REL_SUCC:
+            return "REL_SUCC";
+        case NOMAD::DisplayStatsType::DS_PHASE_ONE_SUCC:
+            return "PHASE_ONE_SUCC";
         case NOMAD::DisplayStatsType::DS_ALGO_BBE:
             return "ALGO_BBE";
         case NOMAD::DisplayStatsType::DS_BLK_EVA:
@@ -284,6 +318,8 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "THREAD_NUM";
         case NOMAD::DisplayStatsType::DS_GEN_STEP:
             return "GEN_STEP";
+        case NOMAD::DisplayStatsType::DS_SUCCESS_TYPE:
+            return "SUCCESS_TYPE";
         case NOMAD::DisplayStatsType::DS_TOTAL_SGTE:
             return "TOTAL_SGTE";
         case NOMAD::DisplayStatsType::DS_USER:
@@ -381,6 +417,22 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
         {
             out += NOMAD::itos(_bbe);
         }
+        else if (NOMAD::DisplayStatsType::DS_FEAS_BBE == statsType)
+        {
+            out += NOMAD::itos(_feasBBE);
+        }
+        else if (NOMAD::DisplayStatsType::DS_INF_BBE == statsType)
+        {
+            out += NOMAD::itos(_infBBE);
+        }
+        else if (NOMAD::DisplayStatsType::DS_REL_SUCC == statsType)
+        {
+            out += NOMAD::itos(_nbRelativeSuccess);
+        }
+        else if (NOMAD::DisplayStatsType::DS_PHASE_ONE_SUCC == statsType)
+        {
+            out += NOMAD::itos(_PhaseOneSuccess);
+        }
         else if (NOMAD::DisplayStatsType::DS_ALGO_BBE == statsType)
         {
             out += NOMAD::itos(_algoBBE);
@@ -456,6 +508,10 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
         else if (NOMAD::DisplayStatsType::DS_GEN_STEP == statsType)
         {
             out += _genStep;
+        }
+        else if (NOMAD::DisplayStatsType::DS_SUCCESS_TYPE == statsType)
+        {
+            out += NOMAD::enumStr(_success);
         }
         else if (NOMAD::DisplayStatsType::DS_TOTAL_SGTE == statsType)
         {

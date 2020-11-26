@@ -49,6 +49,7 @@
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Iteration.hpp"
 #include "../Algos/Mads/MegaSearchPoll.hpp"
+#include "../Algos/PhaseOne/PhaseOne.hpp"
 #include "../Algos/SubproblemManager.hpp"
 #include "../Cache/CacheBase.hpp"
 #include "../Output/OutputQueue.hpp"
@@ -99,13 +100,13 @@ void NOMAD::EvcInterface::setEvaluatorControl(const std::shared_ptr<NOMAD::Evalu
 // If not, add it to EvaluatorControl's Queue.
 void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &trialPoints, bool useMesh)
 {
-    NOMAD::EvalType evalType = _evaluatorControl->getEvalType();
-
     // Create EvalPoints and send them to EvaluatorControl
     if (nullptr == _evaluatorControl)
     {
-        throw NOMAD::Exception(__FILE__,__LINE__, _step->getName() + ": EvaluatorControl not found");
+        throw NOMAD::StepException(__FILE__,__LINE__, _step->getName() + ": EvaluatorControl not found", _step);
     }
+
+    NOMAD::EvalType evalType = _evaluatorControl->getEvalType();
 
     // Currently, this method may be used inside an Iteration (Search or Poll, NM, ...),
     // or inside a MegaSearchPoll.
@@ -114,7 +115,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
 
     if (useMesh && nullptr == iteration && nullptr == megaSearchPoll)
     {
-        throw NOMAD::Exception(__FILE__,__LINE__, _step->getName() + ": In keepPointsThatNeedEval: need a parent of type Iteration or MegaSearchPoll");
+        throw NOMAD::StepException(__FILE__,__LINE__, _step->getName() + ": In keepPointsThatNeedEval: need a parent of type Iteration or MegaSearchPoll", _step);
     }
 
     if (trialPoints.size() > 0)
@@ -155,16 +156,17 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
             // cache is not used, update tag here.
             trialPoint.updateTag();
             // Look in EvaluatorControl's Barrier if the point is already evaluated.
-            auto barrier = _evaluatorControl->getBarrier();
-            if (nullptr != barrier)
+            // Only do this when EvalType is BB. If it is SGTE, always reevaluate.
+            if (NOMAD::EvalType::BB == evalType)
             {
-                NOMAD::EvalPoint foundEvalPoint;
-                // Either point is not in barrier, or
-                // point was evaluated, but not with the current eval type.
-                doEval = !findInList(*trialPoint.getX(), barrier->getAllPoints(), foundEvalPoint)
-                         || (nullptr == foundEvalPoint.getEval(evalType));
+                auto barrier = _evaluatorControl->getBarrier();
+                if (nullptr != barrier)
                 {
-                    doEval = true;
+                    NOMAD::EvalPoint foundEvalPoint;
+                    // Either point is not in barrier, or
+                    // point was evaluated, but not with the current eval type.
+                    doEval = !findInList(*trialPoint.getX(), barrier->getAllPoints(), foundEvalPoint)
+                            || (nullptr == foundEvalPoint.getEval(evalType));
                 }
             }
         }
@@ -180,7 +182,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
                     std::string s = _step->getName();
                     s += ": In keepPointsThatNeedEval: Could not determine iteration for point ";
                     s += trialPoint.display();
-                    throw NOMAD::Exception(__FILE__,__LINE__, s);
+                    throw NOMAD::StepException(__FILE__,__LINE__, s, _step);
                 }
             }
             if ( useMesh )
@@ -194,11 +196,20 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
                 }
             }
 
+            // Set a flag in evalQueuePoint according to algo -> this is for stats
+            const Algorithm * algo = _step->getRootAlgorithm();
+            auto algoConstPhaseOne = dynamic_cast<const PhaseOne*>(algo);
+            if(nullptr != algoConstPhaseOne)
+            {
+                evalQueuePoint->setGenByPhaseOne(true);
+            }
+            else
+            {
+                evalQueuePoint->setGenByPhaseOne(false);
+            }
+
             evalQueuePoint->setComment(_step->getAlgoComment());
             evalQueuePoint->setGenStep(_step->getName());
-#ifdef _OPENMP
-            evalQueuePoint->setThreadAlgo(omp_get_thread_num());
-#endif // _OPENMP
 
             if (_evaluatorControl->addToQueue(evalQueuePoint))
             {
@@ -282,6 +293,27 @@ void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::Barrier>& subB
 }
 
 
+bool NOMAD::EvcInterface::findInBarrier(const Point& x, EvalPoint& evalPoint) const
+{
+    bool pointFound = false;
+
+    auto barrier = _evaluatorControl->getBarrier();
+    if (nullptr != barrier)
+    {
+        auto xFull = x.makeFullSpacePointFromFixed(_fixedVariable);
+        NOMAD::EvalPoint evalPointFull(evalPoint);
+        pointFound = findInList(xFull, barrier->getAllPoints(), evalPointFull);
+        if (pointFound)
+        {
+            // Put found point back in sub-dimension
+            evalPoint = evalPointFull.makeSubSpacePointFromFixed(_fixedVariable);
+        }
+    }
+
+    return pointFound;
+}
+
+
 std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::retrieveAllEvaluatedPoints()
 {
     std::vector<NOMAD::EvalPoint> evaluatedPoints;
@@ -308,11 +340,10 @@ NOMAD::SuccessType NOMAD::EvcInterface::startEvaluation()
     NOMAD::SuccessType success = NOMAD::SuccessType::UNSUCCESSFUL;
     std::shared_ptr<NOMAD::AllStopReasons> stopReasons = _step->getAllStopReasons();
 
-    if ( ! stopReasons->checkTerminate() )
-    {
-        // Evaluate points
-        success = _evaluatorControl->run();
-    }
+    // Evaluate points
+    // Note: do not use checkTerminate() here. If it is time to terminate, EvaluatorControl will take
+    // care of clearing the queue.
+    success = _evaluatorControl->run();
 
     OUTPUT_DEBUG_START
     std::string s = _step->getName() + ": " + NOMAD::enumStr(success);

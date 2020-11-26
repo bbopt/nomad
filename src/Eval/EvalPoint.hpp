@@ -86,6 +86,8 @@ private:
 
     mutable size_t  _tag; ///< Tag: Ordinal representing the order of creation
 
+    int _threadAlgo;    ///< Main thread that generated this point
+
     short    _numberEval; ///< Number of times \c *this point has been evaluated (blackbox only)
 
     std::shared_ptr<Point> _pointFrom; ///< The frame center which generated \c *this point (blackbox only)
@@ -210,6 +212,9 @@ public:
     void setTag(const size_t tag) const { _tag = tag; } ///< Sets mutable _tag
     void updateTag() const; ///< Modifies mutable _tag, and increments static _currentTag
     static void resetCurrentTag(); ///< Reset tag numbers: Use with caution. Expected to be used in unit tests  and runner only.
+
+    int getThreadAlgo() const { return _threadAlgo; }
+    void setThreadAlgo(const int threadAlgo) { _threadAlgo = threadAlgo; }
 
     short getNumberEval() const { return _numberEval; }
     void setNumberEval(const short numEval) { _numberEval = numEval; }

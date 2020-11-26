@@ -59,10 +59,6 @@
 void NOMAD::SSDMadsMegaIteration::startImp()
 {
 
-    // TODO check that no variable groups are defined yet.
-    // TODO check that which PbParams can be passed for subproblem.
-
-
     // Update manager mesh and barrier.
     NOMAD::MadsUpdate update( this );
     update.start();
@@ -151,15 +147,14 @@ bool NOMAD::SSDMadsMegaIteration::runImp()
         throw NOMAD::Exception(__FILE__, __LINE__, "SSDMads Iteration without SSDMads ancestor");
     }
 
-    // Reset the lapBbEval counter for this sub-optimization
+    // Reset counter for bb eval in subproblem for this sub-optimization
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    evc->resetLapBbEval();
+    evc->resetBbEvalInSubproblem();
 
     for (size_t i = 0; i < _madsList.size(); i++)
     {
-
         if (_stopReasons->checkTerminate()
-            || _stopReasons->testIf(NOMAD::EvalStopType::OPPORTUNISTIC_SUCCESS)
+            || evc->testIf(NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS)
             || ssdmads->terminate(i))
         {
             break;
@@ -261,17 +256,14 @@ bool NOMAD::SSDMadsMegaIteration::runImp()
         NOMAD::convertPointListToFull(evalPointList, fixedVariable);
         _barrier->updateWithPoints(evalPointList, NOMAD::EvalType::BB, true);
 
-        // Need to reset the EvalStopReason if the max bb is reached for this sub optimization (lap_max_bb)
-        if (_stopReasons->testIf(NOMAD::EvalStopType::LAP_MAX_BB_EVAL_REACHED))
-        {
-            _stopReasons->set(NOMAD::EvalStopType::STARTED);
-        }
+        // Reset counter will reset the EvalMainThreadStopReason if the max bb is reached for this sub optimization
+        evc->resetBbEvalInSubproblem();
 
         // Set the stop reason for opportunistic success of a subproblem mads
         const bool opportunisticItStop = _runParams->getAttributeValue<bool>("SSD_MADS_ITER_OPPORTUNISTIC");
         if (opportunisticItStop && (bestSuccessYet == NOMAD::SuccessType::FULL_SUCCESS))
         {
-            _stopReasons->set(NOMAD::EvalStopType::OPPORTUNISTIC_SUCCESS);
+            evc->setStopReason(NOMAD::getThreadNum(), NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS);
         }
 
 
@@ -304,16 +296,12 @@ void NOMAD::SSDMadsMegaIteration::setupSubproblemParams ( std::shared_ptr<NOMAD:
 {
     auto mainFrameSize = _mainMesh->getDeltaFrameSize();
 
-    // TODO re-enable models on subproblems (disabled when n > 50)
-
     subProblemPbParams->doNotShowWarnings();
     if (isPollster)
     {
         subProblemPbParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::SINGLE );
         subProblemRunParams->setAttributeValue("MAX_ITERATIONS", 1);
         subProblemPbParams->setAttributeValue("INITIAL_FRAME_SIZE", mainFrameSize);
-
-        // TODO Search in pollster can be enabled or not.
 
         return;
 

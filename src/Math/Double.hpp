@@ -383,32 +383,6 @@
          */
         const Double & operator /= ( const Double & d1 );
 
-        /// Comparison <.
-        /**
-         * The same as operator \c < but with consideration of undefined values.
-         * When comparing \c d1 and \c d2, \c (d1<d2) is equal to \c true for example
-         * if \c d1 is defined and if \c d2 is not.
-
-         \param d   Right-hand side of comparison -- \b IN.
-         \return    \c true if \c *this \c < \c d.
-         */
-        bool compWithUndef ( const Double & d ) const;
-
-        /// Projection to the mesh.
-        /**
-         * Projection to the mesh of size delta
-         * ( \c *this \c = \c ref \c + \c k \c * \c delta ).
-
-         \param ref    Reference for projection -- \b IN.
-         \param delta  Mesh size parameter -- \b IN.
-         \param lb     Lower bound -- \b IN.
-         \param ub     Upper bound -- \b IN.
-         */
-        void projectToMesh ( const Double & ref           ,
-                              const Double & delta         ,
-                              const Double & lb = Double() ,
-                              const Double & ub = Double()   );
-
         /// Weak comparison operator.
         /**
          * This propriety must be met:

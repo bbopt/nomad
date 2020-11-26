@@ -138,6 +138,11 @@ public:
      */
     const std::string& getBBO() const { return _rawBBO; }
 
+    /// Test if raw blackbox outputs for functions (OBJ, PB, EB) is complete
+    /**
+     \return    .
+     */
+    bool isComplete(const BBOutputTypeList &bbOutputType) const;
 
     /// Get the blackbox outputs separately.
     /**

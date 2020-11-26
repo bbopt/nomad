@@ -56,6 +56,12 @@ void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
 {
     std::vector<NOMAD::EvalPoint> cachePoints;
 
+    if (fixedVariable.isEmpty())
+    {
+        std::string s = "Error: Fixed variable of dimension 0";
+        throw NOMAD::Exception(__FILE__,__LINE__,s);
+    }
+
     checkCache();
 
     // Get best feasible and infeasible solutions from cache.
@@ -151,7 +157,7 @@ void NOMAD::Barrier::setN()
 }
 
 
-// Verify there is a Cache instanciated.
+// Verify there is a Cache instantiated.
 void NOMAD::Barrier::checkCache()
 {
     try
@@ -161,7 +167,7 @@ void NOMAD::Barrier::checkCache()
     catch (NOMAD::Exception &e)
     {
         throw NOMAD::Exception(__FILE__, __LINE__,
-                               "Cache must be instanciated before initializing Barrier.");
+                               "Cache must be instantiated before initializing Barrier.");
     }
 }
 

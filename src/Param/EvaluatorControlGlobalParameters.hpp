@@ -49,6 +49,7 @@
 #define __NOMAD400_EVALUATORCONTROLGLOBALPARAMETERS__
 
 #include "../Param/Parameters.hpp"
+#include "../Param/PbParameters.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -68,7 +69,7 @@ public:
     }
 
     /// Check the sanity of parameters.
-    void checkAndComply( );
+    void checkAndComply( const std::shared_ptr<PbParameters> pbParams = nullptr);
 
 private:
 

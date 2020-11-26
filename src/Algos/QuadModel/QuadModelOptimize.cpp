@@ -128,7 +128,7 @@ bool NOMAD::QuadModelOptimize::runImp()
 void NOMAD::QuadModelOptimize::endImp()
 {
     // Clean up the cache of points having only EvalType::SGTE
-    NOMAD::CacheBase::getInstance()->deleteSgteOnly();
+    NOMAD::CacheBase::getInstance()->deleteSgteOnly(NOMAD::getThreadNum());
 }
 
 
@@ -261,13 +261,10 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     auto mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams);
     mads->setName(mads->getName() + " (QuadModelOptimize)");
     evc->resetSgteEval();
-    setAlgoComment("(QuadModelOptimize)");
     mads->start();
     runOk = mads->run();
     mads->end();
 
-
-    resetPreviousAlgoComment();
     evc->resetSgteEval();
     evc->setEvaluator(previousEvaluator);
 

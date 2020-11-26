@@ -82,7 +82,8 @@ INF
 \( Max number of evaluations for each subproblem \)
 \(
 
-. Used in the context of Sequential Space Decomposition (SSD) MADS algorithm.
+. Used in the context of Sequential Space Decomposition (SSD) MADS
+  and Parallel Space Decomposition (PSD) MADS algorithms.
 
 . Select the max number of evaluations in each Mads subproblem.
 

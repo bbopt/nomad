@@ -230,7 +230,7 @@ private:
     /**
      * \brief Helper function for init/constructor.
      *
-     * Throw an exception if the Cache has not been instanciated yet. Will remain silent otherwise.
+     * Throw an exception if the Cache has not been instantiated yet. Will remain silent otherwise.
      */
     void checkCache();
 

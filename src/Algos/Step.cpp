@@ -50,7 +50,6 @@
 #include "../Algos/Algorithm.hpp"
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Iteration.hpp"
-#include "../Algos/MainStep.hpp"
 #include "../Algos/MegaIteration.hpp"
 #include "../Algos/Step.hpp"
 #include "../Output/OutputQueue.hpp"
@@ -93,6 +92,17 @@ void NOMAD::Step::userInterrupt(int signalValue)
     NOMAD::AllStopReasons::set( NOMAD::BaseStopType::CTRL_C );
 
     NOMAD::Step::_userInterrupt = true;
+}
+
+
+void NOMAD::Step::debugSegFault(int signalValue)
+{
+    NOMAD::OutputQueue::Flush();
+#ifdef _OPENMP
+    #pragma omp critical
+#endif
+    std::cerr << "Caught seg fault in thread " << NOMAD::getThreadNum() << std::endl;
+    throw NOMAD::Exception(__FILE__,__LINE__,"Caught seg fault");
 }
 
 
@@ -292,7 +302,7 @@ void NOMAD::Step::verifyGenerateAllPointsBeforeEval(const std::string& method, c
         std::string err = "Error: " + method + " should only be called if ";
         err += " parameter GENERATE_ALL_POINTS_BEFORE_EVAL is ";
         err += (expected ? "true" : "false");
-        throw NOMAD::Exception(__FILE__,__LINE__,err);
+        throw NOMAD::StepException(__FILE__,__LINE__,err, this);
     }
 }
 
@@ -301,6 +311,22 @@ bool NOMAD::Step::isAnAlgorithm() const
 {
     NOMAD::Step* step = const_cast<Step*>(this);
     return (nullptr != dynamic_cast<NOMAD::Algorithm*>(step));
+}
+
+
+const NOMAD::Algorithm* NOMAD::Step::getRootAlgorithm() const
+{
+    auto algo = isAnAlgorithm() ? dynamic_cast<const NOMAD::Algorithm*>(this)
+                                : getParentOfType<NOMAD::Algorithm*>();
+
+    auto parentAlgo = algo->getParentOfType<NOMAD::Algorithm*>();
+    while (nullptr != parentAlgo)
+    {
+        algo = parentAlgo;
+        parentAlgo = algo->getParentOfType<NOMAD::Algorithm*>();
+    }
+
+    return algo;
 }
 
 
@@ -333,31 +359,32 @@ std::string NOMAD::Step::getAlgoName() const
 std::string NOMAD::Step::getAlgoComment() const
 {
     std::string algoComment;
-    const NOMAD::MainStep* mainstep = getParentOfType<NOMAD::MainStep*>(false);
-    if (nullptr != mainstep)
+    auto rootAlgo = getRootAlgorithm();
+    if (nullptr != rootAlgo)
     {
-        algoComment = mainstep->getAlgoComment();
+        algoComment = rootAlgo->getAlgoComment();
     }
+
     return algoComment;
 }
 
 
 void NOMAD::Step::setAlgoComment(const std::string& algoComment, const bool force)
 {
-    NOMAD::MainStep* mainstep = getParentOfType<NOMAD::MainStep*>(false);
-    if (nullptr != mainstep)
+    auto rootAlgo = const_cast<NOMAD::Algorithm*>(getRootAlgorithm());
+    if (nullptr != rootAlgo)
     {
-        mainstep->setAlgoComment(algoComment, force);
+        rootAlgo->setAlgoComment(algoComment, force);
     }
 }
 
 
 void NOMAD::Step::resetPreviousAlgoComment(const bool force)
 {
-    NOMAD::MainStep* mainstep = getParentOfType<NOMAD::MainStep*>(false);
-    if (nullptr != mainstep)
+    auto rootAlgo = const_cast<NOMAD::Algorithm*>(getRootAlgorithm());
+    if (nullptr != rootAlgo)
     {
-        mainstep->resetPreviousAlgoComment(force);
+        rootAlgo->resetPreviousAlgoComment(force);
     }
 }
 
@@ -404,8 +431,13 @@ const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() con
     }
     else
     {
-        // Get first parent of type MegaIteration.
-        auto constMegaIter = getParentOfType<NOMAD::MegaIteration*>();
+        // Is current Step a MegaIteration?
+        auto constMegaIter = dynamic_cast<const NOMAD::MegaIteration*>(this);
+        if (nullptr == constMegaIter)
+        {
+            // Get first parent of type MegaIteration.
+            constMegaIter = getParentOfType<NOMAD::MegaIteration*>();
+        }
         megaIter = const_cast<NOMAD::MegaIteration*>(constMegaIter);
     }
 
@@ -413,6 +445,7 @@ const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() con
     {
         barrier = megaIter->getBarrier();
     }
+
     return barrier;
 }
 
@@ -451,6 +484,38 @@ void NOMAD::Step::hotRestartEndHelper()
         _userInterrupt = false;
         _stopReasons->set(NOMAD::BaseStopType::STARTED);
     }
+}
+
+
+void NOMAD::Step::debugShowCallStack() const
+{
+    std::vector<std::string> stepNameStack;
+    NOMAD::Step* step = const_cast<NOMAD::Step*>(this);
+    while (nullptr != step)
+    {
+        stepNameStack.push_back(step->getName());
+        step = const_cast<NOMAD::Step*>(step->getParentStep());
+    }
+    
+    if (stepNameStack.empty())
+    {
+        return;
+    }
+    
+    // Show the steps in order, this is why we created the stack.
+    std::cout << "Call stack:" << std::endl;
+    // NOTE: Using "i < stepNameStack.size()" as condition for loop, 
+    // since i is a size_t (it is always >= 0).
+    for (size_t i = stepNameStack.size()-1; i < stepNameStack.size(); i--)
+    {
+        for (size_t j = 0; j < (stepNameStack.size()-i-1); j++)
+        {
+            // indentation
+            std::cout << "  ";
+        }
+        std::cout << stepNameStack[i] << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 

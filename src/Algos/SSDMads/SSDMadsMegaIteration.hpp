@@ -87,7 +87,7 @@ public:
     }
     // No Destructor needed - keep defaults.
 
-    /// Implementation of the start tasks for MADS mega iteration.
+    /// Implementation of the start tasks for SSD-MADS mega iteration.
     /**
      Creates a MadsIteration for each frame center and each desired mesh size.
      Use all xFeas and xInf available.
@@ -95,7 +95,7 @@ public:
      */
     virtual void startImp() override ;
 
-    /// Implementation of the run tasks for MADS mega iteration.
+    /// Implementation of the run tasks for SSD-MADS mega iteration.
     /**
      Manages the generation of points: either all poll and search points are generated all together before starting evaluation using the MegaSearchPoll or they are generated using a MadsIteration with search and poll separately. A run parameter controls the behavior.
      */

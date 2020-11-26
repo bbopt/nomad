@@ -18,7 +18,7 @@ OBJ_DIR             = $(BUILD_DIR)/obj
 INCLUDE_DIR         = $(BUILD_DIR)/include
 BIN_DIR             = $(BUILD_DIR)/bin
 
-COMPONENT_DIRNAME   = Algos/SDMads
+COMPONENT_DIRNAME   = Algos/SSDMads
 
 ALL_FILES           = SSDMads SSDMadsMegaIteration
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))

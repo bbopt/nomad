@@ -65,7 +65,7 @@ NOMAD::SgtelibModelMegaIteration::~SgtelibModelMegaIteration()
 {
     // Clear sgte info from cache.
     // Very important so we don't have false info in a later MegaIteration.
-    NOMAD::CacheBase::getInstance()->clearSgte();
+    NOMAD::CacheBase::getInstance()->clearSgte(NOMAD::getThreadNum());
 }
 
 
@@ -120,7 +120,7 @@ void NOMAD::SgtelibModelMegaIteration::endImp()
 
     // Clear sgte info from cache.
     // Very important so we don't have false info in a later MegaIteration.
-    NOMAD::CacheBase::getInstance()->clearSgte();
+    NOMAD::CacheBase::getInstance()->clearSgte(NOMAD::getThreadNum());
     NOMAD::MegaIteration::endImp();
 }
 

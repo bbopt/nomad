@@ -54,20 +54,27 @@ BBE OBJ
     CACHE_SIZE : cache size
     CONS_H     : infeasibility (h) value
     EVAL       : evaluations (includes cache hits)
+    FEAS_BBE   : feasible blackbox evaluations
+    FRAME_SIZE / DELTA_F : frame size delta_k^f
     GEN_STEP   : name of the step that generated this point to evaluate
     H_MAX      : max infeasibility (h) acceptable
+    INF_BBE    : infeasible blackbox evaluations
     ITER_NUM   : iteration number in which this evaluation was done
     LAP        : number of lap evaluations since last reset
     MESH_INDEX : mesh index
     MESH_SIZE / DELTA_M : mesh size delta_k^m
-    FRAME_SIZE / DELTA_F : frame size delta_k^f
     OBJ        : objective function value
+    PHASE_ONE_SUCC: success evaluations during phase one phase
+    REL_SUCC   : relative success feasible evaluations (relative to the previous
+                 evaluation, or relative to the mesh center if there was no
+                 previous evaluation in the same pass)
     SGTE       : number of surrogate evaluations since last reset
     SOL        : current feasible iterate
-    THREAD_ALGO: Thread number for the algorithm
+    SUCCESS_TYPE: success type for this evaluation, compared with the frame center
+    THREAD_ALGO: thread number for the algorithm
     THREAD_NUM : thread number in which this evaluation was done
-    TOTAL_SGTE : total number of surrogate evaluations
     TIME       : real time in seconds
+    TOTAL_SGTE : total number of surrogate evaluations
     USER       : user-defined string
 
 . Example:
@@ -174,13 +181,34 @@ NOMAD::ArrayOfString
 . Arguments: one string (file name) and one list of strings (for the format of stats)
 
 . The seed is added to the file name if
-  ADD_SEED_TO_FILE_NAMES=\'yes\'
+  ADD_SEED_TO_FILE_NAMES=\'yes\' (default)
 
 . Example: STATS_FILE log.txt BBE SOL f=%.2EOBJ
 
 
 \)
 \( basic stat(s) file(s) name display(s) output(s) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+###############################################################################
+MAIN_STATS_FILE
+string
+-
+\( The name of the main stats file \)
+\(
+
+. File containing detailed stats info about number of evaluations and successes
+
+. Arguments: one string for the file name
+
+. The seed is added to the file name if
+  ADD_SEED_TO_FILE_NAMES=\'yes\' (default)
+
+. Example: STATS_FILE detailedStats.txt
+
+
+\)
+\( basic main detailed stat(s) file(s) success(es) evaluation(s) \)
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ###############################################################################
@@ -247,4 +275,47 @@ size_t
 \( advanced \)
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE yes
+###############################################################################
+HISTORY_FILE
+std::string
+-
+\( The name of the history file \)
+\(
+
+. The history file contains all evaluations in a simple format (SOL BBO)
+
+. Arguments: one string (file name)
+
+. The seed is added to the file name if
+  ADD_SEED_TO_FILE_NAMES=\'yes\' (default)
+
+. Example: HISTORY_FILE history.txt
+
+
+\)
+\( basic history file name display(s) output(s) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+###############################################################################
+SOLUTION_FILE
+std::string
+-
+\( The name of the file containing the best feasible solution \)
+\(
+
+. The solution file contains the best feasible incumbent point in a simple
+  format (SOL BBO)
+
+. Arguments: one string (file name)
+
+. The seed is added to the file name if
+  ADD_SEED_TO_FILE_NAMES=\'yes\' (default)
+
+. Example: SOLUTION_FILE sol.txt
+
+
+\)
+\( basic solution best incumbent file name display(s) output(s) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
 ###############################################################################

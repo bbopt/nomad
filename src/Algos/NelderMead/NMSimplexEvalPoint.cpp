@@ -62,6 +62,7 @@ bool NOMAD::NMSimplexEvalPointCompare::operator()(const NOMAD::EvalPoint& lhs,
     }
     NOMAD::ComputeSuccessType computeSuccess(evalType);
 
+    // This could be an inefficient function (see issue #392)
     NOMAD::SuccessType success = computeSuccess(std::make_shared<NOMAD::EvalPoint>(lhs),
                                                 std::make_shared<NOMAD::EvalPoint>(rhs));
 

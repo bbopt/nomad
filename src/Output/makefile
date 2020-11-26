@@ -19,7 +19,7 @@ BIN_DIR             = $(BUILD_DIR)/bin
 
 COMPONENT_DIRNAME   = Output
 
-ALL_FILES           = OutputInfo OutputQueue StatsInfo
+ALL_FILES           = OutputDirectToFile OutputInfo OutputQueue StatsInfo
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))
 ALL_HEADERS         = $(addsuffix .hpp, $(ALL_FILES))
 ALL_INCLUDE_HEADERS = $(addprefix $(INCLUDE_DIR)/$(COMPONENT_DIRNAME)/,$(ALL_HEADERS))

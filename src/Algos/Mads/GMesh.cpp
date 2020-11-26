@@ -112,7 +112,7 @@ void NOMAD::GMesh::checkMeshForStopping( std::shared_ptr<NOMAD::AllStopReasons> 
     {
         for (size_t i = 0; i < _n; i++)
         {
-            if (getdeltaMeshSize(i).todouble() >= _minMeshSize[i].todouble())
+            if (getdeltaMeshSize(i).todouble() >= _minMeshSize[i].todouble() && _granularity[i] ==0) // Do not stop if a non-granular variable has its mesh coarser than the minMeshSize
             {
                 stop = false;
                 break;
@@ -362,13 +362,7 @@ NOMAD::ArrayOfDouble NOMAD::GMesh::getdeltaMeshSize() const
 NOMAD::Double NOMAD::GMesh::getdeltaMeshSize(size_t i) const
 {
     NOMAD::Double deltai = getdeltaMeshSize(_frameSizeExp[i], _initFrameSizeExp[i], _granularity[i]);
-
-// TODO make sure that this is not required (test on problems)
-//    if (deltai < _minMeshSize[i])
-//    {
-//        deltai = _minMeshSize[i];
-//    }
-
+    
     return deltai;
 }
 
@@ -438,16 +432,13 @@ NOMAD::Double NOMAD::GMesh::getDeltaFrameSizeCoarser(const size_t i) const
 }
 
 
+// This method is used by the input operator>>
 void NOMAD::GMesh::setDeltas(const size_t i,
                              const NOMAD::Double &deltaMeshSize,
                              const NOMAD::Double &deltaFrameSize)
 {
     // Input checks
     checkDeltasGranularity(i, deltaMeshSize, deltaFrameSize);
-
-    // e is a partial computation of frameSizeExp.
-    // e = delta
-    NOMAD::Double e = deltaMeshSize;
 
     // Value to use for granularity (division so default = 1.0)
     NOMAD::Double gran = 1.0;
@@ -456,27 +447,41 @@ void NOMAD::GMesh::setDeltas(const size_t i,
         gran = _granularity[i];
     }
 
-    // e = max(1.0, 10^(b-abs(b-b0))
-    e = e / gran;
+    NOMAD::Double mant;
+    NOMAD::Double exp;
 
-    if (1.0 == e)
+    // Compute mantisse first
+    // There are only 3 cases: 1, 2, 5, so compute all
+    // 3 possibilities and then assign the values that work.
+    NOMAD::Double mant1 = deltaFrameSize / (1.0 * gran);
+    NOMAD::Double mant2 = deltaFrameSize / (2.0 * gran);
+    NOMAD::Double mant5 = deltaFrameSize / (5.0 * gran);
+    NOMAD::Double exp1 = std::log10(mant1.todouble());
+    NOMAD::Double exp2 = std::log10(mant2.todouble());
+    NOMAD::Double exp5 = std::log10(mant5.todouble());
+
+    // deltaFrameSize = gran * mant * 10^exp  (where gran is 1.0 if granularity is not defined)
+    // => exp = log10(deltaFrameSize / (mant * gran))
+    // exp must be an integer so verify which one of the 3 values exp1, exp2, exp5
+    // is an integer and use that value for exp, and the corresponding value
+    // 1, 2 or 5 for mant.
+    if (exp1.isInteger())
     {
-        // max (1.0, e) = 1.0 so we cannot be sure of the computation.
-        // Setting e to -initFrameSizeExp ensures that
-        // frameSizeExp = 0 later.
-        _enforceSanityChecks = true;
-        e = -_initFrameSizeExp[i];
+        mant = 1;
+        exp = exp1;
+    }
+    else if (exp2.isInteger())
+    {
+        mant = 2;
+        exp = exp2;
     }
     else
     {
-        // e = b-abs(b-b0)
-        e = std::log10(e.todouble());
+        mant = 5;
+        exp = exp5;
     }
-
-    e = (e + _initFrameSizeExp[i]) / 2.0;
-    _frameSizeExp[i] = roundFrameSizeExp(e);
-    NOMAD::Double mant = deltaFrameSize / (gran * pow(10, _frameSizeExp[i].todouble()));
-    _frameSizeMant[i] = roundFrameSizeMant(mant);
+    _frameSizeExp[i] = roundFrameSizeExp(exp);
+    _frameSizeMant[i] = mant;
 
     // Sanity checks
     if (_enforceSanityChecks)
@@ -581,7 +586,7 @@ void NOMAD::GMesh::checkSetDeltas(const size_t i,
     if (hasError)
     {
         std::cerr << err << std::endl;
-        //throw NOMAD::Exception(__FILE__,__LINE__,err);
+        throw NOMAD::Exception(__FILE__,__LINE__,err);
     }
 
 }

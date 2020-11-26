@@ -71,15 +71,17 @@
 */
 class MainStep: public Step
 {
-private:
+protected:
     std::string                         _paramFileName;  ///< Name of the file containing the parameters.
     std::shared_ptr<AllParameters>      _allParams;
     std::shared_ptr<Evaluator>          _evaluator; ///< Used in library running mode (not batch mode)
     std::vector<std::shared_ptr<Algorithm>>  _algos;
-    std::string                         _algoComment;   ///< Comment to appear in the stats, e.g. "Phase One"
-    std::vector<std::string>            _prevAlgoComment; ///< Pile of previous comments, used when going back to the main algo after running a sub-algo.
-    bool                                _forceAlgoComment; ///< When true, do not change comment until reset is called
 
+#ifdef TIME_STATS
+    size_t _totalRealTime;
+    double _startTime;
+    double _totalCPUTime;
+#endif // TIME_STATS
 
 public:
     /// Constructor
@@ -87,10 +89,12 @@ public:
     : Step(),
         _paramFileName(""),
         _evaluator(nullptr),
-        _algos(),
-        _algoComment(""),
-        _prevAlgoComment(),
-        _forceAlgoComment(false)
+        _algos()
+#ifdef TIME_STATS
+        ,_totalRealTime(0),
+        _startTime(0.0),
+        _totalCPUTime(0.0)
+#endif // TIME_STATS
     {
         init();
     }
@@ -114,13 +118,6 @@ public:
      The evaluator may be shared between main threads.
      */
     void setEvaluator(std::shared_ptr<Evaluator> ev) { _evaluator = ev;}
-
-    /// Set comment to be added at the end of the display stats, e.g., "Phase One"
-    void setAlgoComment(const std::string& algoComment, const bool force = false) override;
-    /// Reset comment to the previous in the stack
-    void resetPreviousAlgoComment(const bool force = false) override;
-    /// Get current comment on the top of the stack
-    std::string getAlgoComment() const override { return _algoComment; }
 
 
     /*---------*/
@@ -200,6 +197,10 @@ protected:
 private:
     /// Helper for constructor
     void init();
+
+    ///  Detailed stats
+    void displayDetailedStats() const;
+
 };
 
 

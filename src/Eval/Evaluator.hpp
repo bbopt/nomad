@@ -72,8 +72,6 @@ enum class EvalXDefined
 };
 
 
-class Barrier;
-
 /// Class for the evaluator
 /**
  * Evaluation of a point can be done by calling an external executable
@@ -88,7 +86,7 @@ protected:
     std::shared_ptr<EvalParameters> _evalParams; ///< The parameters controlling the behavior of the evaluator
 
 private:
-    std::vector<std::string> _tmpFiles; ///< One file per thread.
+    static std::vector<std::string> _tmpFiles; ///< One file per thread.
 
     /// Did the user redefine eval_x() for single point, or should we use BB_EXE ?
     mutable EvalXDefined _evalXDefined;
@@ -104,19 +102,20 @@ public:
     /**
      \param evalParams      The parameters to control the behavior of the evaluator
      \param evalType        Which type of Eval will be updated by this Evaluator:                        blackbox (BB) or surrogate (SGTE)
-     \param nbThreads       The number of threads the evaluators will run on. Used to initialize temporary files.
      \param evalXDefined    Flag.
      */
     explicit Evaluator(const std::shared_ptr<EvalParameters> &evalParams,
                        const EvalType evalType = EvalType::BB,
-                       int nbThreads = 0,
                        const EvalXDefined evalXDefined = EvalXDefined::EVAL_BLOCK_DEFINED_BY_USER);
 
     /// Destructor.
-    /**
-     Needed to remove temporary files.
-     */
     virtual ~Evaluator();
+
+    /// Initialize one tmp file by thread
+    static void initializeTmpFiles(const std::string& tmpDir);
+
+    /// Delete tmp files when we are done
+    static void removeTmpFiles();
 
     /*---------*/
     /* Get/Set */

@@ -131,7 +131,7 @@ public:
     void setSuccessType(const SuccessType& success) { _success = success; }
 
     size_t getTrialPointsCount() const              { return _trialPoints.size(); }
-    const EvalPointSet & getTrialPoints() const     { return _trialPoints; }
+    const EvalPointSet& getTrialPoints() const      { return _trialPoints; }
 
     /*---------------*/
     /* Other methods */
@@ -147,7 +147,7 @@ public:
      Post-processing of the points after evaluation.
      For instance, computation of a new hMax and update of the MegaIteration's Barrier.
      Use evaluations of the type given by input parameter evalType.
-     \return \c true if some value changed (ex. Barrier, hMax), \false if nothing happened.
+     \return \c true if some value changed (ex. Barrier, hMax), \c false if nothing happened.
      */
     virtual bool postProcessing(const EvalType& evalType);
 

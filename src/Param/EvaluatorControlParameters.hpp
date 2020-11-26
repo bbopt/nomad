@@ -50,6 +50,7 @@
 
 
 #include "../Param/Parameters.hpp"
+#include "../Param/RunParameters.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -68,8 +69,22 @@ public:
         init();
     }
 
+    /**
+     The copy constructor is not implemented in the parent class to allow some control over what parameters can be copied or not. Use the deep copy function of parameters: Parameters::copyParameters.
+     */
+    EvaluatorControlParameters& operator=(const EvaluatorControlParameters& params) { copyParameters(params) ; return *this; }
+
+    /**
+     The copy constructor is not implemented in the parent class to allow some control over what parameters can be copied or not. Use the deep copy function of parameters: Parameters::copyParameters.
+     */
+    EvaluatorControlParameters(const EvaluatorControlParameters& params) : EvaluatorControlParameters() { copyParameters(params); }
+
     /// Check the sanity of parameters.
-    void checkAndComply( );
+    /**
+      By default, RunParameters is null. This method can be called in EvaluatorControl or anywhere during the optimization process.
+      If a RunParameters is provided, more checks may be done.
+     */
+    void checkAndComply(const std::shared_ptr<RunParameters>& runParams = nullptr);
 
 private:
 

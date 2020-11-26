@@ -96,6 +96,8 @@ bool NOMAD::NMSearchMethod::runImp()
     nm->start();
     bool foundBetter = nm->run();
     nm->end();
+    
+    
 
     return foundBetter;
 }

@@ -102,7 +102,7 @@ void NOMAD::SgtelibModel::init()
     // Build the Sgtelib Model
     _model = std::shared_ptr<SGTELIB::Surrogate>(SGTELIB::Surrogate_Factory(*_trainingSet, modelDefinition.display()));
 
-    // Instanciate Sgte initialization class
+    // Instantiate Sgte initialization class
     _initialization = std::make_unique<NOMAD::SgtelibModelInitialization>(this);
 }
 
@@ -287,14 +287,8 @@ NOMAD::ArrayOfDouble NOMAD::SgtelibModel::getExtendedUpperBound() const
 // Start is executed when SgtelibModel is used as an algorithm on its own.
 void NOMAD::SgtelibModel::startImp()
 {
-
     // Manages initialization among other things.
     NOMAD::Algorithm::startImp();
-
-
-    // Comment to appear at the end of stats lines
-    setAlgoComment("(SgtelibModel)");
-
 
     // Setup EvalPoint success computation to be based on sgte rather than bb.
     NOMAD::EvcInterface::getEvaluatorControl()->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
@@ -326,17 +320,6 @@ bool NOMAD::SgtelibModel::runImp()
                                                        NOMAD::EvalType::BB);
         }
         NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
-
-        // TODO fix this
-        /*
-        if (nullptr != _megaIteration)
-        {
-            // Case hot restart
-            k       = _megaIteration->getK();
-            barrier = _megaIteration->getBarrier();
-            megaIterSuccess = _megaIteration->getSuccessType();
-        }
-        */
 
         while (!_termination->terminate(k))
         {
@@ -377,14 +360,9 @@ bool NOMAD::SgtelibModel::runImp()
 
 void NOMAD::SgtelibModel::endImp()
 {
-    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    // Remove any remaining points from eval queue.
-    evc->clearQueue();
-
     // Reset success computation function
-    evc->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
+    NOMAD::EvcInterface::getEvaluatorControl()->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
 
-    resetPreviousAlgoComment();
     NOMAD::Algorithm::endImp();
 }
 

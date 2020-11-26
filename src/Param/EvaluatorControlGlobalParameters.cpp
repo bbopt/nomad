@@ -77,7 +77,7 @@ void NOMAD::EvaluatorControlGlobalParameters::init()
 /*----------------------------------------*/
 /*            check the parameters        */
 /*----------------------------------------*/
-void NOMAD::EvaluatorControlGlobalParameters::checkAndComply()
+void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_ptr<PbParameters> pbParams )
 {
     checkInfo();
 
@@ -95,6 +95,57 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply()
     if (getAttributeValueProtected<size_t>("MAX_EVAL",false) <= 0)
     {
         setAttributeValue("MAX_EVAL", NOMAD::INF_SIZE_T);
+    }
+
+    // Safety net using MAX_EVAL when variables are all granular -> setting a value for MAX_EVAL prevent Nomad from circling around the solution forever when all neighbors have been visited.
+    if (pbParams != nullptr && getAttributeValueProtected<size_t>("MAX_EVAL",false) == NOMAD::INF_SIZE_T )
+    {
+        auto granularity = pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("GRANULARITY");
+        bool allGranular = true;
+
+        size_t dimension = granularity.size();
+        for (size_t i = 0; i < dimension ; i++)
+        {
+            if (0.0 == granularity[i])
+            {
+                allGranular = false;
+                break;
+            }
+        }
+
+        if (allGranular)
+        {
+            // First guess, set the limit to 100*3^n evaluations, with a maximum of 1000000.
+            size_t new_max_eval = 1000000; // default value.
+            if (dimension < 9)
+            {
+                new_max_eval = 100 * (size_t)pow(3, dimension);
+            }
+
+            // MAX_EVAL must be >> MAX_BB_EVAL.
+            // If MAX_BB_EVAL is set, set MAX_EVAL to at least 10 times MAX_BB_EVAL. Don't exceed INF_SIZE_T.
+
+            auto max_bb_eval = getAttributeValueProtected<size_t>("MAX_BB_EVAL",false);
+
+            if (max_bb_eval < NOMAD::INF_SIZE_T)
+            {
+                if (max_bb_eval < NOMAD::INF_SIZE_T / 10)
+                {
+                    if (new_max_eval < 10 * max_bb_eval)
+                    {
+                        new_max_eval = 10 * max_bb_eval;
+                    }
+                }
+                else
+                {
+                    new_max_eval = NOMAD::INF_SIZE_T;
+                }
+            }
+
+            std::cerr << "All variables are granular. MAX_EVAL is set to " << new_max_eval << " to prevent algorithm from circling around best solution indefinetely" << std::endl;
+
+            setAttributeValue("MAX_EVAL",new_max_eval);
+        }
     }
 
     auto sgteBlockSize = getAttributeValueProtected<size_t>("SGTE_MAX_BLOCK_SIZE", false);

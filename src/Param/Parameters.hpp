@@ -329,7 +329,7 @@ protected:
             throw Exception(__FILE__,__LINE__, err);
         }
 
-        toupper(name);
+        NOMAD::toupper(name);
 
         auto attribute = AttributeFactory{}.Create<T>(name, default_value,
                                                       algoCompatibilityCheck, restartAttribute, uniqueEntry,
@@ -365,7 +365,7 @@ protected:
     const std::string& getAttributeType(const std::string& name)
     {
         auto namecaps = name;
-        toupper(namecaps);
+        NOMAD::toupper(namecaps);
         return _typeOfAttributes[namecaps];
     }
 
@@ -449,7 +449,7 @@ protected:
     getAttributeValueProtected(const std::string &name, type<Point>, bool flagCheckException, bool flagDefault = false) const
     {
         auto namecaps = name;
-        toupper(namecaps);
+        NOMAD::toupper(namecaps);
         if (typeid(ArrayOfPoint).name() == _typeOfAttributes.at(namecaps))
         {
             // Special case: Attribute type is an ArrayOfPoint, but user asks to
@@ -497,7 +497,7 @@ public:
     getAttributeValue(const std::string &name, bool flagDefault = false) const
     {
         auto namecaps = name;
-        toupper(namecaps);
+        NOMAD::toupper(namecaps);
         return getAttributeValueProtected<T>(namecaps,true,flagDefault);
     }
 
@@ -538,7 +538,7 @@ public:
 
         std::string typeTName = typeid(T).name();
         auto namecaps = name;
-        toupper(namecaps);
+        NOMAD::toupper(namecaps);
         auto att = getAttribute(name);
 
         // Must use map access with "at" (not []) because the function is const
@@ -696,7 +696,7 @@ public:
         }
 
         auto namecaps = name;
-        toupper(namecaps);
+        NOMAD::toupper(namecaps);
         setSpValue(namecaps, value);
 
         _toBeChecked = true;

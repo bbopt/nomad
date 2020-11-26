@@ -64,6 +64,7 @@ NOMAD::EvalPoint::EvalPoint ()
     _eval(nullptr),
     _evalSgte(nullptr),
     _tag(0),
+    _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
     _pointFrom(nullptr)
 {
@@ -78,6 +79,7 @@ NOMAD::EvalPoint::EvalPoint(size_t n)
     _eval(nullptr),
     _evalSgte(nullptr),
     _tag(0),
+    _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
     _pointFrom(nullptr)
 {
@@ -92,6 +94,7 @@ NOMAD::EvalPoint::EvalPoint(const NOMAD::Point &x)
     _eval(nullptr),
     _evalSgte(nullptr),
     _tag(0),
+    _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
     _pointFrom(nullptr)
 {
@@ -116,6 +119,7 @@ NOMAD::EvalPoint::EvalPoint(const NOMAD::EvalPoint &evalPoint)
 void NOMAD::EvalPoint::copyMembers(const NOMAD::EvalPoint &evalPoint)
 {
     _tag = evalPoint._tag;
+    _threadAlgo = evalPoint._threadAlgo;
     _numberEval = evalPoint._numberEval;
 
     _eval = nullptr;
@@ -149,6 +153,7 @@ NOMAD::EvalPoint & NOMAD::EvalPoint::operator=(const NOMAD::EvalPoint &evalPoint
     Point::operator=(evalPoint);
 
     _tag = evalPoint._tag;
+    _threadAlgo = evalPoint._threadAlgo;
     _numberEval = evalPoint._numberEval;
 
     _pointFrom = evalPoint._pointFrom;
@@ -537,6 +542,8 @@ void NOMAD::EvalPoint::updateTag() const
         _tag = _currentTag;
     }
 }
+
+
 void NOMAD::EvalPoint::resetCurrentTag()
 {
     _currentTag = 0;
@@ -634,9 +641,7 @@ NOMAD::EvalPoint NOMAD::EvalPoint::makeSubSpacePointFromFixed(const NOMAD::Point
 // Should we evaluate (possibly re-evaluate) this point?
 bool NOMAD::EvalPoint::toEval(short maxPointEval, const NOMAD::EvalType& evalType) const
 {
-    // TODO This functionality must be reviewed if we
-    // accept multiple evaluations for a single point.
-    // Ex. for a stochastic blackbox.
+
     bool reEval = false;
 
     auto eval = getEval(evalType);
@@ -670,8 +675,6 @@ bool NOMAD::EvalPoint::toEval(short maxPointEval, const NOMAD::EvalType& evalTyp
 
 
 // Not displaying evalSgte, only bb eval
-// TODO should be merged with operator<<
-// but watch out for displayed precision.
 std::string NOMAD::EvalPoint::display(const NOMAD::ArrayOfDouble &format) const
 {
     std::string s = "#" + std::to_string(_tag) + " ";
@@ -779,8 +782,7 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalPoint &evalPoint)
             NOMAD::BBOutput bbo("");
             is >> bbo;
 
-            evalPoint.setBBO(bbo, NOMAD::EvalType::BB);
-            evalPoint.getEval(NOMAD::EvalType::BB)->toRecompute(true);
+            evalPoint.setBBO(bbo, NOMAD::EvalType::BB);  // BBO is set but f and h need to be recomputed
 
             // For now, set numEval to 1 if Eval exists. Currently,
             // only 1 Eval is correctly supported.
@@ -821,6 +823,11 @@ bool NOMAD::findInList(const NOMAD::Point& point,
 
 void NOMAD::convertPointListToSub(NOMAD::EvalPointList &evalPointList, const NOMAD::Point& fixedVariable)
 {
+    if (fixedVariable.isEmpty())
+    {
+        std::string s = "Error: Fixed variable of dimension 0";
+        throw NOMAD::Exception(__FILE__,__LINE__,s);
+    }
     for (size_t i = 0; i < evalPointList.size(); i++)
     {
         if (evalPointList[i].size() == fixedVariable.size())

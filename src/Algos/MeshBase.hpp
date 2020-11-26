@@ -108,10 +108,10 @@ public:
     /*-----------------------------------------------------*/
     size_t getSize() const { return _n; }
 
-    ArrayOfDouble getInitialMeshSize() const { return _initialMeshSize; }
-    ArrayOfDouble getMinMeshSize() const { return _minMeshSize; }
-    ArrayOfDouble getInitialFrameSize() const { return _initialFrameSize; }
-    ArrayOfDouble getMinFrameSize() const { return _minFrameSize; }
+    const ArrayOfDouble& getInitialMeshSize() const { return _initialMeshSize; }
+    const ArrayOfDouble& getMinMeshSize() const { return _minMeshSize; }
+    const ArrayOfDouble& getInitialFrameSize() const { return _initialFrameSize; }
+    const ArrayOfDouble& getMinFrameSize() const { return _minFrameSize; }
 
     /*------------------*/
     /*   Mesh methods   */

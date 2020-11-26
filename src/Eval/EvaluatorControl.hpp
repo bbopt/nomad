@@ -57,6 +57,7 @@
 #define __NOMAD400_EVALUATORCONTROL__
 
 #include "../Eval/Barrier.hpp"
+#include "../Eval/ComparePriority.hpp"
 #include "../Eval/EvalQueuePoint.hpp"
 #include "../Eval/EvcMainThreadInfo.hpp"
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
@@ -65,7 +66,6 @@
 #include <omp.h>
 #endif  // _OPENMP
 #include <time.h>
-#include <vector>
 
 #include "../nomad_nsbegin.hpp"
 
@@ -88,16 +88,17 @@ private:
      */
     /**
      * The queue is implemented as a vector. Points are added at the end of
-      the queue. Points are sorted using the _comp() which is called
+      the queue. Points are sorted using ComparePriority which is called
       in unlockQueue() when the user is done adding points to the queue. \n
      * Sorting the queue can also be done by providing another function.
      */
     std::vector<EvalQueuePointPtr> _evalPointQueue;
-    ComparePriority _comp;
+
+    std::shared_ptr<ComparePriorityMethod>  _userCompMethod;    ///< User-implemented comparison method to sort points before evaluation
 
 #ifdef _OPENMP
     /// To lock the queue
-    omp_lock_t _evalQueueLock;
+    mutable omp_lock_t _evalQueueLock;
 #endif // _OPENMP
 
     /// The number of blackbox evaluations performed
@@ -109,6 +110,33 @@ private:
      */
     std::atomic<size_t> _bbEval;
 
+    /// The number of blackbox evaluations that are not ok
+    /**
+     \remark
+     * Atomic for thread-safety. \n
+     * Atomic is also supported by OpenMP, but here
+     * I find it clearer to declare it atomic from the start.
+     */
+    std::atomic<size_t> _bbEvalNotOk;
+
+    /// The number of feasible blackbox evaluations obtained
+    /**
+     \remark
+     * Atomic for thread-safety. \n
+     * Atomic is also supported by OpenMP, but here
+     * I find it clearer to declare it atomic from the start.
+     */
+    std::atomic<size_t> _feasBBEval;
+
+    /// The number of infeasible blackbox evaluations obtained
+    /**
+     \remark
+     * Atomic for thread-safety. \n
+     * Atomic is also supported by OpenMP, but here
+     * I find it clearer to declare it atomic from the start.
+     */
+    std::atomic<size_t> _infBBEval;
+
     /// The total number of sgte evaluations. Used for stats exclusively.
     std::atomic<size_t> _totalSgteEval;
 
@@ -118,12 +146,40 @@ private:
      */
     std::atomic<size_t> _blockEval;
 
+    /// The index of the last successfull evaluation block
+    /**
+     \remark Atomic for thread-safety.
+     */
+    std::atomic<size_t> _indexSuccBlockEval;
+
+    /// The index of the best feasible evaluation
+    /**
+     \remark Atomic for thread-safety.
+     */
+    std::atomic<size_t> _indexBestFeasEval;
+
+    /// The index of the best infeasible evaluation
+    /**
+     \remark Atomic for thread-safety.
+     */
+    std::atomic<size_t> _indexBestInfeasEval;
+
     /**
      The number of evaluations performed through \c this:
         - Including evaluations for which countEval returned \c false.
         - Not including cache hits.
      */
     std::atomic<size_t> _nbEvalSentToEvaluator;
+
+    /**
+     The number of full success evaluations performed through \c this.
+     */
+    std::atomic<size_t> _nbRelativeSuccess;
+
+    /**
+     The number of PhaseOne success evaluations performed through \c this.
+     */
+    std::atomic<size_t> _nbPhaseOneSuccess;
 
     bool _allDoneWithEval;     ///< All evaluations done. The queue can be destroyed.
 
@@ -137,24 +193,30 @@ public:
      \param evaluator       The blackbox evaluator -- \b IN.
      \param evalContGlobalParams  The parameters controlling how the class works -- \b IN.
      \param evalContParams  The parameters for main threads -- \b IN.
-     \param comp            The priority comparison function -- \b IN.
      */
     explicit EvaluatorControl(std::shared_ptr<Evaluator> evaluator,
                               const std::shared_ptr<EvaluatorControlGlobalParameters>& evalContGlobalParams,
-                              const std::shared_ptr<EvaluatorControlParameters>& evalContParams,
-                              ComparePriority comp = ComparePriority())
+                              const std::shared_ptr<EvaluatorControlParameters>& evalContParams)
       : _evalContGlobalParams(evalContGlobalParams),
         _mainThreads(),
         _mainThreadInfo(),
         _evalPointQueue(),
-        _comp(comp),
+        _userCompMethod(nullptr),
 #ifdef _OPENMP
         _evalQueueLock(),
 #endif // _OPENMP
         _bbEval(0),
+        _bbEvalNotOk(0),
+        _feasBBEval(0),
+        _infBBEval(0),
         _totalSgteEval(0),
         _blockEval(0),
+        _indexSuccBlockEval(0),
+        _indexBestFeasEval(0),
+        _indexBestInfeasEval(0),
         _nbEvalSentToEvaluator(0),
+        _nbRelativeSuccess(0),
+        _nbPhaseOneSuccess(0),
         _allDoneWithEval(false)
 #ifdef TIME_STATS
         ,_evalTime(0.0)
@@ -173,7 +235,7 @@ public:
     /* Get/Set       */
     /*---------------*/
     void addMainThread(const int threadNum,
-                       const std::shared_ptr<StopReason<EvalStopType>> evalStopReason,
+                       const std::shared_ptr<StopReason<EvalMainThreadStopType>> evalMainThreadStopReason,
                        const std::shared_ptr<Evaluator>& evaluator,
                        const std::shared_ptr<EvaluatorControlParameters>& evalContParams);
     bool isMainThread(const int threadNum) const { return (_mainThreads.end() != _mainThreads.find(threadNum)); }
@@ -189,17 +251,24 @@ public:
     /// Set blackbox evaluations number.
     void setBbEval(const size_t bbEval) { _bbEval = bbEval; }
 
-    size_t getSgteEval(const int threadNum = -1) const;
-    void incSgteEval(const int threadNum, const size_t countEval);
-    void resetSgteEval();
+    /// Get the number of blackbox evaluations that are not ok.
+    size_t getBbEvalNotOk() const { return _bbEvalNotOk; }
+
+    /// Get the number of feasible blackbox evaluations.
+    size_t getFeasBbEval() const { return _feasBBEval; }
+
+    size_t getSgteEval(const int mainThreadNum = -1) const;
+    void resetSgteEval(const int mainThreadNum = -1);
     size_t getTotalSgteEval() const { return _totalSgteEval; }
 
-    size_t getBbEvalInSubproblem() const;
-    void incBbEvalInSubproblem(const size_t countEval);
-    void resetBbEvalInSubproblem();
+    size_t getBbEvalInSubproblem(const int mainThreadNum = -1) const;
+    void resetBbEvalInSubproblem(const int mainThreadNum = -1);
 
     /// Get the number of block evaluations.
     size_t getBlockEval() const { return _blockEval; }
+
+    /// Get the index  of block evaluations.
+    size_t getIndexSuccBlockEval() const { return _indexSuccBlockEval; }
 
     /** Get the total number of evaluations.
      * Total number of evaluations, including:
@@ -220,33 +289,42 @@ public:
      */
     void setNbEval(const size_t nbEval);
 
-    size_t getLapMaxBbEval() const;
+    size_t getLapMaxBbEval(const int mainThreadNum) const;
     void setLapMaxBbEval(const size_t maxBbEval);
     void resetLapBbEval();
     size_t getLapBbEval(const int threadNum = -1) const;
-    void incLapBbEval(const size_t countEval);
 
+    size_t getNbPhaseOneSuccess() const {return  _nbPhaseOneSuccess; }
+    size_t getNbRelativeSuccess() const {return  _nbRelativeSuccess; }
+    size_t getIndexFeasEval() const { return _indexBestFeasEval; }
+    size_t getIndexInfeasEval() const { return _indexBestInfeasEval; }
 
 #ifdef TIME_STATS
     /// Get the total time spend in Evaluator
     double getEvalTime() const { return _evalTime; }
 #endif // TIME_STATS
 
-    size_t getQueueSize(const int threadNum = -1) const;
+    size_t getQueueSize(const int mainThreadNum = -1) const;
 
-    bool getDoneWithEval(const int threadNum) const;
-    void setDoneWithEval(const int threadNum, const bool doneWithEval);
+    bool getDoneWithEval(const int mainThreadNum) const;
+    void setDoneWithEval(const int mainThreadNum, const bool doneWithEval);
 
     void setBarrier(const std::shared_ptr<Barrier>& barrier);
     const std::shared_ptr<Barrier>& getBarrier(const int threadNum = -1) const;
 
-    void setComputeSuccessTypeFunction(const ComputeSuccessFunction &computeSuccessFunction);
+    void setBestIncumbent(const int mainThreadNum, const std::shared_ptr<EvalPoint>& bestIncumbent);
+    const std::shared_ptr<EvalPoint>& getBestIncumbent(const int mainThreadNum) const;
 
-    void setStopReason(const int threadNum, const EvalStopType& s);
-    const StopReason<EvalStopType>& getStopReason(const int threadNum) const;
-    std::string getStopReasonAsString(const int threadNum) const;
-    bool testIf(const EvalStopType& s) const;
-    bool checkEvalTerminate() const;
+    void setComputeSuccessTypeFunction(const ComputeSuccessFunction& computeSuccessFunction);
+    void setUserCompMethod(const std::shared_ptr<ComparePriorityMethod>& compMethod) { _userCompMethod = compMethod; }
+
+    void setLastSuccessfulDir(const std::shared_ptr<Direction>& dir);
+
+    void setStopReason(const int mainThreadNum, const EvalMainThreadStopType& s);
+    const StopReason<EvalMainThreadStopType>& getStopReason(const int mainThreadNum) const;
+    std::string getStopReasonAsString(const int mainThreadNum) const;
+    bool testIf(const EvalMainThreadStopType& s) const;
+    bool checkEvalTerminate(const int mainThreadNum) const;
 
     /// Get all points that were just evaluated. This is especially useful when cache is not used.
     /**
@@ -260,10 +338,6 @@ public:
     const SuccessType& getSuccessType(const int threadNum) const;
     void setSuccessType(const int threadNum, const SuccessType& success);
 
-    size_t getCurrentlyRunning(const int threadNum = -1) const;
-    void incCurrentlyRunning(const int threadNum, const size_t n);
-    void decCurrentlyRunning(const int threadNum, const size_t n);
-
     /// Get the max infeasibility to keep a point in barrier
     Double getHMax(const int threadNum) const;
 
@@ -274,12 +348,13 @@ public:
     std::shared_ptr<EvalParameters> getEvalParams(const int threadNum = -1) const;
 
     /// Get or Set the value of some parameters
-    bool getOpportunisticEval(const int threadNum = -1) const;
+    bool getOpportunisticEval(const int mainThreadNum = -1) const;
     void setOpportunisticEval(const bool opportunistic);
-    bool getUseCache(const int threadNum = -1) const;
+    bool getUseCache(const int mainThreadNum = -1) const;
     void setUseCache(const bool usecache);
-    EvalType getEvalType(const int threadNum = -1) const;
-    size_t getMaxBbEvalInSubproblem(const int threadNum = -1) const;
+    EvalType getEvalType(const int mainThreadNum = -1) const;
+    size_t getMaxBbEvalInSubproblem(const int mainThreadNum = -1) const;
+    void setMaxBbEvalInSubproblem(const size_t maxBbEval);
 
     /*---------------*/
     /* Other methods */
@@ -294,7 +369,7 @@ public:
     /// Unlock the queue.
     /**
      We are done adding points.
-     If doSort is \c true, the points in the queue are sorted using _comp.
+     If doSort is \c true, the points in the queue are sorted using ComparePriority.
      */
     void unlockQueue(const bool doSort = true);
 
@@ -307,10 +382,11 @@ public:
     /// Get the top point from the queue and pop it.
     /**
     \param evalQueuePoint   The eval point popped from the queue -- \b OUT.
-    \param mainThreadNum    Main thread number of the point to be popped (thread from which this point was generated) -- \b IN / OUT
+    \param evaluator        Evaluator with which this point must be evaluated -- \b IN / OUT
+    \param hMax             hMax for evaluation of this point -- \b IN / OUT
     \return                 \c true if it worked, \c false otherwise.
     */
-    bool popEvalPoint(EvalQueuePointPtr &evalQueuePoint, int mainThreadNum);
+    bool popEvalPoint(EvalQueuePointPtr &evalQueuePoint, Evaluator*& evaluator, Double& hMax);
 
     /// Pop eval points from the queue to fill a block of size BB_MAX_BLOCK_SIZE.
     /**
@@ -319,19 +395,13 @@ public:
     */
     bool popBlock(BlockForEval &block);
 
-    /// Sort the queue with respect to the comparison function comp.
-    void sort(ComparePriority comp);
-
-    /// Use the default comparison function _comp.
-    void sort() { sort(_comp); }
-
     /// Clear queue.
     /**
-     * \param mainThreadNum   Clear points generated by this main thread only, If -1, use NOMAD::getThreadNum().
-     * \param waitRunning If \c true, wait for all Evaluators currently running on this main thread to end before clearing.
-     * \param showDebug   If \c true, print points remaining in the queue.
+     * \param mainThreadNum   Clear points generated by this main thread only, If -1, clear all queue.
+     * \param showDebug   If \c true, print points erased from the queue.
+     * \return Number of points erased
     */
-    void clearQueue(int mainThreadNum = -1, const bool waitRunning = false, const bool showDebug = false);
+    size_t clearQueue(const int mainThreadNum, const bool showDebug = false);
 
     /// Start evaluation.
     void start() {}
@@ -378,12 +448,12 @@ public:
      For each point, \c true if evaluation worked \c false otherwise.
      \remark Updates only the Eval members.
      \param block   The block of points to evaluate -- \b IN/OUT.
-     \param mainThreadNum   Thread number of the main thread that generated this point
+     \param evaluator   Evaluator to be used for all these points
      \param hMax    The max infeasibilyt to keep a point in barrier -- \b IN.
      \return        A vector of booleans, of the same size as block.
      */
     std::vector<bool> evalBlockOfPoints(Block &block,
-                                        const int mainThreadNum,
+                                        const Evaluator& evaluator,
                                         const Double &hMax = INF);
 
     /// Updates eval status.
@@ -391,19 +461,17 @@ public:
      Find the point in the cache and update its evalStatus
       to IN_PROGRESS, knowing that the evaluation is about to start.
      \param evalPoint   The evaluation point -- \b IN/OUT.
-     \param mainThreadNum   Main thread that generated this point -- \b IN
+     \return \c true if the point must be evaluated, \c false otherwise.
      */
-    void updateEvalStatusBeforeEval(EvalPoint &evalPoint, const int mainThreadNum);
+    bool updateEvalStatusBeforeEval(EvalPoint &evalPoint);
 
     /// Updates eval status.
     /**
      Update point's evalStatus, knowing that the evaluation has just ended.
      \param evalPoint       The evalPoint -- \b IN/OUT.
-     \param mainThreadNum   Main thread that generated this point -- \b IN
      \param evalOk          Status of evaluation -- \b IN.
      */
     void updateEvalStatusAfterEval(EvalPoint &evalPoint,
-                                   const int mainThreadNum,
                                    bool evalOk);
 
     /// Did we reach one of the evaluation parameters: MAX_EVAL, MAX_BB_EVAL, MAX_BLOCK_EVAL ?
@@ -415,6 +483,8 @@ public:
      */
     bool reachedMaxStepEval(const int mainThreadNum = -1) const;
 
+    /// For debugging purposes. Show the contents of the evaluation queue.
+    void debugDisplayQueue() const;
 
 private:
 
@@ -424,13 +494,13 @@ private:
     /// Helper for destructor
     void destroy();
 
-    /// Get the EvcMainThreadInfo associated with this threadNum.
+    /// Get the EvcMainThreadInfo associated with this thread number.
     /**
-     * Get EvcMainThreadInfo associated with this threadNum.
-     \param mainThreadNum Main thread number. -- \b IN.
-     \return EvcMainThreadInfo associated with this threadNum.
+     * Get EvcMainThreadInfo associated with this thread number.
+     \param mainThreadNum Main thread number. If -1, use current thread number, assuming it is a main thread. -- \b IN.
+     \return EvcMainThreadInfo associated with this thread number.
      */
-    EvcMainThreadInfo& getMainThreadInfo(const int threadNum = -1) const;
+    EvcMainThreadInfo& getMainThreadInfo(const int mainThreadNum = -1) const;
 
     /// Helper function called during evaluation.
     /**
@@ -444,14 +514,23 @@ private:
                         const bool evalOk,
                         const Double& hMax);
 
+    /// Sort the queue with respect to the selected sort strategy. Called by unlockQueue().
+    void sort();
+
     /// Did we reach a stop condition (for a main thread)?
-    bool stopMainEval() const;
+    /**
+     \param mainThreadNum    The main thread number to verify --\b IN.
+     */
+    bool stopMainEval(const int mainThreadNum) const;
 
     /// Debug trace when a thread is waiting.
     void displayDebugWaitingInfo(time_t &lastDisplayed) const;
 
     /// Stats Output
     void AddStatsInfo(const BlockForEval& block) const;
+
+    /// History and Solution file output
+    void AddDirectToFileInfo(EvalQueuePointPtr evalQueuePoint) const;
 
 };
 

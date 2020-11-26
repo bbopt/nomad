@@ -20,7 +20,8 @@ BIN_DIR             = $(BUILD_DIR)/bin
 
 COMPONENT_DIRNAME   = Eval
 
-ALL_FILES           = Barrier BBInput BBOutput ComputeSuccessType Eval EvalPoint \
+ALL_FILES           = Barrier BBInput BBOutput ComparePriority ComputeSuccessType \
+                      Eval EvalPoint \
                       EvalQueuePoint EvaluatorControl Evaluator EvcMainThreadInfo
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))
 ALL_HEADERS         = $(addsuffix .hpp, $(ALL_FILES))

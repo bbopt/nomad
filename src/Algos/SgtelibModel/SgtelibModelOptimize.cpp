@@ -145,11 +145,9 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         _mads->setName(_mads->getName() + " (SgtelibModelOptimize)");
         _mads->setEndDisplay(false);
         evc->resetSgteEval();
-        setAlgoComment("(SgtelibModelOptimize)");
         _mads->start();
         optimizeOk = _mads->run();
         _mads->end();
-        resetPreviousAlgoComment();
         evc->resetSgteEval();
         evc->setEvaluator(previousEvaluator);
 

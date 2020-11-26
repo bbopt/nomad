@@ -60,7 +60,6 @@
 NOMAD::BBInput::BBInput(const NOMAD::BBInputTypeList& bbInputTypeList,
                         const NOMAD::Point& point)
 {
-    // TODO
 }
 
 

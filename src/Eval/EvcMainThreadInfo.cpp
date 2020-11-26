@@ -82,6 +82,23 @@ std::shared_ptr<NOMAD::EvalParameters> NOMAD::EvcMainThreadInfo::getEvalParams()
 }
 
 
+void NOMAD::EvcMainThreadInfo::incNbPointsInQueue()
+{
+    _nbPointsInQueue++;
+}
+
+
+void NOMAD::EvcMainThreadInfo::decNbPointsInQueue()
+{
+    if (0 == _nbPointsInQueue)
+    {
+        std::string s = "Error in EvaluatorControl main thread management: Trying to decrease number of points in queue which is already 0";
+        throw NOMAD::Exception(__FILE__, __LINE__, s);
+    }
+    _nbPointsInQueue--;
+}
+
+
 NOMAD::EvalType NOMAD::EvcMainThreadInfo::getEvalType() const
 {
     return (nullptr == _evaluator) ? NOMAD::EvalType::UNDEFINED : _evaluator->getEvalType();
@@ -153,6 +170,58 @@ size_t NOMAD::EvcMainThreadInfo::getMaxBbEvalInSubproblem() const
 }
 
 
+void NOMAD::EvcMainThreadInfo::setMaxBbEvalInSubproblem(const size_t maxBbEval)
+{
+    _evalContParams->setAttributeValue("MAX_BB_EVAL_IN_SUBPROBLEM", maxBbEval);
+    _evalContParams->checkAndComply();
+}
+
+
+void NOMAD::EvcMainThreadInfo::resetLapBbEval()
+{
+    _lapBbEval = 0;
+    if (NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED == _stopReason.get())
+    {
+        _stopReason.set(NOMAD::EvalMainThreadStopType::STARTED);
+    }
+}
+
+
+void NOMAD::EvcMainThreadInfo::resetSgteEval()
+{
+    _sgteEval = 0;
+    if (NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED == _stopReason.get())
+    {
+        _stopReason.set(NOMAD::EvalMainThreadStopType::STARTED);
+    }
+}
+
+
+void NOMAD::EvcMainThreadInfo::resetBbEvalInSubproblem()
+{
+    _subBbEval = 0;
+    if (NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED == _stopReason.get())
+    {
+        _stopReason.set(NOMAD::EvalMainThreadStopType::STARTED);
+    }
+}
+
+
+const std::shared_ptr<NOMAD::EvalPoint>& NOMAD::EvcMainThreadInfo::getBestIncumbent() const
+{
+    return _bestIncumbent;
+}
+
+
+void NOMAD::EvcMainThreadInfo::setBestIncumbent(const std::shared_ptr<NOMAD::EvalPoint>& bestIncumbent)
+{
+    if (_computeSuccessType(bestIncumbent, _bestIncumbent) >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+    {
+        _bestIncumbent = bestIncumbent;
+    }
+}
+
+
 std::vector<NOMAD::EvalPoint> NOMAD::EvcMainThreadInfo::retrieveAllEvaluatedPoints()
 {
     std::vector<NOMAD::EvalPoint> allEvaluatedPoints;
@@ -202,13 +271,13 @@ void NOMAD::EvcMainThreadInfo::setSuccessType(const NOMAD::SuccessType& success)
 }
 
 
-void NOMAD::EvcMainThreadInfo::incCurrentlyRunning(const size_t n)
+void NOMAD::EvcMainThreadInfo::incCurrentlyRunning()
 {
-    _currentlyRunning += n;
+    _currentlyRunning ++;
 }
 
 
-void NOMAD::EvcMainThreadInfo::decCurrentlyRunning(const size_t n)
+void NOMAD::EvcMainThreadInfo::decCurrentlyRunning()
 {
     if (0 == _currentlyRunning)
     {
@@ -216,11 +285,11 @@ void NOMAD::EvcMainThreadInfo::decCurrentlyRunning(const size_t n)
         std::string s = "Error in EvaluatorControl main thread management: Trying to decrease number of currently running evaluations which is already 0";
         throw NOMAD::Exception(__FILE__, __LINE__, s);
     }
-    _currentlyRunning -= n;
+    _currentlyRunning --;
 }
 
 
-void NOMAD::EvcMainThreadInfo::setStopReason(const NOMAD::EvalStopType& s)
+void NOMAD::EvcMainThreadInfo::setStopReason(const NOMAD::EvalMainThreadStopType& s)
 {
     _stopReason.set(s);
 }

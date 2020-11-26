@@ -79,12 +79,12 @@ public:
 
     /// Constructor 1
     //ComputeSuccessType(ComputeSuccessFunction computeSuccessFunction defaultComputeSuccessType)
-    ComputeSuccessType(ComputeSuccessFunction computeSuccessFunction)
+    explicit ComputeSuccessType(const ComputeSuccessFunction& computeSuccessFunction)
       : _computeSuccessType(computeSuccessFunction)
     {}
 
     /// Constructor 2
-    ComputeSuccessType(const EvalType& evalType)
+    explicit ComputeSuccessType(const EvalType& evalType)
     {
         setDefaultComputeSuccessTypeFunction(evalType);
     }
@@ -135,8 +135,8 @@ public:
     /**
      \param evalPoint1  First eval queue point -- \b IN.
      \param evalPoint2  Second eval queue point -- \b IN.
-     \param hMax        Max acceptable infeasibility to keep point in barrier   -- \b IN.
-     \return            Success type.
+     \param hMax                Max acceptable infeasibility to keep point in barrier   -- \b IN.
+     \return             Success type.
      */
     static SuccessType computeSuccessTypeSgte(const EvalPointPtr& evalPoint1,
                                               const EvalPointPtr& evalPoint2,

@@ -149,21 +149,31 @@ enum class NMStopType : int
     LAST
 };
 
-/// Stop type that can happen during evaluation
-enum class EvalStopType : int
+
+/// Stop type that can happen during evaluation (global conditions)
+enum class EvalGlobalStopType : int
 {
     STARTED                 ,  ///< Started (no stop)
     MAX_BB_EVAL_REACHED     ,  ///< Max number of blackbox evaluations
+    MAX_EVAL_REACHED        ,  ///< Max number of total evaluations
+    MAX_BLOCK_EVAL_REACHED  ,  ///< Max number of block eval reached
+    LAST
+};
+
+
+/// Stop type that can happen during evaluation (conditions for a main thread)
+enum class EvalMainThreadStopType : int
+{
+    STARTED                 ,  ///< Started (no stop)
     LAP_MAX_BB_EVAL_REACHED,   ///< Max number of blackbox evaluations for a sub algorithm run (lap run)
     SUBPROBLEM_MAX_BB_EVAL_REACHED,   ///< Max number of blackbox evaluations for a subproblem run (E.g. SSD-Mads)
-    MAX_EVAL_REACHED        ,  ///< Max number of total evaluations
     OPPORTUNISTIC_SUCCESS   ,  ///< Success found and opportunistic strategy is used
     EMPTY_LIST_OF_POINTS    ,  ///< Tried to eval an empty list
     ALL_POINTS_EVALUATED    ,  ///< No more points to evaluate
-    MAX_BLOCK_EVAL_REACHED  ,  ///< Max number of block eval reached
     MAX_SGTE_EVAL_REACHED   ,  ///< Max number of surrogate evaluations
     LAST
 };
+
 
 /// Stop type that can happen at the end of an iteration
 enum class IterStopType : int
@@ -177,7 +187,7 @@ enum class IterStopType : int
 /// Template class for the stop reason of a stop type.
 /**
  The possible stop types can be generic: ::IterStopType,
- ::EvalStopType, BaseStopType, or specific to
+ ::EvalGlobalStopType, ::EvalMainThreadStopType, BaseStopType, or specific to
  an algorithm: ::MadsStopType, ::PhaseOneStopType, ::NMStopType ,....
 
  The default stop type is STARTED (no stop). A stop reason different than STARTED indicates what is the cause of termination. Some stop reasons indicate a normal termination that do not need propagation and others must be propagated to stop an algorithm (see StopReason::checkTerminate()).
@@ -285,7 +295,7 @@ public:
     /// Check if the stop reason requires a termination.
     /**
      This is implemented for each stop type (template specialization of the function). \n
-     Except for ::EvalStopType, a stop reason different than STARTED indicates that an algorithm or a sub-algorithm must terminate.
+     Except for ::EvalMainThreadStopType, a stop reason different than STARTED indicates that an algorithm or a sub-algorithm must terminate.
 
      \return \c true if a termination is required, \c false otherwise.
      */

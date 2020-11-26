@@ -201,7 +201,7 @@ void NOMAD::SgtelibSearchMethod::getBestProjection(const NOMAD::Point& incumbent
                                     const NOMAD::ArrayOfDouble& deltaMeshSize,
                                     std::shared_ptr<NOMAD::Point> x)
 {
-    // TODO: Use Projection class
+    // Issue #383: Use Projection class
 }
 
 

@@ -49,6 +49,7 @@
 #define __NOMAD400_ALGOSTOPREASONS__
 
 #include <memory>   // for shared_ptr
+#include "../Algos/EvcInterface.hpp"    // For access to EvalMainThreadStopType
 #include "../Util/Exception.hpp"
 #include "../Util/AllStopReasons.hpp"
 
@@ -69,7 +70,7 @@ public:
     /// Constructor
     /*
      */
-    explicit AlgoStopReasons () : AllStopReasons()
+    explicit AlgoStopReasons() : AllStopReasons()
     {
     }
 
@@ -79,39 +80,52 @@ public:
 
 
 private:
-    StopReason<StopType> _algoStopReason;
+    StopReason<StopType> _algoStopReason;   ///< Stop reason specific to this algorithm
 
 public:
-
-    /// Access to the algo stop reason (no the other generic stop reasons).
-    StopReason<StopType> & getAlgoStopReason() { return _algoStopReason; }
-
     /// Set the algo stop reason to a specific stop type.
-    void set( StopType s )
+    void set(StopType s)
     {
         _algoStopReason.set(s);
     }
 
+
     std::string getStopReasonAsString() const override
     {
-        std::string stopReason= AllStopReasons::getStopReasonAsString();
+        std::string stopReasonStr = AllStopReasons::getStopReasonAsString();
 
-        if ( ! _algoStopReason.isStarted() )
-            stopReason += _algoStopReason.getStopReasonAsString() + " (Algo) ";
+        if (!_algoStopReason.isStarted())
+        {
+            stopReasonStr += _algoStopReason.getStopReasonAsString() + " (Algo)";
+        }
 
-        return stopReason;
+        auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+        if (nullptr != evc)
+        {
+            int mainThreadNum = NOMAD::getThreadNum();  // The code in Algos/ is always called from a main thread.
+            auto evalStopReason = evc->getStopReason(mainThreadNum);
+            if (!evalStopReason.isStarted())
+            {
+                stopReasonStr += (stopReasonStr.empty() ? "" : " ") + evalStopReason.getStopReasonAsString();
+            }
+        }
 
+        return stopReasonStr;
     }
+
 
     /// Check among generic stop reasons and algo stop reason if the algorithm must terminate
-    bool checkTerminate () const override
+    bool checkTerminate() const override
     {
-        return ( AllStopReasons::checkTerminate()
-                || _algoStopReason.checkTerminate() );
+        auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+        return (NOMAD::AllStopReasons::checkTerminate()
+                || _algoStopReason.checkTerminate()
+                || ((nullptr != evc) && evc->getStopReason(NOMAD::getThreadNum()).checkTerminate()));
     }
 
+
     /// Access to the AlgoStopReasons
-    static std::shared_ptr<AlgoStopReasons<StopType>> get ( std::shared_ptr<AllStopReasons> allStopReasons )
+    static std::shared_ptr<AlgoStopReasons<StopType>> get(std::shared_ptr<AllStopReasons> allStopReasons)
     {
         std::shared_ptr<AlgoStopReasons<StopType>> stopReasons = std::dynamic_pointer_cast<AlgoStopReasons<StopType>>( allStopReasons );
 
@@ -120,20 +134,27 @@ public:
         return stopReasons;
     }
 
+
     /// Test for a specific algorithm stop type.
     /**
      Used to pass a sub-algorithm stop reason to a parent algorithm stop reason.
      */
-    bool testIf ( StopType s )
+    bool testIf (const StopType& s) const
     {
         return ( _algoStopReason.get() == s );
     }
 
+
     /// Reset stop reasons to their default STARTED state.
-    void setStarted () override
+    void setStarted() override
     {
         _algoStopReason.setStarted();
         AllStopReasons::setStarted();
+        auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+        if (nullptr != evc)
+        {
+            evc->setStopReason(NOMAD::getThreadNum(), NOMAD::EvalMainThreadStopType::STARTED);
+        }
     }
 
 };

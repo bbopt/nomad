@@ -99,6 +99,14 @@ public:
      */
     void setBarrier(const std::shared_ptr<Barrier>& subBarrier);
 
+    /// Look for a point in the EvaluatorControl Barrier.
+    /**
+      \param x -- IN
+      \param evalPoint -- OUT
+      \return \c true if point was found, \c false otherwise
+     */
+    bool findInBarrier(const Point& x, EvalPoint &evalPoint) const;
+
     /// Get all evaluated points
     /**
      \note              _evaluatedPoints is cleared

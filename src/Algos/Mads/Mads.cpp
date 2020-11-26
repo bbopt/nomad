@@ -57,7 +57,7 @@ void NOMAD::Mads::init()
 {
     _name = "MADS";
 
-    // Instanciate Mads initialization class
+    // Instantiate Mads initialization class
     _initialization = std::make_unique<NOMAD::MadsInitialization>( this );
 
 }
@@ -68,14 +68,13 @@ bool NOMAD::Mads::runImp()
     size_t k = 0;   // Iteration number
     NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
-    bool runOk = true;
+    bool successFound = false;
 
     if (!_termination->terminate(k))
     {
         std::shared_ptr<NOMAD::MeshBase> mesh;
+        std::shared_ptr<NOMAD::Barrier> barrier;
 
-        // TODO Review case hot restart.
-        /*
         if (nullptr != _megaIteration)
         {
             // Case hot restart
@@ -86,10 +85,11 @@ bool NOMAD::Mads::runImp()
             mesh    = (std::dynamic_pointer_cast<NOMAD::MadsMegaIteration> (_megaIteration ))->getMesh();
             megaIterSuccess = _megaIteration->getSuccessType();
         }
-        */
-
-        mesh = dynamic_cast<NOMAD::MadsInitialization*>(_initialization.get())->getMesh();
-        auto barrier = _initialization->getBarrier();
+        else
+        {
+            mesh = dynamic_cast<NOMAD::MadsInitialization*>(_initialization.get())->getMesh();
+            barrier = _initialization->getBarrier();
+        }
 
         // Mads member _megaIteration is used for hot restart (read and write),
         // as well as to keep values used in Mads::end(), and may be used for _termination.
@@ -112,6 +112,11 @@ bool NOMAD::Mads::runImp()
             mesh    = megaIteration.getMesh();
             megaIterSuccess = megaIteration.getSuccessType();
 
+            if (!successFound && megaIterSuccess >= NOMAD::SuccessType::FULL_SUCCESS)
+            {
+                successFound = true;
+            }
+
             if (_userInterrupt)
             {
                 hotRestartOnUserInterrupt();
@@ -119,16 +124,44 @@ bool NOMAD::Mads::runImp()
         }
     }
 
-    else
-    {
-        runOk = false;
-    }
-
     _termination->start();
     _termination->run();
     _termination->end();
 
-    return runOk;
+    return successFound;
+}
+
+
+void NOMAD::Mads::hotRestartOnUserInterrupt()
+{
+#ifdef TIME_STATS
+    if (isRootAlgo())
+    {
+        _totalCPUAlgoTime += NOMAD::Clock::getCPUTime() - _startTime;
+    }
+#endif // TIME_STATS
+    hotRestartBeginHelper();
+
+    // Reset mesh because parameters have changed.
+    std::stringstream ss;
+    auto mesh = getIterationMesh();
+    if (nullptr != mesh)
+    {
+        ss << *mesh;
+        // Reset pointer
+        mesh.reset();
+        mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+        // Get old mesh values
+        ss >> *mesh;
+    }
+
+    hotRestartEndHelper();
+#ifdef TIME_STATS
+    if (isRootAlgo())
+    {
+        _startTime = NOMAD::Clock::getCPUTime();
+    }
+#endif // TIME_STATS
 }
 
 
@@ -150,7 +183,7 @@ void NOMAD::Mads::readInformationForHotRestart()
             // Create a GMesh and an MadsMegaIteration with default values, to be filled
             // by istream is.
             // NOTE: Working in full dimension
-            auto barrier = std::make_shared<NOMAD::Barrier>(NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB);
+            auto barrier = std::make_shared<NOMAD::Barrier>(NOMAD::INF, NOMAD::Point(_pbParams->getAttributeValue<size_t>("DIMENSION")), NOMAD::EvalType::BB);
             std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
 
             _megaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, 0, barrier, mesh, NOMAD::SuccessType::NOT_EVALUATED);

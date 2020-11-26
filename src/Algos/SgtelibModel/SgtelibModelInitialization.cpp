@@ -187,8 +187,12 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     auto evalPointList = evcInterface.retrieveAllEvaluatedPoints();
     for (auto x0 : x0s)
     {
+        if (_stopReasons->checkTerminate())
+        {
+            break;
+        }
         NOMAD::EvalPoint evalPoint_x0(x0);
-        cacheInterface.find(x0, evalPoint_x0);
+        cacheInterface.find(x0, evalPoint_x0, NOMAD::EvalType::BB);
         // To evaluate X0, use blackbox, not sgte.
         if (evalPoint_x0.isEvalOk(NOMAD::EvalType::BB))
         {

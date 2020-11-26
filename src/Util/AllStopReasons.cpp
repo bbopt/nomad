@@ -49,12 +49,12 @@
 #include "../Util/AllStopReasons.hpp"
 
 NOMAD::StopReason<NOMAD::BaseStopType> NOMAD::AllStopReasons::_baseStopReason = NOMAD::StopReason<NOMAD::BaseStopType>();
-NOMAD::StopReason<NOMAD::EvalStopType> NOMAD::AllStopReasons::_evalStopReason = NOMAD::StopReason<NOMAD::EvalStopType>();
+NOMAD::StopReason<NOMAD::EvalGlobalStopType> NOMAD::AllStopReasons::_evalGlobalStopReason = NOMAD::StopReason<NOMAD::EvalGlobalStopType>();
 
 void NOMAD::AllStopReasons::setStarted()
 {
     _baseStopReason.setStarted();
-    _evalStopReason.setStarted();
+    _evalGlobalStopReason.setStarted();
     _iterStopReason.setStarted();
 }
 
@@ -70,15 +70,15 @@ std::string NOMAD::AllStopReasons::getStopReasonAsString() const
         flagTerminate = true;
     }
 
-    if (_evalStopReason.checkTerminate())
+    if (_evalGlobalStopReason.checkTerminate())
     {
-        stopReason += getEvalStopReasonAsString();
+        stopReason += (stopReason.empty() ? "" : " ") + getEvalGlobalStopReasonAsString();
         flagTerminate = true;
     }
 
     if (_iterStopReason.checkTerminate())
     {
-        stopReason += _iterStopReason.getStopReasonAsString() + " (Iter) ";
+        stopReason += (stopReason.empty() ? "" : " ") + _iterStopReason.getStopReasonAsString() + " (Iter)";
         flagTerminate = true;
     }
 
@@ -93,22 +93,22 @@ std::string NOMAD::AllStopReasons::getStopReasonAsString() const
 }
 
 
-std::string NOMAD::AllStopReasons::getEvalStopReasonAsString()
+std::string NOMAD::AllStopReasons::getEvalGlobalStopReasonAsString()
 {
-    return _evalStopReason.getStopReasonAsString() + " (Eval) ";
+    return _evalGlobalStopReason.getStopReasonAsString() + " (Eval Global)";
 }
 
 
 std::string NOMAD::AllStopReasons::getBaseStopReasonAsString()
 {
-    return _evalStopReason.getStopReasonAsString() + " (Base) ";
+    return _baseStopReason.getStopReasonAsString() + " (Base)";
 }
 
 
 bool NOMAD::AllStopReasons::checkTerminate() const
 {
     return ( _baseStopReason.checkTerminate()
-            || _evalStopReason.checkTerminate()
+            || _evalGlobalStopReason.checkTerminate()
             || _iterStopReason.checkTerminate());
 }
 

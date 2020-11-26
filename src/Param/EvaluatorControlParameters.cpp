@@ -77,7 +77,7 @@ void NOMAD::EvaluatorControlParameters::init()
 /*----------------------------------------*/
 /*            check the parameters        */
 /*----------------------------------------*/
-void NOMAD::EvaluatorControlParameters::checkAndComply()
+void NOMAD::EvaluatorControlParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParameters>& runParams)
 {
     checkInfo();
 
@@ -87,7 +87,16 @@ void NOMAD::EvaluatorControlParameters::checkAndComply()
         return;
     }
 
-    // Nothing specific to verify for now
+    // When runParameters are provided, update MAX_BB_EVAL_IN_SUBPROBLEM.
+    if (nullptr != runParams)
+    {
+        auto psdMadsOpt = runParams->getAttributeValue<bool>("PSD_MADS_OPTIMIZATION");
+        auto ssdMadsOpt = runParams->getAttributeValue<bool>("SSD_MADS_OPTIMIZATION");
+        if (!psdMadsOpt && !ssdMadsOpt)
+        {
+            setAttributeValue("MAX_BB_EVAL_IN_SUBPROBLEM", NOMAD::INF_SIZE_T);
+        }
+    }
 
     _toBeChecked = false;
 

@@ -110,10 +110,10 @@ void NOMAD::NMInitialization::endImp()
 
 bool NOMAD::NMInitialization::checkCacheCanFormSimplex()
 {
+    // Complete this function: see Issue #393
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     if ( NOMAD::CacheBase::getInstance()->size() < n+1 )
         return false;
-    // TODO
     return false;
 
 }

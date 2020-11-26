@@ -49,7 +49,6 @@
 #define __NOMAD400_RUNPARAMETERS__
 
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
-#include "../Param/EvaluatorControlParameters.hpp"
 #include "../Param/Parameters.hpp"
 #include "../Param/PbParameters.hpp"
 

@@ -189,7 +189,7 @@ public:
     /**
      \return A /c string containing the name of this step.
      */
-    virtual const std::string getName() const { return _name; }
+    virtual const std::string& getName() const { return _name; }
 
     /// Set the name of this step
     /**
@@ -197,10 +197,10 @@ public:
      */
     void setName(const std::string& name) { _name = name; }
 
-    std::shared_ptr<AllStopReasons> getAllStopReasons() const { return _stopReasons ; }
+    const std::shared_ptr<AllStopReasons>& getAllStopReasons() const { return _stopReasons ; }
 
-    std::shared_ptr<RunParameters> getRunParams() const { return _runParams; }
-    std::shared_ptr<PbParameters> getPbParams() const { return _pbParams; }
+    const std::shared_ptr<RunParameters>& getRunParams() const { return _runParams; }
+    const std::shared_ptr<PbParameters>& getPbParams() const { return _pbParams; }
 
     /// Interruption call by user.
     /**
@@ -208,6 +208,7 @@ public:
      \param signalValue Signal value -- \b IN.
      */
     static void userInterrupt(int signalValue);
+    static void debugSegFault(int signalValue);
 
     static bool getUserInterrupt() { return _userInterrupt; }
 
@@ -270,6 +271,9 @@ public:
 
     bool isAnAlgorithm() const;
 
+    /// Get Algorithm ancestor that has no Algorithm ancestor.
+    const Algorithm* getRootAlgorithm() const;
+
     /**
      \return the name of the first Algorithm ancestor of this Step,
      or the Step itself, if it is an Algorithm.
@@ -280,10 +284,14 @@ public:
     std::string getAlgoName() const;
 
     /**
-      Get and set comment that will be showed in normal display for additional information.
-    **/
+      Get comment that will be shown in normal display for additional information.
+    */
     virtual std::string getAlgoComment() const;
+    /**
+      Set comment that will be shown in normal display for additional information.
+    */
     virtual void setAlgoComment(const std::string& algoComment, const bool force = false);
+
     virtual void resetPreviousAlgoComment(const bool force = false);
 
     /**
@@ -292,12 +300,12 @@ public:
     const std::shared_ptr<MeshBase> getIterationMesh() const;
 
     /**
-     /return The frameCenter for the first Iteration ancestor of this Step.
+     \return The frameCenter for the first Iteration ancestor of this Step.
      */
     const std::shared_ptr<EvalPoint> getIterationFrameCenter() const;
 
     /**
-     /return The Barrier for the main MegaIteration ancestor of this Step.
+     \return The Barrier for the main MegaIteration ancestor of this Step.
      */
     const std::shared_ptr<Barrier> getMegaIterationBarrier() const;
 
@@ -337,6 +345,9 @@ public:
     /// Helper for hot restart functionalities
     virtual void hotRestartOnUserInterrupt();
 
+    /// For debugging purposes. Show the stack of Steps for this step.
+    void debugShowCallStack() const;
+
 protected:
     /// Helper for constructors.
     /**
@@ -347,16 +358,16 @@ protected:
     /// Helper for validating steps depending on parameter GENERATE_ALL_POINTS_BEFORE_EVAL
     void verifyGenerateAllPointsBeforeEval(const std::string& method, const bool expected) const;
 
-    /// Helper for constructor
-    void init();
-
     /// Helpers for hot restart, to be called at the start and end of any override.
     void hotRestartBeginHelper();
     /// Helpers for hot restart, to be called at the start and end of any override.
     void hotRestartEndHelper();
 
-
 private:
+
+    /// Helper for constructor
+    void init();
+
     // Default callbacks. They do nothing.
     static void defaultStepEnd(const Step& step  __attribute__((unused)), bool &stop) { stop = false; }
     static void defaultHotRestart(std::vector<std::string>& paramLines  __attribute__((unused))) {};
@@ -371,6 +382,21 @@ private:
      */
     void defaultEnd();
 
+};
+
+
+class StepException : public Exception
+{
+public:
+    /// Constructor
+    StepException(const std::string& file, const size_t line, const std::string & msg, const Step* step)
+      : Exception(file, line, msg)
+    {
+        if (nullptr != step)
+        {
+            step->debugShowCallStack();
+        }
+    }
 };
 
 #include "../nomad_nsend.hpp"

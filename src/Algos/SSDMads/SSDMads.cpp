@@ -56,7 +56,7 @@ void NOMAD::SSDMads::init()
     _name = "SSD-MADS";
     verifyParentNotNull();
 
-    // Instanciate Mads initialization class
+    // Instantiate Mads initialization class
     _initialization = std::make_unique<NOMAD::MadsInitialization>( this );
 }
 
