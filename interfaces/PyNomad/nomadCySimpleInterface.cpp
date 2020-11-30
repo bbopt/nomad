@@ -138,7 +138,7 @@ static void printPyNomadUsage()
     std::cout << "     # Set output on x"                                               << std::endl;
     std::cout << "     # Converting to bytes is necessary for both arguments"           << std::endl;
     std::cout << "     # First argument: blackbox output"                               << std::endl;
-    // Note: This second argument should be simplified... but that's the way it is currently.
+    // VRM This second argument should be simplified... but that's the way it is currently.
     std::cout << "     # Second argument: parameter BB_OUTPUT_TYPE"                     << std::endl;
     std::cout << "     x.setBBO(str(f).encode(\"UTF-8\"), B\"OBJ\")"                    << std::endl;
     std::cout << "     # return 1 if evaluation is successful, 0 if it failed"          << std::endl;
@@ -370,7 +370,7 @@ static void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams,
             allParams->setAttributeValue("DIMENSION", dimension);
         }
 
-        // Do we have to reset evaluation number?
+        // VRM: Do we have to reset evaluation number?
 
         // The seed will always be to its default value
         NOMAD::RNG::resetPrivateSeedToDefault();
