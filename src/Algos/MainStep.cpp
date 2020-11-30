@@ -495,7 +495,7 @@ void NOMAD::MainStep::updateX0sFromCache() const
         // Note: We are working in full dimension here, not in subproblem.
         // For this reason, use cache instance directly, not CacheInterface.
         auto fixedVariable = _allParams->getPbParams()->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE");
-        auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+        auto evalType = NOMAD::EvalType::BB;
         NOMAD::CacheBase::getInstance()->findBestFeas(evalPointList,
                                                 fixedVariable, evalType,
                                                 nullptr);
