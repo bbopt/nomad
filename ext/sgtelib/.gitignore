@@ -1,0 +1,10 @@
+
+*.pdb
+*.exp
+*.ilk
+*.lib
+lib/sgtelib.dll
+sgtelib_predict/sgtelib_predict.vcxproj.filters
+VisualStudio/.vs/sgtelib/v14/.suo
+VisualStudio/sgtelib.VC.db
+VisualStudio/sgtelib_predict.vcxproj.filters
