@@ -68,13 +68,17 @@ bool NOMAD::CacheInterface::smartInsert(const NOMAD::EvalPoint &evalPoint,
 }
 
 
-size_t NOMAD::CacheInterface::find(const NOMAD::Point x,
-                                   NOMAD::EvalPoint &evalPoint)
+size_t NOMAD::CacheInterface::find(const NOMAD::Point& x,
+                                   NOMAD::EvalPoint &evalPoint,
+                                   const NOMAD::EvalType& evalType)
 {
     // Look for full dimension points.
     NOMAD::Point xFull = x.makeFullSpacePointFromFixed(_fixedVariable);
-    size_t nbFound = NOMAD::CacheBase::getInstance()->find(xFull, evalPoint);
-    evalPoint = evalPoint.makeSubSpacePointFromFixed(_fixedVariable);
+    size_t nbFound = NOMAD::CacheBase::getInstance()->find(xFull, evalPoint, evalType);
+    if (nbFound > 0)
+    {
+        evalPoint = evalPoint.makeSubSpacePointFromFixed(_fixedVariable);
+    }
     return nbFound;
 }
 

@@ -46,10 +46,12 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/PhaseOne/PhaseOne.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Eval/ComputeSuccessType.hpp"
+#include "../../Output/OutputDirectToFile.hpp"
 
 NOMAD::BBOutputTypeList NOMAD::PhaseOne::_bboutputtypes;
 
@@ -65,12 +67,16 @@ void NOMAD::PhaseOne::startImp()
 
     // Setup EvalPoint success computation to be based on h rather than f.
     NOMAD::EvcInterface::getEvaluatorControl()->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::computeSuccessTypePhaseOne);
+    // These are two static methods that should be un-staticized. Issue #410
     NOMAD::Eval::setComputeSuccessTypeFunction(NOMAD::Eval::computeSuccessTypePhaseOne);
     NOMAD::Eval::setComputeHFunction(NOMAD::Eval::computeHPB);
 
     // The cache may not be empty.
     // Recompute the h for cache points that were read from cache file.
     NOMAD::CacheBase::getInstance()->processOnAllPoints(NOMAD::PhaseOne::recomputeHPB);
+
+    // Temporarily disable solution file (restored in endImp())
+    NOMAD::OutputDirectToFile::getInstance()->disableSolutionFile();
 
     // Comment to appear at the end of stats lines
     setAlgoComment("(Phase One)", true); // true: force comment
@@ -107,17 +113,18 @@ bool NOMAD::PhaseOne::runImp()
 
 void NOMAD::PhaseOne::endImp()
 {
-    // Remove any remaining points from eval queue.
-    EvcInterface::getEvaluatorControl()->clearQueue();
     // Ensure evaluation of queue will continue
     NOMAD::EvcInterface::getEvaluatorControl()->restart();
 
     // reset to the previous stats comment
     resetPreviousAlgoComment(true); // true: release lock on comment
 
+    // Re-enable writing in Solution file
+    NOMAD::OutputDirectToFile::getInstance()->enableSolutionFile();
+
     // Reset success computation function
     NOMAD::EvcInterface::getEvaluatorControl()->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
-    // Note: This should be non-static
+    // These are two static methods that should be un-staticized. Issue #410
     NOMAD::Eval::setComputeSuccessTypeFunction(NOMAD::Eval::defaultComputeSuccessType);
     NOMAD::Eval::setComputeHFunction(NOMAD::Eval::defaultComputeH);
 
@@ -134,6 +141,23 @@ void NOMAD::PhaseOne::endImp()
         if (nullptr != barrier)
         {
             hasFeas = (nullptr != barrier->getFirstXFeas());
+        }
+    }
+
+    if (hasFeas)
+    {
+        std::vector<NOMAD::EvalPoint> evalPointList;
+        NOMAD::CacheInterface cacheInterface(this);
+        size_t numFeas = cacheInterface.findBestFeas(evalPointList, EvalType::BB, nullptr);
+        if (numFeas>0)
+        {
+            // Evaluation info for output
+            NOMAD::StatsInfo info;
+
+            info.setBBO(evalPointList[0].getBBO(NOMAD::EvalType::BB));
+            info.setSol(*(evalPointList[0].getX()));
+
+            NOMAD::OutputDirectToFile::Write(info,true,false); // Write in solution (if solution_file exists) but not in history file
         }
     }
 

@@ -76,7 +76,13 @@ void NOMAD::SubproblemManager::addSubproblem(const NOMAD::Algorithm* algo, const
 #ifdef _OPENMP
     omp_set_lock(&_mapLock);
 #endif // _OPENMP
-    _map.insert(algoSubPair);
+    auto retPair = _map.insert(algoSubPair);
+    if (false == retPair.second)
+    {
+        std::string err = "Error: SubproblemManager: could not add subproblem for Algorithm ";
+        err += algo->getName();
+        throw NOMAD::StepException(__FILE__,__LINE__, err, algo);
+    }
 #ifdef _OPENMP
     omp_unset_lock(&_mapLock);
 #endif // _OPENMP
@@ -88,13 +94,14 @@ void NOMAD::SubproblemManager::removeSubproblem(const Algorithm* algo)
 #ifdef _OPENMP
     omp_set_lock(&_mapLock);
 #endif // _OPENMP
-    int nbErased = _map.erase(algo);
+    size_t nbErased = _map.erase(algo);
 #ifdef _OPENMP
     omp_unset_lock(&_mapLock);
 #endif // _OPENMP
     if (0 == nbErased)
     {
-        std::cerr << "Warning: SubproblemManager could not remove subproblem for Algorithm " << algo->getName() << std::endl;
+        std::string err = "Warning: SubproblemManager could not remove subproblem for Algorithm " + algo->getName();
+        throw NOMAD::StepException(__FILE__,__LINE__, err, algo);
     }
 
 }
@@ -120,7 +127,7 @@ void NOMAD::SubproblemManager::reset()
 const NOMAD::Subproblem& NOMAD::SubproblemManager::getSubproblem(const NOMAD::Step* step)
 {
     NOMAD::Algorithm* algo;
-    std::string s;
+    std::string err;
 
     if (step->isAnAlgorithm())
     {
@@ -133,21 +140,30 @@ const NOMAD::Subproblem& NOMAD::SubproblemManager::getSubproblem(const NOMAD::St
 
     if (nullptr == algo)
     {
-        s = "Algorithm not found for step " + step->getName();
-        throw NOMAD::Exception(__FILE__,__LINE__,s);
+        err = "Algorithm not found for step " + step->getName();
+        throw NOMAD::StepException(__FILE__,__LINE__,err,step);
     }
 
     try
     {
-        return _map.at(algo);
+        // Lock is needed even if map is not modified by this method,
+        // because it could be modified by another main thread at the same moment.
+#ifdef _OPENMP
+        omp_set_lock(&_mapLock);
+#endif // _OPENMP
+        const NOMAD::Subproblem& sub = _map.at(algo);
+#ifdef _OPENMP
+        omp_unset_lock(&_mapLock);
+#endif // _OPENMP
+        return sub;
     }
     catch (const std::out_of_range& oor)
     {
-        std::cerr << "Subproblem not found for Algorithm " << algo->getName() << std::endl;
+        std::cerr << "Error: Subproblem not found for Algorithm " << algo->getName() << std::endl;
     }
 
-    s = "SubproblemManager could not get Subproblem for step " + step->getName();
-    throw NOMAD::Exception(__FILE__,__LINE__,s);
+    err = "SubproblemManager could not get Subproblem for step " + step->getName();
+    throw NOMAD::StepException(__FILE__,__LINE__,err, step);
 
 }
 

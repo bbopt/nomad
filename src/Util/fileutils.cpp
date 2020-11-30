@@ -101,7 +101,6 @@ std::string NOMAD::curdir()
 #include <direct.h>
     _getcwd(dirbuff, 1024);
 #else
-#include <unistd.h>
     if (nullptr == getcwd(dirbuff, 1024))
     {
         std::cerr << "Warning: Could not get current directory" << std::endl;

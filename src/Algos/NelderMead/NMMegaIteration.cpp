@@ -53,7 +53,7 @@
 
 void NOMAD::NMMegaIteration::init()
 {
-    _name = getAlgoName() + NOMAD::MegaIteration::getName();
+    _name = NOMAD::MegaIteration::getName();
 
     // Get barrier from upper MadsMegaIteration, if available.
     auto madsMegaIter = getParentOfType<NOMAD::MadsMegaIteration*>(false);
@@ -175,35 +175,18 @@ bool NOMAD::NMMegaIteration::runImp()
 
 void NOMAD::NMMegaIteration::display( std::ostream& os ) const
 {
-// TODO display simplex
-//    os << "MAIN_MESH " << std::endl;
-//    os << *_mainMesh ;
     NOMAD::MegaIteration::display(os);
 }
 
 
 void NOMAD::NMMegaIteration::read(  std::istream& is )
 {
-    // TODO read simplex
     // Set up structures to gather member info
     size_t k=0;
     // Read line by line
     std::string name;
     while (is >> name && is.good() && !is.eof())
     {
-//        if ("MAIN_MESH" == name)
-//        {
-//            if (nullptr != _mainMesh)
-//            {
-//                is >> *_mainMesh;
-//            }
-//            else
-//            {
-//                std::string err = "Error: Reading a mesh onto a NULL pointer";
-//                std::cerr << err;
-//            }
-//        }
-//        else
         if ("ITERATION_COUNT" == name)
         {
             is >> k;

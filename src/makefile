@@ -4,7 +4,7 @@ VARIANT             = release
 endif
 
 ifndef PAR
-PAR                 = 8
+PAR                 = $(shell nproc)
 endif
 
 
@@ -35,9 +35,7 @@ ifeq "$(wildcard $(SGTE_DIR))" ""
         $(info    1- Get the Sgtelib library at: https://github.com/bbopt/sgtelib/zipball/master)
         $(info       and unzip it as directory $(SGTE_DIR) )
         $(info )
-        $(info    2- Developer: Follow git module instructions in $(NOMAD_HOME)/README_GITHUB.txt )
-        $(info )
-        $(info    3- Compile without the Sgtelib library, by using make argument USE_SGTELIB=0 )
+        $(info    2- Compile without the Sgtelib library, by using make argument USE_SGTELIB=0 )
         $(info )
         ifdef USE_SGTELIB
             $(error USE_SGTELIB is set but directory $(SGTE_DIR) does not exist)
@@ -65,6 +63,7 @@ LH_DIRNAME          = $(ALGO_DIRNAME)/LatinHypercubeSampling
 MADS_DIRNAME        = $(ALGO_DIRNAME)/Mads
 NM_DIRNAME          = $(ALGO_DIRNAME)/NelderMead
 PHASEONE_DIRNAME    = $(ALGO_DIRNAME)/PhaseOne
+PSDMADS_DIRNAME     = $(ALGO_DIRNAME)/PSDMads
 QUADMODEL_DIRNAME   = $(ALGO_DIRNAME)/QuadModel
 SGTELIBMODEL_DIRNAME = $(ALGO_DIRNAME)/SgtelibModel
 SSDMADS_DIRNAME     = $(ALGO_DIRNAME)/SSDMads
@@ -81,6 +80,7 @@ NOMAD_COMPONENT     = $(SRC_DIR)/$(NOMAD_DIRNAME)
 OUTPUT_COMPONENT    = $(SRC_DIR)/$(OUTPUT_DIRNAME)
 PARAM_COMPONENT     = $(SRC_DIR)/$(PARAM_DIRNAME)
 PHASEONE_COMPONENT  = $(SRC_DIR)/$(PHASEONE_DIRNAME)
+PSDMADS_COMPONENT   = $(SRC_DIR)/$(PSDMADS_DIRNAME)
 QUADMODEL_COMPONENT = $(SRC_DIR)/$(QUADMODEL_DIRNAME)
 SGTELIBMODEL_COMPONENT = $(SRC_DIR)/$(SGTELIBMODEL_DIRNAME)
 SSDMADS_COMPONENT   = $(SRC_DIR)/$(SSDMADS_DIRNAME)
@@ -89,7 +89,8 @@ UTIL_COMPONENT      = $(SRC_DIR)/$(UTIL_DIRNAME)
 COMPONENTS          = $(ATTR_DIRNAME) $(CACHE_DIRNAME) $(EVAL_DIRNAME) \
                       $(LH_DIRNAME) $(MADS_DIRNAME) $(MATH_DIRNAME) \
                       $(NM_DIRNAME) $(NOMAD_DIRNAME) $(OUTPUT_DIRNAME) \
-                      $(PARAM_DIRNAME) $(SGTELIBMODEL_DIRNAME) $(QUADMODEL_DIRNAME) \
+                      $(PARAM_DIRNAME) $(PSDMADS_DIRNAME) $(QUADMODEL_DIRNAME) \
+                      $(SGTELIBMODEL_DIRNAME) $(SSDMADS_DIRNAME) \
                       $(TYPE_DIRNAME) $(UTIL_DIRNAME)
 INCLUDE_COMPONENTS  := $(addprefix $(INCLUDE_DIR)/,$(COMPONENTS))
 
@@ -99,12 +100,13 @@ ATTR_EXE            := $(addprefix $(BIN_DIR)/,$(ATTR_EXE))
 CACHE_OBJ           = CacheBase.o CacheSet.o
 CACHE_OBJ           := $(addprefix $(OBJ_DIR)/,$(CACHE_OBJ))
 EVAL_OBJ            = Barrier.o BBInput.o BBOutput.o \
-                      ComputeSuccessType.o \
+                      ComparePriority.o ComputeSuccessType.o \
                       Eval.o EvalPoint.o \
                       EvalQueuePoint.o EvaluatorControl.o Evaluator.o \
                       EvcMainThreadInfo.o
 EVAL_OBJ            := $(addprefix $(OBJ_DIR)/,$(EVAL_OBJ))
-ALGO_OBJ            = Algorithm.o CacheInterface.o EvcInterface.o Initialization.o  \
+ALGO_OBJ            = Algorithm.o AlgoStopReasons.o \
+                      CacheInterface.o EvcInterface.o Initialization.o  \
                       Iteration.o IterationUtils.o MainStep.o MegaIteration.o MeshBase.o \
                       Projection.o Step.o Subproblem.o SubproblemManager.o \
                       Termination.o
@@ -129,7 +131,7 @@ NM_OBJ              = NM.o NMAllReflective.o NMInitialization.o \
                       NMMegaIteration.o NMReflective.o NMShrink.o \
                       NMSimplexEvalPoint.o NMUpdate.o
 NM_OBJ              := $(addprefix $(OBJ_DIR)/,$(NM_OBJ))
-OUTPUT_OBJ          = OutputInfo.o OutputQueue.o StatsInfo.o
+OUTPUT_OBJ          = OutputDirectToFile.o OutputInfo.o OutputQueue.o StatsInfo.o
 OUTPUT_OBJ          := $(addprefix $(OBJ_DIR)/,$(OUTPUT_OBJ))
 PARAM_OBJ           = AllParameters.o \
                       CacheParameters.o DisplayParameters.o \
@@ -141,6 +143,8 @@ PARAM_OBJ           = AllParameters.o \
 PARAM_OBJ          := $(addprefix $(OBJ_DIR)/,$(PARAM_OBJ))
 PHASEONE_OBJ        = PhaseOne.o
 PHASEONE_OBJ       := $(addprefix $(OBJ_DIR)/,$(PHASEONE_OBJ))
+PSDMADS_OBJ         = PSDMads.o PSDMadsMegaIteration.o
+PSDMADS_OBJ        := $(addprefix $(OBJ_DIR)/,$(PSDMADS_OBJ))
 QUADMODEL_OBJ       = QuadModelAlgo.o QuadModelEvaluator.o \
                       QuadModelInitialization.o \
                       QuadModelIteration.o \
@@ -179,8 +183,11 @@ UTILS_OBJ_LIB       = $(MATH_OBJ) $(OUTPUT_OBJ) $(PARAM_OBJ) $(TYPE_OBJ) $(UTIL_
 EVAL_OBJ_LIB        = $(CACHE_OBJ) $(EVAL_OBJ)
 ALGOS_OBJ_LIB       = $(ALGO_OBJ) $(MADS_OBJ) $(LH_OBJ) $(NM_OBJ) \
                       $(PHASEONE_OBJ) $(SSDMADS_OBJ)
+ifndef NOOMP
+ALGOS_OBJ_LIB       += $(PSDMADS_OBJ)
+endif
 ifeq ($(USE_SGTELIB), 1)
-ALGOS_OBJ_LIB       += $(SGTELIBMODEL_OBJ) $(QUADMODEL_OBJ)
+ALGOS_OBJ_LIB       += $(QUADMODEL_OBJ) $(SGTELIBMODEL_OBJ)
 endif
 OBJ_LIB             = $(UTILS_OBJ_LIB) $(EVAL_OBJ_LIB) $(ALGOS_OBJ_LIB)
 
@@ -338,6 +345,9 @@ $(NM_OBJ) : $(ALGO_OBJ)
 	@cd $(ALGO_COMPONENT) && $(MAKE) -j$(PAR) all
 
 $(PHASEONE_OBJ) : $(ALGO_OBJ)
+	@cd $(ALGO_COMPONENT) && $(MAKE) -j$(PAR) all
+
+$(PSDMADS_OBJ) : $(ALGO_OBJ)
 	@cd $(ALGO_COMPONENT) && $(MAKE) -j$(PAR) all
 
 $(QUADMODEL_OBJ) : $(ALGO_OBJ)

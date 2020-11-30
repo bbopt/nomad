@@ -64,7 +64,7 @@ void NOMAD::QuadModelSinglePass::generateTrialPoints ()
     if (!_stopReasons->checkTerminate() && updateSuccess && getModel()->is_ready() )
     {
         // Clear sgte value info from cache. For each pass we suppose we have a different quatric model and Sgte value must be re-evaluated.
-        NOMAD::CacheBase::getInstance()->clearSgte();
+        NOMAD::CacheBase::getInstance()->clearSgte(NOMAD::getThreadNum());
 
         // Optimize to generate oracle points on this model
         // Initialize optimize member - model optimizer on sgte

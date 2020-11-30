@@ -123,14 +123,14 @@ public:
     /*---------*/
 
     size_t getNbIterations() const                              { return _iterList.size(); }
-    std::shared_ptr<Iteration> getIter(size_t i) const          { return _iterList[i]; }
+    const std::shared_ptr<Iteration>& getIter(size_t i) const   { return _iterList[i]; }
 
     size_t getK() const                                         { return _k; }
     void setK(const size_t k)                                   { _k = k; }
     size_t getNextK() const;
 
     // Barrier
-    const std::shared_ptr<Barrier> getBarrier() const           { return _barrier; }
+    const std::shared_ptr<Barrier>& getBarrier() const          { return _barrier; }
     void setBarrier(const std::shared_ptr<Barrier> &barrier)    { _barrier = barrier; }
 
 

@@ -93,8 +93,8 @@ public:
 
 #ifdef TIME_STATS
     /// Time stats
-    static std::vector<double> getPollTime()       { return _pollTime; }
-    static std::vector<double> getPollEvalTime()   { return _pollEvalTime; }
+    static double getPollTime()       { return _pollTime; }
+    static double getPollEvalTime()   { return _pollEvalTime; }
 #endif // TIME_STATS
 
 

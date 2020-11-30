@@ -1,4 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$class_attribute.html" title="Attribute" alt="" coords="6,5,77,32"/>
-<area shape="rect" id="node2" href="$class_type_attribute.html" title="TypeAttribute\&lt; T \&gt;" alt="" coords="126,5,255,32"/>
+<area shape="rect" id="node1" href="$class_attribute.html" title="An attribute contains all meta data about a Nomad parameter except its type, default and current valu..." alt="" coords="5,5,84,32"/>
+<area shape="rect" id="node2" href="$class_type_attribute.html" title="Class for an Attribute of a templated type." alt="" coords="132,5,279,32"/>
 </map>

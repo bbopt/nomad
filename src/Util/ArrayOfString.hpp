@@ -169,6 +169,9 @@ public:
      */
     std::string display() const;
 
+    /// Helper for display detailed stats
+    static ArrayOfString combineAndAddPadding(const ArrayOfString & s1, const ArrayOfString & s2);
+
 private:
     /// Helper method for splitting string
     std::vector<std::string> const splitString(const std::string & inputString,

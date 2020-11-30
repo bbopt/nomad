@@ -58,10 +58,10 @@
 
  Several stop reasons are members of this class. The stop reasons are templated on stop type. Several stop types are available in this class:
  - a ::BaseStopType for high level stop reasons.
- - a ::EvalStopType for evaluation stop reasons.
+ - an ::EvalGlobalStopType for global evaluation stop reasons.
  - an ::IterStopType for stop reasons during iteration of an algorithm (for example, maximum iteration number reached).
 
- The static stop reasons ::BaseStopType and ::EvalStopType are shared.
+ The static stop reasons ::BaseStopType and ::EvalGlobalStopType are shared.
  */
 class AllStopReasons
 {
@@ -77,7 +77,7 @@ public:
 
 private:
     static StopReason<BaseStopType> _baseStopReason; ///< A single base stop reason is considered for NOMAD.
-    static StopReason<EvalStopType> _evalStopReason; ///< A single eval stop reason is considered for NOMAD.
+    static StopReason<EvalGlobalStopType> _evalGlobalStopReason; ///< An eval stop reason valable for the whole of NOMAD.
     StopReason<IterStopType> _iterStopReason; ///< An iteration stop reason.
 
 public:
@@ -86,7 +86,7 @@ public:
     /*---------*/
 
     static const StopReason<BaseStopType>& getBaseStopReason() { return _baseStopReason; }
-    static const StopReason<EvalStopType>& getEvalStopReason() { return _evalStopReason; }
+    const StopReason<EvalGlobalStopType>& getEvalGlobalStopReason() { return _evalGlobalStopReason; }
     const StopReason<IterStopType>& getIterStopReason() const { return _iterStopReason; }
 
     static void set(const BaseStopType& s)
@@ -94,9 +94,9 @@ public:
         _baseStopReason.set(s);
     }
 
-    static void set(const EvalStopType& s)
+    static void set(const EvalGlobalStopType& s)
     {
-        _evalStopReason.set(s);
+        _evalGlobalStopReason.set(s);
     }
 
     void set(const IterStopType& s)
@@ -114,10 +114,10 @@ public:
         return (_baseStopReason.get() == s);
     }
 
-    /// Test static EvalStopType
-    static bool testIf (const EvalStopType& s)
+    /// Test static EvalGlobalStopType
+    static bool testIf (const EvalGlobalStopType& s)
     {
-        return (_evalStopReason.get() == s);
+        return (_evalGlobalStopReason.get() == s);
     }
 
     /// Test IterStopType
@@ -136,11 +136,11 @@ public:
     virtual std::string getStopReasonAsString() const;
 
 
-    /// Get the eval stop reason as a string.
+    /// Get the global eval stop reason as a string.
     /**
     \return An empty string is in STARTED state, the stop reason otherwise.
      */
-    static std::string getEvalStopReasonAsString();
+    static std::string getEvalGlobalStopReasonAsString();
 
     /// Get the base stop reason as a string.
     /**
@@ -161,9 +161,9 @@ public:
         return _baseStopReason.checkTerminate();
     }
 
-    static bool checkEvalTerminate()
+    static bool checkEvalGlobalTerminate()
     {
-        return _evalStopReason.checkTerminate();
+        return _evalGlobalStopReason.checkTerminate();
     }
 };
 

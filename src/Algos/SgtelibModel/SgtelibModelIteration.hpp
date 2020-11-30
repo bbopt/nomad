@@ -53,7 +53,7 @@
 
 #include "../../nomad_nsbegin.hpp"
 
-/// \class Iteration (Step)
+/// Iteration for Sgtelib model deriving from Step
 class SgtelibModelIteration: public Iteration
 {
 private:

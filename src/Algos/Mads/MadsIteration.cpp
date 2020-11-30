@@ -152,7 +152,7 @@ bool NOMAD::MadsIteration::runImp()
 
     setSuccessType(bestSuccessYet);
 
-    // End of the iteration: iterationSuccess is true if we have a success (partial or full).
+    // End of the iteration: iterationSuccess is true iff we have a full success.
     return iterationSuccess;
 }
 

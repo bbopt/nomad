@@ -54,6 +54,10 @@
 #include "../Algos/Step.hpp"
 #include "../Algos/Termination.hpp"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "../nomad_nsbegin.hpp"
 
 
@@ -71,13 +75,26 @@ protected:
     std::unique_ptr<Termination>     _termination;      ///< To verify termination conditions
     std::shared_ptr<MegaIteration>   _megaIteration;    ///< MegaIteration used to keep information between steps
 
+    std::string                      _algoComment;   ///< Comment to appear in the stats, e.g. "Phase One"
+    std::vector<std::string>         _prevAlgoComment; ///< Pile of previous comments, used when going back to the main algo after running a sub-algo.
+    bool                             _forceAlgoComment; ///< When true, do not change comment until reset is called
+
     bool _endDisplay;
+    
+    NOMAD::SuccessType               _algoBestSuccess ; ///< The best succes type of the algorithm (cannot always get this information from _megaIteration).
+    
+    bool                             _algoSuccessful;
+    
 
 #ifdef TIME_STATS
+    size_t _totalRealAlgoTime;
     double _startTime;
-    double _totalRealAlgoTime;
     double _totalCPUAlgoTime;
 #endif // TIME_STATS
+
+#ifdef _OPENMP
+    static omp_lock_t _algoCommentLock;
+#endif // _OPENMP
 
 public:
     /// Constructor
@@ -95,10 +112,13 @@ public:
         _initialization(nullptr),
         _termination(nullptr),
         _megaIteration(nullptr),
+        _algoComment(""),
+        _prevAlgoComment(),
+        _forceAlgoComment(false),
         _endDisplay(true)
 #ifdef TIME_STATS
-        ,_startTime(0.0),
-        _totalRealAlgoTime(0.0),
+        ,_totalRealAlgoTime(0),
+        _startTime(0.0),
         _totalCPUAlgoTime(0.0)
 #endif // TIME_STATS
     {
@@ -111,15 +131,18 @@ public:
     /*---------*/
     /* Get/Set */
     /*---------*/
-    const std::shared_ptr<MegaIteration> getMegaIteration() const { return _megaIteration; }
+    const std::shared_ptr<MegaIteration>& getMegaIteration() const { return _megaIteration; }
     void setMegaIteration(const std::shared_ptr<MegaIteration> megaIteration) { _megaIteration = megaIteration; }
+
+    void setAlgoComment(const std::string& algoComment, const bool force = false) override;
+    void resetPreviousAlgoComment(const bool force = false) override;
+    std::string getAlgoComment() const override;
 
     void setEndDisplay( bool endDisplay ) {_endDisplay = endDisplay; }
 
 
 protected:
-    ///  Helper for Constructor.
-    void init();
+
 
     /// Default implementation of the start tasks of an algorithm
     /**
@@ -130,7 +153,7 @@ protected:
 
     /// Default implementation of the end tasks of an algorithm
     /**
-     Display some information, reset the lap counters and save information for a potential hot restart.
+     Display some information, reset the lap counters, set success type for a search method and save information for a potential hot restart.
      */
     virtual void endImp() override;
 
@@ -159,7 +182,7 @@ public:
      Sub-algo: an algorithm can be part of an algorithm.
      */
     bool isSubAlgo() const;
-    bool isMainAlgo() const { return !isSubAlgo(); }
+    bool isRootAlgo() const { return !isSubAlgo(); }
 
     /*---------*/
     /* Others  */
@@ -169,6 +192,11 @@ public:
 
     virtual void read(std::istream& is);
     virtual void display(std::ostream& os) const;
+
+private:
+
+    ///  Helper for Constructor.
+    void init();
 
 };
 

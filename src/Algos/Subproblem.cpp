@@ -67,6 +67,12 @@ void NOMAD::Subproblem::init()
                                "A valid PbParameters must be provided to the Subproblem constructor.");
     }
 
+    if (_fixedVariable.isEmpty())
+    {
+        std::string s = "Error: Fixed variable of dimension 0";
+        throw NOMAD::Exception(__FILE__,__LINE__,s);
+    }
+
     // Compute new dimension
     NOMAD::Point subFixedVariable = _refPbParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE");
     _dimension = subFixedVariable.size() - subFixedVariable.nbDefined();
@@ -148,7 +154,7 @@ void NOMAD::Subproblem::setupProblemParameters()
 
         i++;
     }
-    resetVariableGroupsAgainstFixedVariables( listVariableGroup, refFixedVariable );
+    resetVariableGroupsAgainstFixedVariables(listVariableGroup, refFixedVariable);
 
 
     // Set new values to _subPbParams
@@ -199,17 +205,20 @@ void NOMAD::Subproblem::setupProblemParameters()
 
 }
 
+
 // If a variable is fixed, its index must be removed from the group of variables
 // All the indices above the fixed variable index must be decreased by one
 void NOMAD::Subproblem::resetVariableGroupsAgainstFixedVariables(NOMAD::ListOfVariableGroup & lvg, const NOMAD::Point & fixedVar) const
 {
-    if (lvg.size() == 0 || !fixedVar.isDefined())
+    if (lvg.empty() || !fixedVar.isDefined())
+    {
         return;
+    }
 
     // Put the indices of fixed variables in a single set.
     const size_t n = fixedVar.size();
     std::set<size_t> indicesToRemove;
-    for (size_t i=0 ; i < n ; i++ )
+    for (size_t i = 0 ; i < n ; i++)
     {
         if (fixedVar[i].isDefined())
         {
@@ -218,7 +227,7 @@ void NOMAD::Subproblem::resetVariableGroupsAgainstFixedVariables(NOMAD::ListOfVa
     }
 
     NOMAD::ListOfVariableGroup updatedLvg;
-    while (indicesToRemove.size()!=0)
+    while (!indicesToRemove.empty())
     {
         updatedLvg.clear();
         auto itIndexBegin = indicesToRemove.begin();
@@ -232,20 +241,26 @@ void NOMAD::Subproblem::resetVariableGroupsAgainstFixedVariables(NOMAD::ListOfVa
                 // Do not include an index equal to the index to remove.
                 // Include and decrement indices above the index to remove.
                 // Include indices below the index to remove.
-                if (index > *itIndexBegin )
+                if (index > *itIndexBegin)
+                {
                     updatedVariableGroup.insert(index-1);
-                else if (index < *itIndexBegin )
+                }
+                else if (index < *itIndexBegin)
+                {
                     updatedVariableGroup.insert(index);
+                }
 
             }
             // A variable group can be empty -> do not include.
-            if (updatedVariableGroup.size() != 0)
+            if (!updatedVariableGroup.empty())
+            {
                 updatedLvg.push_back(updatedVariableGroup);
+            }
         }
 
         // Remove index from the set of indices. Decrement remaining indices that are smaller than the index to remove.
         std::set<size_t> updatedIndicesToRemove;
-        for ( std::set<size_t>::iterator itIndex = ++itIndexBegin; itIndex != indicesToRemove.end() ; itIndex++ )
+        for (std::set<size_t>::iterator itIndex = ++itIndexBegin; itIndex != indicesToRemove.end() ; ++itIndex)
         {
             updatedIndicesToRemove.insert((*itIndex)-1);
         }

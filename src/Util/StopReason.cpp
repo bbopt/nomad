@@ -80,7 +80,7 @@ template<> bool NOMAD::StopReason<NOMAD::BaseStopType>::checkTerminate() const
             return false;
             break;
         default:
-            NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
     }
     return false;
 }
@@ -116,7 +116,7 @@ template<> bool NOMAD::StopReason<NOMAD::MadsStopType>::checkTerminate() const
             return false;
             break;
         default:
-            NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
     }
     return false;
 }
@@ -158,7 +158,7 @@ template<> bool NOMAD::StopReason<NOMAD::PhaseOneStopType>::checkTerminate() con
             return false;
             break;
         default:
-            NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for terminate");
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for terminate");
     }
     return false;
 }
@@ -176,7 +176,7 @@ template<> bool NOMAD::StopReason<NOMAD::SSDMadsStopType>::checkTerminate() cons
             return false;
             break;
         default:
-            NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for terminate");
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for terminate");
     }
     return false;
 }
@@ -207,7 +207,7 @@ template<> bool NOMAD::StopReason<NOMAD::LHStopType>::checkTerminate() const
             return false;
             break;
         default:
-            NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
     }
     return false;
 }
@@ -258,7 +258,7 @@ template<> bool NOMAD::StopReason<NOMAD::NMStopType>::checkTerminate() const
             return false;
             break;
         default:
-            NOMAD::Exception ( __FILE__, __LINE__,"All NM stop types must be checked for algo terminate");
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All NM stop types must be checked for algo terminate");
     }
     return false;
 }
@@ -289,51 +289,79 @@ template<> bool NOMAD::StopReason<NOMAD::IterStopType>::checkTerminate() const
             return false;
             break;
         default:
-            NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
 
     }
     return false;
 }
 
-// Dictionary function for EvalStopType
-template<> std::map<NOMAD::EvalStopType,std::string> & NOMAD::StopReason<NOMAD::EvalStopType>::dict() const
+
+// Dictionary function for EvalGlobalStopType
+template<> std::map<NOMAD::EvalGlobalStopType,std::string> & NOMAD::StopReason<NOMAD::EvalGlobalStopType>::dict() const
 {
-    static std::map<NOMAD::EvalStopType,std::string> dictionary = {
-        {NOMAD::EvalStopType::STARTED,                  "Started"},   // Set a the begining of an EvaluatorControl Run
-        {NOMAD::EvalStopType::MAX_BB_EVAL_REACHED,      "Max number of blackbox evaluations"},
-        {NOMAD::EvalStopType::LAP_MAX_BB_EVAL_REACHED,  "Max number of blackbox evaluations for a sub algorithm run (lap run)"},
-        {NOMAD::EvalStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED,  "Max number of blackbox evaluations for a subproblem run"},
-        {NOMAD::EvalStopType::MAX_EVAL_REACHED,         "Max number of total evaluations"},
-        {NOMAD::EvalStopType::OPPORTUNISTIC_SUCCESS,    "Success found and opportunistic strategy is used"},
-        {NOMAD::EvalStopType::EMPTY_LIST_OF_POINTS,     "Tried to eval an empty list"},
-        {NOMAD::EvalStopType::ALL_POINTS_EVALUATED,     "No more points to evaluate"},
-        {NOMAD::EvalStopType::MAX_BLOCK_EVAL_REACHED,   "Maximum number of block eval reached"},
-        {NOMAD::EvalStopType::MAX_SGTE_EVAL_REACHED,    "Max number of surrogate evaluations reached"}
+    static std::map<NOMAD::EvalGlobalStopType,std::string> dictionary = {
+        {NOMAD::EvalGlobalStopType::STARTED,                  "Started"},   // Set a the begining of an EvaluatorControl Run
+        {NOMAD::EvalGlobalStopType::MAX_BB_EVAL_REACHED,      "Max number of blackbox evaluations"},
+        {NOMAD::EvalGlobalStopType::MAX_EVAL_REACHED,         "Max number of total evaluations"},
+        {NOMAD::EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED,   "Maximum number of block eval reached"}
     };
     return dictionary;
 }
 
-template<> bool NOMAD::StopReason<NOMAD::EvalStopType>::checkTerminate() const
+
+// Dictionary function for EvalMainThreadStopType
+template<> std::map<NOMAD::EvalMainThreadStopType,std::string> & NOMAD::StopReason<NOMAD::EvalMainThreadStopType>::dict() const
+{
+    static std::map<NOMAD::EvalMainThreadStopType,std::string> dictionary = {
+        {NOMAD::EvalMainThreadStopType::STARTED,                  "Started"},   // Set a the begining of an EvaluatorControl Run
+        {NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED,  "Max number of blackbox evaluations for a sub algorithm run (lap run)"},
+        {NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED,  "Max number of blackbox evaluations for a subproblem run"},
+        {NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS,    "Success found and opportunistic strategy is used"},
+        {NOMAD::EvalMainThreadStopType::EMPTY_LIST_OF_POINTS,     "Tried to eval an empty list"},
+        {NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED,     "No more points to evaluate"},
+        {NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED,    "Max number of surrogate evaluations reached"}
+    };
+    return dictionary;
+}
+
+
+template<> bool NOMAD::StopReason<NOMAD::EvalGlobalStopType>::checkTerminate() const
 {
     // Returns true only to terminate an algorithm (Mads, ...)
     switch ( _stopReason )
     {
-        case NOMAD::EvalStopType::MAX_BB_EVAL_REACHED:
-        case NOMAD::EvalStopType::LAP_MAX_BB_EVAL_REACHED:
-        case NOMAD::EvalStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED:
-        case NOMAD::EvalStopType::MAX_EVAL_REACHED:
-        case NOMAD::EvalStopType::MAX_BLOCK_EVAL_REACHED:
+        case NOMAD::EvalGlobalStopType::MAX_BB_EVAL_REACHED:
+        case NOMAD::EvalGlobalStopType::MAX_EVAL_REACHED:
+        case NOMAD::EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED:
             return true;
             break;
-        case NOMAD::EvalStopType::STARTED:
-        case NOMAD::EvalStopType::OPPORTUNISTIC_SUCCESS:
-        case NOMAD::EvalStopType::EMPTY_LIST_OF_POINTS:
-        case NOMAD::EvalStopType::ALL_POINTS_EVALUATED:
-        case NOMAD::EvalStopType::MAX_SGTE_EVAL_REACHED:
+        case NOMAD::EvalGlobalStopType::STARTED:
             return false;
             break;
         default:
-            NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
+    }
+    return false;
+}
+
+
+template<> bool NOMAD::StopReason<NOMAD::EvalMainThreadStopType>::checkTerminate() const
+{
+    switch ( _stopReason )
+    {
+        case NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED:
+        case NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED:
+        case NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED:
+            return true;
+            break;
+        case NOMAD::EvalMainThreadStopType::STARTED:
+        case NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS:
+        case NOMAD::EvalMainThreadStopType::EMPTY_LIST_OF_POINTS:
+        case NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED:
+            return false;
+            break;
+        default:
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
     }
     return false;
 }
@@ -378,7 +406,7 @@ template<> bool NOMAD::StopReason<NOMAD::ModelStopType>::checkTerminate() const
             return true;
             break;
         default:
-            NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
     }
     return false;
 }

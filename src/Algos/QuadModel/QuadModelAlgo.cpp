@@ -60,7 +60,7 @@ void NOMAD::QuadModelAlgo::init()
     setName("QuadModel");
     verifyParentNotNull();
 
-    // Instanciate quad model initialization class
+    // Instantiate quad model initialization class
     _initialization = std::make_unique<NOMAD::QuadModelInitialization>(this);
 
 }
@@ -79,10 +79,6 @@ void NOMAD::QuadModelAlgo::startImp()
 {
     // Default algorithm start. Manages initialization among other things.
     NOMAD::Algorithm::startImp();
-
-    // Comment to appear at the end of stats lines
-    setAlgoComment("(QuadModelAlgo)");
-
 }
 
 
@@ -105,18 +101,6 @@ bool NOMAD::QuadModelAlgo::runImp()
         }
 
         NOMAD::SuccessType megaIterSuccessType = NOMAD::SuccessType::NOT_EVALUATED;
-
-        // TODO fix this
-        /*
-        if (nullptr != _megaIteration)
-        {
-            // Case hot restart
-            k       = _megaIteration->getK();
-            barrier = _megaIteration->getBarrier();
-            megaIterSuccessType = _megaIteration->getSuccessType();
-        }
-        */
-
 
         // A single megaiteration is done
 
@@ -157,9 +141,5 @@ bool NOMAD::QuadModelAlgo::runImp()
 
 void NOMAD::QuadModelAlgo::endImp()
 {
-    // Remove any remaining points from eval queue.
-    EvcInterface::getEvaluatorControl()->clearQueue();
-
-    resetPreviousAlgoComment();
     NOMAD::Algorithm::endImp();
 }

@@ -222,10 +222,10 @@ void NOMAD::AllParameters::checkAndComply()
         return;
     }
 
-    _evaluatorControlGlobalParams->checkAndComply();
-    _evaluatorControlParams->checkAndComply();
     _pbParams->checkAndComply();
+    _evaluatorControlGlobalParams->checkAndComply(_pbParams);
     _runParams->checkAndComply(_evaluatorControlGlobalParams, _pbParams);
+    _evaluatorControlParams->checkAndComply(_runParams);
     _evalParams->checkAndComply(_runParams);
     _cacheParams->checkAndComply(_runParams);
     _dispParams->checkAndComply(_runParams, _pbParams);
@@ -268,7 +268,7 @@ void NOMAD::AllParameters::display(std::ostream & os, bool flagHelp )
     os << "----- EVALUATOR CONTROL PARAMETERS (GLOBAL) -----" << std::endl;
     _evaluatorControlGlobalParams->display(os,flagHelp);
 
-    os << "----- EVALUATOR CONTROL PARAMETERS (BY MAIN THREADK)-----" << std::endl;
+    os << "----- EVALUATOR CONTROL PARAMETERS (BY MAIN THREAD)-----" << std::endl;
     _evaluatorControlParams->display(os,flagHelp);
 
     os << "----- CACHE PARAMETERS -----" << std::endl;

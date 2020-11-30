@@ -304,11 +304,10 @@ bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint)
     }
     else
     {
-        bbo = eval->getBBOutput().getBBOAsArrayOfDouble();
 
         // Note: it could be discussed if points that have h > hMax should still be used
         // to build the model. We validate them to comply with Nomad 3.
-        if (   ! bbo.isComplete()
+        if (   ! eval->isBBOutputComplete()
             || (   !(NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
                 && !(NOMAD::EvalStatusType::EVAL_CONS_H_OVER == eval->getEvalStatus()) )
             || ! eval->getF().isDefined() )

@@ -55,7 +55,7 @@
 
 #include "../../nomad_nsbegin.hpp"
 
-// \class SgtelibSearchMethod: Search method using library Sgtelib
+/// Implementation of search method using library Sgtelib
 class SgtelibSearchMethod final: public SearchMethodAlgo
 {
 private:
@@ -64,7 +64,6 @@ private:
     std::shared_ptr<SgtelibModel> _modelAlgo;
 #endif
 
-    // TODO finish implementing and use Projection class
     /// Get best projection
     /**
      \param  incumbent      The incumbent             -- \b IN.

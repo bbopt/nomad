@@ -1,10 +1,14 @@
 var class_r_n_g =
 [
+    [ "result_type", "class_r_n_g.html#a964367924e5602bcd3b36870865a3e76", null ],
     [ "getPrivateSeed", "class_r_n_g.html#aef93fd71b1bcaccddf8e3e8d3a1d4290", null ],
     [ "getSeed", "class_r_n_g.html#a1139336075df6308990f3fb9577d3fad", null ],
+    [ "max", "class_r_n_g.html#a27fdc115bea1d799bc53b1259ec638b9", null ],
+    [ "min", "class_r_n_g.html#aff19c2067b8e7a9e411cc538ab3e8e15", null ],
     [ "normalRand", "class_r_n_g.html#a8e1f466b82d36a828172f989a62b2175", null ],
     [ "normalRandMean0", "class_r_n_g.html#a644583c6b59b3adcd4599118ae566f45", null ],
-    [ "rand", "class_r_n_g.html#a1c44bfeb1ec05be1bb5fe731e31da3f5", null ],
+    [ "operator()", "class_r_n_g.html#ab37a29cc17a2f09413b03a619a245692", null ],
+    [ "rand", "class_r_n_g.html#a7132a50358778df3b3896675494f02ee", null ],
     [ "rand", "class_r_n_g.html#a0043ada0bc1271425694a8ec97664f11", null ],
     [ "resetPrivateSeedToDefault", "class_r_n_g.html#a35be360850c4e048b345c349a0a33713", null ],
     [ "setPrivateSeed", "class_r_n_g.html#a730a2975cace0a1f26847d1b34a60e24", null ],

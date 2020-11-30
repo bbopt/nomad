@@ -50,20 +50,22 @@
 
 #include "../Algos/Algorithm.hpp"
 #include "../Algos/EvcInterface.hpp"
+#include "../Algos/Mads/SearchMethodBase.hpp"
 #include "../Algos/SubproblemManager.hpp"
 #include "../Cache/CacheBase.hpp"
 #include "../Output/OutputQueue.hpp"
+#include "../Math/RNG.hpp"
+#include "../Util/fileutils.hpp"
+
 #ifdef TIME_STATS
 #include "../Algos/Mads/MadsIteration.hpp"
 #include "../Algos/Mads/Search.hpp"
 #include "../Util/Clock.hpp"
 #endif // TIME_STATS
 
-#include "../Math/RNG.hpp"
-
-
-#include "../Util/fileutils.hpp"
-
+#ifdef _OPENMP
+omp_lock_t NOMAD::Algorithm::_algoCommentLock;
+#endif // _OPENMP
 
 void NOMAD::Algorithm::init()
 {
@@ -74,28 +76,32 @@ void NOMAD::Algorithm::init()
 
     if (nullptr == _runParams)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__,
-                               "A valid RunParameters must be provided to an Algorithm constructor.");
+        throw NOMAD::StepException(__FILE__, __LINE__,
+                               "A valid RunParameters must be provided to an Algorithm constructor.", this);
     }
 
     if (nullptr == _pbParams)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__,
-                               "A valid PbParameters must be provided to the Algorithm constructor.");
+        throw NOMAD::StepException(__FILE__, __LINE__,
+                               "A valid PbParameters must be provided to the Algorithm constructor.", this);
     }
 
     if ( nullptr == _stopReasons )
-        throw NOMAD::Exception(__FILE__, __LINE__,
-                               "Valid stop reasons must be provided to the Algorithm constructor.");
+        throw NOMAD::StepException(__FILE__, __LINE__,
+                               "Valid stop reasons must be provided to the Algorithm constructor.", this);
+
+#ifdef _OPENMP
+    omp_init_lock(&_algoCommentLock);
+#endif // _OPENMP
 
     // Check pbParams if needed, ex. if a copy of PbParameters was given to the Algorithm constructor.
     _pbParams->checkAndComply();
 
-    // Instanciate generic algorithm termination
+    // Instantiate generic algorithm termination
     _termination    = std::make_unique<NOMAD::Termination>( this );
 
     // Update SubproblemManager
-    NOMAD::Point fullFixedVariable = isMainAlgo() ? _pbParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE")
+    NOMAD::Point fullFixedVariable = isRootAlgo() ? _pbParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE")
                                    : NOMAD::SubproblemManager::getSubFixedVariable(_parentStep);
 
     NOMAD::Subproblem subproblem(_pbParams, fullFixedVariable);
@@ -108,6 +114,7 @@ void NOMAD::Algorithm::init()
      * \todo Propage interruption to all threads, for all parallel evaluations of blackbox.
      */
     signal(SIGINT, userInterrupt);
+    signal(SIGSEGV, debugSegFault);
 
 }
 
@@ -115,13 +122,104 @@ void NOMAD::Algorithm::init()
 NOMAD::Algorithm::~Algorithm()
 {
     NOMAD::SubproblemManager::removeSubproblem(this);
+#ifdef _OPENMP
+    omp_destroy_lock(&_algoCommentLock);
+#endif // _OPENMP
+}
+
+
+// Set _algoComment, and push the current algo comment to _prevAlgoComment pile.
+// Do not push an empty string on an empty pile, it is irrelevant.
+// If force = true, do not set a new algo comment until this comment is reset.
+void NOMAD::Algorithm::setAlgoComment(const std::string& algoComment, const bool force)
+{
+    if (isSubAlgo())
+    {
+        auto rootAlgo = const_cast<NOMAD::Algorithm*>(getRootAlgorithm());
+        rootAlgo->setAlgoComment(algoComment, force);
+    }
+    else
+    {
+#ifdef _OPENMP
+        omp_set_lock(&_algoCommentLock);
+#endif // _OPENMP
+        if (!_forceAlgoComment)
+        {
+            // Push algo comment to _prevAlgoComment
+            if (!_prevAlgoComment.empty() || !_algoComment.empty())
+            {
+                _prevAlgoComment.push_back(_algoComment);
+            }
+            _algoComment = algoComment;
+        }
+        if (force)
+        {
+            _forceAlgoComment = true;
+        }
+#ifdef _OPENMP
+        omp_unset_lock(&_algoCommentLock);
+#endif // _OPENMP
+    }
+}
+
+
+// Pop the previous algo comment from the _prevAlgoComment pile.
+void NOMAD::Algorithm::resetPreviousAlgoComment(const bool force)
+{
+    if (isSubAlgo())
+    {
+        auto rootAlgo = const_cast<NOMAD::Algorithm*>(getRootAlgorithm());
+        rootAlgo->resetPreviousAlgoComment(force);
+    }
+    else
+    {
+#ifdef _OPENMP
+        omp_set_lock(&_algoCommentLock);
+#endif // _OPENMP
+        if (!_forceAlgoComment || force)
+        {
+            if (_prevAlgoComment.empty())
+            {
+                _algoComment = "";
+            }
+            else
+            {
+                // Remove last element, simulate a "pop".
+                _algoComment = std::move(_prevAlgoComment[_prevAlgoComment.size()-1]);
+                _prevAlgoComment.erase(_prevAlgoComment.end()-1);
+            }
+            if (_forceAlgoComment)
+            {
+                _forceAlgoComment = false;
+            }
+        }
+#ifdef _OPENMP
+        omp_unset_lock(&_algoCommentLock);
+#endif // _OPENMP
+    }
+}
+
+
+std::string NOMAD::Algorithm::getAlgoComment() const
+{
+    std::string algoComment;
+    if (isSubAlgo())
+    {
+        algoComment = getRootAlgorithm()->getAlgoComment();
+    }
+    else
+    {
+        algoComment = _algoComment;
+    }
+
+    return algoComment;
 }
 
 
 void NOMAD::Algorithm::startImp()
 {
 #ifdef TIME_STATS
-    if (isMainAlgo())
+    if (isRootAlgo())
     {
         _startTime = NOMAD::Clock::getCPUTime();
     }
@@ -132,11 +230,16 @@ void NOMAD::Algorithm::startImp()
 
     // All stop reasons are reset.
     _stopReasons->setStarted();
+    
+    // SuccessType is reset
+    _algoSuccessful = false;
+    _algoBestSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
-    if (isMainAlgo())
+    if (isRootAlgo())
     {
         // Update hot restart info
         readInformationForHotRestart();
+        NOMAD::CacheBase::getInstance()->setStopWaiting(false);
     }
 
     // By default reset the lap counter for BbEval and set the lap maxBbEval to INF
@@ -151,7 +254,7 @@ void NOMAD::Algorithm::startImp()
         // Initialization.
         // Eval X0s.
 
-        if (isMainAlgo())
+        if (isRootAlgo())
         {
             // Ensure we do not count cache hits which may have been read in the cache.
             NOMAD::CacheBase::resetNbCacheHits();
@@ -195,22 +298,38 @@ void NOMAD::Algorithm::endImp()
     {
         displayBestSolutions();
 #ifdef TIME_STATS
-        if (isMainAlgo())
+        if (isRootAlgo())
         {
             _totalRealAlgoTime = NOMAD::Clock::getTimeSinceStart();
             _totalCPUAlgoTime += NOMAD::Clock::getCPUTime() - _startTime;
         }
 #endif // TIME_STATS
+
         displayEvalCounts();
     }
 
+    // Update the SearchMethod success type with best success found.
+    if ( _algoSuccessful )
+    {
+        // The parent can be a SearchMethod (NM-Mads Search) or not (that is NM is a standalone optimization)
+        auto searchMethodConst = dynamic_cast<const NOMAD::SearchMethodBase*>(_parentStep);
+
+        if (searchMethodConst != nullptr)
+        {
+            auto searchMethod = const_cast<NOMAD::SearchMethodBase*>(searchMethodConst);
+            searchMethod->setSuccessType(_algoBestSuccess);
+        }
+
+    }
+    
     // By default reset the lap counter for BbEval and set the lap maxBbEval to INF
     NOMAD::EvcInterface::getEvaluatorControl()->resetLapBbEval();
     NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval( NOMAD::INF_SIZE_T );
 
-    if (isMainAlgo())
+    if (isRootAlgo())
     {
         saveInformationForHotRestart();
+        NOMAD::CacheBase::getInstance()->setStopWaiting(true);
     }
 
     // Reset stats comment
@@ -221,32 +340,16 @@ void NOMAD::Algorithm::endImp()
 void NOMAD::Algorithm::hotRestartOnUserInterrupt()
 {
 #ifdef TIME_STATS
-    if (isMainAlgo())
+    if (isRootAlgo())
     {
         _totalCPUAlgoTime += NOMAD::Clock::getCPUTime() - _startTime;
     }
 #endif // TIME_STATS
     hotRestartBeginHelper();
 
-    // TODO: To investigate: Reset mesh because parameters have changed.
-    // - Maybe already done as a side effect of calling parent step and
-    //   resetting parameters.
-    // - Maybe should be done at another level, Iteration or MegaIteration.
-    // - Useful code:
-    /*
-    std::stringstream ss;
-    auto mesh = getIterationMesh();
-    ss << *mesh;
-    // Reset pointer
-    mesh.reset();
-    mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
-    // Get old mesh values
-    ss >> *mesh;
-    */
-
     hotRestartEndHelper();
 #ifdef TIME_STATS
-    if (isMainAlgo())
+    if (isRootAlgo())
     {
         _startTime = NOMAD::Clock::getCPUTime();
     }
@@ -259,7 +362,7 @@ void NOMAD::Algorithm::saveInformationForHotRestart() const
     // If we want to stop completely and then be able to restart
     // from where we were, we need to save some information on file.
     //
-    // TODO: Maybe we need to write current parameters. If we write them,
+    // Issue 372: Maybe we need to write current parameters. If we write them,
     // ignore initial values, only take latest values down the Parameter tree.
     // For now, using initial parameters.
 
@@ -471,31 +574,11 @@ void NOMAD::Algorithm::displayEvalCounts() const
     std::string sCacheHits      = "Cache hits: " + sFeedCacheHits + NOMAD::itos(nbCacheHits);
     std::string sNbEval         = "Total number of evaluations: " + sFeedNbEval + NOMAD::itos(nbEval);
 
+
 #ifdef TIME_STATS
-    std::string sTimeHeader     = "\nTime statistics:";
-    std::string sTotalRealTime  = "    Total real time:          " + std::to_string(_totalRealAlgoTime);
-    std::string sTotalCPUTime   = "    Total CPU time:           " + std::to_string(_totalCPUAlgoTime);
-    std::string sTimeEval       = "    Total time in Evaluator:  ";
-                sTimeEval      += std::to_string(NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime());
-    std::string sTimeIter       = "    Total time in Iterations: " + std::to_string(NOMAD::MadsIteration::getIterTime());
-    std::string sTimeSearch     = "        Search:             " + std::to_string(NOMAD::MadsIteration::getSearchTime());
-                sTimeSearch    += "\t(Eval: " + std::to_string(NOMAD::MadsIteration::getSearchEvalTime()) + ")";
-    std::string sTimePoll       = "        Poll:               " + std::to_string(NOMAD::MadsIteration::getPollTime());
-                sTimePoll      += "\t(Eval: " + std::to_string(NOMAD::MadsIteration::getPollEvalTime()) + ")";
-    std::string sTimeSearchesHeader  = "    Time for each search: ";
-    std::vector<double> searchTime = NOMAD::Search::getSearchTime();
-    std::vector<double> searchEvalTime = NOMAD::Search::getSearchEvalTime();
-    std::string sTimeSearch1    = "        Speculative search: " + std::to_string(searchTime[0]);
-                sTimeSearch1   += "\t(Eval: " + std::to_string(searchEvalTime[0]) + ")";
-    std::string sTimeSearch2    = "        User search:        " + std::to_string(searchTime[1]);
-                sTimeSearch2   += "\t(Eval: " + std::to_string(searchEvalTime[1]) + ")";
-    std::string sTimeSearch3    = "        Sgtelib search:     " + std::to_string(searchTime[2]);
-                sTimeSearch3   += "\t(Eval: " + std::to_string(searchEvalTime[2]) + ")";
-    std::string sTimeSearch4    = "        LH Search:          " + std::to_string(searchTime[3]);
-                sTimeSearch4   += "\t(Eval: " + std::to_string(searchEvalTime[3]) + ")";
-    std::string sTimeSearch5    = "        NM Search:          " + std::to_string(searchTime[4]);
-                sTimeSearch5   += "\t(Eval: " + std::to_string(searchEvalTime[4]) + ")";
-#endif // TIME_STATS
+    std::string sTotalRealTime  = "Total real time (round s):    " + std::to_string(_totalRealAlgoTime);
+    std::string sTotalCPUTime   = "Total CPU time (s):           " + std::to_string(_totalCPUAlgoTime);
+ #endif // TIME_STATS
 
     AddOutputInfo("", outputLevelHigh); // skip line
     // Always show number of blackbox evaluations
@@ -525,21 +608,11 @@ void NOMAD::Algorithm::displayEvalCounts() const
     {
         AddOutputInfo(sNbEval, outputLevelNormal);
     }
+
 #ifdef TIME_STATS
     {
-        AddOutputInfo(sTimeHeader, outputLevelNormal);
         AddOutputInfo(sTotalRealTime, outputLevelNormal);
         AddOutputInfo(sTotalCPUTime, outputLevelNormal);
-        AddOutputInfo(sTimeEval, outputLevelNormal);
-        AddOutputInfo(sTimeIter, outputLevelNormal);
-        AddOutputInfo(sTimeSearch, outputLevelNormal);
-        AddOutputInfo(sTimePoll, outputLevelNormal);
-        AddOutputInfo(sTimeSearchesHeader, outputLevelNormal);
-        AddOutputInfo(sTimeSearch1, outputLevelNormal);
-        AddOutputInfo(sTimeSearch2, outputLevelNormal);
-        AddOutputInfo(sTimeSearch3, outputLevelNormal);
-        AddOutputInfo(sTimeSearch4, outputLevelNormal);
-        AddOutputInfo(sTimeSearch5, outputLevelNormal);
     }
 #endif // TIME_STATS
 }

@@ -81,9 +81,10 @@ public:
 
     /// Find best feasible point(s) in cache
     /**
-     \param evalPointList     The found evaluation points -- \b OUT.
-     \param evalType          Criteria for EvalType -- \b IN.
-     \return                  Number of points found
+     \param evalPointList  The found evaluation points -- \b OUT.
+     \param evalType             Criteria for EvalType -- \b IN.
+     \param refeval               The point of reference                                      -- \b IN.
+     \return                Number of points found
      */
     size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
                         const EvalType& evalType,
@@ -92,9 +93,10 @@ public:
     /// Find best infeasible point(s) in cache
     /**
      \param evalPointList   The found evaluation points -- \b OUT.
-     \param hMax            Points' h value must be under this value -- \b IN
-     \param evalType        Points' EvalType to look at -- \b IN.
-     \return                Number of points found
+     \param hMax                       Points' h value must be under this value -- \b IN.
+     \param evalType              Points' EvalType to look at -- \b IN.
+     \param refeval                The point of reference                   -- \b IN.
+     \return                 Number of points found
      */
     size_t findBestInf(std::vector<EvalPoint> &evalPointList,
                        const Double& hMax,
@@ -116,13 +118,18 @@ public:
     /// Interface for CacheBase::smartFind.
     /**
      Transform the point into full space before looking into cache.
+     \param x           The point to find -- \b IN.
+     \param evalPoint   The found EvalPoint -- \b OUT.
+     \param evalType    If not UNDEFINED, wait for Eval of this EvalType to be completed. -- \b IN.
      */
-    size_t find(const Point x, EvalPoint &evalPoint);
+    size_t find(const Point& x, EvalPoint &evalPoint,
+                const EvalType& evalType = EvalType::UNDEFINED);
 
     /// Find points in the cache fulfilling a criteria
     /**
-     \param crit          The criteria function (function of EvalPoint) -- \b IN
-     \param evalPointList The vector of EvalPoints found -- \b OUT
+     \param crit                        The criteria function (function of EvalPoint) -- \b IN.
+     \param evalPointList    The vector of EvalPoints found -- \b OUT.
+     \param findInSubspace  The flag to find in subspace -- \b IN.
      \return              The number of points found
     */
     size_t find(std::function<bool(const EvalPoint&)> crit,

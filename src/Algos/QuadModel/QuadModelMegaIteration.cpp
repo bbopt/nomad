@@ -62,7 +62,7 @@ NOMAD::QuadModelMegaIteration::~QuadModelMegaIteration()
 {
     // Clear sgte info from cache.
     // Very important so we don't have false info in a later MegaIteration.
-    NOMAD::CacheBase::getInstance()->clearSgte();
+    NOMAD::CacheBase::getInstance()->clearSgte(NOMAD::getThreadNum());
 }
 
 
@@ -72,7 +72,7 @@ void NOMAD::QuadModelMegaIteration::startImp()
     // Use xFeas or xInf if XFeas is not available.
     // Use a single iteration object with several start, run, end for the various iterations of the algorithm.
 
-    // TODO if it performs well: use all barrier points
+    // See issue (feature) #384
 
     if ( ! _stopReasons->checkTerminate() )
     {
@@ -190,7 +190,7 @@ void NOMAD::QuadModelMegaIteration::endImp()
 {
     // Clear sgte info from cache.
     // Very important so we don't have false info in a later MegaIteration.
-    NOMAD::CacheBase::getInstance()->clearSgte();
+    NOMAD::CacheBase::getInstance()->clearSgte(NOMAD::getThreadNum());
     NOMAD::MegaIteration::endImp();
 }
 

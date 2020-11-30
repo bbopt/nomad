@@ -56,6 +56,7 @@
 #include "../Type/DirectionType.hpp"
 #include "../Util/Exception.hpp"
 #include "../Util/utils.hpp"
+#include <numeric>    // For std::accumulate
 
 // Convert a string with separation ("ORTHO 2N", "ORTHO N+1 NEG")
 // to a NOMAD::DirectionType.
@@ -87,8 +88,8 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
     if ( ls.size() > 4 )
     {
         std::string err = "List of string cannot be converted to NOMAD::DirectionType ";
-        for (const auto &s : ls) err += s + " ";
-        throw NOMAD::Exception(__FILE__, __LINE__, err );
+        err += std::accumulate(ls.begin(), ls.end(), std::string(" "));
+        throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
     std::list<std::string>::const_iterator it = ls.begin() , end = ls.end();
@@ -300,7 +301,7 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
     if (ret == DirectionType::UNDEFINED_DIRECTION)
     {
         std::string err = "List of strings cannot be converted to NOMAD::DirectionType ";
-        for (const auto &str : ls) err += str + " ";
+        err += std::accumulate(ls.begin(), ls.end(), std::string(" "));
         throw NOMAD::Exception(__FILE__, __LINE__, err );
     }
 

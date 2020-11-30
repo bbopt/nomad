@@ -62,25 +62,6 @@ std::string
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 #################################################################################
-TMP_DIR
-std::string
-/tmp/
-\( Directory where to put temporary files \)
-\(
-
-. Temporary directory for blackbox input/output files
-
-. Argument: one string indicating a directory
-
-. Improved performance with a local temporary directory
-
-. Example: TMP_DIR /tmp
-
-\)
-\( advanced \)
-ALGO_COMPATIBILITY_CHECK no
-RESTART_ATTRIBUTE no
-#################################################################################
 BB_OUTPUT_TYPE
 NOMAD::BBOutputTypeList
 OBJ

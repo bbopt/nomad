@@ -92,7 +92,7 @@ void NOMAD::NMIterationUtils::setStopReason ( ) const
 int NOMAD::NMIterationUtils::getRankDZ( ) const
 {
     if ( nullptr == _nmY )
-        NOMAD::Exception(__FILE__, __LINE__, "The iteration utils must have a simplex to work with");
+        throw NOMAD::Exception(__FILE__, __LINE__, "The iteration utils must have a simplex to work with");
 
     // The dimension of DZ (k) is related to Y
     size_t k = _nmY->size() - 1 ;
@@ -158,7 +158,7 @@ int NOMAD::NMIterationUtils::getRankDZ( ) const
 void NOMAD::NMIterationUtils::updateYCharacteristics()
 {
     if ( nullptr == _nmY )
-        NOMAD::Exception(__FILE__, __LINE__, "The iteration utils must have a simplex to work with");
+        throw NOMAD::Exception(__FILE__, __LINE__, "The iteration utils must have a simplex to work with");
 
     // Update Y diameter
     // -----------------
@@ -174,12 +174,12 @@ void NOMAD::NMIterationUtils::updateYCharacteristics()
     const size_t dim = (*it1).size();
 
     if ( _nmY->size() != dim + 1 )
-        NOMAD::Exception(__FILE__, __LINE__, "Cannot get the volume of simplex Y when its dimension is not dimPb+1");
+        throw NOMAD::Exception(__FILE__, __LINE__, "Cannot get the volume of simplex Y when its dimension is not dimPb+1");
 
     const NOMAD::Point * y0 = (*it1).getX(); // y0: first element of Y
 
     if ( y0->size() != dim )
-        NOMAD::Exception(__FILE__, __LINE__, "Cannot get the volume of simplex Y when dimension of an element is not dimPb");
+        throw NOMAD::Exception(__FILE__, __LINE__, "Cannot get the volume of simplex Y when dimension of an element is not dimPb");
 
     // Update volume
     //---------------
@@ -285,7 +285,7 @@ void NOMAD::NMIterationUtils::updateYDiameter()
 void NOMAD::NMIterationUtils::displayYInfo()const
 {
     if ( nullptr == _nmY )
-        NOMAD::Exception(__FILE__, __LINE__, "The iteration utils must have a simplex to work with");
+        throw NOMAD::Exception(__FILE__, __LINE__, "The iteration utils must have a simplex to work with");
 
     OUTPUT_DEBUG_START
     NOMAD::OutputInfo dbgInfo("NM iteration utils", "", NOMAD::OutputLevel::LEVEL_DEBUG );

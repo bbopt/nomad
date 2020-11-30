@@ -109,7 +109,7 @@ public:
     // Get/Set
 
     const Point& getFixedVariable() const { return _fixedVariable; }
-    std::shared_ptr<PbParameters> getPbParams() const { return _subPbParams; }
+    const std::shared_ptr<PbParameters>& getPbParams() const { return _subPbParams; }
 
 private:
     /// Helper for constructor calls to Subproblem::setupProblemParameters

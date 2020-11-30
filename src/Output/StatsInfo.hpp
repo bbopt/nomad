@@ -77,6 +77,8 @@ enum class DisplayStatsType
     //DS_SMOOTH_OBJ ,    ///< Smoothed objective value (f~)
     //DS_SIM_BBE    ,    ///< Number of simulated bb evaluations
     DS_BBE        ,    ///< Number of bb evaluations
+    DS_FEAS_BBE   ,    ///< Number of feasible bb evaluations
+    DS_INF_BBE    ,    ///< Number of infeasible bb evaluations
     DS_ALGO_BBE   ,    ///< Number of bb evaluations for a single algo run
     DS_BLK_EVA    ,    ///< Number of block evaluation calls
     DS_BLK_SIZE   ,    ///< Number of EvalPoints in the block
@@ -85,6 +87,8 @@ enum class DisplayStatsType
     DS_TOTAL_SGTE ,    ///< Total number of surrogate evaluations
     DS_BBO        ,    ///< All blackbox outputs
     DS_EVAL       ,    ///< Number of evaluations
+    DS_REL_SUCC   ,    ///< Number of relative success evaluations
+    DS_PHASE_ONE_SUCC, ///< Number of success evaluations in PhaseOne
     DS_CACHE_HITS ,    ///< Number of cache hits
     DS_CACHE_SIZE ,    ///< Number of points in cache
     DS_ITER_NUM   ,    ///< Iteration number
@@ -95,9 +99,10 @@ enum class DisplayStatsType
     DS_FRAME_SIZE ,    ///< Frame size parameter Delta^f_k
     DS_DELTA_F    ,    ///< Same as \c DS_FRAME_SIZE
     DS_SOL        ,    ///< Solution vector
-    DS_THREAD_ALGO,    ///< Thread number for the algorithm 
+    DS_THREAD_ALGO,    ///< Thread number for the algorithm
     DS_THREAD_NUM ,    ///< Thread number in which this evaluation was done
     DS_GEN_STEP   ,    ///< Name of the step in which this point was generated
+    DS_SUCCESS_TYPE,    ///< Success type for this evaluation
     //DS_VAR        ,    ///< One variable
     //DS_STAT_SUM   ,    ///< Stat sum
     //DS_STAT_AVG   ,    ///< Stat avg
@@ -121,6 +126,10 @@ private:
     Double          _consH;
     Double          _hMax;
     size_t          _bbe;
+    size_t          _feasBBE;
+    size_t          _infBBE;
+    size_t          _nbRelativeSuccess;
+    size_t          _PhaseOneSuccess;
     size_t          _algoBBE;
     size_t          _blkEva;
     size_t          _blkSize;
@@ -142,6 +151,7 @@ private:
     bool            _relativeSuccess;   ///> Used for priting star, or when DISPLAY_ALL_EVAL is false.
     std::string     _comment;   ///> General comment, ex. Algorithm from where this point was generated.
     std::string     _genStep;   ///> Step in which this point was generated
+    SuccessType     _success;   ///> Success type for this evaluation
 
 
 public:
@@ -162,11 +172,15 @@ public:
     void setConsH(const Double consH)               { _consH = consH; }
     void setHMax(const Double hMax)                 { _hMax = hMax; }
     void setBBE(const size_t bbe)                   { _bbe = bbe; }
+    void setFeasBBE(const size_t feasBBE)           { _feasBBE = feasBBE; }
+    void setInfBBE(const size_t infBBE)             { _infBBE = infBBE; }
     void setAlgoBBE(const size_t bbe)               { _algoBBE = bbe; }
     void setBlkEva(const size_t blkEva)             { _blkEva = blkEva; }
     void setBlkSize(const size_t blkSize)           { _blkSize = blkSize; }
     void setBBO(const std::string& bbo)             { _bbo = bbo; }
     void setEval(const size_t eval)                 { _eval = eval; }
+    void setNbRelativeSuccess(const size_t nbRelSuccess)   { _nbRelativeSuccess = nbRelSuccess; }
+    void setPhaseOneSuccess(const size_t phaseOneSuccess)   { _PhaseOneSuccess = phaseOneSuccess; }
     void setCacheHits(const size_t cacheHits)       { _cacheHits = cacheHits; }
     void setCacheSize(const size_t cacheSize)       { _cacheSize = cacheSize; }
     void setIterNum(const size_t iterNum)           { _iterNum = iterNum; }
@@ -183,6 +197,7 @@ public:
     void setRelativeSuccess(bool relativeSuccess)   { _relativeSuccess = relativeSuccess; }
     void setComment(const std::string& comment)     { _comment = comment; }
     void setGenStep(const std::string& genStep)     { _genStep = genStep; }
+    void setSuccessType(const SuccessType& success) { _success = success; }
 
     // Should this stats be printed even if DISPLAY_ALL_EVAL is false
     bool alwaysDisplay(const bool displayInfeasible, const bool displayUnsuccessful) const;

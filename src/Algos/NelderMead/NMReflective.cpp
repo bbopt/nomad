@@ -852,16 +852,15 @@ bool NOMAD::NMReflective::pointDominatesY0( const NOMAD::EvalPoint & xt ) const
         return false;
     }
 
-    for (auto evalPointY0 : _nmY0)
+    // xt < y ?
+    if (std::any_of(_nmY0.begin(), _nmY0.end(),
+                    [xt, evalType](NOMAD::EvalPoint evalPointY0) {
+                        return xt.dominates(evalPointY0, evalType);
+                    }))
     {
-
-        // xt < y ?
-        if (xt.dominates(evalPointY0, evalType))
-        {
-            return true;
-        }
-
+        return true;
     }
+
     return false;
 }
 
@@ -890,15 +889,12 @@ bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
 
     // Without constraints, Yn contains a single point
     int flag = 0;
-    for (auto evalPointYn : _nmYn)
+    if (std::any_of(_nmYn.begin(), _nmYn.end(),
+                    [xt, evalType](NOMAD::EvalPoint evalPointYn) {
+                        return evalPointYn.dominates(xt, evalType);
+                    }))
     {
-        // y < xt ?
-        if (evalPointYn.dominates(xt, evalType))
-        {
-            // One point of Yn dominates x
-            flag = 1;
-            break;
-        }
+        flag = 1;
     }
 
     if (flag == 1)

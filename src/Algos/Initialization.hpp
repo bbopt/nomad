@@ -79,7 +79,7 @@ public:
      */
     virtual ~Initialization();
 
-    std::shared_ptr<Barrier> getBarrier() const { return _barrier; }
+    const std::shared_ptr<Barrier>& getBarrier() const { return _barrier; }
 
 private:
     /// Helper for constructor

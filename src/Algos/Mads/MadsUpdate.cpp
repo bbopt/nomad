@@ -52,7 +52,6 @@
 #include "../../Algos/Mads/MadsUpdate.hpp"
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Eval/ComputeSuccessType.hpp"
-#include "../../Eval/EvalQueuePoint.hpp"    // For OrderByDirection
 #include "../../Output/OutputQueue.hpp"
 
 void NOMAD::MadsUpdate::init()
@@ -63,7 +62,7 @@ void NOMAD::MadsUpdate::init()
     auto megaIter = getParentOfType<NOMAD::MadsMegaIteration*>();
     if (nullptr == megaIter)
     {
-        throw NOMAD::Exception(__FILE__,__LINE__,"An instance of class MadsUpdate must have a MegaIteration among its ancestors");
+        throw NOMAD::Exception(__FILE__,__LINE__,"Error: An instance of class MadsUpdate must have a MegaIteration among its ancestors");
     }
 
 }
@@ -71,6 +70,8 @@ void NOMAD::MadsUpdate::init()
 
 bool NOMAD::MadsUpdate::runImp()
 {
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    auto evalType = evc->getEvalType();
     // megaIter barrier is already in subproblem.
     // So no need to convert refBestFeas and refBestInf
     // from full dimension to subproblem.
@@ -102,7 +103,7 @@ bool NOMAD::MadsUpdate::runImp()
         // Compute success
         // Get which of newBestFeas and newBestInf is improving
         // the solution. Check newBestFeas first.
-        NOMAD::ComputeSuccessType computeSuccess(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
+        NOMAD::ComputeSuccessType computeSuccess(evalType);
         std::shared_ptr<NOMAD::EvalPoint> newBest;
         NOMAD::SuccessType success = computeSuccess(newBestFeas, refBestFeas);
         if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
@@ -153,37 +154,15 @@ bool NOMAD::MadsUpdate::runImp()
             OUTPUT_DEBUG_END
         }
 
-        // NOTE enlarge or refine might have to be done multiple times
-        // in a row, if we are working on multiple meshes at the same
-        // time.
-        // If we found a better refBest but only for a mesh that is
-        // already refined a few times, we must refine mainMesh accordingly
-        // before enlarging it.
-        // If we found a better refBest for a mesh that is enlarged
-        // a few times, we must enlarge mainMesh this many times.
-        // If we did not find a better refBest, we refine the mesh
-        // once, we might fall on points that are already evaluated - which
-        // is fine, or on new points - which will be evaluated.
-        //
-        // For now, leave it as is, since multiple mesh sizes are not
-        // currently evaluated.
-        //
-        // TODO Analyze, write tests, and implement.
-
 
         // Debug verification
         // Compare computed success with value from MegaIteration.
         // This is the value from the previous MegaIteration. If it
         // was not evaluated, ignore the test.
-        // It is possible that the MegaIteration found a partial success,
-        // and then the EvaluatorControl found a full success before
-        // Update is run.
-        // For this reason, only test the boolean value success vs. failure.
-        const bool megaIterSuccessful = (megaIter->getSuccessType() >= NOMAD::SuccessType::PARTIAL_SUCCESS);
-        const bool successful = (success >= NOMAD::SuccessType::PARTIAL_SUCCESS);
-        if (   (NOMAD::SuccessType::NOT_EVALUATED != megaIter->getSuccessType())
-            && (   (successful != megaIterSuccessful)
-                || (NOMAD::SuccessType::NOT_EVALUATED == success)) )
+        // If queue is not cleared between runs, also ignore the test.
+        const bool clearEvalQueue = evc->getEvaluatorControlGlobalParams()->getAttributeValue<bool>("CLEAR_EVAL_QUEUE");
+        const bool megaIterEvaluated = (NOMAD::SuccessType::NOT_EVALUATED != megaIter->getSuccessType());
+        if (!clearEvalQueue && megaIterEvaluated && (success != megaIter->getSuccessType()))
         {
             s = "Warning: MegaIteration success type: ";
             s += NOMAD::enumStr(megaIter->getSuccessType());
@@ -216,9 +195,9 @@ bool NOMAD::MadsUpdate::runImp()
             auto pointNewPtr = newBest->getX();
             if (nullptr == pointFromPtr)
             {
-                s = "Update cannot compute new direction for successful point: pointFromPtr is NULL ";
+                s = "Error: Update cannot compute new direction for successful point: pointFromPtr is NULL ";
                 s += newBest->display();
-                throw NOMAD::Exception(__FILE__,__LINE__, s);
+                throw NOMAD::StepException(__FILE__,__LINE__, s, this);
             }
             // PointFrom is in full dimension. Convert it to subproblem
             // to compute direction.
@@ -239,11 +218,11 @@ bool NOMAD::MadsUpdate::runImp()
             }
             OUTPUT_INFO_END
 
-            // This computed direction will be used to sort points. Update values.
+            // This computed direction may be used to sort points. Update values.
             // Use full space.
             auto pointNewFull = std::make_shared<NOMAD::Point>(pointNewPtr->makeFullSpacePointFromFixed(fixedVariable));
-            NOMAD::Direction dirFull = NOMAD::Point::vectorize(*pointFromPtr, *pointNewFull);
-            NOMAD::OrderByDirection::setLastSuccessfulDir(dirFull);
+            auto dirFull = std::make_shared<NOMAD::Direction>(NOMAD::Point::vectorize(*pointFromPtr, *pointNewFull));
+            NOMAD::EvcInterface::getEvaluatorControl()->setLastSuccessfulDir(dirFull);
 
             if (success >= NOMAD::SuccessType::FULL_SUCCESS)
             {

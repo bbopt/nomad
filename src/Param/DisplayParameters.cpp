@@ -129,7 +129,7 @@ void NOMAD::DisplayParameters::checkAndComply(
 
 
     /*------------------------------------------------------*/
-    /* Stats file                                           */
+    /* Stats files                                          */
     /*------------------------------------------------------*/
 
     auto statsFileParam = getAttributeValueProtected<NOMAD::ArrayOfString>("STATS_FILE",false) ;
@@ -146,7 +146,6 @@ void NOMAD::DisplayParameters::checkAndComply(
     }
 
 
-
     // Update stats file name
     auto addSeedToFileNames = runParams->getAttributeValue<bool>("ADD_SEED_TO_FILE_NAMES");
     auto problemDir = runParams->getAttributeValue<std::string>("PROBLEM_DIR");
@@ -156,6 +155,36 @@ void NOMAD::DisplayParameters::checkAndComply(
         NOMAD::completeFileName(statsFileName, problemDir, addSeedToFileNames, seed);
         statsFileParam.replace(0, statsFileName);
         setAttributeValue("STATS_FILE", statsFileParam);
+    }
+
+    auto mainStatsFileName = getAttributeValueProtected<std::string>("MAIN_STATS_FILE",false) ;
+    if (!mainStatsFileName.empty() && mainStatsFileName.compare("-") != 0  )
+    {
+        auto seed = runParams->getAttributeValue<int>("SEED");
+        NOMAD::completeFileName(mainStatsFileName, problemDir, addSeedToFileNames, seed);
+        setAttributeValue("MAIN_STATS_FILE", mainStatsFileName);
+    }
+
+    /*------------------------------------------------------*/
+    /* History file                                           */
+    /*------------------------------------------------------*/
+    auto historyFileName = getAttributeValueProtected<std::string>("HISTORY_FILE",false) ;
+    if (!historyFileName.empty())
+    {
+        auto seed = runParams->getAttributeValue<int>("SEED");
+        NOMAD::completeFileName(historyFileName, problemDir, addSeedToFileNames, seed);
+        setAttributeValue("HISTORY_FILE", historyFileName);
+    }
+
+    /*------------------------------------------------------*/
+    /* Solution file                                        */
+    /*------------------------------------------------------*/
+    auto solutionFileName = getAttributeValueProtected<std::string>("SOLUTION_FILE",false) ;
+    if (!historyFileName.empty())
+    {
+        auto seed = runParams->getAttributeValue<int>("SEED");
+        NOMAD::completeFileName(solutionFileName, problemDir, addSeedToFileNames, seed);
+        setAttributeValue("SOLUTION_FILE", solutionFileName);
     }
 
     _toBeChecked = false;

@@ -1,8 +1,9 @@
 <map id="NMIterationUtils" name="NMIterationUtils">
-<area shape="rect" id="node3" href="$class_n_m_all_reflective.html" title="NMAllReflective" alt="" coords="5,155,117,181"/>
-<area shape="rect" id="node4" href="$class_n_m_initialization.html" title="Class for NM initilization. " alt="" coords="142,155,252,181"/>
-<area shape="rect" id="node5" href="$class_n_m_initialize_simplex.html" title="Class for simplex initialization of NM algorithm. " alt="" coords="277,155,411,181"/>
-<area shape="rect" id="node6" href="$class_n_m_reflective.html" title="Class NM algorithm to perform Reflect, Expansion, Inside_Contraction, Outside_Contraction. " alt="" coords="436,155,535,181"/>
-<area shape="rect" id="node7" href="$class_n_m_shrink.html" title="Class for shrink step for NM algorithm. " alt="" coords="559,155,637,181"/>
-<area shape="rect" id="node2" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="297,5,391,32"/>
+<area shape="rect" id="node1" title="Class of utils for NM iterations." alt="" coords="319,80,448,107"/>
+<area shape="rect" id="node3" href="$class_n_m_all_reflective.html" title=" " alt="" coords="5,155,132,181"/>
+<area shape="rect" id="node4" href="$class_n_m_initialization.html" title="Class for Nelder Mead initialization." alt="" coords="157,155,282,181"/>
+<area shape="rect" id="node5" href="$class_n_m_initialize_simplex.html" title="Class for simplex initialization of NM algorithm." alt="" coords="307,155,460,181"/>
+<area shape="rect" id="node6" href="$class_n_m_reflective.html" title="Class to perform the Reflect, Expansion, Inside_Contraction, Outside_Contraction steps of a Nelder Me..." alt="" coords="485,155,594,181"/>
+<area shape="rect" id="node7" href="$class_n_m_shrink.html" title="Class for shrink step for NM algorithm." alt="" coords="618,155,703,181"/>
+<area shape="rect" id="node2" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="330,5,437,32"/>
 </map>

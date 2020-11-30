@@ -1,0 +1,43 @@
+####################
+# PROBLEM PARAMETERS
+####################
+
+# Number of variables
+DIMENSION 10
+
+# Black box
+BB_EXE bb.exe
+BB_OUTPUT_TYPE OBJ PB PB EB
+
+# Starting point
+X0 ( 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )
+
+######################
+# ALGORITHM PARAMETERS
+######################
+SGTELIB_SEARCH no
+
+# The algorithm terminates after that number black-box evaluations
+MAX_BB_EVAL 1000
+
+GENERATE_ALL_POINTS_BEFORE_EVAL false
+
+# The algorithm terminates after that total number of evaluations,
+# including cache hits
+MAX_EVAL 200
+
+# Search and Poll steps end as soon as a success is found
+OPPORTUNISTIC_EVAL true
+
+
+# Parameters for display
+DISPLAY_DEGREE 2
+DISPLAY_ALL_EVAL 1
+DISPLAY_STATS BBE REL_SUCC PHASE_ONE_SUCC ( SOL ) BBO
+#DISPLAY_STATS BBE ( SOL ) OBJ CONS_H BBO
+# STATS_FILE stats.txt BBE SOL OBJ
+
+#HISTORY_FILE history.txt
+#SOLUTION_FILE sol.txt
+
+#TMP_DIR /tmp

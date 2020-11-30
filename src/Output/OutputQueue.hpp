@@ -89,6 +89,9 @@ public:
 
     void initParameters(const std::shared_ptr<DisplayParameters>& params);
 
+    /// Flush and close stats file (called by initParameters) if OutputQueue has been already  initialized
+    void reset();
+
     void add(OutputInfo outputInfo);
     static void Add(OutputInfo outputInfo)
     {
@@ -149,14 +152,7 @@ public:
 #define OUTPUT_STATS_END }
 #define OUTPUT_INFO_END }
 #define OUTPUT_DEBUG_END }
-//#define OUTPUT_STATS_START
-//#define OUTPUT_INFO_START
-//#define OUTPUT_DEBUG_START
-//#define OUTPUT_STATS_END
-//#define OUTPUT_INFO_END
-//#define OUTPUT_DEBUG_END
 
-    int getDisplayDegree() const;
     void setDisplayDegree(const int displayDegree);
 
     void setStatsFileName(const std::string& statsFile) { _statsFile = statsFile; }
@@ -184,16 +180,15 @@ private:
     static omp_lock_t _s_queue_lock;
 #endif // _OPENMP
 
+    static bool _hasBeenInitialized; ///< Flag for initialization (initialization cannot be performed more than once).
 
     static std::unique_ptr<OutputQueue> _single; ///< The singleton
-
 
     /// Queue of all the OutputInfo we have to print.
     std::vector<OutputInfo> _queue;
 
     /// Display parameters
     std::shared_ptr<DisplayParameters> _params;
-
 
     std::string _statsFile;
     std::ofstream _statsStream;

@@ -253,7 +253,37 @@ NOMAD::ArrayOfString::splitString(const std::string & inputString,
 }
 
 
+NOMAD::ArrayOfString NOMAD::ArrayOfString::combineAndAddPadding(const NOMAD::ArrayOfString & s1, const NOMAD::ArrayOfString & s2)
+{
+    // Add a padding on the first string of each pair of string. The padding must assure that the second strings are all aligned.
+    // Also add a return at the end of the second string.
 
+    size_t sizeS1 = s1.size();
+    if (sizeS1 != s2.size() )
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "s1 and s2 must have the same of number of elements.");
+    }
+
+    // Max length of first+second elements in s
+    size_t maxL = 0;
+    for (size_t e = 0 ; e < sizeS1 ; e++)
+    {
+        maxL = std::max(maxL,s1[e].length()+s2[e].length());
+    }
+
+    // Pad the first element to get the same overall length for all + combine first and second + add return
+    NOMAD::ArrayOfString paddedString("\n");
+    for (size_t e = 0 ; e < sizeS1 ; e++)
+    {
+        size_t padL = 1 + maxL - s1[e].length() - s2[e].length(); // Add one ' ' at least (for space after colon)
+        std::string padS = s1[e];
+        padS.insert(s1[e].length(), padL,' ');
+        padS += s2[e]+'\n';
+        paddedString.add(padS);
+    }
+
+    return paddedString;
+}
 
 
 

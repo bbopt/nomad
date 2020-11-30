@@ -216,7 +216,7 @@ void NOMAD::Parameters::resetToDefaultValue(const std::string& paramName)
     {
         // At this point, Verify att is non-null.
         std::string err = "resetToDefaultValue: attribute " + paramName + " does not exist";
-        throw Exception(__FILE__, __LINE__, err);
+        throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
     att->resetToDefaultValue();
@@ -228,6 +228,7 @@ void NOMAD::Parameters::resetToDefaultValue(const std::string& paramName)
 bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
 {
     bool isCompatible = true;
+    const bool debugAlgoCompatibility = false; // Set to true for debugging purposes
     std::string sdebug;
 
     // Loop on all registered attributes.
@@ -330,7 +331,6 @@ bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
                 auto lvg = getAttributeValueProtected<NOMAD::ListOfVariableGroup>(paramName,false);
                 auto plvg = p->getAttributeValueProtected<NOMAD::ListOfVariableGroup>(paramName,false);
 
-                // CT Todo make sure that the comparison between two lists of sets of ints works (test with runner)
                 if (lvg.size() != plvg.size() || lvg != plvg )
                 {
                     std::ostringstream sds,sds2;
@@ -428,19 +428,17 @@ bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
             {
                 // Debug info about which parameter names and values
                 // were not compatible.
-                /*
                 if (debugAlgoCompatibility)
                 {
                     // Prepend info to string sdebug
                     sdebug = "Parameter values are not compatible: Parameter name: " + paramName + "; parameter type: " + paramType + "; parameter values:\n" + sdebug;
                     std::cerr << sdebug << std::endl;
                 }
-                */
                 break;
             }
-
         }
     }
+
     return isCompatible;
 }
 
@@ -582,15 +580,13 @@ void NOMAD::Parameters::readEntries(const bool overwrite)
     // parameters will have to be checked:
     _toBeChecked = true;
 
-    // TODO it would be nice to have operator>> for each attribute type
-
     // interpret and set the entries using SET methods:
     size_t sz;
     int i;
     NOMAD::Double d;
     bool flag;
     std::shared_ptr<NOMAD::ParameterEntry> pe;
-    std::string err ;
+    std::string err;
 
     // First set DIMENSION from entries
     std::string paramName = "DIMENSION";
@@ -822,6 +818,11 @@ void NOMAD::Parameters::readEntries(const bool overwrite)
 
                 setAttributeValue(paramName, lvg);
             }
+            else
+            {
+                err = "Parameter " + paramName + " has been registered but its type cannot be read";
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
+            }
             pe->setHasBeenInterpreted();
             // Get next parameter entry with this name, if multiple entries are permitted
             pe = pe->getNext();
@@ -997,14 +998,14 @@ size_t NOMAD::Parameters::readValuesForArrayOfPoint(const NOMAD::ParameterEntry 
 size_t NOMAD::Parameters::readValuesForVariableGroup(const NOMAD::ParameterEntry &pe,
                                                      NOMAD::VariableGroup &vg )
 {
-    size_t i,j,k;
+    size_t i;
 
     std::list<std::string>::const_iterator it , end;
     std::pair<NOMAD::VariableGroup::iterator,bool> ret;
     // just one variable index (can be '*' or a range of indices 'i-j'):
     if ( pe.getNbValues() == 1 )
     {
-
+        size_t j, k;
         it = pe.getValues().begin();
         if ( !NOMAD::stringToIndexRange ( *it , i , j ) )
         {
@@ -1028,7 +1029,6 @@ size_t NOMAD::Parameters::readValuesForVariableGroup(const NOMAD::ParameterEntry
     // list of variable indexes:
     else
     {
-
         end = pe.getValues().end();
         for ( it = pe.getValues().begin() ; it != end ; ++it )
         {
@@ -1047,6 +1047,7 @@ size_t NOMAD::Parameters::readValuesForVariableGroup(const NOMAD::ParameterEntry
             }
         }
     }
+
     return vg.size();
 }
 

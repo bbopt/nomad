@@ -71,7 +71,8 @@ NOMAD::Eval::Eval()
     _f(),
     _h(NOMAD::INF),
     _evalStatus(NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED),
-    _bbOutput("")
+    _bbOutput(""),
+    _bbOutputComplete(false)
 {
 }
 
@@ -97,6 +98,8 @@ NOMAD::Eval::Eval(std::shared_ptr<NOMAD::EvalParameters> params,
     setH (_computeH(*this, bbOutputType));
     _toBeRecomputed = false;
 
+    _bbOutputComplete = _bbOutput.isComplete(bbOutputType);
+
     if (_bbOutput.getEvalOk() && _f.isDefined())
     {
         _evalStatus = NOMAD::EvalStatusType::EVAL_OK;
@@ -116,7 +119,9 @@ NOMAD::Eval::Eval(const NOMAD::Eval &eval)
     _f(eval._f),
     _h(eval._h),
     _evalStatus(eval._evalStatus),
-    _bbOutput(eval._bbOutput)
+    _bbOutput(eval._bbOutput),
+    _bbOutputComplete(eval._bbOutputComplete)
+
 {
 }
 
@@ -341,7 +346,8 @@ void NOMAD::Eval::setH(const NOMAD::Double &h)
 void NOMAD::Eval::setBBOutput(const NOMAD::BBOutput &bbOutput)
 {
     _bbOutput = bbOutput;
-    toRecompute(true);
+    _toBeRecomputed = true;
+    _bbOutputComplete = false;
 }
 
 
@@ -352,13 +358,15 @@ void NOMAD::Eval::setBBOutputAndRecompute(const NOMAD::BBOutput& bbOutput,
     if (!bbOutput.checkSizeMatch(bbOutputType))
     {
         _evalStatus = NOMAD::EvalStatusType::EVAL_ERROR;
+        _bbOutputComplete =false;
     }
     else
     {
         setF(computeF(bbOutputType));
         setH(_computeH(*this, bbOutputType));
+        _bbOutputComplete = _bbOutput.isComplete(bbOutputType);
     }
-    toRecompute(false);
+    _toBeRecomputed = false;
 }
 
 
@@ -371,11 +379,13 @@ void NOMAD::Eval::setBBO(const std::string &bbo,
     {
         setF(computeF(bbOutputType));
         setH(_computeH(*this, bbOutputType));
-        toRecompute(false);
+        _toBeRecomputed = false;
+        _bbOutputComplete = _bbOutput.isComplete(bbOutputType);
     }
     else
     {
-        toRecompute(true);
+        _toBeRecomputed = true;
+        _bbOutputComplete = false;
     }
 }
 
@@ -623,6 +633,9 @@ std::string NOMAD::enumStr(const NOMAD::EvalStatusType evalStatus)
         case NOMAD::EvalStatusType::EVAL_IN_PROGRESS:
             str = "Evaluation in progress";
             break;
+        case NOMAD::EvalStatusType::EVAL_WAIT:
+            str = "Waiting for evaluation in progress";
+            break;
         case NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED:
             str = "Undefined evaluation status";
             break;
@@ -661,6 +674,9 @@ std::ostream& NOMAD::operator<<(std::ostream& out, const NOMAD::EvalStatusType &
             break;
         case NOMAD::EvalStatusType::EVAL_IN_PROGRESS:
             out << "EVAL_IN_PROGRESS";
+            break;
+        case NOMAD::EvalStatusType::EVAL_WAIT:
+            out << "EVAL_WAIT";
             break;
         case NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED:
             out << "EVAL_STATUS_UNDEFINED";
@@ -708,6 +724,10 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalStatusType &evalSta
     else if ("EVAL_IN_PROGRESS" == s)
     {
         evalStatus = NOMAD::EvalStatusType::EVAL_IN_PROGRESS;
+    }
+    else if ("EVAL_WAIT" == s)
+    {
+        evalStatus = NOMAD::EvalStatusType::EVAL_WAIT;
     }
     else if ("EVAL_STATUS_UNDEFINED" == s)
     {

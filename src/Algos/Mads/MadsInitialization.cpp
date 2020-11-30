@@ -55,6 +55,7 @@
 #include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
 
+#include <unistd.h> // For usleep
 
 void NOMAD::MadsInitialization::init()
 {
@@ -170,6 +171,12 @@ bool NOMAD::MadsInitialization::eval_x0s()
     // The points are cleared from the EvaluatorControl.
     auto evaluatedPoints = evcInterface.retrieveAllEvaluatedPoints();
     std::vector<NOMAD::EvalPoint> evalPointX0s;
+
+    if (_stopReasons->checkTerminate())
+    {
+        return false;
+    }
+
     for (auto x0 : x0s)
     {
         NOMAD::EvalPoint evalPointX0(x0);
@@ -179,16 +186,23 @@ bool NOMAD::MadsInitialization::eval_x0s()
 
         if (!x0Found)
         {
-            auto barrier = evc->getBarrier();
-            if (nullptr != barrier)
-            {
-                // Look for x0 in EvaluatorControl barrier
-                x0Found = findInList(x0, barrier->getAllPoints(), evalPointX0);
-            }
-            if (!x0Found && evc->getUseCache())
+            // Look for x0 in EvaluatorControl barrier
+            x0Found = evcInterface.findInBarrier(x0, evalPointX0);
+            if (!x0Found)
             {
                 // Look for x0 in cache
-                x0Found = (cacheInterface.find(x0, evalPointX0) > 0);
+                // Note: Even if we are not currently using cache in this sub-algorithm,
+                // we may have interesting points in the global cache.
+                if (evc->getUseCache())
+                {
+                    // If status of point in cache is IN_PROGRESS, wait for evaluation to be completed.
+                    x0Found = (cacheInterface.find(x0, evalPointX0, evalType) > 0);
+                }
+                else
+                {
+                    // Look for X0 in cache, but do not wait for evaluation.
+                    x0Found = (cacheInterface.find(x0, evalPointX0) > 0);
+                }
             }
         }
 
@@ -210,7 +224,8 @@ bool NOMAD::MadsInitialization::eval_x0s()
 
         for (auto x0 : x0s)
         {
-            AddOutputError("X0 evaluation failed for X0 = " + x0.display());
+            auto x0Full = x0.makeFullSpacePointFromFixed(NOMAD::SubproblemManager::getSubFixedVariable(this));
+            AddOutputError("X0 evaluation failed for X0 = " + x0Full.display());
         }
     }
     else

@@ -144,11 +144,11 @@ void NOMAD::RunParameters::checkAndComply(
         throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: SEED must be non-negative" );
     }
 
-    // CT todo modify to manage retro-compatiblity
     auto version_number = getAttributeValueProtected<std::string>("NOMAD_VERSION", false);
     if ( version_number != NOMAD_VERSION_NUMBER )
     {
-       throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: VERSION_NUMBER is not compatible" );
+        err = "Parameters check: NOMAD_VERSION is not compatible with registered version " + std::string(NOMAD_VERSION_NUMBER) + "\n";
+       throw NOMAD::Exception(__FILE__,__LINE__, err );
     }
 
     auto anisotropyFactor = getAttributeValueProtected<NOMAD::Double>("ANISOTROPY_FACTOR", false);
@@ -189,7 +189,7 @@ void NOMAD::RunParameters::checkAndComply(
         {
             disabled.add(std::string("MODELS"));
             setAttributeValue("DISABLE", disabled);
-            std::cerr << "Warning: Dimension is higher than " << bigDim << ". Models are disabled." << std::endl;
+            std::cerr << "Warning: Dimension " << n << " is greater than (or equal to) " << bigDim << ". Models are disabled." << std::endl;
 #ifdef USE_SGTELIB
             showDisableWarn = false;
 #endif
@@ -253,18 +253,6 @@ void NOMAD::RunParameters::checkAndComply(
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Parameter SGTE_MAX_BLOCK_SIZE must be positive");
     }
-#ifdef _OPENMP
-    else if (bbBlockSize > 1)
-    {
-        if (getAttributeValueProtected<int>("NB_THREADS_OPENMP", false) != 1)
-        {
-            std::cerr << "Warning: Parallelism management: BB_MAX_BLOCK_SIZE is ";
-            std::cerr << "larger than 1 (value is " << bbBlockSize << "). ";
-            std::cerr << "Setting parameter NB_THREADS_OPENMP to 1." << std::endl;
-        }
-        setAttributeValue("NB_THREADS_OPENMP", 1);
-    }
-#endif
 
 #ifndef USE_SGTELIB
     // Look for SgtelibModel parameters that are set but cannot be used
@@ -290,18 +278,64 @@ void NOMAD::RunParameters::checkAndComply(
     }
 #endif
 
-    // SSD-Mads parameters
-    bool useAlgoSSDMads = getAttributeValueProtected<bool>("SSD_MADS_OPTIMIZATION", false);
-    if (useAlgoSSDMads)
+    // PSD-Mads and SSD-Mads parameters
+    bool useAlgoPSDMads = getAttributeValueProtected<bool>("PSD_MADS_OPTIMIZATION", false);
+
+#ifndef _OPENMP
+    if (useAlgoPSDMads)
     {
-        const size_t nbVariablesInSubproblem = getAttributeValueProtected<size_t>("SSD_MADS_NB_VAR_IN_SUBPROBLEM", false);
-        size_t nbMadsSubproblem = getAttributeValueProtected<size_t>("SSD_MADS_NB_SUBPROBLEM", false);
+        err = "Error: PSD_MADS_OPTIMIZATION can only be used when OpenMP is available. If that is not the case, use SSD_MADS_OPTIMIZATION.";
+        throw NOMAD::Exception(__FILE__,__LINE__, err);
+    }
+#endif // _OPENMP
+
+    bool useAlgoSSDMads = getAttributeValueProtected<bool>("SSD_MADS_OPTIMIZATION", false);
+    if (useAlgoPSDMads || useAlgoSSDMads)
+    {
+        std::string nbVarParamName = (useAlgoPSDMads ? "PSD_MADS_NB_VAR_IN_SUBPROBLEM" : "SSD_MADS_NB_VAR_IN_SUBPROBLEM");
+        const size_t nbVariablesInSubproblem = getAttributeValueProtected<size_t>(nbVarParamName, false);
+        if (0 == nbVariablesInSubproblem || nbVariablesInSubproblem > n)
+        {
+            err = "Parameter " + nbVarParamName + " must be between 1 and " + NOMAD::itos(n);
+            err += ". Value provided: " + NOMAD::itos(nbVariablesInSubproblem);
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__, err);
+        }
+
+        size_t nbMadsSubproblem = getAttributeValueProtected<size_t>((useAlgoPSDMads ? "PSD_MADS_NB_SUBPROBLEM" : "SSD_MADS_NB_SUBPROBLEM"), false);
         // Distribute all the variables between subproblems of reduced dimension.
+        bool nbMadsSubproblemSetByUser = true;
         if (nbMadsSubproblem == INF_SIZE_T)
         {
             nbMadsSubproblem = std::round(n/nbVariablesInSubproblem)+1; // Add an additional mads for the pollster
+            nbMadsSubproblemSetByUser = false;
         }
-        setAttributeValue("SSD_MADS_NB_SUBPROBLEM", nbMadsSubproblem);
+        if (useAlgoPSDMads)
+        {
+            // Cannot have more subproblems than the number of threads
+            size_t nbThreads = (size_t)getAttributeValueProtected<int>("NB_THREADS_OPENMP", false);
+            if (nbMadsSubproblem > nbThreads)
+            {
+                nbMadsSubproblem = nbThreads;
+                if (nbMadsSubproblemSetByUser)
+                {
+                    // Warn the user
+                    std::cerr << "Warning: parameter PSD_MADS_NB_SUBPROBLEM reset to number of available threads (" << nbThreads << ")" <<  std::endl;
+                }
+            }
+        }
+        setAttributeValue((useAlgoPSDMads ? "PSD_MADS_NB_SUBPROBLEM" : "SSD_MADS_NB_SUBPROBLEM"), nbMadsSubproblem);
+
+        // Check parameter for coverage
+        if (useAlgoPSDMads)
+        {
+            std::string covParamName = "PSD_MADS_SUBPROBLEM_PCT_COVERAGE";
+            auto coverage = getAttributeValueProtected<NOMAD::Double>(covParamName, false);
+            if (coverage < 0.0 || coverage > 100.0)
+            {
+                err = "Parameter " + covParamName + " must be between 0.0 and 100.0";
+                throw NOMAD::InvalidParameter(__FILE__,__LINE__, err);
+            }
+        }
     }
 
     // Algorithm parameters: use an algorithm other than MADS.
@@ -311,7 +345,7 @@ void NOMAD::RunParameters::checkAndComply(
     bool useAlgoQuadOpt = getAttributeValueProtected<bool>("QUAD_MODEL_OPTIMIZATION", false);
     bool useAlgoSgtelibModel = getAttributeValueProtected<bool>("SGTELIB_MODEL_EVAL", false);
     int totalAlgoSet = (int)useAlgoLH + (int)useAlgoNM + (int)useAlgoQuadOpt
-                       + (int)useAlgoSgtelibModel + (int)useAlgoSSDMads;
+                       + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoSSDMads;
 
     if (totalAlgoSet >= 2)
     {
@@ -324,6 +358,10 @@ void NOMAD::RunParameters::checkAndComply(
         if (useAlgoNM)
         {
             err += " NM_OPTIMIZATION";
+        }
+        if (useAlgoPSDMads)
+        {
+            err += " PSD_MADS_OPTIMIZATION";
         }
         if (useAlgoQuadOpt)
         {

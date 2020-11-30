@@ -71,10 +71,12 @@
 class EvcMainThreadInfo
 {
 private:
-    std::shared_ptr<Evaluator> _evaluator;              ///< The Evaluator for either blackbox or surrogate evaluations.
-    std::shared_ptr<EvaluatorControlParameters> _evalContParams;  ///< The parameters controlling the behavior of EvaluatorControl for this main thread
+    std::shared_ptr<Evaluator>      _evaluator;         ///< The Evaluator for either blackbox or surrogate evaluations.
+    const std::unique_ptr<EvaluatorControlParameters> _evalContParams;  ///< The parameters controlling the behavior of EvaluatorControl for this main thread
+    std::atomic<size_t>             _nbPointsInQueue;   ///< Number of points in the evaluation queue for this main thread
     bool                            _doneWithEval;      ///< All evaluations done for this main thread
     std::shared_ptr<Barrier>        _barrier;
+    std::shared_ptr<EvalPoint>      _bestIncumbent;     ///< Temporary value useful for display only
     std::vector<EvalPoint>          _evaluatedPoints;   ///< Where evaluated points are put temporarily
     SuccessType                     _success;           ///< Success type of the last run
     std::atomic<size_t>             _currentlyRunning;  ///< Count number of evaluations currently running.
@@ -83,7 +85,8 @@ private:
     std::atomic<size_t>             _sgteEval;          ///< The number of sgte evaluations performed (since last reset)
     std::atomic<size_t>             _subBbEval;         ///< The number of bb eval for a subproblem (e.g. SSD-Mads context)
     ComputeSuccessType              _computeSuccessType;    ///< Function used to compute SuccessType. Depends on Evaluator's EvalType.
-    StopReason<EvalStopType>        _stopReason;
+    std::shared_ptr<Direction>      _lastSuccessfulDir; ///< Direction of last success. May be used to sort points before evaluation.
+    StopReason<EvalMainThreadStopType> _stopReason;
 
 public:
     /// Constructor
@@ -91,12 +94,14 @@ public:
      \param evaluator       The Evaluator for either blackbox or surrogate evaluations-- \b IN.
      \param evalContParams  The parameters controlling how the EvaluatorControl behaves for this main thread-- \b IN.
      */
-    explicit EvcMainThreadInfo(std::shared_ptr<NOMAD::Evaluator> evaluator,
-                               const std::shared_ptr< EvaluatorControlParameters> &evalContParams)
+    explicit EvcMainThreadInfo(std::shared_ptr<Evaluator> evaluator,
+                               std::unique_ptr<EvaluatorControlParameters> evalContParams)
       : _evaluator(evaluator),
-        _evalContParams(evalContParams),
+        _evalContParams(std::move(evalContParams)),
+        _nbPointsInQueue(0),
         _doneWithEval(false),
         _barrier(),
+        _bestIncumbent(),
         _evaluatedPoints(),
         _success(SuccessType::UNSUCCESSFUL),
         _currentlyRunning(0),
@@ -105,6 +110,7 @@ public:
         _sgteEval(0),
         _subBbEval(0),
         _computeSuccessType(ComputeSuccessType(ComputeSuccessType::defaultComputeSuccessType)),
+        _lastSuccessfulDir(nullptr),
         _stopReason()
     {
         init();
@@ -115,10 +121,15 @@ public:
      \param evaluator       The Evaluator for either blackbox or surrogate evaluations-- \b IN.
      \return                The previous Evaluator.
      */
-    std::shared_ptr<NOMAD::Evaluator> setEvaluator(std::shared_ptr<NOMAD::Evaluator> evaluator);
+    std::shared_ptr<Evaluator> setEvaluator(std::shared_ptr<Evaluator> evaluator);
     const Evaluator* getEvaluator() { return _evaluator.get(); }
     std::shared_ptr<EvalParameters> getEvalParams() const;
     EvalType getEvalType() const;
+
+    size_t getNbPointsInQueue() const { return _nbPointsInQueue; }
+    void incNbPointsInQueue();
+    void decNbPointsInQueue();
+    void resetNbPointsInQueue() { _nbPointsInQueue = 0; }
 
     bool getDoneWithEval() const { return _doneWithEval; }
     void setDoneWithEval(const bool doneWithEval) { _doneWithEval = doneWithEval; }
@@ -129,22 +140,27 @@ public:
     bool getUseCache() const;
     void setUseCache(const bool useCache);
     size_t getMaxBbEvalInSubproblem() const;
+    void setMaxBbEvalInSubproblem(const size_t maxBbEval);
 
     // Get and set counters
+    // Resetting a counter also resets stop reason, if the stop reason was that the max was reached for this counter.
     void setLapMaxBbEval(const size_t maxBbEval) { _lapMaxBbEval = maxBbEval; }
     size_t getLapBbEval() const { return _lapBbEval; }
     size_t getLapMaxBbEval() const { return _lapMaxBbEval; }
     void incLapBbEval(const size_t countEval) { _lapBbEval += countEval; }
-    void resetLapBbEval() { _lapBbEval = 0; }
+    void resetLapBbEval();
     size_t getSgteEval() const { return _sgteEval; }
-    void resetSgteEval() { _sgteEval = 0; }
+    void resetSgteEval();
     void incSgteEval(const size_t countEval) { _sgteEval += countEval; }
     size_t getBbEvalInSubproblem() const { return _subBbEval; }
     void incBbEvalInSubproblem(const size_t countEval) { _subBbEval += countEval; }
-    void resetBbEvalInSubproblem() { _subBbEval = 0; }
+    void resetBbEvalInSubproblem();
 
     const std::shared_ptr<Barrier>& getBarrier() const { return _barrier; }
     void setBarrier(const std::shared_ptr<Barrier>& barrier) { _barrier = barrier; }
+
+    const std::shared_ptr<EvalPoint>& getBestIncumbent() const;
+    void setBestIncumbent(const std::shared_ptr<EvalPoint>& bestIncumbent);
 
     std::vector<EvalPoint> retrieveAllEvaluatedPoints();
     void addEvaluatedPoint(const EvalPoint& evaluatedPoint);
@@ -156,16 +172,19 @@ public:
     void setSuccessType(const SuccessType& success);
 
     size_t getCurrentlyRunning() const { return _currentlyRunning; }
-    void incCurrentlyRunning(const size_t n);
-    void decCurrentlyRunning(const size_t n);
+    void incCurrentlyRunning();
+    void decCurrentlyRunning();
 
     void setComputeSuccessTypeFunction(const ComputeSuccessFunction &computeSuccessFunction) { _computeSuccessType.setComputeSuccessTypeFunction(computeSuccessFunction); }
     ComputeSuccessType getComputeSuccessType() const { return _computeSuccessType; }
 
-    void setStopReason(const EvalStopType& s);
-    const StopReason<EvalStopType>& getStopReason() const { return _stopReason; }
+    void setLastSuccessfulDir(const std::shared_ptr<Direction> &dir) { _lastSuccessfulDir = dir; }
+    std::shared_ptr<Direction> getLastSuccessfulDir() const { return _lastSuccessfulDir; }
+
+    void setStopReason(const EvalMainThreadStopType& s);
+    const StopReason<EvalMainThreadStopType>& getStopReason() const { return _stopReason; }
     std::string getStopReasonAsString() const { return _stopReason.getStopReasonAsString(); }
-    bool testIf(const EvalStopType& s) const { return s == _stopReason.get(); }
+    bool testIf(const EvalMainThreadStopType& s) const { return s == _stopReason.get(); }
     bool checkEvalTerminate() const { return _stopReason.checkTerminate(); }
 
 private:

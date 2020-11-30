@@ -99,14 +99,6 @@ private:
     bool createSimplex();
 
 
-    /// Check evaluation point outputs before the integration into Nelder Mead simplex set
-    /**
-     Helper for createSimplex
-     \param bbo       Blackbox outputs         -- \b IN.
-     \param m         Number of outputs        -- \b IN.
-     */
-    bool checkOutputs ( const ArrayOfDouble & bbo , int m ) const;
-
 };
 
 #include "../../nomad_nsend.hpp"

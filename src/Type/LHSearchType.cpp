@@ -63,7 +63,7 @@ NOMAD::LHSearchType::LHSearchType(const std::string& entries)
             std::string err = "LHSearchType must have 2 entries, got ";
             err += std::to_string(aos.size());
             err += "( " + entries + " )";
-            throw Exception(__FILE__, __LINE__, err);
+            throw NOMAD::Exception(__FILE__, __LINE__, err);
         }
         int lhsearch0, lhsearch1;
         std::string s0 = aos[0];

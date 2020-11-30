@@ -80,6 +80,8 @@ public:
         init();
     }
 
+    /// Helper for hot restart
+    void hotRestartOnUserInterrupt() override;
 
 private:
     ///  Initialization of class, to be used by Constructor.
@@ -88,15 +90,12 @@ private:
     /// Algorithm execution for single-objective.
     /**
      Overrides the default algorithm's run
-     \return \c true
+     \return \c true if a full success was found, \c false otherwise
      */
     virtual bool runImp() override;
 
     /// Helper for start()
-    void readInformationForHotRestart() override ;
-
-
-
+    void readInformationForHotRestart() override;
 };
 
 #include "../../nomad_nsend.hpp"

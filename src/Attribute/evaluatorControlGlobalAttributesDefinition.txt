@@ -190,4 +190,39 @@ true
 \( advanced opportunistic oppor eval(s) evaluation(s) clear flush \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
+#################################################################################
+TMP_DIR
+std::string
+/tmp/
+\( Directory where to put temporary files \)
+\(
+
+. Temporary directory for blackbox input/output files
+
+. Argument: one string indicating a directory
+
+. Improved performance with a local temporary directory
+
+. Example: TMP_DIR /tmp
+
+\)
+\( advanced \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################
+RANDOM_EVAL_SORT
+bool
+false
+\( Mix points randomly before evaluation \)
+\(
+. Trial points are mixed randomly before evaluation, instead of being sorted
+
+. Argument: one boolean ('yes' or 'no\')
+
+. Example: RANDOM_EVAL_SORT true
+
+\)
+\( advanced \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
 ################################################################################

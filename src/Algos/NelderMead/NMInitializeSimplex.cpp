@@ -66,7 +66,7 @@ bool NOMAD::NMInitializeSimplex::runImp()
     bool simplexCreated = false;
     if (nullptr == _nmY)
     {
-        NOMAD::Exception(__FILE__, __LINE__, "The simplex is not defined.");
+        throw NOMAD::Exception(__FILE__, __LINE__, "The simplex is not defined.");
     }
 
     // Create a simplex from EvalPoints in Cache or in Barrier
@@ -96,14 +96,18 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
     auto iter = dynamic_cast<const NOMAD::NMIteration*>( NOMAD::Step::_parentStep );
     if (nullptr == iter)
     {
-        NOMAD::Exception(__FILE__, __LINE__, "The simplex initialization must have a NMIteration Step as parent");
+        throw NOMAD::Exception(__FILE__, __LINE__, "The simplex initialization must have a NMIteration Step as parent");
     }
 
     const std::shared_ptr<NOMAD::EvalPoint> centerPt = iter->getFrameCenter();
     // Use center point of iteration, otherwise
     if (nullptr == centerPt)
     {
-            NOMAD::Exception(__FILE__, __LINE__, "A center point must be defined.");
+        throw NOMAD::Exception(__FILE__, __LINE__, "A center point must be defined.");
+    }
+    if ( ! centerPt->getEval(evalType)->isBBOutputComplete() )
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "A center point must have all output defined for functions (OBJ, PB, EB).");
     }
 
     // Clear the list of NM points
@@ -131,7 +135,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
         includeRectangle = mesh->getDeltaFrameSize() ;
 
         if ( ! includeRectangle.isDefined() )
-            NOMAD::Exception(__FILE__, __LINE__, "The frame size is not defined.");
+            throw NOMAD::Exception(__FILE__, __LINE__, "The frame size is not defined.");
 
         includeRectangle *= includeFactor ;
 
@@ -140,10 +144,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
         OUTPUT_DEBUG_END
     }
     if ( includeRectangle.max() == 0 )
-        NOMAD::Exception(__FILE__, __LINE__, "The include rectangle has no volume");
-
-    const NOMAD::ArrayOfDouble & bbo  = centerPt->getEval(evalType)->getBBOutput().getBBOAsArrayOfDouble();
-    size_t m = bbo.size();
+        throw NOMAD::Exception(__FILE__, __LINE__, "The include rectangle has no volume");
 
     // The set of points initially included
     NOMAD::NMSimplexEvalPointSet T;
@@ -172,9 +173,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
         if ( cur.getEvalStatus(evalType) == NOMAD::EvalStatusType::EVAL_OK &&
             cur.getX()->size() == n             )
         {
-            const NOMAD::ArrayOfDouble & bboCur  = cur.getEval(evalType)->getBBOutput().getBBOAsArrayOfDouble();
-
-            if ( bboCur.isComplete() && checkOutputs(bboCur, static_cast<int>(m) ) )
+            if ( cur.getEval(evalType)->isBBOutputComplete() )
             {
                 // the center point has been found and put in list
                 if ( *centerPt == cur )
@@ -205,9 +204,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
                     if ( include )
                     {
 
-                        // Make sure to evaluate f or h for points in cache (important if cache is loaded from file)
-                        // TODO
-
+                        // Issue #382: make sure to evaluate f or h for points in cache (important if cache is loaded from file) see 
                         NOMAD::EvalPoint Y ( cur );
                         std::pair<NMSimplexEvalPointSetIterator,bool> ret = T.insert ( Y );
 
@@ -363,22 +360,4 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
 
     return true;
 
-}
-
-
-/*---------------------------------------------------------*/
-/*  check evaluation point outputs before the integration  */
-/*  into NM set (private)                                  */
-/*---------------------------------------------------------*/
-bool NOMAD::NMInitializeSimplex::checkOutputs ( const NOMAD::ArrayOfDouble & bbo , int m ) const
-{
-
-    if ( bbo.size() != (size_t)m )
-        return false;
-
-    for ( int i = 0 ; i < m ; ++i )
-        if ( !bbo[i].isDefined() )
-            return false;
-
-    return true;
 }

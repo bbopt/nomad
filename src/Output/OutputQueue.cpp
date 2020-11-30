@@ -57,6 +57,7 @@ omp_lock_t NOMAD::OutputQueue::_s_queue_lock;
 
 std::unique_ptr<NOMAD::OutputQueue> NOMAD::OutputQueue::_single(nullptr);
 
+bool NOMAD::OutputQueue::_hasBeenInitialized = false;
 
 // Private constructor
 NOMAD::OutputQueue::OutputQueue()
@@ -99,6 +100,19 @@ NOMAD::OutputQueue::~OutputQueue()
     }
 }
 
+void NOMAD::OutputQueue::reset()
+{
+    // Flush the queue
+    flush();
+
+    // Close stats file
+    if (!_statsFile.empty())
+    {
+        _statsStream.close();
+    }
+    _hasBeenInitialized = false;
+}
+
 
 // Access to singleton
 std::unique_ptr<NOMAD::OutputQueue>& NOMAD::OutputQueue::getInstance()
@@ -118,12 +132,15 @@ std::unique_ptr<NOMAD::OutputQueue>& NOMAD::OutputQueue::getInstance()
     return _single;
 }
 
-
-// CT maybe dangerous to call initParameters several times. The previous setting must be put as before.
-// CT manage the display format within blocks.
 // Initialize display parameters.
 void NOMAD::OutputQueue::initParameters(const std::shared_ptr<NOMAD::DisplayParameters>& params)
 {
+    // If already called, make sure to flush and close the stats file
+    if(_hasBeenInitialized)
+    {
+       reset();
+    }
+
     _params = params;
 
     if (nullptr == _params)
@@ -159,6 +176,8 @@ void NOMAD::OutputQueue::initParameters(const std::shared_ptr<NOMAD::DisplayPara
     initStatsFile();
     setStatsFileFormat(statsFileFormat);
 
+    _hasBeenInitialized = true;
+
 }
 
 
@@ -173,38 +192,6 @@ bool NOMAD::OutputQueue::goodLevel(const OutputLevel& outputLevel) const
             && !_statsFile.empty());
 }
 
-
-// Get level of details in output
-int NOMAD::OutputQueue::getDisplayDegree() const
-{
-    int displayDegree = 2;
-
-    switch(_maxOutputLevel)
-    {
-        case NOMAD::OutputLevel::LEVEL_NOTHING:
-            displayDegree = 0;
-            break;
-        case NOMAD::OutputLevel::LEVEL_VERY_HIGH:
-            displayDegree = 1;
-            break;
-        case NOMAD::OutputLevel::LEVEL_NORMAL:
-            displayDegree = 2;
-            break;
-        case NOMAD::OutputLevel::LEVEL_INFO:
-            displayDegree = 3;
-            break;
-        case NOMAD::OutputLevel::LEVEL_DEBUG:
-            displayDegree = 4;
-            break;
-        case NOMAD::OutputLevel::LEVEL_DEBUGDEBUG:
-            displayDegree = 5;
-            break;
-        default:
-            std::cerr << "Unrecognized maximum display degree: " << (int)_maxOutputLevel << std::endl;
-    }
-
-    return displayDegree;
-}
 
 // Set level of details in output
 // 0 -> LEVEL_NOTHING

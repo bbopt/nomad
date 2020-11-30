@@ -59,6 +59,7 @@
 
 #include "../../nomad_nsbegin.hpp"
 
+// Support Mesh Index (issue (feature) #381)
 
 /// Class for the granular mesh of Mads.
 /**

@@ -105,14 +105,13 @@ bool NOMAD::Termination::terminate(size_t iteration)
     }
     else if (_pbParams->getAttributeValue<bool>("STOP_IF_FEASIBLE") && solHasFeas())
     {
-        _stopReasons->set(NOMAD::IterStopType::STOP_ON_FEAS );
+        _stopReasons->set(NOMAD::IterStopType::STOP_ON_FEAS);
     }
     else
     {
         // Need to check on MaxEval and MaxBBEval a last time because in evaluatorControl
         // the stop reason may have been set due to all queue points evaluated.
-        auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-        stop = evc->reachedMaxEval() || evc->reachedMaxStepEval();
+        stop = NOMAD::EvcInterface::getEvaluatorControl()->reachedMaxEval();
     }
 
     stop = stop || _stopReasons->checkTerminate() ;
@@ -148,23 +147,23 @@ void NOMAD::Termination::endImp()
         std::string terminationInfo = "A termination criterion is reached: ";
         terminationInfo += _stopReasons->getStopReasonAsString();
         auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-        if (_stopReasons->testIf(NOMAD::EvalStopType::MAX_BB_EVAL_REACHED))
+        if (_stopReasons->testIf(NOMAD::EvalGlobalStopType::MAX_BB_EVAL_REACHED))
         {
             terminationInfo += " " + NOMAD::itos(evc->getBbEval());
         }
-        else if (_stopReasons->testIf(NOMAD::EvalStopType::MAX_EVAL_REACHED))
+        else if (_stopReasons->testIf(NOMAD::EvalGlobalStopType::MAX_EVAL_REACHED))
         {
             terminationInfo += " " + NOMAD::itos(evc->getNbEval());
         }
-        else if (_stopReasons->testIf(NOMAD::EvalStopType::MAX_BLOCK_EVAL_REACHED))
+        else if (_stopReasons->testIf(NOMAD::EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED))
         {
             terminationInfo += " " + NOMAD::itos(evc->getBlockEval());
         }
-        else if (_stopReasons->testIf(NOMAD::EvalStopType::MAX_SGTE_EVAL_REACHED))
+        else if (evc->testIf(NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED))
         {
             terminationInfo += " " + NOMAD::itos(evc->getTotalSgteEval());
         }
-        else if (_stopReasons->testIf(NOMAD::EvalStopType::LAP_MAX_BB_EVAL_REACHED))
+        else if (evc->testIf(NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED))
         {
             terminationInfo += " " + NOMAD::itos(evc->getLapBbEval());
         }

@@ -63,7 +63,7 @@ NOMAD::MegaIteration::MegaIteration(const Step* parentStep,
 {
     if (nullptr == _barrier)
     {
-        throw Exception(__FILE__, __LINE__, "MegaIteration constructor: barrier must not be NULL.");
+        throw NOMAD::StepException(__FILE__, __LINE__, "MegaIteration constructor: barrier must not be NULL.", this);
     }
 
     init();

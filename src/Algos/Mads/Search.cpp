@@ -46,6 +46,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/Search.hpp"
 #include "../../Algos/Mads/QuadSearchMethod.hpp"
 #include "../../Algos/Mads/SgtelibSearchMethod.hpp"
@@ -56,7 +57,6 @@
 #include "../../Output/OutputQueue.hpp"
 
 #ifdef TIME_STATS
-#include "../../Algos/EvcInterface.hpp"
 #include "../../Util/Clock.hpp"
 
 // Initialize static variables
@@ -194,12 +194,14 @@ void NOMAD::Search::endImp()
     }
 
     // Need to reset the EvalStopReason if a sub optimization is used during Search and the max bb is reached for this sub optimization
-    if (_stopReasons->testIf(NOMAD::EvalStopType::LAP_MAX_BB_EVAL_REACHED))
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    if (evc->testIf(NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED))
     {
-        _stopReasons->set(NOMAD::EvalStopType::STARTED);
+        evc->setStopReason(NOMAD::getThreadNum(), NOMAD::EvalMainThreadStopType::STARTED);
     }
 
 }
+
 
 void NOMAD::Search::generateTrialPoints()
 {
@@ -230,18 +232,6 @@ void NOMAD::Search::generateTrialPoints()
 
 bool NOMAD::Search::isEnabled() const
 {
-    bool searchEnabled = false;
-    if (_searchMethods.size() > 0)
-    {
-        for (auto searchMethod : _searchMethods)
-        {
-            if (searchMethod->isEnabled())
-            {
-                searchEnabled = true;
-                break;
-            }
-        }
-    }
-
-    return searchEnabled;
+    return std::any_of(_searchMethods.begin(), _searchMethods.end(),
+                       [](std::shared_ptr<NOMAD::SearchMethodBase> searchMethod) { return searchMethod->isEnabled(); });
 }

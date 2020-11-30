@@ -99,14 +99,13 @@ void NOMAD::PbParameters::checkAndComply( )
     auto lb = getAttributeValueProtected<NOMAD::ArrayOfDouble>("LOWER_BOUND",false);
     if (lb.size() != n)
     {
-        if (lb.size() > 0)
+        if (lb.size() > 0 && lb.isDefined())
         {
-            err = "Warning: Parameter LOWER_BOUND resized from ";
-            err += std::to_string(lb.size()) + " to " + std::to_string(n);
-            err += ". Values may be lost.";
-            std::cerr << err << std::endl;
+            err = "Error: Parameter LOWER_BOUND has dimension ";
+            err += std::to_string(lb.size()) + " which is different from ";
+            err += "problem dimension " + std::to_string(n);
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,err);
         }
-
         lb.resize(n);
         setAttributeValue("LOWER_BOUND", lb);
     }
@@ -114,14 +113,13 @@ void NOMAD::PbParameters::checkAndComply( )
     auto ub = getAttributeValueProtected<NOMAD::ArrayOfDouble>("UPPER_BOUND",false);
     if (ub.size() != n)
     {
-        if (ub.size() > 0)
+        if (ub.size() > 0 && ub.isDefined())
         {
-            err = "Warning: Parameter UPPER_BOUND resized from ";
-            err += std::to_string(ub.size()) + " to " + std::to_string(n);
-            err += ". Values may be lost.";
-            std::cerr << err << std::endl;
+            err = "Error: Parameter UPPER_BOUND has dimension ";
+            err += std::to_string(ub.size()) + " which is different from ";
+            err += "problem dimension " + std::to_string(n);
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,err);
         }
-
         ub.resize(n);
         setAttributeValue("UPPER_BOUND", ub);
     }
@@ -138,24 +136,13 @@ void NOMAD::PbParameters::checkAndComply( )
             x0[i].setToBeDefined();
         }
         x0s.push_back(x0);
-        setAttributeValue("X0", x0s);
     }
-
-    NOMAD::ArrayOfPoint x0SResized;
-    for (size_t x0index = 0; x0index < x0s.size(); x0index++)
+    else
     {
-        auto x0 = x0s[x0index];
-        if ( x0.size() != n )
+        for (size_t x0index = 0; x0index < x0s.size(); x0index++)
         {
-            if (x0.size() > n)
-            {
-                err = "Warning: Parameter X0 resized from ";
-                err += std::to_string(x0.size()) + " to " + std::to_string(n);
-                err += ". Values may be lost or reset.";
-                std::cerr << err << std::endl;
-                x0.resize(n, x0[0]);
-            }
-            else
+            auto x0 = x0s[x0index];
+            if ( x0.size() != n )
             {
                 // X0 empty
                 err = "Error: X0 " + x0.display() + " has dimension ";
@@ -164,9 +151,8 @@ void NOMAD::PbParameters::checkAndComply( )
                 throw NOMAD::InvalidParameter(__FILE__,__LINE__, err);
             }
         }
-        x0SResized.push_back(x0);
     }
-    setAttributeValue("X0", x0SResized);
+    setAttributeValue("X0", x0s);
 
     for ( size_t i = 0 ; i < n ; ++i )
     {
@@ -269,18 +255,21 @@ void NOMAD::PbParameters::setGranularityAndBBInputType()
     auto lb = getAttributeValueProtected<NOMAD::ArrayOfDouble>("LOWER_BOUND",false);
     auto ub = getAttributeValueProtected<NOMAD::ArrayOfDouble>("UPPER_BOUND",false);
     std::ostringstream oss;
-
-    if (granularity.isDefined() && granularity.size() != n)
+    
+    if (granularity.size() != n)
     {
-        std::string err;
-        err = "Warning: Parameter GRANULARITY resized from ";
-        err += std::to_string(granularity.size()) + " to " + std::to_string(n);
-        err += ". Values may be lost.";
-        std::cerr << err << std::endl;
-
+        if (granularity.size() > 0 && granularity.isDefined())
+        {
+            oss << "Error: Parameter GRANULARITY has dimension ";
+            oss << granularity.size() << " which is different from ";
+            oss << "problem dimension " << n;
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,oss.str());
+        }
         granularity.resize(n);
+        setAttributeValue("GRANULARITY", granularity);
     }
 
+    // When granularity is not defined the default value is set.
     if (!granularity.isDefined())
     {
         granularity = NOMAD::ArrayOfDouble(n, 0.0);
@@ -421,12 +410,11 @@ void NOMAD::PbParameters::setFixedVariables()
     }
     else if (fixedVariable.size() != n)
     {
-        std::string err = "Warning: Parameter FIXED_VARIABLE resized from ";
-        err += std::to_string(fixedVariable.size()) + " to " + std::to_string(n);
-        err += ". Values may be lost.";
-        std::cerr << err << std::endl;
-
-        fixedVariable.resize(n);
+        std::ostringstream oss;
+        oss << "Error: FIXED_VARIABLES has dimension ";
+        oss << fixedVariable.size() << " which is different from ";
+        oss << "problem dimension " << n;
+        throw NOMAD::InvalidParameter(__FILE__,__LINE__, oss.str());
     }
 
     for (size_t x0index = 0; x0index < x0s.size(); x0index++)
@@ -612,12 +600,11 @@ void NOMAD::PbParameters::setMinMeshParameters(const std::string &paramName)
     {
         if (minArray.size() != n)
         {
-            std::string err = "Check: dimension of parameter " + paramName;
-            err += " resized from " + std::to_string(minArray.size()) + " to " + std::to_string(n);
-            err += ". Values may be lost.";
-            std::cerr << err << std::endl;
-
-            minArray.resize(n);
+            std::ostringstream oss;
+            oss << "Error: " << paramName << " has dimension ";
+            oss << minArray.size() << " which is different from ";
+            oss << "problem dimension " << n;
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__, oss.str());
         }
 
         for (size_t i = 0 ; i < n ; ++i)
@@ -665,20 +652,20 @@ void NOMAD::PbParameters::setInitialMeshParameters()
     // Basic checks
     if (initialMeshSize.isDefined() && initialMeshSize.size() != n)
     {
-        std::string err = "Warning: Parameter INITIAL_MESH_SIZE resized from ";
-        err += std::to_string(initialMeshSize.size()) + " to " + std::to_string(n);
-        err += ". Values may be lost.";
-        std::cerr << err << std::endl;
-        initialMeshSize.resize(n);
+        std::ostringstream oss;
+        oss << "Error: INITIAL_MESH_SIZE has dimension ";
+        oss << initialMeshSize.size() << " which is different from ";
+        oss << "problem dimension " << n;
+        throw NOMAD::InvalidParameter(__FILE__,__LINE__, oss.str());
     }
 
     if (initialFrameSize.isDefined() && initialFrameSize.size() != n)
     {
-        std::string err = "Warning: Parameter INITIAL_MESH_SIZE resized from ";
-        err += std::to_string(initialFrameSize.size()) + " to " + std::to_string(n);
-        err += ". Values may be lost.";
-        std::cerr << err << std::endl;
-        initialFrameSize.resize(n);
+        std::ostringstream oss;
+        oss << "Error: INITIAL_FRAME_SIZE has dimension ";
+        oss << initialFrameSize.size() << " which is different from ";
+        oss << "problem dimension " << n;
+        throw NOMAD::InvalidParameter(__FILE__,__LINE__, oss.str());
     }
 
     if (initialMeshSize.isDefined() && initialFrameSize.isDefined())

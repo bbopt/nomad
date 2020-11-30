@@ -58,15 +58,12 @@ void NOMAD::LH::init()
 
 }
 
+
 void NOMAD::LH::startImp()
 {
-
-    // Comment to appear at the end of stats lines
-    setAlgoComment("(LH)");
-
     generateTrialPoints();
-
 }
+
 
 void NOMAD::LH::generateTrialPoints()
 {
@@ -126,6 +123,7 @@ void NOMAD::LH::generateTrialPoints()
 
 }
 
+
 bool NOMAD::LH::runImp()
 {
     bool foundBetter = false;
@@ -135,7 +133,7 @@ bool NOMAD::LH::runImp()
         foundBetter = evalTrialPoints(this);
     }
     auto LHStopReasons = NOMAD::AlgoStopReasons<NOMAD::LHStopType>::get( _stopReasons );
-    if (  _stopReasons->testIf( NOMAD::EvalStopType::ALL_POINTS_EVALUATED ) )
+    if (NOMAD::EvcInterface::getEvaluatorControl()->testIf(NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED))
     {
         LHStopReasons->set( NOMAD::LHStopType::ALL_POINTS_EVALUATED );
     }
@@ -143,12 +141,7 @@ bool NOMAD::LH::runImp()
     return foundBetter;
 }
 
+
 void NOMAD::LH::endImp()
 {
-    // Remove any remaining points from eval queue.
-    EvcInterface::getEvaluatorControl()->clearQueue();
-
-    // reset to the previous stats comment
-    resetPreviousAlgoComment();
-
 }

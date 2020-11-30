@@ -3,7 +3,7 @@ LIB_NAME           = libsgtelib.so
 LIB_DIR            = ../lib
 LIB                = $(LIB_DIR)/$(LIB_NAME)
 COMPILATOR         = g++
-COMPILATOR_OPTIONS = -O3 -pedantic -Wall -Wextra -fpic
+COMPILATOR_OPTIONS = -O3 -pedantic -Wall -Wextra -fpic -std=c++14
 
 LIB_CURRENT_VERSION= 1.0.0
 
@@ -21,7 +21,6 @@ endif
 
 ifeq ($(UNAME), Linux)
 SHARED_OPTIONS_EXE = -Wl,-rpath-link,'.' -Wl,-rpath,'$$ORIGIN/../lib'
-COMPILATOR_OPTIONS+= -ansi
 LIBS              += -ldl
 endif
 
