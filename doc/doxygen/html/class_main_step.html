@@ -407,7 +407,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="textblock"><p>Main step to manage an algorithm execution. </p>
 <p><a class="el" href="class_main_step.html" title="Main step to manage an algorithm execution.">MainStep</a> is the root step of an executable running an algorithm. Think of it as a wrapper around the algorithm. <a class="el" href="class_main_step.html" title="Main step to manage an algorithm execution.">MainStep</a> manages all algorithm needs: <a class="el" href="class_parameters.html" title="Abstract class for the NOMAD parameters.">Parameters</a>, <a class="el" href="class_evaluator.html" title="Class for the evaluator.">Evaluator</a> and has utility functions (ex. displayUsage). <a class="el" href="class_main_step.html" title="Main step to manage an algorithm execution.">MainStep</a> takes care of the OpenMP parallelism. An algorithm can call other algorithms during its execution. </p>
 
-<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00072">72</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00070">70</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a7afe18c64666bbe81b3f4a7fabd33d2f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7afe18c64666bbe81b3f4a7fabd33d2f">&#9670;&nbsp;</a></span>MainStep()</h2>
@@ -434,19 +434,19 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Constructor. </p>
 
-<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00088">88</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    : <a class="code" href="class_step.html#a3f66a321aa9c417352a75c85cff5aca5">Step</a>(),</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;        <a class="code" href="class_main_step.html#a1b06da01540d17b5413fba132918ebbd">_paramFileName</a>(<span class="stringliteral">&quot;&quot;</span>),</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;        <a class="code" href="class_main_step.html#afda916155d99e75acfa3ef094a48177f">_evaluator</a>(<span class="keyword">nullptr</span>),</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        <a class="code" href="class_main_step.html#a0cf18d8127f4685c555a5fd97e1b1e5a">_algos</a>()</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;<span class="preprocessor">#ifdef TIME_STATS</span></div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;        ,_totalRealTime(0),</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;        _startTime(0.0),</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;        _totalCPUTime(0.0)</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;<span class="preprocessor">#endif // TIME_STATS</span></div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    {</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;        <a class="code" href="class_main_step.html#ab1214648df8f5944e832e9532f6aebe1">init</a>();</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00086">86</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    : <a class="code" href="class_step.html#a3f66a321aa9c417352a75c85cff5aca5">Step</a>(),</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;        <a class="code" href="class_main_step.html#a1b06da01540d17b5413fba132918ebbd">_paramFileName</a>(<span class="stringliteral">&quot;&quot;</span>),</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;        <a class="code" href="class_main_step.html#afda916155d99e75acfa3ef094a48177f">_evaluator</a>(<span class="keyword">nullptr</span>),</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;        <a class="code" href="class_main_step.html#a0cf18d8127f4685c555a5fd97e1b1e5a">_algos</a>()</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;<span class="preprocessor">#ifdef TIME_STATS</span></div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        ,_totalRealTime(0),</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;        _startTime(0.0),</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;        _totalCPUTime(0.0)</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;<span class="preprocessor">#endif // TIME_STATS</span></div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    {</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;        <a class="code" href="class_main_step.html#ab1214648df8f5944e832e9532f6aebe1">init</a>();</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -503,8 +503,8 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Once all algos have been added are executed (call start, run and end for each algo) in the <a class="el" href="class_step.html#a46439d01e8a7aef7ab74d51d77195e9e">MainStep::run</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00130">130</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;{ <a class="code" href="class_main_step.html#a0cf18d8127f4685c555a5fd97e1b1e5a">_algos</a>.push_back(algo); }</div>
+<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00128">128</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;{ <a class="code" href="class_main_step.html#a0cf18d8127f4685c555a5fd97e1b1e5a">_algos</a>.push_back(algo); }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -531,8 +531,8 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00132">132</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;{ <a class="code" href="class_main_step.html#a0cf18d8127f4685c555a5fd97e1b1e5a">_algos</a>.clear(); }</div>
+<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00130">130</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;{ <a class="code" href="class_main_step.html#a0cf18d8127f4685c555a5fd97e1b1e5a">_algos</a>.clear(); }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -940,8 +940,8 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>The evaluator may be shared between main threads. </p>
 
-<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00120">120</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;{ <a class="code" href="class_main_step.html#afda916155d99e75acfa3ef094a48177f">_evaluator</a> = ev;}</div>
+<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00118">118</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;{ <a class="code" href="class_main_step.html#afda916155d99e75acfa3ef094a48177f">_evaluator</a> = ev;}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -997,8 +997,8 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>In batch mode: Set the parameter file name, which will be read in <a class="el" href="class_step.html#ad50196a963b217bb3c901a48f2eced29">start()</a>. In library mode: Set the parameters directly using set_PARAM_NAME(...). In library mode, it is also possible to read a parameter file. </p>
 
-<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00113">113</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;{ <a class="code" href="class_main_step.html#a1b06da01540d17b5413fba132918ebbd">_paramFileName</a> = paramFileName;}</div>
+<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00111">111</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;{ <a class="code" href="class_main_step.html#a1b06da01540d17b5413fba132918ebbd">_paramFileName</a> = paramFileName;}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1080,7 +1080,7 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00078">78</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00076">76</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
 
 </div>
 </div>
@@ -1104,7 +1104,7 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00076">76</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00074">74</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
 
 </div>
 </div>
@@ -1130,7 +1130,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Used in library running mode (not batch mode) </p>
 
-<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00077">77</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00075">75</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
 
 </div>
 </div>
@@ -1156,7 +1156,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Name of the file containing the parameters. </p>
 
-<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00075">75</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_main_step_8hpp_source.html#l00073">73</a> of file <a class="el" href="_main_step_8hpp_source.html">MainStep.hpp</a>.</p>
 
 </div>
 </div>
@@ -1165,16 +1165,16 @@ Additional Inherited Members</h2></td></tr>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="aclass_step_html_a3f66a321aa9c417352a75c85cff5aca5"><div class="ttname"><a href="class_step.html#a3f66a321aa9c417352a75c85cff5aca5">Step::Step</a></div><div class="ttdeci">Step()</div><div class="ttdoc">Constructor #1 for MainStep (no parent)</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00100">Step.hpp:100</a></div></div>
-<div class="ttc" id="aclass_main_step_html_a0cf18d8127f4685c555a5fd97e1b1e5a"><div class="ttname"><a href="class_main_step.html#a0cf18d8127f4685c555a5fd97e1b1e5a">MainStep::_algos</a></div><div class="ttdeci">std::vector&lt; std::shared_ptr&lt; Algorithm &gt; &gt; _algos</div><div class="ttdef"><b>Definition:</b> <a href="_main_step_8hpp_source.html#l00078">MainStep.hpp:78</a></div></div>
+<div class="ttc" id="aclass_step_html_a3f66a321aa9c417352a75c85cff5aca5"><div class="ttname"><a href="class_step.html#a3f66a321aa9c417352a75c85cff5aca5">Step::Step</a></div><div class="ttdeci">Step()</div><div class="ttdoc">Constructor #1 for MainStep (no parent)</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00098">Step.hpp:98</a></div></div>
+<div class="ttc" id="aclass_main_step_html_a0cf18d8127f4685c555a5fd97e1b1e5a"><div class="ttname"><a href="class_main_step.html#a0cf18d8127f4685c555a5fd97e1b1e5a">MainStep::_algos</a></div><div class="ttdeci">std::vector&lt; std::shared_ptr&lt; Algorithm &gt; &gt; _algos</div><div class="ttdef"><b>Definition:</b> <a href="_main_step_8hpp_source.html#l00076">MainStep.hpp:76</a></div></div>
 <div class="ttc" id="aclass_main_step_html_ab1214648df8f5944e832e9532f6aebe1"><div class="ttname"><a href="class_main_step.html#ab1214648df8f5944e832e9532f6aebe1">MainStep::init</a></div><div class="ttdeci">void init()</div><div class="ttdoc">Helper for constructor.</div></div>
-<div class="ttc" id="aclass_main_step_html_afda916155d99e75acfa3ef094a48177f"><div class="ttname"><a href="class_main_step.html#afda916155d99e75acfa3ef094a48177f">MainStep::_evaluator</a></div><div class="ttdeci">std::shared_ptr&lt; Evaluator &gt; _evaluator</div><div class="ttdoc">Used in library running mode (not batch mode)</div><div class="ttdef"><b>Definition:</b> <a href="_main_step_8hpp_source.html#l00077">MainStep.hpp:77</a></div></div>
-<div class="ttc" id="aclass_main_step_html_a1b06da01540d17b5413fba132918ebbd"><div class="ttname"><a href="class_main_step.html#a1b06da01540d17b5413fba132918ebbd">MainStep::_paramFileName</a></div><div class="ttdeci">std::string _paramFileName</div><div class="ttdoc">Name of the file containing the parameters.</div><div class="ttdef"><b>Definition:</b> <a href="_main_step_8hpp_source.html#l00075">MainStep.hpp:75</a></div></div>
+<div class="ttc" id="aclass_main_step_html_afda916155d99e75acfa3ef094a48177f"><div class="ttname"><a href="class_main_step.html#afda916155d99e75acfa3ef094a48177f">MainStep::_evaluator</a></div><div class="ttdeci">std::shared_ptr&lt; Evaluator &gt; _evaluator</div><div class="ttdoc">Used in library running mode (not batch mode)</div><div class="ttdef"><b>Definition:</b> <a href="_main_step_8hpp_source.html#l00075">MainStep.hpp:75</a></div></div>
+<div class="ttc" id="aclass_main_step_html_a1b06da01540d17b5413fba132918ebbd"><div class="ttname"><a href="class_main_step.html#a1b06da01540d17b5413fba132918ebbd">MainStep::_paramFileName</a></div><div class="ttdeci">std::string _paramFileName</div><div class="ttdoc">Name of the file containing the parameters.</div><div class="ttdef"><b>Definition:</b> <a href="_main_step_8hpp_source.html#l00073">MainStep.hpp:73</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="class_main_step.html">MainStep</a></li>
-    <li class="footer">Generated on Thu Nov 26 2020 17:21:29 for NOMAD Source by
+    <li class="footer">Generated on Tue Dec 1 2020 17:08:20 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

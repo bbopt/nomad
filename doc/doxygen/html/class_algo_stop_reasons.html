@@ -203,7 +203,7 @@ class AlgoStopReasons&lt; StopType &gt;</h3>
 At some point during an algorithm a stop reason is set. It can be specific to the algorithm or generic (that is be an <a class="el" href="class_all_stop_reasons.html" title="Class combining all stop reasons that are not algorithmic stop reasons.">AllStopReasons</a> stop type). <br  />
 The stop reasons in <a class="el" href="class_all_stop_reasons.html" title="Class combining all stop reasons that are not algorithmic stop reasons.">AllStopReasons</a> are private and not directly accessible. But the <a class="el" href="class_algo_stop_reasons.html#adcd803516edfd493b593cd4d2526558f" title="Check among generic stop reasons and algo stop reason if the algorithm must terminate.">AlgoStopReasons::checkTerminate()</a> function, checks both <a class="el" href="class_all_stop_reasons.html" title="Class combining all stop reasons that are not algorithmic stop reasons.">AllStopReasons</a> and <a class="el" href="class_algo_stop_reasons.html" title="Template class for algorithm stop reasons.">AlgoStopReasons</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00067">67</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00065">65</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a49661d2d93e06619c19e006cacb3ea1b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a49661d2d93e06619c19e006cacb3ea1b">&#9670;&nbsp;</a></span>AlgoStopReasons()</h2>
@@ -232,10 +232,10 @@ template&lt;typename StopType &gt; </div>
 
 <p>Constructor. </p>
 
-<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00073">73</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;                               : <a class="code" href="class_all_stop_reasons.html#a5e7485fb5b50e4c69cfd53a8212ea26e">AllStopReasons</a>()</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    {</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00071">71</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;                               : <a class="code" href="class_all_stop_reasons.html#a5e7485fb5b50e4c69cfd53a8212ea26e">AllStopReasons</a>()</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    {</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -266,8 +266,8 @@ template&lt;typename StopType &gt; </div>
 
 <p>Destructor. </p>
 
-<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00078">78</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    {}</div>
+<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00076">76</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    {}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -301,13 +301,13 @@ template&lt;typename StopType &gt; </div>
 
 <p>Reimplemented from <a class="el" href="class_all_stop_reasons.html#a5a83d7f0896a67a92464f3325aa179a9">AllStopReasons</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00118">118</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;    {</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;        <span class="keyword">auto</span> evc = NOMAD::EvcInterface::getEvaluatorControl();</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;        <span class="keywordflow">return</span> (NOMAD::AllStopReasons::checkTerminate()</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;                || <a class="code" href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">_algoStopReason</a>.<a class="code" href="class_stop_reason.html#a8f61f539dd825bdfcb6d720284a6d057">checkTerminate</a>()</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;                || ((<span class="keyword">nullptr</span> != evc) &amp;&amp; evc-&gt;getStopReason(<a class="code" href="utils_8hpp.html#add82895cc54655ace0f52ff4a3f09d93">NOMAD::getThreadNum</a>()).checkTerminate()));</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00116">116</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    {</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;        <span class="keyword">auto</span> evc = NOMAD::EvcInterface::getEvaluatorControl();</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        <span class="keywordflow">return</span> (NOMAD::AllStopReasons::checkTerminate()</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;                || <a class="code" href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">_algoStopReason</a>.<a class="code" href="class_stop_reason.html#a8f61f539dd825bdfcb6d720284a6d057">checkTerminate</a>()</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;                || ((<span class="keyword">nullptr</span> != evc) &amp;&amp; evc-&gt;getStopReason(<a class="code" href="utils_8hpp.html#add82895cc54655ace0f52ff4a3f09d93">NOMAD::getThreadNum</a>()).checkTerminate()));</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -339,14 +339,14 @@ template&lt;typename StopType &gt; </div>
 
 <p>Access to the <a class="el" href="class_algo_stop_reasons.html" title="Template class for algorithm stop reasons.">AlgoStopReasons</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00128">128</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    {</div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;        std::shared_ptr&lt;AlgoStopReasons&lt;StopType&gt;&gt; stopReasons = std::dynamic_pointer_cast&lt;AlgoStopReasons&lt;StopType&gt;&gt;( allStopReasons );</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160; </div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;        <span class="keywordflow">if</span> ( stopReasons == <span class="keyword">nullptr</span> )</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__, __LINE__, <span class="stringliteral">&quot;Invalid shared pointer cast&quot;</span>);</div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;        <span class="keywordflow">return</span> stopReasons;</div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00126">126</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;    {</div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;        std::shared_ptr&lt;AlgoStopReasons&lt;StopType&gt;&gt; stopReasons = std::dynamic_pointer_cast&lt;AlgoStopReasons&lt;StopType&gt;&gt;( allStopReasons );</div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160; </div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;        <span class="keywordflow">if</span> ( stopReasons == <span class="keyword">nullptr</span> )</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__, __LINE__, <span class="stringliteral">&quot;Invalid shared pointer cast&quot;</span>);</div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;        <span class="keywordflow">return</span> stopReasons;</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -380,28 +380,28 @@ template&lt;typename StopType &gt; </div>
 
 <p>Reimplemented from <a class="el" href="class_all_stop_reasons.html#aceed3c58d221be24118663cdda1baa6f">AllStopReasons</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00093">93</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    {</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;        std::string stopReasonStr = <a class="code" href="class_all_stop_reasons.html#aceed3c58d221be24118663cdda1baa6f">AllStopReasons::getStopReasonAsString</a>();</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;        <span class="keywordflow">if</span> (!<a class="code" href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">_algoStopReason</a>.<a class="code" href="class_stop_reason.html#aa2bfd73a00e29d730f088bb93abdc2db">isStarted</a>())</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        {</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;            stopReasonStr += <a class="code" href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">_algoStopReason</a>.<a class="code" href="class_stop_reason.html#a22e2e3b4adb5afed027ee74a016a8246">getStopReasonAsString</a>() + <span class="stringliteral">&quot; (Algo)&quot;</span>;</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;        }</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;        <span class="keyword">auto</span> evc = NOMAD::EvcInterface::getEvaluatorControl();</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;        <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> != evc)</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;        {</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;            <span class="keywordtype">int</span> mainThreadNum = <a class="code" href="utils_8hpp.html#add82895cc54655ace0f52ff4a3f09d93">NOMAD::getThreadNum</a>();  <span class="comment">// The code in Algos/ is always called from a main thread.</span></div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;            <span class="keyword">auto</span> evalStopReason = evc-&gt;getStopReason(mainThreadNum);</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;            <span class="keywordflow">if</span> (!evalStopReason.isStarted())</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;            {</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;                stopReasonStr += (stopReasonStr.empty() ? <span class="stringliteral">&quot;&quot;</span> : <span class="stringliteral">&quot; &quot;</span>) + evalStopReason.getStopReasonAsString();</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;            }</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;        }</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160; </div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;        <span class="keywordflow">return</span> stopReasonStr;</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00091">91</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    {</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;        std::string stopReasonStr = <a class="code" href="class_all_stop_reasons.html#aceed3c58d221be24118663cdda1baa6f">AllStopReasons::getStopReasonAsString</a>();</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;        <span class="keywordflow">if</span> (!<a class="code" href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">_algoStopReason</a>.<a class="code" href="class_stop_reason.html#aa2bfd73a00e29d730f088bb93abdc2db">isStarted</a>())</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;        {</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;            stopReasonStr += <a class="code" href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">_algoStopReason</a>.<a class="code" href="class_stop_reason.html#a22e2e3b4adb5afed027ee74a016a8246">getStopReasonAsString</a>() + <span class="stringliteral">&quot; (Algo)&quot;</span>;</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        }</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;        <span class="keyword">auto</span> evc = NOMAD::EvcInterface::getEvaluatorControl();</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;        <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> != evc)</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;        {</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;            <span class="keywordtype">int</span> mainThreadNum = <a class="code" href="utils_8hpp.html#add82895cc54655ace0f52ff4a3f09d93">NOMAD::getThreadNum</a>();  <span class="comment">// The code in Algos/ is always called from a main thread.</span></div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;            <span class="keyword">auto</span> evalStopReason = evc-&gt;getStopReason(mainThreadNum);</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;            <span class="keywordflow">if</span> (!evalStopReason.isStarted())</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;            {</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;                stopReasonStr += (stopReasonStr.empty() ? <span class="stringliteral">&quot;&quot;</span> : <span class="stringliteral">&quot; &quot;</span>) + evalStopReason.getStopReasonAsString();</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;            }</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;        }</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160; </div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;        <span class="keywordflow">return</span> stopReasonStr;</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -433,10 +433,10 @@ template&lt;typename StopType &gt; </div>
 
 <p>Set the algo stop reason to a specific stop type. </p>
 
-<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00087">87</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    {</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;        <a class="code" href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">_algoStopReason</a>.<a class="code" href="class_stop_reason.html#a1fa8b2b0f1429152c2c3a5ff19f299c4">set</a>(s);</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00085">85</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    {</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;        <a class="code" href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">_algoStopReason</a>.<a class="code" href="class_stop_reason.html#a1fa8b2b0f1429152c2c3a5ff19f299c4">set</a>(s);</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -469,16 +469,16 @@ template&lt;typename StopType &gt; </div>
 
 <p>Reimplemented from <a class="el" href="class_all_stop_reasons.html#a6a72c6aa18ecfc47eb9cad7e49858796">AllStopReasons</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00149">149</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;    {</div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;        <a class="code" href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">_algoStopReason</a>.<a class="code" href="class_stop_reason.html#a33f419dd75714f318b8758dea785ef64">setStarted</a>();</div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;        <a class="code" href="class_all_stop_reasons.html#a6a72c6aa18ecfc47eb9cad7e49858796">AllStopReasons::setStarted</a>();</div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;        <span class="keyword">auto</span> evc = NOMAD::EvcInterface::getEvaluatorControl();</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;        <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> != evc)</div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;        {</div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;            evc-&gt;setStopReason(<a class="code" href="utils_8hpp.html#add82895cc54655ace0f52ff4a3f09d93">NOMAD::getThreadNum</a>(), NOMAD::EvalMainThreadStopType::STARTED);</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;        }</div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00147">147</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    {</div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;        <a class="code" href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">_algoStopReason</a>.<a class="code" href="class_stop_reason.html#a33f419dd75714f318b8758dea785ef64">setStarted</a>();</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;        <a class="code" href="class_all_stop_reasons.html#a6a72c6aa18ecfc47eb9cad7e49858796">AllStopReasons::setStarted</a>();</div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;        <span class="keyword">auto</span> evc = NOMAD::EvcInterface::getEvaluatorControl();</div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;        <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> != evc)</div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;        {</div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;            evc-&gt;setStopReason(<a class="code" href="utils_8hpp.html#add82895cc54655ace0f52ff4a3f09d93">NOMAD::getThreadNum</a>(), NOMAD::EvalMainThreadStopType::STARTED);</div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;        }</div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -511,10 +511,10 @@ template&lt;typename StopType &gt; </div>
 <p>Test for a specific algorithm stop type. </p>
 <p>Used to pass a sub-algorithm stop reason to a parent algorithm stop reason. </p>
 
-<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00142">142</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    {</div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;        <span class="keywordflow">return</span> ( <a class="code" href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">_algoStopReason</a>.<a class="code" href="class_stop_reason.html#a1fafe20b5b2237f263d3b2c3b32de986">get</a>() == s );</div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00140">140</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;    {</div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;        <span class="keywordflow">return</span> ( <a class="code" href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">_algoStopReason</a>.<a class="code" href="class_stop_reason.html#a1fafe20b5b2237f263d3b2c3b32de986">get</a>() == s );</div>
+<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -543,7 +543,7 @@ template&lt;typename StopType &gt; </div>
 
 <p>Stop reason specific to this algorithm. </p>
 
-<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00083">83</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_algo_stop_reasons_8hpp_source.html#l00081">81</a> of file <a class="el" href="_algo_stop_reasons_8hpp_source.html">AlgoStopReasons.hpp</a>.</p>
 
 </div>
 </div>
@@ -552,23 +552,23 @@ template&lt;typename StopType &gt; </div>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="aclass_all_stop_reasons_html_a5e7485fb5b50e4c69cfd53a8212ea26e"><div class="ttname"><a href="class_all_stop_reasons.html#a5e7485fb5b50e4c69cfd53a8212ea26e">AllStopReasons::AllStopReasons</a></div><div class="ttdeci">AllStopReasons()</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_all_stop_reasons_8hpp_source.html#l00070">AllStopReasons.hpp:70</a></div></div>
-<div class="ttc" id="aclass_stop_reason_html_a1fafe20b5b2237f263d3b2c3b32de986"><div class="ttname"><a href="class_stop_reason.html#a1fafe20b5b2237f263d3b2c3b32de986">StopReason::get</a></div><div class="ttdeci">T get() const</div><div class="ttdoc">The stop reason.</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00260">StopReason.hpp:260</a></div></div>
+<div class="ttc" id="aclass_all_stop_reasons_html_a5e7485fb5b50e4c69cfd53a8212ea26e"><div class="ttname"><a href="class_all_stop_reasons.html#a5e7485fb5b50e4c69cfd53a8212ea26e">AllStopReasons::AllStopReasons</a></div><div class="ttdeci">AllStopReasons()</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_all_stop_reasons_8hpp_source.html#l00068">AllStopReasons.hpp:68</a></div></div>
+<div class="ttc" id="aclass_stop_reason_html_a1fafe20b5b2237f263d3b2c3b32de986"><div class="ttname"><a href="class_stop_reason.html#a1fafe20b5b2237f263d3b2c3b32de986">StopReason::get</a></div><div class="ttdeci">T get() const</div><div class="ttdoc">The stop reason.</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00258">StopReason.hpp:258</a></div></div>
 <div class="ttc" id="aclass_all_stop_reasons_html_aceed3c58d221be24118663cdda1baa6f"><div class="ttname"><a href="class_all_stop_reasons.html#aceed3c58d221be24118663cdda1baa6f">AllStopReasons::getStopReasonAsString</a></div><div class="ttdeci">virtual std::string getStopReasonAsString() const</div><div class="ttdoc">Get the stop reason that requires termination as a string.</div></div>
-<div class="ttc" id="autils_8hpp_html_add82895cc54655ace0f52ff4a3f09d93"><div class="ttname"><a href="utils_8hpp.html#add82895cc54655ace0f52ff4a3f09d93">getThreadNum</a></div><div class="ttdeci">int getThreadNum()</div><div class="ttdef"><b>Definition:</b> <a href="utils_8cpp_source.html#l00535">utils.cpp:535</a></div></div>
-<div class="ttc" id="aclass_exception_html"><div class="ttname"><a href="class_exception.html">Exception</a></div><div class="ttdoc">Exception utility.</div><div class="ttdef"><b>Definition:</b> <a href="_write_attribute_definition_file_8cpp_source.html#l00088">WriteAttributeDefinitionFile.cpp:88</a></div></div>
-<div class="ttc" id="aclass_stop_reason_html_a22e2e3b4adb5afed027ee74a016a8246"><div class="ttname"><a href="class_stop_reason.html#a22e2e3b4adb5afed027ee74a016a8246">StopReason::getStopReasonAsString</a></div><div class="ttdeci">std::string getStopReasonAsString() const</div><div class="ttdoc">Translate the stop reason into a string for display.</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00289">StopReason.hpp:289</a></div></div>
+<div class="ttc" id="autils_8hpp_html_add82895cc54655ace0f52ff4a3f09d93"><div class="ttname"><a href="utils_8hpp.html#add82895cc54655ace0f52ff4a3f09d93">getThreadNum</a></div><div class="ttdeci">int getThreadNum()</div><div class="ttdef"><b>Definition:</b> <a href="utils_8cpp_source.html#l00533">utils.cpp:533</a></div></div>
+<div class="ttc" id="aclass_exception_html"><div class="ttname"><a href="class_exception.html">Exception</a></div><div class="ttdoc">Exception utility.</div><div class="ttdef"><b>Definition:</b> <a href="_write_attribute_definition_file_8cpp_source.html#l00086">WriteAttributeDefinitionFile.cpp:86</a></div></div>
+<div class="ttc" id="aclass_stop_reason_html_a22e2e3b4adb5afed027ee74a016a8246"><div class="ttname"><a href="class_stop_reason.html#a22e2e3b4adb5afed027ee74a016a8246">StopReason::getStopReasonAsString</a></div><div class="ttdeci">std::string getStopReasonAsString() const</div><div class="ttdoc">Translate the stop reason into a string for display.</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00287">StopReason.hpp:287</a></div></div>
 <div class="ttc" id="aclass_stop_reason_html_a8f61f539dd825bdfcb6d720284a6d057"><div class="ttname"><a href="class_stop_reason.html#a8f61f539dd825bdfcb6d720284a6d057">StopReason::checkTerminate</a></div><div class="ttdeci">bool checkTerminate() const</div><div class="ttdoc">Check if the stop reason requires a termination.</div></div>
-<div class="ttc" id="aclass_algo_stop_reasons_html_a853ea59cf585c4411a348937d5826b26"><div class="ttname"><a href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">AlgoStopReasons::_algoStopReason</a></div><div class="ttdeci">StopReason&lt; StopType &gt; _algoStopReason</div><div class="ttdoc">Stop reason specific to this algorithm.</div><div class="ttdef"><b>Definition:</b> <a href="_algo_stop_reasons_8hpp_source.html#l00083">AlgoStopReasons.hpp:83</a></div></div>
-<div class="ttc" id="aclass_stop_reason_html_aa2bfd73a00e29d730f088bb93abdc2db"><div class="ttname"><a href="class_stop_reason.html#aa2bfd73a00e29d730f088bb93abdc2db">StopReason::isStarted</a></div><div class="ttdeci">bool isStarted() const</div><div class="ttdoc">Check if it is in STARTED state.</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00283">StopReason.hpp:283</a></div></div>
-<div class="ttc" id="aclass_stop_reason_html_a33f419dd75714f318b8758dea785ef64"><div class="ttname"><a href="class_stop_reason.html#a33f419dd75714f318b8758dea785ef64">StopReason::setStarted</a></div><div class="ttdeci">void setStarted()</div><div class="ttdoc">Reset the stop reason to the default STARTED state.</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00277">StopReason.hpp:277</a></div></div>
+<div class="ttc" id="aclass_algo_stop_reasons_html_a853ea59cf585c4411a348937d5826b26"><div class="ttname"><a href="class_algo_stop_reasons.html#a853ea59cf585c4411a348937d5826b26">AlgoStopReasons::_algoStopReason</a></div><div class="ttdeci">StopReason&lt; StopType &gt; _algoStopReason</div><div class="ttdoc">Stop reason specific to this algorithm.</div><div class="ttdef"><b>Definition:</b> <a href="_algo_stop_reasons_8hpp_source.html#l00081">AlgoStopReasons.hpp:81</a></div></div>
+<div class="ttc" id="aclass_stop_reason_html_aa2bfd73a00e29d730f088bb93abdc2db"><div class="ttname"><a href="class_stop_reason.html#aa2bfd73a00e29d730f088bb93abdc2db">StopReason::isStarted</a></div><div class="ttdeci">bool isStarted() const</div><div class="ttdoc">Check if it is in STARTED state.</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00281">StopReason.hpp:281</a></div></div>
+<div class="ttc" id="aclass_stop_reason_html_a33f419dd75714f318b8758dea785ef64"><div class="ttname"><a href="class_stop_reason.html#a33f419dd75714f318b8758dea785ef64">StopReason::setStarted</a></div><div class="ttdeci">void setStarted()</div><div class="ttdoc">Reset the stop reason to the default STARTED state.</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00275">StopReason.hpp:275</a></div></div>
 <div class="ttc" id="aclass_all_stop_reasons_html_a6a72c6aa18ecfc47eb9cad7e49858796"><div class="ttname"><a href="class_all_stop_reasons.html#a6a72c6aa18ecfc47eb9cad7e49858796">AllStopReasons::setStarted</a></div><div class="ttdeci">virtual void setStarted()</div><div class="ttdoc">Reset all stop reasons to their default STARTED state.</div></div>
-<div class="ttc" id="aclass_stop_reason_html_a1fa8b2b0f1429152c2c3a5ff19f299c4"><div class="ttname"><a href="class_stop_reason.html#a1fa8b2b0f1429152c2c3a5ff19f299c4">StopReason::set</a></div><div class="ttdeci">void set(T s)</div><div class="ttdoc">Set the stop reason if it is listed in dictionnary.</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00266">StopReason.hpp:266</a></div></div>
+<div class="ttc" id="aclass_stop_reason_html_a1fa8b2b0f1429152c2c3a5ff19f299c4"><div class="ttname"><a href="class_stop_reason.html#a1fa8b2b0f1429152c2c3a5ff19f299c4">StopReason::set</a></div><div class="ttdeci">void set(T s)</div><div class="ttdoc">Set the stop reason if it is listed in dictionnary.</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00264">StopReason.hpp:264</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="class_algo_stop_reasons.html">AlgoStopReasons</a></li>
-    <li class="footer">Generated on Thu Nov 26 2020 17:21:29 for NOMAD Source by
+    <li class="footer">Generated on Tue Dec 1 2020 17:08:19 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

@@ -147,7 +147,7 @@ class StopReason&lt; T &gt;</h3>
 <p>The possible stop types can be generic: <a class="el" href="_stop_reason_8hpp.html#a766342b7be692fcea777143a8ddc05fc" title="Stop type that can happen at the end of an iteration.">IterStopType</a>, <a class="el" href="_stop_reason_8hpp.html#abd3edf458d170131822799df832535a2" title="Stop type that can happen during evaluation (global conditions)">EvalGlobalStopType</a>, <a class="el" href="_stop_reason_8hpp.html#ac28f32ac9d730fc3017f23a483d97dc8" title="Stop type that can happen during evaluation (conditions for a main thread)">EvalMainThreadStopType</a>, BaseStopType, or specific to an algorithm: <a class="el" href="_stop_reason_8hpp.html#adba84015f9e1bd2ebbe7e99e0de7c152" title="Stop type that can happend during MADS.">MadsStopType</a>, <a class="el" href="_stop_reason_8hpp.html#a6b6fcbb4213b4fa068b4784727255b7f" title="Stop type that happen during the Phase One search of Mads (sub-algo)">PhaseOneStopType</a>, <a class="el" href="_stop_reason_8hpp.html#a8822c17db8053d2bd24b7b9028b1ff45" title="Stop type for Nelder Mead.">NMStopType</a> ,....</p>
 <p>The default stop type is STARTED (no stop). A stop reason different than STARTED indicates what is the cause of termination. Some stop reasons indicate a normal termination that do not need propagation and others must be propagated to stop an algorithm (see <a class="el" href="class_stop_reason.html#a8f61f539dd825bdfcb6d720284a6d057" title="Check if the stop reason requires a termination.">StopReason::checkTerminate()</a>). </p>
 
-<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00197">197</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00195">195</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a9a4f4b6f2a5cb9c6a152ecf7f5c17841"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9a4f4b6f2a5cb9c6a152ecf7f5c17841">&#9670;&nbsp;</a></span>StopReason()</h2>
@@ -178,13 +178,13 @@ template&lt;typename T &gt; </div>
 <p>Upon construction, the validity of the stop reason is verified (sanity check). <br  />
 By default the stop reason is set to STARTED. </p>
 
-<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00248">248</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;    {</div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;        <a class="code" href="class_stop_reason.html#a39e0360e5841adeba27e9a3c628a715b">testValidity</a>();</div>
+<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00246">246</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;    {</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;        <a class="code" href="class_stop_reason.html#a39e0360e5841adeba27e9a3c628a715b">testValidity</a>();</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160; </div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;        <a class="code" href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">_stopReason</a> = T::STARTED;</div>
 <div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160; </div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;        <a class="code" href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">_stopReason</a> = T::STARTED;</div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160; </div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;    }</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -215,8 +215,8 @@ template&lt;typename T &gt; </div>
 
 <p>Destructor. </p>
 
-<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00257">257</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;{}</div>
+<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00255">255</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;{}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -302,10 +302,10 @@ template&lt;typename T &gt; </div>
 
 <p>The stop reason. </p>
 
-<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00260">260</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;    {</div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">_stopReason</a>;</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00258">258</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;    {</div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">_stopReason</a>;</div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -336,11 +336,11 @@ template&lt;typename T &gt; </div>
 
 <p>Translate the stop reason into a string for display. </p>
 
-<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00289">289</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;    {</div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;        <span class="keyword">typename</span> std::map&lt;T,std::string&gt;::iterator it = <a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().find( <a class="code" href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">_stopReason</a> );</div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;        <span class="keywordflow">return</span> it-&gt;second;</div>
-<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00287">287</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;    {</div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;        <span class="keyword">typename</span> std::map&lt;T,std::string&gt;::iterator it = <a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().find( <a class="code" href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">_stopReason</a> );</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;        <span class="keywordflow">return</span> it-&gt;second;</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -371,10 +371,10 @@ template&lt;typename T &gt; </div>
 
 <p>Check if it is in STARTED state. </p>
 
-<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00283">283</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;    {</div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;        <span class="keywordflow">return</span> ( <a class="code" href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">_stopReason</a> == T::STARTED );</div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00281">281</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;    {</div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;        <span class="keywordflow">return</span> ( <a class="code" href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">_stopReason</a> == T::STARTED );</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -406,15 +406,15 @@ template&lt;typename T &gt; </div>
 
 <p>Set the stop reason if it is listed in dictionnary. </p>
 
-<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00266">266</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;    {</div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;        <span class="keyword">typename</span> std::map&lt;T,std::string&gt;::iterator it = <a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().find(s);</div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160; </div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;        <span class="keywordflow">if</span> ( it==<a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().end() )</div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__,__LINE__,<span class="stringliteral">&quot;Stop reason not found.&quot;</span>);</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160; </div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;        <a class="code" href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">_stopReason</a> = s;</div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00264">264</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;    {</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;        <span class="keyword">typename</span> std::map&lt;T,std::string&gt;::iterator it = <a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().find(s);</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160; </div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;        <span class="keywordflow">if</span> ( it==<a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().end() )</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__,__LINE__,<span class="stringliteral">&quot;Stop reason not found.&quot;</span>);</div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160; </div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;        <a class="code" href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">_stopReason</a> = s;</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -445,10 +445,10 @@ template&lt;typename T &gt; </div>
 
 <p>Reset the stop reason to the default STARTED state. </p>
 
-<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00277">277</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;    {</div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;        <a class="code" href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">_stopReason</a> = T::STARTED;</div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00275">275</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;    {</div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;        <a class="code" href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">_stopReason</a> = T::STARTED;</div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -479,35 +479,35 @@ template&lt;typename T &gt; </div>
 
 <p>Helper for constructor (check sanity) </p>
 
-<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00212">212</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;    {</div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;        <span class="keywordflow">if</span> ( ! std::is_enum&lt;T&gt;::value )</div>
-<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__,__LINE__,<span class="stringliteral">&quot;The templated stop reason is not an enum.&quot;</span>);</div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160; </div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;        <span class="keywordflow">if</span> ( <a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().size() == 0 )</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__,__LINE__,<span class="stringliteral">&quot;Dictionary not filled.&quot;</span>);</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160; </div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160; </div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;        <span class="keywordflow">if</span> ( (<span class="keywordtype">int</span>) T::STARTED != 0 )</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__,__LINE__,<span class="stringliteral">&quot;First StopType in enum must be STARTED.&quot;</span>);</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160; </div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;        <span class="keywordflow">if</span> ( (<span class="keywordtype">int</span>) T::LAST != <a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().size() )</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;        {</div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;            std::string s = <span class="stringliteral">&quot;Not enough elements in enum dictionary (&quot;</span>;</div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;            s += std::to_string(<a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().size()) + <span class="stringliteral">&quot;), expecting &quot;</span> + std::to_string((<span class="keywordtype">int</span>)T::LAST);</div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__,__LINE__,s);</div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;        }</div>
-<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160; </div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = (<span class="keywordtype">int</span>) T::STARTED; i &lt; (int ) T::LAST; i++)</div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;        {</div>
-<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;            <span class="keyword">typename</span> std::map&lt;T,std::string&gt;::iterator it = <a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().find( (T) i );</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160; </div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;            <span class="keywordflow">if</span> ( it== <a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().end() )</div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;                <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__,__LINE__,<span class="stringliteral">&quot;All enum elements must be in dictionary.&quot;</span>);</div>
+<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00210">210</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;    {</div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;        <span class="keywordflow">if</span> ( ! std::is_enum&lt;T&gt;::value )</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__,__LINE__,<span class="stringliteral">&quot;The templated stop reason is not an enum.&quot;</span>);</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160; </div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;        <span class="keywordflow">if</span> ( <a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().size() == 0 )</div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__,__LINE__,<span class="stringliteral">&quot;Dictionary not filled.&quot;</span>);</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160; </div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160; </div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;        <span class="keywordflow">if</span> ( (<span class="keywordtype">int</span>) T::STARTED != 0 )</div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__,__LINE__,<span class="stringliteral">&quot;First StopType in enum must be STARTED.&quot;</span>);</div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160; </div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;        <span class="keywordflow">if</span> ( (<span class="keywordtype">int</span>) T::LAST != <a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().size() )</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;        {</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;            std::string s = <span class="stringliteral">&quot;Not enough elements in enum dictionary (&quot;</span>;</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;            s += std::to_string(<a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().size()) + <span class="stringliteral">&quot;), expecting &quot;</span> + std::to_string((<span class="keywordtype">int</span>)T::LAST);</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__,__LINE__,s);</div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;        }</div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160; </div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = (<span class="keywordtype">int</span>) T::STARTED; i &lt; (int ) T::LAST; i++)</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;        {</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;            <span class="keyword">typename</span> std::map&lt;T,std::string&gt;::iterator it = <a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().find( (T) i );</div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160; </div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;            <span class="keywordflow">if</span> ( it== <a class="code" href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">dict</a>().end() )</div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;                <span class="keywordflow">throw</span> <a class="code" href="class_exception.html">Exception</a>(__FILE__,__LINE__,<span class="stringliteral">&quot;All enum elements must be in dictionary.&quot;</span>);</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160; </div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;        }</div>
 <div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160; </div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;        }</div>
-<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160; </div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    }</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -536,7 +536,7 @@ template&lt;typename T &gt; </div>
 
 <p>The stop reason stored as a stop type. </p>
 
-<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00202">202</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_stop_reason_8hpp_source.html#l00200">200</a> of file <a class="el" href="_stop_reason_8hpp_source.html">StopReason.hpp</a>.</p>
 
 </div>
 </div>
@@ -546,14 +546,14 @@ template&lt;typename T &gt; </div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="aclass_stop_reason_html_aa38bebace9dac280bdfe6e8cb1d4a2f6"><div class="ttname"><a href="class_stop_reason.html#aa38bebace9dac280bdfe6e8cb1d4a2f6">StopReason::dict</a></div><div class="ttdeci">std::map&lt; T, std::string &gt; &amp; dict() const</div><div class="ttdoc">Dictionnary to translate a stop type into a string.</div></div>
-<div class="ttc" id="aclass_stop_reason_html_a39e0360e5841adeba27e9a3c628a715b"><div class="ttname"><a href="class_stop_reason.html#a39e0360e5841adeba27e9a3c628a715b">StopReason::testValidity</a></div><div class="ttdeci">void testValidity() const</div><div class="ttdoc">Helper for constructor (check sanity)</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00212">StopReason.hpp:212</a></div></div>
-<div class="ttc" id="aclass_exception_html"><div class="ttname"><a href="class_exception.html">Exception</a></div><div class="ttdoc">Exception utility.</div><div class="ttdef"><b>Definition:</b> <a href="_write_attribute_definition_file_8cpp_source.html#l00088">WriteAttributeDefinitionFile.cpp:88</a></div></div>
-<div class="ttc" id="aclass_stop_reason_html_a694b20d1e207cd5c7502a6065108d399"><div class="ttname"><a href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">StopReason::_stopReason</a></div><div class="ttdeci">T _stopReason</div><div class="ttdoc">The stop reason stored as a stop type.</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00202">StopReason.hpp:202</a></div></div>
+<div class="ttc" id="aclass_stop_reason_html_a39e0360e5841adeba27e9a3c628a715b"><div class="ttname"><a href="class_stop_reason.html#a39e0360e5841adeba27e9a3c628a715b">StopReason::testValidity</a></div><div class="ttdeci">void testValidity() const</div><div class="ttdoc">Helper for constructor (check sanity)</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00210">StopReason.hpp:210</a></div></div>
+<div class="ttc" id="aclass_exception_html"><div class="ttname"><a href="class_exception.html">Exception</a></div><div class="ttdoc">Exception utility.</div><div class="ttdef"><b>Definition:</b> <a href="_write_attribute_definition_file_8cpp_source.html#l00086">WriteAttributeDefinitionFile.cpp:86</a></div></div>
+<div class="ttc" id="aclass_stop_reason_html_a694b20d1e207cd5c7502a6065108d399"><div class="ttname"><a href="class_stop_reason.html#a694b20d1e207cd5c7502a6065108d399">StopReason::_stopReason</a></div><div class="ttdeci">T _stopReason</div><div class="ttdoc">The stop reason stored as a stop type.</div><div class="ttdef"><b>Definition:</b> <a href="_stop_reason_8hpp_source.html#l00200">StopReason.hpp:200</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="class_stop_reason.html">StopReason</a></li>
-    <li class="footer">Generated on Thu Nov 26 2020 17:21:29 for NOMAD Source by
+    <li class="footer">Generated on Tue Dec 1 2020 17:08:20 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

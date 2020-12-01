@@ -115,75 +115,73 @@ $(document).ready(function(){initNavTree('_eval_parameters_8hpp_source.html','')
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="comment">/*    Polytechnique Montreal - GERAD                                               */</span></div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="comment">/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */</span></div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="comment">/*    e-mail: nomad@gerad.ca                                                       */</span></div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="comment">/*    phone : 1-514-340-6053 #6928                                                 */</span></div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="comment">/*    fax   : 1-514-340-5665                                                       */</span></div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="comment">/*                                                                                 */</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="comment">/*  This program is free software: you can redistribute it and/or modify it        */</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="comment">/*  under the terms of the GNU Lesser General Public License as published by       */</span></div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="comment">/*  the Free Software Foundation, either version 3 of the License, or (at your     */</span></div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="comment">/*  option) any later version.                                                     */</span></div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="comment">/*                                                                                 */</span></div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="comment">/*  This program is distributed in the hope that it will be useful, but WITHOUT    */</span></div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="comment">/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */</span></div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="comment">/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */</span></div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="comment">/*  for more details.                                                              */</span></div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="comment">/*                                                                                 */</span></div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="comment">/*  You should have received a copy of the GNU Lesser General Public License       */</span></div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="comment">/*  along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.           */</span></div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="comment">/*                                                                                 */</span></div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="comment">/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */</span></div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="comment">/*---------------------------------------------------------------------------------*/</span></div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="preprocessor">#ifndef __NOMAD400_EVALPARAMETERS__</span></div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="preprocessor">#define __NOMAD400_EVALPARAMETERS__</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="preprocessor">#include &quot;../Param/Parameters.hpp&quot;</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="preprocessor">#include &quot;../Param/RunParameters.hpp&quot;</span></div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; </div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="preprocessor">#include &quot;../nomad_nsbegin.hpp&quot;</span></div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="comment">/// Class for Evaluator parameters</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="comment"></span><span class="comment">/**</span></div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="comment">- Register all parameters during construction.</span></div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="comment">- Implement the checkAndComply function for sanity check.</span></div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="comment">*/</span></div>
-<div class="line"><a name="l00061"></a><span class="lineno"><a class="line" href="class_eval_parameters.html">   61</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_eval_parameters.html">EvalParameters</a> final : <span class="keyword">public</span> <a class="code" href="class_parameters.html">Parameters</a></div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;{</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
-<div class="line"><a name="l00065"></a><span class="lineno"><a class="line" href="class_eval_parameters.html#a39aa0b90003241948ceb55b01dbd9f99">   65</a></span>&#160;    <span class="keyword">explicit</span> <a class="code" href="class_eval_parameters.html#a39aa0b90003241948ceb55b01dbd9f99">EvalParameters</a>()</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    : <a class="code" href="class_parameters.html">Parameters</a>()</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    {</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        <a class="code" href="class_eval_parameters.html#a1ea83e6e9e067dc73c0d69e401d06847">init</a>();</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    }</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;<span class="comment">    /// Check the sanity of parameters.</span></div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_eval_parameters.html#adbe09e04535c94a93011fe58e0a37a3c">checkAndComply</a>( <span class="keyword">const</span> std::shared_ptr&lt;RunParameters&gt; &amp; runParams );</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160; </div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="keyword">private</span>:<span class="comment"></span></div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="comment">    /// Helper for constructor</span></div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;<span class="comment"></span><span class="comment">    /**</span></div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;<span class="comment">     Register and set default values for all evaluation attributes. The information to register all the attributes is contained in evalAttributesDefinition.hpp as a set of strings to be interpreted. This file is created by the writeAttributeDefinition executable, called automatically by makefile when the evalAttributeDefinition.txt file is modified.</span></div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_eval_parameters.html#a1ea83e6e9e067dc73c0d69e401d06847">init</a>() <span class="keyword">override</span> ;</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="comment">/*                                                                                 */</span></div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="comment">/*  This program is free software: you can redistribute it and/or modify it        */</span></div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="comment">/*  under the terms of the GNU Lesser General Public License as published by       */</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="comment">/*  the Free Software Foundation, either version 3 of the License, or (at your     */</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="comment">/*  option) any later version.                                                     */</span></div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="comment">/*                                                                                 */</span></div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="comment">/*  This program is distributed in the hope that it will be useful, but WITHOUT    */</span></div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="comment">/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */</span></div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="comment">/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */</span></div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="comment">/*  for more details.                                                              */</span></div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="comment">/*                                                                                 */</span></div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="comment">/*  You should have received a copy of the GNU Lesser General Public License       */</span></div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="comment">/*  along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.           */</span></div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="comment">/*                                                                                 */</span></div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="comment">/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */</span></div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="comment">/*---------------------------------------------------------------------------------*/</span></div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="preprocessor">#ifndef __NOMAD400_EVALPARAMETERS__</span></div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="preprocessor">#define __NOMAD400_EVALPARAMETERS__</span></div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; </div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="preprocessor">#include &quot;../Param/Parameters.hpp&quot;</span></div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="preprocessor">#include &quot;../Param/RunParameters.hpp&quot;</span></div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="preprocessor">#include &quot;../nomad_nsbegin.hpp&quot;</span></div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="comment">/// Class for Evaluator parameters</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="comment"></span><span class="comment">/**</span></div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="comment">- Register all parameters during construction.</span></div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="comment">- Implement the checkAndComply function for sanity check.</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="comment">*/</span></div>
+<div class="line"><a name="l00059"></a><span class="lineno"><a class="line" href="class_eval_parameters.html">   59</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_eval_parameters.html">EvalParameters</a> final : <span class="keyword">public</span> <a class="code" href="class_parameters.html">Parameters</a></div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;{</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
+<div class="line"><a name="l00063"></a><span class="lineno"><a class="line" href="class_eval_parameters.html#a39aa0b90003241948ceb55b01dbd9f99">   63</a></span>&#160;    <span class="keyword">explicit</span> <a class="code" href="class_eval_parameters.html#a39aa0b90003241948ceb55b01dbd9f99">EvalParameters</a>()</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    : <a class="code" href="class_parameters.html">Parameters</a>()</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    {</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        <a class="code" href="class_eval_parameters.html#a1ea83e6e9e067dc73c0d69e401d06847">init</a>();</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    }</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;<span class="comment">    /// Check the sanity of parameters.</span></div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_eval_parameters.html#adbe09e04535c94a93011fe58e0a37a3c">checkAndComply</a>( <span class="keyword">const</span> std::shared_ptr&lt;RunParameters&gt; &amp; runParams );</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160; </div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;<span class="keyword">private</span>:<span class="comment"></span></div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="comment">    /// Helper for constructor</span></div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="comment"></span><span class="comment">    /**</span></div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="comment">     Register and set default values for all evaluation attributes. The information to register all the attributes is contained in evalAttributesDefinition.hpp as a set of strings to be interpreted. This file is created by the writeAttributeDefinition executable, called automatically by makefile when the evalAttributeDefinition.txt file is modified.</span></div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_eval_parameters.html#a1ea83e6e9e067dc73c0d69e401d06847">init</a>() <span class="keyword">override</span> ;</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;};</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;};</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;<span class="preprocessor">#include &quot;../nomad_nsend.hpp&quot;</span></div>
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;<span class="preprocessor">#include &quot;../nomad_nsend.hpp&quot;</span></div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;<span class="preprocessor">#endif // __NOMAD400_EVALPARAMETERS__</span></div>
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;<span class="preprocessor">#endif // __NOMAD400_EVALPARAMETERS__</span></div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160; </div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="aclass_eval_parameters_html"><div class="ttname"><a href="class_eval_parameters.html">EvalParameters</a></div><div class="ttdoc">Class for Evaluator parameters.</div><div class="ttdef"><b>Definition:</b> <a href="_eval_parameters_8hpp_source.html#l00061">EvalParameters.hpp:61</a></div></div>
-<div class="ttc" id="aclass_parameters_html"><div class="ttname"><a href="class_parameters.html">Parameters</a></div><div class="ttdoc">Abstract class for the NOMAD parameters.</div><div class="ttdef"><b>Definition:</b> <a href="_parameters_8hpp_source.html#l00139">Parameters.hpp:139</a></div></div>
+<div class="ttc" id="aclass_eval_parameters_html"><div class="ttname"><a href="class_eval_parameters.html">EvalParameters</a></div><div class="ttdoc">Class for Evaluator parameters.</div><div class="ttdef"><b>Definition:</b> <a href="_eval_parameters_8hpp_source.html#l00059">EvalParameters.hpp:59</a></div></div>
+<div class="ttc" id="aclass_parameters_html"><div class="ttname"><a href="class_parameters.html">Parameters</a></div><div class="ttdoc">Abstract class for the NOMAD parameters.</div><div class="ttdef"><b>Definition:</b> <a href="_parameters_8hpp_source.html#l00137">Parameters.hpp:137</a></div></div>
 <div class="ttc" id="aclass_eval_parameters_html_adbe09e04535c94a93011fe58e0a37a3c"><div class="ttname"><a href="class_eval_parameters.html#adbe09e04535c94a93011fe58e0a37a3c">EvalParameters::checkAndComply</a></div><div class="ttdeci">void checkAndComply(const std::shared_ptr&lt; RunParameters &gt; &amp;runParams)</div><div class="ttdoc">Check the sanity of parameters.</div></div>
-<div class="ttc" id="aclass_eval_parameters_html_a39aa0b90003241948ceb55b01dbd9f99"><div class="ttname"><a href="class_eval_parameters.html#a39aa0b90003241948ceb55b01dbd9f99">EvalParameters::EvalParameters</a></div><div class="ttdeci">EvalParameters()</div><div class="ttdef"><b>Definition:</b> <a href="_eval_parameters_8hpp_source.html#l00065">EvalParameters.hpp:65</a></div></div>
+<div class="ttc" id="aclass_eval_parameters_html_a39aa0b90003241948ceb55b01dbd9f99"><div class="ttname"><a href="class_eval_parameters.html#a39aa0b90003241948ceb55b01dbd9f99">EvalParameters::EvalParameters</a></div><div class="ttdeci">EvalParameters()</div><div class="ttdef"><b>Definition:</b> <a href="_eval_parameters_8hpp_source.html#l00063">EvalParameters.hpp:63</a></div></div>
 <div class="ttc" id="aclass_eval_parameters_html_a1ea83e6e9e067dc73c0d69e401d06847"><div class="ttname"><a href="class_eval_parameters.html#a1ea83e6e9e067dc73c0d69e401d06847">EvalParameters::init</a></div><div class="ttdeci">void init() override</div><div class="ttdoc">Helper for constructor.</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_3079b9de3b0ed59bcc1744ceff5423be.html">Param</a></li><li class="navelem"><a class="el" href="_eval_parameters_8hpp.html">EvalParameters.hpp</a></li>
-    <li class="footer">Generated on Thu Nov 26 2020 17:21:28 for NOMAD Source by
+    <li class="footer">Generated on Tue Dec 1 2020 17:08:19 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

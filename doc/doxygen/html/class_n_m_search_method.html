@@ -423,7 +423,7 @@ Additional Inherited Members</h2></td></tr>
 <p>If Nelder Mead search is enabled (check is done in <a class="el" href="class_n_m_search_method.html#a16ac307f98986ea35ddbd9db3f21fb2e" title="Helper for constructor.">NMSearchMethod::init</a>), the <a class="el" href="class_step.html#a46439d01e8a7aef7ab74d51d77195e9e">NMSearchMethod::run</a> function manages the execution (start, run, end) of the <a class="el" href="class_n_m.html" title="Class implementing Nelder Mead non-linear simplex algorithm for constrained problems.">NM</a> algorithm. <br  />
 The new trial points can be generated during a single pass of all Nelder Mead reflective steps (REFLECT, EXPAND, INSIDE_CONTRACTION, OUTSIDE_CONTRACTION) ( generateTrialPoint ) or as a <a class="el" href="class_n_m.html" title="Class implementing Nelder Mead non-linear simplex algorithm for constrained problems.">NM</a> optimization. </p>
 
-<p class="definition">Definition at line <a class="el" href="_n_m_search_method_8hpp_source.html#l00060">60</a> of file <a class="el" href="_n_m_search_method_8hpp_source.html">NMSearchMethod.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_n_m_search_method_8hpp_source.html#l00058">58</a> of file <a class="el" href="_n_m_search_method_8hpp_source.html">NMSearchMethod.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="abd3b412d79e506fdbf79b219d42a9076"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abd3b412d79e506fdbf79b219d42a9076">&#9670;&nbsp;</a></span>NMSearchMethod()</h2>
@@ -452,11 +452,11 @@ The new trial points can be generated during a single pass of all Nelder Mead re
 <p>Constructor. </p>
 <p>/param parentStep The parent of this search step &ndash; <b>IN</b>. </p>
 
-<p class="definition">Definition at line <a class="el" href="_n_m_search_method_8hpp_source.html#l00067">67</a> of file <a class="el" href="_n_m_search_method_8hpp_source.html">NMSearchMethod.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;      : <a class="code" href="class_search_method_algo.html#a2158c0009c8b7683956221bad0728f38">SearchMethodAlgo</a>(parentStep )</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    {</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        <a class="code" href="class_n_m_search_method.html#a16ac307f98986ea35ddbd9db3f21fb2e">init</a>();</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_n_m_search_method_8hpp_source.html#l00065">65</a> of file <a class="el" href="_n_m_search_method_8hpp_source.html">NMSearchMethod.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;      : <a class="code" href="class_search_method_algo.html#a2158c0009c8b7683956221bad0728f38">SearchMethodAlgo</a>(parentStep )</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    {</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        <a class="code" href="class_n_m_search_method.html#a16ac307f98986ea35ddbd9db3f21fb2e">init</a>();</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -561,12 +561,12 @@ Perform one iteration of all reflective steps (Reflect, Expansion, Inside and Ou
 </div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="aclass_n_m_search_method_html_a16ac307f98986ea35ddbd9db3f21fb2e"><div class="ttname"><a href="class_n_m_search_method.html#a16ac307f98986ea35ddbd9db3f21fb2e">NMSearchMethod::init</a></div><div class="ttdeci">void init()</div><div class="ttdoc">Helper for constructor.</div></div>
-<div class="ttc" id="aclass_search_method_algo_html_a2158c0009c8b7683956221bad0728f38"><div class="ttname"><a href="class_search_method_algo.html#a2158c0009c8b7683956221bad0728f38">SearchMethodAlgo::SearchMethodAlgo</a></div><div class="ttdeci">SearchMethodAlgo(const Step *parentStep)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_search_method_algo_8hpp_source.html#l00065">SearchMethodAlgo.hpp:65</a></div></div>
+<div class="ttc" id="aclass_search_method_algo_html_a2158c0009c8b7683956221bad0728f38"><div class="ttname"><a href="class_search_method_algo.html#a2158c0009c8b7683956221bad0728f38">SearchMethodAlgo::SearchMethodAlgo</a></div><div class="ttdeci">SearchMethodAlgo(const Step *parentStep)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_search_method_algo_8hpp_source.html#l00063">SearchMethodAlgo.hpp:63</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="class_n_m_search_method.html">NMSearchMethod</a></li>
-    <li class="footer">Generated on Thu Nov 26 2020 17:21:29 for NOMAD Source by
+    <li class="footer">Generated on Tue Dec 1 2020 17:08:20 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

@@ -430,7 +430,7 @@ Private Attributes</h2></td></tr>
 <div class="textblock"><p>Class to control the evaluation of points using a queue. </p>
 <dl class="todo"><dt><b><a class="el" href="todo.html#_todo000008">Todo:</a></b></dt><dd>Complete the description. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00077">77</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00075">75</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a1ea63ea1377f5d404e85ee06a2ad66d3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1ea63ea1377f5d404e85ee06a2ad66d3">&#9670;&nbsp;</a></span>EvaluatorControl()</h2>
@@ -482,34 +482,34 @@ Private Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00197">197</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;      : <a class="code" href="class_evaluator_control.html#a29fa32748d01cbc701a73e51deb4dea4">_evalContGlobalParams</a>(evalContGlobalParams),</div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;        <a class="code" href="class_evaluator_control.html#a47528cf4702a71a29b846672d855a325">_mainThreads</a>(),</div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;        <a class="code" href="class_evaluator_control.html#a5f510aada73f93360b00622cc61e845c">_mainThreadInfo</a>(),</div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;        <a class="code" href="class_evaluator_control.html#ac1caec580db418c2c450d9042d2fa80c">_evalPointQueue</a>(),</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;        <a class="code" href="class_evaluator_control.html#ab2bfbd3b4195684023142feff9ab6b33">_userCompMethod</a>(<span class="keyword">nullptr</span>),</div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;<span class="preprocessor">#ifdef _OPENMP</span></div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;        _evalQueueLock(),</div>
-<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;<span class="preprocessor">#endif // _OPENMP</span></div>
-<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;        <a class="code" href="class_evaluator_control.html#a75cb4e388011093ff2fa6d127951b998">_bbEval</a>(0),</div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;        <a class="code" href="class_evaluator_control.html#a7173c80074c8202bc2f3bab6eb166806">_bbEvalNotOk</a>(0),</div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;        <a class="code" href="class_evaluator_control.html#afdc6ac19b06acbbc0cfc76b839f69aa5">_feasBBEval</a>(0),</div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;        <a class="code" href="class_evaluator_control.html#adfc4f3b163b428b80549b278a69688d6">_infBBEval</a>(0),</div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;        <a class="code" href="class_evaluator_control.html#aa7236076981d44ce95f78f7831d54a04">_totalSgteEval</a>(0),</div>
-<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;        <a class="code" href="class_evaluator_control.html#a410c3cd876191955ace472c8705cd4c2">_blockEval</a>(0),</div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;        <a class="code" href="class_evaluator_control.html#afaceb5bbeb587d244f6d9e0947ca42e4">_indexSuccBlockEval</a>(0),</div>
-<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;        <a class="code" href="class_evaluator_control.html#a6f44154453f021b8ba26cc3705c1960f">_indexBestFeasEval</a>(0),</div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;        <a class="code" href="class_evaluator_control.html#aed3729357152fe8f9fae2da05fafa264">_indexBestInfeasEval</a>(0),</div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;        <a class="code" href="class_evaluator_control.html#aaf78d5f2d4222d811c1900844e2e10cc">_nbEvalSentToEvaluator</a>(0),</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;        <a class="code" href="class_evaluator_control.html#a3d8cebd0fb491a1de610f9d504615b80">_nbRelativeSuccess</a>(0),</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;        <a class="code" href="class_evaluator_control.html#a2c68e7d1522526259e4d37dda8a0b7cc">_nbPhaseOneSuccess</a>(0),</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;        <a class="code" href="class_evaluator_control.html#ab438d6cd579c8198c43d890fb271d6d5">_allDoneWithEval</a>(<span class="keyword">false</span>)</div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;<span class="preprocessor">#ifdef TIME_STATS</span></div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;        ,_evalTime(0.0)</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;<span class="preprocessor">#endif // TIME_STATS</span></div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;    {</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;        <a class="code" href="class_evaluator_control.html#af5a69509ff8aab3599a43be7ce0514b7">init</a>(evaluator, evalContParams);</div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00195">195</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;      : <a class="code" href="class_evaluator_control.html#a29fa32748d01cbc701a73e51deb4dea4">_evalContGlobalParams</a>(evalContGlobalParams),</div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;        <a class="code" href="class_evaluator_control.html#a47528cf4702a71a29b846672d855a325">_mainThreads</a>(),</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;        <a class="code" href="class_evaluator_control.html#a5f510aada73f93360b00622cc61e845c">_mainThreadInfo</a>(),</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;        <a class="code" href="class_evaluator_control.html#ac1caec580db418c2c450d9042d2fa80c">_evalPointQueue</a>(),</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;        <a class="code" href="class_evaluator_control.html#ab2bfbd3b4195684023142feff9ab6b33">_userCompMethod</a>(<span class="keyword">nullptr</span>),</div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;<span class="preprocessor">#ifdef _OPENMP</span></div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;        _evalQueueLock(),</div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;<span class="preprocessor">#endif // _OPENMP</span></div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;        <a class="code" href="class_evaluator_control.html#a75cb4e388011093ff2fa6d127951b998">_bbEval</a>(0),</div>
+<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;        <a class="code" href="class_evaluator_control.html#a7173c80074c8202bc2f3bab6eb166806">_bbEvalNotOk</a>(0),</div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;        <a class="code" href="class_evaluator_control.html#afdc6ac19b06acbbc0cfc76b839f69aa5">_feasBBEval</a>(0),</div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;        <a class="code" href="class_evaluator_control.html#adfc4f3b163b428b80549b278a69688d6">_infBBEval</a>(0),</div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;        <a class="code" href="class_evaluator_control.html#aa7236076981d44ce95f78f7831d54a04">_totalSgteEval</a>(0),</div>
+<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;        <a class="code" href="class_evaluator_control.html#a410c3cd876191955ace472c8705cd4c2">_blockEval</a>(0),</div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;        <a class="code" href="class_evaluator_control.html#afaceb5bbeb587d244f6d9e0947ca42e4">_indexSuccBlockEval</a>(0),</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;        <a class="code" href="class_evaluator_control.html#a6f44154453f021b8ba26cc3705c1960f">_indexBestFeasEval</a>(0),</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;        <a class="code" href="class_evaluator_control.html#aed3729357152fe8f9fae2da05fafa264">_indexBestInfeasEval</a>(0),</div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;        <a class="code" href="class_evaluator_control.html#aaf78d5f2d4222d811c1900844e2e10cc">_nbEvalSentToEvaluator</a>(0),</div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;        <a class="code" href="class_evaluator_control.html#a3d8cebd0fb491a1de610f9d504615b80">_nbRelativeSuccess</a>(0),</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;        <a class="code" href="class_evaluator_control.html#a2c68e7d1522526259e4d37dda8a0b7cc">_nbPhaseOneSuccess</a>(0),</div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;        <a class="code" href="class_evaluator_control.html#ab438d6cd579c8198c43d890fb271d6d5">_allDoneWithEval</a>(<span class="keyword">false</span>)</div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;<span class="preprocessor">#ifdef TIME_STATS</span></div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;        ,_evalTime(0.0)</div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;<span class="preprocessor">#endif // TIME_STATS</span></div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    {</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;        <a class="code" href="class_evaluator_control.html#af5a69509ff8aab3599a43be7ce0514b7">init</a>(evaluator, evalContParams);</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -538,10 +538,10 @@ Private Attributes</h2></td></tr>
 
 <p>Destructor. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00229">229</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    {</div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;        <a class="code" href="class_evaluator_control.html#aa746612b71ca86ba2c9bd3d36bfa8129">destroy</a>();</div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00227">227</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    {</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;        <a class="code" href="class_evaluator_control.html#aa746612b71ca86ba2c9bd3d36bfa8129">destroy</a>();</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1055,8 +1055,8 @@ Private Attributes</h2></td></tr>
 
 <p>Get the number of blackbox evaluations. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00249">249</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#a75cb4e388011093ff2fa6d127951b998">_bbEval</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00247">247</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#a75cb4e388011093ff2fa6d127951b998">_bbEval</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1103,8 +1103,8 @@ Private Attributes</h2></td></tr>
 
 <p>Get the number of blackbox evaluations that are not ok. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00255">255</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#a7173c80074c8202bc2f3bab6eb166806">_bbEvalNotOk</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00253">253</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#a7173c80074c8202bc2f3bab6eb166806">_bbEvalNotOk</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1151,8 +1151,8 @@ Private Attributes</h2></td></tr>
 
 <p>Get the number of block evaluations. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00268">268</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#a410c3cd876191955ace472c8705cd4c2">_blockEval</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00266">266</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#a410c3cd876191955ace472c8705cd4c2">_blockEval</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1237,8 +1237,8 @@ Private Attributes</h2></td></tr>
 
 <p>Get the global parameters for <code>*this</code>. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00345">345</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#a29fa32748d01cbc701a73e51deb4dea4">_evalContGlobalParams</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00343">343</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#a29fa32748d01cbc701a73e51deb4dea4">_evalContGlobalParams</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1267,8 +1267,8 @@ Private Attributes</h2></td></tr>
 
 <p>Get the number of feasible blackbox evaluations. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00258">258</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#afdc6ac19b06acbbc0cfc76b839f69aa5">_feasBBEval</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00256">256</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#afdc6ac19b06acbbc0cfc76b839f69aa5">_feasBBEval</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1315,8 +1315,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00299">299</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#a6f44154453f021b8ba26cc3705c1960f">_indexBestFeasEval</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00297">297</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#a6f44154453f021b8ba26cc3705c1960f">_indexBestFeasEval</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1343,8 +1343,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00300">300</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#aed3729357152fe8f9fae2da05fafa264">_indexBestInfeasEval</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00298">298</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#aed3729357152fe8f9fae2da05fafa264">_indexBestInfeasEval</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1373,8 +1373,8 @@ Private Attributes</h2></td></tr>
 
 <p>Get the index of block evaluations. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00271">271</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#afaceb5bbeb587d244f6d9e0947ca42e4">_indexSuccBlockEval</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00269">269</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#afaceb5bbeb587d244f6d9e0947ca42e4">_indexSuccBlockEval</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1472,8 +1472,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00243">243</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#a47528cf4702a71a29b846672d855a325">_mainThreads</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00241">241</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#a47528cf4702a71a29b846672d855a325">_mainThreads</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1541,8 +1541,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00244">244</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;{ <span class="keywordflow">return</span> int(<a class="code" href="class_evaluator_control.html#a47528cf4702a71a29b846672d855a325">_mainThreads</a>.size()); }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00242">242</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;{ <span class="keywordflow">return</span> int(<a class="code" href="class_evaluator_control.html#a47528cf4702a71a29b846672d855a325">_mainThreads</a>.size()); }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1569,8 +1569,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00297">297</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;{<span class="keywordflow">return</span>  <a class="code" href="class_evaluator_control.html#a2c68e7d1522526259e4d37dda8a0b7cc">_nbPhaseOneSuccess</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00295">295</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;{<span class="keywordflow">return</span>  <a class="code" href="class_evaluator_control.html#a2c68e7d1522526259e4d37dda8a0b7cc">_nbPhaseOneSuccess</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1597,8 +1597,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00298">298</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;{<span class="keywordflow">return</span>  <a class="code" href="class_evaluator_control.html#a3d8cebd0fb491a1de610f9d504615b80">_nbRelativeSuccess</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00296">296</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;{<span class="keywordflow">return</span>  <a class="code" href="class_evaluator_control.html#a3d8cebd0fb491a1de610f9d504615b80">_nbRelativeSuccess</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1735,8 +1735,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00262">262</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#aa7236076981d44ce95f78f7831d54a04">_totalSgteEval</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00260">260</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_evaluator_control.html#aa7236076981d44ce95f78f7831d54a04">_totalSgteEval</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1820,8 +1820,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00241">241</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;{ <span class="keywordflow">return</span> (<a class="code" href="class_evaluator_control.html#a47528cf4702a71a29b846672d855a325">_mainThreads</a>.end() != <a class="code" href="class_evaluator_control.html#a47528cf4702a71a29b846672d855a325">_mainThreads</a>.find(threadNum)); }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00239">239</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;{ <span class="keywordflow">return</span> (<a class="code" href="class_evaluator_control.html#a47528cf4702a71a29b846672d855a325">_mainThreads</a>.end() != <a class="code" href="class_evaluator_control.html#a47528cf4702a71a29b846672d855a325">_mainThreads</a>.find(threadNum)); }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -2139,8 +2139,8 @@ Private Attributes</h2></td></tr>
 
 <p>Set blackbox evaluations number. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00252">252</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;{ <a class="code" href="class_evaluator_control.html#a75cb4e388011093ff2fa6d127951b998">_bbEval</a> = bbEval; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00250">250</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;{ <a class="code" href="class_evaluator_control.html#a75cb4e388011093ff2fa6d127951b998">_bbEval</a> = bbEval; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -2427,8 +2427,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00319">319</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;{ <a class="code" href="class_evaluator_control.html#ab2bfbd3b4195684023142feff9ab6b33">_userCompMethod</a> = compMethod; }</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00317">317</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;{ <a class="code" href="class_evaluator_control.html#ab2bfbd3b4195684023142feff9ab6b33">_userCompMethod</a> = compMethod; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -2484,8 +2484,8 @@ Private Attributes</h2></td></tr>
 
 <p>Start evaluation. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00407">407</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;{}</div>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00405">405</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;{}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -2668,7 +2668,7 @@ Private Attributes</h2></td></tr>
 
 <p>All evaluations done. The queue can be destroyed. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00184">184</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00182">182</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -2696,7 +2696,7 @@ Private Attributes</h2></td></tr>
 <dl class="section remark"><dt>Remarks</dt><dd>Atomic for thread-safety. <br  />
  Atomic is also supported by OpenMP, but here I find it clearer to declare it atomic from the start. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00111">111</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00109">109</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -2724,7 +2724,7 @@ Private Attributes</h2></td></tr>
 <dl class="section remark"><dt>Remarks</dt><dd>Atomic for thread-safety. <br  />
  Atomic is also supported by OpenMP, but here I find it clearer to declare it atomic from the start. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00120">120</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00118">118</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -2751,7 +2751,7 @@ Private Attributes</h2></td></tr>
 <p>The number of block evaluations performed. </p>
 <dl class="section remark"><dt>Remarks</dt><dd>Atomic for thread-safety. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00147">147</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00145">145</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -2777,7 +2777,7 @@ Private Attributes</h2></td></tr>
 
 <p>The parameters controlling the behavior of the class. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00079">79</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00077">77</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -2807,7 +2807,7 @@ Private Attributes</h2></td></tr>
 <p>The queue is implemented as a vector. Points are added at the end of the queue. Points are sorted using <a class="el" href="class_compare_priority.html" title="Class to compare priority of two EvalQueuePoint.">ComparePriority</a> which is called in <a class="el" href="class_evaluator_control.html#a546d74f61132162fbc892cb3cc7de39c" title="Unlock the queue.">unlockQueue()</a> when the user is done adding points to the queue. <br  />
  Sorting the queue can also be done by providing another function. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00095">95</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00093">93</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -2835,7 +2835,7 @@ Private Attributes</h2></td></tr>
 <dl class="section remark"><dt>Remarks</dt><dd>Atomic for thread-safety. <br  />
  Atomic is also supported by OpenMP, but here I find it clearer to declare it atomic from the start. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00129">129</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00127">127</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -2862,7 +2862,7 @@ Private Attributes</h2></td></tr>
 <p>The index of the best feasible evaluation. </p>
 <dl class="section remark"><dt>Remarks</dt><dd>Atomic for thread-safety. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00159">159</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00157">157</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -2889,7 +2889,7 @@ Private Attributes</h2></td></tr>
 <p>The index of the best infeasible evaluation. </p>
 <dl class="section remark"><dt>Remarks</dt><dd>Atomic for thread-safety. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00165">165</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00163">163</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -2916,7 +2916,7 @@ Private Attributes</h2></td></tr>
 <p>The index of the last successfull evaluation block. </p>
 <dl class="section remark"><dt>Remarks</dt><dd>Atomic for thread-safety. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00153">153</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00151">151</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -2944,7 +2944,7 @@ Private Attributes</h2></td></tr>
 <dl class="section remark"><dt>Remarks</dt><dd>Atomic for thread-safety. <br  />
  Atomic is also supported by OpenMP, but here I find it clearer to declare it atomic from the start. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00138">138</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00136">136</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -2970,7 +2970,7 @@ Private Attributes</h2></td></tr>
 
 <p>Info about main threads. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00083">83</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00081">81</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -2994,7 +2994,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00081">81</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00079">79</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -3022,7 +3022,7 @@ Private Attributes</h2></td></tr>
 <li>Not including cache hits. </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00172">172</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00170">170</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -3047,7 +3047,7 @@ Private Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>The number of <a class="el" href="class_phase_one.html" title="Class for phase one search of MADS to satisfy Extreme Barrier (EB) constraints.">PhaseOne</a> success evaluations performed through <code>this</code>. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00182">182</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00180">180</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -3072,7 +3072,7 @@ Private Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>The number of full success evaluations performed through <code>this</code>. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00177">177</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00175">175</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -3098,7 +3098,7 @@ Private Attributes</h2></td></tr>
 
 <p>The total number of sgte evaluations. Used for stats exclusively. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00141">141</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00139">139</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -3124,7 +3124,7 @@ Private Attributes</h2></td></tr>
 
 <p>User-implemented comparison method to sort points before evaluation. </p>
 
-<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00097">97</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_evaluator_control_8hpp_source.html#l00095">95</a> of file <a class="el" href="_evaluator_control_8hpp_source.html">EvaluatorControl.hpp</a>.</p>
 
 </div>
 </div>
@@ -3133,31 +3133,31 @@ Private Attributes</h2></td></tr>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="aclass_evaluator_control_html_a47528cf4702a71a29b846672d855a325"><div class="ttname"><a href="class_evaluator_control.html#a47528cf4702a71a29b846672d855a325">EvaluatorControl::_mainThreads</a></div><div class="ttdeci">std::set&lt; int &gt; _mainThreads</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00081">EvaluatorControl.hpp:81</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_a410c3cd876191955ace472c8705cd4c2"><div class="ttname"><a href="class_evaluator_control.html#a410c3cd876191955ace472c8705cd4c2">EvaluatorControl::_blockEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _blockEval</div><div class="ttdoc">The number of block evaluations performed.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00147">EvaluatorControl.hpp:147</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_a75cb4e388011093ff2fa6d127951b998"><div class="ttname"><a href="class_evaluator_control.html#a75cb4e388011093ff2fa6d127951b998">EvaluatorControl::_bbEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _bbEval</div><div class="ttdoc">The number of blackbox evaluations performed.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00111">EvaluatorControl.hpp:111</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_adfc4f3b163b428b80549b278a69688d6"><div class="ttname"><a href="class_evaluator_control.html#adfc4f3b163b428b80549b278a69688d6">EvaluatorControl::_infBBEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _infBBEval</div><div class="ttdoc">The number of infeasible blackbox evaluations obtained.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00138">EvaluatorControl.hpp:138</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_aed3729357152fe8f9fae2da05fafa264"><div class="ttname"><a href="class_evaluator_control.html#aed3729357152fe8f9fae2da05fafa264">EvaluatorControl::_indexBestInfeasEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _indexBestInfeasEval</div><div class="ttdoc">The index of the best infeasible evaluation.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00165">EvaluatorControl.hpp:165</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_a5f510aada73f93360b00622cc61e845c"><div class="ttname"><a href="class_evaluator_control.html#a5f510aada73f93360b00622cc61e845c">EvaluatorControl::_mainThreadInfo</a></div><div class="ttdeci">std::map&lt; int, EvcMainThreadInfo &gt; _mainThreadInfo</div><div class="ttdoc">Info about main threads.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00083">EvaluatorControl.hpp:83</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_a3d8cebd0fb491a1de610f9d504615b80"><div class="ttname"><a href="class_evaluator_control.html#a3d8cebd0fb491a1de610f9d504615b80">EvaluatorControl::_nbRelativeSuccess</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _nbRelativeSuccess</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00177">EvaluatorControl.hpp:177</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_afdc6ac19b06acbbc0cfc76b839f69aa5"><div class="ttname"><a href="class_evaluator_control.html#afdc6ac19b06acbbc0cfc76b839f69aa5">EvaluatorControl::_feasBBEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _feasBBEval</div><div class="ttdoc">The number of feasible blackbox evaluations obtained.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00129">EvaluatorControl.hpp:129</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_a2c68e7d1522526259e4d37dda8a0b7cc"><div class="ttname"><a href="class_evaluator_control.html#a2c68e7d1522526259e4d37dda8a0b7cc">EvaluatorControl::_nbPhaseOneSuccess</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _nbPhaseOneSuccess</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00182">EvaluatorControl.hpp:182</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_a7173c80074c8202bc2f3bab6eb166806"><div class="ttname"><a href="class_evaluator_control.html#a7173c80074c8202bc2f3bab6eb166806">EvaluatorControl::_bbEvalNotOk</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _bbEvalNotOk</div><div class="ttdoc">The number of blackbox evaluations that are not ok.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00120">EvaluatorControl.hpp:120</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_a47528cf4702a71a29b846672d855a325"><div class="ttname"><a href="class_evaluator_control.html#a47528cf4702a71a29b846672d855a325">EvaluatorControl::_mainThreads</a></div><div class="ttdeci">std::set&lt; int &gt; _mainThreads</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00079">EvaluatorControl.hpp:79</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_a410c3cd876191955ace472c8705cd4c2"><div class="ttname"><a href="class_evaluator_control.html#a410c3cd876191955ace472c8705cd4c2">EvaluatorControl::_blockEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _blockEval</div><div class="ttdoc">The number of block evaluations performed.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00145">EvaluatorControl.hpp:145</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_a75cb4e388011093ff2fa6d127951b998"><div class="ttname"><a href="class_evaluator_control.html#a75cb4e388011093ff2fa6d127951b998">EvaluatorControl::_bbEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _bbEval</div><div class="ttdoc">The number of blackbox evaluations performed.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00109">EvaluatorControl.hpp:109</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_adfc4f3b163b428b80549b278a69688d6"><div class="ttname"><a href="class_evaluator_control.html#adfc4f3b163b428b80549b278a69688d6">EvaluatorControl::_infBBEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _infBBEval</div><div class="ttdoc">The number of infeasible blackbox evaluations obtained.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00136">EvaluatorControl.hpp:136</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_aed3729357152fe8f9fae2da05fafa264"><div class="ttname"><a href="class_evaluator_control.html#aed3729357152fe8f9fae2da05fafa264">EvaluatorControl::_indexBestInfeasEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _indexBestInfeasEval</div><div class="ttdoc">The index of the best infeasible evaluation.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00163">EvaluatorControl.hpp:163</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_a5f510aada73f93360b00622cc61e845c"><div class="ttname"><a href="class_evaluator_control.html#a5f510aada73f93360b00622cc61e845c">EvaluatorControl::_mainThreadInfo</a></div><div class="ttdeci">std::map&lt; int, EvcMainThreadInfo &gt; _mainThreadInfo</div><div class="ttdoc">Info about main threads.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00081">EvaluatorControl.hpp:81</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_a3d8cebd0fb491a1de610f9d504615b80"><div class="ttname"><a href="class_evaluator_control.html#a3d8cebd0fb491a1de610f9d504615b80">EvaluatorControl::_nbRelativeSuccess</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _nbRelativeSuccess</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00175">EvaluatorControl.hpp:175</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_afdc6ac19b06acbbc0cfc76b839f69aa5"><div class="ttname"><a href="class_evaluator_control.html#afdc6ac19b06acbbc0cfc76b839f69aa5">EvaluatorControl::_feasBBEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _feasBBEval</div><div class="ttdoc">The number of feasible blackbox evaluations obtained.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00127">EvaluatorControl.hpp:127</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_a2c68e7d1522526259e4d37dda8a0b7cc"><div class="ttname"><a href="class_evaluator_control.html#a2c68e7d1522526259e4d37dda8a0b7cc">EvaluatorControl::_nbPhaseOneSuccess</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _nbPhaseOneSuccess</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00180">EvaluatorControl.hpp:180</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_a7173c80074c8202bc2f3bab6eb166806"><div class="ttname"><a href="class_evaluator_control.html#a7173c80074c8202bc2f3bab6eb166806">EvaluatorControl::_bbEvalNotOk</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _bbEvalNotOk</div><div class="ttdoc">The number of blackbox evaluations that are not ok.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00118">EvaluatorControl.hpp:118</a></div></div>
 <div class="ttc" id="aclass_evaluator_control_html_aa746612b71ca86ba2c9bd3d36bfa8129"><div class="ttname"><a href="class_evaluator_control.html#aa746612b71ca86ba2c9bd3d36bfa8129">EvaluatorControl::destroy</a></div><div class="ttdeci">void destroy()</div><div class="ttdoc">Helper for destructor.</div></div>
-<div class="ttc" id="aclass_evaluator_control_html_ac1caec580db418c2c450d9042d2fa80c"><div class="ttname"><a href="class_evaluator_control.html#ac1caec580db418c2c450d9042d2fa80c">EvaluatorControl::_evalPointQueue</a></div><div class="ttdeci">std::vector&lt; EvalQueuePointPtr &gt; _evalPointQueue</div><div class="ttdoc">The queue of points to be evaluated.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00095">EvaluatorControl.hpp:95</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_a6f44154453f021b8ba26cc3705c1960f"><div class="ttname"><a href="class_evaluator_control.html#a6f44154453f021b8ba26cc3705c1960f">EvaluatorControl::_indexBestFeasEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _indexBestFeasEval</div><div class="ttdoc">The index of the best feasible evaluation.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00159">EvaluatorControl.hpp:159</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_afaceb5bbeb587d244f6d9e0947ca42e4"><div class="ttname"><a href="class_evaluator_control.html#afaceb5bbeb587d244f6d9e0947ca42e4">EvaluatorControl::_indexSuccBlockEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _indexSuccBlockEval</div><div class="ttdoc">The index of the last successfull evaluation block.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00153">EvaluatorControl.hpp:153</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_ab2bfbd3b4195684023142feff9ab6b33"><div class="ttname"><a href="class_evaluator_control.html#ab2bfbd3b4195684023142feff9ab6b33">EvaluatorControl::_userCompMethod</a></div><div class="ttdeci">std::shared_ptr&lt; ComparePriorityMethod &gt; _userCompMethod</div><div class="ttdoc">User-implemented comparison method to sort points before evaluation.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00097">EvaluatorControl.hpp:97</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_aa7236076981d44ce95f78f7831d54a04"><div class="ttname"><a href="class_evaluator_control.html#aa7236076981d44ce95f78f7831d54a04">EvaluatorControl::_totalSgteEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _totalSgteEval</div><div class="ttdoc">The total number of sgte evaluations. Used for stats exclusively.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00141">EvaluatorControl.hpp:141</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_aaf78d5f2d4222d811c1900844e2e10cc"><div class="ttname"><a href="class_evaluator_control.html#aaf78d5f2d4222d811c1900844e2e10cc">EvaluatorControl::_nbEvalSentToEvaluator</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _nbEvalSentToEvaluator</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00172">EvaluatorControl.hpp:172</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_ab438d6cd579c8198c43d890fb271d6d5"><div class="ttname"><a href="class_evaluator_control.html#ab438d6cd579c8198c43d890fb271d6d5">EvaluatorControl::_allDoneWithEval</a></div><div class="ttdeci">bool _allDoneWithEval</div><div class="ttdoc">All evaluations done. The queue can be destroyed.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00184">EvaluatorControl.hpp:184</a></div></div>
-<div class="ttc" id="aclass_evaluator_control_html_a29fa32748d01cbc701a73e51deb4dea4"><div class="ttname"><a href="class_evaluator_control.html#a29fa32748d01cbc701a73e51deb4dea4">EvaluatorControl::_evalContGlobalParams</a></div><div class="ttdeci">std::shared_ptr&lt; EvaluatorControlGlobalParameters &gt; _evalContGlobalParams</div><div class="ttdoc">The parameters controlling the behavior of the class.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00079">EvaluatorControl.hpp:79</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_ac1caec580db418c2c450d9042d2fa80c"><div class="ttname"><a href="class_evaluator_control.html#ac1caec580db418c2c450d9042d2fa80c">EvaluatorControl::_evalPointQueue</a></div><div class="ttdeci">std::vector&lt; EvalQueuePointPtr &gt; _evalPointQueue</div><div class="ttdoc">The queue of points to be evaluated.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00093">EvaluatorControl.hpp:93</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_a6f44154453f021b8ba26cc3705c1960f"><div class="ttname"><a href="class_evaluator_control.html#a6f44154453f021b8ba26cc3705c1960f">EvaluatorControl::_indexBestFeasEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _indexBestFeasEval</div><div class="ttdoc">The index of the best feasible evaluation.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00157">EvaluatorControl.hpp:157</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_afaceb5bbeb587d244f6d9e0947ca42e4"><div class="ttname"><a href="class_evaluator_control.html#afaceb5bbeb587d244f6d9e0947ca42e4">EvaluatorControl::_indexSuccBlockEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _indexSuccBlockEval</div><div class="ttdoc">The index of the last successfull evaluation block.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00151">EvaluatorControl.hpp:151</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_ab2bfbd3b4195684023142feff9ab6b33"><div class="ttname"><a href="class_evaluator_control.html#ab2bfbd3b4195684023142feff9ab6b33">EvaluatorControl::_userCompMethod</a></div><div class="ttdeci">std::shared_ptr&lt; ComparePriorityMethod &gt; _userCompMethod</div><div class="ttdoc">User-implemented comparison method to sort points before evaluation.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00095">EvaluatorControl.hpp:95</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_aa7236076981d44ce95f78f7831d54a04"><div class="ttname"><a href="class_evaluator_control.html#aa7236076981d44ce95f78f7831d54a04">EvaluatorControl::_totalSgteEval</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _totalSgteEval</div><div class="ttdoc">The total number of sgte evaluations. Used for stats exclusively.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00139">EvaluatorControl.hpp:139</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_aaf78d5f2d4222d811c1900844e2e10cc"><div class="ttname"><a href="class_evaluator_control.html#aaf78d5f2d4222d811c1900844e2e10cc">EvaluatorControl::_nbEvalSentToEvaluator</a></div><div class="ttdeci">std::atomic&lt; size_t &gt; _nbEvalSentToEvaluator</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00170">EvaluatorControl.hpp:170</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_ab438d6cd579c8198c43d890fb271d6d5"><div class="ttname"><a href="class_evaluator_control.html#ab438d6cd579c8198c43d890fb271d6d5">EvaluatorControl::_allDoneWithEval</a></div><div class="ttdeci">bool _allDoneWithEval</div><div class="ttdoc">All evaluations done. The queue can be destroyed.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00182">EvaluatorControl.hpp:182</a></div></div>
+<div class="ttc" id="aclass_evaluator_control_html_a29fa32748d01cbc701a73e51deb4dea4"><div class="ttname"><a href="class_evaluator_control.html#a29fa32748d01cbc701a73e51deb4dea4">EvaluatorControl::_evalContGlobalParams</a></div><div class="ttdeci">std::shared_ptr&lt; EvaluatorControlGlobalParameters &gt; _evalContGlobalParams</div><div class="ttdoc">The parameters controlling the behavior of the class.</div><div class="ttdef"><b>Definition:</b> <a href="_evaluator_control_8hpp_source.html#l00077">EvaluatorControl.hpp:77</a></div></div>
 <div class="ttc" id="aclass_evaluator_control_html_af5a69509ff8aab3599a43be7ce0514b7"><div class="ttname"><a href="class_evaluator_control.html#af5a69509ff8aab3599a43be7ce0514b7">EvaluatorControl::init</a></div><div class="ttdeci">void init(std::shared_ptr&lt; Evaluator &gt; evaluator, const std::shared_ptr&lt; EvaluatorControlParameters &gt; &amp;evalContParams)</div><div class="ttdoc">Helper for constructor.</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="class_evaluator_control.html">EvaluatorControl</a></li>
-    <li class="footer">Generated on Thu Nov 26 2020 17:21:29 for NOMAD Source by
+    <li class="footer">Generated on Tue Dec 1 2020 17:08:19 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

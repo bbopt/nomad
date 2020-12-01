@@ -175,7 +175,7 @@ Private Attributes</h2></td></tr>
 <li>Keeps the necessary information to bridge the gap between subproblem and original problem </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00070">70</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00068">68</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a35408ad1b63c105f420111a914caaca1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a35408ad1b63c105f420111a914caaca1">&#9670;&nbsp;</a></span>Subproblem()</h2>
@@ -214,14 +214,14 @@ Private Attributes</h2></td></tr>
 <p>Constructor. </p>
 <p>Pb parameters will be recomputed as dimension has changed. </p>
 
-<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00096">96</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;      : <a class="code" href="class_subproblem.html#a259f4d492a75c13cee5ffd3f8c2316ed">_fixedVariable</a>(fullFixedVariable),</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;        <a class="code" href="class_subproblem.html#a3171c98ef0259dcd986d16578992f934">_dimension</a>(refPbParams-&gt;<a class="code" href="class_parameters.html#a66dccf636d5ab13ba352faf6c5b099fd">getAttributeValue</a>&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;DIMENSION&quot;</span>)),</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;        <a class="code" href="class_subproblem.html#a2e4cdaa165a538119cb6791c5965a8b2">_refPbParams</a>(refPbParams),</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;        <a class="code" href="class_subproblem.html#acb7562a744d833e9eb1002e09c567370">_subPbParams</a>(<span class="keyword">nullptr</span>)</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    {</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;        <a class="code" href="class_subproblem.html#a4f69ff33f7e69118328e14575aea6f14">init</a>();</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00094">94</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;      : <a class="code" href="class_subproblem.html#a259f4d492a75c13cee5ffd3f8c2316ed">_fixedVariable</a>(fullFixedVariable),</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;        <a class="code" href="class_subproblem.html#a3171c98ef0259dcd986d16578992f934">_dimension</a>(refPbParams-&gt;<a class="code" href="class_parameters.html#a66dccf636d5ab13ba352faf6c5b099fd">getAttributeValue</a>&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;DIMENSION&quot;</span>)),</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        <a class="code" href="class_subproblem.html#a2e4cdaa165a538119cb6791c5965a8b2">_refPbParams</a>(refPbParams),</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;        <a class="code" href="class_subproblem.html#acb7562a744d833e9eb1002e09c567370">_subPbParams</a>(<span class="keyword">nullptr</span>)</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    {</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;        <a class="code" href="class_subproblem.html#a4f69ff33f7e69118328e14575aea6f14">init</a>();</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -276,8 +276,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00111">111</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_subproblem.html#a259f4d492a75c13cee5ffd3f8c2316ed">_fixedVariable</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00109">109</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_subproblem.html#a259f4d492a75c13cee5ffd3f8c2316ed">_fixedVariable</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -304,8 +304,8 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00112">112</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_subproblem.html#acb7562a744d833e9eb1002e09c567370">_subPbParams</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00110">110</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_subproblem.html#acb7562a744d833e9eb1002e09c567370">_subPbParams</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -425,7 +425,7 @@ Private Attributes</h2></td></tr>
 
 <p>Dimension of the subproblem. </p>
 
-<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00079">79</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00077">77</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
 
 </div>
 </div>
@@ -450,7 +450,7 @@ Private Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>The elements of this point that have defined values are fixed value "variables". The elements that are undefined are for true variables. This <a class="el" href="class_point.html" title="Class for the representation of a point.">Point</a> is always in full dimension. </p>
 
-<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00078">78</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00076">76</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
 
 </div>
 </div>
@@ -475,7 +475,7 @@ Private Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p>Reference to the original problem's <a class="el" href="class_pb_parameters.html" title="The class for the parameters defining the optimization problem.">PbParameters</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00084">84</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00082">82</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
 
 </div>
 </div>
@@ -500,7 +500,7 @@ Private Attributes</h2></td></tr>
 </div><div class="memdoc">
 <p><a class="el" href="class_pb_parameters.html" title="The class for the parameters defining the optimization problem.">PbParameters</a> converted to subdimension </p>
 
-<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00089">89</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_subproblem_8hpp_source.html#l00087">87</a> of file <a class="el" href="_subproblem_8hpp_source.html">Subproblem.hpp</a>.</p>
 
 </div>
 </div>
@@ -509,17 +509,17 @@ Private Attributes</h2></td></tr>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="aclass_subproblem_html_a259f4d492a75c13cee5ffd3f8c2316ed"><div class="ttname"><a href="class_subproblem.html#a259f4d492a75c13cee5ffd3f8c2316ed">Subproblem::_fixedVariable</a></div><div class="ttdeci">const Point _fixedVariable</div><div class="ttdef"><b>Definition:</b> <a href="_subproblem_8hpp_source.html#l00078">Subproblem.hpp:78</a></div></div>
-<div class="ttc" id="aclass_subproblem_html_a3171c98ef0259dcd986d16578992f934"><div class="ttname"><a href="class_subproblem.html#a3171c98ef0259dcd986d16578992f934">Subproblem::_dimension</a></div><div class="ttdeci">size_t _dimension</div><div class="ttdoc">Dimension of the subproblem.</div><div class="ttdef"><b>Definition:</b> <a href="_subproblem_8hpp_source.html#l00079">Subproblem.hpp:79</a></div></div>
-<div class="ttc" id="aclass_subproblem_html_acb7562a744d833e9eb1002e09c567370"><div class="ttname"><a href="class_subproblem.html#acb7562a744d833e9eb1002e09c567370">Subproblem::_subPbParams</a></div><div class="ttdeci">std::shared_ptr&lt; PbParameters &gt; _subPbParams</div><div class="ttdef"><b>Definition:</b> <a href="_subproblem_8hpp_source.html#l00089">Subproblem.hpp:89</a></div></div>
-<div class="ttc" id="aclass_parameters_html_a66dccf636d5ab13ba352faf6c5b099fd"><div class="ttname"><a href="class_parameters.html#a66dccf636d5ab13ba352faf6c5b099fd">Parameters::getAttributeValue</a></div><div class="ttdeci">const T &amp; getAttributeValue(const std::string &amp;name, bool flagDefault=false) const</div><div class="ttdef"><b>Definition:</b> <a href="_parameters_8hpp_source.html#l00497">Parameters.hpp:497</a></div></div>
+<div class="ttc" id="aclass_subproblem_html_a259f4d492a75c13cee5ffd3f8c2316ed"><div class="ttname"><a href="class_subproblem.html#a259f4d492a75c13cee5ffd3f8c2316ed">Subproblem::_fixedVariable</a></div><div class="ttdeci">const Point _fixedVariable</div><div class="ttdef"><b>Definition:</b> <a href="_subproblem_8hpp_source.html#l00076">Subproblem.hpp:76</a></div></div>
+<div class="ttc" id="aclass_subproblem_html_a3171c98ef0259dcd986d16578992f934"><div class="ttname"><a href="class_subproblem.html#a3171c98ef0259dcd986d16578992f934">Subproblem::_dimension</a></div><div class="ttdeci">size_t _dimension</div><div class="ttdoc">Dimension of the subproblem.</div><div class="ttdef"><b>Definition:</b> <a href="_subproblem_8hpp_source.html#l00077">Subproblem.hpp:77</a></div></div>
+<div class="ttc" id="aclass_subproblem_html_acb7562a744d833e9eb1002e09c567370"><div class="ttname"><a href="class_subproblem.html#acb7562a744d833e9eb1002e09c567370">Subproblem::_subPbParams</a></div><div class="ttdeci">std::shared_ptr&lt; PbParameters &gt; _subPbParams</div><div class="ttdef"><b>Definition:</b> <a href="_subproblem_8hpp_source.html#l00087">Subproblem.hpp:87</a></div></div>
+<div class="ttc" id="aclass_parameters_html_a66dccf636d5ab13ba352faf6c5b099fd"><div class="ttname"><a href="class_parameters.html#a66dccf636d5ab13ba352faf6c5b099fd">Parameters::getAttributeValue</a></div><div class="ttdeci">const T &amp; getAttributeValue(const std::string &amp;name, bool flagDefault=false) const</div><div class="ttdef"><b>Definition:</b> <a href="_parameters_8hpp_source.html#l00495">Parameters.hpp:495</a></div></div>
 <div class="ttc" id="aclass_subproblem_html_a4f69ff33f7e69118328e14575aea6f14"><div class="ttname"><a href="class_subproblem.html#a4f69ff33f7e69118328e14575aea6f14">Subproblem::init</a></div><div class="ttdeci">void init()</div><div class="ttdoc">Helper for constructor calls to Subproblem::setupProblemParameters.</div></div>
-<div class="ttc" id="aclass_subproblem_html_a2e4cdaa165a538119cb6791c5965a8b2"><div class="ttname"><a href="class_subproblem.html#a2e4cdaa165a538119cb6791c5965a8b2">Subproblem::_refPbParams</a></div><div class="ttdeci">const std::shared_ptr&lt; PbParameters &gt; _refPbParams</div><div class="ttdef"><b>Definition:</b> <a href="_subproblem_8hpp_source.html#l00084">Subproblem.hpp:84</a></div></div>
+<div class="ttc" id="aclass_subproblem_html_a2e4cdaa165a538119cb6791c5965a8b2"><div class="ttname"><a href="class_subproblem.html#a2e4cdaa165a538119cb6791c5965a8b2">Subproblem::_refPbParams</a></div><div class="ttdeci">const std::shared_ptr&lt; PbParameters &gt; _refPbParams</div><div class="ttdef"><b>Definition:</b> <a href="_subproblem_8hpp_source.html#l00082">Subproblem.hpp:82</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="class_subproblem.html">Subproblem</a></li>
-    <li class="footer">Generated on Thu Nov 26 2020 17:21:29 for NOMAD Source by
+    <li class="footer">Generated on Tue Dec 1 2020 17:08:20 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

@@ -115,262 +115,260 @@ $(document).ready(function(){initNavTree('_subproblem_8cpp_source.html',''); ini
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="comment">/*    Polytechnique Montreal - GERAD                                               */</span></div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="comment">/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */</span></div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="comment">/*    e-mail: nomad@gerad.ca                                                       */</span></div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="comment">/*    phone : 1-514-340-6053 #6928                                                 */</span></div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="comment">/*    fax   : 1-514-340-5665                                                       */</span></div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="comment">/*                                                                                 */</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="comment">/*  This program is free software: you can redistribute it and/or modify it        */</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="comment">/*  under the terms of the GNU Lesser General Public License as published by       */</span></div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="comment">/*  the Free Software Foundation, either version 3 of the License, or (at your     */</span></div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="comment">/*  option) any later version.                                                     */</span></div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="comment">/*                                                                                 */</span></div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="comment">/*  This program is distributed in the hope that it will be useful, but WITHOUT    */</span></div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="comment">/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */</span></div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="comment">/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */</span></div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="comment">/*  for more details.                                                              */</span></div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="comment">/*                                                                                 */</span></div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="comment">/*  You should have received a copy of the GNU Lesser General Public License       */</span></div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="comment">/*  along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.           */</span></div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="comment">/*                                                                                 */</span></div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="comment">/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */</span></div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="comment">/*---------------------------------------------------------------------------------*/</span><span class="comment"></span></div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="comment">/**</span></div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="comment"> \file   Subproblem.cpp</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="comment"> \brief  Subproblem of lesser dimension than the original problem</span></div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="comment"> \author Viviane Rochon Montplaisir</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="comment"> \date   February 2019</span></div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="preprocessor">#include &quot;../Algos/Subproblem.hpp&quot;</span></div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="preprocessor">#include &quot;../Output/OutputQueue.hpp&quot;</span></div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="preprocessor">#include &quot;../Type/BBInputType.hpp&quot;</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="comment">/*                                                                                 */</span></div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="comment">/*  This program is free software: you can redistribute it and/or modify it        */</span></div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="comment">/*  under the terms of the GNU Lesser General Public License as published by       */</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="comment">/*  the Free Software Foundation, either version 3 of the License, or (at your     */</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="comment">/*  option) any later version.                                                     */</span></div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="comment">/*                                                                                 */</span></div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="comment">/*  This program is distributed in the hope that it will be useful, but WITHOUT    */</span></div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="comment">/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */</span></div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="comment">/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */</span></div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="comment">/*  for more details.                                                              */</span></div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="comment">/*                                                                                 */</span></div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="comment">/*  You should have received a copy of the GNU Lesser General Public License       */</span></div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="comment">/*  along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.           */</span></div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="comment">/*                                                                                 */</span></div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="comment">/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */</span></div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="comment">/*---------------------------------------------------------------------------------*/</span><span class="comment"></span></div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="comment">/**</span></div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="comment"> \file   Subproblem.cpp</span></div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="comment"> \brief  Subproblem of lesser dimension than the original problem</span></div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="comment"> \author Viviane Rochon Montplaisir</span></div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="comment"> \date   February 2019</span></div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="preprocessor">#include &quot;../Algos/Subproblem.hpp&quot;</span></div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="preprocessor">#include &quot;../Output/OutputQueue.hpp&quot;</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="preprocessor">#include &quot;../Type/BBInputType.hpp&quot;</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; </div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160; </div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="comment">/*------------*/</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="comment">/* Subproblem */</span></div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="comment">/*------------*/</span></div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="comment">/* Subproblem */</span></div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="comment">/*------------*/</span></div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="keywordtype">void</span> NOMAD::Subproblem::init()</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;{</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> == _refPbParams)</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    {</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__, __LINE__,</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;                               <span class="stringliteral">&quot;A valid PbParameters must be provided to the Subproblem constructor.&quot;</span>);</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    }</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160; </div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    <span class="keywordflow">if</span> (_fixedVariable.isEmpty())</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    {</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;        std::string s = <span class="stringliteral">&quot;Error: Fixed variable of dimension 0&quot;</span>;</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__,s);</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    }</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; </div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    <span class="comment">// Compute new dimension</span></div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    NOMAD::Point subFixedVariable = _refPbParams-&gt;getAttributeValue&lt;NOMAD::Point&gt;(<span class="stringliteral">&quot;FIXED_VARIABLE&quot;</span>);</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    _dimension = subFixedVariable.size() - subFixedVariable.nbDefined();</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    setupProblemParameters();</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;}</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;NOMAD::Subproblem::~Subproblem()</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;{</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;}</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160; </div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;<span class="keywordtype">void</span> NOMAD::Subproblem::setupProblemParameters()</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;{</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="comment">// NOTE: If a new parameter with dimension is added to the class PbParameters,</span></div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <span class="comment">// this method will break.</span></div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    <span class="comment">// It could be generalized by going through each parameter, and adjust it only</span></div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    <span class="comment">// if it is an ArrayOfDouble, Point, or Dimension. Backlog task.</span></div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">size_t</span> refDimension = _refPbParams-&gt;getAttributeValue&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;DIMENSION&quot;</span>);</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    <span class="keywordtype">size_t</span> n = _dimension;</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    _subPbParams = std::make_shared&lt;NOMAD::PbParameters&gt;(*_refPbParams);</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;DIMENSION&quot;</span>, n);</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    <span class="comment">// Get reference values for parameters</span></div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refX0s           = _refPbParams-&gt;getAttributeValue&lt;<a class="code" href="_array_of_point_8hpp.html#ace9bde2bdb00351527956c67f758fef6">NOMAD::ArrayOfPoint</a>&gt;(<span class="stringliteral">&quot;X0&quot;</span>);</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refLowerBound    = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;LOWER_BOUND&quot;</span>);</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refUpperBound    = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;UPPER_BOUND&quot;</span>);</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refBBInputType   = _refPbParams-&gt;getAttributeValue&lt;<a class="code" href="_b_b_input_type_8hpp.html#ad2bb16e6c4e35c1f6874430f40637a2f">NOMAD::BBInputTypeList</a>&gt;(<span class="stringliteral">&quot;BB_INPUT_TYPE&quot;</span>);</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refInitMeshSize  = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;INITIAL_MESH_SIZE&quot;</span>);</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refInitFrameSize  = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;INITIAL_FRAME_SIZE&quot;</span>);</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refMinMeshSize   = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;MIN_MESH_SIZE&quot;</span>);</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refMinFrameSize   = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;MIN_FRAME_SIZE&quot;</span>);</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refGranularity   = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;GRANULARITY&quot;</span>);</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refListVariableGroup = _refPbParams-&gt;getAttributeValue&lt;<a class="code" href="_list_of_variable_group_8hpp.html#adfdc5048af41323f01cc2ee4c0226131">NOMAD::ListOfVariableGroup</a>&gt;(<span class="stringliteral">&quot;VARIABLE_GROUP&quot;</span>);</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160; </div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="comment">// Initialize new arrays</span></div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    <a class="code" href="_array_of_point_8hpp.html#ace9bde2bdb00351527956c67f758fef6">NOMAD::ArrayOfPoint</a> x0s;</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> x0index = 0; x0index &lt; refX0s.size(); x0index++)</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    {</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;        NOMAD::Point x0(n);</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        x0s.push_back(x0);</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;    }</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;    NOMAD::Point subFixedVariable(n);</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;    NOMAD::ArrayOfDouble lb(n), ub(n);</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    <a class="code" href="_b_b_input_type_8hpp.html#ad2bb16e6c4e35c1f6874430f40637a2f">NOMAD::BBInputTypeList</a> bbInputType;</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;    NOMAD::ArrayOfDouble initialMeshSize(n), initialFrameSize(n), minMeshSize(n), minFrameSize(n);</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;    NOMAD::ArrayOfDouble granularity(n);</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;    <a class="code" href="_list_of_variable_group_8hpp.html#adfdc5048af41323f01cc2ee4c0226131">NOMAD::ListOfVariableGroup</a> listVariableGroup = refListVariableGroup ;</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160; </div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;    <span class="comment">// Compute new fixed variable.</span></div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    <span class="comment">// Current value of _fixedVariable contains only values from parent. Merge in values from _refPbParams.</span></div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;    NOMAD::Point refFixedVariable = _refPbParams-&gt;getAttributeValue&lt;NOMAD::Point&gt;(<span class="stringliteral">&quot;FIXED_VARIABLE&quot;</span>);</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160; </div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;    <span class="comment">// Compute new values, simply using the values on the positions of non-fixed variables.</span></div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;    <span class="keywordtype">size_t</span> i = 0;</div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> refIndex = 0; refIndex &lt; refDimension; refIndex++)</div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    {</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;        <span class="keywordflow">if</span> (refFixedVariable[refIndex].isDefined())</div>
-<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;        {</div>
-<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;            <span class="keywordflow">continue</span>;</div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;        }</div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160; </div>
-<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;        <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> x0index = 0; x0index &lt; refX0s.size(); x0index++)</div>
-<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;        {</div>
-<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;            <span class="keyword">auto</span> refX0 = refX0s[x0index];</div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;            x0s[x0index][i] = refX0[refIndex];</div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;        }</div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;        lb[i] = refLowerBound[refIndex];</div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;        ub[i] = refUpperBound[refIndex];</div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;        bbInputType.push_back(refBBInputType[refIndex]);</div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;        initialMeshSize[i] = refInitMeshSize[refIndex];</div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;        initialFrameSize[i] = refInitFrameSize[refIndex];</div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;        minMeshSize[i] = refMinMeshSize[refIndex];</div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;        minFrameSize[i] = refMinFrameSize[refIndex];</div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;        granularity[i] = refGranularity[refIndex];</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160; </div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;        i++;</div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;    }</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;    resetVariableGroupsAgainstFixedVariables(listVariableGroup, refFixedVariable);</div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160; </div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160; </div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    <span class="comment">// Set new values to _subPbParams</span></div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;X0&quot;</span>, x0s);</div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;FIXED_VARIABLE&quot;</span>, subFixedVariable);    <span class="comment">// No fixed variable defined in the subproblem</span></div>
-<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;LOWER_BOUND&quot;</span>, lb);</div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;UPPER_BOUND&quot;</span>, ub);</div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;BB_INPUT_TYPE&quot;</span>, bbInputType);</div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;INITIAL_MESH_SIZE&quot;</span>, initialMeshSize);</div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;INITIAL_FRAME_SIZE&quot;</span>, initialFrameSize);</div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;MIN_MESH_SIZE&quot;</span>, minMeshSize);</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;MIN_FRAME_SIZE&quot;</span>, minFrameSize);</div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;GRANULARITY&quot;</span>, granularity);</div>
-<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;VARIABLE_GROUP&quot;</span>, listVariableGroup);</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="keywordtype">void</span> NOMAD::Subproblem::init()</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;{</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> == _refPbParams)</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    {</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__, __LINE__,</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;                               <span class="stringliteral">&quot;A valid PbParameters must be provided to the Subproblem constructor.&quot;</span>);</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    }</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    <span class="keywordflow">if</span> (_fixedVariable.isEmpty())</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    {</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        std::string s = <span class="stringliteral">&quot;Error: Fixed variable of dimension 0&quot;</span>;</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__,s);</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    }</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160; </div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    <span class="comment">// Compute new dimension</span></div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    NOMAD::Point subFixedVariable = _refPbParams-&gt;getAttributeValue&lt;NOMAD::Point&gt;(<span class="stringliteral">&quot;FIXED_VARIABLE&quot;</span>);</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    _dimension = subFixedVariable.size() - subFixedVariable.nbDefined();</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    setupProblemParameters();</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;}</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;NOMAD::Subproblem::~Subproblem()</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;{</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;}</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160; </div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160; </div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;<span class="keywordtype">void</span> NOMAD::Subproblem::setupProblemParameters()</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;{</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    <span class="comment">// NOTE: If a new parameter with dimension is added to the class PbParameters,</span></div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <span class="comment">// this method will break.</span></div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="comment">// It could be generalized by going through each parameter, and adjust it only</span></div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <span class="comment">// if it is an ArrayOfDouble, Point, or Dimension. Backlog task.</span></div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">size_t</span> refDimension = _refPbParams-&gt;getAttributeValue&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;DIMENSION&quot;</span>);</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    <span class="keywordtype">size_t</span> n = _dimension;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    _subPbParams = std::make_shared&lt;NOMAD::PbParameters&gt;(*_refPbParams);</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;DIMENSION&quot;</span>, n);</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    <span class="comment">// Get reference values for parameters</span></div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refX0s           = _refPbParams-&gt;getAttributeValue&lt;<a class="code" href="_array_of_point_8hpp.html#ace9bde2bdb00351527956c67f758fef6">NOMAD::ArrayOfPoint</a>&gt;(<span class="stringliteral">&quot;X0&quot;</span>);</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refLowerBound    = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;LOWER_BOUND&quot;</span>);</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refUpperBound    = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;UPPER_BOUND&quot;</span>);</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refBBInputType   = _refPbParams-&gt;getAttributeValue&lt;<a class="code" href="_b_b_input_type_8hpp.html#ad2bb16e6c4e35c1f6874430f40637a2f">NOMAD::BBInputTypeList</a>&gt;(<span class="stringliteral">&quot;BB_INPUT_TYPE&quot;</span>);</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refInitMeshSize  = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;INITIAL_MESH_SIZE&quot;</span>);</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refInitFrameSize  = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;INITIAL_FRAME_SIZE&quot;</span>);</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refMinMeshSize   = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;MIN_MESH_SIZE&quot;</span>);</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refMinFrameSize   = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;MIN_FRAME_SIZE&quot;</span>);</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refGranularity   = _refPbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;GRANULARITY&quot;</span>);</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> refListVariableGroup = _refPbParams-&gt;getAttributeValue&lt;<a class="code" href="_list_of_variable_group_8hpp.html#adfdc5048af41323f01cc2ee4c0226131">NOMAD::ListOfVariableGroup</a>&gt;(<span class="stringliteral">&quot;VARIABLE_GROUP&quot;</span>);</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    <span class="comment">// Initialize new arrays</span></div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <a class="code" href="_array_of_point_8hpp.html#ace9bde2bdb00351527956c67f758fef6">NOMAD::ArrayOfPoint</a> x0s;</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> x0index = 0; x0index &lt; refX0s.size(); x0index++)</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    {</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;        NOMAD::Point x0(n);</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;        x0s.push_back(x0);</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    }</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;    NOMAD::Point subFixedVariable(n);</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;    NOMAD::ArrayOfDouble lb(n), ub(n);</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;    <a class="code" href="_b_b_input_type_8hpp.html#ad2bb16e6c4e35c1f6874430f40637a2f">NOMAD::BBInputTypeList</a> bbInputType;</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;    NOMAD::ArrayOfDouble initialMeshSize(n), initialFrameSize(n), minMeshSize(n), minFrameSize(n);</div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    NOMAD::ArrayOfDouble granularity(n);</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;    <a class="code" href="_list_of_variable_group_8hpp.html#adfdc5048af41323f01cc2ee4c0226131">NOMAD::ListOfVariableGroup</a> listVariableGroup = refListVariableGroup ;</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160; </div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;    <span class="comment">// Compute new fixed variable.</span></div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;    <span class="comment">// Current value of _fixedVariable contains only values from parent. Merge in values from _refPbParams.</span></div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;    NOMAD::Point refFixedVariable = _refPbParams-&gt;getAttributeValue&lt;NOMAD::Point&gt;(<span class="stringliteral">&quot;FIXED_VARIABLE&quot;</span>);</div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160; </div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;    <span class="comment">// Compute new values, simply using the values on the positions of non-fixed variables.</span></div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;    <span class="keywordtype">size_t</span> i = 0;</div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> refIndex = 0; refIndex &lt; refDimension; refIndex++)</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;    {</div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;        <span class="keywordflow">if</span> (refFixedVariable[refIndex].isDefined())</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;        {</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;            <span class="keywordflow">continue</span>;</div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;        }</div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160; </div>
+<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;        <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> x0index = 0; x0index &lt; refX0s.size(); x0index++)</div>
+<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;        {</div>
+<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;            <span class="keyword">auto</span> refX0 = refX0s[x0index];</div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;            x0s[x0index][i] = refX0[refIndex];</div>
+<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;        }</div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;        lb[i] = refLowerBound[refIndex];</div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;        ub[i] = refUpperBound[refIndex];</div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;        bbInputType.push_back(refBBInputType[refIndex]);</div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;        initialMeshSize[i] = refInitMeshSize[refIndex];</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;        initialFrameSize[i] = refInitFrameSize[refIndex];</div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;        minMeshSize[i] = refMinMeshSize[refIndex];</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;        minFrameSize[i] = refMinFrameSize[refIndex];</div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;        granularity[i] = refGranularity[refIndex];</div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160; </div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;        i++;</div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;    }</div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;    resetVariableGroupsAgainstFixedVariables(listVariableGroup, refFixedVariable);</div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160; </div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160; </div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;    <span class="comment">// Set new values to _subPbParams</span></div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;X0&quot;</span>, x0s);</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;FIXED_VARIABLE&quot;</span>, subFixedVariable);    <span class="comment">// No fixed variable defined in the subproblem</span></div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;LOWER_BOUND&quot;</span>, lb);</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;UPPER_BOUND&quot;</span>, ub);</div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;BB_INPUT_TYPE&quot;</span>, bbInputType);</div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;INITIAL_MESH_SIZE&quot;</span>, initialMeshSize);</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;INITIAL_FRAME_SIZE&quot;</span>, initialFrameSize);</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;MIN_MESH_SIZE&quot;</span>, minMeshSize);</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;MIN_FRAME_SIZE&quot;</span>, minFrameSize);</div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;GRANULARITY&quot;</span>, granularity);</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;    _subPbParams-&gt;setAttributeValue(<span class="stringliteral">&quot;VARIABLE_GROUP&quot;</span>, listVariableGroup);</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160; </div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;    _subPbParams-&gt;doNotShowWarnings();</div>
 <div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160; </div>
-<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    _subPbParams-&gt;doNotShowWarnings();</div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    _subPbParams-&gt;checkAndComply();</div>
 <div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160; </div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    _subPbParams-&gt;checkAndComply();</div>
-<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160; </div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    <span class="comment">// Only now, conbine refFixedVariable into _fixedVariable.</span></div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;    <span class="comment">// Verify that refFixedVariable is of the dimension of the subproblem defined by _fixedVariable.</span></div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;    <span class="keywordflow">if</span> (refFixedVariable.size() == _fixedVariable.size())</div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;    {</div>
-<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;        refFixedVariable = refFixedVariable.makeSubSpacePointFromFixed(_fixedVariable);</div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;    }</div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">size_t</span> subdim1 = _fixedVariable.size() - _fixedVariable.nbDefined();</div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;    <span class="keywordflow">if</span> (refFixedVariable.size() != subdim1)</div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;    {</div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;        std::string s = <span class="stringliteral">&quot;Expecting FIXED_VARIABLE to be of size &quot;</span>  + std::to_string(subdim1);</div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;        s += <span class="stringliteral">&quot;. Current FIXED_VARIABLE is of size &quot;</span> + std::to_string(refFixedVariable.size());</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;        s += <span class="stringliteral">&quot;: &quot;</span> + refFixedVariable.display();</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, s);</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;    }</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160; </div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> refIndex = 0, newIndex = 0; refIndex &lt; _fixedVariable.size(); refIndex++)</div>
-<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;    {</div>
-<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;        <span class="keywordflow">if</span> (!_fixedVariable[refIndex].isDefined())</div>
-<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;        {</div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;            _fixedVariable[refIndex] = refFixedVariable[newIndex];</div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;            newIndex++;</div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;        }</div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    }</div>
-<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160; </div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    <a class="code" href="_output_queue_8hpp.html#a43dd0d3c3ade2ef684520ebe50b76141">OUTPUT_INFO_START</a></div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;    std::string s = <span class="stringliteral">&quot;FIXED_VARIABLE set to &quot;</span> + _fixedVariable.display();</div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_INFO);</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;    <a class="code" href="_output_queue_8hpp.html#a839e12bb6d5988f0a7aac31b41a090b8">OUTPUT_INFO_END</a></div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    <span class="comment">// Only now, conbine refFixedVariable into _fixedVariable.</span></div>
+<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    <span class="comment">// Verify that refFixedVariable is of the dimension of the subproblem defined by _fixedVariable.</span></div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    <span class="keywordflow">if</span> (refFixedVariable.size() == _fixedVariable.size())</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;    {</div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;        refFixedVariable = refFixedVariable.makeSubSpacePointFromFixed(_fixedVariable);</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;    }</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">size_t</span> subdim1 = _fixedVariable.size() - _fixedVariable.nbDefined();</div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;    <span class="keywordflow">if</span> (refFixedVariable.size() != subdim1)</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    {</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;        std::string s = <span class="stringliteral">&quot;Expecting FIXED_VARIABLE to be of size &quot;</span>  + std::to_string(subdim1);</div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;        s += <span class="stringliteral">&quot;. Current FIXED_VARIABLE is of size &quot;</span> + std::to_string(refFixedVariable.size());</div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;        s += <span class="stringliteral">&quot;: &quot;</span> + refFixedVariable.display();</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, s);</div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;    }</div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160; </div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> refIndex = 0, newIndex = 0; refIndex &lt; _fixedVariable.size(); refIndex++)</div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;    {</div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;        <span class="keywordflow">if</span> (!_fixedVariable[refIndex].isDefined())</div>
+<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;        {</div>
+<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;            _fixedVariable[refIndex] = refFixedVariable[newIndex];</div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;            newIndex++;</div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;        }</div>
+<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;    }</div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160; </div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    <a class="code" href="_output_queue_8hpp.html#a43dd0d3c3ade2ef684520ebe50b76141">OUTPUT_INFO_START</a></div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;    std::string s = <span class="stringliteral">&quot;FIXED_VARIABLE set to &quot;</span> + _fixedVariable.display();</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_INFO);</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;    <a class="code" href="_output_queue_8hpp.html#a839e12bb6d5988f0a7aac31b41a090b8">OUTPUT_INFO_END</a></div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160; </div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;}</div>
 <div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160; </div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;}</div>
-<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160; </div>
-<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160; </div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;<span class="comment">// If a variable is fixed, its index must be removed from the group of variables</span></div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;<span class="comment">// All the indices above the fixed variable index must be decreased by one</span></div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;<span class="keywordtype">void</span> NOMAD::Subproblem::resetVariableGroupsAgainstFixedVariables(<a class="code" href="_list_of_variable_group_8hpp.html#adfdc5048af41323f01cc2ee4c0226131">NOMAD::ListOfVariableGroup</a> &amp; lvg, <span class="keyword">const</span> NOMAD::Point &amp; fixedVar)<span class="keyword"> const</span></div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;<span class="keyword"></span>{</div>
-<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;    <span class="keywordflow">if</span> (lvg.empty() || !fixedVar.isDefined())</div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;    {</div>
-<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;        <span class="keywordflow">return</span>;</div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;    }</div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160; </div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    <span class="comment">// Put the indices of fixed variables in a single set.</span></div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">size_t</span> n = fixedVar.size();</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;    std::set&lt;size_t&gt; indicesToRemove;</div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0 ; i &lt; n ; i++)</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    {</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;        <span class="keywordflow">if</span> (fixedVar[i].isDefined())</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;        {</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;            indicesToRemove.insert(i);</div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;        }</div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;    }</div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160; </div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;    <a class="code" href="_list_of_variable_group_8hpp.html#adfdc5048af41323f01cc2ee4c0226131">NOMAD::ListOfVariableGroup</a> updatedLvg;</div>
-<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    <span class="keywordflow">while</span> (!indicesToRemove.empty())</div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;    {</div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;        updatedLvg.clear();</div>
-<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;        <span class="keyword">auto</span> itIndexBegin = indicesToRemove.begin();</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160; </div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;        <span class="comment">// Remove an index in a variable group. Decrement by one all indices (in all variable groups) above the index to remove.</span></div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;        <span class="keywordflow">for</span> (<span class="keyword">auto</span> vg: lvg)</div>
-<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;        {</div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;            <a class="code" href="_list_of_variable_group_8hpp.html#ae53ce176c1aa04c0f595c48d3c55e54a">NOMAD::VariableGroup</a> updatedVariableGroup;</div>
-<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;            <span class="keywordflow">for</span> (<span class="keyword">auto</span> index : vg)</div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;            {</div>
-<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;                <span class="comment">// Do not include an index equal to the index to remove.</span></div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;                <span class="comment">// Include and decrement indices above the index to remove.</span></div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;                <span class="comment">// Include indices below the index to remove.</span></div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;                <span class="keywordflow">if</span> (index &gt; *itIndexBegin)</div>
-<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;                {</div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;                    updatedVariableGroup.insert(index-1);</div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;                }</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;                <span class="keywordflow">else</span> <span class="keywordflow">if</span> (index &lt; *itIndexBegin)</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;                {</div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;                    updatedVariableGroup.insert(index);</div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;                }</div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160; </div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;            }</div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;            <span class="comment">// A variable group can be empty -&gt; do not include.</span></div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;            <span class="keywordflow">if</span> (!updatedVariableGroup.empty())</div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;            {</div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;                updatedLvg.push_back(updatedVariableGroup);</div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;            }</div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;        }</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160; </div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;        <span class="comment">// Remove index from the set of indices. Decrement remaining indices that are smaller than the index to remove.</span></div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;        std::set&lt;size_t&gt; updatedIndicesToRemove;</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;        <span class="keywordflow">for</span> (std::set&lt;size_t&gt;::iterator itIndex = ++itIndexBegin; itIndex != indicesToRemove.end() ; ++itIndex)</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;        {</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;            updatedIndicesToRemove.insert((*itIndex)-1);</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;        }</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;        indicesToRemove = updatedIndicesToRemove;</div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;        lvg = updatedLvg;</div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;    }</div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160; </div>
+<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;<span class="comment">// If a variable is fixed, its index must be removed from the group of variables</span></div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;<span class="comment">// All the indices above the fixed variable index must be decreased by one</span></div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;<span class="keywordtype">void</span> NOMAD::Subproblem::resetVariableGroupsAgainstFixedVariables(<a class="code" href="_list_of_variable_group_8hpp.html#adfdc5048af41323f01cc2ee4c0226131">NOMAD::ListOfVariableGroup</a> &amp; lvg, <span class="keyword">const</span> NOMAD::Point &amp; fixedVar)<span class="keyword"> const</span></div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;<span class="keyword"></span>{</div>
+<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;    <span class="keywordflow">if</span> (lvg.empty() || !fixedVar.isDefined())</div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;    {</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;        <span class="keywordflow">return</span>;</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;    }</div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160; </div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;    <span class="comment">// Put the indices of fixed variables in a single set.</span></div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">size_t</span> n = fixedVar.size();</div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    std::set&lt;size_t&gt; indicesToRemove;</div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0 ; i &lt; n ; i++)</div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;    {</div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;        <span class="keywordflow">if</span> (fixedVar[i].isDefined())</div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;        {</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;            indicesToRemove.insert(i);</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;        }</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;    }</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160; </div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;    <a class="code" href="_list_of_variable_group_8hpp.html#adfdc5048af41323f01cc2ee4c0226131">NOMAD::ListOfVariableGroup</a> updatedLvg;</div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    <span class="keywordflow">while</span> (!indicesToRemove.empty())</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;    {</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;        updatedLvg.clear();</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;        <span class="keyword">auto</span> itIndexBegin = indicesToRemove.begin();</div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160; </div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;        <span class="comment">// Remove an index in a variable group. Decrement by one all indices (in all variable groups) above the index to remove.</span></div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;        <span class="keywordflow">for</span> (<span class="keyword">auto</span> vg: lvg)</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;        {</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;            <a class="code" href="_list_of_variable_group_8hpp.html#ae53ce176c1aa04c0f595c48d3c55e54a">NOMAD::VariableGroup</a> updatedVariableGroup;</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;            <span class="keywordflow">for</span> (<span class="keyword">auto</span> index : vg)</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;            {</div>
+<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;                <span class="comment">// Do not include an index equal to the index to remove.</span></div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;                <span class="comment">// Include and decrement indices above the index to remove.</span></div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;                <span class="comment">// Include indices below the index to remove.</span></div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;                <span class="keywordflow">if</span> (index &gt; *itIndexBegin)</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;                {</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;                    updatedVariableGroup.insert(index-1);</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;                }</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;                <span class="keywordflow">else</span> <span class="keywordflow">if</span> (index &lt; *itIndexBegin)</div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;                {</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;                    updatedVariableGroup.insert(index);</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;                }</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160; </div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;            }</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;            <span class="comment">// A variable group can be empty -&gt; do not include.</span></div>
+<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;            <span class="keywordflow">if</span> (!updatedVariableGroup.empty())</div>
+<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;            {</div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;                updatedLvg.push_back(updatedVariableGroup);</div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;            }</div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;        }</div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160; </div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;        <span class="comment">// Remove index from the set of indices. Decrement remaining indices that are smaller than the index to remove.</span></div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;        std::set&lt;size_t&gt; updatedIndicesToRemove;</div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;        <span class="keywordflow">for</span> (std::set&lt;size_t&gt;::iterator itIndex = ++itIndexBegin; itIndex != indicesToRemove.end() ; ++itIndex)</div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;        {</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;            updatedIndicesToRemove.insert((*itIndex)-1);</div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;        }</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;        indicesToRemove = updatedIndicesToRemove;</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;        lvg = updatedLvg;</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;    }</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160; </div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;}</div>
 <div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160; </div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;}</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160; </div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="a_array_of_point_8hpp_html_ace9bde2bdb00351527956c67f758fef6"><div class="ttname"><a href="_array_of_point_8hpp.html#ace9bde2bdb00351527956c67f758fef6">ArrayOfPoint</a></div><div class="ttdeci">std::vector&lt; Point &gt; ArrayOfPoint</div><div class="ttdoc">Type definition for the representation of a vector of points.</div><div class="ttdef"><b>Definition:</b> <a href="_array_of_point_8hpp_source.html#l00065">ArrayOfPoint.hpp:65</a></div></div>
-<div class="ttc" id="a_b_b_input_type_8hpp_html_ad2bb16e6c4e35c1f6874430f40637a2f"><div class="ttname"><a href="_b_b_input_type_8hpp.html#ad2bb16e6c4e35c1f6874430f40637a2f">BBInputTypeList</a></div><div class="ttdeci">std::vector&lt; BBInputType &gt; BBInputTypeList</div><div class="ttdef"><b>Definition:</b> <a href="_b_b_input_type_8hpp_source.html#l00082">BBInputType.hpp:82</a></div></div>
-<div class="ttc" id="a_output_queue_8hpp_html_a839e12bb6d5988f0a7aac31b41a090b8"><div class="ttname"><a href="_output_queue_8hpp.html#a839e12bb6d5988f0a7aac31b41a090b8">OUTPUT_INFO_END</a></div><div class="ttdeci">#define OUTPUT_INFO_END</div><div class="ttdef"><b>Definition:</b> <a href="_output_queue_8hpp_source.html#l00153">OutputQueue.hpp:153</a></div></div>
-<div class="ttc" id="a_list_of_variable_group_8hpp_html_ae53ce176c1aa04c0f595c48d3c55e54a"><div class="ttname"><a href="_list_of_variable_group_8hpp.html#ae53ce176c1aa04c0f595c48d3c55e54a">VariableGroup</a></div><div class="ttdeci">std::set&lt; size_t &gt; VariableGroup</div><div class="ttdoc">Type definition for the representation of a variable group (set of indices).</div><div class="ttdef"><b>Definition:</b> <a href="_list_of_variable_group_8hpp_source.html#l00066">ListOfVariableGroup.hpp:66</a></div></div>
-<div class="ttc" id="a_list_of_variable_group_8hpp_html_adfdc5048af41323f01cc2ee4c0226131"><div class="ttname"><a href="_list_of_variable_group_8hpp.html#adfdc5048af41323f01cc2ee4c0226131">ListOfVariableGroup</a></div><div class="ttdeci">std::list&lt; VariableGroup &gt; ListOfVariableGroup</div><div class="ttdoc">Type definition for the representation of a vector of points.</div><div class="ttdef"><b>Definition:</b> <a href="_list_of_variable_group_8hpp_source.html#l00073">ListOfVariableGroup.hpp:73</a></div></div>
-<div class="ttc" id="a_output_queue_8hpp_html_a43dd0d3c3ade2ef684520ebe50b76141"><div class="ttname"><a href="_output_queue_8hpp.html#a43dd0d3c3ade2ef684520ebe50b76141">OUTPUT_INFO_START</a></div><div class="ttdeci">#define OUTPUT_INFO_START</div><div class="ttdef"><b>Definition:</b> <a href="_output_queue_8hpp_source.html#l00150">OutputQueue.hpp:150</a></div></div>
+<div class="ttc" id="a_array_of_point_8hpp_html_ace9bde2bdb00351527956c67f758fef6"><div class="ttname"><a href="_array_of_point_8hpp.html#ace9bde2bdb00351527956c67f758fef6">ArrayOfPoint</a></div><div class="ttdeci">std::vector&lt; Point &gt; ArrayOfPoint</div><div class="ttdoc">Type definition for the representation of a vector of points.</div><div class="ttdef"><b>Definition:</b> <a href="_array_of_point_8hpp_source.html#l00063">ArrayOfPoint.hpp:63</a></div></div>
+<div class="ttc" id="a_b_b_input_type_8hpp_html_ad2bb16e6c4e35c1f6874430f40637a2f"><div class="ttname"><a href="_b_b_input_type_8hpp.html#ad2bb16e6c4e35c1f6874430f40637a2f">BBInputTypeList</a></div><div class="ttdeci">std::vector&lt; BBInputType &gt; BBInputTypeList</div><div class="ttdef"><b>Definition:</b> <a href="_b_b_input_type_8hpp_source.html#l00080">BBInputType.hpp:80</a></div></div>
+<div class="ttc" id="a_output_queue_8hpp_html_a839e12bb6d5988f0a7aac31b41a090b8"><div class="ttname"><a href="_output_queue_8hpp.html#a839e12bb6d5988f0a7aac31b41a090b8">OUTPUT_INFO_END</a></div><div class="ttdeci">#define OUTPUT_INFO_END</div><div class="ttdef"><b>Definition:</b> <a href="_output_queue_8hpp_source.html#l00151">OutputQueue.hpp:151</a></div></div>
+<div class="ttc" id="a_list_of_variable_group_8hpp_html_ae53ce176c1aa04c0f595c48d3c55e54a"><div class="ttname"><a href="_list_of_variable_group_8hpp.html#ae53ce176c1aa04c0f595c48d3c55e54a">VariableGroup</a></div><div class="ttdeci">std::set&lt; size_t &gt; VariableGroup</div><div class="ttdoc">Type definition for the representation of a variable group (set of indices).</div><div class="ttdef"><b>Definition:</b> <a href="_list_of_variable_group_8hpp_source.html#l00064">ListOfVariableGroup.hpp:64</a></div></div>
+<div class="ttc" id="a_list_of_variable_group_8hpp_html_adfdc5048af41323f01cc2ee4c0226131"><div class="ttname"><a href="_list_of_variable_group_8hpp.html#adfdc5048af41323f01cc2ee4c0226131">ListOfVariableGroup</a></div><div class="ttdeci">std::list&lt; VariableGroup &gt; ListOfVariableGroup</div><div class="ttdoc">Type definition for the representation of a vector of points.</div><div class="ttdef"><b>Definition:</b> <a href="_list_of_variable_group_8hpp_source.html#l00071">ListOfVariableGroup.hpp:71</a></div></div>
+<div class="ttc" id="a_output_queue_8hpp_html_a43dd0d3c3ade2ef684520ebe50b76141"><div class="ttname"><a href="_output_queue_8hpp.html#a43dd0d3c3ade2ef684520ebe50b76141">OUTPUT_INFO_START</a></div><div class="ttdeci">#define OUTPUT_INFO_START</div><div class="ttdef"><b>Definition:</b> <a href="_output_queue_8hpp_source.html#l00148">OutputQueue.hpp:148</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_411efccbd5e576f82c71dd79c3c5caa4.html">Algos</a></li><li class="navelem"><a class="el" href="_subproblem_8cpp.html">Subproblem.cpp</a></li>
-    <li class="footer">Generated on Thu Nov 26 2020 17:21:28 for NOMAD Source by
+    <li class="footer">Generated on Tue Dec 1 2020 17:08:18 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

@@ -406,7 +406,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="textblock"><p>Class for the mega search and poll of MADS. </p>
 <p>Calling the start function generates search and poll trial points at the same time before starting evaluation. Calling the run function starts the evaluaions. The postprocessing is performed when calling the end funcion. </p>
 
-<p class="definition">Definition at line <a class="el" href="_mega_search_poll_8hpp_source.html#l00062">62</a> of file <a class="el" href="_mega_search_poll_8hpp_source.html">MegaSearchPoll.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_mega_search_poll_8hpp_source.html#l00060">60</a> of file <a class="el" href="_mega_search_poll_8hpp_source.html">MegaSearchPoll.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a6611027953818d4f98a56dcf4dc7659e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6611027953818d4f98a56dcf4dc7659e">&#9670;&nbsp;</a></span>MegaSearchPoll()</h2>
@@ -440,13 +440,13 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="_mega_search_poll_8hpp_source.html#l00078">78</a> of file <a class="el" href="_mega_search_poll_8hpp_source.html">MegaSearchPoll.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;      : <a class="code" href="class_step.html#a3f66a321aa9c417352a75c85cff5aca5">Step</a>( parentStep ),</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;        <a class="code" href="class_iteration_utils.html#a0b2846976e5933c91d7357da0ac38563">IterationUtils</a>( parentStep ),</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        <a class="code" href="class_mega_search_poll.html#afdc090546f22c9eadf6cf6603fc67dd5">_iterForPoint</a>()</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    {</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;        <a class="code" href="class_mega_search_poll.html#a6a082fedd71099f9ff8120225228d679">init</a>();</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_mega_search_poll_8hpp_source.html#l00076">76</a> of file <a class="el" href="_mega_search_poll_8hpp_source.html">MegaSearchPoll.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;      : <a class="code" href="class_step.html#a3f66a321aa9c417352a75c85cff5aca5">Step</a>( parentStep ),</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        <a class="code" href="class_iteration_utils.html#a0b2846976e5933c91d7357da0ac38563">IterationUtils</a>( parentStep ),</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;        <a class="code" href="class_mega_search_poll.html#afdc090546f22c9eadf6cf6603fc67dd5">_iterForPoint</a>()</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    {</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        <a class="code" href="class_mega_search_poll.html#a6a082fedd71099f9ff8120225228d679">init</a>();</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -473,10 +473,10 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_mega_search_poll_8hpp_source.html#l00087">87</a> of file <a class="el" href="_mega_search_poll_8hpp_source.html">MegaSearchPoll.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    {</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;        <a class="code" href="class_mega_search_poll.html#afdc090546f22c9eadf6cf6603fc67dd5">_iterForPoint</a>.clear();</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_mega_search_poll_8hpp_source.html#l00085">85</a> of file <a class="el" href="_mega_search_poll_8hpp_source.html">MegaSearchPoll.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    {</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;        <a class="code" href="class_mega_search_poll.html#afdc090546f22c9eadf6cf6603fc67dd5">_iterForPoint</a>.clear();</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -664,7 +664,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Hash table to remember which iteration generated this point. I tried working around it, but in the end it is easier to just remember the iteration. Mutable because it is updated in <a class="el" href="class_mega_search_poll.html#a8152fa764937108c794b538371fe03d6" title="Generate new points to evaluate.">generateTrialPoints()</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="_mega_search_poll_8hpp_source.html#l00071">71</a> of file <a class="el" href="_mega_search_poll_8hpp_source.html">MegaSearchPoll.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_mega_search_poll_8hpp_source.html#l00069">69</a> of file <a class="el" href="_mega_search_poll_8hpp_source.html">MegaSearchPoll.hpp</a>.</p>
 
 </div>
 </div>
@@ -673,15 +673,15 @@ Additional Inherited Members</h2></td></tr>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="aclass_step_html_a3f66a321aa9c417352a75c85cff5aca5"><div class="ttname"><a href="class_step.html#a3f66a321aa9c417352a75c85cff5aca5">Step::Step</a></div><div class="ttdeci">Step()</div><div class="ttdoc">Constructor #1 for MainStep (no parent)</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00100">Step.hpp:100</a></div></div>
-<div class="ttc" id="aclass_mega_search_poll_html_afdc090546f22c9eadf6cf6603fc67dd5"><div class="ttname"><a href="class_mega_search_poll.html#afdc090546f22c9eadf6cf6603fc67dd5">MegaSearchPoll::_iterForPoint</a></div><div class="ttdeci">std::map&lt; EvalPoint, std::shared_ptr&lt; MadsIteration &gt;, EvalPointCompare &gt; _iterForPoint</div><div class="ttdef"><b>Definition:</b> <a href="_mega_search_poll_8hpp_source.html#l00071">MegaSearchPoll.hpp:71</a></div></div>
-<div class="ttc" id="aclass_iteration_utils_html_a0b2846976e5933c91d7357da0ac38563"><div class="ttname"><a href="class_iteration_utils.html#a0b2846976e5933c91d7357da0ac38563">IterationUtils::IterationUtils</a></div><div class="ttdeci">IterationUtils(const Step *parentStep)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_iteration_utils_8hpp_source.html#l00107">IterationUtils.hpp:107</a></div></div>
+<div class="ttc" id="aclass_step_html_a3f66a321aa9c417352a75c85cff5aca5"><div class="ttname"><a href="class_step.html#a3f66a321aa9c417352a75c85cff5aca5">Step::Step</a></div><div class="ttdeci">Step()</div><div class="ttdoc">Constructor #1 for MainStep (no parent)</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00098">Step.hpp:98</a></div></div>
+<div class="ttc" id="aclass_mega_search_poll_html_afdc090546f22c9eadf6cf6603fc67dd5"><div class="ttname"><a href="class_mega_search_poll.html#afdc090546f22c9eadf6cf6603fc67dd5">MegaSearchPoll::_iterForPoint</a></div><div class="ttdeci">std::map&lt; EvalPoint, std::shared_ptr&lt; MadsIteration &gt;, EvalPointCompare &gt; _iterForPoint</div><div class="ttdef"><b>Definition:</b> <a href="_mega_search_poll_8hpp_source.html#l00069">MegaSearchPoll.hpp:69</a></div></div>
+<div class="ttc" id="aclass_iteration_utils_html_a0b2846976e5933c91d7357da0ac38563"><div class="ttname"><a href="class_iteration_utils.html#a0b2846976e5933c91d7357da0ac38563">IterationUtils::IterationUtils</a></div><div class="ttdeci">IterationUtils(const Step *parentStep)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_iteration_utils_8hpp_source.html#l00105">IterationUtils.hpp:105</a></div></div>
 <div class="ttc" id="aclass_mega_search_poll_html_a6a082fedd71099f9ff8120225228d679"><div class="ttname"><a href="class_mega_search_poll.html#a6a082fedd71099f9ff8120225228d679">MegaSearchPoll::init</a></div><div class="ttdeci">void init()</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="class_mega_search_poll.html">MegaSearchPoll</a></li>
-    <li class="footer">Generated on Thu Nov 26 2020 17:21:29 for NOMAD Source by
+    <li class="footer">Generated on Tue Dec 1 2020 17:08:20 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

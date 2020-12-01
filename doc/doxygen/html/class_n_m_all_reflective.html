@@ -452,7 +452,7 @@ Additional Inherited Members</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Class to generate points for single pass <a class="el" href="class_n_m.html" title="Class implementing Nelder Mead non-linear simplex algorithm for constrained problems.">NM</a> on all reflective steps (REFLECT, EXPAND, INSIDE_CONTRACTION and OUTSIDE_CONTRACTION). The <a class="el" href="class_n_m_all_reflective.html#ad0a7f42d6c2a451be0065513d91a7380" title="Implementation of start tasks.">NMAllReflective::startImp</a> function manages the creation process. The initial simplex is created by calling <a class="el" href="class_n_m_iteration.html#abc6eacb33d5827ea2e09ea98a1b6d699" title="Implementation of start task.">NMIteration::startImp()</a>. The points are projected on mesh and updated with the information of the creating frame center. </p>
 
-<p class="definition">Definition at line <a class="el" href="_n_m_all_reflective_8hpp_source.html#l00061">61</a> of file <a class="el" href="_n_m_all_reflective_8hpp_source.html">NMAllReflective.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_n_m_all_reflective_8hpp_source.html#l00059">59</a> of file <a class="el" href="_n_m_all_reflective_8hpp_source.html">NMAllReflective.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a9ef29babf08edb7bd562bb01fe0c210a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9ef29babf08edb7bd562bb01fe0c210a">&#9670;&nbsp;</a></span>NMAllReflective()</h2>
@@ -504,12 +504,12 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="_n_m_all_reflective_8hpp_source.html#l00070">70</a> of file <a class="el" href="_n_m_all_reflective_8hpp_source.html">NMAllReflective.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;      : <a class="code" href="class_n_m_iteration.html#a2219409936e952f71344edce4864b259">NMIteration</a>(parentStep, frameCenter, 0, madsMesh),</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;        <a class="code" href="class_n_m_iteration_utils.html#a889ec32fd011585869977a5de003a16f">NMIterationUtils</a>(parentStep)</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    {</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        <a class="code" href="class_step.html#a1f2278e3b87d561e530f0bc9af92d1f7">_stopReasons</a> = std::make_shared&lt;AlgoStopReasons&lt;NMStopType&gt;&gt;();</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    }</div>
+<p class="definition">Definition at line <a class="el" href="_n_m_all_reflective_8hpp_source.html#l00068">68</a> of file <a class="el" href="_n_m_all_reflective_8hpp_source.html">NMAllReflective.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;      : <a class="code" href="class_n_m_iteration.html#a2219409936e952f71344edce4864b259">NMIteration</a>(parentStep, frameCenter, 0, madsMesh),</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;        <a class="code" href="class_n_m_iteration_utils.html#a889ec32fd011585869977a5de003a16f">NMIterationUtils</a>(parentStep)</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    {</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;        <a class="code" href="class_step.html#a1f2278e3b87d561e530f0bc9af92d1f7">_stopReasons</a> = std::make_shared&lt;AlgoStopReasons&lt;NMStopType&gt;&gt;();</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -541,8 +541,8 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Reimplemented from <a class="el" href="class_iteration.html#aa56d770f03ea50932d3ef4ea66920e1c">Iteration</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_n_m_all_reflective_8hpp_source.html#l00097">97</a> of file <a class="el" href="_n_m_all_reflective_8hpp_source.html">NMAllReflective.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;{}</div>
+<p class="definition">Definition at line <a class="el" href="_n_m_all_reflective_8hpp_source.html#l00095">95</a> of file <a class="el" href="_n_m_all_reflective_8hpp_source.html">NMAllReflective.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;{}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -603,8 +603,8 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Reimplemented from <a class="el" href="class_n_m_iteration.html#af289f625241e9cd3c3f774a86a97f00b">NMIteration</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_n_m_all_reflective_8hpp_source.html#l00094">94</a> of file <a class="el" href="_n_m_all_reflective_8hpp_source.html">NMAllReflective.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;{ <span class="keywordflow">return</span>  <span class="keyword">false</span>;}</div>
+<p class="definition">Definition at line <a class="el" href="_n_m_all_reflective_8hpp_source.html#l00092">92</a> of file <a class="el" href="_n_m_all_reflective_8hpp_source.html">NMAllReflective.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;{ <span class="keywordflow">return</span>  <span class="keyword">false</span>;}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -649,14 +649,14 @@ Additional Inherited Members</h2></td></tr>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
-<div class="ttc" id="aclass_n_m_iteration_html_a2219409936e952f71344edce4864b259"><div class="ttname"><a href="class_n_m_iteration.html#a2219409936e952f71344edce4864b259">NMIteration::NMIteration</a></div><div class="ttdeci">NMIteration(const Step *parentStep, const std::shared_ptr&lt; EvalPoint &gt; &amp;frameCenter, const size_t k, std::shared_ptr&lt; MeshBase &gt; madsMesh)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_n_m_iteration_8hpp_source.html#l00097">NMIteration.hpp:97</a></div></div>
-<div class="ttc" id="aclass_step_html_a1f2278e3b87d561e530f0bc9af92d1f7"><div class="ttname"><a href="class_step.html#a1f2278e3b87d561e530f0bc9af92d1f7">Step::_stopReasons</a></div><div class="ttdeci">std::shared_ptr&lt; AllStopReasons &gt; _stopReasons</div><div class="ttdoc">The stop reasons of an algorithm.</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00080">Step.hpp:80</a></div></div>
-<div class="ttc" id="aclass_n_m_iteration_utils_html_a889ec32fd011585869977a5de003a16f"><div class="ttname"><a href="class_n_m_iteration_utils.html#a889ec32fd011585869977a5de003a16f">NMIterationUtils::NMIterationUtils</a></div><div class="ttdeci">NMIterationUtils(const Step *parentStep)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_n_m_iteration_utils_8hpp_source.html#l00128">NMIterationUtils.hpp:128</a></div></div>
+<div class="ttc" id="aclass_n_m_iteration_html_a2219409936e952f71344edce4864b259"><div class="ttname"><a href="class_n_m_iteration.html#a2219409936e952f71344edce4864b259">NMIteration::NMIteration</a></div><div class="ttdeci">NMIteration(const Step *parentStep, const std::shared_ptr&lt; EvalPoint &gt; &amp;frameCenter, const size_t k, std::shared_ptr&lt; MeshBase &gt; madsMesh)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_n_m_iteration_8hpp_source.html#l00095">NMIteration.hpp:95</a></div></div>
+<div class="ttc" id="aclass_step_html_a1f2278e3b87d561e530f0bc9af92d1f7"><div class="ttname"><a href="class_step.html#a1f2278e3b87d561e530f0bc9af92d1f7">Step::_stopReasons</a></div><div class="ttdeci">std::shared_ptr&lt; AllStopReasons &gt; _stopReasons</div><div class="ttdoc">The stop reasons of an algorithm.</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00078">Step.hpp:78</a></div></div>
+<div class="ttc" id="aclass_n_m_iteration_utils_html_a889ec32fd011585869977a5de003a16f"><div class="ttname"><a href="class_n_m_iteration_utils.html#a889ec32fd011585869977a5de003a16f">NMIterationUtils::NMIterationUtils</a></div><div class="ttdeci">NMIterationUtils(const Step *parentStep)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_n_m_iteration_utils_8hpp_source.html#l00126">NMIterationUtils.hpp:126</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="class_n_m_all_reflective.html">NMAllReflective</a></li>
-    <li class="footer">Generated on Thu Nov 26 2020 17:21:29 for NOMAD Source by
+    <li class="footer">Generated on Tue Dec 1 2020 17:08:20 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>
