@@ -459,6 +459,9 @@ add_custom_command(
 # Build libraries
 #
 
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 # Utils
 add_library (nomadUtils SHARED ${MATH_SOURCES} ${OUTPUT_SOURCES} ${PARAM_SOURCES} ${TYPE_SOURCES} ${UTIL_SOURCES} ${ATTRIBUTE_HEADERS})
 target_include_directories(nomadUtils PUBLIC
@@ -523,12 +526,12 @@ endif()
 #
 
 add_executable (nomad ${NOMAD_SOURCES})
+set_target_properties(nomad PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 target_include_directories(nomad PUBLIC
     $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/Nomad>
     $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}/Nomad>
 )
-set_target_properties(nomad PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 target_link_libraries(nomad PUBLIC nomadAlgos nomadUtils nomadEval)
 if(OpenMP_CXX_FOUND)
