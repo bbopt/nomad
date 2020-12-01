@@ -31,8 +31,6 @@
 #    Polytechnique Montreal - GERAD                                               #
 #    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              #
 #    e-mail: nomad@gerad.ca                                                       #
-#    phone : 1-514-340-6053 #6928                                                 #
-#    fax   : 1-514-340-5665                                                       #
 #                                                                                 #
 #  This program is free software: you can redistribute it and/or modify it        #
 #  under the terms of the GNU Lesser General Public License as published by       #
