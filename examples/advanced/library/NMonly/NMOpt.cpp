@@ -77,7 +77,7 @@ void initParams1(NOMAD::AllParameters &p)
     p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL", false);
     p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("BBE ( SOL ) OBJ"));
 
-    p.getEvalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
     p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ PB EB"));
 
     p.getRunParams()->setAttributeValue("NM_OPTIMIZATION",true);

@@ -38,9 +38,6 @@ endif()
 #options
 
 
-# choose to build with benchmarks
-# option(BUILD_BENCHMARKS "Build benchmark tests" OFF)
-
 # Load some modules
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -90,25 +87,6 @@ if(TIME_STATS MATCHES ON)
 endif()
 
 #
-# Choose to build with unit tests or not
-#
-option(BUILD_TESTS "Option to build the unit tests" OFF)
-if(BUILD_TESTS MATCHES ON)
-   message(CHECK_START "  Configuring unit tests build")
-
-   if(NOT DEFINED ENV{GTEST_DIR} OR NOT EXISTS $ENV{GTEST_DIR})
-        message(FATAL_ERROR "The NOMAD 4 unit tests need the Google Test framework. Please set environment variable GTEST_DIR to your local googletest directory. The Google Test framework can be downloaded from https://github.com/google/googletest")
-   endif()
-
-   enable_testing()
-
-   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/unit_tests)
-   message(CHECK_PASS " done")
-else()
-   message(STATUS "  Unit tests NOT built")
-endif()
-
-#
 # Choose to build the examples/tests using library mode or not
 #
 option(BUILD_LIBMODE_EXAMPLES "Option to build library mode examples" ON)
@@ -116,7 +94,6 @@ if(BUILD_LIBMODE_EXAMPLES MATCHES ON)
    message(CHECK_START "  Configuring build for library mode examples and tests")
 
    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/examples)
-   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/integration_tests)
    message(CHECK_PASS " done")
 else()
    message(STATUS "  Examples/tests NOT built")

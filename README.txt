@@ -89,8 +89,6 @@ cmake -S . -B build/release     ---> Create the CMake files and directories for
                                      building (-B) in build/release.
                                      The source (-S) CMakeLists.txt file is in 
                                        the $NOMAD_HOME directory.
-                                     To enable unit tests building:
-                                       cmake -DBUILD_TESTS=ON -S . -B build/release
                                      To enable time stats build:
                                        cmake -DTIME_STATS=ON -S . -B build/release
 
@@ -121,15 +119,6 @@ cmake --build build/debug     ---> Build the libraries and applications
 cmake --install build/debug   ---> Copy binaries and headers in 
                                      build/debug/[bin, include, lib]
 				     and in the examples/tests directories
-
-UNIT TESTS:
-
-When unit tests are enabled, the tests can be performed on the 
-command line:
-cd build/release
-ctest                           ---> Run the test 
-                                     Option --parallel xx can be added for
-                                     faster execution. 
 
 
 EXAMPLES OF OPTIMIZATION:
