@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -46,9 +45,12 @@
 /*---------------------------------------------------------------------------------*/
 #include "../Eval/Evaluator.hpp"
 #include "../Output/OutputQueue.hpp"
+#include "../Util/fileutils.hpp"
 #include <fstream>  // For ofstream
 #include <stdio.h>  // For popen
 
+// Initialize statics
+std::vector<std::string> NOMAD::Evaluator::_tmpFiles = std::vector<std::string>();
 
 //
 // Constructor
@@ -57,43 +59,42 @@
 NOMAD::Evaluator::Evaluator(
                     const std::shared_ptr<NOMAD::EvalParameters> &evalParams,
                     const NOMAD::EvalType evalType,
-                    int nbThreads,
                     const NOMAD::EvalXDefined evalXDefined)
   : _evalParams(evalParams),
-    _tmpFiles(0),
     _evalXDefined(evalXDefined),
     _evalType(evalType)
 {
-    // Update nbThreads if it was not provided (default value is 0)
-    if (0 == nbThreads)
-    {
+}
+
+
+NOMAD::Evaluator::~Evaluator()
+{
+}
+
+
+void NOMAD::Evaluator::initializeTmpFiles(const std::string& tmpDir)
+{
+    // Initialize tmp files for Evaluators
+    int nbThreads = 1;
 #ifdef _OPENMP
-        nbThreads = omp_get_max_threads();
-#else
-        nbThreads = 1;
+    nbThreads = omp_get_max_threads();
 #endif
-    }
-
-    std::string tmppath = _evalParams->getAttributeValue<std::string>("TMP_DIR");
+    std::string tmppath = tmpDir;
     NOMAD::ensureDirPath(tmppath);
-
     // Use the pid in the file name in case two nomad run at the same time.
     int pid = getpid();
-
     // Create a temporary file fo blackbox input. One for each thread number,
     // for each nomad pid. Add the file names to _tmpFiles.
+    _tmpFiles.clear();
     for (auto threadNum = 0; threadNum < nbThreads; threadNum++)
     {
         std::string tmpfilestr = tmppath + "nomadtmp." + std::to_string(pid) + "." + std::to_string(threadNum);
         _tmpFiles.push_back(tmpfilestr);
     }
-
-    // Set default function to compute success according to evalType.
-    NOMAD::ComputeSuccessType::setDefaultComputeSuccessTypeFunction(evalType);
 }
 
 
-NOMAD::Evaluator::~Evaluator()
+void NOMAD::Evaluator::removeTmpFiles()
 {
     // Remove all temporary files, so that they do not linger around.
     auto nbThreads = _tmpFiles.size();
@@ -113,14 +114,37 @@ bool NOMAD::Evaluator::eval_x(NOMAD::EvalPoint &x,
 {
     // The user might have defined his own eval_x() for NOMAD::EvalPoint.
     // In the NOMAD code, we do not use this method.
-    return false;
+    //
+    // Implemented to be used by the Runner. In the case of the Runner,
+    // eval_x is redefined. When batch mode is used (for instance for
+    // Styrene), this eval_x is called. So in fact we really want to
+    // use the executable defined by BB_EXE.
+
+    _evalXDefined = NOMAD::EvalXDefined::USE_BB_EVAL;
+
+    // Create a block of one point and evaluate it.
+    NOMAD::Block block;
+    std::shared_ptr<NOMAD::EvalPoint> epp = std::make_shared<NOMAD::EvalPoint>(x);
+    block.push_back(epp);
+
+    std::vector<bool> countEvalVector(1, countEval);
+    std::vector<bool> evalOkVector(1, false);
+
+    // Call eval_block
+    evalOkVector = eval_block(block, hMax, countEvalVector);
+
+    // Update x and countEval
+    x = *epp;
+    countEval = countEvalVector[0];
+
+    return evalOkVector[0];
 }
 
 
 // Default eval_block: for block
 // This is used even for blocks of 1 point.
 // If we never go through this eval_block(),
-// it means that eval_block was redefined by the user, 
+// it means that eval_block was redefined by the user,
 // using library mode.
 std::vector<bool> NOMAD::Evaluator::eval_block(NOMAD::Block &block,
                                                const NOMAD::Double &hMax,
@@ -183,7 +207,7 @@ std::vector<bool> NOMAD::Evaluator::eval_block(NOMAD::Block &block,
     }
     else
     {
-        std::string s = "Warning: This value of EvalXDefined is not processed: ";
+        std::string s = "Error: This value of EvalXDefined is not processed: ";
         s += std::to_string((int)_evalXDefined);
         throw NOMAD::Exception(__FILE__, __LINE__, s);
     }
@@ -208,11 +232,15 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
         throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: No blackbox executable defined.");
     }
 
+    const int threadNum = NOMAD::getThreadNum();
+
     // Write a temp file for x0 and give that file as argument to bbExe.
-    int threadNum = 0;
-#ifdef _OPENMP
-    threadNum = omp_get_thread_num();
-#endif
+    if ((size_t)threadNum >= _tmpFiles.size())
+    {
+        std::cerr << "Error: Evaluator: No temp file available." << std::endl;
+        // Ugly early return
+        return evalOk;
+    }
     std::string tmpfile = _tmpFiles[threadNum];
 
     // System command
@@ -224,8 +252,10 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
         for (auto it = block.begin(); it != block.end(); it++)
         {
             (*it)->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
-            std::cerr << "Error writing this point to temporary file: " << (*it)->display() << std::endl;
+            std::cerr << "Error writing point " << (*it)->display() << " to temporary file \"" << tmpfile << "\"" << std::endl;
         }
+        // Ugly early return
+        return evalOk;
     }
 
     for (auto it = block.begin(); it != block.end(); it++)
@@ -243,8 +273,11 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
     }
 
     std::string cmd = bbExe + " " + tmpfile;
-    std::string s = "System command: " + cmd;
+    std::string s;
+    OUTPUT_DEBUG_START
+    s = "System command: " + cmd;
     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUGDEBUG);
+    OUTPUT_DEBUG_END
 
     FILE *fresult = popen(cmd.c_str(), "r");
     if (!fresult)
@@ -299,12 +332,6 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
                 countEval[index] = bbOutput.getCountEval(bbOutputType);
             }
         }
-
-        // TODO: Catch SIGINT and make that an EVAL_ERROR.
-        // EVAL_ERROR means the EvalPoint could be re-evaluated in the future.
-        // This could happen for instance if a SIGINT signal was caught.
-        // For now, consider any non-zero exit status to be an EVAL_ERROR.
-        // There is no EVAL_ERROR in NOMAD_3.
 
         // Get exit status of the bb.exe. If it is not 0, there was an error.
         int exitStatus = pclose(fresult);

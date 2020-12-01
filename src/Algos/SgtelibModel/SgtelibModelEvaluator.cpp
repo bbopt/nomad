@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -45,11 +44,11 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/SgtelibModel/SgtelibModelEvaluator.hpp"
-
-#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
+#include "../../Algos/SgtelibModel/SgtelibModelEvaluator.hpp"
+#include "../../Output/OutputQueue.hpp"
 #include "../../Type/SgtelibModelFormulationType.hpp"
+
 #include "../../../ext/sgtelib/src/Surrogate.hpp"
 
 // Constructor
@@ -101,8 +100,11 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     // Convert x to subspace, because model is in subspace.
     x = x.makeSubSpacePointFromFixed(_fixedVariable);
 
-    std::string s = "X = " + x.display();
+    std::string s;
+    OUTPUT_INFO_START
+    s = "X = " + x.display();
     NOMAD::OutputQueue::Add(s, _displayLevel);
+    OUTPUT_INFO_END
 
     size_t n = x.size();
     const auto bbot = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
@@ -145,7 +147,6 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     #pragma omp critical(SgtelibEvalX)
 #endif // _OPENMP
     {
-
         // Set the input matrix
         for (size_t i = 0; i < n; i++)
         {
@@ -187,17 +188,21 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
                 break;
         }
 
+        OUTPUT_INFO_START
         s = "Formulation: " + NOMAD::SgtelibModelFormulationTypeToString(formulation);
         s += "; compute stat: " + NOMAD::boolToString(useStatisticalCriteria);
         s += "; found feasible: " + NOMAD::boolToString(_modelAlgo->getFoundFeasible());
         NOMAD::OutputQueue::Add(s, _displayLevel);
+        OUTPUT_INFO_END
 
         // Prediction
         if ( formulation == NOMAD::SgtelibModelFormulationType::D )
         {
+            OUTPUT_INFO_START
             d = _modelAlgo->getTrainingSet()->get_distance_to_closest(X_predict).get(0,0);
             s = "d = " + d.display();
             NOMAD::OutputQueue::Add(s, _displayLevel);
+            OUTPUT_INFO_END
         }
         else if (formulation == NOMAD::SgtelibModelFormulationType::EXTERN)
         {
@@ -206,7 +211,9 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
         }
         else
         {
+            OUTPUT_INFO_START
             NOMAD::OutputQueue::Add("Predict... ", _displayLevel);
+            OUTPUT_INFO_END
 
             auto model = _modelAlgo->getModel();
             model->build();
@@ -221,7 +228,9 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
                 model->predict(X_predict, &M_predict);
             }
 
+            OUTPUT_INFO_START
             NOMAD::OutputQueue::Add("ok", _displayLevel);
+            OUTPUT_INFO_END
         }
 
         // Get the prediction from the matrices
@@ -242,18 +251,23 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
                 pi      = 1.0; // This implies that pfi = pf
                 ei      = 1.0; // This implies that efi = pf
             }
+            OUTPUT_INFO_START
             s = "F = " + f.display() + " +/- " + sigma_f.display();
             NOMAD::OutputQueue::Add(s, _displayLevel);
+            OUTPUT_INFO_END
         }
         else
         {
+            OUTPUT_INFO_START
             s = "F = " + f.display();
             NOMAD::OutputQueue::Add(s, _displayLevel);
+            OUTPUT_INFO_END
         }
 
         // ====================================== //
         // Constraints display                    //
         // ====================================== //
+        OUTPUT_INFO_START
         s = "";
         switch (_modelFeasibility)
         {
@@ -301,6 +315,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
                 NOMAD::OutputQueue::Add(s, _displayLevel);
                 break;
         }
+        OUTPUT_INFO_END
 
         // ====================================== //
         // Computation of statistical criteria    //
@@ -325,8 +340,10 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             if (!_modelAlgo->getFoundFeasible() && (pf == 0))
             {
                 pf = 1.0/(1.0+L2);
+                OUTPUT_INFO_START
                 s = "pf = 0 and L2 = " + L2.display() + " => pF = " + pf.display();
                 NOMAD::OutputQueue::Add(s, _displayLevel);
+                OUTPUT_INFO_END
             }
             pfi = pi*pf;
             efi = ei*pf;
@@ -340,19 +357,18 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     // ====================================== //
     NOMAD::Double obj;
     NOMAD::ArrayOfDouble newbbo(bbot.size(), -1);
-    size_t k;
+    int k = 0;
     switch (formulation)
     {
         case NOMAD::SgtelibModelFormulationType::FS:
             // Define obj
             obj = f - _diversification*sigma_f;
             // Set constraints
-            k = 0;
             for (size_t i = 0; i < bbot.size(); i++)
             {
                 if (bbot[i] != NOMAD::BBOutputType::OBJ)
                 {
-                    newbbo[i] = M_predict.get(0,static_cast<int>(k+1)) - _diversification*STD_predict.get(0,static_cast<int>(k+1));
+                    newbbo[i] = M_predict.get(0,k) - _diversification*STD_predict.get(0,k+1);
                     k++;
                 }
             }
@@ -375,12 +391,11 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             // Define obj
             obj = - ei - _diversification*sigma_f;
             // Set constraints
-            k = 0;
             for (size_t i = 0; i < bbot.size(); i++)
             {
                 if ( bbot[i] != NOMAD::BBOutputType::OBJ )
                 {
-                    newbbo[i] = M_predict.get(0,static_cast<int>(k+1)) - _diversification*STD_predict.get(0,static_cast<int>(k+1));
+                    newbbo[i] = M_predict.get(0,k+1) - _diversification*STD_predict.get(0,k+1);
                     k++;
                 }
             }
@@ -411,14 +426,18 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             break;
 
         case NOMAD::SgtelibModelFormulationType::EXTERN:
+            OUTPUT_INFO_START
             s = "SgtelibModel formulation: " + NOMAD::SgtelibModelFormulationTypeToString(formulation);
             NOMAD::OutputQueue::Add(s, _displayLevel);
+            OUTPUT_INFO_END
             break;
 
         case NOMAD::SgtelibModelFormulationType::UNDEFINED:
         default:
+            OUTPUT_INFO_START
             s = "SgtelibModel formulation: " + NOMAD::SgtelibModelFormulationTypeToString(formulation);
             NOMAD::OutputQueue::Add(s, _displayLevel);
+            OUTPUT_INFO_END
             break;
     }
 
@@ -450,6 +469,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     // ================== //
     //       DISPLAY      //
     // ================== //
+    OUTPUT_INFO_START
     if (useStatisticalCriteria)
     {
         s = "f_min                    f_min = " + std::to_string(_modelAlgo->getTrainingSet()->get_f_min());
@@ -471,6 +491,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     NOMAD::OutputQueue::Add(s, _displayLevel);
     s = "Model Output = (" + x.getBBO(NOMAD::EvalType::SGTE) + ")";
     NOMAD::OutputQueue::Add(s, _displayLevel);
+    OUTPUT_INFO_END
 
     if (!pf.isDefined() || !pi.isDefined())
     {
@@ -498,7 +519,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
 void NOMAD::SgtelibModelEvaluator::evalH(const NOMAD::ArrayOfDouble& bbo,
                                          const NOMAD::BBOutputTypeList& bbot,
                                          NOMAD::Double &h)
-{   
+{
     // Note: This method must be reviewed if new BBOutputTypes are added.
 
     const auto hMin = 0.0; // H_MIN not implemented
@@ -526,7 +547,7 @@ void NOMAD::SgtelibModelEvaluator::evalH(const NOMAD::ArrayOfDouble& bbo,
                     h = +INF;
                     return;
                 }
-            } 
+            }
             else if (bbot[i] == NOMAD::BBOutputType::PB)
             {
                if ( bboi > hMin )

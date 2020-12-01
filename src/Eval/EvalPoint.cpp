@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -53,10 +52,7 @@
  */
 #include "../Eval/EvalPoint.hpp"
 
-NOMAD::ComputeSuccessFunction NOMAD::ComputeSuccessType::_computeSuccessType = NOMAD::ComputeSuccessType::defaultComputeSuccessType;
-
-const std::string NOMAD::EvalPoint::ptFrom = "<";
-
+size_t NOMAD::EvalPoint::_currentTag = 0;
 
 /*---------------------------------------------------------------------*/
 /*                            Constructor 1                            */
@@ -65,6 +61,8 @@ NOMAD::EvalPoint::EvalPoint ()
   : Point(),
     _eval(nullptr),
     _evalSgte(nullptr),
+    _tag(0),
+    _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
     _pointFrom(nullptr)
 {
@@ -78,6 +76,8 @@ NOMAD::EvalPoint::EvalPoint(size_t n)
   : NOMAD::Point(n),
     _eval(nullptr),
     _evalSgte(nullptr),
+    _tag(0),
+    _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
     _pointFrom(nullptr)
 {
@@ -91,6 +91,8 @@ NOMAD::EvalPoint::EvalPoint(const NOMAD::Point &x)
   : Point(x),
     _eval(nullptr),
     _evalSgte(nullptr),
+    _tag(0),
+    _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
     _pointFrom(nullptr)
 {
@@ -114,6 +116,8 @@ NOMAD::EvalPoint::EvalPoint(const NOMAD::EvalPoint &evalPoint)
 /*---------------------------------------------------------------------*/
 void NOMAD::EvalPoint::copyMembers(const NOMAD::EvalPoint &evalPoint)
 {
+    _tag = evalPoint._tag;
+    _threadAlgo = evalPoint._threadAlgo;
     _numberEval = evalPoint._numberEval;
 
     _eval = nullptr;
@@ -146,6 +150,8 @@ NOMAD::EvalPoint & NOMAD::EvalPoint::operator=(const NOMAD::EvalPoint &evalPoint
 
     Point::operator=(evalPoint);
 
+    _tag = evalPoint._tag;
+    _threadAlgo = evalPoint._threadAlgo;
     _numberEval = evalPoint._numberEval;
 
     _pointFrom = evalPoint._pointFrom;
@@ -196,6 +202,7 @@ bool NOMAD::EvalPoint::operator== (const NOMAD::EvalPoint &evalPoint) const
     // First compare Points.
     bool equal = Point::operator==(evalPoint);
 
+    // Ignore tag.
     // Ignore numberEval.
     // Ignore pointFrom.
 
@@ -271,97 +278,6 @@ bool NOMAD::EvalPoint::operator== (const NOMAD::EvalPoint &evalPoint) const
 bool NOMAD::EvalPoint::operator<(const NOMAD::EvalPoint & ep) const
 {
     return this->dominates(ep, NOMAD::EvalType::BB);
-}
-
-
-/*--------------------------*/
-/* Class ComputeSuccessType */
-/*--------------------------*/
-NOMAD::SuccessType NOMAD::ComputeSuccessType::defaultComputeSuccessType(
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
-                                const NOMAD::Double& hMax)
-{
-    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
-
-    if (nullptr != evalPoint1)
-    {
-        if (nullptr == evalPoint2)
-        {
-            if (evalPoint1->getH(NOMAD::EvalType::BB) > hMax)
-            {
-                // Even if evalPoint2 is NULL, this case is still 
-                // not a success.
-                success = NOMAD::SuccessType::UNSUCCESSFUL;
-            }
-            else
-            {
-                success = NOMAD::SuccessType::FULL_SUCCESS;
-            }
-        }
-        else
-        {
-            success = NOMAD::Eval::defaultComputeSuccessType(evalPoint1->getEval(NOMAD::EvalType::BB),
-                                                             evalPoint2->getEval(NOMAD::EvalType::BB),
-                                                             hMax);
-        }
-    }
-
-    return success;
-}
-
-
-NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypePhaseOne(
-                            const std::shared_ptr<NOMAD::EvalPoint>& evalPoint,
-                            const std::shared_ptr<NOMAD::EvalPoint>& xInf,
-                            const NOMAD::Double& hMax)
-{
-    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
-
-    if (nullptr != evalPoint)
-    {
-        if (nullptr == xInf)
-        {
-            success = NOMAD::SuccessType::FULL_SUCCESS;
-        }
-        else
-        {
-            success = NOMAD::Eval::computeSuccessTypePhaseOne(evalPoint->getEval(NOMAD::EvalType::BB),
-                                                              xInf->getEval(NOMAD::EvalType::BB), hMax);
-        }
-    }
-
-    return success;
-}
-
-
-NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeSgte(
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
-                                const NOMAD::Double& hMax)
-{
-    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
-    const NOMAD::EvalType evalTypeSgte = NOMAD::EvalType::SGTE;
-
-    if (nullptr != evalPoint1)
-    {
-        if (evalPoint1->getH(evalTypeSgte) > hMax)
-        {
-            success = NOMAD::SuccessType::UNSUCCESSFUL;
-        }
-        else if (nullptr == evalPoint2)
-        {
-            success = NOMAD::SuccessType::FULL_SUCCESS;
-        }
-        else
-        {
-            success = NOMAD::Eval::defaultComputeSuccessType(evalPoint1->getEval(evalTypeSgte),
-                                                             evalPoint2->getEval(evalTypeSgte),
-                                                             hMax);
-        }
-    }
-
-    return success;
 }
 
 
@@ -615,12 +531,29 @@ void NOMAD::EvalPoint::setEvalStatus(const NOMAD::EvalStatusType &evalStatus,
 }
 
 
+// This method is declared const so we can use it inside a const method.
+void NOMAD::EvalPoint::updateTag() const
+{
+    if (_tag==0)
+    {
+        _currentTag++;
+        _tag = _currentTag;
+    }
+}
+
+
+void NOMAD::EvalPoint::resetCurrentTag()
+{
+    _currentTag = 0;
+}
+
+
 const std::shared_ptr<NOMAD::Point> NOMAD::EvalPoint::getPointFrom(const NOMAD::Point& fixedVariable) const
 {
     auto pointFrom = _pointFrom;
     if (nullptr != pointFrom)
     {
-        pointFrom = std::make_shared<NOMAD::Point>(pointFrom->makeSubSpacePointFromFixed(fixedVariable));
+        pointFrom = std::make_shared<NOMAD::Point>(pointFrom->projectPointToSubspace(fixedVariable));
     }
 
     return pointFrom;
@@ -706,9 +639,7 @@ NOMAD::EvalPoint NOMAD::EvalPoint::makeSubSpacePointFromFixed(const NOMAD::Point
 // Should we evaluate (possibly re-evaluate) this point?
 bool NOMAD::EvalPoint::toEval(short maxPointEval, const NOMAD::EvalType& evalType) const
 {
-    // TODO This functionality must be reviewed if we
-    // accept multiple evaluations for a single point.
-    // Ex. for a stochastic blackbox.
+
     bool reEval = false;
 
     auto eval = getEval(evalType);
@@ -742,11 +673,10 @@ bool NOMAD::EvalPoint::toEval(short maxPointEval, const NOMAD::EvalType& evalTyp
 
 
 // Not displaying evalSgte, only bb eval
-// TODO should be merged with operator<<
-// but watch out for displayed precision.
 std::string NOMAD::EvalPoint::display(const NOMAD::ArrayOfDouble &format) const
 {
-    std::string s = NOMAD::Point::display(format);
+    std::string s = "#" + std::to_string(_tag) + " ";
+    s += NOMAD::Point::display(format);
     if (nullptr != _eval)
     {
         s += "\t";
@@ -759,7 +689,8 @@ std::string NOMAD::EvalPoint::display(const NOMAD::ArrayOfDouble &format) const
 // Show both eval and evalSgte. For debugging purposes.
 std::string NOMAD::EvalPoint::displayAll() const
 {
-    std::string s = NOMAD::Point::display();
+    std::string s = "#" + std::to_string(_tag) + " ";
+    s += NOMAD::Point::display();
     if (nullptr != _eval)
     {
         s += "\t";
@@ -789,34 +720,6 @@ bool NOMAD::EvalPoint::hasSgteEval(const NOMAD::EvalPoint& evalPoint)
 bool NOMAD::EvalPoint::hasBbEval(const NOMAD::EvalPoint& evalPoint)
 {
     return (nullptr != evalPoint.getEval(NOMAD::EvalType::BB));
-}
-
-
-/*---------------------------*/
-/* Class ComputeSuccessType  */
-/*---------------------------*/
-void NOMAD::ComputeSuccessType::setDefaultComputeSuccessTypeFunction(const NOMAD::EvalType& evalType)
-{
-    switch (evalType)
-    {
-        case NOMAD::EvalType::BB:
-            setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
-            break;
-        case NOMAD::EvalType::SGTE:
-            setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
-            break;
-        case NOMAD::EvalType::UNDEFINED:
-        default:
-            break;
-    }
-}
-
-
-NOMAD::SuccessType NOMAD::ComputeSuccessType::operator()(const NOMAD::EvalPointPtr& p1,
-                                                         const NOMAD::EvalPointPtr& p2,
-                                                         const NOMAD::Double& hMax)
-{
-    return _computeSuccessType(p1, p2, hMax);
 }
 
 
@@ -866,22 +769,6 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalPoint &evalPoint)
 
         evalPoint = NOMAD::EvalPoint(point);
 
-        is >> s;
-        if (NOMAD::EvalPoint::ptFrom == s)
-        {
-            // Found start of pointFrom.
-            is >> pointFrom;
-            evalPoint.setPointFrom(std::make_shared<NOMAD::Point>(pointFrom));
-        }
-        else
-        {
-            // Put back whole read string to istream
-            for (unsigned i = 0; i < s.size(); i++)
-            {
-                is.unget();
-            }
-        }
-
         // Read Eval - if following field is an EvalStatus.
         is >> evalStatus;
         if (NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED != evalStatus)
@@ -893,8 +780,7 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalPoint &evalPoint)
             NOMAD::BBOutput bbo("");
             is >> bbo;
 
-            evalPoint.setBBO(bbo, NOMAD::EvalType::BB);
-            evalPoint.getEval(NOMAD::EvalType::BB)->toRecompute(true);
+            evalPoint.setBBO(bbo, NOMAD::EvalType::BB);  // BBO is set but f and h need to be recomputed
 
             // For now, set numEval to 1 if Eval exists. Currently,
             // only 1 Eval is correctly supported.
@@ -912,6 +798,54 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalPoint &evalPoint)
     return is;
 }
 
+
+bool NOMAD::findInList(const NOMAD::Point& point,
+                       const std::vector<NOMAD::EvalPoint>& evalPointList,
+                       NOMAD::EvalPoint& foundEvalPoint)
+{
+    bool found = false;
+
+    for (auto evalPoint : evalPointList)
+    {
+        if (point == *evalPoint.getX())
+        {
+            foundEvalPoint = evalPoint;
+            found = true;
+            break;
+        }
+    }
+
+    return found;
+}
+
+
+void NOMAD::convertPointListToSub(NOMAD::EvalPointList &evalPointList, const NOMAD::Point& fixedVariable)
+{
+    if (fixedVariable.isEmpty())
+    {
+        std::string s = "Error: Fixed variable of dimension 0";
+        throw NOMAD::Exception(__FILE__,__LINE__,s);
+    }
+    for (size_t i = 0; i < evalPointList.size(); i++)
+    {
+        if (evalPointList[i].size() == fixedVariable.size())
+        {
+            evalPointList[i] = evalPointList[i].makeSubSpacePointFromFixed(fixedVariable);
+        }
+    }
+}
+
+
+void NOMAD::convertPointListToFull(NOMAD::EvalPointList &evalPointList, const NOMAD::Point& fixedVariable)
+{
+    for (size_t i = 0; i < evalPointList.size(); i++)
+    {
+        if (evalPointList[i].size() == fixedVariable.size() - fixedVariable.nbDefined())
+        {
+            evalPointList[i] = evalPointList[i].makeFullSpacePointFromFixed(fixedVariable);
+        }
+    }
+}
 
 
 #ifdef USE_UNORDEREDSET

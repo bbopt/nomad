@@ -39,9 +39,6 @@ endif
 ifdef USE_UNORDEREDSET
 CXXFLAGS            += -DUSE_UNORDEREDSET
 endif
-ifdef USE_PRIORITY_QUEUE
-CXXFLAGS            += -DUSE_PRIORITY_QUEUE
-endif
 
 CXXFLAGS            += -std=c++14 -Wall -fpic
 # Use OpenMP for parallelism (threads)

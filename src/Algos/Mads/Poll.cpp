@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -46,185 +45,145 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/EvcInterface.hpp"
+#include "../../Algos/Mads/DoublePollMethod.hpp"
+#include "../../Algos/Mads/NP1UniPollMethod.hpp"
+#include "../../Algos/Mads/Ortho2NPollMethod.hpp"
 #include "../../Algos/Mads/Poll.hpp"
-#include "../../Math/RNG.hpp"
+#include "../../Algos/Mads/SinglePollMethod.hpp"
+#include "../../Output/OutputQueue.hpp"
+#include "../../Type/DirectionType.hpp"
+
+#ifdef TIME_STATS
+#include "../../Util/Clock.hpp"
+// Initialize static variables
+double NOMAD::Poll::_pollTime;
+double NOMAD::Poll::_pollEvalTime;
+#endif // TIME_STATS
 
 void NOMAD::Poll::init()
 {
+
     _name = "Poll";
     verifyParentNotNull();
+
+    // Select the single poll method to be executed
+    auto dt = _pbParams->getAttributeValue<DirectionType>("DIRECTION_TYPE");
+    switch (dt)
+    {
+        case DirectionType::ORTHO_2N:
+            _pollMethod = std::make_shared<NOMAD::Ortho2NPollMethod>(this);
+            break;
+        case DirectionType::NP1_UNI:
+            _pollMethod = std::make_shared<NOMAD::NP1UniPollMethod>(this);
+            break;
+        case DirectionType::DOUBLE:
+            _pollMethod = std::make_shared<NOMAD::DoublePollMethod>(this);
+            break;
+        case DirectionType::SINGLE:
+            _pollMethod = std::make_shared<NOMAD::SinglePollMethod>(this);
+            break;
+        default:
+            throw NOMAD::Exception(__FILE__, __LINE__,"Poll method"+directionTypeToString(dt)+"not available.");
+            break;
+    }
 }
 
 
 void NOMAD::Poll::startImp()
 {
+    // Sanity check.
+     verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
 
-    // Create EvalPoints and send them to EvaluatorControl
-    generateTrialPoints();
-
-    if ( 0 == getTrialPointsCount() )
-    {
-        auto madsStopReasons = NOMAD::AlgoStopReasons<NOMAD::MadsStopType>::get ( _stopReasons );
-        madsStopReasons->set( NOMAD::MadsStopType::MESH_PREC_REACHED );
-    }
 }
 
 
 bool NOMAD::Poll::runImp()
 {
-    bool foundBetter = false;
+    bool pollSuccessful = false;
+    std::string s;
 
-    if ( ! _stopReasons->checkTerminate() )
+    // Sanity check. The runImp function should be called only when trial points are generated and evaluated for each search method separately.
+    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
+
+    NOMAD::SuccessType bestSuccessYet = NOMAD::SuccessType::NOT_EVALUATED;
+    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
+
+    // Go through all poll methods until we get a success.
+    OUTPUT_DEBUG_START
+    s = "Poll method " + _pollMethod->getName() + " is enabled";
+    AddOutputDebug(s);
+    OUTPUT_DEBUG_END
+#ifdef TIME_STATS
+    double pollStartTime = NOMAD::Clock::getCPUTime();
+    double pollEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
+#endif // TIME_STATS
+    _pollMethod->start();
+    _pollMethod->run();
+    success = _pollMethod->getSuccessType();
+    pollSuccessful = (success >= NOMAD::SuccessType::FULL_SUCCESS);
+    if (success > bestSuccessYet)
     {
-        foundBetter = evalTrialPoints(this);
+        bestSuccessYet = success;
     }
+    _pollMethod->end();
+#ifdef TIME_STATS
+    _pollTime += NOMAD::Clock::getCPUTime() - pollStartTime;
+    _pollEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - pollEvalStartTime;
+#endif // TIME_STATS
 
 
-    return foundBetter;
+    OUTPUT_INFO_START
+    s = _pollMethod->getName();
+    s += (pollSuccessful) ? " is successful" : " is not successful";
+    s += ". Stop reason: ";
+    s += _stopReasons->getStopReasonAsString() ;
+    AddOutputInfo(s);
+    OUTPUT_INFO_END
+
+    setSuccessType(bestSuccessYet);
+
+    return pollSuccessful;
 }
 
 
 void NOMAD::Poll::endImp()
 {
-    postProcessing(getEvalType());
+    // Sanity check. The endImp function should be called only when trial points are generated and evaluated for each search method separately.
+    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
+
+    postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
 }
 
 
-// Generate poll directions
-void NOMAD::Poll::setPollDirections(std::list<NOMAD::Direction> &directions) const
-{
-    directions.clear();
-    size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
 
-    NOMAD::Direction dirUnit(n, 0.0);
-    bool dirComputed = NOMAD::Direction::computeDirOnUnitSphere(dirUnit);
-    if (!dirComputed)
-    {
-        std::string err("Poll: setPollDirections: Cannot compute a random direction on unit sphere");
-        throw NOMAD::Exception(__FILE__, __LINE__, err);
-    }
-
-    // Ortho MADS 2n
-    // Householder Matrix
-    NOMAD::Direction** H = new NOMAD::Direction*[2*n];
-    std::list<NOMAD::Direction> dirsUnit;
-
-    // Ordering D_k alternates Hk and -Hk instead of [H_k -H_k]
-    // TODO rewrite this in a clearer way, and follow the book's notation
-    for (size_t i = 0; i < n; ++i)
-    {
-        dirsUnit.push_back(NOMAD::Direction(n, 0.0));
-        H[i]   = &(*(--dirsUnit.end()));
-        dirsUnit.push_back(NOMAD::Direction(n, 0.0));
-        H[i+n] = &(*(--dirsUnit.end()));
-    }
-
-    // Householder transformations on the 2n directions on a unit n-sphere
-    NOMAD::Direction::householder(dirUnit, true, H);
-    delete [] H;
-
-    // Scale the directions and project on the mesh
-    std::list<NOMAD::Direction>::const_iterator itDir;
-    int k = 1;
-    std::shared_ptr<NOMAD::MeshBase> mesh = getIterationMesh();
-    if (nullptr == mesh)
-    {
-        std::string err("Poll: setPollDirections: Iteration or Mesh not found.");
-        throw NOMAD::Exception(__FILE__, __LINE__, err);
-    }
-
-    // TODO rewrite this in a clearer way
-    for (itDir = dirsUnit.begin(); itDir != dirsUnit.end(); ++itDir, ++k)
-    {
-        directions.push_back(NOMAD::Direction(n, 0.0));
-        NOMAD::Direction* pd = &(*(--directions.end()));
-
-        // Compute infinite norm for direction pointed by itDir.
-        NOMAD::Double infiniteNorm = (*itDir).infiniteNorm();
-        if (0 == infiniteNorm)
-        {
-            std::string err("Poll: setPollDirections: Cannot handle an infinite norm of zero");
-            throw NOMAD::Exception(__FILE__, __LINE__, err);
-        }
-
-        for (size_t i = 0; i < n; ++i)
-        {
-            // Scaling and projection on the mesh
-            (*pd)[i] = mesh->scaleAndProjectOnMesh(i, (*itDir)[i] / infiniteNorm);
-        }
-    }
-
-    std::list<NOMAD::Direction>::const_iterator it;
-    for (it = directions.begin(); it != directions.end(); ++it)
-    {
-        AddOutputDebug("Poll direction: " + it->display());
-    }
-
-    dirsUnit.clear();
-}
 
 
 // Generate new points to evaluate
 void NOMAD::Poll::generateTrialPoints()
 {
+    // Sanity check. The generateTrialPoints function should be called only
+    // when trial points are also generated for each search method (MegaSearchPoll).
+    // After generation, all trials points evaluated at once.
+    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, true);
+
+    OUTPUT_INFO_START
     AddOutputInfo("Generate points for " + _name, true, false);
-    
-    // Creation of the poll directions
-    std::list<NOMAD::Direction> directions;
-    setPollDirections(directions);
-    
-    size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
-    
-    // We need a frame center to start with.
-    auto frameCenter = getIterationFrameCenter();
-    if (nullptr == frameCenter || !frameCenter->ArrayOfDouble::isDefined() || frameCenter->size() != n)
-    {
-        std::string err("NOMAD::Poll::generateTrialPoints: invalid frame center: ");
-        if (nullptr != frameCenter)
-        {
-            err += frameCenter->display();
-        }
-        throw NOMAD::Exception(__FILE__, __LINE__, err);
+    OUTPUT_INFO_END
+
+    _pollMethod->generateTrialPoints();
+
+    // Pass the points from Poll method to Poll for later evaluation
+     auto pollMethodPoints = _pollMethod->getTrialPoints();
+     for (auto point : pollMethodPoints)
+     {
+          insertTrialPoint(point);
     }
-    
-    AddOutputDebug("Frame center: " + frameCenter->display());
-    
-    for (std::list<NOMAD::Direction>::iterator it = directions.begin(); it != directions.end() ; ++it)
-    {
-        NOMAD::Point pt(n);
-        
-        // pt = frame center + direction
-        for (size_t i = 0 ; i < n ; ++i )
-        {
-            pt[i] = (*frameCenter)[i] + (*it)[i];
-        }
-        
-        // Snap the points and the corresponding direction to the bounds
-        if (snapPointToBoundsAndProjectOnMesh(pt, _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND"),
-                        _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND"),
-                        frameCenter,
-                        getIterationMesh()))
-        {
-            if (pt != *frameCenter->getX())
-            {
-                // New EvalPoint to be evaluated.
-                // Add it to the list.
-                bool inserted = insertTrialPoint(NOMAD::EvalPoint(pt));
-                
-                std::string s = "Generated point";
-                s += (inserted) ? ": " : " not inserted: ";
-                s += pt.display();
-                AddOutputInfo(s);
-            }
-        }
-    }
-    
+
+    // Sanity check
     verifyPointsAreOnMesh(getName());
-    updatePointsWithFrameCenter();
-    
-    AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");
+
+    OUTPUT_INFO_START
+    AddOutputInfo("Generated " + std::to_string(getTrialPointsCount()) + " points");
     AddOutputInfo("Generate points for " + _name, false, true);
-    
+    OUTPUT_INFO_END
 }
-
-

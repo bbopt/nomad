@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -44,18 +43,40 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
+#include "../../Algos/EvcInterface.hpp" // To access EvalType
 #include "../../Algos/NelderMead/NMSimplexEvalPoint.hpp"
+#include "../../Eval/ComputeSuccessType.hpp"
 
 bool NOMAD::NMSimplexEvalPointCompare::operator()(const NOMAD::EvalPoint& lhs,
                                                   const NOMAD::EvalPoint& rhs) const
 {
-    // ComputeSuccessType will automatically use the correct EvalType 
-    // depending on which part of the code we are in,
-    // because the methode setComputeSuccessType was used to set it.
-    NOMAD::ComputeSuccessType computeSuccess;
+    // Workaround to get EvalType for ComputeSuccessType.
+    NOMAD::EvalType evalType = NOMAD::EvalType::BB;
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    if (nullptr != evc)
+    {
+        evalType = evc->getEvalType();
+    }
+    NOMAD::ComputeSuccessType computeSuccess(evalType);
+
+    // This could be an inefficient function (see issue #392)
     NOMAD::SuccessType success = computeSuccess(std::make_shared<NOMAD::EvalPoint>(lhs),
                                                 std::make_shared<NOMAD::EvalPoint>(rhs));
 
-    return (success >= NOMAD::SuccessType::PARTIAL_SUCCESS);
+    if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+    {
+        return true;
+    }
+
+    success = computeSuccess(std::make_shared<NOMAD::EvalPoint>(rhs),
+                             std::make_shared<NOMAD::EvalPoint>(lhs));
+    if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+    {
+        return false;
+    }
+
+    // The "older" function from NM-Mads paper is implemented by comparing the tags
+    return lhs.getTag() < rhs.getTag();
 }
 

@@ -10,13 +10,14 @@
 #                 Christophe Tribes           - Polytechnique Montreal            #
 #                                                                                 #
 #  The copyright of NOMAD - version 4.0.0 is owned by                             #
+#                 Charles Audet               - Polytechnique Montreal            #
 #                 Sebastien Le Digabel        - Polytechnique Montreal            #
 #                 Viviane Rochon Montplaisir  - Polytechnique Montreal            #
 #                 Christophe Tribes           - Polytechnique Montreal            #
 #                                                                                 #
-#  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    #
-#  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     #
-#  Electrique and IVADO (The Institute for Data Valorization)                     #
+#  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            #
+#  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      #
+#  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         #
 #                                                                                 #
 #  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     #
 #  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       #
@@ -30,8 +31,6 @@
 #    Polytechnique Montreal - GERAD                                               #
 #    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              #
 #    e-mail: nomad@gerad.ca                                                       #
-#    phone : 1-514-340-6053 #6928                                                 #
-#    fax   : 1-514-340-5665                                                       #
 #                                                                                 #
 #  This program is free software: you can redistribute it and/or modify it        #
 #  under the terms of the GNU Lesser General Public License as published by       #
@@ -49,13 +48,13 @@
 #  You can find information on the NOMAD software at www.gerad.ca/nomad           #
 #---------------------------------------------------------------------------------#
 
-DISCLAIMER :
+DISCLAIMER:
 
 This is a Beta version of NOMAD 4.0.0. It represents work in progress and
 subject to change without notice.
 
 
-DESCRIPTION :
+DESCRIPTION:
 
 NOMAD is a C++ implementation of the Mesh Adaptive Direct Search (MADS)
 algorithm, designed for constrained optimization of black-box functions.
@@ -65,53 +64,73 @@ The algorithms implemented are based on the book
 Springer 2017.
 
 
-WEB PAGE :
+WEB PAGE:
 
 https://www.gerad.ca/nomad/
 
 
-CONTACT :
+CONTACT:
 
 nomad@gerad.ca
 
 
-USAGE :
+COMPILATION (Release):
 
-NOMAD 4 usage is similar to NOMAD 3, including batch and library modes. 
+On Linux, Unix, and Mac OS X, NOMAD can be compiled using CMake.
+The minimum version of CMake is 3.14. Older versions will trigger
+an error. A recent C++ compiler is also required.  
+
+The procedure is the following. On the command line in the
+ $NOMAD_HOME directory:
+
+cmake -S . -B build/release     ---> Create the CMake files and directories for 
+                                     building (-B) in build/release.
+                                     The source (-S) CMakeLists.txt file is in 
+                                       the $NOMAD_HOME directory.
+                                     To enable time stats build:
+                                       cmake -DTIME_STATS=ON -S . -B build/release
 
 
-COMPILATION :
+cmake --build build/release     ---> Build the libraries and applications 
+                                     Option --parallel xx can be added for faster
+                                     build
 
-On Linux, Unix, and Mac OS X, NOMAD can be compiled using the makefile
-located in the "src" directory.
+cmake --install build/release   ---> Copy binaries and headers in 
+                                     build/release/[bin, include, lib]
+				     and in the examples/tests directories
 
-Make options for Nomad 4:
-
-If OpenMP is not available:
-make NOOMP=1
-
-To compile without using sgtelib:
-make USE_SGTELIB=0
-
-To compile in Debug mode:
-make VARIANT=debug
-
-The executable "nomad" will be produced to directory:
+The executable "nomad" will installed into the directory:
 build/release/bin/  (build/debug/bin/ when in debug mode).
 
 
-EXAMPLES :
+COMPILATION (Debug):
+
+The procedure to build the debug version is the following. 
+On the command line in the $NOMAD_HOME directory:
+
+cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
+
+cmake --build build/debug     ---> Build the libraries and applications 
+                                     Option --parallel xx can be added for faster
+                                     build
+
+cmake --install build/debug   ---> Copy binaries and headers in 
+                                     build/debug/[bin, include, lib]
+				     and in the examples/tests directories
+
+
+EXAMPLES OF OPTIMIZATION:
 
 Batch Mode:
 There are examples in batch mode in examples/basic/batch/.
-In each directory, the blackbox (usually named bb.exe) may be compiled using the
-provided makefile.
-The problem may be resolved using NOMAD and the parameter file param.txt:
+In each directory, the blackbox (usually named bb.exe) may be compiled using
+the provided makefile.
+The problem may be resolved using NOMAD and the parameter file:
 nomad param.txt
 
 Library Mode:
 There are examples in library mode in examples/basic/library/.
-In each directory, the executable may be compiled using the provided makefile
-(using the same flags as for the NOMAD compilation). The problems may be resolved
-by execution, for instance:
+In each directory, the executable may be compiled when building 
+Nomad application. The problems may be resolved by execution, 
+for instance:
 example_lib.exe

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -48,20 +47,8 @@
 #ifndef __NOMAD400_MADS__
 #define __NOMAD400_MADS__
 
-#include "../../Eval/EvaluatorControl.hpp"
-
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
-#include "../../Algos/Step.hpp"
-
-// Mads specific
-#include "../../Algos/Mads/MadsInitialization.hpp"
-#include "../../Algos/Mads/MadsMegaIteration.hpp"
-
-#include "../../Param/RunParameters.hpp"
-#include "../../Param/PbParameters.hpp"
-#include "../../Param/EvalParameters.hpp"
-#include "../../Param/DisplayParameters.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -90,8 +77,9 @@ public:
     {
         init();
     }
-    
-    
+
+    /// Helper for hot restart
+    void hotRestartOnUserInterrupt() override;
 
 private:
     ///  Initialization of class, to be used by Constructor.
@@ -100,15 +88,12 @@ private:
     /// Algorithm execution for single-objective.
     /**
      Overrides the default algorithm's run
-     \return \c true
+     \return \c true if a full success was found, \c false otherwise
      */
     virtual bool runImp() override;
-    
+
     /// Helper for start()
-    void readInformationForHotRestart() override ;
-    
-    
-    
+    void readInformationForHotRestart() override;
 };
 
 #include "../../nomad_nsend.hpp"

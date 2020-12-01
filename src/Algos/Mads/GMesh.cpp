@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -44,6 +43,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/GMesh.hpp"
 #include "../../Output/OutputQueue.hpp"
 
@@ -80,13 +81,13 @@ void NOMAD::GMesh::init()
 void NOMAD::GMesh::checkMeshForStopping( std::shared_ptr<NOMAD::AllStopReasons> stopReasons ) const
 {
     bool stop = true;
-    
+
     // GMesh is the mesh for Mads
     // stopReasons must be AlgoStopReasons<MadsStopType>
     auto madsStopReasons = NOMAD::AlgoStopReasons<NOMAD::MadsStopType>::get( stopReasons );
 
-    
-    // General case, when min mesh size is reached, stop reason 
+
+    // General case, when min mesh size is reached, stop reason
     // MIN_MESH_SIZE_REACHED is set.
     // Special case: if all variables are granular, MAX_EVAL is automatically
     // set. Always continue looking, even if the min mesh size is reached,
@@ -109,9 +110,10 @@ void NOMAD::GMesh::checkMeshForStopping( std::shared_ptr<NOMAD::AllStopReasons> 
     {
         for (size_t i = 0; i < _n; i++)
         {
-            if (getdeltaMeshSize(i) > _minMeshSize[i])
+            if (getdeltaMeshSize(i).todouble() >= _minMeshSize[i].todouble() && _granularity[i] ==0) // Do not stop if a non-granular variable has its mesh coarser than the minMeshSize
             {
                 stop = false;
+                break;
             }
         }
     }
@@ -126,9 +128,10 @@ void NOMAD::GMesh::checkMeshForStopping( std::shared_ptr<NOMAD::AllStopReasons> 
         stop = true;
         for (size_t i = 0; i < _n; i++)
         {
-            if (_minFrameSize[i].isDefined() && getDeltaFrameSize(i) > _minFrameSize[i])
+            if (_minFrameSize[i].isDefined() && getDeltaFrameSize(i).todouble() >= _minFrameSize[i].todouble())
             {
                 stop = false;
+                break;
             }
         }
         if (stop)
@@ -147,7 +150,6 @@ void NOMAD::GMesh::updatedeltaMeshSize()
     // other mesh parameters being updated.
 }
 
-
 // Update frame size after a successful Search or Frame step.
 // In GMesh, big Delta and small delta are updated simultaneously as a
 // result of the implementation.
@@ -157,7 +159,7 @@ bool NOMAD::GMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction,
                                          bool anisotropicMesh)
 {
     bool oneFrameSizeChanged = false;
-    
+
     NOMAD::Double minRho = NOMAD::INF;
     for (size_t i = 0; i < _n ; i++)
     {
@@ -166,10 +168,10 @@ bool NOMAD::GMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction,
             minRho = NOMAD::min(minRho, getRho(i));
         }
     }
-    
+
     for (size_t i = 0 ; i < _n ; i++)
     {
-        
+
         bool frameSizeIChanged = false;
         // Test for producing anisotropic mesh
         if ( ! anisotropicMesh
@@ -177,19 +179,7 @@ bool NOMAD::GMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction,
             || ( _granularity[i] == 0  && _frameSizeExp[i] < _initFrameSizeExp[i] && getRho(i) > minRho*minRho )
             )
         {
-            if (_frameSizeMant[i] == 1)
-            {
-                _frameSizeMant[i] = 2;
-            }
-            else if (_frameSizeMant[i] == 2)
-            {
-                _frameSizeMant[i] = 5;
-            }
-            else
-            {
-                _frameSizeMant[i] = 1;
-                ++_frameSizeExp[i];
-            }
+            getLargerMantExp(_frameSizeMant[i], _frameSizeExp[i]);
             frameSizeIChanged = true;
             oneFrameSizeChanged = true;
         }
@@ -361,23 +351,23 @@ NOMAD::Double NOMAD::GMesh::getRho(size_t i) const
 /*       if (granularity > 0)                                   */
 /*           delta^k = granularity * max (1.0, delta^k )        */
 /*--------------------------------------------------------------*/
-// If delta is under min mesh size, return min mesh size.
+NOMAD::ArrayOfDouble NOMAD::GMesh::getdeltaMeshSize() const
+{
+    return MeshBase::getdeltaMeshSize();
+}
+
+
 NOMAD::Double NOMAD::GMesh::getdeltaMeshSize(size_t i) const
 {
     NOMAD::Double deltai = getdeltaMeshSize(_frameSizeExp[i], _initFrameSizeExp[i], _granularity[i]);
-
-    if (deltai < _minMeshSize[i])
-    {
-        deltai = _minMeshSize[i];
-    }
-
+    
     return deltai;
 }
 
 
-NOMAD::Double NOMAD::GMesh::getdeltaMeshSize(const NOMAD::Double frameSizeExp,
-                                             const NOMAD::Double initFrameSizeExp,
-                                             const NOMAD::Double granularity) const
+NOMAD::Double NOMAD::GMesh::getdeltaMeshSize(const NOMAD::Double& frameSizeExp,
+                                             const NOMAD::Double& initFrameSizeExp,
+                                             const NOMAD::Double& granularity) const
 {
     NOMAD::Double diff  = frameSizeExp - initFrameSizeExp;
     NOMAD::Double exp   = frameSizeExp - diff.abs();
@@ -393,47 +383,60 @@ NOMAD::Double NOMAD::GMesh::getdeltaMeshSize(const NOMAD::Double frameSizeExp,
 }
 
 
-NOMAD::ArrayOfDouble NOMAD::GMesh::getdeltaMeshSize() const
-{
-    return MeshBase::getdeltaMeshSize();
-}
-
-
 /*--------------------------------------------------------------*/
 /*  get Delta_i  (frame size parameter)                          */
 /*       Delta^k = a^k *10^{b^k}                                */
 /*--------------------------------------------------------------*/
-NOMAD::Double NOMAD::GMesh::getDeltaFrameSize(const size_t i) const
-{
-    NOMAD::Double dMinGran = 1.0;
-
-    if (_granularity[i] > 0)
-    {
-        dMinGran = _granularity[i];
-    }
-
-    NOMAD::Double Delta = dMinGran * _frameSizeMant[i] * pow(10, _frameSizeExp[i].todouble());
-
-    return Delta;
-}
-
-
 NOMAD::ArrayOfDouble NOMAD::GMesh::getDeltaFrameSize() const
 {
     return MeshBase::getDeltaFrameSize();
 }
 
 
+NOMAD::Double NOMAD::GMesh::getDeltaFrameSize(const size_t i) const
+{
+    return getDeltaFrameSize(_granularity[i], _frameSizeMant[i], _frameSizeExp[i]);
+}
+
+
+NOMAD::Double NOMAD::GMesh::getDeltaFrameSize(const NOMAD::Double& granularity, const NOMAD::Double& frameSizeMant, const NOMAD::Double& frameSizeExp) const
+{
+    NOMAD::Double dMinGran = 1.0;
+
+    if (granularity > 0)
+    {
+        dMinGran = granularity;
+    }
+
+    NOMAD::Double Delta = dMinGran * frameSizeMant * pow(10, frameSizeExp.todouble());
+
+    return Delta;
+}
+
+
+NOMAD::ArrayOfDouble NOMAD::GMesh::getDeltaFrameSizeCoarser() const
+{
+    return MeshBase::getDeltaFrameSizeCoarser();
+}
+
+
+NOMAD::Double NOMAD::GMesh::getDeltaFrameSizeCoarser(const size_t i) const
+{
+    NOMAD::Double frameSizeMant = _frameSizeMant[i];
+    NOMAD::Double frameSizeExp  = _frameSizeExp[i];
+    getLargerMantExp(frameSizeMant, frameSizeExp);
+
+    return getDeltaFrameSize(_granularity[i], frameSizeMant, frameSizeExp);
+}
+
+
+// This method is used by the input operator>>
 void NOMAD::GMesh::setDeltas(const size_t i,
                              const NOMAD::Double &deltaMeshSize,
                              const NOMAD::Double &deltaFrameSize)
 {
     // Input checks
     checkDeltasGranularity(i, deltaMeshSize, deltaFrameSize);
-
-    // e is a partial computation of frameSizeExp.
-    // e = delta
-    NOMAD::Double e = deltaMeshSize;
 
     // Value to use for granularity (division so default = 1.0)
     NOMAD::Double gran = 1.0;
@@ -442,27 +445,41 @@ void NOMAD::GMesh::setDeltas(const size_t i,
         gran = _granularity[i];
     }
 
-    // e = max(1.0, 10^(b-abs(b-b0))
-    e = e / gran;
+    NOMAD::Double mant;
+    NOMAD::Double exp;
 
-    if (1.0 == e)
+    // Compute mantisse first
+    // There are only 3 cases: 1, 2, 5, so compute all
+    // 3 possibilities and then assign the values that work.
+    NOMAD::Double mant1 = deltaFrameSize / (1.0 * gran);
+    NOMAD::Double mant2 = deltaFrameSize / (2.0 * gran);
+    NOMAD::Double mant5 = deltaFrameSize / (5.0 * gran);
+    NOMAD::Double exp1 = std::log10(mant1.todouble());
+    NOMAD::Double exp2 = std::log10(mant2.todouble());
+    NOMAD::Double exp5 = std::log10(mant5.todouble());
+
+    // deltaFrameSize = gran * mant * 10^exp  (where gran is 1.0 if granularity is not defined)
+    // => exp = log10(deltaFrameSize / (mant * gran))
+    // exp must be an integer so verify which one of the 3 values exp1, exp2, exp5
+    // is an integer and use that value for exp, and the corresponding value
+    // 1, 2 or 5 for mant.
+    if (exp1.isInteger())
     {
-        // max (1.0, e) = 1.0 so we cannot be sure of the computation.
-        // Setting e to -initFrameSizeExp ensures that
-        // frameSizeExp = 0 later.
-        _enforceSanityChecks = true;
-        e = -_initFrameSizeExp[i];
+        mant = 1;
+        exp = exp1;
+    }
+    else if (exp2.isInteger())
+    {
+        mant = 2;
+        exp = exp2;
     }
     else
     {
-        // e = b-abs(b-b0)
-        e = std::log10(e.todouble());
+        mant = 5;
+        exp = exp5;
     }
-
-    e = (e + _initFrameSizeExp[i]) / 2.0;
-    _frameSizeExp[i] = roundFrameSizeExp(e);
-    NOMAD::Double mant = deltaFrameSize / (gran * pow(10, _frameSizeExp[i].todouble()));
-    _frameSizeMant[i] = roundFrameSizeMant(mant);
+    _frameSizeExp[i] = roundFrameSizeExp(exp);
+    _frameSizeMant[i] = mant;
 
     // Sanity checks
     if (_enforceSanityChecks)
@@ -518,7 +535,7 @@ void NOMAD::GMesh::checkFrameSizeIntegrity(const NOMAD::Double &frameSizeExp,
     // frameSizeMant must be 1, 2 or 5.
 
     bool hasError = false;
-    std::string err = "Error: Integrity Check";
+    std::string err = "Error: Integrity check";
     if (!frameSizeExp.isInteger())
     {
         hasError = true;
@@ -567,7 +584,7 @@ void NOMAD::GMesh::checkSetDeltas(const size_t i,
     if (hasError)
     {
         std::cerr << err << std::endl;
-        //throw NOMAD::Exception(__FILE__,__LINE__,err);
+        throw NOMAD::Exception(__FILE__,__LINE__,err);
     }
 
 }
@@ -638,9 +655,10 @@ NOMAD::Point NOMAD::GMesh::projectOnMesh(const NOMAD::Point& point,
         const NOMAD::Double deltaI = delta[i];
         bool frameCenterIsOnMesh = (frameCenter[i].isMultipleOf(deltaI));
 
+        NOMAD::Double diffProjFrameCenter = proj[i] - frameCenter[i];
         // Value which will be used in verifyPointIsOnMesh
         NOMAD::Double verifValueI = (frameCenterIsOnMesh) ? proj[i]
-                                           : proj[i] - frameCenter[i];
+                                           : diffProjFrameCenter;
 
         // Force verifValueI to be a multiple of deltaI.
         // nbTry = 0 means point is already on mesh.
@@ -651,8 +669,17 @@ NOMAD::Point NOMAD::GMesh::projectOnMesh(const NOMAD::Point& point,
         while (!verifValueI.isMultipleOf(deltaI) && nbTry <= maxNbTry)
         {
             NOMAD::Double newVerifValueI;
-            verifValueI = (verifValueI >= 0) ? verifValueI.nextMult(deltaI)
-                                             : - (-verifValueI).nextMult(deltaI);
+
+            if (0 == nbTry && _granularity[i] > 0 && _granularity[i].isInteger()
+                && frameCenter[i].isInteger())
+            {
+                verifValueI = verifValueI.roundd();
+            }
+            else
+            {
+                verifValueI = (diffProjFrameCenter >= 0) ? verifValueI.nextMult(deltaI)
+                                                         : - (-verifValueI).nextMult(deltaI);
+            }
 
             proj[i] = (frameCenterIsOnMesh) ? verifValueI
                                             : verifValueI + frameCenter[i];
@@ -712,7 +739,19 @@ NOMAD::Point NOMAD::GMesh::projectOnMesh(const NOMAD::Point& point,
 }
 
 
-
-
-
-
+void NOMAD::GMesh::getLargerMantExp(NOMAD::Double &frameSizeMant, NOMAD::Double &frameSizeExp) const
+{
+    if (frameSizeMant == 1)
+    {
+        frameSizeMant = 2;
+    }
+    else if (frameSizeMant == 2)
+    {
+        frameSizeMant = 5;
+    }
+    else
+    {
+        frameSizeMant = 1;
+        ++frameSizeExp;
+    }
+}

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -60,12 +59,18 @@ NOMAD::StatsInfo::StatsInfo()
     _consH(),
     _hMax(),
     _bbe(0),
+    _feasBBE(0),
+    _infBBE(0),
+    _nbRelativeSuccess(0),
+    _PhaseOneSuccess(0),
     _algoBBE(0),
     _blkEva(0),
     _blkSize(0),
     _bbo(),
     _eval(0),
     _cacheHits(0),
+    _cacheSize(0),
+    _iterNum(0),
     _time(0),
     _meshIndex(),
     _meshSize(),
@@ -74,10 +79,12 @@ NOMAD::StatsInfo::StatsInfo()
     _sgte(0),
     _totalSgte(0),
     _sol(),
+    _threadAlgoNum(0),
     _threadNum(0),
     _relativeSuccess(false),
     _comment(""),
-    _genStep("")
+    _genStep(""),
+    _success(NOMAD::SuccessType::NOT_EVALUATED)
 {
 }
 
@@ -89,7 +96,7 @@ bool NOMAD::StatsInfo::alwaysDisplay(const bool displayInfeasible, const bool di
     {
         doDisplay = false;
     }
-    else if (_bbe <= 1) 
+    else if (_bbe <= 1)
     {
         // Always display X0 evaluation
         doDisplay = true;
@@ -138,6 +145,22 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     {
         ret = NOMAD::DisplayStatsType::DS_BBE;
     }
+    else if (s == "FEAS_BBE")
+    {
+        ret = NOMAD::DisplayStatsType::DS_FEAS_BBE;
+    }
+    else if (s == "INF_BBE")
+    {
+        ret = NOMAD::DisplayStatsType::DS_INF_BBE;
+    }
+    else if (s == "REL_SUCC")
+    {
+        ret = NOMAD::DisplayStatsType::DS_REL_SUCC;
+    }
+    else if (s == "PHASE_ONE_SUCC")
+    {
+        ret = NOMAD::DisplayStatsType::DS_PHASE_ONE_SUCC;
+    }
     else if (s == "ALGO_BBE")
     {
         ret = NOMAD::DisplayStatsType::DS_ALGO_BBE;
@@ -161,6 +184,14 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     else if (s == "CACHE_HITS")
     {
         ret = NOMAD::DisplayStatsType::DS_CACHE_HITS;
+    }
+    else if (s == "CACHE_SIZE")
+    {
+        ret = NOMAD::DisplayStatsType::DS_CACHE_SIZE;
+    }
+    else if (s == "ITER_NUM")
+    {
+        ret = NOMAD::DisplayStatsType::DS_ITER_NUM;
     }
     else if (s == "TIME")
     {
@@ -191,6 +222,10 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     {
         ret = NOMAD::DisplayStatsType::DS_SOL;
     }
+    else if (s == "THREAD_ALGO")
+    {
+        ret = NOMAD::DisplayStatsType::DS_THREAD_ALGO;
+    }
     else if (s == "THREAD_NUM")
     {
         ret = NOMAD::DisplayStatsType::DS_THREAD_NUM;
@@ -198,6 +233,10 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     else if (s == "GEN_STEP")
     {
         ret = NOMAD::DisplayStatsType::DS_GEN_STEP;
+    }
+    else if (s == "SUCCESS_TYPE")
+    {
+        ret = NOMAD::DisplayStatsType::DS_SUCCESS_TYPE;
     }
     else if (s == "TOTAL_SGTE")
     {
@@ -229,6 +268,14 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "H_MAX";
         case NOMAD::DisplayStatsType::DS_BBE:
             return "BBE";
+        case NOMAD::DisplayStatsType::DS_FEAS_BBE:
+            return "FEAS_BBE";
+        case NOMAD::DisplayStatsType::DS_INF_BBE:
+            return "INF_BBE";
+        case NOMAD::DisplayStatsType::DS_REL_SUCC:
+            return "REL_SUCC";
+        case NOMAD::DisplayStatsType::DS_PHASE_ONE_SUCC:
+            return "PHASE_ONE_SUCC";
         case NOMAD::DisplayStatsType::DS_ALGO_BBE:
             return "ALGO_BBE";
         case NOMAD::DisplayStatsType::DS_BLK_EVA:
@@ -241,6 +288,10 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "EVAL";
         case NOMAD::DisplayStatsType::DS_CACHE_HITS:
             return "CACHE_HITS";
+        case NOMAD::DisplayStatsType::DS_CACHE_SIZE:
+            return "CACHE_SIZE";
+        case NOMAD::DisplayStatsType::DS_ITER_NUM:
+            return "ITER_NUM";
         case NOMAD::DisplayStatsType::DS_TIME:
             return "TIME";
         case NOMAD::DisplayStatsType::DS_MESH_INDEX:
@@ -259,10 +310,14 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "SGTE";
         case NOMAD::DisplayStatsType::DS_SOL:
             return "SOL";
+        case NOMAD::DisplayStatsType::DS_THREAD_ALGO:
+            return "THREAD_ALGO";
         case NOMAD::DisplayStatsType::DS_THREAD_NUM:
             return "THREAD_NUM";
         case NOMAD::DisplayStatsType::DS_GEN_STEP:
             return "GEN_STEP";
+        case NOMAD::DisplayStatsType::DS_SUCCESS_TYPE:
+            return "SUCCESS_TYPE";
         case NOMAD::DisplayStatsType::DS_TOTAL_SGTE:
             return "TOTAL_SGTE";
         case NOMAD::DisplayStatsType::DS_USER:
@@ -360,6 +415,22 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
         {
             out += NOMAD::itos(_bbe);
         }
+        else if (NOMAD::DisplayStatsType::DS_FEAS_BBE == statsType)
+        {
+            out += NOMAD::itos(_feasBBE);
+        }
+        else if (NOMAD::DisplayStatsType::DS_INF_BBE == statsType)
+        {
+            out += NOMAD::itos(_infBBE);
+        }
+        else if (NOMAD::DisplayStatsType::DS_REL_SUCC == statsType)
+        {
+            out += NOMAD::itos(_nbRelativeSuccess);
+        }
+        else if (NOMAD::DisplayStatsType::DS_PHASE_ONE_SUCC == statsType)
+        {
+            out += NOMAD::itos(_PhaseOneSuccess);
+        }
         else if (NOMAD::DisplayStatsType::DS_ALGO_BBE == statsType)
         {
             out += NOMAD::itos(_algoBBE);
@@ -383,6 +454,14 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
         else if (NOMAD::DisplayStatsType::DS_CACHE_HITS == statsType)
         {
             out += NOMAD::itos(_cacheHits);
+        }
+        else if (NOMAD::DisplayStatsType::DS_CACHE_SIZE == statsType)
+        {
+            out += NOMAD::itos(_cacheSize);
+        }
+        else if (NOMAD::DisplayStatsType::DS_ITER_NUM == statsType)
+        {
+            out += NOMAD::itos(_iterNum);
         }
         else if (NOMAD::DisplayStatsType::DS_TIME == statsType)
         {
@@ -416,6 +495,10 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
             // (no additional parenthesis).
             out += _sol.displayNoPar(solFormat);
         }
+        else if (NOMAD::DisplayStatsType::DS_THREAD_ALGO == statsType)
+        {
+            out += NOMAD::itos(_threadAlgoNum);
+        }
         else if (NOMAD::DisplayStatsType::DS_THREAD_NUM == statsType)
         {
             out += NOMAD::itos(_threadNum);
@@ -423,6 +506,10 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
         else if (NOMAD::DisplayStatsType::DS_GEN_STEP == statsType)
         {
             out += _genStep;
+        }
+        else if (NOMAD::DisplayStatsType::DS_SUCCESS_TYPE == statsType)
+        {
+            out += NOMAD::enumStr(_success);
         }
         else if (NOMAD::DisplayStatsType::DS_TOTAL_SGTE == statsType)
         {

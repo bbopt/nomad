@@ -1,49 +1,3 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.2                                                                      */
@@ -1622,30 +1576,6 @@ SGTELIB::Matrix SGTELIB::Matrix::ones ( const int nbRows , const int nbCols ) {
 }//
 
 /*---------------------------*/
-/* random permutation matrix */
-/*---------------------------*/
-// Create a square matrix of size nbCols, with one 1.0 randomly 
-// placed in each col and in each row
-SGTELIB::Matrix SGTELIB::Matrix::random_permutation_matrix ( const int n ) {
-  // Init matrix
-  SGTELIB::Matrix perm("perm",n,n);
-
-  // Create random integer permutation
-  std::vector<int> v;
-
-  // Create order vector
-  for (int i=0; i<n; ++i) v.push_back(i); // 1 2 3 4 5 6 7 8 9
-
-  // shuffle
-  std::random_shuffle ( v.begin(), v.end() );
-
-  // Fill matrix
-  for (int i=0; i<n; ++i) perm.set(i,v[i],1.0);
-
-  return perm;
-}//
-
-/*---------------------------*/
 /* rank                      */
 /*---------------------------*/
 SGTELIB::Matrix SGTELIB::Matrix::rank ( void ) const {
@@ -2840,7 +2770,7 @@ int SGTELIB::Matrix::find_row (SGTELIB::Matrix & R){
 /*-------------------------------------------------*/
 /* Generate poll directions                        */
 /*-------------------------------------------------*/
-SGTELIB::Matrix SGTELIB::Matrix::get_poll_directions ( const SGTELIB::Matrix scaling,
+SGTELIB::Matrix SGTELIB::Matrix::get_poll_directions ( const SGTELIB::Matrix& scaling,
                                                        const SGTELIB::param_domain_t * domain,
                                                        double psize ) {
 

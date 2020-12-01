@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -56,8 +55,8 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <limits>
-#include <limits.h>
+#include <limits.h> // For INT_MAX
+#include <limits>   // For numeric_limits
 #include <cstdlib>
 #include <memory>   // For shared_ptr, unique_ptr
 
@@ -128,6 +127,7 @@ const double NaN = std::numeric_limits<double>::quiet_NaN(); ///< Quiet Not-A-Nu
 const int P_INF_INT = std::numeric_limits<int>::max(); ///< plus infinity for int
 const int M_INF_INT = std::numeric_limits<int>::min(); ///< minus infinity for int
 const size_t INF_SIZE_T = std::numeric_limits<size_t>::max();///< The infinity for \c size_t
+const size_t INF_SHORT = std::numeric_limits<short>::max();///< The infinity for \c short
 
 const double D_INT_MAX = UINT32_MAX; ///< The UINT32_MAX constant as a \c double
 

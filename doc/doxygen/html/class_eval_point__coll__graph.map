@@ -1,9 +1,12 @@
 <map id="EvalPoint" name="EvalPoint">
-<area shape="rect" id="node2" href="$class_point.html" title="Class for the representation of a point. " alt="" coords="191,416,243,443"/>
-<area shape="rect" id="node3" href="$class_array_of_double.html" title="Class for the representation of an array of n values. " alt="" coords="152,325,259,352"/>
-<area shape="rect" id="node4" href="$class_double.html" title="Custom class for double&#45;precision reals. " alt="" coords="119,220,181,247"/>
-<area shape="rect" id="node8" href="$class_eval.html" title="Class for the representation of an evaluation at a point. " alt="" coords="69,325,115,352"/>
-<area shape="rect" id="node5" title="STL class. " alt="" coords="154,99,229,125"/>
-<area shape="rect" id="node9" href="$class_b_b_output.html" title="Class for the representation of the output of a blackbox evaluation. " alt="" coords="5,220,83,247"/>
-<area shape="rect" id="node6" title="STL class. " alt="" coords="131,6,252,47"/>
+<area shape="rect" id="node1" title="Class for the representation of an evaluation point." alt="" coords="73,604,156,631"/>
+<area shape="rect" id="node2" href="$class_point.html" title="Class for the representation of a point." alt="" coords="76,411,131,437"/>
+<area shape="rect" id="node10" title=" " alt="" coords="23,513,206,540"/>
+<area shape="rect" id="node3" href="$class_array_of_double.html" title="Class for the representation of an array of n values." alt="" coords="44,321,163,348"/>
+<area shape="rect" id="node4" href="$class_double.html" title="Custom class for double&#45;precision reals." alt="" coords="171,216,239,243"/>
+<area shape="rect" id="node8" href="$class_eval.html" title="Class for the representation of an evaluation at a point." alt="" coords="229,321,280,348"/>
+<area shape="rect" id="node5" title="STL class." alt="" coords="162,96,248,123"/>
+<area shape="rect" id="node9" href="$class_b_b_output.html" title="Class for the representation of the output of a blackbox evaluation." alt="" coords="263,216,347,243"/>
+<area shape="rect" id="node6" title="STL class." alt="" coords="136,5,274,47"/>
+<area shape="rect" id="node7" title=" " alt="" coords="166,461,343,488"/>
 </map>

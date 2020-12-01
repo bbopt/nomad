@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -45,16 +44,18 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
-#include "../../Algos/SgtelibModel/SgtelibModel.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelInitialization.hpp"
+#include "../../Cache/CacheBase.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 void NOMAD::SgtelibModelInitialization::init()
 {
-    _name = getAlgoName() + "Initialization";
+    _name = NOMAD::Initialization::getName();
     verifyParentNotNull();
-
 }
 
 
@@ -152,7 +153,8 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     // Add X0s that need evaluation to eval queue
     NOMAD::CacheInterface cacheInterface(this);
     NOMAD::EvcInterface evcInterface(this);
-    evcInterface.getEvaluatorControl()->lockQueue();
+    auto evc = evcInterface.getEvaluatorControl();
+    evc->lockQueue();
 
     NOMAD::EvalPointSet evalPointSet;
     for (size_t x0index = 0; x0index < x0s.size(); x0index++)
@@ -168,32 +170,27 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     evcInterface.keepPointsThatNeedEval(evalPointSet, false);   // false: no mesh
 
     // Enforce no opportunism.
-    auto evcParams = evcInterface.getEvaluatorControl()->getEvaluatorControlParams();
-    auto previousOpportunism = evcParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
-    evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", false);
-    evcParams->checkAndComply();
+    auto previousOpportunism = evc->getOpportunisticEval();
+    evc->setOpportunisticEval(false);
 
-    evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
+    evc->unlockQueue(false); // false: do not sort eval queue
 
     // Evaluate all x0s. Ignore returned success type.
     // Note: EvaluatorControl would not be able to compare/compute success since there is no barrier.
-    // Sanity check
-    if (NOMAD::EvalType::BB != getEvalType())
-    {
-        throw NOMAD::Exception(__FILE__,__LINE__,"Sgte evaluation of X0 must be using blackbox");
-    }
     evcInterface.startEvaluation();
 
     // Reset opportunism to previous values.
-    evcInterface.getEvaluatorControl()->lockQueue();
-    evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", previousOpportunism);
-    evcParams->checkAndComply();
-    evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
+    evc->setOpportunisticEval(previousOpportunism);
 
+    auto evalPointList = evcInterface.retrieveAllEvaluatedPoints();
     for (auto x0 : x0s)
     {
+        if (_stopReasons->checkTerminate())
+        {
+            break;
+        }
         NOMAD::EvalPoint evalPoint_x0(x0);
-        cacheInterface.find(x0, evalPoint_x0);
+        cacheInterface.find(x0, evalPoint_x0, NOMAD::EvalType::BB);
         // To evaluate X0, use blackbox, not sgte.
         if (evalPoint_x0.isEvalOk(NOMAD::EvalType::BB))
         {
@@ -203,11 +200,20 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
         }
         else
         {
-            auto sgteStopReason = NOMAD::AlgoStopReasons<NOMAD::SgtelibModelStopType>::get(_stopReasons);
-            sgteStopReason->set(NOMAD::SgtelibModelStopType::X0_FAIL);
-
             AddOutputError("X0 evaluation failed for X0 = " + x0.display());
         }
+    }
+
+    if (evalOk)
+    {
+        // Construct barrier using x0s
+        auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this), evc->getEvalType(), evalPointList);
+    }
+    else
+    {
+        auto sgteStopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+        sgteStopReason->set(NOMAD::ModelStopType::X0_FAIL);
     }
 
     NOMAD::OutputQueue::Flush();

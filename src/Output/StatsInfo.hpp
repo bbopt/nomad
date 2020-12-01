@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -54,11 +53,9 @@
 #ifndef __NOMAD400_STATSINFO__
 #define __NOMAD400_STATSINFO__
 
-#include <iostream>
 #include <memory>   // For unique_ptr
 #include <vector>
 #include "../Math/ArrayOfDouble.hpp"
-#include "../Math/Double.hpp"
 #include "../Math/Point.hpp"
 #include "../Util/ArrayOfString.hpp"
 
@@ -78,6 +75,8 @@ enum class DisplayStatsType
     //DS_SMOOTH_OBJ ,    ///< Smoothed objective value (f~)
     //DS_SIM_BBE    ,    ///< Number of simulated bb evaluations
     DS_BBE        ,    ///< Number of bb evaluations
+    DS_FEAS_BBE   ,    ///< Number of feasible bb evaluations
+    DS_INF_BBE    ,    ///< Number of infeasible bb evaluations
     DS_ALGO_BBE   ,    ///< Number of bb evaluations for a single algo run
     DS_BLK_EVA    ,    ///< Number of block evaluation calls
     DS_BLK_SIZE   ,    ///< Number of EvalPoints in the block
@@ -86,16 +85,22 @@ enum class DisplayStatsType
     DS_TOTAL_SGTE ,    ///< Total number of surrogate evaluations
     DS_BBO        ,    ///< All blackbox outputs
     DS_EVAL       ,    ///< Number of evaluations
+    DS_REL_SUCC   ,    ///< Number of relative success evaluations
+    DS_PHASE_ONE_SUCC, ///< Number of success evaluations in PhaseOne
     DS_CACHE_HITS ,    ///< Number of cache hits
+    DS_CACHE_SIZE ,    ///< Number of points in cache
+    DS_ITER_NUM   ,    ///< Iteration number
     DS_TIME       ,    ///< Wall-clock time
     DS_MESH_INDEX ,    ///< Mesh index
     DS_MESH_SIZE  ,    ///< Mesh size parameter Delta^m_k
     DS_DELTA_M    ,    ///< Same as \c DS_MESH_SIZE
-    DS_FRAME_SIZE  ,   ///< Frame size parameter Delta^f_k
+    DS_FRAME_SIZE ,    ///< Frame size parameter Delta^f_k
     DS_DELTA_F    ,    ///< Same as \c DS_FRAME_SIZE
     DS_SOL        ,    ///< Solution vector
+    DS_THREAD_ALGO,    ///< Thread number for the algorithm
     DS_THREAD_NUM ,    ///< Thread number in which this evaluation was done
     DS_GEN_STEP   ,    ///< Name of the step in which this point was generated
+    DS_SUCCESS_TYPE,    ///< Success type for this evaluation
     //DS_VAR        ,    ///< One variable
     //DS_STAT_SUM   ,    ///< Stat sum
     //DS_STAT_AVG   ,    ///< Stat avg
@@ -119,12 +124,18 @@ private:
     Double          _consH;
     Double          _hMax;
     size_t          _bbe;
+    size_t          _feasBBE;
+    size_t          _infBBE;
+    size_t          _nbRelativeSuccess;
+    size_t          _PhaseOneSuccess;
     size_t          _algoBBE;
     size_t          _blkEva;
     size_t          _blkSize;
     std::string     _bbo;
     size_t          _eval;
     size_t          _cacheHits;
+    size_t          _cacheSize;
+    size_t          _iterNum;
     size_t          _time;
     ArrayOfDouble   _meshIndex;
     ArrayOfDouble   _meshSize;
@@ -133,10 +144,12 @@ private:
     size_t          _sgte;
     size_t          _totalSgte;
     Point           _sol;
+    int             _threadAlgoNum;
     int             _threadNum;
     bool            _relativeSuccess;   ///> Used for priting star, or when DISPLAY_ALL_EVAL is false.
     std::string     _comment;   ///> General comment, ex. Algorithm from where this point was generated.
     std::string     _genStep;   ///> Step in which this point was generated
+    SuccessType     _success;   ///> Success type for this evaluation
 
 
 public:
@@ -157,12 +170,18 @@ public:
     void setConsH(const Double consH)               { _consH = consH; }
     void setHMax(const Double hMax)                 { _hMax = hMax; }
     void setBBE(const size_t bbe)                   { _bbe = bbe; }
+    void setFeasBBE(const size_t feasBBE)           { _feasBBE = feasBBE; }
+    void setInfBBE(const size_t infBBE)             { _infBBE = infBBE; }
     void setAlgoBBE(const size_t bbe)               { _algoBBE = bbe; }
     void setBlkEva(const size_t blkEva)             { _blkEva = blkEva; }
     void setBlkSize(const size_t blkSize)           { _blkSize = blkSize; }
     void setBBO(const std::string& bbo)             { _bbo = bbo; }
     void setEval(const size_t eval)                 { _eval = eval; }
+    void setNbRelativeSuccess(const size_t nbRelSuccess)   { _nbRelativeSuccess = nbRelSuccess; }
+    void setPhaseOneSuccess(const size_t phaseOneSuccess)   { _PhaseOneSuccess = phaseOneSuccess; }
     void setCacheHits(const size_t cacheHits)       { _cacheHits = cacheHits; }
+    void setCacheSize(const size_t cacheSize)       { _cacheSize = cacheSize; }
+    void setIterNum(const size_t iterNum)           { _iterNum = iterNum; }
     void setTime(const size_t time)                 { _time = time; }
     void setMeshIndex(const ArrayOfDouble meshIndex) { _meshIndex = meshIndex; }
     void setMeshSize(const ArrayOfDouble meshSize)   { _meshSize = meshSize; }
@@ -171,10 +190,12 @@ public:
     void setSgte(const size_t sgte)                 { _sgte = sgte; }
     void setTotalSgte(const size_t totalSgte)       { _totalSgte = totalSgte; }
     void setSol(const Point sol)                    { _sol = sol; }
+    void setThreadAlgo(const int threadAlgoNum)     { _threadAlgoNum = threadAlgoNum; }
     void setThreadNum(const int threadNum)          { _threadNum = threadNum; }
     void setRelativeSuccess(bool relativeSuccess)   { _relativeSuccess = relativeSuccess; }
     void setComment(const std::string& comment)     { _comment = comment; }
     void setGenStep(const std::string& genStep)     { _genStep = genStep; }
+    void setSuccessType(const SuccessType& success) { _success = success; }
 
     // Should this stats be printed even if DISPLAY_ALL_EVAL is false
     bool alwaysDisplay(const bool displayInfeasible, const bool displayUnsuccessful) const;

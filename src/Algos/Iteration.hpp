@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -53,7 +52,7 @@
 
 /// Class for iteration of an Algorithm.
 /**
- This is an abstract class, each algorithm mus implement its own initilization.
+ This is an abstract class, each algorithm must implement its own iteration.
  */
 class Iteration: public Step
 {
@@ -77,17 +76,11 @@ public:
         init();
     }
 
-
     /// Destructor
     /**
      When iteration is done, Flush prints output queue.
      */
-    virtual ~Iteration()
-    {
-
-        OutputQueue::Flush();
-    }
-
+    virtual ~Iteration();
 
     // Get/Set
 
@@ -96,7 +89,7 @@ public:
      Iteration number is incremented when calling the default Iteration::start().
      */
     size_t getK() const { return _k; }
-    
+
     /// Increment iteration number by one
     /// To be used only when a single Iteration is used over and over, e.g. Nelder Mead
     void incK() { _k++; }
@@ -107,12 +100,12 @@ public:
     virtual const std::shared_ptr<MeshBase> getMesh() const { return nullptr; }
 
     /**
-     \return \c nullptr for algorithms that do not use a frame center. Otherwise, this function must be reimplemented in algorithm specific iteration (for example, MadsIteration, NMIteration).
+     \return \c nullptr for algorithms that do not use a frame center. Otherwise, this function must be reimplemented in algorithm specific iteration (for example, MadsIteration, NMIteration, ...).
      */
     virtual const std::shared_ptr<EvalPoint> getFrameCenter() const { return nullptr; }
-    
+
 protected:
-    
+
     /**
      This must be implemented when an algorithm has its own iteration.
      */

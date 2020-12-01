@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -68,7 +67,7 @@
 class ArrayOfDouble {
 
 public:
-    
+
     static const std::string pStart; ///< Static variable used for array delimitation.
     static const std::string pEnd; ///< Static variable used for array delimitation.
 
@@ -84,7 +83,7 @@ public:
     /*-------------*/
     /* Constructor */
     /*-------------*/
-    
+
     /// Constructor
     /**
      \param n   Dimension of the array -- \b IN (Opt) (default = 0).
@@ -127,7 +126,7 @@ public:
     /***********************/
     /* Other class methods */
     /***********************/
-    
+
     /// Change the \c ArrayOfDouble dimension, and set all coordinates to d.
     /**
      \param n   New dimension -- \b IN (Opt) (default = 0).
@@ -170,7 +169,7 @@ public:
              const Double &lb = Double(),
              const Double &ub = Double());
 
-    
+
     /// Set the coordinates with an array of reals.
     /**
        \param n Dimension of the array -- \b IN.
@@ -227,8 +226,8 @@ public:
      \return    The AOD times \c d.
      */
     const ArrayOfDouble & operator *= ( const Double & d );
-    
-    
+
+
     /// Addition with another array.
     /**
      The current object \c *this is not modified.
@@ -236,7 +235,7 @@ public:
      \return    A third AOD equal to \c *this \c + \c p.
      */
     const ArrayOfDouble operator+(const ArrayOfDouble& p) const;
-    
+
     /// Substraction with an other array.
     /**
      The current object \c *this is not modified.
@@ -244,7 +243,7 @@ public:
      \return    A third AOD equal to \c *this \c - \c p.
      */
     const ArrayOfDouble operator-(const ArrayOfDouble& p) const;
-    
+
     /**
      * Verify that all elements of this array are multiples of granularity,
      * for non-zero values.
@@ -288,16 +287,16 @@ public:
      \return        A \c bool equal to \c true if each coordinate of \c *this is inferior or equal to the value of \c coords at the same index, and at least one coordinate is strictly inferior.
      */
     virtual bool operator< (const ArrayOfDouble &coords) const;
-    
+
     /// Display with a given precision
     virtual std::string display(const ArrayOfDouble &prec = ArrayOfDouble()) const;
 
 protected:
     //
-    
+
     /// Helper function to verify that n1 == n2
     void verifySizesMatch(size_t n1, size_t n2, std::string filename, size_t linenum) const;
-    
+
     /// Helper function to compare arrays
     /**
      \param aod             Array for comparison -- \b IN.

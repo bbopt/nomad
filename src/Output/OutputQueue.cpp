@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -56,6 +55,7 @@ omp_lock_t NOMAD::OutputQueue::_s_queue_lock;
 
 std::unique_ptr<NOMAD::OutputQueue> NOMAD::OutputQueue::_single(nullptr);
 
+bool NOMAD::OutputQueue::_hasBeenInitialized = false;
 
 // Private constructor
 NOMAD::OutputQueue::OutputQueue()
@@ -67,7 +67,7 @@ NOMAD::OutputQueue::OutputQueue()
     _objWidth(),
     _hWidth(),
     _maxStepLevel(20),   // outputInfos with step level > 20 won't be printed.
-    _maxOutputLevel(NOMAD::OutputLevel::LEVEL_NORMAL),  // Level of details for display
+    _maxOutputLevel(NOMAD::OutputLevel::LEVEL_DEBUGDEBUG),  // Level of details for display
     _indentLevel(0),
     _blockStart("{"),
     _blockEnd("}")
@@ -98,6 +98,19 @@ NOMAD::OutputQueue::~OutputQueue()
     }
 }
 
+void NOMAD::OutputQueue::reset()
+{
+    // Flush the queue
+    flush();
+
+    // Close stats file
+    if (!_statsFile.empty())
+    {
+        _statsStream.close();
+    }
+    _hasBeenInitialized = false;
+}
+
 
 // Access to singleton
 std::unique_ptr<NOMAD::OutputQueue>& NOMAD::OutputQueue::getInstance()
@@ -117,12 +130,15 @@ std::unique_ptr<NOMAD::OutputQueue>& NOMAD::OutputQueue::getInstance()
     return _single;
 }
 
-
-// CT maybe dangerous to call initParameters several times. The previous setting must be put as before.
-// CT manage the display format within blocks.
 // Initialize display parameters.
 void NOMAD::OutputQueue::initParameters(const std::shared_ptr<NOMAD::DisplayParameters>& params)
 {
+    // If already called, make sure to flush and close the stats file
+    if(_hasBeenInitialized)
+    {
+       reset();
+    }
+
     _params = params;
 
     if (nullptr == _params)
@@ -158,41 +174,22 @@ void NOMAD::OutputQueue::initParameters(const std::shared_ptr<NOMAD::DisplayPara
     initStatsFile();
     setStatsFileFormat(statsFileFormat);
 
+    _hasBeenInitialized = true;
+
 }
 
 
-//
-// Get level of details in output
-int NOMAD::OutputQueue::getDisplayDegree() const
+bool NOMAD::OutputQueue::goodLevel(const OutputLevel& outputLevel) const
 {
-    int displayDegree = 2;
-
-    switch(_maxOutputLevel)
+    if (outputLevel <= _maxOutputLevel)
     {
-        case NOMAD::OutputLevel::LEVEL_NOTHING:
-            displayDegree = 0;
-            break;
-        case NOMAD::OutputLevel::LEVEL_VERY_HIGH:
-            displayDegree = 1;
-            break;
-        case NOMAD::OutputLevel::LEVEL_NORMAL:
-            displayDegree = 2;
-            break;
-        case NOMAD::OutputLevel::LEVEL_INFO:
-            displayDegree = 3;
-            break;
-        case NOMAD::OutputLevel::LEVEL_DEBUG:
-            displayDegree = 4;
-            break;
-        case NOMAD::OutputLevel::LEVEL_DEBUGDEBUG:
-            displayDegree = 5;
-            break;
-        default:
-            std::cerr << "Unrecognized maximum display degree: " << (int)_maxOutputLevel << std::endl;
+        return true;
     }
 
-    return displayDegree;
+    return (outputLevel <= NOMAD::OutputLevel::LEVEL_STATS
+            && !_statsFile.empty());
 }
+
 
 // Set level of details in output
 // 0 -> LEVEL_NOTHING
@@ -240,6 +237,11 @@ void NOMAD::OutputQueue::setDisplayDegree(const int displayDegree)
 // Add Output info
 void NOMAD::OutputQueue::add(NOMAD::OutputInfo outputInfo)
 {
+    if (!goodLevel(outputInfo.getOutputLevel()))
+    {
+        return;
+    }
+
 #ifdef _OPENMP
     // Acquire lock before adding a new element to the queue
     omp_set_lock(&_s_queue_lock);
@@ -252,6 +254,11 @@ void NOMAD::OutputQueue::add(NOMAD::OutputInfo outputInfo)
 
 void NOMAD::OutputQueue::add(const std::string & s, NOMAD::OutputLevel outputLevel)
 {
+    if (!goodLevel(outputLevel))
+    {
+        return;
+    }
+
     // Warning: No originator in this case
     OutputInfo outputInfo("", s, outputLevel);
 
@@ -348,7 +355,7 @@ void NOMAD::OutputQueue::flushBlock(const NOMAD::OutputInfo &outputInfo)
                 throw NOMAD::Exception(__FILE__, __LINE__, "OutputQueue has more block ends than block starts.");
             }
         }
-    
+
         // Verify step level is high enough in the tree to be displayed.
         if (_indentLevel <= (int)_maxStepLevel)
         {
@@ -359,9 +366,9 @@ void NOMAD::OutputQueue::flushBlock(const NOMAD::OutputInfo &outputInfo)
                 {
                     endBlock();
                 }
-    
+
                 std::cout << msg[i];
-    
+
                 if (outputInfo.isBlockStart())
                 {
                     startBlock();
@@ -379,8 +386,8 @@ void NOMAD::OutputQueue::flushBlock(const NOMAD::OutputInfo &outputInfo)
                 std::cout << "........................................" << std::endl;
             }
         }
-    
-    
+
+
         if (outputInfo.isBlockStart())
         {
             _indentLevel++;

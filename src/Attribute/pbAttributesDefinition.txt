@@ -310,24 +310,54 @@ false
 
 . Example:
     . STOP_IF_FEASIBLE true.
-    
+
 \)
 \( advanced stopping terminate(s) termination(s) phase one  \)
 RESTART_ATTRIBUTE no
 ################################################################################
-EVAL_TYPE
-NOMAD::EvalType
-BB
-\( Type of evaluation \)
+DIRECTION_TYPE
+NOMAD::DirectionType
+ORTHO 2N
+\( Type of direction for Mads poll \)
 \(
-. Type of evaluation currently being processed
+. Type of direction used by Mads poll to generate trial points. In NOMAD 4, this
+  is can be set only once (UNIQUE_ENTRY true) but in Nomad 3 several direction
+  types can be combined. See issue #397.
 
-. Arguments: BB for blackbox evaluation or SGTE for surrogate evaluation.
+. Arguments: one direction type in {ORTHO 2N, N+1 UNI, SINGLE, DOUBLE}
 
-. Internal parameter. Should not be modified by the user.
+
+. Example:
+    . DIRECTION_TYPE N+1 UNI
 
 \)
-\( advanced internal \)
-ALGO_COMPATIBILITY_CHECK no
+\( advanced poll direction ortho \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+VARIABLE_GROUP
+NOMAD::ListOfVariableGroup
+-
+\( The groups of variables) \)
+\(
+
+. When defined, Mads poll generates trial points in a separate subspace for
+  each group of variables.
+
+. Arguments: a list of variable indices or a range of indices
+
+. More than one group of variables can be defined. Providing a single group of
+  variables puts the remaining indices into another variable group.
+
+. The indices in the groups of variables must be unique.
+
+. Examples:
+    . VARIABLE_GROUP 0 1 2 6
+    . VARIABLE_GROUP 2-6
+
+\)
+\( advanced group(s) variable(s) var(s) poll \)
+UNIQUE_ENTRY false
+ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################

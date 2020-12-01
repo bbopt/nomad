@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -47,10 +46,11 @@
 
 // Generic
 #include "../Algos/Algorithm.hpp"
+#include "../Algos/EvcInterface.hpp"
 #include "../Algos/Iteration.hpp"
-#include "../Algos/MainStep.hpp"
 #include "../Algos/MegaIteration.hpp"
 #include "../Algos/Step.hpp"
+#include "../Output/OutputQueue.hpp"
 
 /*-----------------------------------*/
 /*   static members initialization   */
@@ -85,11 +85,22 @@ void NOMAD::Step::userInterrupt(int signalValue)
         // hotRestartOnUserInterrupt(). Here we are in a static method
         // so we cannot call it.
     }
-    
+
     // Set this stop reason to be tested by EvaluatorControl
     NOMAD::AllStopReasons::set( NOMAD::BaseStopType::CTRL_C );
-    
+
     NOMAD::Step::_userInterrupt = true;
+}
+
+
+void NOMAD::Step::debugSegFault(int signalValue)
+{
+    NOMAD::OutputQueue::Flush();
+#ifdef _OPENMP
+    #pragma omp critical
+#endif
+    std::cerr << "Caught seg fault in thread " << NOMAD::getThreadNum() << std::endl;
+    throw NOMAD::Exception(__FILE__,__LINE__,"Caught seg fault");
 }
 
 
@@ -113,18 +124,6 @@ void NOMAD::Step::init()
 NOMAD::Step::~Step()
 {
     NOMAD::OutputQueue::Flush();
-}
-
-
-NOMAD::EvalType NOMAD::Step::getEvalType() const
-{
-    NOMAD::EvalType evalType = NOMAD::EvalType::UNDEFINED;
-    if (nullptr != _pbParams)
-    {
-        evalType = _pbParams->getAttributeValue<NOMAD::EvalType>("EVAL_TYPE");
-    }
-
-    return evalType;
 }
 
 
@@ -186,16 +185,20 @@ void NOMAD::Step::runCallback(NOMAD::CallbackType callbackType,
 void NOMAD::Step::AddOutputInfo(const std::string& s, bool isBlockStart, bool isBlockEnd) const
 {
     // NB. Set the output level as LEVEL_INFO by default.
+    OUTPUT_INFO_START
     NOMAD::OutputInfo outputInfo(_name, s, NOMAD::OutputLevel::LEVEL_INFO, isBlockStart, isBlockEnd);
-
     NOMAD::OutputQueue::Add(std::move(outputInfo));
+    OUTPUT_INFO_END
 }
 
 
 void NOMAD::Step::AddOutputInfo(const std::string& s, NOMAD::OutputLevel outputLevel) const
 {
-    NOMAD::OutputInfo outputInfo(_name, s, outputLevel);
-    NOMAD::OutputQueue::Add(std::move(outputInfo));
+    if (NOMAD::OutputQueue::GoodLevel(outputLevel))
+    {
+        NOMAD::OutputInfo outputInfo(_name, s, outputLevel);
+        NOMAD::OutputQueue::Add(std::move(outputInfo));
+    }
 }
 
 
@@ -225,7 +228,9 @@ void NOMAD::Step::AddOutputHigh(const std::string& s) const
 
 void NOMAD::Step::AddOutputDebug(const std::string& s) const
 {
+    OUTPUT_DEBUG_START
     AddOutputInfo(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    OUTPUT_DEBUG_END
 }
 
 
@@ -260,8 +265,10 @@ void NOMAD::Step::defaultStart()
 {
     // Test shared_ptr here because MainStep has no stopReason
     if ( _stopReasons && ! _stopReasons->checkTerminate() )
+    {
         _stopReasons->setStarted();
-    
+    }
+
     AddOutputInfo("Start step " + getName() , true, false);
 }
 
@@ -293,7 +300,7 @@ void NOMAD::Step::verifyGenerateAllPointsBeforeEval(const std::string& method, c
         std::string err = "Error: " + method + " should only be called if ";
         err += " parameter GENERATE_ALL_POINTS_BEFORE_EVAL is ";
         err += (expected ? "true" : "false");
-        throw NOMAD::Exception(__FILE__,__LINE__,err);
+        throw NOMAD::StepException(__FILE__,__LINE__,err, this);
     }
 }
 
@@ -302,6 +309,22 @@ bool NOMAD::Step::isAnAlgorithm() const
 {
     NOMAD::Step* step = const_cast<Step*>(this);
     return (nullptr != dynamic_cast<NOMAD::Algorithm*>(step));
+}
+
+
+const NOMAD::Algorithm* NOMAD::Step::getRootAlgorithm() const
+{
+    auto algo = isAnAlgorithm() ? dynamic_cast<const NOMAD::Algorithm*>(this)
+                                : getParentOfType<NOMAD::Algorithm*>();
+
+    auto parentAlgo = algo->getParentOfType<NOMAD::Algorithm*>();
+    while (nullptr != parentAlgo)
+    {
+        algo = parentAlgo;
+        parentAlgo = algo->getParentOfType<NOMAD::Algorithm*>();
+    }
+
+    return algo;
 }
 
 
@@ -331,11 +354,44 @@ std::string NOMAD::Step::getAlgoName() const
 }
 
 
+std::string NOMAD::Step::getAlgoComment() const
+{
+    std::string algoComment;
+    auto rootAlgo = getRootAlgorithm();
+    if (nullptr != rootAlgo)
+    {
+        algoComment = rootAlgo->getAlgoComment();
+    }
+
+    return algoComment;
+}
+
+
+void NOMAD::Step::setAlgoComment(const std::string& algoComment, const bool force)
+{
+    auto rootAlgo = const_cast<NOMAD::Algorithm*>(getRootAlgorithm());
+    if (nullptr != rootAlgo)
+    {
+        rootAlgo->setAlgoComment(algoComment, force);
+    }
+}
+
+
+void NOMAD::Step::resetPreviousAlgoComment(const bool force)
+{
+    auto rootAlgo = const_cast<NOMAD::Algorithm*>(getRootAlgorithm());
+    if (nullptr != rootAlgo)
+    {
+        rootAlgo->resetPreviousAlgoComment(force);
+    }
+}
+
+
 // Get MeshBase from the Iteration ancestor.
 const std::shared_ptr<NOMAD::MeshBase> NOMAD::Step::getIterationMesh() const
 {
     std::shared_ptr<NOMAD::MeshBase> mesh = nullptr;
-    const NOMAD::Iteration* iteration = dynamic_cast<const NOMAD::Iteration*>(getParentOfType<NOMAD::Iteration*>());
+    const NOMAD::Iteration* iteration = getParentOfType<NOMAD::Iteration*>();
 
     if (nullptr != iteration)
     {
@@ -349,7 +405,7 @@ const std::shared_ptr<NOMAD::MeshBase> NOMAD::Step::getIterationMesh() const
 const std::shared_ptr<NOMAD::EvalPoint> NOMAD::Step::getIterationFrameCenter() const
 {
     std::shared_ptr<NOMAD::EvalPoint> frameCenter = nullptr;
-    const NOMAD::Iteration* iteration = dynamic_cast<const NOMAD::Iteration*>(getParentOfType<NOMAD::Iteration*>());
+    const NOMAD::Iteration* iteration = getParentOfType<NOMAD::Iteration*>();
 
     if (nullptr != iteration)
     {
@@ -363,37 +419,32 @@ const std::shared_ptr<NOMAD::EvalPoint> NOMAD::Step::getIterationFrameCenter() c
 const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() const
 {
     std::shared_ptr<NOMAD::Barrier> barrier = nullptr;
-    const NOMAD::MegaIteration* itMgr = dynamic_cast<const NOMAD::MegaIteration*>(getParentOfType<NOMAD::MegaIteration*>());
+    NOMAD::MegaIteration* megaIter = nullptr;
 
-    if (nullptr != itMgr)
+    if (isAnAlgorithm())
     {
-        barrier = itMgr->getBarrier();
+        // An Algorithm has its own MegaIteration member. Get it.
+        auto algo = dynamic_cast<const NOMAD::Algorithm*>(this);
+        megaIter = algo->getMegaIteration().get();
     }
+    else
+    {
+        // Is current Step a MegaIteration?
+        auto constMegaIter = dynamic_cast<const NOMAD::MegaIteration*>(this);
+        if (nullptr == constMegaIter)
+        {
+            // Get first parent of type MegaIteration.
+            constMegaIter = getParentOfType<NOMAD::MegaIteration*>();
+        }
+        megaIter = const_cast<NOMAD::MegaIteration*>(constMegaIter);
+    }
+
+    if (nullptr != megaIter)
+    {
+        barrier = megaIter->getBarrier();
+    }
+
     return barrier;
-}
-
-
-// Return fixedVariable Point for the Subproblem of the MainStep ancestor.
-// If no MainStep is available, return a default Point (of size 0).
-NOMAD::Point NOMAD::Step::getSubFixedVariable() const
-{
-    // Argument false: go all the way up, do not stop at first Algorithm ancestor.
-    const NOMAD::MainStep* mainstep = dynamic_cast<const NOMAD::MainStep*>(getParentOfType<NOMAD::MainStep*>(false));
-    NOMAD::Point fixedVariable;
-
-    if (nullptr != mainstep)
-    {
-        fixedVariable = mainstep->getCurrentSubproblem()->getFixedVariable();
-    }
-    else if (_showWarnings)
-    {
-        // It is expected to find a MainStep as ancestor.
-        // Show warning.
-        std::cerr << "Warning: No Subproblem found for step " << getName() << std::endl;
-    }
-
-
-    return fixedVariable;
 }
 
 
@@ -431,6 +482,38 @@ void NOMAD::Step::hotRestartEndHelper()
         _userInterrupt = false;
         _stopReasons->set(NOMAD::BaseStopType::STARTED);
     }
+}
+
+
+void NOMAD::Step::debugShowCallStack() const
+{
+    std::vector<std::string> stepNameStack;
+    NOMAD::Step* step = const_cast<NOMAD::Step*>(this);
+    while (nullptr != step)
+    {
+        stepNameStack.push_back(step->getName());
+        step = const_cast<NOMAD::Step*>(step->getParentStep());
+    }
+    
+    if (stepNameStack.empty())
+    {
+        return;
+    }
+    
+    // Show the steps in order, this is why we created the stack.
+    std::cout << "Call stack:" << std::endl;
+    // NOTE: Using "i < stepNameStack.size()" as condition for loop, 
+    // since i is a size_t (it is always >= 0).
+    for (size_t i = stepNameStack.size()-1; i < stepNameStack.size(); i--)
+    {
+        for (size_t j = 0; j < (stepNameStack.size()-i-1); j++)
+        {
+            // indentation
+            std::cout << "  ";
+        }
+        std::cout << stepNameStack[i] << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 

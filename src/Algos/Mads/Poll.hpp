@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -49,9 +48,8 @@
 
 #include <set>
 
-#include "../../Algos/Mads/MadsIterationUtils.hpp"
-
-#include "../../Eval/EvalPoint.hpp"
+#include "../../Algos/IterationUtils.hpp"
+#include "../../Algos/Mads/PollMethodBase.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -59,8 +57,14 @@
 /**
  Generate the trial points (Poll::startImp), launch evaluation (Poll::runImp) and postprocecssing (Poll::endImp).
  */
-class Poll: public Step , public MadsIterationUtils
+class Poll: public Step, public IterationUtils
 {
+private:
+    std::shared_ptr<PollMethodBase> _pollMethod; ///< Unlike for search, a single Poll method is executed
+#ifdef TIME_STATS
+    static double  _pollTime;        ///< Total time spent running the poll
+    static double  _pollEvalTime;    ///< Total time spent evaluating poll points
+#endif // TIME_STATS
 
 
 public:
@@ -70,7 +74,7 @@ public:
      */
     explicit Poll(const Step* parentStep)
       : Step(parentStep),
-        MadsIterationUtils(parentStep)
+        IterationUtils(parentStep)
     {
         init();
     }
@@ -85,7 +89,14 @@ public:
      */
     void generateTrialPoints() override ;
 
-    
+#ifdef TIME_STATS
+    /// Time stats
+    static double getPollTime()       { return _pollTime; }
+    static double getPollEvalTime()   { return _pollEvalTime; }
+#endif // TIME_STATS
+
+
+
 private:
     /// Helper for constructor
     void init();
@@ -95,37 +106,19 @@ private:
      Call to generate trial points and test for mesh precision
      */
     virtual void    startImp() override ;
-    
+
     /// Implementation for run tasks for MADS poll.
     /**
      Start trial points evaluation.
      \return Flag \c true if found better solution \c false otherwise.
      */
     virtual bool    runImp() override;
-    
+
     /// Implementation for end tasks for MADS poll.
     /**
      Call the IterationUtils::postProcessing of the points.
      */
     virtual void    endImp() override ;
-    
-    /*------------------------------*/
-    /* Private methods used by poll */
-    /*------------------------------*/
-    
-    /// Helper for Poll::generateTrialPoints
-    /**
-     - A single direction on unit n-sphere is computed (Poll::computeDirOnUnitSphere).
-     - This direction is transformed into 2n directions on a unit n-sphere using the householder transformation.
-     - The 2n directions are scaled and projected on the mesh.
-     
-     \param directions  The directions obtained for this poll -- \b OUT.
-     */
-    void setPollDirections(std::list<Direction> &directions) const;
-
-    /// Helper for Poll::generateTrialPoints
-    void householder(const Direction &dir, bool completeTo2n, Direction ** H) const;
-
 
 };
 

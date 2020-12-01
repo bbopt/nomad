@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -63,14 +62,16 @@
 *  Subproblem of lesser dimension than the original problem
 *
 * - Sets up the new parameters
-* - Keeps the necessary information to bridge the gap between subproblem and 
+* - Keeps the necessary information to bridge the gap between subproblem and
     original problem
 */
 class Subproblem
 {
 private:
     /**
-     The elements of this point that have defined values are fixed value "variables". The elements that are undefined are for true variables.
+      * The elements of this point that have defined values are fixed value
+      * "variables". The elements that are undefined are for true variables.
+      * This Point is always in full dimension.
      */
     const Point  _fixedVariable;
     size_t       _dimension;   ///< Dimension of the subproblem.
@@ -90,8 +91,10 @@ public:
     /**
      Pb parameters will be recomputed as dimension has changed.
      */
-    explicit Subproblem(const std::shared_ptr<PbParameters> refPbParams)
-      : _fixedVariable(refPbParams->getAttributeValue<Point>("FIXED_VARIABLE")),
+    explicit Subproblem(const std::shared_ptr<PbParameters> refPbParams,
+                        const Point& fullFixedVariable)
+      : _fixedVariable(fullFixedVariable),
+        _dimension(refPbParams->getAttributeValue<size_t>("DIMENSION")),
         _refPbParams(refPbParams),
         _subPbParams(nullptr)
     {
@@ -102,9 +105,9 @@ public:
     virtual ~Subproblem();
 
     // Get/Set
-    
+
     const Point& getFixedVariable() const { return _fixedVariable; }
-    std::shared_ptr<PbParameters> getPbParams() const { return _subPbParams; }
+    const std::shared_ptr<PbParameters>& getPbParams() const { return _subPbParams; }
 
 private:
     /// Helper for constructor calls to Subproblem::setupProblemParameters
@@ -112,12 +115,16 @@ private:
 
     /// Helper for constructor
     /**
-     Construct the subproblem parameters (X0, LB, UB, mesh sizes, ...) based on Subproblem::_fixedVariable
+     Construct the subproblem parameters (X0, LB, UB, mesh sizes, variable groups...) based on Subproblem::_fixedVariable
      \note If a new parameter with dimension (ex. a parameter of type ArrayOfDouble, Point, or Dimension)
      is added to the class PbParameters, this method will break.
-     Currently supported parameters: X0 LOWER_BOUND UPPER_BOUND BB_INPUT_TYPE INITIAL_MESH_SIZE INITIAL_FRAME_SIZE MIN_MESH_SIZE MIN_FRAME_SIZE GRANULARITY
+     Currently supported parameters: X0 LOWER_BOUND UPPER_BOUND BB_INPUT_TYPE INITIAL_MESH_SIZE INITIAL_FRAME_SIZE MIN_MESH_SIZE MIN_FRAME_SIZE GRANULARITY VARIABLE_GROUP
     */
     void setupProblemParameters();
+
+
+    ///  Helper for setupProblemParameters()
+    void resetVariableGroupsAgainstFixedVariables(ListOfVariableGroup& lvg, const Point& fixedVar) const;
 };
 
 

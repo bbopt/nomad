@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -88,6 +87,9 @@ public:
 
     void initParameters(const std::shared_ptr<DisplayParameters>& params);
 
+    /// Flush and close stats file (called by initParameters) if OutputQueue has been already  initialized
+    void reset();
+
     void add(OutputInfo outputInfo);
     static void Add(OutputInfo outputInfo)
     {
@@ -135,7 +137,20 @@ public:
     size_t getMaxStepLevel() const { return _maxStepLevel; }
     void setMaxStepLevel(const size_t maxStepLevel) { _maxStepLevel = maxStepLevel; }
 
-    int getDisplayDegree() const;
+    bool goodLevel(const OutputLevel& outputLevel) const;
+    static bool GoodLevel(const OutputLevel& outputLevel)
+    {
+        return getInstance()->goodLevel(outputLevel);
+    }
+
+    // Macros for output
+#define OUTPUT_STATS_START if (OutputQueue::GoodLevel(OutputLevel::LEVEL_STATS)) {
+#define OUTPUT_INFO_START if (OutputQueue::GoodLevel(OutputLevel::LEVEL_INFO)) {
+#define OUTPUT_DEBUG_START if (OutputQueue::GoodLevel(OutputLevel::LEVEL_DEBUG)) {
+#define OUTPUT_STATS_END }
+#define OUTPUT_INFO_END }
+#define OUTPUT_DEBUG_END }
+
     void setDisplayDegree(const int displayDegree);
 
     void setStatsFileName(const std::string& statsFile) { _statsFile = statsFile; }
@@ -163,16 +178,15 @@ private:
     static omp_lock_t _s_queue_lock;
 #endif // _OPENMP
 
+    static bool _hasBeenInitialized; ///< Flag for initialization (initialization cannot be performed more than once).
 
     static std::unique_ptr<OutputQueue> _single; ///< The singleton
-
 
     /// Queue of all the OutputInfo we have to print.
     std::vector<OutputInfo> _queue;
 
     /// Display parameters
     std::shared_ptr<DisplayParameters> _params;
-
 
     std::string _statsFile;
     std::ofstream _statsStream;

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -53,9 +52,9 @@ bool NOMAD::getDeterminant(double ** M,
                             size_t n)
 {
     std::string error_msg;
-    
+
     double d = 1 ;
-    
+
     double ** LU = new double *[n];
     for (size_t i = 0 ; i < n ; i++ )
     {
@@ -63,25 +62,25 @@ bool NOMAD::getDeterminant(double ** M,
         for ( size_t j = 0; j < n ; j++ )
             LU[i][j]=M[i][j];
     }
-    
+
     NOMAD::LU_decomposition ( error_msg, LU,  static_cast<int>(n), d );
-    
-    
+
+
     if ( error_msg.empty() )
     {
         for (size_t i=0;i < n;i++)
             d*=LU[i][i];
     }
-    
-    
+
+
     for (size_t i = 0 ; i < n ; i++ )
     {
         delete [] LU[i];
     }
     delete [] LU;
-    
+
     det = d;
-    
+
     if ( error_msg.empty() )
         return true;
     else
@@ -100,31 +99,31 @@ int NOMAD::getRank(double ** M,
     {
         V[i]=new double [n];
     }
-    
+
     std::string error_msg;
     NOMAD::SVD_decomposition ( error_msg, M, W, V, static_cast<int>(m), static_cast<int>(n) );
-    
+
     for (size_t i=0;i<n;++i)
         delete [] V[i];
     delete [] V;
-    
-    
+
+
     if (! error_msg.empty())
     {
         delete [] W;
         return -1;
     }
-    
+
     int rank=0;
     for (size_t i=0;i<n;i++)
     {
         if (fabs(W[i]) > eps)
             rank++;
     }
-    
+
     delete [] W;
     return rank;
-    
+
 }
 
 
@@ -161,26 +160,26 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
                                int           max_mpn     ) // default = 1500
 {
     error_msg.clear();
-    
+
     if ( max_mpn > 0 && m+n > max_mpn )
     {
         error_msg = "SVD_decomposition() error: m+n > " + NOMAD::itos ( max_mpn );
         return false;
     }
-    
+
     double * rv1   = new double[n];
     double   scale = 0.0;
     double   g     = 0.0;
     double   norm  = 0.0;
-    
+
     int      nm1   = n - 1;
-    
+
     bool   flag;
     int    i, j, k, l = 0, its, jj, nm = 0;
     double s, f, h, c, x, y, z, absf, absg, absh;
-    
+
     const int NITER = 30;
-    
+
     // Initialization W and V
     for (i=0; i < n; ++i)
     {
@@ -188,7 +187,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
         for (j=0; j < n ; ++j)
             V[i][j]=0.0;
     }
-    
+
     // Householder reduction to bidiagonal form:
     for ( i = 0 ; i < n ; ++i )
     {
@@ -255,7 +254,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
         double tmp  = fabs ( W[i] ) + fabs ( rv1[i] );
         norm = ( norm > tmp ) ? norm : tmp;
     }
-    
+
     // accumulation of right-hand transformations:
     for ( i = nm1 ; i >= 0 ; --i )
     {
@@ -280,7 +279,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
         g       = rv1[i];
         l       = i;
     }
-    
+
     // accumulation of left-hand transformations:
     for ( i = ( ( m < n ) ? m : n ) - 1 ; i >= 0 ; --i )
     {
@@ -307,7 +306,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
                 M[j][i] = 0.0;
         ++M[i][i];
     }
-    
+
     // diagonalization of the bidiagonal form:
     for ( k = nm1 ; k >= 0 ; --k )
     {
@@ -336,13 +335,13 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
                     if ( fabs(f) + norm == norm )
                         break;
                     g = W[i];
-                    
+
                     absf = fabs(f);
                     absg = fabs(g);
                     h    = ( absf > absg ) ?
                     absf * sqrt ( 1.0 + pow ( absg/absf, 2.0 ) ) :
                     ( ( absg==0 ) ? 0.0 : absg * sqrt ( 1.0 + pow ( absf/absg, 2.0 ) ) );
-                    
+
                     W[i] =  h;
                     h    =  1.0 / h;
                     c    =  g * h;
@@ -380,16 +379,16 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
             g  = rv1[nm];
             h  = rv1[k];
             f  = ( (y-z) * (y+z) + (g-h) * (g+h) ) / ( 2.0 * h * y );
-            
+
             absf = fabs(f);
             g    = ( absf > 1.0 ) ?
             absf * sqrt ( 1.0 + pow ( 1.0/absf, 2.0 ) ) :
             sqrt ( 1.0 + pow ( absf, 2.0 ) );
-            
+
             f = ( (x-z) * (x+z) +
                  h * ( ( y / ( f + ( (f >= 0)? fabs(g) : -fabs(g) ) ) ) - h ) ) / x;
             c = s = 1.0;
-            
+
             for ( j = l ; j <= nm ; ++j )
             {
                 i = j + 1;
@@ -397,13 +396,13 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
                 y = W[i];
                 h = s * g;
                 g = c * g;
-                
+
                 absf = fabs(f);
                 absh = fabs(h);
                 z    = ( absf > absh ) ?
                 absf * sqrt ( 1.0 + pow ( absh/absf, 2.0 ) ) :
                 ( ( absh==0 ) ? 0.0 : absh * sqrt ( 1.0 + pow ( absf/absh, 2.0 ) ) );
-                
+
                 rv1[j] = z;
                 c      = f / z;
                 s      = h / z;
@@ -418,15 +417,15 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
                     V[jj][j] = x * c + z * s;
                     V[jj][i] = z * c - x * s;
                 }
-                
+
                 absf = fabs(f);
                 absh = fabs(h);
                 z    = ( absf > absh ) ?
                 absf * sqrt ( 1.0 + pow ( absh/absf, 2.0 ) ) :
                 ( ( absh==0 ) ? 0.0 : absh * sqrt ( 1.0 + pow ( absf/absh, 2.0 ) ) );
-                
+
                 W[j] = z;
-                
+
                 if ( z )
                 {
                     z = 1.0 / z;
@@ -448,7 +447,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
             W  [k] = x;
         }
     }
-    
+
     delete [] rv1;
     return true;
 }
@@ -478,23 +477,23 @@ bool NOMAD::LU_decomposition ( std::string & error_msg,
                               int           max_n     ) // default=50
 {
     error_msg.clear();
-    
+
     if ( max_n > 0 && n > max_n )
     {
         error_msg = "LU_decomposition() error: n > " + NOMAD::itos ( max_n );
         return false;
     }
-    
+
     const double TINY = 1E-40;
     int i, j, k;
-    
+
     double big, temp;
-    
+
     double * vv = new double[n]; // stores the implicit scaling of each row
     int *indx = new int[n]; // stores the permutations
-    
+
     d = 1; // No row interchange yet
-    
+
     for (i = 0; i < n ; i++ )  // Loop over row to get implicit scaling information
     {
         big = 0.0;
@@ -508,7 +507,7 @@ bool NOMAD::LU_decomposition ( std::string & error_msg,
             error_msg = "LU_decomposition() error: no nonzero largest element";
             delete [] vv;
             delete [] indx;
-            
+
             return false;
         }
         vv[i]= 1.0/big; // Saves the scaling
@@ -547,9 +546,9 @@ bool NOMAD::LU_decomposition ( std::string & error_msg,
                 LU[i][j] -= temp*LU[k][j];
         }
     }
-    
+
     delete [] vv;
     delete [] indx;
     return true;
-    
+
 }

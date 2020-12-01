@@ -1,4 +1,5 @@
 <map id="NMMegaIteration" name="NMMegaIteration">
-<area shape="rect" id="node2" href="$class_mega_iteration.html" title="Class to manage the iterations. " alt="" coords="15,80,116,107"/>
-<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,...). " alt="" coords="41,5,89,32"/>
+<area shape="rect" id="node1" title="Class for Nelder Mead mega iteration." alt="" coords="5,155,140,181"/>
+<area shape="rect" id="node2" href="$class_mega_iteration.html" title="Class to manage the iterations." alt="" coords="16,80,129,107"/>
+<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="47,5,98,32"/>
 </map>

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -45,11 +44,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "Nomad/nomad.hpp"
 #include "Algos/EvcInterface.hpp"
-#include "Algos/MainStep.hpp"
-#include "Eval/Evaluator.hpp"
-#include "Param/AllParameters.hpp"
-
+#include "Cache/CacheBase.hpp"
 
 
 void initParams1(NOMAD::AllParameters &p)
@@ -69,8 +66,8 @@ void initParams1(NOMAD::AllParameters &p)
     upperBound[2] = 7.0;
     p.getPbParams()->setAttributeValue("UPPER_BOUND", upperBound);  // ( 5 6 7 - - )
 
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", size_t(1000));
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", size_t(1000));
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_EVAL", size_t(1000));
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", size_t(1000));
 
     p.getDispParams()->setAttributeValue("DISPLAY_DEGREE", 2);
     p.getDispParams()->setAttributeValue("DISPLAY_ALL_EVAL", true);
@@ -78,11 +75,11 @@ void initParams1(NOMAD::AllParameters &p)
     p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL", false);
     p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("BBE ( SOL ) OBJ"));
 
-    p.getEvalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
     p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ PB EB"));
 
     p.getRunParams()->setAttributeValue("NM_OPTIMIZATION",true);
-    
+
     p.getRunParams()->setAttributeValue("HOT_RESTART_ON_USER_INTERRUPT", false);
     p.getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
     p.getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);

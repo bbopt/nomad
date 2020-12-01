@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -62,12 +61,12 @@
 /// An attribute contains all meta data about a Nomad parameter except its type,  default and current value.
 /**
  TypeAttribute is the templated class that derives from an Attribute and completes the values (current and initial) and type for a Nomad parameter. A specific type of attribute is obtained by calling the templated AttributeFactory::Create function.\n
- 
+
  A Nomad parameter has a name, some help and info, some  keywords and some additional flags :
  - Attribute::_uniqueEntry, a flag for a parameter that cannot appear more than once in a file.
  - Attribute::_algoCompatibilityCheck, a flag for a parameter that can be used to check if two sets of parameters can produce the same run.
  - Attribute::_restartAttribute, a flag for a parameter that can be changed when doing a restart. \n
- 
+
  */
 class Attribute {
 public:
@@ -79,7 +78,7 @@ public:
     virtual bool isForAlgoCompatibilityCheck() { return _algoCompatibilityCheck; }
     virtual bool isRestartAttribute() { return _restartAttribute; }
     virtual bool getParamFromUniqueEntry() { return _uniqueEntry; }
-    
+
     void setShortInfo(const std::string& s) { _shortInfo = s; }
     void setHelpInfo(const std::string& s) { _helpInfo = s; }
     void setKeywords(const std::string& s) { _keywords = s; }
@@ -97,7 +96,7 @@ public:
     virtual void resetToDefaultValue() = 0;
 
     Attribute (const std::string& Name, bool algoCompatibilityCheck,
-               bool restartAttribute, bool uniqueEntry, 
+               bool restartAttribute, bool uniqueEntry,
                const std::string& ShortInfo,
                const std::string& HelpInfo, const std::string& Keywords)
         : _name(Name),
@@ -110,7 +109,7 @@ public:
     {}
 
     Attribute (const std::string& Name, bool algoCompatibilityCheck,
-               bool restartAttribute, bool uniqueEntry, 
+               bool restartAttribute, bool uniqueEntry,
                const std::string& ShortInfo, const std::string& HelpInfo)
         : _name(Name),
           _shortInfo(ShortInfo),
@@ -119,7 +118,7 @@ public:
           _restartAttribute(restartAttribute),
           _uniqueEntry(uniqueEntry)
     {}
-    
+
     Attribute (const std::string& Name, bool algoCompatibilityCheck,
                bool restartAttribute, bool uniqueEntry, const std::string& ShortInfo)
         : _name(Name),

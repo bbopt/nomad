@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -52,6 +51,8 @@
 #include "../Type/SgtelibModelFeasibilityType.hpp"
 #include "../Type/SgtelibModelFormulationType.hpp"
 #include "../Type/EvalType.hpp"
+#include "../Type/DirectionType.hpp"
+#include "../Util/fileutils.hpp"
 
 
 // The deep copy of parameters. Used only by derived object that implemented the copy constructor and copy assignment
@@ -130,6 +131,12 @@ void NOMAD::Parameters::copyParameters(const Parameters& params)
             auto value = params.getAttributeValue<NOMAD::EvalType>(paramName);
             setAttributeValue(paramName, value );
         }
+        // DirectionType
+        else if (paramType == typeid(NOMAD::DirectionType).name())
+        {
+            auto value = params.getAttributeValue<NOMAD::DirectionType>(paramName);
+            setAttributeValue(paramName, value );
+        }
         // DOUBLE
         else if (paramType == typeid(NOMAD::Double).name())
         {
@@ -152,6 +159,12 @@ void NOMAD::Parameters::copyParameters(const Parameters& params)
         else if (paramType == typeid(NOMAD::ArrayOfPoint).name())
         {
             auto value = params.getAttributeValue<NOMAD::ArrayOfPoint>(paramName);
+            setAttributeValue(paramName, value);
+        }
+        // LIST OF VARIABLE GROUP
+        else if (paramType == typeid(NOMAD::ListOfVariableGroup).name())
+        {
+            auto value = params.getAttributeValue<NOMAD::ListOfVariableGroup>(paramName);
             setAttributeValue(paramName, value);
         }
         else
@@ -201,7 +214,7 @@ void NOMAD::Parameters::resetToDefaultValue(const std::string& paramName)
     {
         // At this point, Verify att is non-null.
         std::string err = "resetToDefaultValue: attribute " + paramName + " does not exist";
-        throw Exception(__FILE__, __LINE__, err);
+        throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
     att->resetToDefaultValue();
@@ -213,6 +226,7 @@ void NOMAD::Parameters::resetToDefaultValue(const std::string& paramName)
 bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
 {
     bool isCompatible = true;
+    const bool debugAlgoCompatibility = false; // Set to true for debugging purposes
     std::string sdebug;
 
     // Loop on all registered attributes.
@@ -307,6 +321,24 @@ bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
                     isCompatible = false;
                 }
             }
+            // LIST OF VARIABLE GROUP
+            else if ( paramType == typeid(NOMAD::ListOfVariableGroup).name() )
+            {
+                // For the comparison, if the groups of variables are not in the same order
+                // the two instances are not algo compatible (the runs will be different!)
+                auto lvg = getAttributeValueProtected<NOMAD::ListOfVariableGroup>(paramName,false);
+                auto plvg = p->getAttributeValueProtected<NOMAD::ListOfVariableGroup>(paramName,false);
+
+                if (lvg.size() != plvg.size() || lvg != plvg )
+                {
+                    std::ostringstream sds,sds2;
+                    sds << lvg;
+                    sds2 << plvg;
+                    sdebug += sds.str() + "\n";
+                    sdebug += sds2.str() ;
+                    isCompatible = false;
+                }
+            }
             // Typesdebug defined in the Type directory
             // BBInputType
             else if ( paramType == typeid(NOMAD::BBInputType).name() )
@@ -339,6 +371,16 @@ bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
                 {
                     sdebug += NOMAD::evalTypeToString(getAttributeValueProtected<NOMAD::EvalType>(paramName,false)) + "\n";
                     sdebug += NOMAD::evalTypeToString(p->getAttributeValueProtected<NOMAD::EvalType>(paramName,false));
+                    isCompatible = false;
+                }
+            }
+            // DirectionType
+            else if ( paramType == typeid(NOMAD::DirectionType).name() )
+            {
+                if ( getAttributeValueProtected<NOMAD::DirectionType>(paramName,false) != p->getAttributeValueProtected<NOMAD::DirectionType>(paramName,false) )
+                {
+                    sdebug += NOMAD::directionTypeToString(getAttributeValueProtected<NOMAD::DirectionType>(paramName,false)) + "\n";
+                    sdebug += NOMAD::directionTypeToString(p->getAttributeValueProtected<NOMAD::DirectionType>(paramName,false));
                     isCompatible = false;
                 }
             }
@@ -384,19 +426,17 @@ bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
             {
                 // Debug info about which parameter names and values
                 // were not compatible.
-                /*
                 if (debugAlgoCompatibility)
                 {
                     // Prepend info to string sdebug
                     sdebug = "Parameter values are not compatible: Parameter name: " + paramName + "; parameter type: " + paramType + "; parameter values:\n" + sdebug;
                     std::cerr << sdebug << std::endl;
                 }
-                */
                 break;
             }
-
         }
     }
+
     return isCompatible;
 }
 
@@ -538,15 +578,13 @@ void NOMAD::Parameters::readEntries(const bool overwrite)
     // parameters will have to be checked:
     _toBeChecked = true;
 
-    // TODO it would be nice to have operator>> for each attribute type
-
     // interpret and set the entries using SET methods:
     size_t sz;
     int i;
     NOMAD::Double d;
     bool flag;
     std::shared_ptr<NOMAD::ParameterEntry> pe;
-    std::string err ;
+    std::string err;
 
     // First set DIMENSION from entries
     std::string paramName = "DIMENSION";
@@ -672,6 +710,12 @@ void NOMAD::Parameters::readEntries(const bool overwrite)
                 checkFormat1(pe);
                 setAttributeValue(paramName, NOMAD::stringToEvalType(pe->getAllValues()));
             }
+            // DirectionType
+            else if (paramType == typeid(NOMAD::DirectionType).name())
+            {
+                checkFormat1(pe);
+                setAttributeValue(paramName, NOMAD::stringToDirectionType(pe->getAllValues()));
+            }
             // DOUBLE
             else if (paramType == typeid(NOMAD::Double).name())
             {
@@ -744,6 +788,38 @@ void NOMAD::Parameters::readEntries(const bool overwrite)
                 }
 
                 setAttributeValue(paramName, aop);
+            }
+            // List of VARIABLE_GROUP
+            else if (paramType == typeid(NOMAD::ListOfVariableGroup).name())
+            {
+                if ( isAttributeDefaultValue<size_t>("DIMENSION") )
+                {
+                    throw NOMAD::Exception(__FILE__,__LINE__,"Dimension must be set!");
+                }
+                const size_t n = getAttributeValueProtected<size_t>("DIMENSION", false);
+
+                auto lvg = getAttributeValueProtected<NOMAD::ListOfVariableGroup>(paramName, false);
+
+                NOMAD::VariableGroup aVariableGroup;
+                size_t nbIndex = readValuesForVariableGroup(*pe, aVariableGroup);
+                // If the aop at this index is already set, update it.
+                // Else, create it.
+                if (nbIndex < n)
+                {
+                    lvg.push_back(aVariableGroup);
+                }
+                else
+                {
+                    err = "Number of indices for VARIABLE_GROUP must be smaller than DIMENSION (" + std::to_string(n) + ").";
+                    throw NOMAD::Exception(__FILE__,__LINE__, err);
+                }
+
+                setAttributeValue(paramName, lvg);
+            }
+            else
+            {
+                err = "Parameter " + paramName + " has been registered but its type cannot be read";
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
             }
             pe->setHasBeenInterpreted();
             // Get next parameter entry with this name, if multiple entries are permitted
@@ -887,7 +963,7 @@ void NOMAD::Parameters::readValuesAsArray(const NOMAD::ParameterEntry &pe,
 
 
 size_t NOMAD::Parameters::readValuesForArrayOfPoint(const NOMAD::ParameterEntry &pe,
-                                                      NOMAD::Point &point)
+                                                    NOMAD::Point &point)
 {
     size_t index = 0;
 
@@ -917,6 +993,61 @@ size_t NOMAD::Parameters::readValuesForArrayOfPoint(const NOMAD::ParameterEntry 
     return index;
 }
 
+size_t NOMAD::Parameters::readValuesForVariableGroup(const NOMAD::ParameterEntry &pe,
+                                                     NOMAD::VariableGroup &vg )
+{
+    size_t i;
+
+    std::list<std::string>::const_iterator it , end;
+    std::pair<NOMAD::VariableGroup::iterator,bool> ret;
+    // just one variable index (can be '*' or a range of indices 'i-j'):
+    if ( pe.getNbValues() == 1 )
+    {
+        size_t j, k;
+        it = pe.getValues().begin();
+        if ( !NOMAD::stringToIndexRange ( *it , i , j ) )
+        {
+            std::string err = "Invalid format for index range: ";
+            err += pe.getName() + " at line " + std::to_string(pe.getLine());
+            throw NOMAD::Exception(__FILE__,__LINE__, err);
+        }
+
+        for ( k = i ; k <= j ; k++ )
+        {
+            ret = vg.insert(k);
+            if (!ret.second)
+            {
+                std::string err = "Invalid index. Duplicate index not allowed: ";
+                err += pe.getName() + " at line " + std::to_string(pe.getLine());
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
+            }
+        }
+    }
+
+    // list of variable indexes:
+    else
+    {
+        end = pe.getValues().end();
+        for ( it = pe.getValues().begin() ; it != end ; ++it )
+        {
+            if ( !NOMAD::atost ( *it , i ) )
+            {
+                    std::string err = "Invalid format for index list: ";
+                    err += pe.getName() + " at line " + std::to_string(pe.getLine());
+                    throw NOMAD::Exception(__FILE__,__LINE__, err);
+            }
+            ret = vg.insert(i);
+            if (!ret.second)
+            {
+                std::string err = "Invalid index. Duplicate index not allowed: ";
+                err += pe.getName() + " at line " + std::to_string(pe.getLine());
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
+            }
+        }
+    }
+
+    return vg.size();
+}
 
 // Get an attribute by its name (works lower/upper case)
 NOMAD::SPtrAtt NOMAD::Parameters::getAttribute(std::string name) const
@@ -1116,7 +1247,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                                                        att._shortInfo, att._helpInfo,
                                                        att._keywords);
             }
-            
+
         }
         else if ( att._type== "NOMAD::Point" || att._type== "Point" )
         {
@@ -1202,6 +1333,31 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                               NOMAD::stringToEvalType(att._defaultValue),
                               algoCompatibilityCheck, restartAttribute, uniqueEntry,
                               att._shortInfo , att._helpInfo, att._keywords );
+        }
+        // DirectionType
+        else if (   att._type== "NOMAD::DirectionType"
+                 || att._type== "DirectionType")
+        {
+            registerAttribute( att._name,
+                              NOMAD::stringToDirectionType(att._defaultValue),
+                              algoCompatibilityCheck, restartAttribute, uniqueEntry,
+                              att._shortInfo , att._helpInfo, att._keywords );
+        }
+        // ListOfVariableGroup
+        else if (att._type== "NOMAD::ListOfVariableGroup" || att._type == "ListOfVariableGroup")
+        {
+            if (  att._defaultValue != "-" &&  att._defaultValue != "N/A" )
+            {
+                std::string err = "Invalid attribute definition: ";
+                err +=  att._name + " (" + att._defaultValue + "). A ListOfVariableGroup must have an undefined default value \"-\" or \"N/A\" ";
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
+            }
+            registerAttribute<NOMAD::ListOfVariableGroup>(att._name,
+                                                   NOMAD::ListOfVariableGroup(),
+                                                   algoCompatibilityCheck,
+                                                   restartAttribute,
+                                                   uniqueEntry,
+                                                   att._shortInfo, att._helpInfo, att._keywords);
         }
         // Unrecognized type
         else

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -263,7 +262,7 @@ void NOMAD::ArrayOfDouble::snapToBounds(const NOMAD::ArrayOfDouble &lowerBound,
                     if (_array[i] < lowerBound[i])
                     {
                         //_array[i] += deltaMeshSize[i];
-                        std::cerr << "Warning: snapToBounds: Error snapping " << arrayPreviousValue << " to lower bound " << lowerBound[i] << " - frameCenter = " << frameCenter[i] << ", deltaMeshSize = " << deltaMeshSize[i] << std::endl;
+                        std::cerr << "Warning: snapToBounds: Error snapping " << arrayPreviousValue << " to lower bound " << lowerBound[i] << " - frameCenter = " << frameCenter[i] << ", deltaMeshSize = " << deltaMeshSize[i] << ": it gave " << _array[i] << " which is still lower than " << lowerBound[i] << std::endl;
                     }
                 }
                 else
@@ -336,7 +335,7 @@ void NOMAD::ArrayOfDouble::readValuesAsArray(const NOMAD::ArrayOfString& strDoub
     // strDouble is a list of n (DIMENSION) NOMAD::Doubles.
     // Can be starting with a pStart and ending with a pEnd.
     // Other possible format: * double.
-    // Sample valueString: 
+    // Sample valueString:
     // ( -6.0 -6.0 -5.0 -6.0 -6.0 )
     // ( 5.0 6.0 7.0 NaN NaN )
     // ( 1 1 1 1 1 - - - - - - - - - - )
@@ -347,13 +346,13 @@ void NOMAD::ArrayOfDouble::readValuesAsArray(const NOMAD::ArrayOfString& strDoub
     std::string valueString = strDouble.display();  // For informations display
 
     NOMAD::Double d;
-    
+
     if (_n < 1)
     {
         std::string err = "Cannot read values into an empty array";
         throw NOMAD::Exception(__FILE__,__LINE__,err);
     }
-    
+
     if (strDouble[0] == pStart)
     {
         if (strDouble.size() != _n+2)
@@ -370,7 +369,7 @@ void NOMAD::ArrayOfDouble::readValuesAsArray(const NOMAD::ArrayOfString& strDoub
             err += "\" and \"" + NOMAD::ArrayOfDouble::pEnd + ")\" parenthesis.";
             throw NOMAD::Exception(__FILE__, __LINE__, err);
         }
-    
+
         for (size_t i = 1; i <= _n; i++)
         {
             if ("-" == strDouble[i])
@@ -408,7 +407,7 @@ void NOMAD::ArrayOfDouble::readValuesAsArray(const NOMAD::ArrayOfString& strDoub
             err += "Cannot convert string " + strDouble[1] + " to double.";
             throw NOMAD::Exception(__FILE__, __LINE__, err);
         }
-        
+
         // Set all array values to d.
         this->set(d);
     }
@@ -432,7 +431,7 @@ void NOMAD::ArrayOfDouble::readValuesAsArray(const NOMAD::ArrayOfString& strDoub
             indexRange.push_back(d.round());
             firstValueProcessed = true;
         }
-        else 
+        else
         {
             size_t hyphenIndex = strDouble[0].find_first_of("-");
             if (hyphenIndex != std::string::npos)
@@ -556,12 +555,12 @@ const NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator+(const NOMAD::ArrayOfD
     NOMAD::Double       * p1 = tmp._array;
     const NOMAD::Double * p2 =     _array;
     const NOMAD::Double * p3 =   p._array;
-    
+
     for (size_t k = 0 ; k < _n ; ++k , ++p1 , ++p2 , ++p3)
     {
         *p1 = *p2 + *p3;
     }
-    
+
     return tmp;
 }
 
@@ -579,12 +578,12 @@ const NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator-(const NOMAD::ArrayOfD
     NOMAD::Double       * p1 = tmp._array;
     const NOMAD::Double * p2 =     _array;
     const NOMAD::Double * p3 =   p._array;
-    
+
     for (size_t k = 0 ; k < _n ; ++k , ++p1 , ++p2 , ++p3)
     {
-        *p1 = *p2 + *p3;
+        *p1 = *p2 - *p3;
     }
-    
+
     return tmp;
 }
 
@@ -665,26 +664,26 @@ void NOMAD::ArrayOfDouble::set(size_t index,
     {
         throw NOMAD::Exception(__FILE__,__LINE__, "Set: invalid index");
     }
-    
+
     if (relative)
     {
         if (!lb.isDefined() || !ub.isDefined())
         {
             throw NOMAD::Exception(__FILE__,__LINE__, "Set: invalid bounds");
         }
-        
+
         if (!d.isDefined() || d < 0.0 || d > 1.0)
         {
             throw NOMAD::Exception(__FILE__,__LINE__, "Set: invalid value to set coordinate (0<=d<1) relative to bounds" );
         }
-        
+
         _array[index] = d * (ub - lb);
     }
     else
     {
         _array[index] = d;
     }
-    
+
 }
 
 
@@ -795,7 +794,7 @@ void NOMAD::ArrayOfDouble::verifySizesMatch(size_t n1, size_t n2,
     std::ostringstream oss;
     if (n1 != n2 || 0 == n2)
     {
-        oss << "ArrayOfDouble comparison operator: Cannot compare arrays of different sizes ("; 
+        oss << "ArrayOfDouble comparison operator: Cannot compare arrays of different sizes (";
         oss << n1;
         oss << " and ";
         oss << n2;

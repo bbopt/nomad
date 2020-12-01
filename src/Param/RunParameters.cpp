@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -45,9 +44,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../Eval/Eval.hpp"
-#include "../Math/RNG.hpp"
+#include "../Math/RNG.hpp"  // for setSeed()
 #include "../Param/RunParameters.hpp"
+#include "../Util/fileutils.hpp"
 
 #include "../nomad_version.hpp"
 
@@ -66,7 +65,7 @@ void NOMAD::RunParameters::init()
     {
         #include "../Attribute/runAttributesDefinition.hpp"
         registerAttributes( _definition );
-    
+
         // Registered attributes using defined keywords (not in preprocessed special header file)
         registerAttribute<NOMAD::Double>("EPSILON", NOMAD::DEFAULT_EPSILON, false,
             " NOMAD precision for comparison of values ",
@@ -78,10 +77,10 @@ void NOMAD::RunParameters::init()
             " NOMAD version number (for runner) ",
             " \n \n . NOMAD version number (optional) \n  . If not compatible with current version will trigger exception \n " ," advanced nomad version(s) release(s) revision(s) " );
         registerAttribute<std::string>("INF_STR", NOMAD::DEFAULT_INF_STR, false,
-            "String for infinite values", 
+            "String for infinite values",
             " \n \n . String for infinite values \n "," advanced string(s) inf(inite) value(s) ");
         registerAttribute<std::string>("PROBLEM_DIR", std::string(".") + NOMAD::DIR_SEP , false,
-            "Problem directory " , 
+            "Problem directory " ,
             "\n \n . Problem directory \n . To complete \n "," problem dir(ectory) folder(s) ");
         // Note: we cannot call checkAndComply() here, the default values
         // are not valid.
@@ -99,18 +98,18 @@ void NOMAD::RunParameters::init()
 /*            check the parameters        */
 /*----------------------------------------*/
 void NOMAD::RunParameters::checkAndComply(
-        const std::shared_ptr<NOMAD::EvaluatorControlParameters>& evaluatorControlParams,
+        const std::shared_ptr<NOMAD::EvaluatorControlGlobalParameters>& evaluatorControlGlobalParams,
         const std::shared_ptr<NOMAD::PbParameters>& pbParams)
 {
     std::string err;
     checkInfo();
-    
+
     if (!toBeChecked())
     {
         // Early out
         return;
     }
-    
+
     // check the non-interpreted parameters:
     //const std::shared_ptr<NOMAD::ParameterEntry> pe = getNonInterpretedParamEntry();
     std::vector<std::shared_ptr<NOMAD::ParameterEntry>> allNonInterp = getAllNonInterpretedParamEntries();
@@ -134,30 +133,44 @@ void NOMAD::RunParameters::checkAndComply(
             }
         }
     }
-    
+
     auto problemDir = getAttributeValueProtected<std::string>("PROBLEM_DIR", false);
-    
+
     auto seed = getAttributeValueProtected<int>("SEED" ,false);
     if ( seed < 0)
     {
         throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: SEED must be non-negative" );
     }
-    
-    // CT todo modify to manage retro-compatiblity
+
     auto version_number = getAttributeValueProtected<std::string>("NOMAD_VERSION", false);
     if ( version_number != NOMAD_VERSION_NUMBER )
     {
-       throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: VERSION_NUMBER is not compatible" );
+        err = "Parameters check: NOMAD_VERSION is not compatible with registered version " + std::string(NOMAD_VERSION_NUMBER) + "\n";
+       throw NOMAD::Exception(__FILE__,__LINE__, err );
     }
-    
+
     auto anisotropyFactor = getAttributeValueProtected<NOMAD::Double>("ANISOTROPY_FACTOR", false);
     if ( anisotropyFactor <= 0)
     {
         throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: ANISOTROPY_FACTOR must be positive" );
     }
-    
+
     setStaticParameters();
-    
+
+    /*-------------------*/
+    /* Disable parameter */
+    /*-------------------*/
+    // Convert all disabled entries (MODELS, EVAL_SORT, ...) to upper case.
+    auto disabledConst = getAttributeValueProtected<NOMAD::ArrayOfString>("DISABLE", false);
+    NOMAD::ArrayOfString disabled;
+    for (size_t i = 0; i < disabledConst.size(); i++)
+    {
+        std::string disabledI = disabledConst[i];
+        NOMAD::toupper(disabledI);
+        disabled.add(disabledI);
+    }
+    setAttributeValue("DISABLE", disabled);
+
     /*---------------------------*/
     /* Sgtelib Search parameters */
     /*---------------------------*/
@@ -167,18 +180,23 @@ void NOMAD::RunParameters::checkAndComply(
     bool showDisableWarn = true;
 #endif
     // If dimension is too large, disable models.
+    disabled = getAttributeValueProtected<NOMAD::ArrayOfString>("DISABLE", false);
     if (n >= bigDim)
     {
-        setAttributeValue("DISABLE", std::string("MODELS"));
-        std::cerr << "Warning: Dimension is higher than " << bigDim << ". Models are disabled." << std::endl;
+        if (-1 == disabled.find("MODELS"))
+        {
+            disabled.add(std::string("MODELS"));
+            setAttributeValue("DISABLE", disabled);
+            std::cerr << "Warning: Dimension " << n << " is greater than (or equal to) " << bigDim << ". Models are disabled." << std::endl;
 #ifdef USE_SGTELIB
-        showDisableWarn = false;
+            showDisableWarn = false;
 #endif
+        }
     }
 #ifdef USE_SGTELIB
     // If models are disabled, set SGTELIB_SEARCH to false.
-    auto disableModels = getAttributeValueProtected<std::string>("DISABLE", false);
-    if ("MODELS" == disableModels)
+    disabled = getAttributeValueProtected<NOMAD::ArrayOfString>("DISABLE", false);
+    if (disabled.find("MODELS") >= 0)
     {
         if (getAttributeValueProtected<bool>("SGTELIB_SEARCH", false))
         {
@@ -187,6 +205,14 @@ void NOMAD::RunParameters::checkAndComply(
                 std::cerr << "Warning: Models are disabled. SGTELIB_SEARCH set to false." << std::endl;
             }
             setAttributeValue("SGTELIB_SEARCH", false);
+        }
+        if (getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH", false))
+        {
+            if (showDisableWarn)
+            {
+                std::cerr << "Warning: Models are disabled. QUAD_MODEL_SEARCH set to false." << std::endl;
+            }
+            setAttributeValue("QUAD_MODEL_SEARCH", false);
         }
     }
 #endif
@@ -211,27 +237,20 @@ void NOMAD::RunParameters::checkAndComply(
     /* Parallelism related parameters */
     /*--------------------------------*/
     // Ensure we can get value for BB_MAX_BLOCK_SIZE without throwing an exception.
-    if (evaluatorControlParams->toBeChecked())
+    if (evaluatorControlGlobalParams->toBeChecked())
     {
-        evaluatorControlParams->checkAndComply();
+        evaluatorControlGlobalParams->checkAndComply();
     }
-    auto blockSize = evaluatorControlParams->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE");
-    if (0 == blockSize)
+    auto bbBlockSize = evaluatorControlGlobalParams->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE");
+    if (0 == bbBlockSize)
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Parameter BB_MAX_BLOCK_SIZE must be positive");
     }
-#ifdef _OPENMP
-    else if (blockSize > 1)
+    auto sgteBlockSize = evaluatorControlGlobalParams->getAttributeValue<size_t>("SGTE_MAX_BLOCK_SIZE");
+    if (0 == sgteBlockSize)
     {
-        if (getAttributeValueProtected<int>("NB_THREADS_OPENMP", false) != 1)
-        {
-            std::cerr << "Warning: Parallelism management: BB_MAX_BLOCK_SIZE is ";
-            std::cerr << "larger than 1 (value is " << blockSize << "). ";
-            std::cerr << "Setting parameter NB_THREADS_OPENMP to 1." << std::endl;
-        }
-        setAttributeValue("NB_THREADS_OPENMP", 1);
+        throw NOMAD::Exception(__FILE__, __LINE__, "Parameter SGTE_MAX_BLOCK_SIZE must be positive");
     }
-#endif
 
 #ifndef USE_SGTELIB
     // Look for SgtelibModel parameters that are set but cannot be used
@@ -248,14 +267,84 @@ void NOMAD::RunParameters::checkAndComply(
         err += "search method, NOMAD must be recompiled using option USE_SGTELIB=1.";
         std::cerr << err << std::endl;
     }
+    if (getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH", false))
+    {
+        err = "Warning: Parameter QUAD_MODEL_SEARCH is set to true, but ";
+        err += "Quad Model sampling cannot be used. To be able to use Quad Model Search ";
+        err += "search method, NOMAD must be recompiled using option USE_SGTELIB=1.";
+        std::cerr << err << std::endl;
+    }
 #endif
+
+    // PSD-Mads and SSD-Mads parameters
+    bool useAlgoPSDMads = getAttributeValueProtected<bool>("PSD_MADS_OPTIMIZATION", false);
+
+#ifndef _OPENMP
+    if (useAlgoPSDMads)
+    {
+        err = "Error: PSD_MADS_OPTIMIZATION can only be used when OpenMP is available. If that is not the case, use SSD_MADS_OPTIMIZATION.";
+        throw NOMAD::Exception(__FILE__,__LINE__, err);
+    }
+#endif // _OPENMP
+
+    bool useAlgoSSDMads = getAttributeValueProtected<bool>("SSD_MADS_OPTIMIZATION", false);
+    if (useAlgoPSDMads || useAlgoSSDMads)
+    {
+        std::string nbVarParamName = (useAlgoPSDMads ? "PSD_MADS_NB_VAR_IN_SUBPROBLEM" : "SSD_MADS_NB_VAR_IN_SUBPROBLEM");
+        const size_t nbVariablesInSubproblem = getAttributeValueProtected<size_t>(nbVarParamName, false);
+        if (0 == nbVariablesInSubproblem || nbVariablesInSubproblem > n)
+        {
+            err = "Parameter " + nbVarParamName + " must be between 1 and " + NOMAD::itos(n);
+            err += ". Value provided: " + NOMAD::itos(nbVariablesInSubproblem);
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__, err);
+        }
+
+        size_t nbMadsSubproblem = getAttributeValueProtected<size_t>((useAlgoPSDMads ? "PSD_MADS_NB_SUBPROBLEM" : "SSD_MADS_NB_SUBPROBLEM"), false);
+        // Distribute all the variables between subproblems of reduced dimension.
+        bool nbMadsSubproblemSetByUser = true;
+        if (nbMadsSubproblem == INF_SIZE_T)
+        {
+            nbMadsSubproblem = std::round(n/nbVariablesInSubproblem)+1; // Add an additional mads for the pollster
+            nbMadsSubproblemSetByUser = false;
+        }
+        if (useAlgoPSDMads)
+        {
+            // Cannot have more subproblems than the number of threads
+            size_t nbThreads = (size_t)getAttributeValueProtected<int>("NB_THREADS_OPENMP", false);
+            if (nbMadsSubproblem > nbThreads)
+            {
+                nbMadsSubproblem = nbThreads;
+                if (nbMadsSubproblemSetByUser)
+                {
+                    // Warn the user
+                    std::cerr << "Warning: parameter PSD_MADS_NB_SUBPROBLEM reset to number of available threads (" << nbThreads << ")" <<  std::endl;
+                }
+            }
+        }
+        setAttributeValue((useAlgoPSDMads ? "PSD_MADS_NB_SUBPROBLEM" : "SSD_MADS_NB_SUBPROBLEM"), nbMadsSubproblem);
+
+        // Check parameter for coverage
+        if (useAlgoPSDMads)
+        {
+            std::string covParamName = "PSD_MADS_SUBPROBLEM_PCT_COVERAGE";
+            auto coverage = getAttributeValueProtected<NOMAD::Double>(covParamName, false);
+            if (coverage < 0.0 || coverage > 100.0)
+            {
+                err = "Parameter " + covParamName + " must be between 0.0 and 100.0";
+                throw NOMAD::InvalidParameter(__FILE__,__LINE__, err);
+            }
+        }
+    }
 
     // Algorithm parameters: use an algorithm other than MADS.
     // They are mutually-exclusive.
     bool useAlgoLH = (getAttributeValueProtected<size_t>("LH_EVAL", false) > 0);
     bool useAlgoNM = getAttributeValueProtected<bool>("NM_OPTIMIZATION", false);
+    bool useAlgoQuadOpt = getAttributeValueProtected<bool>("QUAD_MODEL_OPTIMIZATION", false);
     bool useAlgoSgtelibModel = getAttributeValueProtected<bool>("SGTELIB_MODEL_EVAL", false);
-    int totalAlgoSet = (int)useAlgoLH + (int)useAlgoNM + (int)useAlgoSgtelibModel;
+    int totalAlgoSet = (int)useAlgoLH + (int)useAlgoNM + (int)useAlgoQuadOpt
+                       + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoSSDMads;
+
     if (totalAlgoSet >= 2)
     {
         err = "Multiple parameters for algorithms are set. ";
@@ -268,14 +357,26 @@ void NOMAD::RunParameters::checkAndComply(
         {
             err += " NM_OPTIMIZATION";
         }
+        if (useAlgoPSDMads)
+        {
+            err += " PSD_MADS_OPTIMIZATION";
+        }
+        if (useAlgoQuadOpt)
+        {
+            err += " QUAD_MODEL_OPTIMIZATION";
+        }
         if (useAlgoSgtelibModel)
         {
             err += " SGTELIB_MODEL_EVAL";
         }
+        if (useAlgoSSDMads)
+        {
+            err += " SSD_MADS_OPTIMIZATION";
+        }
         err += ". Please review parameters settings and choose only one algorithm.";
         throw NOMAD::Exception(__FILE__,__LINE__, err);
     }
-    
+
     /*------------------------*/
     /* Hot restart parameters */
     /* Update file names      */
@@ -286,7 +387,7 @@ void NOMAD::RunParameters::checkAndComply(
         NOMAD::completeFileName(hotRestartFileName, problemDir);
         setAttributeValue("HOT_RESTART_FILE", hotRestartFileName);
     }
-    
+
 
     auto hMax = getAttributeValueProtected<NOMAD::Double>("H_MAX_0", false);
     if (hMax <= 0)
@@ -308,7 +409,7 @@ void NOMAD::RunParameters::setStaticParameters()
     NOMAD::Double::setEpsilon ( getAttributeValueProtected<NOMAD::Double>("EPSILON",false).todouble() );
     NOMAD::Double::setUndefStr ( getAttributeValueProtected<std::string>("UNDEF_STR",false) );
     NOMAD::Double::setInfStr ( getAttributeValueProtected<std::string>("INF_STR",false) );
-    
+
     // Reset parameter values from these static values, to ensure coherence.
     // This is bad because we have twice the same value for some parameters.
     setAttributeValue ( "SEED", NOMAD::RNG::getSeed() );

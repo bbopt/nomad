@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -47,9 +46,9 @@
 #ifndef __NOMAD400_SGTELIB_MODEL__
 #define __NOMAD400_SGTELIB_MODEL__
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/EvcInterface.hpp"
-#include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #include "../../Type/SgtelibModelFeasibilityType.hpp"
 #include "../../Type/SgtelibModelFormulationType.hpp"
 #include "../../../ext/sgtelib/src/Surrogate.hpp"
@@ -57,7 +56,7 @@
 
 #include "../../nomad_nsbegin.hpp"
 
-/// Class for implementation algorithms using on Bastien Talgorn's sgtelib.
+/// Class for implementation algorithms using Bastien Talgorn's sgtelib.
 /**
  * When used as an algorithm by itself:
  * 1- Best points (with respect to blackbox evaluation) in the cache are found.
@@ -96,9 +95,9 @@ private:
     std::shared_ptr<MeshBase> _mesh; ///> Useful for sizes if a mesh is available.
 
 public:
-    // Constructor
+    /// Constructor
     explicit SgtelibModel(const Step* parentStep,
-                          std::shared_ptr<AlgoStopReasons<SgtelibModelStopType>> stopReasons,
+                          std::shared_ptr<AlgoStopReasons<ModelStopType>> stopReasons,
                           std::shared_ptr<Barrier> barrier,
                           const std::shared_ptr<RunParameters>& runParams,
                           const std::shared_ptr<PbParameters>& pbParams,
@@ -110,8 +109,8 @@ public:
         _nbModels(0),
         _ready(false),
         _foundFeasible(false),
-        _modelLowerBound(pbParams->getAttributeValue<size_t>("DIMENSION"), +INF),
-        _modelUpperBound(pbParams->getAttributeValue<size_t>("DIMENSION"), -INF),
+        _modelLowerBound(pbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
+        _modelUpperBound(pbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _mesh(mesh)
     {
         init();
@@ -142,7 +141,7 @@ public:
 
 
     // Utility function to get BB_OUTPUT_TYPE parameter, which is buried in Evaluator.
-    static BBOutputTypeList getBBOutputType() 
+    static BBOutputTypeList getBBOutputType()
     {
         if (nullptr == EvcInterface::getEvaluatorControl()
             || nullptr == EvcInterface::getEvaluatorControl()->getEvalParams())
@@ -176,7 +175,7 @@ public:
 
     // Return X0s' from _barrierForX0s.
     // They are used for the sub-Mads initialization.
-    std::vector<EvalPointPtr> getX0s() const;
+    std::vector<EvalPoint> getX0s() const;
 
 private:
     void init();

@@ -27,5 +27,6 @@ MAX_BB_EVAL 1000
 ####################
 # Show more info - display degree = 3
 DISPLAY_DEGREE 3
+DISPLAY_STATS BBE SOL OBJ
 #STATS_FILE stats.txt BBE SOL OBJ
 

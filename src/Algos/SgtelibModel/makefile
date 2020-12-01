@@ -23,7 +23,7 @@ COMPONENT_DIRNAME   = Algos/SgtelibModel
 ALL_FILES           = SgtelibModel SgtelibModelEvaluator \
                       SgtelibModelFilterCache SgtelibModelInitialization \
                       SgtelibModelIteration SgtelibModelMegaIteration \
-                      SgtelibModelOptimize SgtelibModelUpdate 
+                      SgtelibModelOptimize SgtelibModelUpdate
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))
 ALL_HEADERS         = $(addsuffix .hpp, $(ALL_FILES))
 ALL_INCLUDE_HEADERS = $(addprefix $(INCLUDE_DIR)/$(COMPONENT_DIRNAME)/,$(ALL_HEADERS))
@@ -41,8 +41,8 @@ ifndef NOOMP
 # Use OpenMP for parallelism (threads)
 CXXFLAGS            += -fopenmp
 endif
-ifdef USE_PRIORITY_QUEUE
-CXXFLAGS            += -DUSE_PRIORITY_QUEUE
+ifeq ($(TIME_STATS), 1)
+CXXFLAGS            += -DTIME_STATS
 endif
 
 

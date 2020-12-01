@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -48,19 +47,14 @@
 #ifndef __NOMAD400_ALGORITHM__
 #define __NOMAD400_ALGORITHM__
 
-#include "../Eval/EvaluatorControl.hpp"
-
 #include "../Algos/Initialization.hpp"
 #include "../Algos/MegaIteration.hpp"
 #include "../Algos/Step.hpp"
 #include "../Algos/Termination.hpp"
 
-#include "../Param/RunParameters.hpp"
-#include "../Param/PbParameters.hpp"
-#include "../Param/EvalParameters.hpp"
-#include "../Param/DisplayParameters.hpp"
-
-#include "../Util/StopReason.hpp"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include "../nomad_nsbegin.hpp"
 
@@ -74,13 +68,32 @@
 class Algorithm: public Step
 {
 protected:
-    
+
     std::unique_ptr<Initialization>  _initialization;   ///< To initialize the algorithm (X0)
     std::unique_ptr<Termination>     _termination;      ///< To verify termination conditions
     std::shared_ptr<MegaIteration>   _megaIteration;    ///< MegaIteration used to keep information between steps
 
+    std::string                      _algoComment;   ///< Comment to appear in the stats, e.g. "Phase One"
+    std::vector<std::string>         _prevAlgoComment; ///< Pile of previous comments, used when going back to the main algo after running a sub-algo.
+    bool                             _forceAlgoComment; ///< When true, do not change comment until reset is called
+
     bool _endDisplay;
     
+    NOMAD::SuccessType               _algoBestSuccess ; ///< The best succes type of the algorithm (cannot always get this information from _megaIteration).
+    
+    bool                             _algoSuccessful;
+    
+
+#ifdef TIME_STATS
+    size_t _totalRealAlgoTime;
+    double _startTime;
+    double _totalCPUAlgoTime;
+#endif // TIME_STATS
+
+#ifdef _OPENMP
+    static omp_lock_t _algoCommentLock;
+#endif // _OPENMP
+
 public:
     /// Constructor
     /**
@@ -97,7 +110,15 @@ public:
         _initialization(nullptr),
         _termination(nullptr),
         _megaIteration(nullptr),
+        _algoComment(""),
+        _prevAlgoComment(),
+        _forceAlgoComment(false),
         _endDisplay(true)
+#ifdef TIME_STATS
+        ,_totalRealAlgoTime(0),
+        _startTime(0.0),
+        _totalCPUAlgoTime(0.0)
+#endif // TIME_STATS
     {
         init();
     }
@@ -108,27 +129,31 @@ public:
     /*---------*/
     /* Get/Set */
     /*---------*/
-    const std::shared_ptr<MegaIteration> getMegaIteration() const { return _megaIteration; }
+    const std::shared_ptr<MegaIteration>& getMegaIteration() const { return _megaIteration; }
+    void setMegaIteration(const std::shared_ptr<MegaIteration> megaIteration) { _megaIteration = megaIteration; }
+
+    void setAlgoComment(const std::string& algoComment, const bool force = false) override;
+    void resetPreviousAlgoComment(const bool force = false) override;
+    std::string getAlgoComment() const override;
 
     void setEndDisplay( bool endDisplay ) {_endDisplay = endDisplay; }
-    
+
 
 protected:
-    ///  Helper for Constructor.
-    void init();
-    
+
+
     /// Default implementation of the start tasks of an algorithm
     /**
      If doing a hot restart get the algorithm ready to continue. \n
      If starting a new algorithm, reset the stop reason, the lap evaluation counter, and perform initialization.
      */
-    virtual void startImp() override ;
+    virtual void startImp() override;
 
-    /// Default implementaion of the end tasks of an algorithm
+    /// Default implementation of the end tasks of an algorithm
     /**
-     Display some information, reset the lap counters and save information for a potential hot restart.
+     Display some information, reset the lap counters, set success type for a search method and save information for a potential hot restart.
      */
-    virtual void endImp() override ;
+    virtual void endImp() override;
 
     /// Each algorithm must implement its run tasks.
     /**
@@ -148,25 +173,29 @@ protected:
     void displayEvalCounts() const;
 
     /// Helper for hot restart
-    void hotRestartOnUserInterrupt() override ;
+    void hotRestartOnUserInterrupt() override;
 
 public:
-    
     /**
      Sub-algo: an algorithm can be part of an algorithm.
      */
     bool isSubAlgo() const;
-    bool isMainAlgo() const { return !isSubAlgo(); }
-    
+    bool isRootAlgo() const { return !isSubAlgo(); }
+
     /*---------*/
     /* Others  */
     /*---------*/
     /// Verify if this Algorithm is ready to be terminated
     bool terminate(size_t iteration);
-        
+
     virtual void read(std::istream& is);
-    virtual void display(std::ostream& os) const ;
-    
+    virtual void display(std::ostream& os) const;
+
+private:
+
+    ///  Helper for Constructor.
+    void init();
+
 };
 
 /// Operator to write parameters used for hot restart.

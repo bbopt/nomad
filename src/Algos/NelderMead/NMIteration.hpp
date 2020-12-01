@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -56,8 +55,8 @@
 /// Class for Nelder Mead (NM) iterations
 /**
  The start function for a Nelder Mead iteration creates the initial simplex using a frame ("simplex") center and the points in cache. \n
- The run function of this class iterates betweem the different reflective step
- (REFLECT, EXPAND, INSIDE_CONTRACTION, OUTSIDE_CONTRACTION) and the SHRING step
+ The run function of this class iterates between the different reflective step
+ (REFLECT, EXPAND, INSIDE_CONTRACTION, OUTSIDE_CONTRACTION) and the SHRINK step
  if it is required. The function also updates the type of success to pass to the NMMegaIteration (if it exists) and manages the stop reason.
  */
 class NMIteration: public Iteration
@@ -79,7 +78,7 @@ private:
     const std::shared_ptr<EvalPoint> _simplexCenter;
 
     /**
-     The Mads mesh can be available if Nelder Mead is used as a Search method. If not, it is set to \c nullptr. When available, trials can be projected on it. This is set in NMIteration::init().
+     The Mads mesh can be available if Nelder Mead is used as a Search method. If not, it is set to \c nullptr. When available, trials can be projected on it.
      */
     const std::shared_ptr<MeshBase> _madsMesh;
 
@@ -107,15 +106,6 @@ public:
         _nmY = std::make_shared<NMSimplexEvalPointSet>();
     }
 
-
-    /// Destructor
-    /**
-     When iteration is done, Flush prints output queue.
-     */
-    virtual ~NMIteration()
-    {
-        OutputQueue::Flush();
-    }
 
     // Get/Set
 

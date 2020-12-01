@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -45,23 +44,37 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/Search.hpp"
+#include "../../Algos/Mads/QuadSearchMethod.hpp"
 #include "../../Algos/Mads/SgtelibSearchMethod.hpp"
 #include "../../Algos/Mads/SpeculativeSearchMethod.hpp"
 #include "../../Algos/Mads/LHSearchMethod.hpp"
 #include "../../Algos/Mads/NMSearchMethod.hpp"
 #include "../../Algos/Mads/UserSearchMethod.hpp"
+#include "../../Output/OutputQueue.hpp"
+
+#ifdef TIME_STATS
+#include "../../Util/Clock.hpp"
+
+// Initialize static variables
+// 5 search methods are available
+std::vector<double> NOMAD::Search::_searchTime(5, 0.0);
+std::vector<double> NOMAD::Search::_searchEvalTime(5, 0.0);
+#endif // TIME_STATS
 
 void NOMAD::Search::init()
 {
     _name = "Search";
     verifyParentNotNull();
 
-    auto lhSearch           = std::make_shared<NOMAD::LHSearchMethod>(this);
-    auto userSearch         = std::make_shared<NOMAD::UserSearchMethod>(this);
-    auto modelSgtelibSearch = std::make_shared<NOMAD::SgtelibSearchMethod>(this);
-    auto nmSearch           = std::make_shared<NOMAD::NMSearchMethod>(this);
-    auto speculativeSearch  = std::make_shared<NOMAD::SpeculativeSearchMethod>(this);
+    auto speculativeSearch      = std::make_shared<NOMAD::SpeculativeSearchMethod>(this);
+    auto userSearch             = std::make_shared<NOMAD::UserSearchMethod>(this);
+    auto quadSearch             = std::make_shared<NOMAD::QuadSearchMethod>(this);
+    auto sgtelibSearch          = std::make_shared<NOMAD::SgtelibSearchMethod>(this);
+    auto lhSearch               = std::make_shared<NOMAD::LHSearchMethod>(this);
+    auto nmSearch               = std::make_shared<NOMAD::NMSearchMethod>(this);
+
 
     // The search methods will be executed in the same order
     // as they are inserted.
@@ -77,7 +90,8 @@ void NOMAD::Search::init()
 
     _searchMethods.push_back(speculativeSearch);    // 1. speculative search
     _searchMethods.push_back(userSearch);           // 2. user search
-    _searchMethods.push_back(modelSgtelibSearch);   // 5. Model Searches
+    _searchMethods.push_back(quadSearch);           // 5a. Quad Model Searches
+    _searchMethods.push_back(sgtelibSearch);        // 5b. Model Searches
     _searchMethods.push_back(lhSearch);             // 7. Latin-Hypercube (LH) search
     _searchMethods.push_back(nmSearch);             // 8. NelderMead (NM) search
 }
@@ -85,36 +99,26 @@ void NOMAD::Search::init()
 
 void NOMAD::Search::startImp()
 {
-   // This is sanity check.
+   // Sanity check.
     verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
-
-    if (!isEnabled())
-    {
-        // Early out
-        return;
-    }
-
-    // Generate the points from all the enabled search methods before starting evaluations
-    if ( _runParams->getAttributeValue<bool>("GENERATE_ALL_POINTS_BEFORE_EVAL") )
-    {
-        generateTrialPoints();
-    }
 
 }
 
 
 bool NOMAD::Search::runImp()
 {
-    bool foundBetter = false;
+    bool searchSuccessful = false;
     std::string s;
 
-    // This function should be called only when trial points are generated for each search method separately and evaluated.
+    // Sanity check. The runImp function should be called only when trial points are generated and evaluated for each search method separately.
     verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
 
     if (!isEnabled())
     {
         // Early out --> no found better!
+        OUTPUT_DEBUG_START
         AddOutputDebug("Search method is disabled. Early out.");
+        OUTPUT_DEBUG_END
         return false;
     }
 
@@ -123,45 +127,62 @@ bool NOMAD::Search::runImp()
     NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
 
     // Go through all search methods until we get a success.
+    OUTPUT_DEBUG_START
     s = "Going through all search methods until we get a success";
     AddOutputDebug(s);
-    for (size_t i = 0; !foundBetter && i < _searchMethods.size(); i++)
+    OUTPUT_DEBUG_END
+    for (size_t i = 0; !searchSuccessful && i < _searchMethods.size(); i++)
     {
         auto searchMethod = _searchMethods[i];
         bool enabled = searchMethod->isEnabled();
+        OUTPUT_DEBUG_START
         s = "Search method " + searchMethod->getName() + (enabled ? " is enabled" : " not enabled");
         AddOutputDebug(s);
+        OUTPUT_DEBUG_END
         if (!enabled) { continue; }
+#ifdef TIME_STATS
+        double searchStartTime = NOMAD::Clock::getCPUTime();
+        double searchEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
+#endif // TIME_STATS
         searchMethod->start();
-        foundBetter = searchMethod->run();
+        searchMethod->run();
         success = searchMethod->getSuccessType();
+        searchSuccessful = (success >= NOMAD::SuccessType::FULL_SUCCESS);
         if (success > bestSuccessYet)
         {
             bestSuccessYet = success;
         }
         searchMethod->end();
+#ifdef TIME_STATS
+        _searchTime[i] += NOMAD::Clock::getCPUTime() - searchStartTime;
+        _searchEvalTime[i] += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - searchEvalStartTime;
+#endif // TIME_STATS
 
-        if (foundBetter)
+
+        if (searchSuccessful)
         {
-            // Do not go through the other search methods if we found
-            // an improving solution.
+            // Do not go through the other search methods if a search is
+            // successful.
+            OUTPUT_INFO_START
             s = searchMethod->getName();
-            s += " found an improving solution. Stop reason: ";
+            s += " is successful. Stop reason: ";
             s += _stopReasons->getStopReasonAsString() ;
 
             AddOutputInfo(s);
+            OUTPUT_INFO_END
             break;
         }
     }
 
     setSuccessType(bestSuccessYet);
 
-    return foundBetter;
+    return searchSuccessful;
 }
 
 
 void NOMAD::Search::endImp()
 {
+    // Sanity check. The endImp function should be called only when trial points are generated and evaluated for each search method separately.
     verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
 
     if (!isEnabled())
@@ -171,19 +192,18 @@ void NOMAD::Search::endImp()
     }
 
     // Need to reset the EvalStopReason if a sub optimization is used during Search and the max bb is reached for this sub optimization
-    if (_stopReasons->testIf(NOMAD::EvalStopType::LAP_MAX_BB_EVAL_REACHED))
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    if (evc->testIf(NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED))
     {
-        _stopReasons->set(NOMAD::EvalStopType::STARTED);
+        evc->setStopReason(NOMAD::getThreadNum(), NOMAD::EvalMainThreadStopType::STARTED);
     }
 
 }
 
 
-// Generate trial points for ALL enabled search methods.
-// To be used only when parameter GENERATE_ALL_POINTS_BEFORE_EVAL is true.
 void NOMAD::Search::generateTrialPoints()
 {
-
+    // Sanity check. The generateTrialPoints function should be called only when trial points are generated for all each search method. After that all trials points evaluated at once.
     verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, true);
 
     for (auto searchMethod : _searchMethods)
@@ -192,40 +212,24 @@ void NOMAD::Search::generateTrialPoints()
         {
             searchMethod->generateTrialPoints();
 
-            // NB verifyPointsAreOnMesh and updatePointsWithFrameCenter are
-            // done here, so that if an user adds a new search method, they
-            // will not have to think about adding these verifications.
-            searchMethod->verifyPointsAreOnMesh(getName());
-            searchMethod->updatePointsWithFrameCenter();
-
+            // Aggregation of trial points from several search methods.
+            // The trial points produced by a search method are already snapped on bounds and on mesh.
             auto searchMethodPoints = searchMethod->getTrialPoints();
-
             for (auto point : searchMethodPoints)
             {
                 // NOTE trialPoints includes points from multiple SearchMethods.
-                // TODO Probably we should use some move operators instead of
-                // copying EvalPoints.
                 insertTrialPoint(point);
             }
         }
     }
+
+    // Sanity check
+    verifyPointsAreOnMesh(getName());
 }
 
 
 bool NOMAD::Search::isEnabled() const
 {
-    bool searchEnabled = false;
-    if (_searchMethods.size() > 0)
-    {
-        for (auto searchMethod : _searchMethods)
-        {
-            if (searchMethod->isEnabled())
-            {
-                searchEnabled = true;
-                break;
-            }
-        }
-    }
-
-    return searchEnabled;
+    return std::any_of(_searchMethods.begin(), _searchMethods.end(),
+                       [](std::shared_ptr<NOMAD::SearchMethodBase> searchMethod) { return searchMethod->isEnabled(); });
 }

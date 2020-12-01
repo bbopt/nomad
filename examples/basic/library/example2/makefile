@@ -34,7 +34,7 @@ endif
 CXXFLAGS           += -L$(LIB_DIR)
 
 ifeq ($(UNAME), Linux)
-CXXFLAGS_LIBS = -Wl,-rpath,$(LIB_DIR) 
+CXXFLAGS_LIBS = -Wl,-rpath,$(LIB_DIR)
 endif
 
 INCLFLAGS           = -I$(INCLUDE_DIR)
@@ -44,6 +44,6 @@ COMPILE             = $(CXX) $(CXXFLAGS) $(INCLFLAGS) $(CXXFLAGS_LIBS)
 example2_lib.exe: $(INCLUDE_DIR) $(OBJ_DIR) example2_lib.cpp
 	$(COMPILE) -o $@ example2_lib.cpp $(LIB_DYNAMIC)
 
-clean: 
+clean:
 	rm -f example2_lib.o example2_lib.exe
 

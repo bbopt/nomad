@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -47,10 +46,8 @@
 #ifndef __NOMAD400_NMREFLECTIVE__
 #define __NOMAD400_NMREFLECTIVE__
 
-#include <set>
-
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
-
+#include "../../Algos/Step.hpp"
 #include "../../Eval/EvalPoint.hpp"
 
 #include "../../nomad_nsbegin.hpp"
@@ -65,7 +62,7 @@
 
   * \note The name "reflective" is because all those steps are reflections with different delta.
  */
-class NMReflective: public Step , public NMIterationUtils
+class NMReflective: public Step, public NMIterationUtils
 {
 private:
 
@@ -73,10 +70,10 @@ private:
     NMStepType _nextStepType;
     Double _delta, _deltaE, _deltaOC, _deltaIC;
 
-    Point _xr, _xe, _xoc, _xic;
-    
-    std::vector<std::shared_ptr<EvalPoint>> _nmY0; ///< Vector of undominated points extracted from simplex (the simplex has a loose ordering-->tied points can exist).
-    std::vector<std::shared_ptr<EvalPoint>> _nmYn;  ///< Vector of dominated points extracted from simplex (the simplex has a loose ordering-->tied points can exist).
+    EvalPoint _xr, _xe, _xoc, _xic;
+
+    std::vector<EvalPoint> _nmY0; ///< Vector of undominated points extracted from simplex (the simplex has a loose ordering-->tied points can exist).
+    std::vector<EvalPoint> _nmYn;  ///< Vector of dominated points extracted from simplex (the simplex has a loose ordering-->tied points can exist).
 
 
 public:
@@ -84,9 +81,9 @@ public:
     /**
      \param parentStep The parent of this NM step
      */
-    explicit NMReflective(const Step* parentStep )
-      : Step( parentStep ) ,
-        NMIterationUtils ( parentStep )
+    explicit NMReflective(const Step* parentStep)
+      : Step(parentStep),
+        NMIterationUtils(parentStep)
     {
 
 
@@ -106,10 +103,10 @@ public:
     /**
      The name of the step and the value of delta are changed according to stepType.
      */
-    void setCurrentNMStepType ( NMStepType stepType ) ;
+    void setCurrentNMStepType(NMStepType stepType);
 
 
-    NMStepType getNextNMStepType ( void ) const { return _nextStepType ; }
+    NMStepType getNextNMStepType() const { return _nextStepType ; }
 
 private:
 
@@ -137,7 +134,7 @@ private:
     virtual void    endImp() override {}
 
     /// Helper for NMReflective::runImp
-    void setNextNMStepType ( void );
+    void setNextNMStepType();
 
     /**
      Reflect is always the first step of Nelder Mead iteration. The reflect point is xr. In NM-Mads paper, depending on which zone xr belongs to, we perform another step:
@@ -146,53 +143,53 @@ private:
      - If xr dominates 2 points or more in Y -> iteration completed
      - If xr dominates 0 or 1 point in Y -> OUTSIDE_CONTRACTION
      */
-    void setAfterReflect( void ) ;
+    void setAfterReflect() ;
 
 
     /**
      EXPAND follows REFLECT. The expand point is xe. \n
      In NM-Mads paper: xr belongs to the expansion zone. xe has been evaluated. The best point between xr and xe is inserted in the simplex Y. If a proper simplex Y is obtained the iteration is completed, if not the next step can be a SHRINK.
      */
-    void setAfterExpand ( void ) ;
+    void setAfterExpand();
 
     /**
      OUTSIDE_CONTRACTION follows REFLECT. The outside contraction point is xoc. \n
      In NM-Mads paper: xr belongs to the outside contraction zone.  The best point between xr and xoc is inserted in Y. If a proper simplex Y is obtained the iteration is completed, if not the next step can be a SHRINK.
      */
-    void setAfterOutsideContract ( void ) ;
+    void setAfterOutsideContract();
 
     /**
      INSIDE_CONTRACTION follows REFLECT. The inside contraction point is xic. \n
      In NM-Mads paper: xr belongs to the inside contraction zone. If xic belongs to the inside contraction zone (that is Yn dominates xic), iteration is completed. Otherwise insert xic in Y. If a proper simplex Y is obtained, the iteration is completed, if not the next step can be a SHRINK.
     */
-    void setAfterInsideContract ( void ) ;
+    void setAfterInsideContract();
 
     /**
      Insert a point in the simplex Y. If a point is inserted, the last point of Y is removed, return \c true. If Y is unchanged, the insertion failed, return \c false. \n
      Update Y0, Yn and the simplex characteristic if necessary.
      */
-    bool insertInY ( const Point & x ) ;
+    bool insertInY(const EvalPoint& x);
 
     /**
      Try to insert the best of two points in the simplex.
 
      \return \c true if the simplex has changed and \c false otherwise.
      */
-    bool insertInYBest ( const Point & x1, const Point & x2 );
+    bool insertInYBest(const EvalPoint& x1, const EvalPoint& x2);
 
     /// Helper for the setAfterXXXX functions
-    bool pointDominatesY0 ( const Point & x ) const ;
+    bool pointDominatesY0(const EvalPoint& x) const ;
 
     /// Helper for the setAfterXXXX functions
-    bool YnDominatesPoint ( const Point & x ) const ;
+    bool YnDominatesPoint(const EvalPoint& x) const ;
 
     /// Helper for the setAfterXXXX functions
-    bool pointDominatesPtsInY ( const Point & x , size_t nb ) const ;
+    bool pointDominatesPtsInY(const EvalPoint& x, size_t nb) const ;
 
-    bool makeListY0( void ); ///< Create the undominated list of points from Y
-    bool makeListYn( void ); ///< Create the dominated list of points from Y
+    bool makeListY0(); ///< Create the undominated list of points from Y
+    bool makeListYn(); ///< Create the dominated list of points from Y
 
-    void displayY0nInfo ( void ) const ;
+    void displayY0nInfo() const ;
 };
 
 #include "../../nomad_nsend.hpp"

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -57,7 +56,6 @@
 
 #include "../Eval/BBOutput.hpp"
 #include "../Eval/EvalPoint.hpp"
-#include "../Math/Double.hpp"
 #include "../Param/EvalParameters.hpp"
 #include "../Type/EvalType.hpp"
 
@@ -72,14 +70,12 @@ enum class EvalXDefined
 };
 
 
-class Barrier;
-
 /// Class for the evaluator
 /**
  * Evaluation of a point can be done by calling an external executable
- * (provided in BB_EXE parameter) or by redifining the evaluation function
+ * (provided in BB_EXE parameter) or by redefining the evaluation function
  * Evaluator::eval_x(). /n
- * To evaluate a block of points, the user must redifine Evaluator::eval_block() or make sure the external executable can evaluate all the provided points. /n
+ * To evaluate a block of points, the user must redefine Evaluator::eval_block() or make sure the external executable can evaluate all the provided points. /n
  *
  */
 class Evaluator
@@ -88,7 +84,7 @@ protected:
     std::shared_ptr<EvalParameters> _evalParams; ///< The parameters controlling the behavior of the evaluator
 
 private:
-    std::vector<std::string> _tmpFiles; ///< One file per thread.
+    static std::vector<std::string> _tmpFiles; ///< One file per thread.
 
     /// Did the user redefine eval_x() for single point, or should we use BB_EXE ?
     mutable EvalXDefined _evalXDefined;
@@ -104,19 +100,20 @@ public:
     /**
      \param evalParams      The parameters to control the behavior of the evaluator
      \param evalType        Which type of Eval will be updated by this Evaluator:                        blackbox (BB) or surrogate (SGTE)
-     \param nbThreads       The number of threads the evaluators will run on. Used to initialize temporary files.
      \param evalXDefined    Flag.
      */
     explicit Evaluator(const std::shared_ptr<EvalParameters> &evalParams,
-                       const EvalType evalType = NOMAD::EvalType::BB,
-                       int nbThreads = 0,
+                       const EvalType evalType = EvalType::BB,
                        const EvalXDefined evalXDefined = EvalXDefined::EVAL_BLOCK_DEFINED_BY_USER);
 
     /// Destructor.
-    /**
-     Needed to remove temporary files.
-     */
     virtual ~Evaluator();
+
+    /// Initialize one tmp file by thread
+    static void initializeTmpFiles(const std::string& tmpDir);
+
+    /// Delete tmp files when we are done
+    static void removeTmpFiles();
 
     /*---------*/
     /* Get/Set */

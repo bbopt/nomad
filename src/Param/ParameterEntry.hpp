@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -54,7 +53,6 @@
 #ifndef __NOMAD400_ParameterEntry__
 #define __NOMAD400_ParameterEntry__
 
-#include <iostream>
 #include "../Util/utils.hpp"
 
 #include "../nomad_nsbegin.hpp"
@@ -92,7 +90,7 @@ public:
                               (Opt) (default = \c true).
     */
     explicit ParameterEntry(const std::string & entry, bool removeComments = true);
-    
+
     /// Destructor.
     virtual ~ParameterEntry ( void ) {}
 
@@ -191,7 +189,7 @@ public:
     /// Comparison with another entry.
     /**
        The comparison is based on the parameter name.
-     
+
        \param p The right-hand side object -- \b IN.
        \return A boolean equal to \c true if \c this->_name \c < \c p._name.
     */
@@ -212,7 +210,7 @@ public:
        \param  p2 Pointer to the second ParameterEntry -- \b IN.
        \return A boolean equal to \c true if \c *p1 \c < \c *p2.
     */
-    bool operator() ( const std::shared_ptr<ParameterEntry> p1 , const std::shared_ptr<ParameterEntry> p2 ) const 
+    bool operator() ( const std::shared_ptr<ParameterEntry> p1 , const std::shared_ptr<ParameterEntry> p2 ) const
     {
         return (*p1 < *p2);
     }
@@ -225,7 +223,7 @@ public:
      \return    The std::ostream object.
 */
 inline std::ostream& operator<< (std::ostream &out,
-                                   const ParameterEntry &e) 
+                                   const ParameterEntry &e)
 {
     e.display(out);
     return out;

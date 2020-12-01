@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -53,11 +52,8 @@
 #ifndef __NOMAD400_MAINSTEP__
 #define __NOMAD400_MAINSTEP__
 
-#include "Step.hpp"
-#include "Subproblem.hpp"
-
-#include "../Cache/CacheBase.hpp"
-#include "../Output/OutputQueue.hpp"
+#include "../Algos/Algorithm.hpp"
+#include "../Eval/Evaluator.hpp"
 #include "../Param/AllParameters.hpp"
 
 #include "../nomad_nsbegin.hpp"
@@ -73,30 +69,30 @@
 */
 class MainStep: public Step
 {
-private:
+protected:
     std::string                         _paramFileName;  ///< Name of the file containing the parameters.
     std::shared_ptr<AllParameters>      _allParams;
-    std::unique_ptr<Evaluator>          _evaluator; ///< Used in library running mode (not batch mode)
-    std::vector<std::shared_ptr<Step>>  _algos;
-    static std::string                  _algoComment;   ///< Comment to appear in the stats, e.g. "Phase One"
-    static std::vector<std::string>     _prevAlgoComment; ///< Pile of previous comments, used when going back to the main algo after running a sub-algo.  
-    static bool                         _forceAlgoComment; ///< When true, do not change comment until reset is called
+    std::shared_ptr<Evaluator>          _evaluator; ///< Used in library running mode (not batch mode)
+    std::vector<std::shared_ptr<Algorithm>>  _algos;
 
-    /// Subproblem definition
-    /**
-     \todo Generalize / Make an array to handle multiple subproblems
-     */
-    std::vector<Subproblem>             _subproblems;
-
+#ifdef TIME_STATS
+    size_t _totalRealTime;
+    double _startTime;
+    double _totalCPUTime;
+#endif // TIME_STATS
 
 public:
     /// Constructor
     explicit MainStep()
-    : Step( ),
+    : Step(),
         _paramFileName(""),
         _evaluator(nullptr),
-        _algos(),
-        _subproblems()
+        _algos()
+#ifdef TIME_STATS
+        ,_totalRealTime(0),
+        _startTime(0.0),
+        _totalCPUTime(0.0)
+#endif // TIME_STATS
     {
         init();
     }
@@ -117,23 +113,9 @@ public:
     void setAllParameters(const std::shared_ptr<AllParameters> &allParams);
 
     /**
-     The evaluator is unique. All algorithms must use the same evaluator.
+     The evaluator may be shared between main threads.
      */
-    void setEvaluator(std::unique_ptr<Evaluator> ev) { _evaluator = std::move(ev);}
-
-    /// Set comment to be added at the end of the display stats, e.g., "Phase One"
-    static void setAlgoComment(const std::string& algoComment, const bool force = false);
-    /// Reset comment to the previous in the stack
-    static void resetPreviousAlgoComment(const bool force = false);
-    /// Get current comment on the top of the stack
-    static const std::string& getAlgoComment() { return _algoComment; }
-
-    /// Get the subproblem that is currently treated.
-    /**
-     Currently, there is only one.
-     \todo Generalize subproblem management. Make it possible to have more than one subproblem defined.
-     */
-    std::shared_ptr<Subproblem> getCurrentSubproblem() const;
+    void setEvaluator(std::shared_ptr<Evaluator> ev) { _evaluator = ev;}
 
 
     /*---------*/
@@ -143,7 +125,7 @@ public:
     /**
      Once all algos have been added are executed (call start, run and end for each algo) in the MainStep::run.
      */
-    void addAlgo(const std::shared_ptr<Step> algo) { _algos.push_back(algo); }
+    void addAlgo(const std::shared_ptr<Algorithm> algo) { _algos.push_back(algo); }
 
     void clearAlgos() { _algos.clear(); }
 
@@ -164,16 +146,14 @@ public:
      */
     void hotRestartOnUserInterrupt() override;
 
+    /// Helper to reset some components (used by the runner when running multiple optimization)
+    static void resetComponentsBetweenOptimization();
 
-private:
-
-    /// Helper for constructor
-    void init();
-    
+protected:
     /// Specific implementation to start NOMAD
     /**
      Implementation called by Step::start.
-     During the main step start, the parameters are read (if parameter file is available), the cache, the evaluator and the evaluator control are created. If an algorithm is set for run in the parameter file, it is added ( MainStep::addAlgo ).
+     During the main step start, the parameters are read (if parameter file is available), the cache, the evaluator and the evaluator control are created. If an algorithm is set for run in the parameter file, it is added (MainStep::addAlgo).
      */
     virtual void startImp() override;
 
@@ -188,7 +168,7 @@ private:
     /**
      Implementation called by Step::end.
      */
-    virtual void endImp() override {}
+    virtual void endImp() override;
 
     /// Helper function when creating the evaluator
     int getNumThreads() const;
@@ -210,6 +190,14 @@ private:
 
     /// Helper for start
     void updateX0sFromCache() const;
+
+
+private:
+    /// Helper for constructor
+    void init();
+
+    ///  Detailed stats
+    void displayDetailedStats() const;
 
 };
 

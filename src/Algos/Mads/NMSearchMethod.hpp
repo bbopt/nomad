@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -47,7 +46,7 @@
 #ifndef __NOMAD400_NMSEARCHMETHOD__
 #define __NOMAD400_NMSEARCHMETHOD__
 
-#include "../../Algos/Mads/SearchMethod.hpp"
+#include "../../Algos/Mads/SearchMethodAlgo.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -56,7 +55,7 @@
  If Nelder Mead search is enabled (check is done in NMSearchMethod::init), the NMSearchMethod::run function manages the execution (start, run, end) of the NM algorithm. \n
  The new trial points can be generated during a single pass of all Nelder Mead reflective steps (REFLECT, EXPAND, INSIDE_CONTRACTION, OUTSIDE_CONTRACTION) ( generateTrialPoint ) or as a NM optimization.
  */
-class NMSearchMethod final : public SearchMethod
+class NMSearchMethod final : public SearchMethodAlgo
 {
 public:
     /// Constructor
@@ -64,35 +63,32 @@ public:
      /param parentStep      The parent of this search step -- \b IN.
      */
     explicit NMSearchMethod(const Step* parentStep )
-      : SearchMethod(parentStep )
+      : SearchMethodAlgo(parentStep )
     {
         init();
     }
 
-    /**
-     Make sure the step by step version of NM algorithm is used.
-     */
-    virtual void startImp() override;
-    
+
     /**
      Execute (start, run, end) of the NM algorithm. Returns a \c true flag if the algorithm found better point.
      */
     virtual bool runImp() override ;
-    
-    
+
+
 private:
-    
+
     /// Helper for constructor.
     /**
-     Test if the NM search is enabled or not.
+     Test if the NM search is enabled or not. Set the maximum number of trial points.
      */
     void init();
-    
+
     ///Generate new points (no evaluation)
     /**
-     This function is used only when a MADS search based on Nelder Mead with the option to generate all points before evaluation performs one iteration of all reflective steps (Reflect, Expansion, Inside and Outside Contraction).
+     \copydoc SearchMethodAlgo::generateTrialPointsImp \n
+     Perform one iteration of all reflective steps (Reflect, Expansion, Inside and Outside Contraction). This is just portion of the NM algorithm without iteration.
      */
-    void generateTrialPoints() override;
+    virtual void generateTrialPointsImp() override;
 
 };
 

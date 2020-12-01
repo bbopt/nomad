@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -70,7 +69,8 @@ NOMAD::Eval::Eval()
     _f(),
     _h(NOMAD::INF),
     _evalStatus(NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED),
-    _bbOutput("")
+    _bbOutput(""),
+    _bbOutputComplete(false)
 {
 }
 
@@ -87,15 +87,17 @@ NOMAD::Eval::Eval(std::shared_ptr<NOMAD::EvalParameters> params,
     _bbOutput(bbOutput)
 {
     auto bbOutputType = params->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
-    
-    
+
+
     // Note: if bbOutput is not eval_ok, then _f and _h end up undefined Doubles.
     _f = computeF(bbOutputType);
-    
+
     // Set H
-    setH (_computeH(*this, bbOutputType));    
+    setH (_computeH(*this, bbOutputType));
     _toBeRecomputed = false;
-    
+
+    _bbOutputComplete = _bbOutput.isComplete(bbOutputType);
+
     if (_bbOutput.getEvalOk() && _f.isDefined())
     {
         _evalStatus = NOMAD::EvalStatusType::EVAL_OK;
@@ -115,7 +117,9 @@ NOMAD::Eval::Eval(const NOMAD::Eval &eval)
     _f(eval._f),
     _h(eval._h),
     _evalStatus(eval._evalStatus),
-    _bbOutput(eval._bbOutput)
+    _bbOutput(eval._bbOutput),
+    _bbOutputComplete(eval._bbOutputComplete)
+
 {
 }
 
@@ -144,20 +148,20 @@ NOMAD::Double NOMAD::Eval::defaultComputeH(const NOMAD::Eval& eval, const NOMAD:
 
     if (eval.getBBOutput().getEvalOk())
     {
-        
+
         size_t bboIndex = 0;
         for (auto bbOutputType : bbOutputTypeList)
         {
-            
+
             if ( NOMAD::BBOutputTypeIsConstraint(bbOutputType) )
             {
- 
+
                 /// The computeHComponent function has default version using cons*cons for PB constraint.
                 /// The default function can be replaced by a custom one using the Eval::setComputeHComponent static function.
                 NOMAD::Double hComp = _computeHComponent(bbOutputType , bboIndex, bbo[bboIndex]);
-                
+
                 /// Aggregate the H component for a given constraint to H.
-                
+
                 // Violated Extreme Barrier constraint:
                 // Set h to infinity and break.
                 if (NOMAD::INF == hComp)
@@ -177,7 +181,7 @@ NOMAD::Double NOMAD::Eval::defaultComputeH(const NOMAD::Eval& eval, const NOMAD:
 
     // Failsafe: If at least one PB constraint is positive, h must be set
     // to at least epsilon so that the Eval is recognized as infeasible.
-    // Catch cases such as constraint violated by 1e-8, which gives h = 1e-16 
+    // Catch cases such as constraint violated by 1e-8, which gives h = 1e-16
     // which is considered as 0.
     if (hPos && (0 == h))
     {
@@ -197,7 +201,7 @@ NOMAD::Double NOMAD::Eval::defaultComputeHComponent( const NOMAD::BBOutputType &
         std::string str = "H component must be computed from BB output that is a constraint";
         throw NOMAD::Exception(__FILE__, __LINE__, str);
     }
-    
+
     NOMAD::Double h = 0.0;
     if (bbo > 0)
     {
@@ -210,7 +214,7 @@ NOMAD::Double NOMAD::Eval::defaultComputeHComponent( const NOMAD::BBOutputType &
             h = bbo * bbo;
         }
     }
-    
+
     return h;
 }
 
@@ -340,7 +344,8 @@ void NOMAD::Eval::setH(const NOMAD::Double &h)
 void NOMAD::Eval::setBBOutput(const NOMAD::BBOutput &bbOutput)
 {
     _bbOutput = bbOutput;
-    toRecompute(true);
+    _toBeRecomputed = true;
+    _bbOutputComplete = false;
 }
 
 
@@ -351,13 +356,15 @@ void NOMAD::Eval::setBBOutputAndRecompute(const NOMAD::BBOutput& bbOutput,
     if (!bbOutput.checkSizeMatch(bbOutputType))
     {
         _evalStatus = NOMAD::EvalStatusType::EVAL_ERROR;
+        _bbOutputComplete =false;
     }
     else
     {
         setF(computeF(bbOutputType));
         setH(_computeH(*this, bbOutputType));
+        _bbOutputComplete = _bbOutput.isComplete(bbOutputType);
     }
-    toRecompute(false);
+    _toBeRecomputed = false;
 }
 
 
@@ -370,11 +377,13 @@ void NOMAD::Eval::setBBO(const std::string &bbo,
     {
         setF(computeF(bbOutputType));
         setH(_computeH(*this, bbOutputType));
-        toRecompute(false);
+        _toBeRecomputed = false;
+        _bbOutputComplete = _bbOutput.isComplete(bbOutputType);
     }
     else
     {
-        toRecompute(true);
+        _toBeRecomputed = true;
+        _bbOutputComplete = false;
     }
 }
 
@@ -466,9 +475,9 @@ bool NOMAD::Eval::compEvalFindBest(const NOMAD::Eval &eval1, const NOMAD::Eval &
 }
 
 
-NOMAD::SuccessType NOMAD::Eval::defaultComputeSuccessType(const Eval* eval1,
-                                                          const Eval* eval2,
-                                                          const Double& hMax)
+NOMAD::SuccessType NOMAD::Eval::defaultComputeSuccessType(const NOMAD::Eval* eval1,
+                                                          const NOMAD::Eval* eval2,
+                                                          const NOMAD::Double& hMax)
 {
     // NOT_EVALUATED,      // Not evaluated yet
     // UNSUCCESSFUL,       // Failure
@@ -622,6 +631,9 @@ std::string NOMAD::enumStr(const NOMAD::EvalStatusType evalStatus)
         case NOMAD::EvalStatusType::EVAL_IN_PROGRESS:
             str = "Evaluation in progress";
             break;
+        case NOMAD::EvalStatusType::EVAL_WAIT:
+            str = "Waiting for evaluation in progress";
+            break;
         case NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED:
             str = "Undefined evaluation status";
             break;
@@ -660,6 +672,9 @@ std::ostream& NOMAD::operator<<(std::ostream& out, const NOMAD::EvalStatusType &
             break;
         case NOMAD::EvalStatusType::EVAL_IN_PROGRESS:
             out << "EVAL_IN_PROGRESS";
+            break;
+        case NOMAD::EvalStatusType::EVAL_WAIT:
+            out << "EVAL_WAIT";
             break;
         case NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED:
             out << "EVAL_STATUS_UNDEFINED";
@@ -707,6 +722,10 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalStatusType &evalSta
     else if ("EVAL_IN_PROGRESS" == s)
     {
         evalStatus = NOMAD::EvalStatusType::EVAL_IN_PROGRESS;
+    }
+    else if ("EVAL_WAIT" == s)
+    {
+        evalStatus = NOMAD::EvalStatusType::EVAL_WAIT;
     }
     else if ("EVAL_STATUS_UNDEFINED" == s)
     {

@@ -8,12 +8,6 @@ ifdef NOOMP
 $(info Not using OpenMP)
 endif
 
-ifdef USE_PRIORITY_QUEUE
-$(info Using priority queue for EvaluatorControl queue)
-else
-$(info Using vector for EvaluatorControl queue)
-endif
-
 
 UNAME := $(shell uname)
 
@@ -26,8 +20,9 @@ BIN_DIR             = $(BUILD_DIR)/bin
 
 COMPONENT_DIRNAME   = Eval
 
-ALL_FILES           = Barrier BBInput BBOutput Eval EvalPoint EvalQueuePoint \
-                      EvaluatorControl Evaluator
+ALL_FILES           = Barrier BBInput BBOutput ComparePriority ComputeSuccessType \
+                      Eval EvalPoint \
+                      EvalQueuePoint EvaluatorControl Evaluator EvcMainThreadInfo
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))
 ALL_HEADERS         = $(addsuffix .hpp, $(ALL_FILES))
 ALL_INCLUDE_HEADERS = $(addprefix $(INCLUDE_DIR)/$(COMPONENT_DIRNAME)/,$(ALL_HEADERS))
@@ -40,15 +35,15 @@ endif
 ifdef USE_UNORDEREDSET
 CXXFLAGS            += -DUSE_UNORDEREDSET
 endif
-ifdef USE_PRIORITY_QUEUE
-CXXFLAGS            += -DUSE_PRIORITY_QUEUE
-endif
 
 CXXFLAGS            += -std=c++14 -Wall -fpic
 
 ifndef NOOMP
 # Use OpenMP for parallelism (threads)
 CXXFLAGS            += -fopenmp
+endif
+ifeq ($(TIME_STATS), 1)
+CXXFLAGS            += -DTIME_STATS
 endif
 
 OBJFLAGS            = -c

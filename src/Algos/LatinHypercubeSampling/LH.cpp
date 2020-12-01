@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -46,10 +45,10 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/EvcInterface.hpp"
-
 #include "../../Algos/LatinHypercubeSampling/LH.hpp"
-
 #include "../../Math/LHS.hpp"
+#include "../../Output/OutputQueue.hpp"
+
 void NOMAD::LH::init()
 {
     _name = "Latin Hypercube Sampling";
@@ -57,20 +56,18 @@ void NOMAD::LH::init()
 
 }
 
+
 void NOMAD::LH::startImp()
 {
-
-    // Comment to appear at the end of stats lines
-    NOMAD::MainStep::setAlgoComment("(LH)");
-
     generateTrialPoints();
-
 }
+
 
 void NOMAD::LH::generateTrialPoints()
 {
-
+    OUTPUT_INFO_START
     AddOutputInfo("Generate points for " + _name, true, false);
+    OUTPUT_INFO_END
 
     auto lhEvals = _runParams->getAttributeValue<size_t>("LH_EVAL");
     if (NOMAD::INF_SIZE_T == lhEvals)
@@ -92,10 +89,8 @@ void NOMAD::LH::generateTrialPoints()
         throw NOMAD::Exception(__FILE__,__LINE__,_name + " requires a complete upper bound vector");
     }
 
-    int seed = _runParams->getAttributeValue<int>("SEED");
-
     // Apply Latin Hypercube algorithm
-    NOMAD::LHS lhs(n, lhEvals, lowerBound, upperBound, seed);
+    NOMAD::LHS lhs(n, lhEvals, lowerBound, upperBound);
     auto pointVector = lhs.Sample();
 
     for (auto point : pointVector)
@@ -111,16 +106,21 @@ void NOMAD::LH::generateTrialPoints()
 
         // Test if the point is inserted correctly
         bool inserted = insertTrialPoint(evalPoint);
+        OUTPUT_INFO_START
         std::string s = "Generated point";
         s += (inserted) ? ": " : " not inserted: ";
         s += evalPoint.display();
         AddOutputInfo(s);
+        OUTPUT_INFO_END
     }
 
+    OUTPUT_INFO_START
     AddOutputInfo("Generated " + std::to_string(getTrialPointsCount()) + " points");
     AddOutputInfo("Generate points for " + _name, false, true);
+    OUTPUT_INFO_END
 
 }
+
 
 bool NOMAD::LH::runImp()
 {
@@ -131,7 +131,7 @@ bool NOMAD::LH::runImp()
         foundBetter = evalTrialPoints(this);
     }
     auto LHStopReasons = NOMAD::AlgoStopReasons<NOMAD::LHStopType>::get( _stopReasons );
-    if (  _stopReasons->testIf( NOMAD::EvalStopType::ALL_POINTS_EVALUATED ) )
+    if (NOMAD::EvcInterface::getEvaluatorControl()->testIf(NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED))
     {
         LHStopReasons->set( NOMAD::LHStopType::ALL_POINTS_EVALUATED );
     }
@@ -139,12 +139,7 @@ bool NOMAD::LH::runImp()
     return foundBetter;
 }
 
+
 void NOMAD::LH::endImp()
 {
-    // Remove any remaining points from eval queue.
-    EvcInterface::getEvaluatorControl()->clearQueue();
-
-    // reset to the previous stats comment
-    NOMAD::MainStep::resetPreviousAlgoComment();
-
 }

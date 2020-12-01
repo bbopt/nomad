@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -92,6 +91,34 @@ bool NOMAD::BBOutput::getCountEval(const BBOutputTypeList &bbOutputType) const
     return countEval;
 }
 
+bool NOMAD::BBOutput::isComplete(const NOMAD::BBOutputTypeList &bbOutputType) const
+{
+    NOMAD::ArrayOfString array(_rawBBO);
+    if (checkSizeMatch(bbOutputType))
+    {
+        for (size_t i = 0; i < array.size(); i++)
+        {
+            if (NOMAD::BBOutputType::OBJ == bbOutputType[i]
+                || NOMAD::BBOutputType::PB == bbOutputType[i]
+                || NOMAD::BBOutputType::EB == bbOutputType[i])
+            {
+                NOMAD::Double outValue;
+                outValue.atof(array[i]);
+                if (!outValue.isDefined())
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    else
+    {
+        return false;
+    }
+
+    return true;
+}
+
 
 NOMAD::Double NOMAD::BBOutput::getObjective(const NOMAD::BBOutputTypeList &bbOutputType) const
 {
@@ -112,11 +139,12 @@ NOMAD::Double NOMAD::BBOutput::getObjective(const NOMAD::BBOutputTypeList &bbOut
     return obj;
 }
 
+
 NOMAD::ArrayOfDouble NOMAD::BBOutput::getConstraints(const NOMAD::BBOutputTypeList &bbOutputType) const
 {
     NOMAD::ArrayOfString array(_rawBBO);
     NOMAD::ArrayOfDouble constraints;
-    
+
     if (checkSizeMatch(bbOutputType))
     {
         for (size_t i = 0; i < array.size(); i++)
@@ -131,7 +159,7 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getConstraints(const NOMAD::BBOutputTypeLi
             }
         }
     }
-    
+
     return constraints;
 }
 
@@ -140,7 +168,7 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getBBOAsArrayOfDouble() const
 {
     NOMAD::ArrayOfString array(_rawBBO);
     NOMAD::ArrayOfDouble bbo ( array.size() );
-    
+
     for (size_t i = 0; i < array.size(); i++)
     {
         NOMAD::Double d;

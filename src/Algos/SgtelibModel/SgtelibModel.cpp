@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -45,10 +44,15 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelEvaluator.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelInitialization.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelMegaIteration.hpp"
+#include "../../Algos/SubproblemManager.hpp"
+#include "../../Cache/CacheBase.hpp"
+#include "../../Eval/ComputeSuccessType.hpp"
+#include "../../Output/OutputQueue.hpp"
 
 #include "../../../ext/sgtelib/src/Surrogate_Factory.hpp"
 //
@@ -71,7 +75,7 @@ void NOMAD::SgtelibModel::init()
     }
 
     // Check
-    if (   (NOMAD::SgtelibModelFormulationType::FS == modelFormulation) 
+    if (   (NOMAD::SgtelibModelFormulationType::FS == modelFormulation)
         || (NOMAD::SgtelibModelFormulationType::EIS == modelFormulation) )
     {
         if (NOMAD::SgtelibModelFeasibilityType::C != modelFeasibility)
@@ -96,7 +100,7 @@ void NOMAD::SgtelibModel::init()
     // Build the Sgtelib Model
     _model = std::shared_ptr<SGTELIB::Surrogate>(SGTELIB::Surrogate_Factory(*_trainingSet, modelDefinition.display()));
 
-    // Instanciate Sgte initialization class
+    // Instantiate Sgte initialization class
     _initialization = std::make_unique<NOMAD::SgtelibModelInitialization>(this);
 }
 
@@ -141,7 +145,7 @@ bool NOMAD::SgtelibModel::isReady() const
     if (!retReady)
     {
         auto modelFormulation = _runParams->getAttributeValue<NOMAD::SgtelibModelFormulationType>("SGTELIB_MODEL_FORMULATION");
-        if (NOMAD::SgtelibModelFormulationType::EXTERN == modelFormulation) 
+        if (NOMAD::SgtelibModelFormulationType::EXTERN == modelFormulation)
         {
             // Extern SGTE.
             _ready = true;
@@ -229,8 +233,9 @@ void NOMAD::SgtelibModel::setModelBounds(std::shared_ptr<SGTELIB::Matrix> X)
         ub = _modelUpperBound[j];
         for (int p = 0; p < nbPoints; p++)
         {
-            lb = NOMAD::min(lb, NOMAD::Double(X->get(p,j)));
-            ub = NOMAD::max(ub, NOMAD::Double(X->get(p,j)));
+            auto xpj = NOMAD::Double(X->get(p,j));
+            lb = lb.isDefined() ? NOMAD::min(lb, xpj) : xpj;
+            ub = ub.isDefined() ? NOMAD::max(ub, xpj) : xpj;
         }
         _modelLowerBound[j] = lb;
         _modelUpperBound[j] = ub;
@@ -249,10 +254,10 @@ NOMAD::ArrayOfDouble NOMAD::SgtelibModel::getExtendedLowerBound() const
 
     for (size_t i = 0; i < extLowerBound.size(); i++)
     {
-        if (!extLowerBound[i].isDefined())
+        if (!extLowerBound[i].isDefined() && _modelLowerBound[i].isDefined() && _modelUpperBound[i].isDefined())
         {
             extLowerBound[i] = _modelLowerBound[i]
-                               - max(Double(10.0), _modelUpperBound[i] - _modelLowerBound[i]);
+                               - max(NOMAD::Double(10.0), _modelUpperBound[i] - _modelLowerBound[i]);
         }
     }
 
@@ -266,10 +271,10 @@ NOMAD::ArrayOfDouble NOMAD::SgtelibModel::getExtendedUpperBound() const
 
     for (size_t i = 0; i < extUpperBound.size(); i++)
     {
-        if (!extUpperBound[i].isDefined())
+        if (!extUpperBound[i].isDefined() && _modelLowerBound[i].isDefined() && _modelUpperBound[i].isDefined())
         {
             extUpperBound[i] = _modelUpperBound[i]
-                               + max(Double(10.0), _modelUpperBound[i] - _modelUpperBound[i]);
+                               + max(NOMAD::Double(10.0), _modelUpperBound[i] - _modelUpperBound[i]);
         }
     }
 
@@ -280,22 +285,17 @@ NOMAD::ArrayOfDouble NOMAD::SgtelibModel::getExtendedUpperBound() const
 // Start is executed when SgtelibModel is used as an algorithm on its own.
 void NOMAD::SgtelibModel::startImp()
 {
+    // Manages initialization among other things.
     NOMAD::Algorithm::startImp();
-    // Comment to appear at the end of stats lines
-    NOMAD::MainStep::setAlgoComment("(SgtelibModel)");
-
 
     // Setup EvalPoint success computation to be based on sgte rather than bb.
-    NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(
-                                NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
+    NOMAD::EvcInterface::getEvaluatorControl()->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
 
-    // There is no upper step, so barrier is not inherited.
-    // Compute it from Cache.
-    // This barrier is used to compute X0s only.
+    // There is no upper step, so barrier is not inherited from an Algorithm Ancestor.
+    // Barrier was computed in the Initialization step.
     // This barrier is in subspace.
-    auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
     // X0s are found relative to BB, not SGTE
-    _barrierForX0s = std::make_shared<NOMAD::Barrier>(hMax, getSubFixedVariable(), NOMAD::EvalType::BB);
+    _barrierForX0s = _initialization->getBarrier();
 
 }
 
@@ -310,17 +310,14 @@ bool NOMAD::SgtelibModel::runImp()
         // This barrier is not the same as the _barrierForX0s member, which
         // is used for model optimization.
         // This barrier is used for MegaIteration management.
-        auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-        auto barrier = std::make_shared<NOMAD::Barrier>(hMax, getSubFixedVariable(), NOMAD::EvalType::BB);
-        NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
-
-        if (nullptr != _megaIteration)
+        auto barrier = _initialization->getBarrier();
+        if (nullptr == barrier)
         {
-            // Case hot restart
-            k       = _megaIteration->getK();
-            barrier = _megaIteration->getBarrier();
-            megaIterSuccess = _megaIteration->getSuccessType();
+            auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+            barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this),
+                                                       NOMAD::EvalType::BB);
         }
+        NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
         while (!_termination->terminate(k))
         {
@@ -361,14 +358,9 @@ bool NOMAD::SgtelibModel::runImp()
 
 void NOMAD::SgtelibModel::endImp()
 {
-    // Remove any remaining points from eval queue.
-    EvcInterface::getEvaluatorControl()->clearQueue();
-
     // Reset success computation function
-    NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(
-                                            NOMAD::ComputeSuccessType::defaultComputeSuccessType);
+    NOMAD::EvcInterface::getEvaluatorControl()->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
 
-    NOMAD::MainStep::resetPreviousAlgoComment();
     NOMAD::Algorithm::endImp();
 }
 
@@ -489,23 +481,13 @@ size_t NOMAD::SgtelibModel::getNbModels(const NOMAD::SgtelibModelFeasibilityType
 }
 
 
-std::vector<NOMAD::EvalPointPtr> NOMAD::SgtelibModel::getX0s() const
+std::vector<NOMAD::EvalPoint> NOMAD::SgtelibModel::getX0s() const
 {
-    std::vector<NOMAD::EvalPointPtr> x0s;
+    std::vector<NOMAD::EvalPoint> x0s;
 
     if (nullptr != _barrierForX0s)
     {
-        auto allBestFeas = _barrierForX0s->getAllXFeas();
-        auto allBestInf  = _barrierForX0s->getAllXInf();
-
-        for (auto bestFeas : allBestFeas)
-        {
-            x0s.push_back(bestFeas);
-        }
-        for (auto bestInf : allBestInf)
-        {
-            x0s.push_back(bestInf);
-        }
+        x0s = _barrierForX0s->getAllPoints();
     }
 
     return x0s;
@@ -515,12 +497,12 @@ std::vector<NOMAD::EvalPointPtr> NOMAD::SgtelibModel::getX0s() const
 // To be used outside of SgtelibModel, e.g., in SgtelibSearchMethod.
 NOMAD::EvalPointSet NOMAD::SgtelibModel::createOraclePoints()
 {
-    // As long as we are managing points using their SGTE evaluation, 
+    // As long as we are managing points using their SGTE evaluation,
     // setup EvalPoint success computation to be based on SGTE rather than BB.
     // Setting the ComputeSuccessType function ensures that at all steps,
     // we compare oranges with oranges (i.e., SGTE with SGTE).
-    NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(
-                                NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    evc->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
 
     // Create one MegaIteration. It will not be run. It is used to
     // generate oracle points.
@@ -533,8 +515,7 @@ NOMAD::EvalPointSet NOMAD::SgtelibModel::createOraclePoints()
     NOMAD::OutputQueue::Flush();
 
     // Reset success computation function
-    NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(
-                                NOMAD::ComputeSuccessType::defaultComputeSuccessType);
+    evc->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
 
     // The returned EvalPoints are not evaluated by the blackbox, but they will be soon.
     return megaIteration.getTrialPoints();

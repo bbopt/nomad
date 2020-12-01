@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -57,7 +56,6 @@
 
 #include <numeric>
 #include "../Math/ArrayOfDouble.hpp"
-#include "../Math/Double.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -147,19 +145,19 @@ public:
     /// Compute a random direction on a unit N-Sphere
     /**
      \param randomDir of the desired dimension -- \b IN/OUT
-     \return \c true if the direction was computed, \c false if the process failed
      */
-    static bool computeDirOnUnitSphere(Direction &randomDir);
+    static void computeDirOnUnitSphere(Direction &randomDir);
+
 
     /// Householder transformation
-    /** Householder transformation to generate _nc directions from a given direction. Also computes H[i+nc] = -H[i] (completion to 2n directions).
+    /** Householder transformation to generate n directions from a given direction. Also computes H[i+n] = -H[i] (completion to 2n directions).
     \param dir given direciton -- \b IN.
     \param completeTo2n completion to 2n directions -- \b IN.
     \param H matrix for Househoulder transformation -- \b OUT.
     */
-    static void householder(const NOMAD::Direction &dir,
+    static void householder(const Direction &dir,
                             bool completeTo2n,
-                            NOMAD::Direction ** H);
+                            Direction ** H);
 
 };
 

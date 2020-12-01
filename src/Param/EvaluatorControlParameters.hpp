@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -49,10 +48,11 @@
 
 
 #include "../Param/Parameters.hpp"
+#include "../Param/RunParameters.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
-/// The class for all Cache parameters.
+/// The class for EvaluatorControl parameters that may be different between main threads.
 /**
 - Register all parameters during construction.
 - Implement the checkAndComply function for sanity check.
@@ -66,12 +66,26 @@ public:
     {
         init();
     }
-    
+
+    /**
+     The copy constructor is not implemented in the parent class to allow some control over what parameters can be copied or not. Use the deep copy function of parameters: Parameters::copyParameters.
+     */
+    EvaluatorControlParameters& operator=(const EvaluatorControlParameters& params) { copyParameters(params) ; return *this; }
+
+    /**
+     The copy constructor is not implemented in the parent class to allow some control over what parameters can be copied or not. Use the deep copy function of parameters: Parameters::copyParameters.
+     */
+    EvaluatorControlParameters(const EvaluatorControlParameters& params) : EvaluatorControlParameters() { copyParameters(params); }
+
     /// Check the sanity of parameters.
-    void checkAndComply( );
-    
+    /**
+      By default, RunParameters is null. This method can be called in EvaluatorControl or anywhere during the optimization process.
+      If a RunParameters is provided, more checks may be done.
+     */
+    void checkAndComply(const std::shared_ptr<RunParameters>& runParams = nullptr);
+
 private:
-    
+
     /// Helper for constructor
     /**
      Register and set default values for all evaluator control attributes. The information to register all the attributes is contained in evaluatorControlAttributesDefinition.hpp as a set of strings to be interpreted. This file is created by the writeAttributeDefinition executable, called automatically by makefile when the evaluatorControlAttributeDefinition.txt file is modified.

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -58,7 +57,6 @@
 #include <numeric>
 #include "../Math/ArrayOfDouble.hpp"
 #include "../Math/Direction.hpp"
-#include "../Math/Double.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -94,7 +92,7 @@ public:
      \param pt The point to assign -- \b IN.
      */
     Point& operator=(const Point& pt);
-    
+
     /// Assignment operator
     /**
      \param aod The array of double to assign -- \b IN.
@@ -107,7 +105,7 @@ public:
     /*---------------*/
     /* Class methods */
     /*---------------*/
-    
+
     /// Formated point display.
     /**
      * Put parenthesis around the coordinates. Ex: ( 3.46 6.85 5.72 5.85 )
@@ -117,7 +115,7 @@ public:
      */
     std::string display(const ArrayOfDouble &prec = ArrayOfDouble()) const override;
     //void display(std::ostream& out) const override;
-    
+
     /// Formated point display.
     /**
      * No parenthesis around the coordinates. Ex: 3.46 6.85 5.72 5.85
@@ -126,7 +124,7 @@ public:
      \return     Formated string.
      */
     std::string displayNoPar(const ArrayOfDouble &prec = ArrayOfDouble()) const;
-    
+
     //void displayNoPar(std::ostream& out) const;
 
     /*------------*/
@@ -156,7 +154,7 @@ public:
     /// Addition point = point + direction
     /**
      The current object \c *this is not modified.
-     
+
      \param dir The direction to add -- \b IN.
      \return    A \c point equal to \c *this \c + \c dir.
      */
@@ -176,7 +174,7 @@ public:
     /*--------*/
     /* Vector */
     /*--------*/
-    
+
     /// Create a direction by substracting 2 points.
     /**
      \param X   Right point -- \b IN.
@@ -185,19 +183,34 @@ public:
      */
     static Direction vectorize(const Point& X, const Point& Y);
 
+
      /// Convert a point from sub space to full space using fixed variables.
     /**
      \param fixedVariable   Fixed values given as a point,
      \return                Full space \c Point.
      */
     Point makeFullSpacePointFromFixed(const Point &fixedVariable) const;
-    
+
+
     /// Convert a point from full space to sub space using fixed variables.
     /**
      \param fixedVariable   Fixed values given as a point,
+     \param verifyValues    If true, the Point's values must be the same as the ones defined by fixedVariable.
      \return                Sub space point.
+     \see projectPointToSubspace
      */
-    Point makeSubSpacePointFromFixed(const Point &fixedVariable) const;
+    Point makeSubSpacePointFromFixed(const Point &fixedVariable, const bool verifyValues = true) const;
+
+
+    /// Project a point from full space to sub space using fixed variables.
+    /**
+     \param fixedVariable   Fixed values given as a point,
+     \return                Sub space point.
+     \note the Point's values are not verified.
+     \see makeSubSpacePointFromFixed
+     */
+    Point projectPointToSubspace(const Point &fixedVariable) const;
+
 
     /// Verify if a point is part of the sub-space defined by fixed variable
     /**

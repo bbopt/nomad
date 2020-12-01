@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -46,17 +45,38 @@
 /*---------------------------------------------------------------------------------*/
 
 #include <algorithm>    // For std::merge and std::unique
-#include <sstream>
 
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/Mads/Search.hpp"
 #include "../../Algos/Mads/Poll.hpp"
+#include "../../Output/OutputQueue.hpp"
+
+#ifdef TIME_STATS
+#include "../../Algos/EvcInterface.hpp"
+#include "../../Util/Clock.hpp"
+
+// Initialize static variables
+double NOMAD::MadsIteration::_iterTime = 0.0;
+double NOMAD::MadsIteration::_searchTime = 0.0;
+double NOMAD::MadsIteration::_searchEvalTime = 0.0;
+double NOMAD::MadsIteration::_pollTime = 0.0;
+double NOMAD::MadsIteration::_pollEvalTime = 0.0;
+#endif // TIME_STATS
+
 
 void NOMAD::MadsIteration::init()
 {
-    _name = getAlgoName() + NOMAD::Iteration::getName();
+    _name = NOMAD::Iteration::getName();
+}
+
+
+void NOMAD::MadsIteration::startImp()
+{
+#ifdef TIME_STATS
+    _iterStartTime = NOMAD::Clock::getCPUTime();
+#endif // TIME_STATS
 }
 
 
@@ -72,6 +92,10 @@ bool NOMAD::MadsIteration::runImp()
     // 1. Search
     if ( ! _stopReasons->checkTerminate() )
     {
+#ifdef TIME_STATS
+        double searchStartTime = NOMAD::Clock::getCPUTime();
+        double searchEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
+#endif // TIME_STATS
         NOMAD::Search search(this );
         search.start();
         iterationSuccess = search.run();
@@ -82,6 +106,10 @@ bool NOMAD::MadsIteration::runImp()
             bestSuccessYet = success;
         }
         search.end();
+#ifdef TIME_STATS
+        _searchTime += NOMAD::Clock::getCPUTime() - searchStartTime;
+        _searchEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - searchEvalStartTime;
+#endif // TIME_STATS
 
     }
 
@@ -89,10 +117,16 @@ bool NOMAD::MadsIteration::runImp()
     {
         if (iterationSuccess)
         {
+            OUTPUT_INFO_START
             AddOutputInfo("Search Successful. Enlarge Delta frame size.");
+            OUTPUT_INFO_END
         }
         else
         {
+#ifdef TIME_STATS
+            double pollStartTime = NOMAD::Clock::getCPUTime();
+            double pollEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
+#endif // TIME_STATS
             // 2. Poll
             NOMAD::Poll poll( this );
             poll.start();
@@ -107,14 +141,26 @@ bool NOMAD::MadsIteration::runImp()
                 bestSuccessYet = success;
             }
             poll.end();
+#ifdef TIME_STATS
+            _pollTime += NOMAD::Clock::getCPUTime() - pollStartTime;
+            _pollEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - pollEvalStartTime;
+#endif // TIME_STATS
         }
     }
 
     setSuccessType(bestSuccessYet);
 
-    // End of the iteration: iterationSuccess is true if we have a success (partial or full).
+    // End of the iteration: iterationSuccess is true iff we have a full success.
     return iterationSuccess;
 }
+
+
+#ifdef TIME_STATS
+void NOMAD::MadsIteration::endImp()
+{
+    _iterTime += NOMAD::Clock::getCPUTime() - _iterStartTime;
+}
+#endif // TIME_STATS
 
 
 bool NOMAD::MadsIteration::isMainIteration() const
@@ -123,7 +169,7 @@ bool NOMAD::MadsIteration::isMainIteration() const
     // as its parent MadsMegaIteration, and if the poll center is the first point of the MadsMegaIteration's barrier.
     bool ret = false;
 
-    auto megaIter = dynamic_cast<const NOMAD::MadsMegaIteration*>(getParentOfType<NOMAD::MadsMegaIteration*>());
+    auto megaIter = getParentOfType<NOMAD::MadsMegaIteration*>();
     if (nullptr != megaIter)
     {
         ret = (megaIter->getMesh() == _mesh && megaIter->getK() == _k);

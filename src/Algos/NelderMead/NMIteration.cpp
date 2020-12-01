@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -46,8 +45,8 @@
 /*---------------------------------------------------------------------------------*/
 
 #include <algorithm>    // For std::merge and std::unique
-#include <sstream>
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/NelderMead/NMIteration.hpp"
 #include "../../Algos/NelderMead/NMUpdate.hpp"
 #include "../../Algos/NelderMead/NMMegaIteration.hpp"
@@ -101,7 +100,7 @@ bool NOMAD::NMIteration::runImp()
 
     // Start with the REFLECT step
     NMStepType stepType = NMStepType::REFLECT;
-    
+
     bool nmOpt = _runParams->getAttributeValue<bool>("NM_OPTIMIZATION");
     bool nmSearchStopOnSuccess = _runParams->getAttributeValue<bool>("NM_SEARCH_STOP_ON_SUCCESS");
 
@@ -122,9 +121,9 @@ bool NOMAD::NMIteration::runImp()
         // The NM step type for the next pass
         stepType = reflect.getNextNMStepType() ;
 
-        // Update the type of success for passing to the MegeIteration
+        // Update the type of success for passing to the MegaIteration
         NOMAD::SuccessType success = reflect.getSuccessType();
-        
+
         if ( success > _bestSuccess )
         {
             // NM Search can be stopped on success
@@ -149,7 +148,7 @@ bool NOMAD::NMIteration::runImp()
         shrink.run();
         shrink.end();
 
-        // Update the type of success for passing to the MegeIteration
+        // Update the type of success for passing to the MegaIteration
         NOMAD::SuccessType success = shrink.getSuccessType();
         if ( success > _bestSuccess )
         {
@@ -158,13 +157,10 @@ bool NOMAD::NMIteration::runImp()
         }
     }
 
-    // Update MegaIteration success type with best success found.
-    // Pretty ugly.
     if ( iterationSuccess )
     {
-        auto megaIterConst = dynamic_cast<const NOMAD::MegaIteration*>(getParentOfType<NOMAD::MegaIteration*>());
-        auto megaIter = const_cast<NOMAD::MegaIteration*>(megaIterConst);
-        megaIter->setSuccessType(_bestSuccess);
+        // Update MegaIteration success type with best success found.
+        getParentOfType<NOMAD::MegaIteration*>()->setSuccessType(_bestSuccess);
     }
 
     // End of the iteration: iterationSuccess is true if we have a success.

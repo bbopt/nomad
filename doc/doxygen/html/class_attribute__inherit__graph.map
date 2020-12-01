@@ -1,3 +1,4 @@
 <map id="Attribute" name="Attribute">
-<area shape="rect" id="node2" href="$class_type_attribute.html" title="TypeAttribute\&lt; T \&gt;" alt="" coords="5,80,133,107"/>
+<area shape="rect" id="node1" title="An attribute contains all meta data about a Nomad parameter except its type, default and current valu..." alt="" coords="39,5,118,32"/>
+<area shape="rect" id="node2" href="$class_type_attribute.html" title="Class for an Attribute of a templated type." alt="" coords="5,80,152,107"/>
 </map>

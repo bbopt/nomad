@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -65,7 +64,8 @@ int main (int argc, char ** argv)
     // Need at least parameters file.
     if (argc < 2)
     {
-        TheMainStep->displayUsage( argv[0]);
+        NOMAD::OutputQueue::getInstance()->setDisplayDegree(1);
+        TheMainStep->displayUsage(argv[0]);
     }
 
     else
@@ -80,12 +80,14 @@ int main (int argc, char ** argv)
             // Display usage if option '-u' has been specified
             if (option == "-U" || option == "-USAGE" || option == "--USAGE")
             {
+                NOMAD::OutputQueue::getInstance()->setDisplayDegree(1);
                 TheMainStep->displayUsage(argv[0]);
             }
 
             // Display info and usage if option '-i' has been specified
             else if (option == "-I" || option == "-INFO" || option == "--INFO")
             {
+                NOMAD::OutputQueue::getInstance()->setDisplayDegree(1);
                 TheMainStep->displayInfo();
                 TheMainStep->displayUsage(argv[0]);
             }
@@ -93,13 +95,14 @@ int main (int argc, char ** argv)
             // Display version if option '-v' has been specified
             else if (option == "-V" || option == "-VERSION" || option == "--VERSION")
             {
+                NOMAD::OutputQueue::getInstance()->setDisplayDegree(1);
                 TheMainStep->displayVersion();
             }
             // Display help if option '-h' has been specified
             else if (option == "-H" || option == "-HELP" || option == "--HELP")
             {
-                std::string helpSubject ="";
-                if ( argc == 3 )
+                std::string helpSubject = "";
+                if (3 == argc)
                 {
                     helpSubject = argv[2];
                     NOMAD::toupper( helpSubject );
@@ -112,19 +115,20 @@ int main (int argc, char ** argv)
             else if (option == "-D" || option == "-DEVHELP" || option == "--DEVHELP")
             {
                 std::string helpSubject ="";
-                if ( argc == 3 )
+                if (3 == argc)
                 {
                     helpSubject = argv[2];
                     NOMAD::toupper( helpSubject );
                     if ( helpSubject == "ALL" )
                         helpSubject = "";
                 }
-                TheMainStep->displayHelp ( helpSubject ,true );
+                TheMainStep->displayHelp(helpSubject, true);
             }
             else
             {
+                NOMAD::OutputQueue::getInstance()->setDisplayDegree(1);
                 TheMainStep->AddOutputInfo("ERROR: Unrecognized option: " +option, NOMAD::OutputLevel::LEVEL_ERROR);
-                TheMainStep->displayUsage( argv[0]);
+                TheMainStep->displayUsage(argv[0]);
             }
         }
 
@@ -137,20 +141,21 @@ int main (int argc, char ** argv)
 
                 if (!NOMAD::checkReadFile(paramfilename))
                 {
+                    NOMAD::OutputQueue::getInstance()->setDisplayDegree(1);
                     error = std::string("ERROR: Could not read file \"") + argv[1] + "\"";
                     std::cerr << std::endl << error << std::endl << std::endl;
-                    TheMainStep->displayUsage( argv[0]);
+                    TheMainStep->displayUsage(argv[0]);
                 }
                 else
                 {
                     TheMainStep->setParamFileName(paramfilename);
-                    
+
                     // Reads parameters
                     TheMainStep->start();
-                    
+
                     // Creates the EvaluatorControl, Mads, and runs Mads.
                     TheMainStep->run();
-                    
+
                     TheMainStep->end();
                 }
             }
@@ -159,6 +164,7 @@ int main (int argc, char ** argv)
                 error = "ERROR: ";
                 error += e.what();
                 std::cerr << std::endl << error << std::endl << std::endl;
+                NOMAD::OutputQueue::getInstance()->setDisplayDegree(0);
             }
         }
     }

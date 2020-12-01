@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -47,6 +46,7 @@
 
 #include "Algos/EvcInterface.hpp"
 #include "Algos/MainStep.hpp"
+#include "Cache/CacheBase.hpp"
 #include "Eval/Evaluator.hpp"
 #include "Param/AllParameters.hpp"
 
@@ -72,8 +72,8 @@ void initParams1(NOMAD::AllParameters &p)
     NOMAD::ArrayOfDouble granularity(n, 0.01);
     p.getPbParams()->setAttributeValue("GRANULARITY", granularity);
 
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", size_t(1000));
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", size_t(1000));
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_EVAL", size_t(1000));
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", size_t(1000));
 
     p.getDispParams()->setAttributeValue("DISPLAY_DEGREE", 2);
     p.getDispParams()->setAttributeValue("DISPLAY_ALL_EVAL", false);
@@ -82,7 +82,7 @@ void initParams1(NOMAD::AllParameters &p)
     p.getDispParams()->setAttributeValue("MAX_DISPLAY_STEP_LEVEL", 20);
     p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("BBE THREAD_NUM ( SOL ) OBJ"));
 
-    p.getEvalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
     p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("PB OBJ"));
 
     p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES", false);
@@ -125,8 +125,8 @@ void initParams2(NOMAD::AllParameters &p, const NOMAD::Point& x0)
     fixedVariable[3] = x0[3];
     p.getPbParams()->setAttributeValue("FIXED_VARIABLE", fixedVariable);
 
-    //p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", 2000);
-    //p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", 2000);
+    //p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_EVAL", 2000);
+    //p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", 2000);
 
     // parameters validation
     p.checkAndComply();
@@ -194,7 +194,8 @@ int main (int argc, char **argv)
     NOMAD::CacheBase::getInstance()->resetNbCacheHits();
     NOMAD::EvcInterface::getEvaluatorControl()->setNbEval(0);
     std::vector<NOMAD::EvalPoint> bestFeasList;
-    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(), NOMAD::EvalType::BB);
+    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
+                                                  NOMAD::EvalType::BB, nullptr);
     // NB. Assuming the list is non-empty.
     NOMAD::Point x02 = *(bestFeasList[0].getX());
     initParams2(*params, x02);
@@ -212,7 +213,8 @@ int main (int argc, char **argv)
     // Part 3: FIXED_VARIABLE 3-4
     NOMAD::CacheBase::getInstance()->resetNbCacheHits();
     NOMAD::EvcInterface::getEvaluatorControl()->setNbEval(0);
-    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(), NOMAD::EvalType::BB);
+    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
+                                                  NOMAD::EvalType::BB, nullptr);
     NOMAD::Point x03 = *(bestFeasList[0].getX());
     initParams3(*params , x03);
     try
@@ -227,7 +229,8 @@ int main (int argc, char **argv)
     }
 
     // Final part: No fixed variable
-    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(), NOMAD::EvalType::BB);
+    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
+                                                  NOMAD::EvalType::BB, nullptr);
     NOMAD::Point x0final = *(bestFeasList[0].getX());
     initParamsFinal(*params,x0final);
     try

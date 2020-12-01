@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -47,72 +46,198 @@
 
 #include <signal.h>
 
-#include "../Algos/EvcInterface.hpp"
 #include "../Algos/Algorithm.hpp"
-
+#include "../Algos/EvcInterface.hpp"
+#include "../Algos/Mads/SearchMethodBase.hpp"
+#include "../Algos/SubproblemManager.hpp"
+#include "../Cache/CacheBase.hpp"
+#include "../Output/OutputQueue.hpp"
 #include "../Math/RNG.hpp"
-
-#include "../Param/AllParameters.hpp"  // Used for hot restart only.
-
 #include "../Util/fileutils.hpp"
 
+#ifdef TIME_STATS
+#include "../Algos/Mads/MadsIteration.hpp"
+#include "../Algos/Mads/Search.hpp"
+#include "../Util/Clock.hpp"
+#endif // TIME_STATS
+
+#ifdef _OPENMP
+omp_lock_t NOMAD::Algorithm::_algoCommentLock;
+#endif // _OPENMP
 
 void NOMAD::Algorithm::init()
 {
-
     _name = "AGenericAlgorithmHasNoName";
-    
+
     // Verifications that throw Exceptions to the Constructor if not validated.
     verifyParentNotNull();
 
     if (nullptr == _runParams)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__,
-                               "A valid RunParameters must be provided to an Algorithm constructor.");
+        throw NOMAD::StepException(__FILE__, __LINE__,
+                               "A valid RunParameters must be provided to an Algorithm constructor.", this);
     }
 
     if (nullptr == _pbParams)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__,
-                               "A valid PbParameters must be provided to the Algorithm constructor.");
+        throw NOMAD::StepException(__FILE__, __LINE__,
+                               "A valid PbParameters must be provided to the Algorithm constructor.", this);
     }
 
     if ( nullptr == _stopReasons )
-        throw NOMAD::Exception(__FILE__, __LINE__,
-                               "Valid stop reasons must be provided to the Algorithm constructor.");
+        throw NOMAD::StepException(__FILE__, __LINE__,
+                               "Valid stop reasons must be provided to the Algorithm constructor.", this);
 
-    // Instanciate generic algorithm termination
+#ifdef _OPENMP
+    omp_init_lock(&_algoCommentLock);
+#endif // _OPENMP
+
+    // Check pbParams if needed, ex. if a copy of PbParameters was given to the Algorithm constructor.
+    _pbParams->checkAndComply();
+
+    // Instantiate generic algorithm termination
     _termination    = std::make_unique<NOMAD::Termination>( this );
 
+    // Update SubproblemManager
+    NOMAD::Point fullFixedVariable = isRootAlgo() ? _pbParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE")
+                                   : NOMAD::SubproblemManager::getSubFixedVariable(_parentStep);
+
+    NOMAD::Subproblem subproblem(_pbParams, fullFixedVariable);
+    NOMAD::SubproblemManager::addSubproblem(this, subproblem);
+    _pbParams = subproblem.getPbParams();
+    _pbParams->checkAndComply();
 
     /** Step::userInterrupt() will be called if CTRL-C is pressed.
-     * Currently, the master thread will wait for all evaluations to be complete.
+     * Currently, the main thread will wait for all evaluations to be complete.
      * \todo Propage interruption to all threads, for all parallel evaluations of blackbox.
      */
     signal(SIGINT, userInterrupt);
+    signal(SIGSEGV, debugSegFault);
 
 }
 
 
 NOMAD::Algorithm::~Algorithm()
 {
+    NOMAD::SubproblemManager::removeSubproblem(this);
+#ifdef _OPENMP
+    omp_destroy_lock(&_algoCommentLock);
+#endif // _OPENMP
+}
+
+
+// Set _algoComment, and push the current algo comment to _prevAlgoComment pile.
+// Do not push an empty string on an empty pile, it is irrelevant.
+// If force = true, do not set a new algo comment until this comment is reset.
+void NOMAD::Algorithm::setAlgoComment(const std::string& algoComment, const bool force)
+{
+    if (isSubAlgo())
+    {
+        auto rootAlgo = const_cast<NOMAD::Algorithm*>(getRootAlgorithm());
+        rootAlgo->setAlgoComment(algoComment, force);
+    }
+    else
+    {
+#ifdef _OPENMP
+        omp_set_lock(&_algoCommentLock);
+#endif // _OPENMP
+        if (!_forceAlgoComment)
+        {
+            // Push algo comment to _prevAlgoComment
+            if (!_prevAlgoComment.empty() || !_algoComment.empty())
+            {
+                _prevAlgoComment.push_back(_algoComment);
+            }
+            _algoComment = algoComment;
+        }
+        if (force)
+        {
+            _forceAlgoComment = true;
+        }
+#ifdef _OPENMP
+        omp_unset_lock(&_algoCommentLock);
+#endif // _OPENMP
+    }
+}
+
+
+// Pop the previous algo comment from the _prevAlgoComment pile.
+void NOMAD::Algorithm::resetPreviousAlgoComment(const bool force)
+{
+    if (isSubAlgo())
+    {
+        auto rootAlgo = const_cast<NOMAD::Algorithm*>(getRootAlgorithm());
+        rootAlgo->resetPreviousAlgoComment(force);
+    }
+    else
+    {
+#ifdef _OPENMP
+        omp_set_lock(&_algoCommentLock);
+#endif // _OPENMP
+        if (!_forceAlgoComment || force)
+        {
+            if (_prevAlgoComment.empty())
+            {
+                _algoComment = "";
+            }
+            else
+            {
+                // Remove last element, simulate a "pop".
+                _algoComment = std::move(_prevAlgoComment[_prevAlgoComment.size()-1]);
+                _prevAlgoComment.erase(_prevAlgoComment.end()-1);
+            }
+            if (_forceAlgoComment)
+            {
+                _forceAlgoComment = false;
+            }
+        }
+#ifdef _OPENMP
+        omp_unset_lock(&_algoCommentLock);
+#endif // _OPENMP
+    }
+}
+
+
+std::string NOMAD::Algorithm::getAlgoComment() const
+{
+    std::string algoComment;
+    if (isSubAlgo())
+    {
+        algoComment = getRootAlgorithm()->getAlgoComment();
+    }
+    else
+    {
+        algoComment = _algoComment;
+    }
+
+    return algoComment;
 }
 
 
 void NOMAD::Algorithm::startImp()
 {
-
+#ifdef TIME_STATS
+    if (isRootAlgo())
+    {
+        _startTime = NOMAD::Clock::getCPUTime();
+    }
+#endif // TIME_STATS
     // Comment to appear at the end of stats lines
     // By default, nothing is added
-    NOMAD::MainStep::setAlgoComment("");
+    setAlgoComment("");
 
     // All stop reasons are reset.
     _stopReasons->setStarted();
+    
+    // SuccessType is reset
+    _algoSuccessful = false;
+    _algoBestSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
-    if (isMainAlgo())
+    if (isRootAlgo())
     {
         // Update hot restart info
         readInformationForHotRestart();
+        NOMAD::CacheBase::getInstance()->setStopWaiting(false);
     }
 
     // By default reset the lap counter for BbEval and set the lap maxBbEval to INF
@@ -127,12 +252,19 @@ void NOMAD::Algorithm::startImp()
         // Initialization.
         // Eval X0s.
 
-        // Ensure we do not count cache hits which may have been read in the cache.
-        NOMAD::CacheBase::resetNbCacheHits();
+        if (isRootAlgo())
+        {
+            // Ensure we do not count cache hits which may have been read in the cache.
+            NOMAD::CacheBase::resetNbCacheHits();
+        }
 
-        _initialization->start();
-        _initialization->run();
-        _initialization->end();
+        // Perform algo initialization only when available.
+        if (nullptr != _initialization)
+        {
+            _initialization->start();
+            _initialization->run();
+            _initialization->end();
+        }
 
     }
     else
@@ -142,21 +274,15 @@ void NOMAD::Algorithm::startImp()
         auto barrier = _megaIteration->getBarrier();
 
         // Update X0s
-        // Use best feasible, or best infeasible points.
-        auto bestFeasPoints = barrier->getAllXFeas();
-        auto bestInfPoints  = barrier->getAllXInf();
+        // Use best points.
+        auto bestPoints = barrier->getAllPoints();
 
         NOMAD::ArrayOfPoint x0s;
-        if (!bestFeasPoints.empty())
+        if (!bestPoints.empty())
         {
-            std::transform(bestFeasPoints.begin(), bestFeasPoints.end(), std::back_inserter(x0s),
-                       [](NOMAD::EvalPointPtr evalPointPtr) -> NOMAD::EvalPoint { return *evalPointPtr; });
+            std::transform(bestPoints.begin(), bestPoints.end(), std::back_inserter(x0s),
+                       [](NOMAD::EvalPoint evalPoint) -> NOMAD::EvalPoint { return evalPoint; });
 
-        }
-        else if (!bestInfPoints.empty())
-        {
-            std::transform(bestInfPoints.begin(), bestInfPoints.end(), std::back_inserter(x0s),
-                       [](NOMAD::EvalPointPtr evalPointPtr) -> NOMAD::EvalPoint { return *evalPointPtr; });
         }
         _pbParams->setAttributeValue<NOMAD::ArrayOfPoint>("X0", x0s);
         _pbParams->checkAndComply();
@@ -169,44 +295,63 @@ void NOMAD::Algorithm::endImp()
     if ( _endDisplay )
     {
         displayBestSolutions();
+#ifdef TIME_STATS
+        if (isRootAlgo())
+        {
+            _totalRealAlgoTime = NOMAD::Clock::getTimeSinceStart();
+            _totalCPUAlgoTime += NOMAD::Clock::getCPUTime() - _startTime;
+        }
+#endif // TIME_STATS
+
         displayEvalCounts();
     }
 
+    // Update the SearchMethod success type with best success found.
+    if ( _algoSuccessful )
+    {
+        // The parent can be a SearchMethod (NM-Mads Search) or not (that is NM is a standalone optimization)
+        auto searchMethodConst = dynamic_cast<const NOMAD::SearchMethodBase*>(_parentStep);
+
+        if (searchMethodConst != nullptr)
+        {
+            auto searchMethod = const_cast<NOMAD::SearchMethodBase*>(searchMethodConst);
+            searchMethod->setSuccessType(_algoBestSuccess);
+        }
+
+    }
+    
     // By default reset the lap counter for BbEval and set the lap maxBbEval to INF
     NOMAD::EvcInterface::getEvaluatorControl()->resetLapBbEval();
     NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval( NOMAD::INF_SIZE_T );
 
-    if (isMainAlgo())
+    if (isRootAlgo())
     {
         saveInformationForHotRestart();
+        NOMAD::CacheBase::getInstance()->setStopWaiting(true);
     }
 
-    // Reset stats comment 
-    NOMAD::MainStep::resetPreviousAlgoComment();
+    // Reset stats comment
+    resetPreviousAlgoComment();
 }
 
 
 void NOMAD::Algorithm::hotRestartOnUserInterrupt()
 {
+#ifdef TIME_STATS
+    if (isRootAlgo())
+    {
+        _totalCPUAlgoTime += NOMAD::Clock::getCPUTime() - _startTime;
+    }
+#endif // TIME_STATS
     hotRestartBeginHelper();
 
-    // TODO: To investigate: Reset mesh because parameters have changed.
-    // - Maybe already done as a side effect of calling parent step and
-    //   resetting parameters.
-    // - Maybe should be done at another level, Iteration or MegaIteration.
-    // - Useful code:
-    /*
-    std::stringstream ss;
-    auto mesh = getIterationMesh();
-    ss << *mesh;
-    // Reset pointer
-    mesh.reset();
-    mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
-    // Get old mesh values
-    ss >> *mesh;
-    */
-
     hotRestartEndHelper();
+#ifdef TIME_STATS
+    if (isRootAlgo())
+    {
+        _startTime = NOMAD::Clock::getCPUTime();
+    }
+#endif // TIME_STATS
 }
 
 
@@ -215,7 +360,7 @@ void NOMAD::Algorithm::saveInformationForHotRestart() const
     // If we want to stop completely and then be able to restart
     // from where we were, we need to save some information on file.
     //
-    // TODO: Maybe we need to write current parameters. If we write them,
+    // Issue 372: Maybe we need to write current parameters. If we write them,
     // ignore initial values, only take latest values down the Parameter tree.
     // For now, using initial parameters.
 
@@ -246,10 +391,17 @@ void NOMAD::Algorithm::displayBestSolutions() const
     NOMAD::OutputLevel outputLevel = isSubAlgo() ? NOMAD::OutputLevel::LEVEL_INFO
                                                  : NOMAD::OutputLevel::LEVEL_VERY_HIGH;
     NOMAD::OutputInfo displaySolFeas(_name, sFeas, outputLevel);
+    auto fixedVariable = NOMAD::SubproblemManager::getSubFixedVariable(this);
 
     sFeas = "Best feasible solution";
-    size_t nbBestFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointList,
-                                    getSubFixedVariable(), getEvalType());
+    auto barrier = getMegaIterationBarrier();
+    if (nullptr != barrier)
+    {
+        evalPointList = barrier->getAllXFeas();
+        NOMAD::convertPointListToFull(evalPointList, fixedVariable);
+    }
+    size_t nbBestFeas = evalPointList.size();
+
     if (0 == nbBestFeas)
     {
         sFeas += ":     Undefined.";
@@ -296,15 +448,15 @@ void NOMAD::Algorithm::displayBestSolutions() const
 
     // Display best infeasible solutions.
     std::string sInf;
-    auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-    if (nullptr != _megaIteration)
-    {
-        hMax = _megaIteration->getBarrier()->getHMax();
-    }
     NOMAD::OutputInfo displaySolInf(_name, sInf, outputLevel);
     sInf = "Best infeasible solution";
-    size_t nbBestInf = NOMAD::CacheBase::getInstance()->findBestInf(evalPointList,
-                                hMax, getSubFixedVariable(), getEvalType());
+    if (nullptr != barrier)
+    {
+        evalPointList = barrier->getAllXInf();
+        NOMAD::convertPointListToFull(evalPointList, fixedVariable);
+    }
+    size_t nbBestInf = evalPointList.size();
+
     if (0 == nbBestInf)
     {
         sInf += ":   Undefined.";
@@ -370,6 +522,12 @@ void NOMAD::Algorithm::displayEvalCounts() const
     bool showNbEval         = (nbEval > bbEval);
     bool showLapBbEval      = isSub && (bbEval > lapBbEval && lapBbEval > 0);
 
+    // Output levels will be modulated depending on the counts and on the Algorithm level.
+    NOMAD::OutputLevel outputLevelHigh = isSub ? NOMAD::OutputLevel::LEVEL_INFO
+                                               : NOMAD::OutputLevel::LEVEL_HIGH;
+    NOMAD::OutputLevel outputLevelNormal = isSub ? NOMAD::OutputLevel::LEVEL_INFO
+                                                 : NOMAD::OutputLevel::LEVEL_NORMAL;
+
     // Padding for nice presentation
     std::string sFeedBbEval, sFeedLapBbEval, sFeedNbEvalNoCount, sFeedSgteEval,
                 sFeedTotalSgteEval, sFeedCacheHits, sFeedNbEval;
@@ -413,12 +571,12 @@ void NOMAD::Algorithm::displayEvalCounts() const
     std::string sTotalSgteEval  = "Total sgte evaluations: " + sFeedTotalSgteEval + NOMAD::itos(totalSgteEval);
     std::string sCacheHits      = "Cache hits: " + sFeedCacheHits + NOMAD::itos(nbCacheHits);
     std::string sNbEval         = "Total number of evaluations: " + sFeedNbEval + NOMAD::itos(nbEval);
-    
-    // Output levels will be modulated depending on the counts and on the Algorithm level.
-    NOMAD::OutputLevel outputLevelHigh = isSub ? NOMAD::OutputLevel::LEVEL_INFO
-                                               : NOMAD::OutputLevel::LEVEL_HIGH;
-    NOMAD::OutputLevel outputLevelNormal = isSub ? NOMAD::OutputLevel::LEVEL_INFO
-                                                 : NOMAD::OutputLevel::LEVEL_NORMAL;
+
+
+#ifdef TIME_STATS
+    std::string sTotalRealTime  = "Total real time (round s):    " + std::to_string(_totalRealAlgoTime);
+    std::string sTotalCPUTime   = "Total CPU time (s):           " + std::to_string(_totalCPUAlgoTime);
+ #endif // TIME_STATS
 
     AddOutputInfo("", outputLevelHigh); // skip line
     // Always show number of blackbox evaluations
@@ -448,6 +606,13 @@ void NOMAD::Algorithm::displayEvalCounts() const
     {
         AddOutputInfo(sNbEval, outputLevelNormal);
     }
+
+#ifdef TIME_STATS
+    {
+        AddOutputInfo(sTotalRealTime, outputLevelNormal);
+        AddOutputInfo(sTotalCPUTime, outputLevelNormal);
+    }
+#endif // TIME_STATS
 }
 
 
@@ -455,8 +620,7 @@ bool NOMAD::Algorithm::isSubAlgo() const
 {
     bool isSub = false;
 
-    // Get Parent algorithm. No need to cast: We only want to know if it exists.
-    const NOMAD::Step* parentAlgo = getParentOfType<NOMAD::Algorithm*>();
+    auto parentAlgo = getParentOfType<NOMAD::Algorithm*>();
     if (nullptr != parentAlgo)
     {
         isSub = true;

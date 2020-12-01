@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -45,16 +44,15 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
-
 #include "../../Algos/NelderMead/NMInitialization.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 
 
 void NOMAD::NMInitialization::init()
 {
     _name = getAlgoName() + "Initialization";
-    
+
     _nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get( _stopReasons );
 }
 
@@ -62,7 +60,7 @@ void NOMAD::NMInitialization::init()
 bool NOMAD::NMInitialization::runImp()
 {
     bool doContinue = ! _stopReasons->checkTerminate();
-    
+
     if (doContinue)
     {
         // For a standalone NM, evaluate the trial points generated during start (simplex is created later)
@@ -78,7 +76,7 @@ bool NOMAD::NMInitialization::runImp()
 
 void NOMAD::NMInitialization::startImp()
 {
-    
+
     if ( ! _stopReasons->checkTerminate() )
     {
         // If needed, generate trial points and put them in cache to form simplex
@@ -89,17 +87,33 @@ void NOMAD::NMInitialization::startImp()
             generateTrialPoints();
         }
     }
-    
+
 }
+
+
+void NOMAD::NMInitialization::endImp()
+{
+    // Construct _barrier member with evaluated _trialPoints for future use
+    // _trialPoints are already updated with Evals.
+    if (_trialPoints.size() > 0)
+    {
+        std::vector<NOMAD::EvalPoint> evalPointList;
+        std::copy(_trialPoints.begin(), _trialPoints.end(),
+                          std::back_inserter(evalPointList));
+        auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this), NOMAD::EvcInterface::getEvaluatorControl()->getEvalType(), evalPointList);
+    }
+}
+
 
 bool NOMAD::NMInitialization::checkCacheCanFormSimplex()
 {
+    // Complete this function: see Issue #393
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     if ( NOMAD::CacheBase::getInstance()->size() < n+1 )
         return false;
-    // TODO
     return false;
-        
+
 }
 
 // Generate trial points to form a simplex
@@ -126,8 +140,10 @@ void NOMAD::NMInitialization::generateTrialPoints()
 
     NOMAD::EvalPoint evalPoint_x0(x0);
     insertTrialPoint(evalPoint_x0);
+    OUTPUT_INFO_START
     AddOutputInfo("Using X0: " + evalPoint_x0.display());
-    
+    OUTPUT_INFO_END
+
     // Method to generate simplex points using X0 adapted from fminsearch (matlab)
     const NOMAD::Double usualDelta = 0.05;    //  x0 + 5 percent
     const NOMAD::Double zeroDelta = 0.00025;  //
@@ -138,10 +154,11 @@ void NOMAD::NMInitialization::generateTrialPoints()
             trialPoint[j] *= (1 + usualDelta );
         else
             trialPoint[j] = zeroDelta;
-        
+
         insertTrialPoint(trialPoint);
     }
 
+    OUTPUT_INFO_START
     NOMAD::OutputQueue::Flush();
+    OUTPUT_INFO_END
 }
-

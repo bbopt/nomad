@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -48,7 +47,9 @@
 /*  example of a program that makes NOMAD restarts after failed iterations  */
 /*--------------------------------------------------------------------------*/
 #include "Nomad/nomad.hpp"
+#include "Algos/EvcInterface.hpp"
 #include "Algos/MegaIteration.hpp"
+#include "Cache/CacheBase.hpp"
 #include "Type/LHSearchType.hpp"
 
 /*----------------------------------------*/
@@ -57,14 +58,14 @@
 class My_Evaluator : public NOMAD::Evaluator
 {
 private:
-    
+
 public:
     My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
-    
+
     ~My_Evaluator() {}
-    
+
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override;
 };
 
@@ -79,7 +80,7 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
     NOMAD::Double c1 = 0.0 , c2 = 0.0;
     for ( int i = 0 ; i < 5 ; i++ )
     {
-        
+
         c1 += (x[i]-1).pow2();
         c2 += (x[i]+1).pow2();
     }
@@ -90,9 +91,9 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
     bbo += " " + constr1.tostring();
     bbo += " " + constr2.tostring();
     x.setBBO(bbo, bbOutputType, getEvalType());
-    
+
     countEval = true; // count a black-box evaluation
-    
+
     return true;       // the evaluation succeeded
 }
 
@@ -217,8 +218,8 @@ int main ( int argc , char ** argv )
 
             bf.clear();
             bi.clear();
-            NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB);
-            NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB);
+            NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB,nullptr);
+            NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB,nullptr);
         }
     }
 

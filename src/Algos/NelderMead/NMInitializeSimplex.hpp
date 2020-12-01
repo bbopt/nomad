@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -47,11 +46,7 @@
 #ifndef __NOMAD400_NMINITIALIZESIMPLEX__
 #define __NOMAD400_NMINITIALIZESIMPLEX__
 
-#include <set>
-
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
-
-#include "../../Eval/EvalPoint.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -61,56 +56,46 @@
  */
 class NMInitializeSimplex: public Step, public NMIterationUtils
 {
-private:
-    
 public:
     /// Constructor
     /**
      \param parentStep The parent of this NM step
      */
-    explicit NMInitializeSimplex(const Step* parentStep )
-      : Step( parentStep ) ,
-        NMIterationUtils ( parentStep )
+    explicit NMInitializeSimplex(const Step* parentStep)
+      : Step(parentStep) ,
+        NMIterationUtils(parentStep)
     {
         init();
     }
     virtual ~NMInitializeSimplex() {}
-    
+
     /// No new points are generated
     void generateTrialPoints() override {}
-    
+
 private:
     /// Helper for constructor
     void init();
 
     /// No start task is required.
     virtual void    startImp() override {}
-    
+
     /// Implementation of the run task for simplex initialization.
     /**
-     Calls createSimplexFromCache if required.
+     Calls createSimplex if required.
      */
     virtual bool    runImp() override ;
-    
+
     /// No start task is required
     virtual void    endImp() override {}
-    
+
     /// Helper for run
     /**
-     From the cache, a set of points within a radius of the current frame center is considered before creating the initial simplex. The radius depends on a two given parameters and the frame size.
+     From the Cache or from the Barrier, a set of points within a radius of the current frame center is considered before creating the initial simplex. The radius depends on a two given parameters and the frame size.
      The initial simplex is obtained by adding points to obtain dim=n+1 and simplex being affinely independant. We use the rank of DZ=[(y1-y0 (y2-y0) ...(yk-y0)] to decide if a point yk increases the rank or not.
      The characteristics of the initial simplex (volumes and diameter) are updated.
      */
-    bool createSimplexFromCache ( );
+    bool createSimplex();
 
-    
-    /// Check evaluation point outputs before the integration into Nelder Mead simplex set
-    /**
-     Helper for createSimplexFromCache
-     \param bbo       Blackbox outputs         -- \b IN.
-     \param m         Number of outputs        -- \b IN.
-     */
-    bool checkOutputs ( const ArrayOfDouble & bbo , int m ) const;
 
 };
 

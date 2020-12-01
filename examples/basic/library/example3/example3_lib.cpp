@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -45,9 +44,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "Algos/MainStep.hpp"
-#include "Eval/Evaluator.hpp"
-#include "Param/AllParameters.hpp"
+#include "Nomad/nomad.hpp"
 
 /*----------------------------------------*/
 /*               The problem              */
@@ -143,9 +140,9 @@ void initParams(NOMAD::AllParameters &p)
     p.getPbParams()->setAttributeValue("UPPER_BOUND", ub);
 
     // the algorithm terminates after MAX_BB_EVAL black-box evaluations, or MAX_EVAL total evaluations (including cache hits).
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", 1000);
-    p.getEvaluatorControlParams()->setAttributeValue("MAX_EVAL", 1000);
-    p.getEvaluatorControlParams()->setAttributeValue("BB_MAX_BLOCK_SIZE", (size_t)8);
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", 1000);
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_EVAL", 1000);
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("BB_MAX_BLOCK_SIZE", (size_t)8);
     // When using blocks, OpenMP is "disabled" - only one thread is used.
     p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP", 1);
 
@@ -160,6 +157,7 @@ void initParams(NOMAD::AllParameters &p)
     p.getRunParams()->setAttributeValue("H_MAX_0", NOMAD::Double(10000000));
 
     p.getDispParams()->setAttributeValue("DISPLAY_DEGREE", 2);
+    p.getDispParams()->setAttributeValue("DISPLAY_ALL_EVAL", true);
     p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL BLK_EVA ( SOL ) OBJ CONS_H H_MAX"));
 
     p.getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);

@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -45,42 +44,6 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 #include "../Eval/EvalQueuePoint.hpp"
-
-/*------------------------*/
-/* Class ComparePriority  */
-/*------------------------*/
-bool NOMAD::ComparePriority::operator()(NOMAD::EvalQueuePointPtr& point1,
-                                        NOMAD::EvalQueuePointPtr& point2)
-{
-    bool ret = false;
-    try
-    {
-        ret = _comp(point1, point2);
-    }
-    catch (NOMAD::Exception &e)
-    {
-        std::string err = "ComparePriority: Comparison failed for point1 = ";
-        err += point1->display() + ", point2 = " + point2->display();
-        std::cerr << err << std::endl;
-        throw NOMAD::Exception(__FILE__, __LINE__, err);
-    }
-
-    return ret;
-}
-
-
-// Static function.
-// Currently only compares iteration number k.
-bool NOMAD::ComparePriority::defaultComp(NOMAD::EvalQueuePointPtr& point1,
-                                         NOMAD::EvalQueuePointPtr& point2)
-{
-    bool hasLowerPriority = false;
-
-    hasLowerPriority = (point1->getK() < point2->getK());
-
-    return hasLowerPriority;
-}
-
 
 /*------------------------*/
 /* Class EvalQueuePoint   */

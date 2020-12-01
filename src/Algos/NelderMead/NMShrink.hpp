@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -47,11 +46,8 @@
 #ifndef __NOMAD400_NMSHRINK__
 #define __NOMAD400_NMSHRINK__
 
-#include <set>
-
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
-
-#include "../../Eval/EvalPoint.hpp"
+#include "../../Algos/Step.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -85,13 +81,13 @@ public:
      - call NMShrink::generateTrialPoints
      */
     virtual void    startImp() override ;
-    
+
     /// Implementation of the run task for simplex shrink.
     /**
      Evaluate the trial points.
      */
     virtual bool    runImp() override ;
-    
+
     /// Implementation of the end task for simplex shrink.
      /**
       Call default IterationUtils::postProcessing.
@@ -103,10 +99,10 @@ public:
      The new shrunk simplex is obtained with the formula y[k] = y0[k] + _gamma*(yi[k]-y0[k]). Where y0 is the frame center and yi are elements of the previous simplex. Gamma must be a parameter in ]0;1]
      */
     void generateTrialPoints() override;
-    
-    
+
+
 private:
-    
+
     /// Helper for constructor
     void init();
 

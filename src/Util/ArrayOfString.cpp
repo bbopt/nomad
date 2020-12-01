@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -184,7 +183,7 @@ bool NOMAD::ArrayOfString::operator== (const NOMAD::ArrayOfString &array) const
 std::string NOMAD::ArrayOfString::display() const
 {
     std::string s;
-    
+
     if ( size() == 0 )
         s += " - ";
 
@@ -211,12 +210,12 @@ NOMAD::ArrayOfString::splitString(const std::string & inputString,
                                   const std::string & separators)
 {
     std::vector<std::string> array;
-    
+
     if (inputString.size() == 0)
     {
         return array;
     }
-    
+
     size_t splitIndex = 0, index1 = 0, length;
 
     // Fill array with strings found in inputString.
@@ -252,7 +251,37 @@ NOMAD::ArrayOfString::splitString(const std::string & inputString,
 }
 
 
+NOMAD::ArrayOfString NOMAD::ArrayOfString::combineAndAddPadding(const NOMAD::ArrayOfString & s1, const NOMAD::ArrayOfString & s2)
+{
+    // Add a padding on the first string of each pair of string. The padding must assure that the second strings are all aligned.
+    // Also add a return at the end of the second string.
 
+    size_t sizeS1 = s1.size();
+    if (sizeS1 != s2.size() )
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "s1 and s2 must have the same of number of elements.");
+    }
+
+    // Max length of first+second elements in s
+    size_t maxL = 0;
+    for (size_t e = 0 ; e < sizeS1 ; e++)
+    {
+        maxL = std::max(maxL,s1[e].length()+s2[e].length());
+    }
+
+    // Pad the first element to get the same overall length for all + combine first and second + add return
+    NOMAD::ArrayOfString paddedString("\n");
+    for (size_t e = 0 ; e < sizeS1 ; e++)
+    {
+        size_t padL = 1 + maxL - s1[e].length() - s2[e].length(); // Add one ' ' at least (for space after colon)
+        std::string padS = s1[e];
+        padS.insert(s1[e].length(), padL,' ');
+        padS += s2[e]+'\n';
+        paddedString.add(padS);
+    }
+
+    return paddedString;
+}
 
 
 

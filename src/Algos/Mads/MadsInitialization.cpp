@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -45,22 +44,27 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
-
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Algos/Mads/GMesh.hpp"
 #include "../../Algos/Mads/MadsInitialization.hpp"
+#include "../../Cache/CacheBase.hpp"
+#include "../../Output/OutputQueue.hpp"
 
+#include <unistd.h> // For usleep
 
 void NOMAD::MadsInitialization::init()
 {
-    _name = getAlgoName() + "Initialization";
-
+    _name = NOMAD::Initialization::getName();
 }
 
 
 bool NOMAD::MadsInitialization::runImp()
 {
+    _initialMesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+
     bool doContinue = ! _stopReasons->checkTerminate();
 
     if (doContinue)
@@ -130,14 +134,16 @@ bool NOMAD::MadsInitialization::eval_x0s()
     // Add X0s that need evaluation to eval queue
     NOMAD::CacheInterface cacheInterface(this);
     NOMAD::EvcInterface evcInterface(this);
-    evcInterface.getEvaluatorControl()->lockQueue();
+    auto evc = evcInterface.getEvaluatorControl();
+    auto evalType = evc->getEvalType();
+    evc->lockQueue();
 
     NOMAD::EvalPointSet evalPointSet;
     for (size_t x0index = 0; x0index < x0s.size(); x0index++)
     {
         auto x0 = x0s[x0index];
-        NOMAD::EvalPoint evalPoint_x0(x0);
-        evalPointSet.insert(evalPoint_x0);
+        NOMAD::EvalPoint evalPointX0(x0);
+        evalPointSet.insert(evalPointX0);
     }
 
     // Add points to the eval queue.
@@ -146,50 +152,69 @@ bool NOMAD::MadsInitialization::eval_x0s()
     evcInterface.keepPointsThatNeedEval(evalPointSet, false);   // false: no mesh
 
     // Enforce no opportunism.
-    auto evcParams = evcInterface.getEvaluatorControl()->getEvaluatorControlParams();
-    auto previousOpportunism = evcParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
-    evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", false);
-    evcParams->checkAndComply();
-
-    evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
+    auto previousOpportunism = evc->getOpportunisticEval();
+    evc->setOpportunisticEval(false);
+    evc->unlockQueue(false); // false: do not sort eval queue
 
     // Evaluate all x0s. Ignore returned success type.
     // Note: EvaluatorControl would not be able to compare/compute success since there is no barrier.
     evcInterface.startEvaluation();
 
     // Reset opportunism to previous values.
-    evcInterface.getEvaluatorControl()->lockQueue();
-    evcParams->setAttributeValue("OPPORTUNISTIC_EVAL", previousOpportunism);
-    evcParams->checkAndComply();
-    evcInterface.getEvaluatorControl()->unlockQueue(false); // false: do not sort eval queue
+    evc->setOpportunisticEval(previousOpportunism);
 
-    bool x0failed = true;
+    bool x0Failed = true;
+
+    // Construct barrier using points evaluated by this step.
+    // The points are cleared from the EvaluatorControl.
+    auto evaluatedPoints = evcInterface.retrieveAllEvaluatedPoints();
+    std::vector<NOMAD::EvalPoint> evalPointX0s;
+
+    if (_stopReasons->checkTerminate())
+    {
+        return false;
+    }
+
     for (auto x0 : x0s)
     {
-        NOMAD::EvalPoint evalPoint_x0(x0);
-        cacheInterface.find(x0, evalPoint_x0);
-        auto evalType = getEvalType();
-        if (evalPoint_x0.isEvalOk(evalType))
+        NOMAD::EvalPoint evalPointX0(x0);
+
+        // Look for x0 in freshly evaluated points
+        bool x0Found = findInList(x0, evaluatedPoints, evalPointX0);
+
+        if (!x0Found)
+        {
+            // Look for x0 in EvaluatorControl barrier
+            x0Found = evcInterface.findInBarrier(x0, evalPointX0);
+            if (!x0Found)
+            {
+                // Look for x0 in cache
+                // Note: Even if we are not currently using cache in this sub-algorithm,
+                // we may have interesting points in the global cache.
+                if (evc->getUseCache())
+                {
+                    // If status of point in cache is IN_PROGRESS, wait for evaluation to be completed.
+                    x0Found = (cacheInterface.find(x0, evalPointX0, evalType) > 0);
+                }
+                else
+                {
+                    // Look for X0 in cache, but do not wait for evaluation.
+                    x0Found = (cacheInterface.find(x0, evalPointX0) > 0);
+                }
+            }
+        }
+
+        if (x0Found && evalPointX0.isEvalOk(evalType))
         {
             // evalOk is true if at least one evaluation is Ok
             evalOk = true;
+            evalPointX0s.push_back(evalPointX0);
 
-            s = "Using X0: ";
-            if (NOMAD::EvalType::BB == evalType)
-            {
-                // BB: Simple display
-                s += evalPoint_x0.display();
-            }
-            else
-            {
-                // Full display
-                s += evalPoint_x0.displayAll();
-            }
-            AddOutputInfo(s);
-            x0failed = false;   // At least one good X0.
+            x0Failed = false;   // At least one good X0.
         }
     }
-    if (x0failed)
+
+    if (x0Failed)
     {
         // All x0s failed. Show an error.
         auto madsStopReason = NOMAD::AlgoStopReasons<NOMAD::MadsStopType>::get(_stopReasons);
@@ -197,8 +222,25 @@ bool NOMAD::MadsInitialization::eval_x0s()
 
         for (auto x0 : x0s)
         {
-            AddOutputError("X0 evaluation failed for X0 = " + x0.display());
+            auto x0Full = x0.makeFullSpacePointFromFixed(NOMAD::SubproblemManager::getSubFixedVariable(this));
+            AddOutputError("X0 evaluation failed for X0 = " + x0Full.display());
         }
+    }
+    else
+    {
+        OUTPUT_INFO_START
+        for (auto evalPointX0 : evalPointX0s)
+        {
+            s = "Using X0: ";
+            // BB: Simple display. SGTE: Full display.
+            s += (NOMAD::EvalType::BB == evalType) ? evalPointX0.display() : evalPointX0.displayAll();
+        }
+        AddOutputInfo(s);
+        OUTPUT_INFO_END
+
+        // Construct barrier using x0s
+        auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this), evalType, evalPointX0s);
     }
 
     NOMAD::OutputQueue::Flush();

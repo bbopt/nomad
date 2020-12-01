@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -47,9 +46,9 @@
 
 #include "../Math/LHS.hpp"
 #include "../Math/RNG.hpp"
+#include "../Math/RandomPickup.hpp"
 #include "../Util/Exception.hpp"
 
-#include <random>       // for mt19937
 #include <algorithm>    // for shuffle
 
 
@@ -57,13 +56,11 @@
 NOMAD::LHS::LHS(size_t n,
                 size_t p,
                 NOMAD::ArrayOfDouble lowerBound,
-                NOMAD::ArrayOfDouble upperBound,
-                int seed)
+                NOMAD::ArrayOfDouble upperBound)
 :   _n(n),
     _p(p),
     _lowerBound(lowerBound),
-    _upperBound(upperBound),
-    _seed(seed)
+    _upperBound(upperBound)
 {
     if (!_lowerBound.isComplete())
     {
@@ -77,8 +74,6 @@ NOMAD::LHS::LHS(size_t n,
         s += upperBound.display();
         throw NOMAD::Exception(__FILE__, __LINE__, s);
     }
-
-    std::srand(_seed);
 }
 
 
@@ -126,15 +121,13 @@ std::vector<NOMAD::Point> NOMAD::LHS::Sample() const
 // Output: Random permutation of the vector (1, 2, .., p)
 std::vector<size_t> NOMAD::LHS::Permutation(const size_t p)
 {
-    std::vector<size_t> v;
-    for (size_t j = 1; j <= p; j++)
-    {
-        v.push_back(j);
-    }
+    NOMAD::RandomPickup rp(p);
 
-    std::random_device rd;
-    std::mt19937 g(rd());
-    std::shuffle(v.begin(), v.end(), g);
+    std::vector<size_t> v;
+    for (size_t j = 0; j < p ; j++)
+    {
+        v.push_back(rp.pickup()+1);
+    }
 
     return v;
 }

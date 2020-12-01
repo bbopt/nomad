@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -53,38 +52,44 @@
 void NOMAD::LHSearchMethod::init()
 {
     _name = "Latin Hypercube Search Method";
-    setComment("(LH)");
+    //setComment("(LHSearch)");
 
     auto lhSearch = _runParams->getAttributeValue<NOMAD::LHSearchType>("LH_SEARCH");
     setEnabled(lhSearch.isEnabled());
 }
 
 
-void NOMAD::LHSearchMethod::generateTrialPoints()
+void NOMAD::LHSearchMethod::generateTrialPointsImp()
 {
-    AddOutputInfo("Generate points for " + _name, true, false);
-    auto lhSearch = _runParams->getAttributeValue<NOMAD::LHSearchType>("LH_SEARCH");
-    const NOMAD::MadsIteration* iteration = dynamic_cast<const NOMAD::MadsIteration*>(getParentOfType<NOMAD::MadsIteration*>());
-    auto mesh = iteration->getMesh();
-    auto iterNumber = iteration->getK();
 
-    size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
-    size_t p = (0 == iterNumber) ? lhSearch.getNbInitial() : lhSearch.getNbIteration();
-    auto lowerBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
-    auto upperBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
-    int seed = _runParams->getAttributeValue<int>("SEED");
-    auto frameCenter = iteration->getFrameCenter();
+    if (nullptr == _iterAncestor)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"LHSearchMethod: must have an iteration ancestor");
+    }
+    auto mesh = _iterAncestor->getMesh();
+    if (nullptr == mesh)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"LHSearchMethod: must have a mesh");
+    }
+    auto frameCenter = _iterAncestor->getFrameCenter();
     if (nullptr == frameCenter)
     {
-        throw NOMAD::Exception(__FILE__,__LINE__,"LHSearchMethod: frame center is NULL");
+        throw NOMAD::Exception(__FILE__,__LINE__,"LHSearchMethod: must have a frameCenter");
     }
+
+    auto lhSearch = _runParams->getAttributeValue<NOMAD::LHSearchType>("LH_SEARCH");
+    size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
+    size_t p = (0 == _iterAncestor->getK()) ? lhSearch.getNbInitial() : lhSearch.getNbIteration();
+    auto lowerBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
+    auto upperBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
+
 
     // Update undefined values of lower and upper bounds to use values based
     // on DeltaFrameSize.
     // Based on the code in NOMAD 3, but slightly different.
     // If we used INF values instead of these, we get huge values for the
     // generated points. It is not elegant.
-    NOMAD::ArrayOfDouble deltaFrameSize = iteration->getMesh()->getDeltaFrameSize();
+    NOMAD::ArrayOfDouble deltaFrameSize = mesh->getDeltaFrameSize();
     NOMAD::Double scaleFactor = sqrt(-log(NOMAD::DEFAULT_EPSILON));
 
     for (size_t i = 0; i < n; i++)
@@ -100,32 +105,14 @@ void NOMAD::LHSearchMethod::generateTrialPoints()
     }
 
     // Apply Latin Hypercube algorithm
-    NOMAD::LHS lhs(n, p, lowerBound, upperBound, seed);
+    NOMAD::LHS lhs(n, p, lowerBound, upperBound);
     auto pointVector = lhs.Sample();
 
+    // Insert the point. Projection on mesh and snap to bounds is done in SearchMethod
     for (auto point : pointVector)
     {
-        // Make an EvalPoint from the Point.
-        // We do not need the Eval part of EvalPoint right now,
-        // but it will be used soon. Could be refactored, but
-        // not high priority. Note that an EvalPointSet compares
-        // the Point part of the EvalPoints only.
+        // Insert point (if possible)
+        insertTrialPoint(NOMAD::EvalPoint(point));
 
-        // Projection without scale 
-        if (snapPointToBoundsAndProjectOnMesh(point, lowerBound, upperBound, frameCenter, mesh))
-        {
-            NOMAD::EvalPoint evalPoint(point);
-
-            // Test if the point could be inserted correctly
-            bool inserted = insertTrialPoint(evalPoint);
-            std::string s = "Generated point";
-            s += (inserted) ? ": " : " not inserted: ";
-            s += evalPoint.display();
-            AddOutputInfo(s);
-        }
     }
-
-    AddOutputInfo("Generated " + std::to_string(getTrialPointsCount()) + " points");
-    AddOutputInfo("Generate points for " + _name, false, true);
-
 }

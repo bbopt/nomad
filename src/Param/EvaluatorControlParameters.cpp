@@ -6,13 +6,14 @@
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
 /*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural Science    */
-/*  and Engineering Research Council of Canada), INOVEE (Innovation en Energie     */
-/*  Electrique and IVADO (The Institute for Data Valorization)                     */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
+/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
+/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -26,8 +27,6 @@
 /*    Polytechnique Montreal - GERAD                                               */
 /*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
 /*    e-mail: nomad@gerad.ca                                                       */
-/*    phone : 1-514-340-6053 #6928                                                 */
-/*    fax   : 1-514-340-5665                                                       */
 /*                                                                                 */
 /*  This program is free software: you can redistribute it and/or modify it        */
 /*  under the terms of the GNU Lesser General Public License as published by       */
@@ -45,9 +44,6 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-
-#include <iomanip>  // For std::setprecision
-#include "../Math/RNG.hpp"
 #include "../Param/EvaluatorControlParameters.hpp"
 
 
@@ -61,46 +57,47 @@ void NOMAD::EvaluatorControlParameters::init()
     try
     {
         #include "../Attribute/evaluatorControlAttributesDefinition.hpp"
-        registerAttributes( _definition );
-        
+        registerAttributes(_definition);
+
         // Note: we cannot call checkAndComply() here, the default values
         // are not valid, for instance DIMENSION, X0, etc.
-        
+
     }
-    catch ( NOMAD::Exception & e)
+    catch (NOMAD::Exception & e)
     {
         std::string errorMsg = "Attribute registration failed: ";
         errorMsg += e.what();
         throw NOMAD::Exception(__FILE__,__LINE__, errorMsg);
     }
-    
+
 }
 
 /*----------------------------------------*/
 /*            check the parameters        */
 /*----------------------------------------*/
-void NOMAD::EvaluatorControlParameters::checkAndComply( )
+void NOMAD::EvaluatorControlParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParameters>& runParams)
 {
     checkInfo();
-    
+
     if (!toBeChecked())
     {
         // Early out
         return;
     }
-    
-    if (getAttributeValueProtected<size_t>("MAX_BB_EVAL",false ) <= 0)
+
+    // When runParameters are provided, update MAX_BB_EVAL_IN_SUBPROBLEM.
+    if (nullptr != runParams)
     {
-        setAttributeValue("MAX_BB_EVAL", NOMAD::INF_SIZE_T );
+        auto psdMadsOpt = runParams->getAttributeValue<bool>("PSD_MADS_OPTIMIZATION");
+        auto ssdMadsOpt = runParams->getAttributeValue<bool>("SSD_MADS_OPTIMIZATION");
+        if (!psdMadsOpt && !ssdMadsOpt)
+        {
+            setAttributeValue("MAX_BB_EVAL_IN_SUBPROBLEM", NOMAD::INF_SIZE_T);
+        }
     }
-    
-    if (getAttributeValueProtected<size_t>("MAX_EVAL",false) <= 0)
-    {
-        setAttributeValue("MAX_EVAL", NOMAD::INF_SIZE_T );
-    }
-    
+
     _toBeChecked = false;
-    
+
 }
 // End checkAndComply()
 
