@@ -55,8 +55,10 @@
 
 #include <unistd.h> // For usleep
 
+#ifdef _OPENMP
 // Initialize static lock variable
 omp_lock_t NOMAD::PSDMads::_psdMadsLock;
+#endif
 
 
 void NOMAD::PSDMads::init(const std::shared_ptr<NOMAD::Evaluator>& evaluator,
@@ -83,13 +85,17 @@ void NOMAD::PSDMads::init(const std::shared_ptr<NOMAD::Evaluator>& evaluator,
 
     _randomPickup.reset();
 
+#ifdef _OPENMP
     omp_init_lock(&_psdMadsLock);
+#endif
 }
 
 
 void NOMAD::PSDMads::destroy()
 {
+#ifdef _OPENMP
     omp_destroy_lock(&_psdMadsLock);
+#endif
 }
 
 
@@ -157,13 +163,17 @@ bool NOMAD::PSDMads::runImp()
             AddOutputInfo(s);
             OUTPUT_INFO_END
 
+#ifdef _OPENMP
             omp_set_lock(&_psdMadsLock);
+#endif
             _lastMadsSuccessful = !isPollster;  // Ignore pollster for this flag
             auto evalPointList = madsOnSubPb->getMegaIterationBarrier()->getAllPoints();
             NOMAD::convertPointListToFull(evalPointList, fixedVariable);
             _barrier->updateWithPoints(evalPointList,
                                        evalType, _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
+#ifdef _OPENMP
             omp_unset_lock(&_psdMadsLock);
+#endif
         }
 
         psdMegaIteration.end();
