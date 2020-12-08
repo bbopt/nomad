@@ -50,9 +50,11 @@ if sys.platform == "darwin":
      os.environ["CXX"] = "g++"
 
 setup(
+    name='PyNomad',
+
     ext_modules = cythonize(Extension(
            "PyNomad", # extension name
-           sources = ["PyNomad.pyx", "nomadCySimpleInterface.cpp"], # Cython source and interface
+           sources = ["PyNomad.pyx"], # Cython source and interface
            include_dirs = os_include_dirs,
            extra_compile_args = compile_args,
            extra_link_args = link_args,

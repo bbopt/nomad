@@ -52,6 +52,7 @@
 #include "Math/RNG.hpp"
 #include "Nomad/nomad.hpp"
 #include "Param/AllParameters.hpp"
+#include "Cache/CacheBase.hpp"
 
 #include <Python.h>
 #include <signal.h>
@@ -441,8 +442,8 @@ static int runNomad(Callback cb,
 
         // Set the best feasible and best infeasible solutions
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB);
-        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB);
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, nullptr);
+        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, nullptr);
 
         if (nbInf > 0)
         {
