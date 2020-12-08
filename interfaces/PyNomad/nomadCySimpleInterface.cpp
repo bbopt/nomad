@@ -420,7 +420,7 @@ static int runNomad(Callback cb,
 
         // Set cbL to NULL if blocks are not used.
         // Set cb to NULL if blocks are used.
-        if (allParams->getEvaluatorControlParams()->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE") > 1)
+        if (allParams->getEvaluatorControlGlobalParams()->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE") > 1)
         {
             // Using blocks
             cb = nullptr;
