@@ -7,9 +7,6 @@ endif
 ifdef NOOMP
 $(info Not using OpenMP)
 endif
-ifneq ($(USE_SGTELIB), 0)
-    USE_SGTELIB = 1
-endif
 
 
 UNAME := $(shell uname)
@@ -21,21 +18,16 @@ OBJ_DIR             = $(BUILD_DIR)/obj
 INCLUDE_DIR         = $(BUILD_DIR)/include
 BIN_DIR             = $(BUILD_DIR)/bin
 
+COMPONENT_DIRNAME   = Algos/SgteEnsembleRenaud
 
-COMPONENT_DIRNAME   = Algos/Mads
-
-ALL_FILES           = DoublePollMethod GMesh LHSearchMethod Mads MadsInitialization \
-                      MadsIteration \
-                      MadsMegaIteration MadsUpdate MegaSearchPoll \
-                      NMSearchMethod NP1UniPollMethod Ortho2NPollMethod Poll \
-                      PollMethodBase Search SearchMethodAlgo SearchMethodBase \
-                      SearchMethodSimple SgtelibSearchMethod SinglePollMethod \
-                      QuadSearchMethod \
-                      SpeculativeSearchMethod UserSearchMethod \
-                      SgteEnsembleSearchMethod # added by renaud
+ALL_FILES           = SgteEnsembleAlgo SgteEnsembleInitialization \
+                      SgteEnsembleIteration SgteEnsembleMegaIteration \
+					  SgteEnsembleUpdate
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))
 ALL_HEADERS         = $(addsuffix .hpp, $(ALL_FILES))
 ALL_INCLUDE_HEADERS = $(addprefix $(INCLUDE_DIR)/$(COMPONENT_DIRNAME)/,$(ALL_HEADERS))
+
+
 
 
 ifeq ($(VARIANT), release)
@@ -48,13 +40,9 @@ ifndef NOOMP
 # Use OpenMP for parallelism (threads)
 CXXFLAGS            += -fopenmp
 endif
-ifeq ($(USE_SGTELIB), 1)
-CXXFLAGS            += -DUSE_SGTELIB
-endif
 ifeq ($(TIME_STATS), 1)
 CXXFLAGS            += -DTIME_STATS
 endif
-
 
 
 OBJFLAGS            = -c

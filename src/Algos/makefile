@@ -30,6 +30,7 @@ PSDMADS_DIRNAME     = $(COMPONENT_DIRNAME)/PSDMads
 QUADMODEL_DIRNAME   = $(COMPONENT_DIRNAME)/QuadModel
 SGTELIBMODEL_DIRNAME = $(COMPONENT_DIRNAME)/SgtelibModel
 SSDMADS_DIRNAME     = $(COMPONENT_DIRNAME)/SSDMads
+SGTEENSEMBLE_DIRNAME = $(COMPONENT_DIRNAME)/SgteEnsembleRenaud # added by renaud
 
 LH_COMPONENT        = $(SRC_DIR)/$(LH_DIRNAME)
 MADS_COMPONENT      = $(SRC_DIR)/$(MADS_DIRNAME)
@@ -39,6 +40,7 @@ PSDMADS_COMPONENT   = $(SRC_DIR)/$(PSDMADS_DIRNAME)
 QUADMODEL_COMPONENT = $(SRC_DIR)/$(QUADMODEL_DIRNAME)
 SGTELIBMODEL_COMPONENT = $(SRC_DIR)/$(SGTELIBMODEL_DIRNAME)
 SSDMADS_COMPONENT   = $(SRC_DIR)/$(SSDMADS_DIRNAME)
+SGTEENSEMBLE_COMPONENT = $(SRC_DIR)/$(SGTEENSEMBLE_DIRNAME) # added by renaud
 
 ALL_FILES           = Algorithm AlgoStopReasons CacheInterface \
                       EvcInterface Initialization Iteration IterationUtils \
@@ -84,7 +86,8 @@ endif
 ifeq ($(USE_SGTELIB), 1)
 	@cd $(QUADMODEL_COMPONENT) && $(MAKE) all
 	@cd $(SGTELIBMODEL_COMPONENT) && $(MAKE) all
-endif
+	@cd $(SGTEENSEMBLE_COMPONENT) && $(MAKE) all
+endif  #  @cd $(SGTEENSEMBLE_COMPONENT) && $(MAKE) all  added by renaud
 	@cd $(SSDMADS_COMPONENT) && $(MAKE) all
 	@echo
 
@@ -108,3 +111,6 @@ clean:
 	@cd $(QUADMODEL_COMPONENT) && $(MAKE) clean
 	@cd $(SGTELIBMODEL_COMPONENT) && $(MAKE) clean
 	@cd $(SSDMADS_COMPONENT) && $(MAKE) clean
+	@cd $(SGTEENSEMBLE_COMPONENT) && $(MAKE) clean
+
+#  @cd $(SGTEENSEMBLE_COMPONENT) && $(MAKE) clean  added by renaud

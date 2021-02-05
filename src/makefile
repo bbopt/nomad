@@ -67,6 +67,7 @@ PSDMADS_DIRNAME     = $(ALGO_DIRNAME)/PSDMads
 QUADMODEL_DIRNAME   = $(ALGO_DIRNAME)/QuadModel
 SGTELIBMODEL_DIRNAME = $(ALGO_DIRNAME)/SgtelibModel
 SSDMADS_DIRNAME     = $(ALGO_DIRNAME)/SSDMads
+SGTEENSEMBLE_DIRNAME = $(ALGO_DIRNAME)/SgteEnsembleRenaud # added by renaud
 
 ALGO_COMPONENT      = $(SRC_DIR)/$(ALGO_DIRNAME)
 ATTR_COMPONENT      = $(SRC_DIR)/$(ATTR_DIRNAME)
@@ -84,14 +85,15 @@ PSDMADS_COMPONENT   = $(SRC_DIR)/$(PSDMADS_DIRNAME)
 QUADMODEL_COMPONENT = $(SRC_DIR)/$(QUADMODEL_DIRNAME)
 SGTELIBMODEL_COMPONENT = $(SRC_DIR)/$(SGTELIBMODEL_DIRNAME)
 SSDMADS_COMPONENT   = $(SRC_DIR)/$(SSDMADS_DIRNAME)
+SGTEENSEMBLE_COMPONENT = $(SRC_DIR)/$(SGTEENSEMBLE_DIRNAME) # added by renaud
 TYPE_COMPONENT      = $(SRC_DIR)/$(TYPE_DIRNAME)
 UTIL_COMPONENT      = $(SRC_DIR)/$(UTIL_DIRNAME)
 COMPONENTS          = $(ATTR_DIRNAME) $(CACHE_DIRNAME) $(EVAL_DIRNAME) \
                       $(LH_DIRNAME) $(MADS_DIRNAME) $(MATH_DIRNAME) \
                       $(NM_DIRNAME) $(NOMAD_DIRNAME) $(OUTPUT_DIRNAME) \
                       $(PARAM_DIRNAME) $(PSDMADS_DIRNAME) $(QUADMODEL_DIRNAME) \
-                      $(SGTELIBMODEL_DIRNAME) $(SSDMADS_DIRNAME) \
-                      $(TYPE_DIRNAME) $(UTIL_DIRNAME)
+                      $(SGTELIBMODEL_DIRNAME) $(SSDMADS_DIRNAME) $(SGTEENSEMBLE_DIRNAME) \
+                      $(TYPE_DIRNAME) $(UTIL_DIRNAME)  # $(SGTEENSEMBLE_DIRNAME) added by renaud
 INCLUDE_COMPONENTS  := $(addprefix $(INCLUDE_DIR)/,$(COMPONENTS))
 
 # TODO: Remove obj file names from here
@@ -120,8 +122,8 @@ MADS_OBJ            = DoublePollMethod.o GMesh.o LHSearchMethod.o \
                       Poll.o PollMethodBase.o Search.o SearchMethodAlgo.o \
                       SearchMethodBase.o \
                       SearchMethodSimple.o SgtelibSearchMethod.o SinglePollMethod.o \
-                      QuadSearchMethod.o \
-                      SpeculativeSearchMethod.o UserSearchMethod.o
+                      QuadSearchMethod.o SgteEnsembleSearchMethod.o \
+                      SpeculativeSearchMethod.o UserSearchMethod.o # SgteEnsembleSearchMethod.o added by renaud
 MADS_OBJ            := $(addprefix $(OBJ_DIR)/,$(MADS_OBJ))
 MATH_OBJ            = ArrayOfDouble.o ArrayOfPoint.o Direction.o Double.o LHS.o \
                       MatrixUtils.o Point.o RandomPickup.o RNG.o
@@ -164,6 +166,12 @@ SGTELIBMODEL_OBJ    = SgtelibModel.o SgtelibModelEvaluator.o \
 SGTELIBMODEL_OBJ    := $(addprefix $(OBJ_DIR)/,$(SGTELIBMODEL_OBJ))
 SSDMADS_OBJ         = SSDMads.o SSDMadsMegaIteration.o
 SSDMADS_OBJ        := $(addprefix $(OBJ_DIR)/,$(SSDMADS_OBJ))
+SGTEENSEMBLE_OBJ    = SgteEnsembleAlgo.o \
+                      SgteEnsembleInitialization.o \
+                      SgteEnsembleIteration.o \
+                      SgteEnsembleMegaIteration.o \
+                      SgteEnsembleUpdate.o # added by renaud
+SGTEENSEMBLE_OBJ    := $(addprefix $(OBJ_DIR)/,$(SGTEENSEMBLE_OBJ)) # added by renaud
 TYPE_OBJ            = BBInputType.o BBOutputType.o CallbackType.o DirectionType.o EvalType.o LHSearchType.o \
                       ListOfVariableGroup.o SgtelibModelFeasibilityType.o SgtelibModelFormulationType.o
 TYPE_OBJ            := $(addprefix $(OBJ_DIR)/,$(TYPE_OBJ))
@@ -187,7 +195,7 @@ ifndef NOOMP
 ALGOS_OBJ_LIB       += $(PSDMADS_OBJ)
 endif
 ifeq ($(USE_SGTELIB), 1)
-ALGOS_OBJ_LIB       += $(QUADMODEL_OBJ) $(SGTELIBMODEL_OBJ)
+ALGOS_OBJ_LIB       += $(QUADMODEL_OBJ) $(SGTELIBMODEL_OBJ) $(SGTEENSEMBLE_OBJ) # $(SGTEENSEMBLE_OBJ) added by renaud
 endif
 OBJ_LIB             = $(UTILS_OBJ_LIB) $(EVAL_OBJ_LIB) $(ALGOS_OBJ_LIB)
 
@@ -358,6 +366,10 @@ $(SGTELIBMODEL_OBJ) : $(ALGO_OBJ)
 
 $(SSDMADS_OBJ) : $(ALGO_OBJ)
 	@cd $(ALGO_COMPONENT) && $(MAKE) -j$(PAR) all
+
+$(SGTEENSEMBLE_OBJ) : $(ALGO_OBJ)
+	@cd $(ALGO_COMPONENT) && $(MAKE) -j$(PAR) all
+# added by renaud
 
 $(EXE) : $(INCLUDE_DIR) $(ATTR_EXE) $(LIB_DYNAMIC) $(NOMAD_COMPONENT)/nomad.hpp $(NOMAD_COMPONENT)/nomad.cpp
 	@cd $(NOMAD_COMPONENT) && $(MAKE) all LIB_DIR=$(LIB_DIR) LIB_DYNAMIC_LINK='$(LIB_DYNAMIC_LINK)'

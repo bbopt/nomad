@@ -288,6 +288,7 @@ Algos/Mads/SearchMethodAlgo.hpp
 Algos/Mads/SearchMethodBase.hpp
 Algos/Mads/SearchMethodSimple.hpp
 Algos/Mads/SgtelibSearchMethod.hpp
+Algos/Mads/SgteEnsembleSearchMethod.hpp # added by renaud
 Algos/Mads/SinglePollMethod.hpp
 Algos/Mads/SpeculativeSearchMethod.hpp
 Algos/Mads/UserSearchMethod.hpp
@@ -314,6 +315,7 @@ Algos/Mads/SearchMethodAlgo.cpp
 Algos/Mads/SearchMethodBase.cpp
 Algos/Mads/SearchMethodSimple.cpp
 Algos/Mads/SgtelibSearchMethod.cpp
+Algos/Mads/SgteEnsembleSearchMethod.cpp # added by renaud
 Algos/Mads/SinglePollMethod.cpp
 Algos/Mads/SpeculativeSearchMethod.cpp
 Algos/Mads/UserSearchMethod.cpp
@@ -441,6 +443,26 @@ Algos/SSDMads/SSDMadsMegaIteration.cpp
 )
 
 #
+# SgteEnsemble 
+# 
+set(SGTEENSEMBLE_HEADERS
+Algos/SgteEnsembleRenaud/SgteEnsembleAlgo.hpp
+Algos/SgteEnsembleRenaud/SgteEnsembleInitialization.hpp
+Algos/SgteEnsembleRenaud/SgteEnsembleIteration.hpp
+Algos/SgteEnsembleRenaud/SgteEnsembleMegaIteration.hpp
+Algos/SgteEnsembleRenaud/SgteEnsembleUpdate.hpp
+)
+
+set(SGTEENSEMBLE_SOURCES
+Algos/SgteEnsembleRenaud/SgteEnsembleAlgo.cpp
+Algos/SgteEnsembleRenaud/SgteEnsembleInitialization.cpp
+Algos/SgteEnsembleRenaud/SgteEnsembleIteration.cpp
+Algos/SgteEnsembleRenaud/SgteEnsembleMegaIteration.cpp
+Algos/SgteEnsembleRenaud/SgteEnsembleUpdate.cpp
+)
+# added by renaud
+
+#
 # Generate Attribute headers
 #
 
@@ -486,7 +508,7 @@ endif()
 
 # Algos
 if(USE_SGTELIB MATCHES ON)
-    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${QUADMODEL_SOURCES} ${SGTELIBMODEL_SOURCES} ${SSDMADS_SOURCES})
+    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${QUADMODEL_SOURCES} ${SGTELIBMODEL_SOURCES} ${SSDMADS_SOURCES} ${SGTEENSEMBLE_SOURCES})
    target_include_directories(nomadAlgos PUBLIC
       $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Algos
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
@@ -496,7 +518,8 @@ if(USE_SGTELIB MATCHES ON)
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModel
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SgtelibModel
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads>
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SgteEnsembleRenaud>
       $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}>)
 else()
     add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${SSDMADS_SOURCES})
@@ -619,6 +642,11 @@ install(FILES ${SGTELIB_HEADERS}
 install(FILES ${SSDMADS_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SSDMads
 )
+
+install(FILES ${SGTEENSEMBLE_HEADERS}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SgteEnsembleRenaud
+)
+# added by renaud
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/nomad_nsbegin.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/nomad_nsend.hpp
