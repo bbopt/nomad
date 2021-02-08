@@ -214,6 +214,14 @@ void NOMAD::RunParameters::checkAndComply(
             }
             setAttributeValue("QUAD_MODEL_SEARCH", false);
         }
+        if (getAttributeValueProtected<bool>("SGTE_ENSEMBLE_SEARCH", false))
+        {
+            if (showDisableWarn)
+            {
+                std::cerr << "Warning: Models are disabled. SGTE_ENSEMBLE_SEARCH set to false." << std::endl;
+            }
+            setAttributeValue("SGTE_ENSEMBLE_SEARCH", false);
+        }
     }
 #endif
 
@@ -271,6 +279,13 @@ void NOMAD::RunParameters::checkAndComply(
     {
         err = "Warning: Parameter QUAD_MODEL_SEARCH is set to true, but ";
         err += "Quad Model sampling cannot be used. To be able to use Quad Model Search ";
+        err += "search method, NOMAD must be recompiled using option USE_SGTELIB=1.";
+        std::cerr << err << std::endl;
+    }
+    if (getAttributeValueProtected<bool>("SGTE_ENSEMBLE_SEARCH", false))
+    {
+        err = "Warning: Parameter SGTE_ENSEMBLE_SEARCH is set to true, but ";
+        err += "Ensemble Model sampling cannot be used. To be able to use Ensemble Model Search ";
         err += "search method, NOMAD must be recompiled using option USE_SGTELIB=1.";
         std::cerr << err << std::endl;
     }

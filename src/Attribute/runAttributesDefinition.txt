@@ -310,6 +310,26 @@ false
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
+SGTE_ENSEMBLE_SEARCH
+bool
+false
+\( Ensemble model search using Sgtelib (renaud) \)
+\(
+
+. MADS model search, using Bastien Talgorn's Sgtelib with ensemble models (renaud)
+
+. Argument: one boolean ('yes' or 'no')
+
+. Disabled for more than 50 variables
+
+. Example: SGTE_ENSEMBLE_SEARCH yes
+
+. See also: DISABLE
+\)
+\( mads ensemble model search sgtelib model_search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
 MODEL_DISPLAY
 std::string
 -
@@ -933,7 +953,7 @@ NOMAD::ArrayOfString
 . Argument: MODELS or EVAL_SORT
 
 . DISABLE MODELS disables all uses of models. It is equivalent to set:
-      QUAD_MODEL_SEARCH and SGTELIB_SEARCH no
+      QUAD_MODEL_SEARCH and SGTELIB_SEARCH and SGTE_ENSEMBLE_SEARCH no
 
 . WARNING: Settings of SGTELIB_SEARCH will be ignored
 

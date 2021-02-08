@@ -136,6 +136,7 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
         subProblemRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
         subProblemRunParams->setAttributeValue("SGTELIB_SEARCH", false);
         subProblemRunParams->setAttributeValue("SPECULATIVE_SEARCH", false);
+        subProblemRunParams->setAttributeValue("SGTE_ENSEMBLE_SEARCH", false);
     }
     else
     {

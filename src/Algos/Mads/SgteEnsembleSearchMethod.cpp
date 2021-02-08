@@ -59,7 +59,7 @@ void NOMAD::SgteEnsembleSearchMethod::init()
     verifyParentNotNull();
 
     const auto parentSearch = getParentStep()->getParentOfType<NOMAD::SgteEnsembleSearchMethod*>(false);
-    setEnabled((nullptr == parentSearch) && _runParams->getAttributeValue<bool>("SGTEENSEMBLE_SEARCH"));
+    setEnabled((nullptr == parentSearch) && _runParams->getAttributeValue<bool>("SGTE_ENSEMBLE_SEARCH"));
 #ifndef USE_SGTELIB
     if (isEnabled())
     {

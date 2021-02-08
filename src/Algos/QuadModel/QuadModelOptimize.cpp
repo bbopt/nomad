@@ -140,6 +140,7 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("SGTELIB_SEARCH", false);
     _optRunParams->setAttributeValue("NM_SEARCH", false);
+    _optRunParams->setAttributeValue("SGTE_ENSEMBLE_SEARCH", false); // added by renaud
 
     // No hMax in the context of QuadModel
     _optRunParams->setAttributeValue("H_MAX_0", NOMAD::Double(NOMAD::INF));

@@ -182,6 +182,7 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
     // Ensure there is no model used in model optimization.
     _optRunParams->setAttributeValue("SGTELIB_SEARCH", false);
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
+    _optRunParams->setAttributeValue("SGTE_ENSEMBLE_SEARCH", false); // added by renaud
     NOMAD::ArrayOfString disable;
     disable.add(std::string("MODELS"));
     _optRunParams->setAttributeValue("DISABLE", disable);

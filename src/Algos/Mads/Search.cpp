@@ -51,6 +51,7 @@
 #include "../../Algos/Mads/SpeculativeSearchMethod.hpp"
 #include "../../Algos/Mads/LHSearchMethod.hpp"
 #include "../../Algos/Mads/NMSearchMethod.hpp"
+#include "../../Algos/Mads/SgteEnsembleSearchMethod.hpp" // added by renaud
 #include "../../Algos/Mads/UserSearchMethod.hpp"
 #include "../../Output/OutputQueue.hpp"
 
@@ -74,6 +75,7 @@ void NOMAD::Search::init()
     auto sgtelibSearch          = std::make_shared<NOMAD::SgtelibSearchMethod>(this);
     auto lhSearch               = std::make_shared<NOMAD::LHSearchMethod>(this);
     auto nmSearch               = std::make_shared<NOMAD::NMSearchMethod>(this);
+    auto sgteEnsembleSearch     = std::make_shared<NOMAD::SgteEnsembleSearchMethod>(this); // added by renaud
 
 
     // The search methods will be executed in the same order
@@ -94,6 +96,7 @@ void NOMAD::Search::init()
     _searchMethods.push_back(sgtelibSearch);        // 5b. Model Searches
     _searchMethods.push_back(lhSearch);             // 7. Latin-Hypercube (LH) search
     _searchMethods.push_back(nmSearch);             // 8. NelderMead (NM) search
+    _searchMethods.push_back(sgteEnsembleSearch);   // Ensemble sgte search (renaud)
 }
 
 
