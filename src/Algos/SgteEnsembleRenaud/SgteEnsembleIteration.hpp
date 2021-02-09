@@ -47,11 +47,17 @@
 #define __NOMAD400_SGTE_ENSEMBLE_ITERATION__
 
 #include "../../Algos/Iteration.hpp"
+#include "../../Algos/SgteEnsembleRenaud/SgteEnsembleOptimize.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
-class SgteEnsembleIteration: public Iteration	
+/// Iteration for SgteEnsemble model deriving from Step
+class SgteEnsembleIteration: public Iteration
 {
+private:
+    // Optimizer for model on sgte function
+    std::shared_ptr<SgteEnsembleOptimize> _optimize;
+
 public:
     /// Constructor
     /**
@@ -60,16 +66,24 @@ public:
      */
     explicit SgteEnsembleIteration(const Step *parentStep,
                         const size_t k)
-      : Iteration(parentStep, k)
-    
+      : Iteration(parentStep, k),
+        _optimize(nullptr)
     {
         init();
     }
 
+
+    // Get/Set
+    /// Return oracle points found by the Optimizer
+    const EvalPointSet& getOraclePoints() const;
+
+
+    virtual void startImp() override;
+    virtual bool runImp() override;
+
+
 private:
     void init();
-    virtual void startImp() override;	
-    virtual bool runImp() override;
 
 };
 

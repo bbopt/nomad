@@ -166,10 +166,12 @@ SGTELIBMODEL_OBJ    = SgtelibModel.o SgtelibModelEvaluator.o \
 SGTELIBMODEL_OBJ    := $(addprefix $(OBJ_DIR)/,$(SGTELIBMODEL_OBJ))
 SSDMADS_OBJ         = SSDMads.o SSDMadsMegaIteration.o
 SSDMADS_OBJ        := $(addprefix $(OBJ_DIR)/,$(SSDMADS_OBJ))
-SGTEENSEMBLE_OBJ    = SgteEnsembleAlgo.o \
+SGTEENSEMBLE_OBJ    = SgteEnsembleAlgo.o SgteEnsembleEvaluator.o \
+                      SgteEnsembleFilterCache.o \
                       SgteEnsembleInitialization.o \
                       SgteEnsembleIteration.o \
                       SgteEnsembleMegaIteration.o \
+                      SgteEnsembleOptimize.o \
                       SgteEnsembleUpdate.o # added by renaud
 SGTEENSEMBLE_OBJ    := $(addprefix $(OBJ_DIR)/,$(SGTEENSEMBLE_OBJ)) # added by renaud
 TYPE_OBJ            = BBInputType.o BBOutputType.o CallbackType.o DirectionType.o EvalType.o LHSearchType.o \

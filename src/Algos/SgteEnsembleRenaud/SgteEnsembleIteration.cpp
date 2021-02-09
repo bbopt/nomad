@@ -51,15 +51,69 @@
 void NOMAD::SgteEnsembleIteration::init()
 {
     _name = NOMAD::Iteration::getName();
+
+    // Initialize optimize member - model optimizer on sgte
+    auto modelAlgo = getParentOfType<NOMAD::SgteEnsembleAlgo*>();
+    _optimize = std::make_shared<NOMAD::SgteEnsembleOptimize>(modelAlgo,
+                                                    _runParams, _pbParams);
 }
+
 
 void NOMAD::SgteEnsembleIteration::startImp()
 {
+    // Model update
+    // Use the cache to determine a sgtelib model
+    // Update has a side effect of setting the _ready member.
+    NOMAD::SgteEnsembleUpdate update(this);
+    update.start();
+    update.run();
+    update.end();
 }
+
 
 bool NOMAD::SgteEnsembleIteration::runImp()
 {
-    bool iterationSuccess = false;
+    //verifyGenerateAllPointsBeforeEval("Iteration::run()", false);
 
-    return iterationSuccess;
+    bool optimizationOk = false;
+
+    // Model Update is handled in start().
+
+    auto modelAlgo = getParentOfType<NOMAD::SgteEnsembleAlgo*>();
+    if (!_stopReasons->checkTerminate() && modelAlgo->isReady())
+    {
+        // Use the optimizer to find oracle points on this model
+        // If mesh available, add mesh and frame size arguments.
+        NOMAD::ArrayOfDouble initialMeshSize;
+        NOMAD::ArrayOfDouble initialFrameSize;
+
+        auto mesh = modelAlgo->getMesh();
+        if (nullptr != mesh)
+        {
+            initialMeshSize = mesh->getdeltaMeshSize();
+            initialFrameSize = mesh->getDeltaFrameSize();
+        }
+
+        // Setup Pb parameters just before optimization.
+        // This way, we get the best X0s.
+        _optimize->setupPbParameters(modelAlgo->getExtendedLowerBound(),
+                                     modelAlgo->getExtendedUpperBound(),
+                                     initialMeshSize,
+                                     initialFrameSize);
+
+        _optimize->start();
+        optimizationOk = _optimize->run();
+        _optimize->end();
+    }
+
+    // End of the iteration: return value of optimizationOk
+    return optimizationOk;
 }
+
+
+// Oracle points are the best points found in sub optimization on sgte model.
+const NOMAD::EvalPointSet& NOMAD::SgteEnsembleIteration::getOraclePoints() const
+{
+    return _optimize->getOraclePoints();
+}
+

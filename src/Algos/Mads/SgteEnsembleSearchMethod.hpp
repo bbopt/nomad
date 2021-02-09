@@ -53,11 +53,28 @@
 
 #include "../../nomad_nsbegin.hpp"
 
-/// Implementation of search method : surrogate ensemble
+/// Implementation of search method using library Sgtelib
 class SgteEnsembleSearchMethod final: public SearchMethodAlgo
 {
 private:
     OutputLevel _displayLevel;
+#ifdef USE_SGTELIB
+    std::shared_ptr<SgteEnsembleAlgo> _modelAlgo;
+#endif
+
+    /// Get best projection
+    /**
+     \param  incumbent      The incumbent             -- \b IN.
+     \param  deltaMeshSize  Mesh size parameter       -- \b IN.
+     \param  x              The oracle point          -- \b IN/OUT.
+     */
+    void getBestProjection(const Point& incumbent,
+                           const ArrayOfDouble& deltaMeshSize,
+                           std::shared_ptr<Point> x);
+
+
+/*----------------------------------------------------------------------*/
+
 
 public:
     /// Constructor
@@ -67,6 +84,9 @@ public:
     explicit SgteEnsembleSearchMethod(const Step* parentStep)
       : SearchMethodAlgo(parentStep),
         _displayLevel(OutputLevel::LEVEL_NORMAL)
+#ifdef USE_SGTELIB
+        ,_modelAlgo(nullptr)
+#endif
     {
         init();
     }
@@ -76,6 +96,11 @@ private:
 
     bool runImp() override;
 
+    ///Generate new points (no evaluation)
+    /**
+     \copydoc SearchMethod::generateTrialPointsImp \n
+     This function is used only when a MADS search based on Quad Model with the option to generate all points before evaluation. It performs a single sub optimization (on the sgte) around all the points in the Barrier.
+     */
     void generateTrialPointsImp() override;
 
 };
@@ -83,3 +108,4 @@ private:
 #include "../../nomad_nsend.hpp"
 
 #endif // __NOMAD400_SGTEENSEMBLESEARCHMETHOD__
+

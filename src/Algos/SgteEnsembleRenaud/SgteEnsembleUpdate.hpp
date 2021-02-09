@@ -47,14 +47,19 @@
 #define __NOMAD400_SGTE_ENSEMBLE_UPDATE__
 
 #include "../../Algos/Step.hpp"
+#include "../../Output/OutputInfo.hpp"  // for OutputLevel
 
 #include "../../nomad_nsbegin.hpp"
 
 class SgteEnsembleUpdate : public Step
 {
+private:
+    OutputLevel _displayLevel;
+
 public:
     explicit SgteEnsembleUpdate(const Step* parentStep)
-      : Step(parentStep)
+      : Step(parentStep),
+        _displayLevel(OutputLevel::LEVEL_INFO)
     {
         init();
     }
@@ -63,9 +68,12 @@ public:
 
 private:
     void init();
+
     virtual void startImp() override;
     virtual bool runImp() override;
     virtual void endImp() override;
+
+    static bool validForUpdate(const EvalPoint& evalPoint);
 
 };
 

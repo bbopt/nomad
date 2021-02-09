@@ -43,40 +43,55 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD400_SGTE_ENSEMBLE_INITIALIZATION__
-#define __NOMAD400_SGTE_ENSEMBLE_INITIALIZATION__
 
-#include "../../Algos/Initialization.hpp"
+#ifndef __NOMAD400_SGTE_ENSEMBLE_EVALUATION__
+#define __NOMAD400_SGTE_ENSEMBLE_EVALUATION__
+
+#include "../../Algos/SgteEnsembleRenaud/SgteEnsembleAlgo.hpp"
+#include "../../Eval/Evaluator.hpp"
+#include "../../Type/SgtelibModelFeasibilityType.hpp"
+#include "../../Output/OutputInfo.hpp"  // for OutputLevel
 
 #include "../../nomad_nsbegin.hpp"
 
-
-class SgteEnsembleInitialization: public Initialization
+class SgteEnsembleEvaluator : public Evaluator
 {
+private:
+    const SgteEnsembleAlgo*     _modelAlgo;
+    std::string                 _modelDisplay;
+    Double                      _diversification;
+    SgtelibModelFeasibilityType _modelFeasibility;
+    double                      _tc;
+    OutputLevel                 _displayLevel;
+    Point                       _fixedVariable;
+
 public:
     /// Constructor
-    explicit SgteEnsembleInitialization(const Step* parentStep)
-      : Initialization(parentStep)
-    {
-        init();
-    }
+    explicit SgteEnsembleEvaluator(const std::shared_ptr<EvalParameters>& evalParams,
+                                   const SgteEnsembleAlgo* modelAlgo,
+                                   const std::string& modelDisplay,
+                                   const Double& diversification,
+                                   const SgtelibModelFeasibilityType& modelFeasibility,
+                                   const double tc,
+                                   const Point& fixedVariable);
 
-    virtual ~SgteEnsembleInitialization();
+    virtual ~SgteEnsembleEvaluator();
+
+    bool eval_x(EvalPoint &x,
+                const Double &hMax __attribute__((unused)),
+                bool &countEval) const override;
+
+    static void evalH(const ArrayOfDouble& bbo,
+                      const BBOutputTypeList& bbot,
+                      Double &h);
 
 
 private:
     void init();
 
-    // Step methods
-    void startImp() override;
-    bool runImp() override;
-    void endImp() override;
 
-    void validateX0s() const;
-    bool eval_x0s();
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD400_SGTE_ENSEMBLE_INITIALIZATION__
-
+#endif // __NOMAD400_SGTE_ENSEMBLE_EVALUATION__

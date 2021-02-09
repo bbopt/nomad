@@ -443,24 +443,29 @@ Algos/SSDMads/SSDMadsMegaIteration.cpp
 )
 
 #
-# SgteEnsemble 
+# SgteEnsemble (renaud)
 # 
-set(SGTEENSEMBLE_HEADERS
+set(SGTEENSEMBLEMODEL_HEADERS
 Algos/SgteEnsembleRenaud/SgteEnsembleAlgo.hpp
+Algos/SgteEnsembleRenaud/SgteEnsembleEvaluator.hpp
+Algos/SgteEnsembleRenaud/SgteEnsembleFilterCache.hpp
 Algos/SgteEnsembleRenaud/SgteEnsembleInitialization.hpp
 Algos/SgteEnsembleRenaud/SgteEnsembleIteration.hpp
 Algos/SgteEnsembleRenaud/SgteEnsembleMegaIteration.hpp
+Algos/SgteEnsembleRenaud/SgteEnsembleOptimize.hpp
 Algos/SgteEnsembleRenaud/SgteEnsembleUpdate.hpp
 )
 
-set(SGTEENSEMBLE_SOURCES
+set(SGTEENSEMBLEMODEL_SOURCES
 Algos/SgteEnsembleRenaud/SgteEnsembleAlgo.cpp
+Algos/SgteEnsembleRenaud/SgteEnsembleEvaluator.cpp
+Algos/SgteEnsembleRenaud/SgteEnsembleFilterCache.cpp
 Algos/SgteEnsembleRenaud/SgteEnsembleInitialization.cpp
 Algos/SgteEnsembleRenaud/SgteEnsembleIteration.cpp
 Algos/SgteEnsembleRenaud/SgteEnsembleMegaIteration.cpp
+Algos/SgteEnsembleRenaud/SgteEnsembleOptimize.cpp
 Algos/SgteEnsembleRenaud/SgteEnsembleUpdate.cpp
 )
-# added by renaud
 
 #
 # Generate Attribute headers

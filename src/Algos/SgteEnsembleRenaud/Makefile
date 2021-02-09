@@ -20,9 +20,10 @@ BIN_DIR             = $(BUILD_DIR)/bin
 
 COMPONENT_DIRNAME   = Algos/SgteEnsembleRenaud
 
-ALL_FILES           = SgteEnsembleAlgo SgteEnsembleInitialization \
+ALL_FILES           = SgteEnsembleAlgo SgteEnsembleEvaluator \
+                      SgteEnsembleFilterCache SgteEnsembleInitialization \
                       SgteEnsembleIteration SgteEnsembleMegaIteration \
-					  SgteEnsembleUpdate
+                      SgteEnsembleOptimize SgteEnsembleUpdate
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))
 ALL_HEADERS         = $(addsuffix .hpp, $(ALL_FILES))
 ALL_INCLUDE_HEADERS = $(addprefix $(INCLUDE_DIR)/$(COMPONENT_DIRNAME)/,$(ALL_HEADERS))
