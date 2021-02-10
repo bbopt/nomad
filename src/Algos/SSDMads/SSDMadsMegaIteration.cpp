@@ -297,7 +297,7 @@ void NOMAD::SSDMadsMegaIteration::setupSubproblemParams ( std::shared_ptr<NOMAD:
     subProblemPbParams->doNotShowWarnings();
     if (isPollster)
     {
-        subProblemPbParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::SINGLE );
+        subProblemRunParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::SINGLE );
         subProblemRunParams->setAttributeValue("MAX_ITERATIONS", 1);
         subProblemPbParams->setAttributeValue("INITIAL_FRAME_SIZE", mainFrameSize);
 

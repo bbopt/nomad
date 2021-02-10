@@ -86,6 +86,7 @@ public:
 
     /// Set seed
     /**
+     * The set seed works like a reset. The private seed used by RNG is always reset.
      \param s   The seed -- \b IN.
      */
     static void setSeed(int s);

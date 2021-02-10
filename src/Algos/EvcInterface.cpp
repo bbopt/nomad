@@ -174,14 +174,10 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
             NOMAD::EvalQueuePointPtr evalQueuePoint(new NOMAD::EvalQueuePoint(trialPoint, evalType));
             if (useMesh && nullptr == iteration)
             {
-                iteration = dynamic_cast<NOMAD::Iteration*>(megaSearchPoll->getIterForPoint(trialPointSub).get());
-                if (nullptr == iteration)
-                {
-                    std::string s = _step->getName();
-                    s += ": In keepPointsThatNeedEval: Could not determine iteration for point ";
-                    s += trialPoint.display();
-                    throw NOMAD::StepException(__FILE__,__LINE__, s, _step);
-                }
+                std::string s = _step->getName();
+                s += ": In keepPointsThatNeedEval: Could not determine iteration for point ";
+                s += trialPoint.display();
+                throw NOMAD::StepException(__FILE__,__LINE__, s, _step);
             }
             if ( useMesh )
             {

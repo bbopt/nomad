@@ -96,6 +96,7 @@ enum class DisplayStatsType
     DS_DELTA_M    ,    ///< Same as \c DS_MESH_SIZE
     DS_FRAME_SIZE ,    ///< Frame size parameter Delta^f_k
     DS_DELTA_F    ,    ///< Same as \c DS_FRAME_SIZE
+    DS_FRAME_CENTER ,  ///< Frame center: Point that was used as center to generate this point
     DS_SOL        ,    ///< Solution vector
     DS_THREAD_ALGO,    ///< Thread number for the algorithm
     DS_THREAD_NUM ,    ///< Thread number in which this evaluation was done
@@ -140,6 +141,7 @@ private:
     ArrayOfDouble   _meshIndex;
     ArrayOfDouble   _meshSize;
     ArrayOfDouble   _frameSize;
+    Point           _frameCenter;
     size_t          _lap;
     size_t          _sgte;
     size_t          _totalSgte;
@@ -186,6 +188,7 @@ public:
     void setMeshIndex(const ArrayOfDouble meshIndex) { _meshIndex = meshIndex; }
     void setMeshSize(const ArrayOfDouble meshSize)   { _meshSize = meshSize; }
     void setFrameSize(const ArrayOfDouble frameSize) { _frameSize = frameSize; }
+    void setFrameCenter(const Point frameCenter)    { _frameCenter = frameCenter; }
     void setLap(const size_t lap)                   { _lap = lap; }
     void setSgte(const size_t sgte)                 { _sgte = sgte; }
     void setTotalSgte(const size_t totalSgte)       { _totalSgte = totalSgte; }

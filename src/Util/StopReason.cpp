@@ -227,7 +227,8 @@ template<> std::map<NOMAD::NMStopType,std::string> & NOMAD::StopReason<NOMAD::NM
         {NOMAD::NMStopType::INSERTION_FAILED,"Insertion of points has failed"}            ,
         {NOMAD::NMStopType::X0_FAILED,"No X0 provided or cannot evaluate X0"},
         {NOMAD::NMStopType::NM_SINGLE_COMPLETED,"NM with a single iteration is completed"},
-        {NOMAD::NMStopType::NM_STOP_ON_SUCCESS,"NM iterations stopped on eval success"}
+        {NOMAD::NMStopType::NM_STOP_ON_SUCCESS,"NM iterations stopped on eval success"},
+        {NOMAD::NMStopType::NM_STOP_NO_SHRINK,"NM iterations stopped without shrink"}
     };
     return dictionary;
 }
@@ -249,6 +250,7 @@ template<> bool NOMAD::StopReason<NOMAD::NMStopType>::checkTerminate() const
         case NOMAD::NMStopType::INSERTION_FAILED:
         case NOMAD::NMStopType::NM_SINGLE_COMPLETED:
         case NOMAD::NMStopType::NM_STOP_ON_SUCCESS:
+        case NOMAD::NMStopType::NM_STOP_NO_SHRINK:
         case NOMAD::NMStopType::UNDEFINED_STEP:
             return true;
             break;

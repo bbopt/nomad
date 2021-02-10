@@ -64,7 +64,8 @@ NOMAD::EvalPoint::EvalPoint ()
     _tag(0),
     _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
-    _pointFrom(nullptr)
+    _pointFrom(nullptr),
+    _genStep("")
 {
 }
 
@@ -79,7 +80,8 @@ NOMAD::EvalPoint::EvalPoint(size_t n)
     _tag(0),
     _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
-    _pointFrom(nullptr)
+    _pointFrom(nullptr),
+    _genStep("")
 {
 }
 
@@ -94,7 +96,8 @@ NOMAD::EvalPoint::EvalPoint(const NOMAD::Point &x)
     _tag(0),
     _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
-    _pointFrom(nullptr)
+    _pointFrom(nullptr),
+    _genStep("")
 {
 }
 
@@ -135,6 +138,7 @@ void NOMAD::EvalPoint::copyMembers(const NOMAD::EvalPoint &evalPoint)
 
     // shallow copy
     _pointFrom = evalPoint.getPointFrom();
+    _genStep = evalPoint.getGenStep();
 }
 
 
@@ -155,6 +159,7 @@ NOMAD::EvalPoint & NOMAD::EvalPoint::operator=(const NOMAD::EvalPoint &evalPoint
     _numberEval = evalPoint._numberEval;
 
     _pointFrom = evalPoint._pointFrom;
+    _genStep = evalPoint._genStep;
 
     // Do NOT delete _eval. Since it is a smart ptr, it will take care
     // of itself. Releasing the smart ptr here causes a memory leak.
@@ -204,7 +209,7 @@ bool NOMAD::EvalPoint::operator== (const NOMAD::EvalPoint &evalPoint) const
 
     // Ignore tag.
     // Ignore numberEval.
-    // Ignore pointFrom.
+    // Ignore pointFrom and genStep.
 
     if (equal)
     {
@@ -560,25 +565,32 @@ const std::shared_ptr<NOMAD::Point> NOMAD::EvalPoint::getPointFrom(const NOMAD::
 }
 
 
-void NOMAD::EvalPoint::setPointFrom(const std::shared_ptr<NOMAD::Point> pointFrom)
+void NOMAD::EvalPoint::setPointFrom(const std::shared_ptr<NOMAD::Point> pointFrom, const NOMAD::Point& fixedVariable)
 {
-    if (pointFrom->size() < this->size())
+    auto pointFromFull = pointFrom;
+    if (pointFromFull->size() < fixedVariable.size())
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "EvalPoint::setPointFrom: pointFrom must have the same dimension as EvalPoint");
+        // pointFrom must always be in full dimension. Convert if needed.
+        pointFromFull = std::make_shared<NOMAD::Point>(pointFromFull->makeFullSpacePointFromFixed(fixedVariable));
     }
 
-    _pointFrom = pointFrom;
+    _pointFrom = pointFromFull;
 }
 
 
-void NOMAD::EvalPoint::setPointFrom(std::shared_ptr<NOMAD::Point> pointFrom, const NOMAD::Point& fixedVariable)
+void NOMAD::EvalPoint::setGenStep(const std::string& genStep)
 {
-    if (pointFrom->size() < this->size())
+    if (!_genStep.empty() && _genStep != genStep)
     {
-        *pointFrom = pointFrom->makeFullSpacePointFromFixed(fixedVariable);
+        // Prepend genStep for more information. For instance:
+        // MegaSearchPoll - LH Search Method
+        // instead of only MegaSearchPoll.
+        _genStep = genStep + " - " + _genStep;
     }
-
-    _pointFrom = pointFrom;
+    else
+    {
+        _genStep = genStep;
+    }
 }
 
 
@@ -749,7 +761,7 @@ std::ostream& NOMAD::operator<<(std::ostream& os, const NOMAD::EvalPoint &evalPo
 std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalPoint &evalPoint)
 {
     // Set up structures to gather member info
-    NOMAD::Point point, pointFrom;
+    NOMAD::Point point;
     NOMAD::EvalStatusType evalStatus = NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED;
     bool skip = false;
 

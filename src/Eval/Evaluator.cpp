@@ -303,36 +303,58 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
             std::shared_ptr<NOMAD::EvalPoint> x = block[index];
 
             char buffer[1024];
-            char *outputLine = fgets(buffer, sizeof(buffer), fresult);
-            if (NULL == outputLine)
+            char *outputLine = nullptr;
+
+            size_t nbTries=0;
+            while (nbTries < 5)
+            {
+                nbTries++;
+                outputLine = fgets(buffer, sizeof(buffer), fresult);
+
+                if( feof(fresult) )
+                { // c-stream eof detected. Output is empty, break the loop
+                    x->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
+#ifdef _OPENMP
+#pragma omp critical(warningEvalX)
+#endif
+                    {
+                        std::cerr << "Warning: Evaluation error with point " << x->display() << ": output is empty" << std::endl;
+                    }
+                    break;
+                }
+
+                if (NULL != outputLine)
+                {
+                    // Evaluation succeeded. Get and process blackbox output.
+                    std::string bbo(outputLine);
+                    // delete trailing '\n'
+                    bbo.erase(bbo.size() - 1);
+
+                    // Process blackbox output
+                    NOMAD::BBOutput bbOutput(bbo);
+
+                    auto bbOutputType = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
+                    x->getEval(_evalType)->setBBOutputAndRecompute(bbOutput, bbOutputType);
+                    evalOk[index] = bbOutput.getEvalOk();
+                    countEval[index] = bbOutput.getCountEval(bbOutputType);
+
+                    break;
+                }
+            }
+            // The number of tries has been reached (not eof) and still cannot read output file.
+            if( ! feof(fresult) && NULL == outputLine )
             {
                 // Something went wrong with the evaluation.
                 // Point could be re-submitted.
                 x->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
 #ifdef _OPENMP
-                #pragma omp critical(warningEvalX)
+#pragma omp critical(warningEvalX)
 #endif
                 {
                     std::cerr << "Warning: Evaluation error with point " << x->display() << ": output is empty" << std::endl;
                 }
             }
-            else
-            {
-                // Evaluation succeeded. Get and process blackbox output.
-                std::string bbo(outputLine);
-                // delete trailing '\n'
-                bbo.erase(bbo.size() - 1);
-
-                // Process blackbox output
-                NOMAD::BBOutput bbOutput(bbo);
-
-                auto bbOutputType = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
-                x->getEval(_evalType)->setBBOutputAndRecompute(bbOutput, bbOutputType);
-                evalOk[index] = bbOutput.getEvalOk();
-                countEval[index] = bbOutput.getCountEval(bbOutputType);
-            }
         }
-
         // Get exit status of the bb.exe. If it is not 0, there was an error.
         int exitStatus = pclose(fresult);
 

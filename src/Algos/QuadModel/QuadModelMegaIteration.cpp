@@ -112,6 +112,7 @@ void NOMAD::QuadModelMegaIteration::startImp()
             }
 
             AddOutputDebug( _iterList[i]->getName());
+            // Ensure we get frame center from a QuadModelIteration.
             auto frameCenter = sqmIteration->getFrameCenter();
             AddOutputDebug("Frame center: " + frameCenter->display());
             auto previousFrameCenter = frameCenter->getPointFrom();

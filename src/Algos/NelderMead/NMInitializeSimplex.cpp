@@ -97,8 +97,14 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
         throw NOMAD::Exception(__FILE__, __LINE__, "The simplex initialization must have a NMIteration Step as parent");
     }
 
-    const std::shared_ptr<NOMAD::EvalPoint> centerPt = iter->getFrameCenter();
-    // Use center point of iteration, otherwise
+    std::vector<NOMAD::EvalPoint> evalPointList;
+    std::shared_ptr<NOMAD::EvalPoint> centerPt = nullptr;
+    auto barrier = getMegaIterationBarrier();
+    if (nullptr != barrier)
+    {
+        evalPointList = barrier->getAllPoints();
+        centerPt = std::make_shared<NOMAD::EvalPoint>(evalPointList[0]);
+    }
     if (nullptr == centerPt)
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "A center point must be defined.");
@@ -147,26 +153,24 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
     // The set of points initially included
     NOMAD::NMSimplexEvalPointSet T;
 
-    std::vector<NOMAD::EvalPoint> evalpointlist;
     if (NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
     {
         // browse the cache:
         NOMAD::CacheInterface cacheInterface(this);
-        cacheInterface.getAllPoints(evalpointlist);
+        cacheInterface.getAllPoints(evalPointList);
     }
     else
     {
-        auto barrier = getMegaIterationBarrier();
         if (nullptr != barrier)
         {
-            evalpointlist = barrier->getAllPoints();
+            evalPointList = barrier->getAllPoints();
         }
     }
 
     // variables used to limit display
     const size_t maxPointsToDisplay = 4;
     size_t nbPoints = 0;
-    for ( const auto & cur : evalpointlist )
+    for ( const auto & cur : evalPointList )
     {
         if ( cur.getEvalStatus(evalType) == NOMAD::EvalStatusType::EVAL_OK &&
             cur.getX()->size() == n             )
@@ -202,7 +206,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
                     if ( include )
                     {
 
-                        // Issue #382: make sure to evaluate f or h for points in cache (important if cache is loaded from file) see 
+                        // Issue #382: make sure to evaluate f or h for points in cache (important if cache is loaded from file) see
                         NOMAD::EvalPoint Y ( cur );
                         std::pair<NMSimplexEvalPointSetIterator,bool> ret = T.insert ( Y );
 

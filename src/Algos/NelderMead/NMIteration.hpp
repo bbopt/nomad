@@ -109,7 +109,7 @@ public:
 
     // Get/Set
 
-    const std::shared_ptr<EvalPoint> getFrameCenter() const override { return _simplexCenter ; }
+    const std::shared_ptr<EvalPoint> getSimplexCenter() const { return _simplexCenter ; }
 
     const std::shared_ptr<MeshBase> getMesh() const override { return _madsMesh; }
 

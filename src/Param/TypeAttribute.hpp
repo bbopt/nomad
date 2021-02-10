@@ -95,6 +95,7 @@ public:
     const T& getValue() const { return _value; }
     const T& getInitValue() const { return _initValue; }
     void setValue(T v) { _value=v; }
+    bool uniqueEntry() const { return _uniqueEntry; }
 
     /**
      \return \c true if current value equals initial value, \c false otherwise.

@@ -360,7 +360,7 @@ NOMAD::ArrayOfDouble NOMAD::GMesh::getdeltaMeshSize() const
 NOMAD::Double NOMAD::GMesh::getdeltaMeshSize(size_t i) const
 {
     NOMAD::Double deltai = getdeltaMeshSize(_frameSizeExp[i], _initFrameSizeExp[i], _granularity[i]);
-    
+
     return deltai;
 }
 
@@ -650,6 +650,16 @@ NOMAD::Point NOMAD::GMesh::projectOnMesh(const NOMAD::Point& point,
     // To avoid running around in circles
     const size_t maxNbTry = 10;
 
+//    for (size_t i = 0; i < point.size(); ++i)
+//    {
+//
+//        NOMAD::Double diffProjFrameCenter = proj[i] - frameCenter[i];
+//        // Value which will be used in verifyPointIsOnMesh
+//        proj[i] = diffProjFrameCenter / delta[i];
+//        proj[i] = proj[i].round();
+//        proj[i] = frameCenter[i] + proj[i] * delta[i];
+//    }
+
     for (size_t i = 0; i < point.size(); ++i)
     {
         const NOMAD::Double deltaI = delta[i];
@@ -670,13 +680,20 @@ NOMAD::Point NOMAD::GMesh::projectOnMesh(const NOMAD::Point& point,
         {
             NOMAD::Double newVerifValueI;
 
-            if (0 == nbTry && _granularity[i] > 0 && _granularity[i].isInteger()
-                && frameCenter[i].isInteger())
+            if (0 == nbTry)
             {
-                verifValueI = verifValueI.roundd();
+                // Use closest projection
+                NOMAD::Double vHigh = verifValueI.nextMult(deltaI);
+                NOMAD::Double vLow = - (-verifValueI).nextMult(deltaI);
+                NOMAD::Double diffHigh = vHigh - verifValueI;
+                NOMAD::Double diffLow = verifValueI - vLow;
+                verifValueI = (diffLow < diffHigh) ? vLow
+                                                   : (diffHigh < diffLow) ? vHigh
+                                                   : (proj[i] < 0) ? vLow : vHigh;
             }
             else
             {
+                // Go hacky
                 verifValueI = (diffProjFrameCenter >= 0) ? verifValueI.nextMult(deltaI)
                                                          : - (-verifValueI).nextMult(deltaI);
             }

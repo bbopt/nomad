@@ -53,10 +53,8 @@ NOMAD::MegaIteration::MegaIteration(const Step* parentStep,
                               std::shared_ptr<Barrier> barrier,
                               SuccessType success)
   : Step(parentStep),
-    _iterList(),
     _barrier(barrier),
     _k(k),
-    _nbIterRun(0),
     _megaIterationSuccess(success)
 {
     if (nullptr == _barrier)
@@ -77,20 +75,7 @@ void NOMAD::MegaIteration::init()
 
 size_t NOMAD::MegaIteration::getNextK() const
 {
-    size_t nextK;
-    if (_nbIterRun > 0)
-    {
-        // Next MegaIteration number will start where the Iterations ended.
-        nextK = _k + _nbIterRun;
-    }
-    else
-    {
-        // Must increment MegaIteration number, cannot have
-        // twice the same number.
-        nextK = _k + 1;
-    }
-
-    return nextK;
+    return _k + 1;
 }
 
 
@@ -105,8 +90,6 @@ void NOMAD::MegaIteration::endImp()
             _stopReasons->set(NOMAD::BaseStopType::USER_STOPPED);
         }
     }
-
-    _iterList.clear();
 }
 
 

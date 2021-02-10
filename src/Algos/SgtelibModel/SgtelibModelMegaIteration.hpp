@@ -54,12 +54,16 @@
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/MegaIteration.hpp"
+#include "../../Algos/SgtelibModel/SgtelibModelIteration.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
 /// class SgtelibModelMegaIteration (Step)
 class SgtelibModelMegaIteration: public MegaIteration, public IterationUtils
 {
+private:
+    std::vector<std::shared_ptr<SgtelibModelIteration>> _iterList;
+
 public:
     /// Constructor
     /**

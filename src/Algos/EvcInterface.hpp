@@ -86,6 +86,15 @@ public:
     }
 
     /**
+    Set the EvaluatorControl to NULL.
+    Useful for Runner between two optimization problems to reset all counters. EvaluatorControl is initiated in MainStep::startImp()
+     */
+    static void resetEvaluatorControl()
+    {
+        _evaluatorControl.reset();
+    }
+    
+    /**
      If the evaluatorControl attribute is NULL, throws an exception.
      */
     static void setEvaluatorControl(const std::shared_ptr<EvaluatorControl>& evaluatorControl);

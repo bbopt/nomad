@@ -100,9 +100,7 @@ public:
     /* Get / Set */
     /*-----------*/
     void setupPbParameters(const ArrayOfDouble& lowerBound,
-                           const ArrayOfDouble& upperBound,
-                           const ArrayOfDouble& initialMeshSize = ArrayOfDouble(),
-                           const ArrayOfDouble& initialFrameSize = ArrayOfDouble());
+                           const ArrayOfDouble& upperBound);
 
     const EvalPointSet& getOraclePoints() const { return _oraclePoints; }
 

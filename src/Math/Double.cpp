@@ -496,6 +496,16 @@ std::string NOMAD::Double::display(const int prec, const size_t refWidth) const
 {
     std::ostringstream oss;
 
+    if(NOMAD::INF == _value)
+    {
+        return NOMAD::DEFAULT_INF_STR;
+    }
+    else if(NOMAD::INF == -_value)
+    {
+        std::string str = "-" + NOMAD::DEFAULT_INF_STR;
+        return str;
+    }
+
     // Set the number of digits after the point (ignore if prec < 0).
     if (prec >= 0)
     {

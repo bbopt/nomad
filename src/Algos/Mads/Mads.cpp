@@ -63,7 +63,7 @@ void NOMAD::Mads::init()
 
 bool NOMAD::Mads::runImp()
 {
-    size_t k = 0;   // Iteration number
+    size_t k = 1;   // Iteration number
     NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
     bool successFound = false;

@@ -129,11 +129,9 @@ private:
 
     static bool _hasBeenInitialized; ///< Flag for initialization (initialization cannot be performed more than once).
 
-
     static std::unique_ptr<OutputDirectToFile> _single; ///< The singleton
 
-    /// Display parameters
-    std::shared_ptr<DisplayParameters> _params;
+    size_t _outputSize;
 
     /**
      Format for output in a file.

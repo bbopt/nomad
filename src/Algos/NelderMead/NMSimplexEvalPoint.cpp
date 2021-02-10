@@ -64,14 +64,37 @@ bool NOMAD::NMSimplexEvalPointCompare::operator()(const NOMAD::EvalPoint& lhs,
     NOMAD::SuccessType success = computeSuccess(std::make_shared<NOMAD::EvalPoint>(lhs),
                                                 std::make_shared<NOMAD::EvalPoint>(rhs));
 
-    if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+    if (success >= NOMAD::SuccessType::FULL_SUCCESS)
     {
         return true;
     }
 
     success = computeSuccess(std::make_shared<NOMAD::EvalPoint>(rhs),
                              std::make_shared<NOMAD::EvalPoint>(lhs));
-    if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+    if (success >= NOMAD::SuccessType::FULL_SUCCESS)
+    {
+        return false;
+    }
+
+    // No dominance, compare h values.
+    NOMAD::Double h1 = lhs.getH();
+    NOMAD::Double h2 = rhs.getH();
+    if (h1.isDefined() && h2.isDefined())
+    {
+        if (h1 < h2)
+        {
+            return true;
+        }
+        if (h2 < h1)
+        {
+            return false;
+        }
+    }
+    else if (h1.isDefined() && !h2.isDefined())
+    {
+        return true;
+    }
+    else if (!h1.isDefined() && h2.isDefined())
     {
         return false;
     }

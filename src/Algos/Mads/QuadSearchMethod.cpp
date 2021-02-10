@@ -47,6 +47,7 @@
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/QuadSearchMethod.hpp"
 #include "../../Algos/QuadModel/QuadModelAlgo.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 //
@@ -123,9 +124,10 @@ void NOMAD::QuadSearchMethod::generateTrialPointsImp()
 
             // Pass the generated trial pts to this
             auto trialPtsSinglePassFeas = singlePassFeas.getTrialPoints();
-            for (auto point : trialPtsSinglePassFeas)
+            for (auto evalPoint : trialPtsSinglePassFeas)
             {
-                insertTrialPoint(point);
+                evalPoint.setPointFrom(bestXFeas, NOMAD::SubproblemManager::getSubFixedVariable(this));
+                insertTrialPoint(evalPoint);
             }
         }
         if (nullptr != bestXInf)
@@ -137,9 +139,10 @@ void NOMAD::QuadSearchMethod::generateTrialPointsImp()
 
             // Pass the generated trial pts to this
             auto trialPtsSinglePassInf = singlePassInf.getTrialPoints();
-            for (auto point : trialPtsSinglePassInf)
+            for (auto evalPoint : trialPtsSinglePassInf)
             {
-                insertTrialPoint(point);
+                evalPoint.setPointFrom(bestXInf, NOMAD::SubproblemManager::getSubFixedVariable(this));
+                insertTrialPoint(evalPoint);
             }
         }
     }

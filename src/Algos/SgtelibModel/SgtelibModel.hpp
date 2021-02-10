@@ -122,6 +122,11 @@ public:
     // Return hMax from _barrierForX0s.
     // It is used for the sub-Mads initialization.
     Double getHMax() const { return _barrierForX0s->getHMax(); }
+    // Return X0s' from _barrierForX0s.
+    // They are used for the sub-Mads initialization.
+    std::vector<EvalPoint> getX0s() const;
+    // Return only first X0.
+    std::shared_ptr<EvalPoint> getX0() const;
 
     std::shared_ptr<SGTELIB::TrainingSet> getTrainingSet() const { return _trainingSet; }
     std::shared_ptr<SGTELIB::Surrogate> getModel() const { return _model; }
@@ -173,9 +178,6 @@ public:
     // This method is used by SgtelibSearchMethod.
     EvalPointSet createOraclePoints();
 
-    // Return X0s' from _barrierForX0s.
-    // They are used for the sub-Mads initialization.
-    std::vector<EvalPoint> getX0s() const;
 
 private:
     void init();
@@ -183,7 +185,6 @@ private:
     void startImp() override;
     bool runImp() override;
     void endImp() override;
-
 };
 
 #include "../../nomad_nsend.hpp"

@@ -73,7 +73,7 @@ NOMAD::BBOutputType NOMAD::stringToBBOutputType(const std::string &sConst)
     {
         ret = NOMAD::BBOutputType::EB;
     }
-    else if (s == "PB")
+    else if (s == "PB" || s == "CSTR")
     {
         ret = NOMAD::BBOutputType::PB;
     }

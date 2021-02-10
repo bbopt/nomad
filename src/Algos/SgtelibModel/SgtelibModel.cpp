@@ -245,6 +245,31 @@ void NOMAD::SgtelibModel::setModelBounds(std::shared_ptr<SGTELIB::Matrix> X)
 } // end setModelBounds
 
 
+std::vector<NOMAD::EvalPoint> NOMAD::SgtelibModel::getX0s() const
+{
+    std::vector<NOMAD::EvalPoint> x0s;
+
+    if (nullptr != _barrierForX0s)
+    {
+        x0s = _barrierForX0s->getAllPoints();
+    }
+
+   return x0s;
+}
+
+
+// Return point used as frame center.
+std::shared_ptr<NOMAD::EvalPoint> NOMAD::SgtelibModel::getX0() const
+{
+    std::shared_ptr<NOMAD::EvalPoint> x0;
+    if (nullptr != _barrierForX0s)
+    {
+        x0 = std::make_shared<NOMAD::EvalPoint>(_barrierForX0s->getFirstPoint());
+    }
+    return x0;
+}
+
+
 /*------------------------------------------------------------------------*/
 /*                          Extended Bounds                               */
 /*------------------------------------------------------------------------*/
@@ -321,8 +346,7 @@ bool NOMAD::SgtelibModel::runImp()
 
         while (!_termination->terminate(k))
         {
-            // Create an MegaIteration: manage multiple iterations around
-            // different frame centers at the same time.
+            // Create an MegaIteration: manage multiple iterations at the same time.
             NOMAD::SgtelibModelMegaIteration megaIteration(this, k, barrier, megaIterSuccess);
             megaIteration.start();
             megaIteration.run();
@@ -478,19 +502,6 @@ size_t NOMAD::SgtelibModel::getNbModels(const NOMAD::SgtelibModelFeasibilityType
     }
 
     return nbModels;
-}
-
-
-std::vector<NOMAD::EvalPoint> NOMAD::SgtelibModel::getX0s() const
-{
-    std::vector<NOMAD::EvalPoint> x0s;
-
-    if (nullptr != _barrierForX0s)
-    {
-        x0s = _barrierForX0s->getAllPoints();
-    }
-
-    return x0s;
 }
 
 

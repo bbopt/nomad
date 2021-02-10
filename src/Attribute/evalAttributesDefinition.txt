@@ -75,6 +75,7 @@ OBJ
 . Available types
     . OBJ       : objective value to minimize (define twice for bi-objective)
     . PB        : constraint <= 0 treated with Progressive Barrier (PB)
+    . CSTR      : same as 'PB'
     . EB        : constraint <= 0 treated with Extreme Barrier (EB)
     . F         : constraint <= 0 treated with Filter
     . NOTHING   : this output is ignored
