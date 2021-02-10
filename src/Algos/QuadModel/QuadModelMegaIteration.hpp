@@ -48,6 +48,7 @@
 
 
 #include "../../Algos/MegaIteration.hpp"
+#include "../../Algos/QuadModel/QuadModelIteration.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -60,6 +61,8 @@
 */
 class QuadModelMegaIteration: public MegaIteration
 {
+private:
+    std::vector<std::shared_ptr<QuadModelIteration>> _iterList;
 
 public:
     /// Constructor

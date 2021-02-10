@@ -65,18 +65,10 @@ void NOMAD::MegaSearchPoll::init()
 }
 
 
-const std::shared_ptr<NOMAD::MadsIteration> NOMAD::MegaSearchPoll::getIterForPoint(const NOMAD::EvalPoint& point) const
-{
-    return _iterForPoint[point];
-}
-
-
 void NOMAD::MegaSearchPoll::startImp()
 {
-
     // Generate trial points using poll and search and merge them
     generateTrialPoints();
-
 }
 
 
@@ -112,47 +104,29 @@ void NOMAD::MegaSearchPoll::generateTrialPoints()
 
     NOMAD::EvalPointSet trialPoints;
 
-    // Generate points for all frame centers, all meshes, all Search and Poll strategies.
-    for (size_t i = 0; i < _megaIterAncestor->getNbIterations() ; i++)
+    // Generate trial points for Search (all enabled search methods) and Poll.
+    // Note: Search and Poll generateTrialPoints() methods both
+    // take care of verifying that the generated are on mesh, and also
+    // update the "PointFrom" with the frame center.
+    NOMAD::Search search(this);
+    search.generateTrialPoints();
+    auto trialPointsSearch = search.getTrialPoints();
+
+    NOMAD::Poll poll(this);
+    poll.generateTrialPoints();
+    auto trialPointsPoll = poll.getTrialPoints();
+
+    // Merge two sets and remove duplicates
+    // Naive implementation. Easier to understand - I could not make std::merge,
+    // std::unique or std::set_union work fine.
+    // Caveat: Multiple EvalPoints copy.
+    for (auto point : trialPointsSearch)
     {
-        // downcast from Iteration to MadsIteration
-        const std::shared_ptr<NOMAD::MadsIteration> & iter = std::dynamic_pointer_cast<NOMAD::MadsIteration> ( _megaIterAncestor->getIter(i));
-
-        if ( iter == nullptr )
-            throw NOMAD::Exception(__FILE__, __LINE__, "Cannot convert to MadsIteration shared pointer");
-
-        // Generate trial points for Search (all enabled search methods) and Poll.
-        // Note: Search and Poll generateTrialPoints() methods both
-        // take care of verifying that the generated are on mesh, and also
-        // update the "PointFrom" with the Iteration frame center.
-        NOMAD::Search search(iter.get() );
-        search.generateTrialPoints();
-        auto trialPointsSearch = search.getTrialPoints() ;
-
-        NOMAD::Poll poll(iter.get() );
-        poll.generateTrialPoints();
-        auto trialPointsPoll = poll.getTrialPoints();
-
-        // Merge two sets and remove duplicates
-        // Naive implementation. Easier to understand - I could not make std::merge,
-        // std::unique or std::set_union work fine.
-        // Caveat: Multiple EvalPoints copy.
-        for (auto point : trialPointsSearch)
-        {
-            insertTrialPoint( point );
-            // Remember which iteration generated these points
-            auto pointIterPair = std::pair<NOMAD::EvalPoint, std::shared_ptr<NOMAD::MadsIteration>>(point, std::make_shared<NOMAD::MadsIteration>(*iter));
-            _iterForPoint.insert(pointIterPair);
-        }
-        for (auto point : trialPointsPoll)
-        {
-            insertTrialPoint( point );
-
-            // Remember which iteration generated these points
-            auto pointIterPair = std::pair<NOMAD::EvalPoint, std::shared_ptr<NOMAD::MadsIteration>>(point, std::make_shared<NOMAD::MadsIteration>(*iter));
-            _iterForPoint.insert(pointIterPair);
-        }
-
+        insertTrialPoint(point);
+    }
+    for (auto point : trialPointsPoll)
+    {
+        insertTrialPoint(point);
     }
 
     OUTPUT_INFO_START

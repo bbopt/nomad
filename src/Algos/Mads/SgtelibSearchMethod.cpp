@@ -136,20 +136,7 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsImp()
     // Get Iteration
     const NOMAD::MadsIteration* iteration = getParentOfType<NOMAD::MadsIteration*>();
 
-    // SgtelibSearchMethod is processed on all points of the barrier.
-    // For this reason, we perform it only once by MegaIteration. Otherwise
-    // we would be doing the same thing multiple times.
-    if (!iteration->isMainIteration())
-    {
-        OUTPUT_INFO_START
-        auto megaIter = getParentOfType<NOMAD::MadsMegaIteration*>();
-        s = iteration->getName() + " is not main iteration of " + megaIter->getName();
-        s += ". " + _name + " not performed.";
-        AddOutputInfo(s, _displayLevel);
-        OUTPUT_INFO_END
-    }
-
-    else if (!_stopReasons->checkTerminate())
+    if (!_stopReasons->checkTerminate())
     {
         // Initial displays
         OUTPUT_INFO_START

@@ -56,6 +56,7 @@
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/MainStep.hpp"
 #include "../Algos/SubproblemManager.hpp"
+#include "../Math/RNG.hpp"
 
 // Specific algos
 #include "../Algos/LatinHypercubeSampling/LH.hpp"
@@ -311,9 +312,9 @@ void NOMAD::MainStep::startImp()
             // First, run PhaseOne, which has its own Mads.
             // Then, run regular Mads.
 
-            auto PhaseOneStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::PhaseOneStopType>>();
+            auto phaseOneStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::PhaseOneStopType>>();
             auto phaseOne = std::make_shared<NOMAD::PhaseOne>(this,
-                                                              PhaseOneStopReasons,
+                                                              phaseOneStopReasons,
                                                               _allParams->getRunParams(),
                                                               _allParams->getPbParams());
             // Ensure PhaseOne does not show found solutions
@@ -682,6 +683,10 @@ void NOMAD::MainStep::resetComponentsBetweenOptimization()
     NOMAD::EvalPoint::resetCurrentTag();
     // Reset SubproblemManager map
     NOMAD::SubproblemManager::reset();
+    // Reset evaluator control
+    NOMAD::EvcInterface::resetEvaluatorControl();
+    // Reset seed
+    NOMAD::RNG::resetPrivateSeedToDefault();
 }
 
 void NOMAD::MainStep::displayDetailedStats() const

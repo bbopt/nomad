@@ -1051,7 +1051,7 @@ void NOMAD::EvaluatorControl::stop()
     // Go through all main thread info to see if _allDoneWithEval must be set.
     // If any main thread is not done, allDone is false.
     bool allDone = true;
-    if (std::any_of(_mainThreads.begin(), _mainThreads.end(), 
+    if (std::any_of(_mainThreads.begin(), _mainThreads.end(),
                     [this](int mainTh){ return !getDoneWithEval(mainTh); }))
     {
         allDone = false;
@@ -1384,6 +1384,8 @@ void NOMAD::EvaluatorControl::AddStatsInfo(const NOMAD::BlockForEval& block) con
         stats->setMeshIndex(unknownMeshIndex);
         stats->setMeshSize(evalQueuePoint->getMeshSize());
         stats->setFrameSize(evalQueuePoint->getFrameSize());
+        auto frameCenter = evalQueuePoint->getPointFrom();
+        stats->setFrameCenter(frameCenter ? *frameCenter : NOMAD::Point(evalQueuePoint->size()));
         stats->setSol(*(evalQueuePoint->getX()));
         stats->setSuccessType(evalQueuePoint->getSuccess());
         stats->setThreadAlgo(mainThreadNum);

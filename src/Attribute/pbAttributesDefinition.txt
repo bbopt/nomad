@@ -315,26 +315,6 @@ false
 \( advanced stopping terminate(s) termination(s) phase one  \)
 RESTART_ATTRIBUTE no
 ################################################################################
-DIRECTION_TYPE
-NOMAD::DirectionType
-ORTHO 2N
-\( Type of direction for Mads poll \)
-\(
-. Type of direction used by Mads poll to generate trial points. In NOMAD 4, this
-  is can be set only once (UNIQUE_ENTRY true) but in Nomad 3 several direction
-  types can be combined. See issue #397.
-
-. Arguments: one direction type in {ORTHO 2N, N+1 UNI, SINGLE, DOUBLE}
-
-
-. Example:
-    . DIRECTION_TYPE N+1 UNI
-
-\)
-\( advanced poll direction ortho \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
 VARIABLE_GROUP
 NOMAD::ListOfVariableGroup
 -

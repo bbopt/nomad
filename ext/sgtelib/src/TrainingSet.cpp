@@ -272,9 +272,15 @@ void SGTELIB::TrainingSet::build ( void ){
       if (_X_nbdiff[j]>2) _X_nbdiff2++;
     }
 
-    // Check singular data (inf and void) 
-    check_singular_data();
-
+    // Check singular data (inf and void)
+    if (check_singular_data())
+    {
+#ifdef SGTELIB_DEBUG
+        std::cout << "SGTELIB::TrainingSet::check_singular_data(): incorrect data. Some _Z has no defined value !\n";
+#endif
+        return;
+    }
+      
     // Compute bounds over columns of X and Z
     compute_bounds();
 
@@ -404,7 +410,7 @@ bool SGTELIB::TrainingSet::add_point ( const double * xnew ,
 /*  compute the mean and std over                    */
 /*  the columns of a matrix                          */
 /*---------------------------------------------------*/
-void SGTELIB::TrainingSet::check_singular_data ( void ){
+bool SGTELIB::TrainingSet::check_singular_data ( void ){
 
   int i,j;
   bool e = false;
@@ -432,14 +438,11 @@ void SGTELIB::TrainingSet::check_singular_data ( void ){
     }
     // if there is more than 10 points and no correct value was found, return an error.
     if ( (_p>10) && ( ! isdef_Zj) ){
-      std::cout << "_Z(:," << j << ") has no defined value !\n";
       e = true; 
     }
   }
 
-  if (e){
-    throw Exception ( __FILE__ , __LINE__ , "TrainingSet::check_singular_data(): incorrect data !" );
-  }
+    return e;
 
 }//
 

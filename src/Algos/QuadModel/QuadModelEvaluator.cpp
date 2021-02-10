@@ -59,9 +59,9 @@ void NOMAD::QuadModelEvaluator::init()
                         ? NOMAD::OutputLevel::LEVEL_INFO
                         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
 
-    if ( nullptr == _model)
+    if (nullptr == _model)
     {
-            throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: a model is required (nullptr)");
+        throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: a model is required (nullptr)");
     }
 }
 
@@ -141,11 +141,10 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
 #pragma omp critical(SgtelibEvalX)
 #endif // _OPENMP
     {
+        _model->check_ready(__FILE__,__FUNCTION__,__LINE__);
 
-    _model->check_ready(__FILE__,__FUNCTION__,__LINE__);
-
-    _model->predict(X_predict, &M_predict);
-    NOMAD::OutputQueue::Add("ok", _displayLevel);
+        _model->predict(X_predict, &M_predict);
+        NOMAD::OutputQueue::Add("ok", _displayLevel);
     }
 
     j = 0;

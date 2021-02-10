@@ -60,7 +60,7 @@
 class Poll: public Step, public IterationUtils
 {
 private:
-    std::shared_ptr<PollMethodBase> _pollMethod; ///< Unlike for search, a single Poll method is executed
+    std::vector<std::shared_ptr<PollMethodBase>> _pollMethods;  ///< Unlike for Search, Poll methods generate all their points and only then they are evaluated.
 #ifdef TIME_STATS
     static double  _pollTime;        ///< Total time spent running the poll
     static double  _pollEvalTime;    ///< Total time spent evaluating poll points
@@ -74,7 +74,8 @@ public:
      */
     explicit Poll(const Step* parentStep)
       : Step(parentStep),
-        IterationUtils(parentStep)
+        IterationUtils(parentStep),
+        _pollMethods()
     {
         init();
     }
@@ -87,7 +88,7 @@ public:
         - snaping points (and directions) to bounds.
         - projecting points on mesh.
      */
-    void generateTrialPoints() override ;
+    void generateTrialPoints() override;
 
 #ifdef TIME_STATS
     /// Time stats
@@ -119,6 +120,12 @@ private:
      Call the IterationUtils::postProcessing of the points.
      */
     virtual void    endImp() override ;
+
+    /// Helper for start: get lists of Primary and Secondary Polls
+    void computePrimarySecondaryPollCenters(std::vector<EvalPoint> &primaryCenters, std::vector<EvalPoint> &secondaryCenters) const;
+
+    /// Helper for start: create a poll method
+    std::shared_ptr<NOMAD::PollMethodBase> createPollMethod(const bool isPrimary, const NOMAD::EvalPoint& frameCenter) const;
 
 };
 

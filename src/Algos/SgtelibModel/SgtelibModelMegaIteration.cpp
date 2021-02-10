@@ -50,6 +50,7 @@
 #include "../../Algos/SgtelibModel/SgtelibModelFilterCache.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelIteration.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelMegaIteration.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 
@@ -168,8 +169,7 @@ void NOMAD::SgtelibModelMegaIteration::runIterationsAndSetTrialPoints()
         {
             break;
         }
-        // downcast from Iteration to SgtelibModelIteration
-        std::shared_ptr<NOMAD::SgtelibModelIteration> iteration = std::dynamic_pointer_cast<NOMAD::SgtelibModelIteration>(_iterList[i]);
+        auto iteration = _iterList[i];
 
         if (nullptr == iteration)
         {
@@ -194,6 +194,10 @@ void NOMAD::SgtelibModelMegaIteration::runIterationsAndSetTrialPoints()
             // To be evaluated by blackbox
             // Add it to the list.
             // Snap to bounds, but there is no useful mesh in the context.
+            auto pointFrom = modelAlgo->getX0();
+            // PointFrom needs to be updated. It could have been set inside sub-algorithm,
+            // but that value is moot.
+            oraclePoint.setPointFrom(pointFrom, NOMAD::SubproblemManager::getSubFixedVariable(this));
             if (snapPointToBoundsAndProjectOnMesh(oraclePoint, lb, ub))
             {
                 bool inserted = insertTrialPoint(oraclePoint);
@@ -292,6 +296,7 @@ void NOMAD::SgtelibModelMegaIteration::filterCache()
 
     }
 }
+
 
 std::ostream& NOMAD::operator<<(std::ostream& os, const NOMAD::SgtelibModelMegaIteration& megaIteration)
 {

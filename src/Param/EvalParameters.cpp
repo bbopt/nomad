@@ -89,30 +89,51 @@ void NOMAD::EvalParameters::checkAndComply( const std::shared_ptr<NOMAD::RunPara
     if (isSetByUser("BB_EXE"))
     {
         auto bbExe = getAttributeValueProtected<std::string>("BB_EXE", false);
+        /*
+        // Ignore; the isSetByUser() is somehow sticky, so this causes issues in unit tests.
         if (bbExe.empty())
         {
             throw NOMAD::Exception(__FILE__, __LINE__, "BB_EXE is not defined");
         }
+        */
 
         bool localExe = true;
+        auto problemDir = runParams->getAttributeValue<std::string>("PROBLEM_DIR");
+
         if ('$' == bbExe[0])
         {
             // When the '$' character is put in first
             // position of a string, it is considered
             // as global and no path will be added.
-            bbExe = bbExe.substr(1, bbExe.size());
-            setAttributeValue("BB_EXE", bbExe);
             localExe = false;
         }
-        else
+
+        // Convert arguments; add path as needed.
+        auto bbExeAsArray = NOMAD::ArrayOfString(bbExe);
+        bbExe.clear();
+        for (size_t i = 0; i < bbExeAsArray.size(); i++)
         {
-            auto problemDir = runParams->getAttributeValue<std::string>("PROBLEM_DIR");
-            // bbExe is relative to problem directory.
-            completeFileName(bbExe, problemDir);
-            setAttributeValue("BB_EXE", bbExe);
+            std::string word = bbExeAsArray[i];
+            if (i > 0)
+            {
+                bbExe += " ";
+            }
+
+            if ('$' == word[0])
+            {
+                bbExe += word.substr(1, word.size());
+            }
+            else
+            {
+                // word is relative to problem directory.
+                completeFileName(word, problemDir);
+                bbExe += word;
+            }
         }
 
-        if (localExe && !checkExeFile(bbExe))
+        setAttributeValue("BB_EXE", bbExe);
+
+        if (localExe && !bbExe.empty() && !checkExeFile(bbExe))
         {
             throw NOMAD::Exception(__FILE__, __LINE__, "BB_EXE needs to be an executable file: " + bbExe);
         }

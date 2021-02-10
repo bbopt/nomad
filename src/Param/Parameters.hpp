@@ -259,13 +259,12 @@ public:
     std::string getTypeName() const { return _typeName; }
 
     void resetToDefaultValues() noexcept ;
+    void resetToDefaultValue(const std::string& paramName);
 
     /**
      Read the parameter file. Each line of the file is sent to Parameters::readParamLine.
      Called by AllParameters::read.
      */
-    void resetToDefaultValue(const std::string& paramName);
-
     static void readParamFileAndSetEntries(const std::string &paramFile, bool overwrite = false , bool resetAllEntries = false );
 
     /// Erase all entries
@@ -582,6 +581,21 @@ public:
             err += " is of type " + _typeOfAttributes[name];
             err += " and not of type T = " + typeTName;
             throw Exception(__FILE__,__LINE__, err);
+        }
+        if (!sp->uniqueEntry())
+        {
+            if (typeid(ArrayOfString).name() == _typeOfAttributes.at(name))
+            {
+                // Special case for DISPLAY parameter
+                ArrayOfString* valueAsAos = (ArrayOfString*)(&value);
+                ArrayOfString* aos = (ArrayOfString*)(&sp->getValue());
+                for (size_t i = 0; i < valueAsAos->size(); i++)
+                {
+                    aos->add((*valueAsAos)[i]);
+                }
+                // Convert back to T
+                value = *((T*)(aos));
+            }
         }
         sp->setValue(value);
 

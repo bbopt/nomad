@@ -46,14 +46,15 @@
 
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/Mads.hpp"
-#include "../../Algos/QuadModel/QuadModelEvaluator.hpp"
-#include "../../Algos/QuadModel/QuadModelOptimize.hpp"
 #include "../../Algos/QuadModel/QuadModelAlgo.hpp"
+#include "../../Algos/QuadModel/QuadModelEvaluator.hpp"
+#include "../../Algos/QuadModel/QuadModelIteration.hpp"
+#include "../../Algos/QuadModel/QuadModelOptimize.hpp"
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Eval/ComputeSuccessType.hpp"
 #include "../../Output/OutputQueue.hpp"
-
+#include "../../Type/DirectionType.hpp"
 
 void NOMAD::QuadModelOptimize::init()
 {
@@ -141,6 +142,9 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
     _optRunParams->setAttributeValue("SGTELIB_SEARCH", false);
     _optRunParams->setAttributeValue("NM_SEARCH", false);
 
+    // Set direction type to Ortho 2n
+    _optRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
+
     // No hMax in the context of QuadModel
     _optRunParams->setAttributeValue("H_MAX_0", NOMAD::Double(NOMAD::INF));
 
@@ -149,7 +153,7 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
 
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
 
-    _optRunParams->checkAndComply(evcParams, _pbParams);
+    _optRunParams->checkAndComply(evcParams, _optPbParams);
 }
 
 
@@ -160,8 +164,25 @@ void NOMAD::QuadModelOptimize::setupPbParameters()
     _optPbParams->setAttributeValue("UPPER_BOUND", _modelUpperBound);
     _optPbParams->setAttributeValue("FIXED_VARIABLE",_modelFixedVar);
 
+    // Reset initial mesh and frame sizes
+    // The initial mesh and frame sizes will be calculated from bounds and X0
+    _optPbParams->resetToDefaultValue("INITIAL_MESH_SIZE");
+    _optPbParams->resetToDefaultValue("INITIAL_FRAME_SIZE");
+    // Use default min mesh and frame sizes
+    _optPbParams->resetToDefaultValue("MIN_MESH_SIZE");
+    _optPbParams->resetToDefaultValue("MIN_FRAME_SIZE");
+
+    // Granularity is set to 0 and bb_input_type is set to all continuous variables. Candidate points are projected on the mesh before evaluation.
+    _optPbParams->resetToDefaultValue("GRANULARITY");
+    _optPbParams->resetToDefaultValue("BB_INPUT_TYPE");
+
+    // No variable groups are considered for suboptimization
+    _optPbParams->resetToDefaultValue("VARIABLE_GROUP");
+
     NOMAD::ArrayOfPoint x0s;
-    auto frameCenter = _iterAncestor->getFrameCenter();
+    // Ensure we get Frame Center from QuadModelIteration.
+    auto iter = dynamic_cast<const QuadModelIteration*>(_iterAncestor);
+    auto frameCenter = iter->getFrameCenter();
     if (frameCenter->inBounds(_modelLowerBound, _modelUpperBound))
     {
         x0s.push_back(*(frameCenter->getX()));
@@ -238,11 +259,11 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     auto madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
 
 
-    // Set and verify run parameter values
-    setupRunParameters();
-
     // Setup Pb parameters just before optimization.
     setupPbParameters();
+
+    // Set and verify run parameter values
+    setupRunParameters();
 
     OUTPUT_INFO_START
     std::ostringstream oss;
@@ -289,7 +310,7 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
         {
             // New EvalPoint to be evaluated.
             // Add it to the list (local or in Search method).
-            bool inserted = insertTrialPoint(NOMAD::EvalPoint(*bestXFeas));
+            bool inserted = insertTrialPoint(*bestXFeas);
 
             OUTPUT_INFO_START
             std::string s = "xt:";
@@ -302,7 +323,7 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
         {
             // New EvalPoint to be evaluated.
             // Add it to the lists (local or in Search method).
-            insertTrialPoint(NOMAD::EvalPoint(*bestXInf));
+            insertTrialPoint(*bestXInf);
 
         }
     }

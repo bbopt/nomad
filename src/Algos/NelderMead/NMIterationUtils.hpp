@@ -86,6 +86,8 @@ private:
     const EvalPoint * _simplexDiamPt1; /// First point used for simplex diameter
     const EvalPoint * _simplexDiamPt2; /// Second point used for simplex diameter
 
+    ArrayOfDouble _Delta;  /// Delta mads frame size for scaling DZ (can be undefined)
+
     /// Helper for NMIterationUtils::updateYCharacteristics
     void updateYDiameter ( void );
 
@@ -109,7 +111,7 @@ protected:
     void displayYInfo ( void ) const ;
 
     /**
-     \return The rank of DZ=[y_i-y_0]
+     \return The rank of DZ=[y_i-y_0]/Delta (Delta can be ones if mesh is not available)
      */
     int getRankDZ ( ) const ;
 
@@ -130,13 +132,24 @@ public:
         _simplexVon(0),
         _simplexDiamPt1(nullptr),
         _simplexDiamPt2(nullptr),
+        _Delta(ArrayOfDouble()),
         _rankEps(DEFAULT_EPSILON),
         _currentStepType(NMStepType::UNSET),
         _nmY(nullptr)
     {
         auto iter = dynamic_cast<const NMIteration*>(_iterAncestor);
         if ( nullptr != iter )
+        {
             _nmY = iter->getY();
+
+            // If a Mads mesh is available, initialize the frame size.
+            auto madsMesh = iter->getMesh();
+            if ( nullptr !=
+                madsMesh )
+            {
+                _Delta = madsMesh->getDeltaFrameSize();
+            }
+        }
     }
 
 

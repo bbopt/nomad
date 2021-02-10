@@ -101,7 +101,7 @@ public:
     /**
      \return All the eval points that are feasible.
      */
-    const std::vector<EvalPoint> getAllXFeas()    const { return _xFeas; }
+    const std::vector<EvalPoint>& getAllXFeas()    const { return _xFeas; }
 
     /// Update ref best feasible and ref best infeasible values.
     void updateRefBests();
@@ -142,7 +142,7 @@ public:
     /**
      \return All the eval points that are infeasible.
      */
-    const std::vector<EvalPoint> getAllXInf() const { return _xInf; }
+    const std::vector<EvalPoint>& getAllXInf() const { return _xInf; }
 
     ///  Get the first infeasible point in the barrier.
     /**
@@ -176,7 +176,12 @@ public:
     /* Other methods */
     /*---------------*/
     /// Get all feasible and infeasable points
-    std::vector<EvalPoint> getAllPoints();
+    std::vector<EvalPoint> getAllPoints() const;
+
+    /// Get first of all feasible and infeasible points.
+    /** If there are feasible points, returns first feasible point.
+      * else, returns first infeasible point. */
+    const NOMAD::EvalPoint& getFirstPoint() const;
 
     /// Get the current hMax of the barrier.
     Double getHMax() const { return _hMax; }

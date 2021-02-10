@@ -489,7 +489,7 @@ void NOMAD::Barrier::clearXInf()
 }
 
 
-std::vector<NOMAD::EvalPoint> NOMAD::Barrier::getAllPoints()
+std::vector<NOMAD::EvalPoint> NOMAD::Barrier::getAllPoints() const
 {
     std::vector<NOMAD::EvalPoint> allPoints;
 
@@ -498,6 +498,19 @@ std::vector<NOMAD::EvalPoint> NOMAD::Barrier::getAllPoints()
     allPoints.insert(allPoints.end(), _xInf.begin(), _xInf.end());
 
     return allPoints;
+}
+
+
+const NOMAD::EvalPoint& NOMAD::Barrier::getFirstPoint() const
+{
+    if (_xFeas.size() > 0)
+    {
+        return _xFeas[0];
+    }
+    else
+    {
+        return _xInf[0];
+    }
 }
 
 

@@ -292,7 +292,7 @@ RESTART_ATTRIBUTE yes
 ################################################################################
 QUAD_MODEL_SEARCH
 bool
-false
+true
 \( Quad model search using Sgtelib \)
 \(
 
@@ -628,6 +628,66 @@ size_t
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
+DIRECTION_TYPE
+NOMAD::DirectionType
+ORTHO 2N
+\( Type of direction for Mads poll \)
+\(
+. Type of direction used by Mads poll to generate trial points. In NOMAD 4, this
+  is can be set only once (UNIQUE_ENTRY true) but in Nomad 3 several direction
+  types can be combined. See issue #397.
+
+. Arguments: one direction type in {ORTHO 2N, N+1 UNI, SINGLE, DOUBLE}
+
+
+. Example:
+    . DIRECTION_TYPE N+1 UNI
+
+\)
+\( advanced poll direction ortho \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+SEC_POLL_DIR_TYPES
+NOMAD::DirectionType
+DOUBLE
+\( Type of direction for Mads secondary poll \)
+\(
+. Types of directions for the secondary poll
+
+. Arguments: same as DIRECTION_TYPE
+
+. If DIRECTION_TYPE is ORTHO 2N, then default SEC_POLL_DIR_TYPES is DOUBLE.
+
+. If DIRECTION_TYPE is not ORTHO 2N, then default SEC_POLL_DIR_TYPES is SINGLE.
+
+. Example: SEC_POLL_DIR_TYPES ORTHO 2N
+
+. See also: RHO
+\)
+\( advanced poll direction primary secondary \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+RHO
+NOMAD::Double
+0.1
+\( Rho parameter of the progressive barrier \)
+\(
+. Used to choose if the primary frame center is the feasible or infeasible
+  incumbent.
+
+. Argument: real
+
+. If the value is negative, both feasible and infeasible incumbents are
+  treated as primary poll centers.
+
+. Example: RHO 0.5
+\)
+\( advanced primary secondary \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
 ANISOTROPIC_MESH
 bool
 true
@@ -948,7 +1008,7 @@ RESTART_ATTRIBUTE yes
 ################################################################################
 MODEL_RADIUS_FACTOR
 NOMAD::Double
-4.0
+2.0
 \( Model radius factor \)
 \(
 . Model radius factor
@@ -987,7 +1047,7 @@ RESTART_ATTRIBUTE yes
 ################################################################################
 MAX_ITERATION_PER_MEGAITERATION
 size_t
-10
+INF
 \( Maximum number of Iterations to generate for each MegaIteration. \)
 \(
 . Maximum number of Iterations to generate for each MegaIteration.
@@ -1100,7 +1160,7 @@ false
 \( Use NOMAD 3 strategy for mesh update in PSD-MADS \)
 \(
 
-. When using Parallel Space Decomposition (PSD) MADS algorithm, 
+. When using Parallel Space Decomposition (PSD) MADS algorithm,
   NOMAD 3 strategy is to always update the mesh whenever a new pollster is launched.
   NOMAD 4 strategy is more defined as for which conditions must be met for
   the mesh to be updated.
@@ -1122,7 +1182,7 @@ NOMAD::Double
 \( Percentage of variables that must be covered in subproblems before updating mesh \)
 \(
 
-. When using Parallel Space Decomposition (PSD) MADS algorithm, 
+. When using Parallel Space Decomposition (PSD) MADS algorithm,
   update (enlarge or refine) the mesh when this percentage of variables is
   covered by subproblems.
 
@@ -1241,4 +1301,3 @@ true
 \( advanced sequential space ssd mads decomposition subproblem opportunistic \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
-################################################################################

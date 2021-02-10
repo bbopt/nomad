@@ -46,6 +46,7 @@
 
 #include "../Math/RNG.hpp"  // for setSeed()
 #include "../Param/RunParameters.hpp"
+#include "../Type/DirectionType.hpp"
 #include "../Util/fileutils.hpp"
 
 #include "../nomad_version.hpp"
@@ -169,6 +170,9 @@ void NOMAD::RunParameters::checkAndComply(
         NOMAD::toupper(disabledI);
         disabled.add(disabledI);
     }
+    // DISABLE may take multiple values: UNIQUE_ENTRY is false,
+    // so its value needs to be reset before being updated.
+    resetToDefaultValue("DISABLE");
     setAttributeValue("DISABLE", disabled);
 
     /*---------------------------*/
@@ -233,6 +237,15 @@ void NOMAD::RunParameters::checkAndComply(
         throw NOMAD::Exception(__FILE__, __LINE__, "Parameter SGTELIB_MODEL_TRIALS must be positive");
     }
 
+    // Misc.
+    auto frameCenterUseCache = getAttributeValueProtected<bool>("FRAME_CENTER_USE_CACHE", false);
+    if (!frameCenterUseCache)
+    {
+        // Void parameter MAX_ITERATION_PER_MEGAITERATION
+        setAttributeValue("MAX_ITERATION_PER_MEGAITERATION", INF_SIZE_T);
+    }
+
+
     /*--------------------------------*/
     /* Parallelism related parameters */
     /*--------------------------------*/
@@ -275,6 +288,16 @@ void NOMAD::RunParameters::checkAndComply(
         std::cerr << err << std::endl;
     }
 #endif
+
+    // Update secondary poll direction based on primary poll direction
+    // If DIRECTION_TYPE is ORTHO 2N, do nothing.
+    // If DIRECTION_TYPE is not ORTHO 2N, set SEC_POLL_DIR_TYPES to SINGLE.
+    // This is not exactly the behavior of NOMAD 3, but it is close enough.
+    auto primaryDirType = getAttributeValueProtected<NOMAD::DirectionType>("DIRECTION_TYPE", false);
+    if (NOMAD::DirectionType::ORTHO_2N != primaryDirType)
+    {
+        setAttributeValue("SEC_POLL_DIR_TYPES", NOMAD::DirectionType::SINGLE);
+    }
 
     // PSD-Mads and SSD-Mads parameters
     bool useAlgoPSDMads = getAttributeValueProtected<bool>("PSD_MADS_OPTIMIZATION", false);
@@ -405,7 +428,14 @@ void NOMAD::RunParameters::checkAndComply(
 void NOMAD::RunParameters::setStaticParameters()
 {
     // Sub-method of checkAndComply() to set static variables of some classes.
-    NOMAD::RNG::setSeed ( getAttributeValueProtected<int>("SEED",false) );
+    int currentRNGSeed = NOMAD::RNG::getSeed();
+    int seedToSet = getAttributeValueProtected<int>("SEED",false);
+    // If the seed has changed we call setSeed which reset the private RNG seed to its default and runs the rand() function to set the seed (seed and private seed are different).
+    // If the seed is the same as before we do nothing.
+    if (currentRNGSeed != seedToSet)
+    {
+        NOMAD::RNG::setSeed ( seedToSet );
+    }
     NOMAD::Double::setEpsilon ( getAttributeValueProtected<NOMAD::Double>("EPSILON",false).todouble() );
     NOMAD::Double::setUndefStr ( getAttributeValueProtected<std::string>("UNDEF_STR",false) );
     NOMAD::Double::setInfStr ( getAttributeValueProtected<std::string>("INF_STR",false) );

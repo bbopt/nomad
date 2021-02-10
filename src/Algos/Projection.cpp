@@ -96,7 +96,8 @@ void NOMAD::Projection::init()
     if (nullptr != iter)
     {
         _mesh = iter->getMesh();
-        _frameCenter = iter->getFrameCenter();
+        auto barrier = iter->getMegaIterationBarrier();
+        _frameCenter = std::make_shared<NOMAD::EvalPoint>(barrier->getFirstPoint());
         if (_frameCenter)
         {
             buildIndexSet(_frameCenter->size());

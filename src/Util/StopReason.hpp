@@ -144,6 +144,7 @@ enum class NMStopType : int
     X0_FAILED                   ,
     NM_SINGLE_COMPLETED         ,
     NM_STOP_ON_SUCCESS          ,
+    NM_STOP_NO_SHRINK           ,
     LAST
 };
 

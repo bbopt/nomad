@@ -55,6 +55,7 @@ BBE OBJ
     CONS_H     : infeasibility (h) value
     EVAL       : evaluations (includes cache hits)
     FEAS_BBE   : feasible blackbox evaluations
+    FRAME_CENTER : Point that was used as center to generate this evaluated point
     FRAME_SIZE / DELTA_F : frame size delta_k^f
     GEN_STEP   : name of the step that generated this point to evaluate
     H_MAX      : max infeasibility (h) acceptable

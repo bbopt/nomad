@@ -88,7 +88,9 @@ private:
 
     short    _numberEval; ///< Number of times \c *this point has been evaluated (blackbox only)
 
-    std::shared_ptr<Point> _pointFrom; ///< The frame center which generated \c *this point (blackbox only)
+    std::shared_ptr<Point> _pointFrom; ///< The frame center which generated \c *this point (blackbox only). Full space.
+
+    std::string     _genStep;           ///< Generating step, also for stats
 
 public:
 
@@ -221,6 +223,9 @@ public:
     /// Get the Point which was the center when this point was generated
     const std::shared_ptr<Point> getPointFrom() const { return _pointFrom; }
 
+    void setGenStep(const std::string& genStep);
+    const std::string& getGenStep() const { return _genStep; }
+
     /// Get the Point which was the center when this point was generated
     /**
      Returns a Point in the Subspace defined by the fixedVariable
@@ -228,13 +233,10 @@ public:
     const std::shared_ptr<Point> getPointFrom(const Point& fixedVariable) const;
 
     /// Set the Point for which this point was generated
-    void setPointFrom(const std::shared_ptr<Point> pointFrom);
-
-    /// Set the Point for which this point was generated
     /**
-     Use the fixedVariable to convert pointFrom from Subspace dimension to the full dimension.
+     Use the fixedVariable to convert pointFrom from Subspace dimension to the full dimension, if needed.
      */
-    void setPointFrom(std::shared_ptr<Point> pointFrom,
+    void setPointFrom(const std::shared_ptr<Point> pointFrom,
                       const Point& fixedVariable);
 
     /// Get evaluation feasibility flag f the Eval of this EvalType

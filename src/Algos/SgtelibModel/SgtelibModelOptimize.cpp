@@ -51,6 +51,7 @@
 #include "../../Algos/SgtelibModel/SgtelibModelOptimize.hpp"
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Output/OutputQueue.hpp"
+#include "../../Type/DirectionType.hpp"
 #include "../../Type/LHSearchType.hpp"
 
 void NOMAD::SgtelibModelOptimize::init()
@@ -186,6 +187,9 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
     disable.add(std::string("MODELS"));
     _optRunParams->setAttributeValue("DISABLE", disable);
 
+    // Set direction type to Ortho 2n
+    _optRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
+
     // Use isotropic mesh
     _optRunParams->setAttributeValue("ANISOTROPIC_MESH", false);
 
@@ -206,14 +210,27 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
 
 
 void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& lowerBound,
-                                                    const NOMAD::ArrayOfDouble& upperBound,
-                                                    const NOMAD::ArrayOfDouble& initialMeshSize,
-                                                    const NOMAD::ArrayOfDouble& initialFrameSize)
+                                                    const NOMAD::ArrayOfDouble& upperBound)
 {
     _optPbParams = std::make_shared<NOMAD::PbParameters>(*_refPbParams);
 
     _optPbParams->setAttributeValue("LOWER_BOUND", lowerBound);
     _optPbParams->setAttributeValue("UPPER_BOUND", upperBound);
+
+    // Reset initial mesh and frame sizes
+    // The initial mesh and frame sizes will be calculated from bounds and X0
+    _optPbParams->resetToDefaultValue("INITIAL_MESH_SIZE");
+    _optPbParams->resetToDefaultValue("INITIAL_FRAME_SIZE");
+    // Use default min mesh and frame sizes
+    _optPbParams->resetToDefaultValue("MIN_MESH_SIZE");
+    _optPbParams->resetToDefaultValue("MIN_FRAME_SIZE");
+
+    // Granularity is set to 0 and bb_input_type is set to all continuous variables. Candidate points are projected on the mesh before evaluation.
+    _optPbParams->resetToDefaultValue("GRANULARITY");
+    _optPbParams->resetToDefaultValue("BB_INPUT_TYPE");
+
+    // No variable groups are considered for suboptimization
+    _optPbParams->resetToDefaultValue("VARIABLE_GROUP");
 
     // Find best points (SGTE evals) and use them as X0s to optimize models.
     NOMAD::CacheInterface cacheInterface(this);
@@ -259,15 +276,6 @@ void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& 
         }
     }
     _optPbParams->setAttributeValue("X0", x0s);
-
-    if (initialMeshSize.isDefined() && initialMeshSize.isComplete())
-    {
-        _optPbParams->setAttributeValue("INITIAL_MESH_SIZE", initialMeshSize);
-    }
-    if (initialFrameSize.isDefined() && initialFrameSize.isComplete())
-    {
-        _optPbParams->setAttributeValue("INITIAL_FRAME_SIZE", initialFrameSize);
-    }
 
     // We do not want certain warnings appearing in sub-optimization.
     _optPbParams->doNotShowWarnings();

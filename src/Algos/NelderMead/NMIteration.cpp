@@ -156,7 +156,14 @@ bool NOMAD::NMIteration::runImp()
             _bestSuccess = success;
         }
     }
+    // Perform SHRINK only for a standalone NM optimization ELSE stop NM
+    if ( ! _stopReasons->checkTerminate() &&
+         stepType == NMStepType::SHRINK  )
+    {
+        auto nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get ( _stopReasons );
+        nmStopReason->set( NOMAD::NMStopType::NM_STOP_NO_SHRINK );
 
+    }
     if ( iterationSuccess )
     {
         // Update MegaIteration success type with best success found.

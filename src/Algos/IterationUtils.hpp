@@ -156,32 +156,19 @@ public:
      */
     void verifyPointsAreOnMesh(const std::string& name) const;
 
-//    /// Snap a given trial point to the bounds
-//    /**
-//     * Used by classes that generate points: SearchMethods, Poll, etc,
-//     * to make the point satisfy the bounds before sending it to evaluation.
-//     \param point        The point to process
-//     \param lowerBound   The lower bounds.
-//     \param upperBound   The upper bounds
-//     \return             \c true if the function worked, the point is now on mesh and inside bounds
-//     */
-//    bool snapPointToBounds(Point& point,
-//                            const ArrayOfDouble& lowerBound,
-//                            const ArrayOfDouble& upperBound);
-
     /// Snap a given trial point to the bounds and project on mesh
     /**
      * Used by classes that generate points: SearchMethods, Poll, etc,
      * to make the point satisfy the bounds and mesh requisites,
      * before sending it to evaluation.
-     \param point        The point to process
+     \param evalPoint    The point to process
      \param lowerBound   The lower bounds.
      \param upperBound   The upper bounds
      \return             \c true if the function worked, the point is now on mesh and inside bounds
      */
-    bool snapPointToBoundsAndProjectOnMesh(Point& point,
-                                                  const ArrayOfDouble& lowerBound,
-                                                  const ArrayOfDouble& upperBound);
+    bool snapPointToBoundsAndProjectOnMesh(EvalPoint& evalPoint,
+                                           const ArrayOfDouble& lowerBound,
+                                           const ArrayOfDouble& upperBound);
 
     /// Start evaluation of the trial points
     /**
@@ -198,9 +185,6 @@ public:
     /** Virtual function that algorithm iteration steps must implement
      */
     virtual void generateTrialPoints() = 0;
-
-    /// Add current frame center as originator of each point in trialPoints
-    void updatePointsWithFrameCenter();
 
 private:
 

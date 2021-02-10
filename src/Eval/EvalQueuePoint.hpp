@@ -74,7 +74,6 @@ private:
     bool            _relativeSuccess;   ///< Did better than the previous evaluation
 
     std::string     _comment;           ///< Algo comment to be printed out in DISPLAY_STATS
-    std::string     _genStep;           ///< Generating step, also for stats
 
     ArrayOfDouble   _meshSize; ///< Remenbers size of mesh that created point.
     ArrayOfDouble   _frameSize; ///< Remenbers size of frame that created point.
@@ -98,7 +97,6 @@ public:
         _success(SuccessType::NOT_EVALUATED),
         _relativeSuccess(false),
         _comment(""),
-        _genStep(""),
         _meshSize(),
         _frameSize(),
         _k(0),
@@ -115,9 +113,6 @@ public:
 
     void setComment(const std::string& comment) { _comment = comment; }
     const std::string& getComment() const { return _comment; }
-
-    void setGenStep(const std::string& genStep) { _genStep = genStep; }
-    const std::string& getGenStep() const { return _genStep; }
 
     void setMeshSize(const ArrayOfDouble& meshSize) { _meshSize = meshSize; };
     const ArrayOfDouble& getMeshSize() const { return _meshSize; }

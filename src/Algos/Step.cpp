@@ -401,20 +401,6 @@ const std::shared_ptr<NOMAD::MeshBase> NOMAD::Step::getIterationMesh() const
 }
 
 
-// Get the frame center from the iteration ancestor.
-const std::shared_ptr<NOMAD::EvalPoint> NOMAD::Step::getIterationFrameCenter() const
-{
-    std::shared_ptr<NOMAD::EvalPoint> frameCenter = nullptr;
-    const NOMAD::Iteration* iteration = getParentOfType<NOMAD::Iteration*>();
-
-    if (nullptr != iteration)
-    {
-        frameCenter = iteration->getFrameCenter();
-    }
-    return frameCenter;
-}
-
-
 // Get Barrier from the MegaIteration ancestor.
 const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() const
 {
@@ -494,15 +480,15 @@ void NOMAD::Step::debugShowCallStack() const
         stepNameStack.push_back(step->getName());
         step = const_cast<NOMAD::Step*>(step->getParentStep());
     }
-    
+
     if (stepNameStack.empty())
     {
         return;
     }
-    
+
     // Show the steps in order, this is why we created the stack.
     std::cout << "Call stack:" << std::endl;
-    // NOTE: Using "i < stepNameStack.size()" as condition for loop, 
+    // NOTE: Using "i < stepNameStack.size()" as condition for loop,
     // since i is a size_t (it is always >= 0).
     for (size_t i = stepNameStack.size()-1; i < stepNameStack.size(); i--)
     {

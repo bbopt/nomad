@@ -75,6 +75,7 @@ NOMAD::StatsInfo::StatsInfo()
     _meshIndex(),
     _meshSize(),
     _frameSize(),
+    _frameCenter(),
     _lap(0),
     _sgte(0),
     _totalSgte(0),
@@ -210,6 +211,10 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     {
         ret = NOMAD::DisplayStatsType::DS_FRAME_SIZE;
     }
+    else if (s == "FRAME_CENTER")
+    {
+        ret = NOMAD::DisplayStatsType::DS_FRAME_CENTER;
+    }
     else if (s == "LAP")
     {
         ret = NOMAD::DisplayStatsType::DS_LAP;
@@ -302,6 +307,8 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "DELTA_M";
         case NOMAD::DisplayStatsType::DS_FRAME_SIZE:
             return "FRAME_SIZE";
+        case NOMAD::DisplayStatsType::DS_FRAME_CENTER:
+            return "FRAME_CENTER";
         case NOMAD::DisplayStatsType::DS_DELTA_F:
             return "DELTA_F";
         case NOMAD::DisplayStatsType::DS_LAP:
@@ -480,6 +487,10 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
                  || NOMAD::DisplayStatsType::DS_DELTA_F == statsType)
         {
             out += _frameSize.display(solFormat);
+        }
+        else if (NOMAD::DisplayStatsType::DS_FRAME_CENTER == statsType)
+        {
+            out += _frameCenter.display(solFormat);
         }
         else if (NOMAD::DisplayStatsType::DS_LAP == statsType)
         {

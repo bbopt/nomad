@@ -62,7 +62,8 @@ bool NOMAD::OrderByDirection::comp(NOMAD::EvalQueuePointPtr& point1,
         || !lastSuccessfulDir1->isDefined() || !lastSuccessfulDir2->isDefined()
         || 0 == lastSuccessfulDir1->norm() || 0 == lastSuccessfulDir2->norm())
     {
-        lowerPriority = false;
+        // If no valid last direction of success revert to tag ordering
+        lowerPriority = ( point1->getTag() > point2->getTag() );
     }
     else if (nullptr == point1 || nullptr == point2)
     {

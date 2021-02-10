@@ -298,11 +298,6 @@ public:
     const std::shared_ptr<MeshBase> getIterationMesh() const;
 
     /**
-     \return The frameCenter for the first Iteration ancestor of this Step.
-     */
-    const std::shared_ptr<EvalPoint> getIterationFrameCenter() const;
-
-    /**
      \return The Barrier for the main MegaIteration ancestor of this Step.
      */
     const std::shared_ptr<Barrier> getMegaIterationBarrier() const;

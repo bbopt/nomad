@@ -99,11 +99,6 @@ public:
      */
     virtual const std::shared_ptr<MeshBase> getMesh() const { return nullptr; }
 
-    /**
-     \return \c nullptr for algorithms that do not use a frame center. Otherwise, this function must be reimplemented in algorithm specific iteration (for example, MadsIteration, NMIteration, ...).
-     */
-    virtual const std::shared_ptr<EvalPoint> getFrameCenter() const { return nullptr; }
-
 protected:
 
     /**
@@ -121,12 +116,6 @@ protected:
      If an end implementation function specific to an algorithm is required, it is convenient to call this function for default task.
      */
     virtual void endImp()      override;
-
-    /**
-     \return \c true if this Iteration is considered the principal iteration of its parent MegaIteration.
-    By default, return true.
-    */
-    virtual bool isMainIteration() const { return true; }
 
 };
 

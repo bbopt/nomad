@@ -78,10 +78,10 @@ private:
 public:
     /// Constructor
     /**
-     \param parentStep       The parent of this step -- \b IN.
-     \param frameCenter    The frame center -- \b IN.
-     \param k                              The iteration number -- \b IN.
-     \param madsMesh            Mads Mesh for trial point projection (can be null) -- \b IN.
+     \param parentStep      The parent of this step -- \b IN.
+     \param frameCenter     The frame center -- \b IN.
+     \param k               The iteration number -- \b IN.
+     \param madsMesh        Mads Mesh for trial point projection (can be null) -- \b IN.
      */
     explicit QuadModelIteration(const Step *parentStep,
                                 const std::shared_ptr<EvalPoint> &frameCenter,
@@ -111,8 +111,8 @@ public:
     /// Access to the training set
     const std::shared_ptr<SGTELIB::TrainingSet> getTrainingSet() const { return _trainingSet; }
 
-    /// Reimplement to have access to the frame center (can be undefined)
-    const std::shared_ptr<EvalPoint> getFrameCenter() const override { return _frameCenter ; }
+    /// Access to the frame center (can be undefined)
+    const std::shared_ptr<EvalPoint> getFrameCenter() const { return _frameCenter ; }
 
     /// Reimplement to have access to the mesh (can be null)
     const std::shared_ptr<MeshBase> getMesh() const override { return _madsMesh; }
