@@ -267,7 +267,7 @@ bool NOMAD::SgteEnsembleUpdate::runImp()
                 break;
 
             case NOMAD::SgtelibModelFeasibilityType::H:
-                NOMAD::SgtelibModelEvaluator::evalH(bbo, bbot, v);
+                NOMAD::SgteEnsembleEvaluator::evalH(bbo, bbot, v);
                 row_Z.set(0, 1, v.todouble()); // 2nd column: constraint model
                 break;
 
