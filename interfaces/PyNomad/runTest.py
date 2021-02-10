@@ -14,5 +14,5 @@ ub=[]
 
 params = ["BB_OUTPUT_TYPE OBJ", "MAX_BB_EVAL 100", "UPPER_BOUND * 1", "DISPLAY_DEGREE 2", "DISPLAY_ALL_EVAL false", "DISPLAY_STATS BBE THREAD_NUM OBJ"] 
 
-[ x_return, f_return, h_return, nb_evals, nb_iters, stopflag ] = PyNomad.optimize(bb, x0, lb, ub, params)
+x_return, f_return, h_return, nb_evals, nb_iters, stopflag = PyNomad.optimize(bb, x0, lb, ub, params)
 print ("\n NOMAD outputs \n X_sol={} \n F_sol={} \n H_sol={} \n NB_evals={} \n NB_iters={} \n".format(x_return,f_return,h_return,nb_evals,nb_iters))

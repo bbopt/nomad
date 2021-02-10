@@ -43,7 +43,6 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-
 // June 2019
 // Version 1.0 is with NOMAD 3.
 #define NOMAD_PYTHON_VERSION "2.0"
@@ -52,6 +51,7 @@
 #include "Math/RNG.hpp"
 #include "Nomad/nomad.hpp"
 #include "Param/AllParameters.hpp"
+#include "Cache/CacheBase.hpp"
 
 #include <Python.h>
 #include <signal.h>
@@ -419,7 +419,7 @@ static int runNomad(Callback cb,
 
         // Set cbL to NULL if blocks are not used.
         // Set cb to NULL if blocks are used.
-        if (allParams->getEvaluatorControlParams()->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE") > 1)
+        if (allParams->getEvaluatorControlGlobalParams()->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE") > 1)
         {
             // Using blocks
             cb = nullptr;
@@ -441,8 +441,8 @@ static int runNomad(Callback cb,
 
         // Set the best feasible and best infeasible solutions
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB);
-        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB);
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, nullptr);
+        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, nullptr);
 
         if (nbInf > 0)
         {
