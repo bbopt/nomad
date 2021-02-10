@@ -19,9 +19,10 @@ GRANULARITY ( 1 1 0.5 1 1 1 1 0.5 1 1 )
 # ALGORITHM PARAMETERS
 ######################
 SGTE_ENSEMBLE_SEARCH yes
-MAX_SGTE_EVAL 1000
-NM_SEARCH no
 
+QUAD_MODEL_SEARCH false
+SPECULATIVE_SEARCH no
+NM_SEARCH no
 
 # The algorithm terminates after that number black-box evaluations
 MAX_BB_EVAL 1000
@@ -34,7 +35,7 @@ MAX_EVAL 200
 OPPORTUNISTIC_EVAL true
 
 # Parameters for display
-DISPLAY_DEGREE 2
+DISPLAY_DEGREE 4
 DISPLAY_ALL_EVAL 1
 DISPLAY_STATS BBE ( SOL ) OBJ GEN_STEP
 #STATS_FILE stats.txt BBE SOL OBJ
