@@ -95,7 +95,10 @@ bool NOMAD::QuadModelAlgo::runImp()
         if (nullptr == barrier)
         {
             auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-            barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this), NOMAD::EvalType::BB);
+            barrier = std::make_shared<NOMAD::Barrier>(hMax,
+                                                       NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
+                                                       NOMAD::EvalType::BB,
+                                                       NOMAD::EvcInterface::getEvaluatorControl()->getComputeType());
         }
 
         NOMAD::SuccessType megaIterSuccessType = NOMAD::SuccessType::NOT_EVALUATED;

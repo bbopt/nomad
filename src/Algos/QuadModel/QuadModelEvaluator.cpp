@@ -171,24 +171,17 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
         // ====================================== //
         // Application of the formulation         //
         // ====================================== //
-        NOMAD::Double obj;
         NOMAD::ArrayOfDouble newbbo(bbot.size(), -1);
 
-        // ------------------------- //
-        //   Set obj and BBO         //
-        // ------------------------- //
+        // ----------------- //
+        //   Set BBO         //
+        // ----------------- //
         for (size_t i = 0; i < nbModels; i++)
         {
             newbbo[i] = M_predict.get(j,static_cast<int>(i));
-            if (bbot[i] == NOMAD::BBOutputType::OBJ)
-                obj = newbbo[i];
         }
-        (*it)->setBBO(newbbo.display(), bbot, NOMAD::EvalType::SGTE);
-
-        NOMAD::Double h;
-        evalH(newbbo, bbot, h);
-        (*it)->setF(obj, NOMAD::EvalType::SGTE);
-        (*it)->setH(h, NOMAD::EvalType::SGTE);
+        NOMAD::ArrayOfDouble fullPrecision(bbot.size(), NOMAD::DISPLAY_PRECISION_FULL);
+        (*it)->setBBO(newbbo.display(fullPrecision), bbot, NOMAD::EvalType::SGTE);
 
         // ================== //
         // Exit Status        //
@@ -207,73 +200,5 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
 
     return evalOk;
 }
-
-
-
-/*----------------------------------------------------------------*/
-/*     compute model h and f values given one blackbox output     */
-/*----------------------------------------------------------------*/
-void NOMAD::QuadModelEvaluator::evalH(const NOMAD::ArrayOfDouble& bbo,
-                                         const NOMAD::BBOutputTypeList& bbot,
-                                         NOMAD::Double &h)
-{
-    // Note: This method must be reviewed if new BBOutputTypes are added.
-
-    const auto hMin = 0.0; // H_MIN not implemented
-
-    h = 0.0;
-    const size_t m = bbo.size();
-
-    if ( m != bbot.size() )
-    {
-        std::string s = "QuadModelEvaluator::evalH() called with an invalid bbo argument";
-        std::cerr << s << std::endl;
-        throw NOMAD::Exception ( __FILE__, __LINE__, s);
-    }
-
-    NOMAD::Double bboi;
-    for (size_t i = 0 ; i < m ; ++i)
-    {
-        bboi = bbo[i];
-        if (bboi.isDefined())
-        {
-            if (bbot[i] == NOMAD::BBOutputType::EB)
-            {
-                if ( bboi > hMin )
-                {
-                    h = +INF;
-                    return;
-                }
-            }
-            else if (bbot[i] == NOMAD::BBOutputType::PB)
-            {
-               if ( bboi > hMin )
-                {
-                    // Only L2 is supported.
-                    h += bboi * bboi;
-                    /*
-                    switch ( hNorm )
-                    {
-                        case NOMAD::L1:
-                            h += bboi;
-                            break;
-                        case NOMAD::L2:
-                            h += bboi * bboi;
-                            break;
-                        case NOMAD::LINF:
-                            if ( bboi > h )
-                                h = bboi;
-                            break;
-                    }
-                    */
-                }
-            }
-
-        }
-    }
-    //if ( hNorm == NOMAD::L2 )
-    h = h.sqrt();
-
-} // end evalH
 
 

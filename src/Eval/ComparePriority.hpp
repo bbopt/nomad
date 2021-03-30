@@ -99,15 +99,19 @@ public:
 class OrderByDirection : public ComparePriorityMethod
 {
 private:
-    /** Vector of directions: One per main thread. The vector makes it possible
+    /** Vector of directions: One per main thread; one list for feasible and
+      * infeasible points. Makes it possible
       * to compare points from different algorithms.
      **/
-    std::vector<std::shared_ptr<Direction>> _lastSuccessfulDirs;
+    std::vector<std::shared_ptr<Direction>> _lastSuccessfulFeasDirs;
+    std::vector<std::shared_ptr<Direction>> _lastSuccessfulInfDirs;
 
 public:
     /// Constructor
-    explicit OrderByDirection(const std::vector<std::shared_ptr<Direction>>& dirs)
-      : _lastSuccessfulDirs(dirs)
+    explicit OrderByDirection(const std::vector<std::shared_ptr<Direction>>& feasDirs,
+                              const std::vector<std::shared_ptr<Direction>>& infDirs)
+      : _lastSuccessfulFeasDirs(feasDirs),
+        _lastSuccessfulInfDirs(infDirs)
     {
         setName("OrderByDirection");
     }

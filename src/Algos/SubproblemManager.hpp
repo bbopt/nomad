@@ -64,16 +64,35 @@
 class SubproblemManager
 {
 private:
-    static std::map<const Algorithm*, const Subproblem> _map;
+    std::map<const Algorithm*, const Subproblem> _map;
+
 #ifdef _OPENMP
     static omp_lock_t _mapLock;
 #endif // _OPENMP
 
-public:
+    static std::unique_ptr<SubproblemManager> _single; ///< The singleton
+
     /// Constructor
     explicit SubproblemManager()
     {
         init();
+    }
+
+    /// Helper for constructor
+    void init();
+
+    /// Helper for destructor
+    void destroy();
+
+public:
+
+    static const std::unique_ptr<SubproblemManager> & getInstance()
+    {
+        if (_single == nullptr)
+        {
+            _single = std::unique_ptr<NOMAD::SubproblemManager>(new SubproblemManager()) ;
+        }
+        return _single;
     }
 
     /// Destructor
@@ -82,22 +101,22 @@ public:
         destroy();
     }
 
-    static const Subproblem& getSubproblem(const Step* step);
+    /// Copy constructor not available
+    SubproblemManager ( SubproblemManager const & ) = delete;
 
-    static const Point& getSubFixedVariable(const Step* step);
+    /// Operator= not available
+    SubproblemManager & operator= ( SubproblemManager const & ) = delete;
 
-    static void addSubproblem(const Algorithm* algo, const Subproblem& subproblem);
+    const Subproblem& getSubproblem(const Step* step);
 
-    static void removeSubproblem(const Algorithm* algo);
+    const Point& getSubFixedVariable(const Step* step);
 
-    static void reset();
+    void addSubproblem(const Algorithm* algo, const Subproblem& subproblem);
 
-private:
-    /// Helper for constructor
-    void init();
+    void removeSubproblem(const Algorithm* algo);
+    void reset();
 
-    /// Helper for destructor
-    void destroy();
+
 };
 
 #include "../nomad_nsend.hpp"

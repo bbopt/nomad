@@ -86,6 +86,7 @@ public:
      */
     size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
                         const EvalType& evalType,
+                        const ComputeType& computeType,
                         const Eval* refeval) const;
 
     /// Find best infeasible point(s) in cache
@@ -99,6 +100,7 @@ public:
     size_t findBestInf(std::vector<EvalPoint> &evalPointList,
                        const Double& hMax,
                        const EvalType& evalType,
+                       const ComputeType& computeType,
                        const Eval* refeval) const;
 
     /// Interface for CacheBase::smartInsert.

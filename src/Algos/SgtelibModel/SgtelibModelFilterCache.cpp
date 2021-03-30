@@ -282,9 +282,8 @@ void NOMAD::SgtelibModelFilterCache::computeInitialValues()
     for (size_t i = 0; i < nbSgte; i++)
     {
         NOMAD::EvalPoint x(_cacheSgte[i]);
-        _modelAlgo->checkHF(x);
-        _f[i] = x.getF(NOMAD::EvalType::SGTE).todouble();
-        _h[i] = x.getH(NOMAD::EvalType::SGTE).todouble();
+        _f[i] = x.getF(NOMAD::EvalType::SGTE, NOMAD::ComputeType::STANDARD).todouble();
+        _h[i] = x.getH(NOMAD::EvalType::SGTE, NOMAD::ComputeType::STANDARD).todouble();
 
         // Compute hmax = max_j c_j for x_i
         // NOTE: this computation looks cumbersome, there may be some

@@ -418,6 +418,26 @@ void NOMAD::RunParameters::checkAndComply(
         throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: H_MAX_0 must be positive");
     }
 
+    /*------------------------*/
+    /* Speculative search     */
+    /*  parameters            */
+    /*------------------------*/
+    auto baseFactor = getAttributeValueProtected<NOMAD::Double>("SPECULATIVE_SEARCH_BASE_FACTOR", false);
+    if (baseFactor <= 1)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: SPECULATIVE_SEARCH_BASE_FACTOR must be strictly greater than 1");
+    }
+
+    /*------------------------*/
+    /* Quad model search      */
+    /*  parameters            */
+    /*------------------------*/
+    auto reductionFactor = getAttributeValueProtected<NOMAD::Double>("QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR", false);
+    if (reductionFactor <= 0)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR must be strictly greater than 0");
+    }
+
     _warningUnknownParamShown = true;
 
     _toBeChecked = false;

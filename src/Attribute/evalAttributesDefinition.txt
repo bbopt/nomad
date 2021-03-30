@@ -95,3 +95,20 @@ OBJ
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ################################################################################
+EVAL_FORMAT
+NOMAD::ArrayOfDouble
+-
+\( Format of the doubles sent to the blackbox evaluator \)
+\(
+
+. EVAL_FORMAT is computed from BB_INPUT_TYPE and GRANULARITY parameters.
+
+. Gives the format precision for doubles sent to blackbox evaluator.
+
+. Cannot be modified by user. Internal parameter.
+
+\)
+\( advanced internal \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################

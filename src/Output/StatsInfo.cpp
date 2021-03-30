@@ -76,6 +76,7 @@ NOMAD::StatsInfo::StatsInfo()
     _meshSize(),
     _frameSize(),
     _frameCenter(),
+    _direction(),
     _lap(0),
     _sgte(0),
     _totalSgte(0),
@@ -90,16 +91,18 @@ NOMAD::StatsInfo::StatsInfo()
 }
 
 
-bool NOMAD::StatsInfo::alwaysDisplay(const bool displayInfeasible, const bool displayUnsuccessful) const
+bool NOMAD::StatsInfo::alwaysDisplay(const bool displayInfeasible,
+                                     const bool displayUnsuccessful,
+                                     const bool forStatsFile) const
 {
     bool doDisplay = false;
     if (!_obj.isDefined())
     {
         doDisplay = false;
     }
-    else if (_bbe <= 1)
+    else if (_bbe <= 1 && !forStatsFile)
     {
-        // Always display X0 evaluation
+        // Always display X0 evaluation to standard output
         doDisplay = true;
     }
     else if (displayInfeasible || (_consH.isDefined() && _consH == 0.0))
@@ -215,6 +218,10 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     {
         ret = NOMAD::DisplayStatsType::DS_FRAME_CENTER;
     }
+    else if (s == "DIRECTION")
+    {
+        ret = NOMAD::DisplayStatsType::DS_DIRECTION;
+    }
     else if (s == "LAP")
     {
         ret = NOMAD::DisplayStatsType::DS_LAP;
@@ -309,6 +316,8 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "FRAME_SIZE";
         case NOMAD::DisplayStatsType::DS_FRAME_CENTER:
             return "FRAME_CENTER";
+        case NOMAD::DisplayStatsType::DS_DIRECTION:
+            return "DIRECTION";
         case NOMAD::DisplayStatsType::DS_DELTA_F:
             return "DELTA_F";
         case NOMAD::DisplayStatsType::DS_LAP:
@@ -491,6 +500,10 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
         else if (NOMAD::DisplayStatsType::DS_FRAME_CENTER == statsType)
         {
             out += _frameCenter.display(solFormat);
+        }
+        else if (NOMAD::DisplayStatsType::DS_DIRECTION == statsType)
+        {
+            out += _direction.display(solFormat);
         }
         else if (NOMAD::DisplayStatsType::DS_LAP == statsType)
         {

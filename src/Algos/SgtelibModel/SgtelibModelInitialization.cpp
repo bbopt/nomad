@@ -208,7 +208,9 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     {
         // Construct barrier using x0s
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-        _barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this), evc->getEvalType(), evalPointList);
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax,
+                                NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
+                                evc->getEvalType(), evc->getComputeType(), evalPointList);
     }
     else
     {

@@ -152,7 +152,7 @@ void NOMAD::PollMethodBase::generateTrialPoints()
         }
 
         auto evalPoint = NOMAD::EvalPoint(pt);
-        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(_frameCenter), NOMAD::SubproblemManager::getSubFixedVariable(this));
+        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(_frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
         // Snap the points and the corresponding direction to the bounds
         if (snapPointToBoundsAndProjectOnMesh(evalPoint,
                                               _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND"),
@@ -174,8 +174,6 @@ void NOMAD::PollMethodBase::generateTrialPoints()
             }
         }
     }
-
-    verifyPointsAreOnMesh(getName());
 
     OUTPUT_INFO_START
     AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");

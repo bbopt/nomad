@@ -125,7 +125,7 @@ private:
     void computePrimarySecondaryPollCenters(std::vector<EvalPoint> &primaryCenters, std::vector<EvalPoint> &secondaryCenters) const;
 
     /// Helper for start: create a poll method
-    std::shared_ptr<NOMAD::PollMethodBase> createPollMethod(const bool isPrimary, const NOMAD::EvalPoint& frameCenter) const;
+    std::shared_ptr<PollMethodBase> createPollMethod(const bool isPrimary, const EvalPoint& frameCenter) const;
 
 };
 

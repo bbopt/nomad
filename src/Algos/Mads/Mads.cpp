@@ -50,6 +50,9 @@
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Output/OutputQueue.hpp"
 #include "../../Util/fileutils.hpp"
+#ifdef TIME_STATS
+#include "../../Util/Clock.hpp"
+#endif
 
 void NOMAD::Mads::init()
 {

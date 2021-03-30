@@ -80,7 +80,11 @@ void NOMAD::AllParameters::read(const std::string &paramFile, bool overwrite , b
 
     // Read all entries
     NOMAD::Parameters::readParamFileAndSetEntries(paramFile, overwrite ,resetAllEntries );
-
+    
+    
+    // Read entries to detect deprecated entries explicitly set
+    _deprecatedParams->readAndDetectExplicitlySet();
+    
     // Read entries and set attribute values for each type of parameters
     _runParams->readEntries();
     _pbParams->readEntries();
@@ -89,6 +93,7 @@ void NOMAD::AllParameters::read(const std::string &paramFile, bool overwrite , b
     _evaluatorControlParams->readEntries();
     _cacheParams->readEntries();
     _dispParams->readEntries();
+
 
 }
 
@@ -224,7 +229,7 @@ void NOMAD::AllParameters::checkAndComply()
     _evaluatorControlGlobalParams->checkAndComply(_pbParams);
     _runParams->checkAndComply(_evaluatorControlGlobalParams, _pbParams);
     _evaluatorControlParams->checkAndComply(_runParams);
-    _evalParams->checkAndComply(_runParams);
+    _evalParams->checkAndComply(_runParams, _pbParams);
     _cacheParams->checkAndComply(_runParams);
     _dispParams->checkAndComply(_runParams, _pbParams);
 

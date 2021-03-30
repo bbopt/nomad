@@ -62,7 +62,7 @@ void NOMAD::EvcInterface::init()
     verifyStepNotNull();
     verifyEvaluatorControlNotNull();
 
-    _fixedVariable = NOMAD::SubproblemManager::getSubFixedVariable(_step);
+    _fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(_step);
 }
 
 
@@ -262,15 +262,16 @@ void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::Barrier>& subB
     // Clear xFeas and xInf lists and recompute them
     fullBarrier->clearXFeas();
     fullBarrier->clearXInf();
+    auto evalType = _evaluatorControl->getEvalType();
     for (auto xFeas : subBarrier->getAllXFeas())
     {
         auto xFeasFull = xFeas.makeFullSpacePointFromFixed(_fixedVariable);
-        fullBarrier->addXFeas(xFeasFull, _evaluatorControl->getEvalType());
+        fullBarrier->addXFeas(xFeasFull, evalType, _evaluatorControl->getComputeType());
     }
     for (auto xInf : subBarrier->getAllXInf())
     {
         auto xInfFull = xInf.makeFullSpacePointFromFixed(_fixedVariable);
-        fullBarrier->addXInf(xInfFull);
+        fullBarrier->addXInf(xInfFull, evalType);
     }
     auto refBestFeas = subBarrier->getRefBestFeas();
     auto refBestInf  = subBarrier->getRefBestInf();
@@ -287,7 +288,7 @@ void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::Barrier>& subB
 }
 
 
-bool NOMAD::EvcInterface::findInBarrier(const Point& x, EvalPoint& evalPoint) const
+bool NOMAD::EvcInterface::findInBarrier(const NOMAD::Point& x, NOMAD::EvalPoint& evalPoint) const
 {
     bool pointFound = false;
 

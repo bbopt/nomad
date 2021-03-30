@@ -97,7 +97,7 @@ std::vector<NOMAD::Point> NOMAD::LHS::Sample() const
     // 1 - Sample construction
     for (size_t j = 0; j < _p; j++)
     {
-        Point point(_n);
+        NOMAD::Point point(_n);
         for (size_t i = 0; i < _n; i++)
         {
             NOMAD::Double r_ij = RNG::rand(0,1);

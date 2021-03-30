@@ -303,6 +303,19 @@ public:
     const std::shared_ptr<Barrier> getMegaIterationBarrier() const;
 
     /**
+     \return \c true if either the cache has a feasible solution,
+       or the MegaIteration ancestor's barrier has a feasible solution.
+     */
+    bool solHasFeas() const;
+
+    /**
+     \return \c true if either the cache has a phase one solution,
+       or the MegaIteration ancestor's barrier has a phase one solution.
+       // A phase one solution has a PHASE_ONE Eval with f = 0.
+     */
+    bool hasPhaseOneSolution() const;
+
+    /**
     Start of the Step. Initialize values for the run.
     */
     void start() ;

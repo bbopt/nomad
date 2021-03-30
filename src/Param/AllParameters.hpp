@@ -48,6 +48,7 @@
 
 
 #include "../Param/CacheParameters.hpp"
+#include "../Param/DeprecatedParameters.hpp"
 #include "../Param/DisplayParameters.hpp"
 #include "../Param/EvalParameters.hpp"
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
@@ -78,6 +79,7 @@ private:
 
 
     // Developper: When adding a new type of NOMAD parameters update the code
+    std::shared_ptr<DeprecatedParameters>               _deprecatedParams;
     std::shared_ptr<RunParameters>               _runParams;
     std::shared_ptr<PbParameters>                _pbParams;
     std::shared_ptr<CacheParameters>             _cacheParams;
@@ -90,7 +92,8 @@ private:
 public:
     /// Constructor
     explicit AllParameters()
-      : _runParams(std::make_shared<RunParameters>()),
+      :_deprecatedParams(std::make_shared<DeprecatedParameters>()),
+        _runParams(std::make_shared<RunParameters>()),
         _pbParams(std::make_shared<PbParameters>()),
         _cacheParams(std::make_shared<CacheParameters>()),
         _dispParams(std::make_shared<DisplayParameters>()),

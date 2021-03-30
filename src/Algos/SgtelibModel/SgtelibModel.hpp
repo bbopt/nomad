@@ -163,8 +163,6 @@ public:
     void reset();
     void info();
 
-    void checkHF(EvalPoint& x) const;
-
     static size_t getNbModels(const SgtelibModelFeasibilityType modelFeasibility,
                               const size_t nbConstraints);
 

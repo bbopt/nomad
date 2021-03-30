@@ -195,7 +195,7 @@ int main (int argc, char **argv)
     NOMAD::EvcInterface::getEvaluatorControl()->setNbEval(0);
     std::vector<NOMAD::EvalPoint> bestFeasList;
     NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
-                                                  NOMAD::EvalType::BB, nullptr);
+                                                  NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
     // NB. Assuming the list is non-empty.
     NOMAD::Point x02 = *(bestFeasList[0].getX());
     initParams2(*params, x02);
@@ -214,7 +214,7 @@ int main (int argc, char **argv)
     NOMAD::CacheBase::getInstance()->resetNbCacheHits();
     NOMAD::EvcInterface::getEvaluatorControl()->setNbEval(0);
     NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
-                                                  NOMAD::EvalType::BB, nullptr);
+                                                  NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
     NOMAD::Point x03 = *(bestFeasList[0].getX());
     initParams3(*params , x03);
     try
@@ -230,7 +230,7 @@ int main (int argc, char **argv)
 
     // Final part: No fixed variable
     NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
-                                                  NOMAD::EvalType::BB, nullptr);
+                                                  NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
     NOMAD::Point x0final = *(bestFeasList[0].getX());
     initParamsFinal(*params,x0final);
     try

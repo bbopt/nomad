@@ -142,6 +142,8 @@ public:
      */
     static const Double cos(const Direction& dir1, const Direction& dir2);
 
+    static const Double angle(const Direction& dir1, const Direction& dir2);    // From NOMAD 3
+
     /// Compute a random direction on a unit N-Sphere
     /**
      \param randomDir of the desired dimension -- \b IN/OUT

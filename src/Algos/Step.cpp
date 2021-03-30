@@ -50,6 +50,7 @@
 #include "../Algos/Iteration.hpp"
 #include "../Algos/MegaIteration.hpp"
 #include "../Algos/Step.hpp"
+#include "../Cache/CacheBase.hpp"
 #include "../Output/OutputQueue.hpp"
 
 /*-----------------------------------*/
@@ -431,6 +432,70 @@ const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() con
     }
 
     return barrier;
+}
+
+
+bool NOMAD::Step::solHasFeas() const
+{
+    bool hasFeas = NOMAD::CacheBase::getInstance()->hasFeas(NOMAD::EvalType::BB);
+
+    if (!hasFeas)
+    {
+        // No feasible point in cache, but possibly in MegaIteration ancestor's barrier.
+        auto barrier = getMegaIterationBarrier();
+        if (nullptr != barrier)
+        {
+            for (auto xFeas : barrier->getAllXFeas())
+            {
+                if (xFeas.isEvalOk(NOMAD::EvalType::BB) && xFeas.isFeasible(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD))
+                {
+                    hasFeas = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    return hasFeas;
+}
+
+
+bool NOMAD::Step::hasPhaseOneSolution() const
+{
+    bool hasPhaseOneSol = false;
+
+    // A phase one solution has a PHASE_ONE Eval with f = 0.
+    std::vector<NOMAD::EvalPoint> evalPointList;
+    NOMAD::CacheBase::getInstance()->find(NOMAD::EvalPoint::isPhaseOneSolution, evalPointList);
+
+    // Points have to verify hMax.
+    auto barrier = getMegaIterationBarrier();
+    NOMAD::Double hMax = (nullptr != barrier) ? barrier->getHMax() : _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+    for (auto evalPoint : evalPointList)
+    {
+        NOMAD::Double h = evalPoint.getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+        if (h.isDefined() && h <= hMax)
+        {
+            hasPhaseOneSol = true;
+            break;
+        }
+    }
+
+    if (!hasPhaseOneSol)
+    {
+        // No feasible point in cache, but possibly in MegaIteration ancestor's barrier.
+        if (nullptr != barrier)
+        {
+            auto xFeas = barrier->getFirstXFeas();
+            if (nullptr != xFeas)
+            {
+                NOMAD::Double h = xFeas->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+                hasPhaseOneSol = NOMAD::EvalPoint::isPhaseOneSolution(*xFeas) && (h <= hMax);
+            }
+        }
+    }
+
+    return hasPhaseOneSol;
 }
 
 

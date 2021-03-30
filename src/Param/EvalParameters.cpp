@@ -45,6 +45,7 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../Param/EvalParameters.hpp"
+#include "../Type/BBInputType.hpp"
 #include "../Type/BBOutputType.hpp"
 #include "../Util/fileutils.hpp"
 
@@ -72,7 +73,8 @@ void NOMAD::EvalParameters::init()
 /*----------------------------------------*/
 /*            check the parameters        */
 /*----------------------------------------*/
-void NOMAD::EvalParameters::checkAndComply( const std::shared_ptr<NOMAD::RunParameters> & runParams )
+void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParameters>& runParams,
+                                           const std::shared_ptr<NOMAD::PbParameters>& pbParams)
 {
     checkInfo();
 
@@ -132,13 +134,17 @@ void NOMAD::EvalParameters::checkAndComply( const std::shared_ptr<NOMAD::RunPara
         }
 
         setAttributeValue("BB_EXE", bbExe);
+        bbExeAsArray = NOMAD::ArrayOfString(bbExe);
 
-        if (localExe && !bbExe.empty() && !checkExeFile(bbExe))
+        if (localExe && !bbExe.empty() && !checkExeFile(bbExeAsArray[0]))
         {
-            throw NOMAD::Exception(__FILE__, __LINE__, "BB_EXE needs to be an executable file: " + bbExe);
+            throw NOMAD::Exception(__FILE__, __LINE__, "BB_EXE needs to be an executable file: " + bbExeAsArray[0]);
         }
     }
 
+    /*----------------*/
+    /* BB_OUTPUT_TYPE */
+    /*----------------*/
     // The default value is empty: set a single OBJ
     auto bbOType = getAttributeValueProtected<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE", false);
     if ( bbOType.size() == 0 )
@@ -147,6 +153,31 @@ void NOMAD::EvalParameters::checkAndComply( const std::shared_ptr<NOMAD::RunPara
         setAttributeValue("BB_OUTPUT_TYPE", bbOType );
     }
 
+    /*------------------------*/
+    /* EVAL_FORMAT (internal) */
+    /*------------------------*/
+    size_t n = pbParams->getAttributeValue<size_t>("DIMENSION");
+    auto evalFormat = getAttributeValueProtected<NOMAD::ArrayOfDouble>("EVAL_FORMAT",false);
+    if (!evalFormat.isDefined())
+    {
+        // Default precision is computed based on Epsilon.
+        int defaultPrec = static_cast<int>(-log10(NOMAD::Double::getEpsilon())) + 1;
+        evalFormat.reset(n, defaultPrec);
+        setAttributeValue("EVAL_FORMAT", evalFormat);
+    }
+
+    auto bbInputType = pbParams->getAttributeValue<NOMAD::BBInputTypeList>("BB_INPUT_TYPE");
+    // CONTINUOUS variables will be written with full precision.
+    // INTEGER, BOOLEAN, and eventually CATEGORICAL variables will be written
+    // as integers.
+    for (size_t i = 0; i < n; i++)
+    {
+        if (NOMAD::BBInputType::CONTINUOUS != bbInputType[i])
+        {
+            evalFormat[i] = -1;
+        }
+    }
+    setAttributeValue("EVAL_FORMAT", evalFormat);
 
     _toBeChecked = false;
 

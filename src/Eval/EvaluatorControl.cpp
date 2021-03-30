@@ -289,19 +289,43 @@ const std::shared_ptr<NOMAD::EvalPoint>& NOMAD::EvaluatorControl::getBestIncumbe
 }
 
 
-void NOMAD::EvaluatorControl::setComputeSuccessTypeFunction(const ComputeSuccessFunction& computeSuccessFunction)
+void NOMAD::EvaluatorControl::setComputeType(const NOMAD::ComputeType& computeType)
 {
-    getMainThreadInfo().setComputeSuccessTypeFunction(computeSuccessFunction);
+    getMainThreadInfo().setComputeType(computeType);
 }
 
 
-void NOMAD::EvaluatorControl::setLastSuccessfulDir(const std::shared_ptr<Direction>& dir)
+const NOMAD::ComputeType& NOMAD::EvaluatorControl::getComputeType(const int mainThreadNum) const
 {
-    getMainThreadInfo().setLastSuccessfulDir(dir);
+    return getMainThreadInfo(mainThreadNum).getComputeType();
 }
 
 
-void NOMAD::EvaluatorControl::setStopReason(const int mainThreadNum, const EvalMainThreadStopType& s)
+void NOMAD::EvaluatorControl::setLastSuccessfulFeasDir(const std::shared_ptr<NOMAD::Direction>& feasDir)
+{
+    getMainThreadInfo().setLastSuccessfulFeasDir(feasDir);
+}
+
+
+void NOMAD::EvaluatorControl::setLastSuccessfulInfDir(const std::shared_ptr<NOMAD::Direction>& infDir)
+{
+    getMainThreadInfo().setLastSuccessfulInfDir(infDir);
+}
+
+
+const std::shared_ptr<NOMAD::Direction>& NOMAD::EvaluatorControl::getLastSuccessfulFeasDir() const
+{
+    return getMainThreadInfo().getLastSuccessfulFeasDir();
+}
+
+
+const std::shared_ptr<NOMAD::Direction>& NOMAD::EvaluatorControl::getLastSuccessfulInfDir() const
+{
+    return getMainThreadInfo().getLastSuccessfulInfDir();
+}
+
+
+void NOMAD::EvaluatorControl::setStopReason(const int mainThreadNum, const NOMAD::EvalMainThreadStopType& s)
 {
     getMainThreadInfo(mainThreadNum).setStopReason(s);
 }
@@ -319,7 +343,7 @@ std::string NOMAD::EvaluatorControl::getStopReasonAsString(const int mainThreadN
 }
 
 
-bool NOMAD::EvaluatorControl::testIf(const EvalMainThreadStopType& s) const
+bool NOMAD::EvaluatorControl::testIf(const NOMAD::EvalMainThreadStopType& s) const
 {
     return getMainThreadInfo().testIf(s);
 }
@@ -337,7 +361,7 @@ std::vector<NOMAD::EvalPoint> NOMAD::EvaluatorControl::retrieveAllEvaluatedPoint
 }
 
 
-void NOMAD::EvaluatorControl::addEvaluatedPoint(const int threadNum, const EvalPoint& evaluatedPoint)
+void NOMAD::EvaluatorControl::addEvaluatedPoint(const int threadNum, const NOMAD::EvalPoint& evaluatedPoint)
 {
     getMainThreadInfo(threadNum).addEvaluatedPoint(evaluatedPoint);
 }
@@ -699,12 +723,14 @@ void NOMAD::EvaluatorControl::sort()
     {
         // Default: Use last successful directions.
         // Fill vector for argument to OrderByDirection.
-        std::vector<std::shared_ptr<NOMAD::Direction>> lastSuccessfulDirs(_mainThreads.size());
+        std::vector<std::shared_ptr<NOMAD::Direction>> lastSuccessfulFeasDirs(_mainThreads.size());
+        std::vector<std::shared_ptr<NOMAD::Direction>> lastSuccessfulInfDirs(_mainThreads.size());
         for (auto mainth : _mainThreads)
         {
-            lastSuccessfulDirs[mainth] = getMainThreadInfo(mainth).getLastSuccessfulDir();
+            lastSuccessfulFeasDirs[mainth] = getMainThreadInfo(mainth).getLastSuccessfulFeasDir();
+            lastSuccessfulInfDirs[mainth] = getMainThreadInfo(mainth).getLastSuccessfulInfDir();
         }
-        compMethod = std::make_shared<NOMAD::OrderByDirection>(lastSuccessfulDirs);
+        compMethod = std::make_shared<NOMAD::OrderByDirection>(lastSuccessfulFeasDirs, lastSuccessfulInfDirs);
     }
 
     if (nullptr == compMethod)
@@ -727,8 +753,12 @@ void NOMAD::EvaluatorControl::sort()
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
         s = "Evaluation queue before sort:";
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-        for (auto evalPoint : _evalPointQueue)
+        // Display in reverse order: as the _evalPointQueue is popped,
+        // the first point being evaluated is at the end of the queue.
+        // We want to show the first point to be evaluated first.
+        for (auto it = _evalPointQueue.rbegin(); it != _evalPointQueue.rend(); ++it)
         {
+            auto evalPoint = (*it);
             s = "\t" + evalPoint->display();
             NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
         }
@@ -739,8 +769,9 @@ void NOMAD::EvaluatorControl::sort()
         OUTPUT_DEBUG_START
         s = "Evaluation queue after sort:";
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-        for (auto evalPoint : _evalPointQueue)
+        for (auto it = _evalPointQueue.rbegin(); it != _evalPointQueue.rend(); ++it)
         {
+            auto evalPoint = (*it);
             s = "\t" + evalPoint->display();
             NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
         }
@@ -769,7 +800,7 @@ size_t NOMAD::EvaluatorControl::clearQueue(const int mainThreadNum, const bool s
     else
     {
         nbPointsErased = std::count_if(_evalPointQueue.begin(), _evalPointQueue.end(),
-                                [mainThreadNum](const std::shared_ptr<EvalQueuePoint>& evalQueuePoint)
+                                [mainThreadNum](const std::shared_ptr<NOMAD::EvalQueuePoint>& evalQueuePoint)
                                 {
                                     return mainThreadNum == evalQueuePoint->getThreadAlgo();
                                 });
@@ -945,16 +976,17 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
                         }
 
                         // Output in history (always) and solution (FULL_SUCCESS only)
-                        AddDirectToFileInfo(evalQueuePoint);
+                        addDirectToFileInfo(evalQueuePoint);
 
-                        if (getOpportunisticEval(mainThreadNum) && getSuccessType(mainThreadNum) >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+                        // Opportunism on full success only
+                        if (getOpportunisticEval(mainThreadNum) && getSuccessType(mainThreadNum) >= NOMAD::SuccessType::FULL_SUCCESS)
                         {
                             setStopReason(mainThreadNum, NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS);
                         }
                     }
                 }   // End critical(updateSuccessType)
 
-                AddStatsInfo(block);
+                addStatsInfo(block);
             }
             for (size_t i = 0; i < block.size(); i++)
             {
@@ -1003,7 +1035,7 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
 
             // Update stopReason in case we found a success
             if (getOpportunisticEval(threadNum)
-                && getSuccessType(threadNum) >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+                && getSuccessType(threadNum) >= NOMAD::SuccessType::FULL_SUCCESS)
             {
                 setStopReason(threadNum, NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS);
             }
@@ -1308,7 +1340,7 @@ void NOMAD::EvaluatorControl::displayDebugWaitingInfo(time_t &lastDisplayed) con
 }
 
 
-void NOMAD::EvaluatorControl::AddDirectToFileInfo(EvalQueuePointPtr evalQueuePoint) const
+void NOMAD::EvaluatorControl::addDirectToFileInfo(NOMAD::EvalQueuePointPtr evalQueuePoint) const
 {
     OUTPUT_DIRECTTOFILE_START
 
@@ -1326,14 +1358,15 @@ void NOMAD::EvaluatorControl::AddDirectToFileInfo(EvalQueuePointPtr evalQueuePoi
     info.setSol(*(evalQueuePoint->getX()));
 
     // In solution file we write only best feasible incumbent.
-    bool writeInSolutionFile = ( evalQueuePoint->getSuccess() == SuccessType::FULL_SUCCESS && evalQueuePoint->isFeasible(EvalType::BB));
+    bool writeInSolutionFile = (   evalQueuePoint->getSuccess() == SuccessType::FULL_SUCCESS
+                                && evalQueuePoint->isFeasible(NOMAD::EvalType::BB, getComputeType(evalQueuePoint->getThreadAlgo())));
 
-    NOMAD::OutputDirectToFile::Write(info,writeInSolutionFile);
+    NOMAD::OutputDirectToFile::Write(info, writeInSolutionFile);
     OUTPUT_DIRECTTOFILE_END
 }
 
 
-void NOMAD::EvaluatorControl::AddStatsInfo(const NOMAD::BlockForEval& block) const
+void NOMAD::EvaluatorControl::addStatsInfo(const NOMAD::BlockForEval& block) const
 {
     OUTPUT_STATS_START
     for (auto it = block.begin(); it < block.end(); it++)
@@ -1362,8 +1395,8 @@ void NOMAD::EvaluatorControl::AddStatsInfo(const NOMAD::BlockForEval& block) con
         // value, or if the user is dissatisfied with this output, we may update it
         // in a stricter way.
 
-        stats->setObj(evalQueuePoint->getF(NOMAD::EvalType::BB));
-        stats->setConsH(evalQueuePoint->getH(NOMAD::EvalType::BB));
+        stats->setObj(evalQueuePoint->getF(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD));
+        stats->setConsH(evalQueuePoint->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD));
         stats->setHMax(getHMax(mainThreadNum));
         stats->setBBE(_bbEval);
         stats->setFeasBBE(_feasBBEval);
@@ -1386,6 +1419,8 @@ void NOMAD::EvaluatorControl::AddStatsInfo(const NOMAD::BlockForEval& block) con
         stats->setFrameSize(evalQueuePoint->getFrameSize());
         auto frameCenter = evalQueuePoint->getPointFrom();
         stats->setFrameCenter(frameCenter ? *frameCenter : NOMAD::Point(evalQueuePoint->size()));
+        auto direction = evalQueuePoint->getDirection();
+        stats->setDirection(direction ? *direction : NOMAD::Direction(evalQueuePoint->size()));
         stats->setSol(*(evalQueuePoint->getX()));
         stats->setSuccessType(evalQueuePoint->getSuccess());
         stats->setThreadAlgo(mainThreadNum);
@@ -1394,7 +1429,7 @@ void NOMAD::EvaluatorControl::AddStatsInfo(const NOMAD::BlockForEval& block) con
         stats->setComment(evalQueuePoint->getComment());
         stats->setGenStep(evalQueuePoint->getGenStep());
 
-        std::string s = "Evaluated point: " + evalQueuePoint->display();
+        std::string s = "Evaluated point: " + evalQueuePoint->displayAll();
         NOMAD::OutputInfo outputInfo("EvaluatorControl", s, NOMAD::OutputLevel::LEVEL_STATS);
         outputInfo.setStatsInfo(std::move(stats));
         NOMAD::OutputQueue::Add(std::move(outputInfo));
@@ -1463,6 +1498,7 @@ void NOMAD::EvaluatorControl::computeSuccess(NOMAD::EvalQueuePointPtr evalQueueP
     bool newBestIncumbent = false;
     NOMAD::EvalType evalType = evalQueuePoint->getEvalType();
     auto mainThreadNum = evalQueuePoint->getThreadAlgo();
+    NOMAD::ComputeType computeType = getComputeType(mainThreadNum);
 
     if (evalOk)
     {
@@ -1472,15 +1508,16 @@ void NOMAD::EvaluatorControl::computeSuccess(NOMAD::EvalQueuePointPtr evalQueueP
         {
             // Use best xFeas and xInf for comparison.
             // Only the Eval part is used.
-            xFeas = barrier->getRefBestFeas();
-            xInf  = barrier->getRefBestInf();
+            xFeas = barrier->getFirstXFeas();
+            xInf  = barrier->getFirstXInf();
         }
 
-        auto computeSuccessType = getMainThreadInfo(mainThreadNum).getComputeSuccessType();
-        if (evalQueuePoint->isFeasible(evalType))
+        NOMAD::ComputeSuccessType computeSucc(evalType, computeType);
+
+        if (evalQueuePoint->isFeasible(evalType, computeType))
         {
             // Feasible - Compare with xFeas
-            success = computeSuccessType(evalQueuePoint, xFeas);
+            success = computeSucc(evalQueuePoint, xFeas);
 
             // Update best incumbent for display purposes
 #ifdef _OPENMP
@@ -1496,7 +1533,7 @@ void NOMAD::EvaluatorControl::computeSuccess(NOMAD::EvalQueuePointPtr evalQueueP
                     }
                     else
                     {
-                        newBestIncumbent = (NOMAD::ComputeSuccessType::defaultComputeSuccessType(evalQueuePoint, bestIncumbent) >= NOMAD::SuccessType::PARTIAL_SUCCESS);
+                        newBestIncumbent = (computeSucc(evalQueuePoint, bestIncumbent) >= NOMAD::SuccessType::PARTIAL_SUCCESS);
                     }
                     if (newBestIncumbent)
                     {
@@ -1508,7 +1545,7 @@ void NOMAD::EvaluatorControl::computeSuccess(NOMAD::EvalQueuePointPtr evalQueueP
         else
         {
             // Infeasible - Compare with xInf
-            success = computeSuccessType(evalQueuePoint, xInf, hMax);
+            success = computeSucc(evalQueuePoint, xInf, hMax);
         }
 
     }
@@ -1630,12 +1667,19 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
     {
         NOMAD::EvalPointPtr evalPoint = block[index];
         const int mainThreadNum = evalPoint->getThreadAlgo();
+        NOMAD::ComputeType computeType = getComputeType(mainThreadNum);
 
         // Adjust EvalOk if needed
-        if (evalOk[index] && !evalPoint->getF(evalType).isDefined())
+        if (evalOk[index]
+            && (nullptr != evalPoint->getEval(evalType))
+            && !evalPoint->getEval(evalType)->getBBOutputTypeList().empty()
+            && (   !evalPoint->getF(evalType, computeType).isDefined()
+                || !evalPoint->getH(evalType, computeType).isDefined()))
         {
             std::string modifMsg = "Warning: EvaluatorControl: Point ";
-            modifMsg += evalPoint->display() + ": Eval ok but f not defined. Setting evalOk to false.";
+            modifMsg += evalPoint->display() + ": Eval ok but ";
+            modifMsg += (!evalPoint->getF(evalType, computeType).isDefined()) ? "f not defined" : "h not defined";
+            modifMsg += ". Setting evalOk to false.";
             OUTPUT_INFO_START
             evalInfo.addMsg(modifMsg);
             OUTPUT_INFO_END
@@ -1654,7 +1698,7 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
 
         // Update all counters
         // Note: _bbEval, and EvcMainThreadInfo members _lapBbEval, _sgteEval, _subBbEval, are atomic.
-        if (EvalType::SGTE == evalType)
+        if (NOMAD::EvalType::SGTE == evalType)
         {
             getMainThreadInfo(mainThreadNum).incSgteEval(1);
             _totalSgteEval++;
@@ -1665,10 +1709,11 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
             getMainThreadInfo(mainThreadNum).incLapBbEval(1);
             _bbEval += (countEval[index]);
             _bbEvalNotOk += (!evalOk[index]);
-            (evalPoint->isFeasible(evalType)) ?  _feasBBEval++ : _infBBEval++;
+            (evalPoint->isFeasible(evalType, NOMAD::ComputeType::STANDARD)) ?  _feasBBEval++ : _infBBEval++;
             // All bb evals count for _nbEvalSentToEvaluator.
             _nbEvalSentToEvaluator++;
             evalPoint->incNumberEval();
+            NOMAD::OutputQueue::getInstance()->setTotalEval(_nbEvalSentToEvaluator);
         }
 
         // Update eval status if needed.
@@ -1712,7 +1757,6 @@ bool NOMAD::EvaluatorControl::updateEvalStatusBeforeEval(NOMAD::EvalPoint &evalP
     // Find the EvalPoint in the cache and set its eval status to IN_PROGRESS.
     NOMAD::EvalPoint foundEvalPoint;
     const int mainThreadNum = evalPoint.getThreadAlgo();
-    const NOMAD::EvalType evalType = getEvalType(mainThreadNum);
     if (getUseCache(mainThreadNum))
     {
         if (!NOMAD::CacheBase::getInstance()->find(evalPoint, foundEvalPoint))
@@ -1727,11 +1771,11 @@ bool NOMAD::EvaluatorControl::updateEvalStatusBeforeEval(NOMAD::EvalPoint &evalP
         foundEvalPoint = evalPoint;
     }
 
+    NOMAD::EvalType evalType = getEvalType(mainThreadNum);
     NOMAD::EvalStatusType evalStatus = foundEvalPoint.getEvalStatus(evalType);
     if (evalStatus == NOMAD::EvalStatusType::EVAL_FAILED
         || evalStatus == NOMAD::EvalStatusType::EVAL_ERROR
         || evalStatus == NOMAD::EvalStatusType::EVAL_USER_REJECTED
-        || evalStatus == NOMAD::EvalStatusType::EVAL_CONS_H_OVER
         || evalStatus == NOMAD::EvalStatusType::EVAL_OK)
     {
         if (NOMAD::EvalType::BB == evalType)
@@ -1800,7 +1844,6 @@ void NOMAD::EvaluatorControl::updateEvalStatusAfterEval(NOMAD::EvalPoint &evalPo
     if (evalStatus == NOMAD::EvalStatusType::EVAL_FAILED
         || evalStatus == NOMAD::EvalStatusType::EVAL_ERROR
         || evalStatus == NOMAD::EvalStatusType::EVAL_USER_REJECTED
-        || evalStatus == NOMAD::EvalStatusType::EVAL_CONS_H_OVER
         || evalStatus == NOMAD::EvalStatusType::EVAL_OK)
     {
         // Nothing to do

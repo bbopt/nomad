@@ -95,7 +95,7 @@ int NOMAD::NMIterationUtils::getRankDZ( ) const
     // The dimension of DZ (k) is related to Y
     size_t k = _nmY->size() - 1 ;
 
-    std::set<EvalPoint>::iterator itY = _nmY->begin();
+    std::set<NOMAD::EvalPoint>::iterator itY = _nmY->begin();
 
     const NOMAD::Point & y0 = (*itY);
     const size_t dim = y0.size();

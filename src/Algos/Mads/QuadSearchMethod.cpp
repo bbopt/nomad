@@ -115,7 +115,11 @@ void NOMAD::QuadSearchMethod::generateTrialPointsImp()
         auto bestXFeas = madsIteration->getMegaIterationBarrier()->getFirstXFeas();
         auto bestXInf  = madsIteration->getMegaIterationBarrier()->getFirstXInf();
 
-        if (nullptr != bestXFeas)
+        auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+        auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+        if (nullptr != bestXFeas
+            && bestXFeas->getF(evalType, computeType).isDefined()
+            && bestXFeas->getF(evalType, computeType) < MODEL_MAX_OUTPUT)
         {
             NOMAD::QuadModelSinglePass singlePassFeas(this, bestXFeas, madsIteration->getMesh());
 
@@ -126,11 +130,15 @@ void NOMAD::QuadSearchMethod::generateTrialPointsImp()
             auto trialPtsSinglePassFeas = singlePassFeas.getTrialPoints();
             for (auto evalPoint : trialPtsSinglePassFeas)
             {
-                evalPoint.setPointFrom(bestXFeas, NOMAD::SubproblemManager::getSubFixedVariable(this));
+                evalPoint.setPointFrom(bestXFeas, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
                 insertTrialPoint(evalPoint);
             }
         }
-        if (nullptr != bestXInf)
+        if (nullptr != bestXInf
+            && bestXInf->getF(evalType, computeType).isDefined()
+            && bestXInf->getF(evalType, computeType) < MODEL_MAX_OUTPUT
+            && bestXInf->getH(evalType, computeType).isDefined()
+            && bestXInf->getH(evalType, computeType) < MODEL_MAX_OUTPUT)
         {
             NOMAD::QuadModelSinglePass singlePassInf(this, bestXInf, madsIteration->getMesh());
 
@@ -141,7 +149,7 @@ void NOMAD::QuadSearchMethod::generateTrialPointsImp()
             auto trialPtsSinglePassInf = singlePassInf.getTrialPoints();
             for (auto evalPoint : trialPtsSinglePassInf)
             {
-                evalPoint.setPointFrom(bestXInf, NOMAD::SubproblemManager::getSubFixedVariable(this));
+                evalPoint.setPointFrom(bestXInf, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
                 insertTrialPoint(evalPoint);
             }
         }

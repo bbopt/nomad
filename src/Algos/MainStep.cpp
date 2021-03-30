@@ -126,7 +126,7 @@ void NOMAD::MainStep::startImp()
 
     // Clear Subproblem map before a new run.
     // This is especially useful in the case of the Runner.
-    NOMAD::SubproblemManager::reset();
+    NOMAD::SubproblemManager::getInstance()->reset();
 
     // reset PROBLEM_DIR attribute
     // (not obtained by reading paramFile):
@@ -320,7 +320,6 @@ void NOMAD::MainStep::startImp()
             // Ensure PhaseOne does not show found solutions
             phaseOne->setEndDisplay(false);
 
-            NOMAD::PhaseOne::setBBOutputTypes(_allParams->getEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
             _algos.push_back(phaseOne);
 
             auto mads = std::make_shared<NOMAD::Mads>(this,
@@ -495,15 +494,16 @@ void NOMAD::MainStep::updateX0sFromCache() const
         // For this reason, use cache instance directly, not CacheInterface.
         auto fixedVariable = _allParams->getPbParams()->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE");
         auto evalType = NOMAD::EvalType::BB;
+        auto computeType = NOMAD::ComputeType::STANDARD;
         NOMAD::CacheBase::getInstance()->findBestFeas(evalPointList,
                                                 fixedVariable, evalType,
-                                                nullptr);
+                                                computeType, nullptr);
         if (0 == evalPointList.size())
         {
             auto hMax = _allParams->getRunParams()->getAttributeValue<NOMAD::Double>("H_MAX_0");
             NOMAD::CacheBase::getInstance()->findBestInf(evalPointList,
                                                 hMax, fixedVariable,
-                                                evalType, nullptr);
+                                                evalType, computeType, nullptr);
         }
         if (0 == evalPointList.size())
         {
@@ -682,7 +682,7 @@ void NOMAD::MainStep::resetComponentsBetweenOptimization()
     // Reset static tag counter
     NOMAD::EvalPoint::resetCurrentTag();
     // Reset SubproblemManager map
-    NOMAD::SubproblemManager::reset();
+    NOMAD::SubproblemManager::getInstance()->reset();
     // Reset evaluator control
     NOMAD::EvcInterface::resetEvaluatorControl();
     // Reset seed

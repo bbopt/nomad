@@ -43,6 +43,7 @@ Algos/Termination.cpp)
 #
 set(ATTRIBUTE_TEXT
 Attribute/cacheAttributesDefinition.txt
+Attribute/deprecatedAttributesDefinition.txt
 Attribute/displayAttributesDefinition.txt
 Attribute/evalAttributesDefinition.txt
 Attribute/evaluatorControlAttributesDefinition.txt
@@ -52,6 +53,7 @@ Attribute/runAttributesDefinition.txt)
 
 set(ATTRIBUTE_HEADERS
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/cacheAttributesDefinition.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/deprecatedAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/displayAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evalAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evaluatorControlAttributesDefinition.hpp
@@ -168,6 +170,7 @@ Param/AllParameters.hpp
 Param/Attribute.hpp
 Param/AttributeFactory.hpp
 Param/CacheParameters.hpp
+Param/DeprecatedParameters.hpp
 Param/DisplayParameters.hpp
 Param/EvalParameters.hpp
 Param/EvaluatorControlParameters.hpp
@@ -186,6 +189,7 @@ Param/AllParameters.cpp
 Param/Attribute.cpp
 Param/AttributeFactory.cpp
 Param/CacheParameters.cpp
+Param/DeprecatedParameters.cpp
 Param/DisplayParameters.cpp
 Param/EvalParameters.cpp
 Param/EvaluatorControlParameters.cpp
@@ -206,6 +210,7 @@ set(TYPE_HEADERS
 Type/BBInputType.hpp
 Type/BBOutputType.hpp
 Type/CallbackType.hpp
+Type/ComputeType.hpp
 Type/DirectionType.hpp
 Type/EvalType.hpp
 Type/LHSearchType.hpp
@@ -217,6 +222,7 @@ set(TYPE_SOURCES
 Type/BBInputType.cpp
 Type/BBOutputType.cpp
 Type/CallbackType.cpp
+Type/ComputeType.cpp
 Type/DirectionType.cpp
 Type/EvalType.cpp
 Type/LHSearchType.cpp

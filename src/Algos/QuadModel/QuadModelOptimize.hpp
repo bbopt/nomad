@@ -68,6 +68,7 @@ private:
     ArrayOfDouble _modelUpperBound; ///> Upper bound: max of trainingSet points
     Point         _modelFixedVar;   ///> Fixed variables: fixed variables detected from trainingSet
 
+    Point _modelCenter;
 
     const std::shared_ptr<PbParameters> _refPbParams; ///< Reference to the original problem parameters.
 
@@ -88,6 +89,7 @@ public:
         _modelLowerBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _modelUpperBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _modelFixedVar(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
+        _modelCenter(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _refPbParams(refPbParams),
         _optRunParams(nullptr),
         _optPbParams(nullptr)

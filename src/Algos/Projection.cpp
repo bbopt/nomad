@@ -244,8 +244,6 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
     // that would be better done in the EvaluatorControl.
     //evaluateProjectionTrialPoints(trySet, ev, keep, bestEvalPoint);
 
-    // TODO add something like SgtelibModel::checkHF() to postprocessing?
-
 }
 
 
@@ -509,7 +507,6 @@ void NOMAD::Projection::evaluateProjectionTrialPoints(const NOMAD::EvalPointSet&
         {
             // Eval (with the same evaluator as for the model optimization)
             ev.eval_x(evalPoint, 0.0, countEval);
-            _modelAlgo->checkHF(evalPoint);
 
             auto f = evalPoint.getF(evalType);
             auto h = evalPoint.getH(evalType);

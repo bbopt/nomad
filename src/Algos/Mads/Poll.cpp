@@ -145,7 +145,7 @@ void NOMAD::Poll::endImp()
     verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
 
     // Compute hMax and update Barrier.
-    postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
+    postProcessing();
 }
 
 
@@ -203,8 +203,11 @@ void NOMAD::Poll::computePrimarySecondaryPollCenters(
         bool usePrimarySecondary = (rho >= 0) && (nullptr != firstXFeas) && (nullptr != firstXInf);
         if (usePrimarySecondary)
         {
-            NOMAD::Double fFeas = firstXFeas->getF();
-            NOMAD::Double fInf  = firstXInf->getF();
+            auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+            auto evalType = evc->getEvalType();
+            auto computeType = evc->getComputeType();
+            NOMAD::Double fFeas = firstXFeas->getF(evalType, computeType);
+            NOMAD::Double fInf  = firstXInf->getF(evalType, computeType);
             if (fFeas.isDefined() && fInf.isDefined()
                 && (fFeas - rho) > fInf)
             {

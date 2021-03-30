@@ -62,6 +62,7 @@
 
 #include "../Eval/Eval.hpp"
 #include "../Math/Point.hpp"
+#include "../Type/ComputeType.hpp"
 #include "../Type/EvalType.hpp"
 
 #include "../nomad_nsbegin.hpp"
@@ -76,21 +77,24 @@ class EvalPoint : public Point
 {
 private:
 
-    static size_t _currentTag;  ///< Value of the current tag
+    static int _currentTag;  ///< Value of the current tag
 
     EvalUPtr _eval;       ///< Value of the evaluation (truth / blackbox)
 
     EvalUPtr _evalSgte;   ///< Value of the surrogate evaluation
 
-    mutable size_t  _tag; ///< Tag: Ordinal representing the order of creation
+    mutable int  _tag; ///< Tag: Ordinal representing the order of creation
 
     int _threadAlgo;    ///< Main thread that generated this point
 
     short    _numberEval; ///< Number of times \c *this point has been evaluated (blackbox only)
 
-    std::shared_ptr<Point> _pointFrom; ///< The frame center which generated \c *this point (blackbox only). Full space.
+    std::shared_ptr<EvalPoint> _pointFrom; ///< The frame center which generated \c *this point (blackbox only). Full space.
 
     std::string     _genStep;           ///< Generating step, also for stats
+
+    std::shared_ptr<Direction>  _direction; ///< True direction that generated this point. Full dimension.
+    Double                      _angle;     ///< Angle of that direction with last successful dir
 
 public:
 
@@ -153,30 +157,25 @@ public:
     /// Clear the surrogate evaluation of a point
     static void clearEvalSgte(EvalPoint& evalPoint) { evalPoint.clearEvalSgte(); }
 
-    /// Get the objective function value of Eval of this EvalType
-    Double getF(const EvalType& evalType = EvalType::BB) const;
-
-    /// Set the objective function value of the Eval of this EvalType
-    void setF(const Double f, const EvalType& evalType);
+    /// Get the objective function value of Eval of this EvalType,
+    /// using the given ComputeType.
+    Double getF(const EvalType& evalType = EvalType::BB, const ComputeType& computeType = ComputeType::STANDARD) const;
 
     /// Get the infeasibility measure of the Eval of this EvalType
-    Double getH(const EvalType& evalType = EvalType::BB) const;
-
-    /// Set the infeasibility measure of the Eval of this EvalType
-    void setH(const Double &h, const EvalType& evalType);
+    Double getH(const EvalType& evalType = EvalType::BB, const ComputeType& computeType = ComputeType::STANDARD) const;
 
     /// Get the blackbox output for the Eval of this EvalType as a \c string
     std::string getBBO(const EvalType& evalType) const;
 
     /// Set the blackbox output for the Eval of this EvalType from a \c string.
     /**
-     \param bbo             The string containg the raw result of the blackbox evaluation -- \b IN.
-     \param bboutputtypes   The list of blackbox output types -- \b IN.
-     \param evalType        Blackbox or surrogate evaluation  -- \b IN.
-     \param evalOk          Flag for evaluation status  -- \b IN.
+     \param bbo                 The string containg the raw result of the blackbox evaluation -- \b IN.
+     \param bbOutputTypeList    The list of blackbox output types -- \b IN.
+     \param evalType            Blackbox or surrogate evaluation  -- \b IN.
+     \param evalOk              Flag for evaluation status  -- \b IN.
     */
     void setBBO(const std::string &bbo,
-                const BBOutputTypeList &bboutputtypes,
+                const BBOutputTypeList& bbOutputTypeList,
                 const EvalType& evalType = EvalType::BB,
                 const bool evalOk = true);
 
@@ -192,15 +191,7 @@ public:
                 const EvalType& evalType = EvalType::BB,
                 const bool evalOk = true);
 
-    /// Set the true or surrogate blackbox output.
-    /**
-     \param bbo             A blackbox evaluation output -- \b IN.
-     \param evalType        Blackbox or surrogate evaluation  -- \b IN.
-     \param evalOk          Flag for evaluation status  -- \b IN.
-     */
-    void setBBO(const BBOutput &bbo,
-                const EvalType& evalType = EvalType::BB,
-                const bool evalOk = true);
+    void setBBOutputType(const BBOutputTypeList& bbOutputType, const EvalType& evalType = EvalType::BB);
 
     /// Get evaluation status of the Eval of this EvalType
     EvalStatusType getEvalStatus(const EvalType& evalType) const;
@@ -208,8 +199,8 @@ public:
     /// Set evaluation status of the Eval of this EvalType
     void setEvalStatus(const EvalStatusType &evalStatus, const EvalType& evalType);
 
-    size_t getTag() const { return _tag; }
-    void setTag(const size_t tag) const { _tag = tag; } ///< Sets mutable _tag
+    int getTag() const { return _tag; }
+    void setTag(const int tag) const { _tag = tag; } ///< Sets mutable _tag
     void updateTag() const; ///< Modifies mutable _tag, and increments static _currentTag
     static void resetCurrentTag(); ///< Reset tag numbers: Use with caution. Expected to be used in unit tests  and runner only.
 
@@ -221,40 +212,44 @@ public:
     void incNumberEval() { _numberEval++; }
 
     /// Get the Point which was the center when this point was generated
-    const std::shared_ptr<Point> getPointFrom() const { return _pointFrom; }
+    const std::shared_ptr<EvalPoint> getPointFrom() const { return _pointFrom; }
 
     void setGenStep(const std::string& genStep);
     const std::string& getGenStep() const { return _genStep; }
+
+    /// Get Direction from which the point was generated.
+    /// Value is set when setPointFrom() is called.
+    const std::shared_ptr<Direction>& getDirection() const { return _direction; }
+    /// Get/Set angle of direction with direction of last success
+    const Double& getAngle() const { return _angle; }
+    void setAngle(const Double& angle) { _angle = angle; }
 
     /// Get the Point which was the center when this point was generated
     /**
      Returns a Point in the Subspace defined by the fixedVariable
      */
-    const std::shared_ptr<Point> getPointFrom(const Point& fixedVariable) const;
+    const std::shared_ptr<EvalPoint> getPointFrom(const Point& fixedVariable) const;
 
     /// Set the Point for which this point was generated
     /**
      Use the fixedVariable to convert pointFrom from Subspace dimension to the full dimension, if needed.
      */
-    void setPointFrom(const std::shared_ptr<Point> pointFrom,
+    void setPointFrom(const std::shared_ptr<EvalPoint> pointFrom,
                       const Point& fixedVariable);
 
     /// Get evaluation feasibility flag f the Eval of this EvalType
-    bool isFeasible(const EvalType& evalType) const;
-
-    /// Recompute f and h, for a given list of blackbox output type considering that raw blackbox output is set.
-    /**
-     \param bbOutputType    The list of blackbox output types.
-    */
-    void recomputeFH(const BBOutputTypeList &bbOutputType);
+    bool isFeasible(const EvalType& evalType, const ComputeType& computeType = ComputeType::STANDARD) const;
 
     /// Comparison operator used by NM algorithm.
     /**
-     \param rhs     Second eval points to compare      -- \b IN.
-     \param evalType        Blackbox or surrogate evaluation  -- \b IN.
+     \param rhs         Second eval points to compare      -- \b IN.
+     \param evalType    Blackbox or surrogate evaluation  -- \b IN.
+     \param computeType How to compute f and h -- \b IN
      \return        \c true if \c *this dominates x.
      */
-    bool dominates(const EvalPoint& rhs, const EvalType& evalType) const;
+    bool dominates(const EvalPoint& rhs,
+                   const EvalType& evalType,
+                   const ComputeType& computeType = ComputeType::STANDARD) const;
 
     /// Convert a point from sub space to full space using fixed variables.
     /**
@@ -300,10 +295,15 @@ public:
     bool isEvalOk(const EvalType& evalType) const;
 
     /// Display with or without format
-    std::string display(const ArrayOfDouble &format = ArrayOfDouble()) const override;
+    std::string display(const ComputeType& computeType,
+                        const ArrayOfDouble &pointFormat = ArrayOfDouble(),
+                        const int &solFormat = NOMAD::DISPLAY_PRECISION_FULL) const;
+
+    std::string display(const ArrayOfDouble &pointFormat = ArrayOfDouble(),
+                        const int &solFormat = NOMAD::DISPLAY_PRECISION_FULL) const;
 
     /// Display both true and surrogate evaluations.  Useful for debugging
-    std::string displayAll() const;
+    std::string displayAll(const ComputeType& computeType = ComputeType::STANDARD) const;
 
     /// Function to test if evaluation is required.
     /**
@@ -329,6 +329,8 @@ public:
     static bool hasSgteEval(const EvalPoint& evalPoint);
     // Determine if an evalpoint has a bb (regular) eval.
     static bool hasBbEval(const EvalPoint& evalPoint);
+    /// Used for phase one
+    static bool isPhaseOneSolution(const EvalPoint& evalPoint);
 };
 
 

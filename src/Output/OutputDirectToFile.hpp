@@ -129,6 +129,7 @@ private:
 
     static bool _hasBeenInitialized; ///< Flag for initialization (initialization cannot be performed more than once).
 
+
     static std::unique_ptr<OutputDirectToFile> _single; ///< The singleton
 
     size_t _outputSize;

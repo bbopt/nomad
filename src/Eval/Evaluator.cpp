@@ -258,6 +258,7 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
         return evalOk;
     }
 
+    auto evalFormat = _evalParams->getAttributeValue<NOMAD::ArrayOfDouble>("EVAL_FORMAT");
     for (auto it = block.begin(); it != block.end(); it++)
     {
         std::shared_ptr<NOMAD::EvalPoint> x = (*it);
@@ -267,10 +268,11 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
             {
                 xfile << " ";
             }
-            xfile << (*x)[i].tostring();
+            xfile << (*x)[i].display(static_cast<int>(evalFormat[i].todouble()));
         }
         xfile << std::endl;
     }
+    xfile.close();
 
     std::string cmd = bbExe + " " + tmpfile;
     std::string s;
@@ -309,6 +311,7 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
             while (nbTries < 5)
             {
                 nbTries++;
+
                 outputLine = fgets(buffer, sizeof(buffer), fresult);
 
                 if( feof(fresult) )
@@ -331,12 +334,12 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
                     bbo.erase(bbo.size() - 1);
 
                     // Process blackbox output
-                    NOMAD::BBOutput bbOutput(bbo);
+                    auto bbOutputTypeList = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
+                    x->setBBO(bbo, bbOutputTypeList, _evalType);
+                    auto bbOutput = x->getEval(_evalType)->getBBOutput();
 
-                    auto bbOutputType = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
-                    x->getEval(_evalType)->setBBOutputAndRecompute(bbOutput, bbOutputType);
                     evalOk[index] = bbOutput.getEvalOk();
-                    countEval[index] = bbOutput.getCountEval(bbOutputType);
+                    countEval[index] = bbOutput.getCountEval(bbOutputTypeList);
 
                     break;
                 }
@@ -376,10 +379,6 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
                 {
                     std::cerr << s << std::endl;
                 }
-            }
-            else if (x->getH(_evalType) > hMax)
-            {
-                x->setEvalStatus(NOMAD::EvalStatusType::EVAL_CONS_H_OVER, _evalType);
             }
             else if (!evalOk[index])
             {

@@ -108,7 +108,7 @@ bool NOMAD::QuadModelOptimize::runImp()
             _trialPoints = evalPointSet;
         }
         // Update barrier
-        postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
+        postProcessing();
 
         // If the oracle point cannot be evaluated the optimization has failed.
         if (_success==NOMAD::SuccessType::NOT_EVALUATED)
@@ -179,19 +179,9 @@ void NOMAD::QuadModelOptimize::setupPbParameters()
     // No variable groups are considered for suboptimization
     _optPbParams->resetToDefaultValue("VARIABLE_GROUP");
 
-    NOMAD::ArrayOfPoint x0s;
-    // Ensure we get Frame Center from QuadModelIteration.
-    auto iter = dynamic_cast<const QuadModelIteration*>(_iterAncestor);
-    auto frameCenter = iter->getFrameCenter();
-    if (frameCenter->inBounds(_modelLowerBound, _modelUpperBound))
-    {
-        x0s.push_back(*(frameCenter->getX()));
-    }
-    else
-    {
-        throw NOMAD::Exception(__FILE__,__LINE__,"A frameCenter must be available and within bounds to set X0 for quad optimization.");
-    }
+    NOMAD::ArrayOfPoint x0s{_modelCenter};
     _optPbParams->setAttributeValue("X0", x0s);
+
 
     // We do not want certain warnings appearing in sub-optimization.
     _optPbParams->doNotShowWarnings();
@@ -232,7 +222,7 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
 
     auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
 
-    auto fullFixedVar = NOMAD::SubproblemManager::getSubFixedVariable(this);
+    auto fullFixedVar = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
     OUTPUT_INFO_START
     std::string s = "Create QuadModelEvaluator with fixed variable = ";
     s += fullFixedVar.display();
@@ -252,9 +242,6 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
         std::cerr << "Warning: QuadModelOptimize: Could not set SGTE Evaluator" << std::endl;
         return;
     }
-
-    // Setup EvalPoint success computation to be based on sgte rather than bb.
-    evc->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
 
     auto madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
 
@@ -293,9 +280,6 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     // Reset opportunism to previous values.
     evc->setOpportunisticEval(previousOpportunism);
     evc->setUseCache(previousUseCache);
-
-    // Reset success computation function --> use the default
-    evc->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
 
     if (!runOk)
     {
@@ -401,10 +385,48 @@ void NOMAD::QuadModelOptimize::setModelBoundsAndFixedVar()
         _modelUpperBound[j] = ub;
 
     }
+
+    // Detect the model center of the bounds
+    // Scale the bounds around the model center
+    auto reduction_factor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR");
+    for (int j = 0; j < nbDim; j++)
+    {
+        lb = _modelLowerBound[j];
+        ub = _modelUpperBound[j];
+        if (lb.isDefined() && ub.isDefined())
+        {
+            // The model center is the bounds middle point
+            _modelCenter[j] = (lb + ub)/2.0;
+
+            // Scale the bounds with respect to the bounds
+            lb = _modelCenter[j] + (lb-_modelCenter[j])/reduction_factor;
+            ub = _modelCenter[j] + (ub-_modelCenter[j])/reduction_factor;
+
+            // Comparison of Double at epsilon
+            if (lb == ub)
+            {
+                _modelFixedVar[j] = ub;
+                _modelCenter[j] = ub;
+                lb = NOMAD::Double(); // undefined
+                ub = NOMAD::Double();
+
+            }
+        }
+        else
+        {
+            _modelCenter[j] = _modelFixedVar[j];
+        }
+
+        _modelLowerBound[j] = lb;
+        _modelUpperBound[j] = ub;
+    }
+
     OUTPUT_INFO_START
     std::string s = "model lower bound: " + _modelLowerBound.display();
     AddOutputInfo(s);
     s = "model upper bound: " + _modelUpperBound.display();
+    AddOutputInfo(s);
+    s = "model center: " + _modelCenter.display();
     AddOutputInfo(s);
     OUTPUT_INFO_END
 

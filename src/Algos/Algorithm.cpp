@@ -56,8 +56,6 @@
 #include "../Util/fileutils.hpp"
 
 #ifdef TIME_STATS
-#include "../Algos/Mads/MadsIteration.hpp"
-#include "../Algos/Mads/Search.hpp"
 #include "../Util/Clock.hpp"
 #endif // TIME_STATS
 
@@ -100,10 +98,10 @@ void NOMAD::Algorithm::init()
 
     // Update SubproblemManager
     NOMAD::Point fullFixedVariable = isRootAlgo() ? _pbParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE")
-                                   : NOMAD::SubproblemManager::getSubFixedVariable(_parentStep);
+                                   : NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(_parentStep);
 
     NOMAD::Subproblem subproblem(_pbParams, fullFixedVariable);
-    NOMAD::SubproblemManager::addSubproblem(this, subproblem);
+    NOMAD::SubproblemManager::getInstance()->addSubproblem(this, subproblem);
     _pbParams = subproblem.getPbParams();
     _pbParams->checkAndComply();
 
@@ -119,7 +117,7 @@ void NOMAD::Algorithm::init()
 
 NOMAD::Algorithm::~Algorithm()
 {
-    NOMAD::SubproblemManager::removeSubproblem(this);
+    NOMAD::SubproblemManager::getInstance()->removeSubproblem(this);
 #ifdef _OPENMP
     omp_destroy_lock(&_algoCommentLock);
 #endif // _OPENMP
@@ -228,7 +226,7 @@ void NOMAD::Algorithm::startImp()
 
     // All stop reasons are reset.
     _stopReasons->setStarted();
-    
+
     // SuccessType is reset
     _algoSuccessful = false;
     _algoBestSuccess = NOMAD::SuccessType::NOT_EVALUATED;
@@ -319,7 +317,7 @@ void NOMAD::Algorithm::endImp()
         }
 
     }
-    
+
     // By default reset the lap counter for BbEval and set the lap maxBbEval to INF
     NOMAD::EvcInterface::getEvaluatorControl()->resetLapBbEval();
     NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval( NOMAD::INF_SIZE_T );
@@ -390,8 +388,14 @@ void NOMAD::Algorithm::displayBestSolutions() const
     // Output level is info if this algorithm is a sub part of another algorithm.
     NOMAD::OutputLevel outputLevel = isSubAlgo() ? NOMAD::OutputLevel::LEVEL_INFO
                                                  : NOMAD::OutputLevel::LEVEL_VERY_HIGH;
+    auto solFormat = NOMAD::OutputQueue::getInstance()->getSolFormat();
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+    if (isRootAlgo())
+    {
+        solFormat.set(-1);
+    }
     NOMAD::OutputInfo displaySolFeas(_name, sFeas, outputLevel);
-    auto fixedVariable = NOMAD::SubproblemManager::getSubFixedVariable(this);
+    auto fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
 
     sFeas = "Best feasible solution";
     auto barrier = getMegaIterationBarrier();
@@ -410,12 +414,12 @@ void NOMAD::Algorithm::displayBestSolutions() const
     else if (1 == nbBestFeas)
     {
         sFeas += ":     ";
-        displaySolFeas.addMsgAndSol(sFeas, *evalPointList.begin());
+        displaySolFeas.addMsg(sFeas + evalPointList[0].display(computeType, solFormat, NOMAD::DISPLAY_PRECISION_FULL));
     }
     else
     {
         sFeas += "s:    ";
-        displaySolFeas.addMsgAndSol(sFeas, *evalPointList.begin());
+        displaySolFeas.addMsg(sFeas + evalPointList[0].display(computeType, solFormat, NOMAD::DISPLAY_PRECISION_FULL));
     }
 
 
@@ -431,7 +435,8 @@ void NOMAD::Algorithm::displayBestSolutions() const
             {
                 continue;   // First element already added
             }
-            displaySolFeas.addMsgAndSol("                            ",*it);
+            sFeas = "                            ";
+            displaySolFeas.addMsg(sFeas + it->display(computeType, solFormat, NOMAD::DISPLAY_PRECISION_FULL));
             if (solCount >= maxSolCount)
             {
                 // We printed enough solutions already.
@@ -465,12 +470,12 @@ void NOMAD::Algorithm::displayBestSolutions() const
     else if (1 == nbBestInf)
     {
         sInf += ":   ";
-        displaySolInf.addMsgAndSol(sInf, *evalPointList.begin());
+        displaySolInf.addMsg(sInf + evalPointList[0].display(computeType, solFormat, NOMAD::DISPLAY_PRECISION_FULL));
     }
     else
     {
         sInf += "s:  ";
-        displaySolInf.addMsgAndSol(sInf, *evalPointList.begin());
+        displaySolInf.addMsg(sInf + evalPointList[0].display(computeType, solFormat, NOMAD::DISPLAY_PRECISION_FULL));
     }
 
     if (nbBestInf > 1)
@@ -484,7 +489,7 @@ void NOMAD::Algorithm::displayBestSolutions() const
             {
                 continue;   // First element already added
             }
-            displaySolInf.addMsgAndSol("                            ",(*it));
+            displaySolInf.addMsg("                            " + it->display(computeType, solFormat, NOMAD::DISPLAY_PRECISION_FULL));
             if (solCount >= maxSolCount)
             {
                 // We printed enough solutions already.

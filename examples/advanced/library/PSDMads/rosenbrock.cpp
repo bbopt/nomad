@@ -47,6 +47,7 @@
 /*  Rosenbrock with dimension greater than 2  */
 /*--------------------------------------------*/
 #include "Nomad/nomad.hpp"
+#include "Type/DirectionType.hpp"
 
 const size_t N = 50;
 
@@ -101,6 +102,8 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->setAttributeValue("DIMENSION", N);
     // 100 black-box evaluations
     allParams->setAttributeValue("MAX_BB_EVAL", 100*N);
+    
+    
     // Starting point
     allParams->setAttributeValue("X0", NOMAD::Point(N, 0.5) );
 
@@ -112,13 +115,16 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->setAttributeValue("NM_SEARCH",false);
     allParams->setAttributeValue("PSD_MADS_OPTIMIZATION",true);
     allParams->setAttributeValue("PSD_MADS_NB_VAR_IN_SUBPROBLEM",2);
+    allParams->setAttributeValue("PSD_MADS_SUBPROBLEM_PCT_COVERAGE",NOMAD::Double(0.0));
+    allParams->setAttributeValue("MAX_BB_EVAL_IN_SUBPROBLEM",10);
     allParams->setAttributeValue("NB_THREADS_OPENMP",4);
     
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes = {NOMAD::BBOutputType::OBJ};
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
 
-    allParams->setAttributeValue("DISPLAY_DEGREE", 0);
+    allParams->setAttributeValue("DISPLAY_DEGREE", 2);
+    allParams->setAttributeValue("DISPLAY_UNSUCCESSFUL",false);
     allParams->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString("stats.txt bbe obj"));
 
     // Parameters validation

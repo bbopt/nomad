@@ -19,7 +19,7 @@ BIN_DIR             = $(BUILD_DIR)/bin
 
 COMPONENT_DIRNAME   = Type
 
-ALL_FILES           = BBInputType BBOutputType \
+ALL_FILES           = BBInputType BBOutputType ComputeType \
                       CallbackType DirectionType EvalType LHSearchType \
                       ListOfVariableGroup SgtelibModelFeasibilityType SgtelibModelFormulationType
 ALL_OBJ             = $(addsuffix .o, $(addprefix $(OBJ_DIR)/,$(ALL_FILES)))

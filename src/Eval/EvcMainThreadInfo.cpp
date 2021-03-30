@@ -54,10 +54,6 @@
 /*-------------------------*/
 void NOMAD::EvcMainThreadInfo::init()
 {
-    if (nullptr != _evaluator)
-    {
-        _computeSuccessType.setDefaultComputeSuccessTypeFunction(_evaluator->getEvalType());
-    }
 }
 
 
@@ -65,10 +61,6 @@ std::shared_ptr<NOMAD::Evaluator> NOMAD::EvcMainThreadInfo::setEvaluator(std::sh
 {
     auto previousEvaluator = _evaluator;
     _evaluator = evaluator;
-    if (nullptr != _evaluator)
-    {
-        _computeSuccessType.setDefaultComputeSuccessTypeFunction(_evaluator->getEvalType());
-    }
 
     return previousEvaluator;
 }
@@ -213,7 +205,8 @@ const std::shared_ptr<NOMAD::EvalPoint>& NOMAD::EvcMainThreadInfo::getBestIncumb
 
 void NOMAD::EvcMainThreadInfo::setBestIncumbent(const std::shared_ptr<NOMAD::EvalPoint>& bestIncumbent)
 {
-    if (_computeSuccessType(bestIncumbent, _bestIncumbent) >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+    NOMAD::ComputeSuccessType computeSuccess(_evaluator->getEvalType(), _computeType);
+    if (computeSuccess(bestIncumbent, _bestIncumbent) >= NOMAD::SuccessType::PARTIAL_SUCCESS)
     {
         _bestIncumbent = bestIncumbent;
     }

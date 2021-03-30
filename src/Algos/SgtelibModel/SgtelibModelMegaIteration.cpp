@@ -115,7 +115,7 @@ bool NOMAD::SgtelibModelMegaIteration::runImp()
 
 void NOMAD::SgtelibModelMegaIteration::endImp()
 {
-    postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
+    postProcessing();
 
     // Clear sgte info from cache.
     // Very important so we don't have false info in a later MegaIteration.
@@ -197,7 +197,7 @@ void NOMAD::SgtelibModelMegaIteration::runIterationsAndSetTrialPoints()
             auto pointFrom = modelAlgo->getX0();
             // PointFrom needs to be updated. It could have been set inside sub-algorithm,
             // but that value is moot.
-            oraclePoint.setPointFrom(pointFrom, NOMAD::SubproblemManager::getSubFixedVariable(this));
+            oraclePoint.setPointFrom(pointFrom, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
             if (snapPointToBoundsAndProjectOnMesh(oraclePoint, lb, ub))
             {
                 bool inserted = insertTrialPoint(oraclePoint);

@@ -309,9 +309,18 @@
          * If granularity = 2.2 and value = 39.6, return 39.6.
 
          \param granularity Granularity to compare
-         \return            Next multiple double
+         \return            Next multiple Double
          */
         const Double nextMult(const Double &granularity) const;
+
+        /// Previous multiple
+        /**
+          * Returns the first double lesser or equal to value
+          * that is a multiple of the granularity.
+          \param granularity Granularity to compare
+          \return            Previous multiple Double
+         */
+        const Double previousMult(const Double &granularity) const;
 
         /// Operator \c ++ (prefix position).
         /**

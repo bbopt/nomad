@@ -93,7 +93,7 @@ public:
     {
         _evaluatorControl.reset();
     }
-    
+
     /**
      If the evaluatorControl attribute is NULL, throws an exception.
      */

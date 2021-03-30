@@ -181,19 +181,7 @@ bool NOMAD::Double::weakLess(const NOMAD::Double &d1, const NOMAD::Double &d2)
 /*-----------------------------------------------*/
 const std::string NOMAD::Double::tostring() const
 {
-    std::string s;
-    if (!_defined)
-    {
-        s = DEFAULT_UNDEF_STR;
-    }
-    else
-    {
-        std::ostringstream oss;
-        oss << *this;
-        s = oss.str();
-    }
-
-    return s;
+    return display(NOMAD::DISPLAY_PRECISION_STD);
 }
 
 
@@ -1019,3 +1007,25 @@ const NOMAD::Double NOMAD::Double::nextMult(const NOMAD::Double &granularity) co
 }
 
 
+const NOMAD::Double NOMAD::Double::previousMult(const NOMAD::Double &granularity) const
+{
+    NOMAD::Double d;
+
+    if (!granularity.isDefined() || !isDefined() || (granularity <= 0.0) || isMultipleOf(granularity))
+    {
+        d = _value;
+    }
+    else
+    {
+        // granularity > 0, and _value is not a multiple of granularity.
+        // Adjust value with granularity
+        int granMult = (int)(_value / granularity.todouble());
+        if (_value < 0)
+        {
+            granMult--;
+        }
+        d = granMult * granularity;
+    }
+
+    return d;
+}

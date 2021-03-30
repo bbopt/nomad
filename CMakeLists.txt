@@ -115,11 +115,16 @@ endif()
 #
 # Test openMP package
 #
-find_package(OpenMP QUIET)
-if(OpenMP_FOUND)
-   message(STATUS "  Test OpenMP for parallel functionalities  -- found ")
+option(TEST_OPENMP "Option to compile Nomad with OpenMP" ON)
+if(TEST_OPENMP MATCHES ON)
+   find_package(OpenMP QUIET)
+   if(OpenMP_FOUND)
+      message(STATUS "  Test OpenMP for parallel functionalities  -- found ")
+   else()
+      message(STATUS "  OpenMP not found. Parallel functionalities NOT available")
+   endif()
 else()
-   message(STATUS "  OpenMP not found. Parallel functionalities NOT available")
+    message(STATUS "  Compiling Nomad without OpenMP")
 endif()
 
 #

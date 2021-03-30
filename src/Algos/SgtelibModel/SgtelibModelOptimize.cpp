@@ -125,7 +125,7 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         auto ev = std::make_shared<NOMAD::SgtelibModelEvaluator>(
                                                 evc->getEvalParams(), _modelAlgo, modelDisplay,
                                                 diversification, modelFeasibility, tc,
-                                                NOMAD::SubproblemManager::getSubFixedVariable(this));
+                                                NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
 
         // Replace the EvaluatorControl's evaluator with this one
         // we just created
@@ -241,10 +241,12 @@ void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& 
     // Only looking into sgte evaluations here
     cacheInterface.findBestFeas(evalPointFeasList,
                                 NOMAD::EvalType::SGTE,
+                                NOMAD::ComputeType::STANDARD,
                                 nullptr);
     cacheInterface.findBestInf(evalPointInfList,
                                hMax,
                                NOMAD::EvalType::SGTE,
+                               NOMAD::ComputeType::STANDARD,
                                nullptr);
 
     NOMAD::ArrayOfPoint x0s;

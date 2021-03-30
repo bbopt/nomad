@@ -127,6 +127,7 @@ bool NOMAD::PSDMads::runImp()
 {
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     const NOMAD::EvalType evalType = evc->getEvalType();
+    const NOMAD::ComputeType computeType = evc->getComputeType();
     std::string s;
 
     bool isPollster = (0 == NOMAD::getThreadNum());   // Pollster is thread 0, which is always a main thread.
@@ -162,7 +163,9 @@ bool NOMAD::PSDMads::runImp()
             auto evalPointList = madsOnSubPb->getMegaIterationBarrier()->getAllPoints();
             NOMAD::convertPointListToFull(evalPointList, fixedVariable);
             _barrier->updateWithPoints(evalPointList,
-                                       evalType, _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
+                                       evalType,
+                                       computeType,
+                                       _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
             omp_unset_lock(&_psdMadsLock);
         }
 

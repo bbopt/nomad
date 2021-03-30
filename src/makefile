@@ -164,8 +164,10 @@ SGTELIBMODEL_OBJ    = SgtelibModel.o SgtelibModelEvaluator.o \
 SGTELIBMODEL_OBJ    := $(addprefix $(OBJ_DIR)/,$(SGTELIBMODEL_OBJ))
 SSDMADS_OBJ         = SSDMads.o SSDMadsMegaIteration.o
 SSDMADS_OBJ        := $(addprefix $(OBJ_DIR)/,$(SSDMADS_OBJ))
-TYPE_OBJ            = BBInputType.o BBOutputType.o CallbackType.o DirectionType.o EvalType.o LHSearchType.o \
-                      ListOfVariableGroup.o SgtelibModelFeasibilityType.o SgtelibModelFormulationType.o
+TYPE_OBJ            = BBInputType.o BBOutputType.o CallbackType.o \
+                      ComputeType.o DirectionType.o EvalType.o LHSearchType.o \
+                      ListOfVariableGroup.o \
+                      SgtelibModelFeasibilityType.o SgtelibModelFormulationType.o
 TYPE_OBJ            := $(addprefix $(OBJ_DIR)/,$(TYPE_OBJ))
 UTIL_OBJ            = AllStopReasons.o ArrayOfString.o Clock.o Exception.o \
                       fileutils.o StopReason.o utils.o

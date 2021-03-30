@@ -115,7 +115,7 @@ void NOMAD::OutputDirectToFile::init(const std::shared_ptr<NOMAD::DisplayParamet
     }
 
     // Read from the current DisplayParameters
-    std::string historyFileTmp= params->getAttributeValue<std::string>("HISTORY_FILE");
+    std::string historyFileTmp = params->getAttributeValue<std::string>("HISTORY_FILE");
 
     // Check conflict with previous history file if this has already been initialized
     if(_hasBeenInitialized && ! _historyFile.empty() && ! historyFileTmp.empty() && historyFileTmp == _historyFile )

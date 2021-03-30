@@ -86,6 +86,9 @@ void toupper ( std::string & s );
  */
 void toupper  ( std::list<std::string> & ls );
 
+/// Trim extra spaces at the beginning and end of a string.
+void trim(std::string &s);
+
 /// Convert a string into an integer.
 /**
  \param s The string  -- \b IN.

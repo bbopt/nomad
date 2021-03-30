@@ -162,7 +162,7 @@ bool NOMAD::NMReflective::runImp()
         setNextNMStepType();
 
     // From IterationUtils
-    postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
+    postProcessing();
 
     return foundBetter;
 }
@@ -233,7 +233,7 @@ void NOMAD::NMReflective::generateTrialPoints()
     if (nullptr != barrier)
     {
         pointFrom = std::make_shared<NOMAD::EvalPoint>(barrier->getFirstPoint());
-        xt.setPointFrom(pointFrom, NOMAD::SubproblemManager::getSubFixedVariable(this));
+        xt.setPointFrom(pointFrom, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
     }
 
     auto lb = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
@@ -418,7 +418,7 @@ void NOMAD::NMReflective::setAfterExpand( void )
     {
         // No point inserted.
         OUTPUT_DEBUG_START
-        AddOutputDebug("The insertion in Y of the best of xr and xe dit not maintain a proper Y. Perform shrink (if available).");
+        AddOutputDebug("The insertion in Y of the best of xr and xe did not maintain a proper Y. Perform shrink (if available).");
         OUTPUT_DEBUG_END
         _nextStepType = NMStepType::SHRINK;
     }
@@ -834,6 +834,7 @@ bool NOMAD::NMReflective::insertInY(const NOMAD::EvalPoint& x)
 
 bool NOMAD::NMReflective::pointDominatesY0( const NOMAD::EvalPoint & xt ) const
 {
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
     std::string s;
 
@@ -856,8 +857,8 @@ bool NOMAD::NMReflective::pointDominatesY0( const NOMAD::EvalPoint & xt ) const
 
     // xt < y ?
     if (std::any_of(_nmY0.begin(), _nmY0.end(),
-                    [xt, evalType](NOMAD::EvalPoint evalPointY0) {
-                        return xt.dominates(evalPointY0, evalType);
+                    [xt, evalType, computeType](NOMAD::EvalPoint evalPointY0) {
+                        return xt.dominates(evalPointY0, evalType, computeType);
                     }))
     {
         return true;
@@ -869,6 +870,7 @@ bool NOMAD::NMReflective::pointDominatesY0( const NOMAD::EvalPoint & xt ) const
 
 bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
 {
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
 
     if (_nmYn.size() == 0)
@@ -892,8 +894,8 @@ bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
     // Without constraints, Yn contains a single point
     int flag = 0;
     if (std::any_of(_nmYn.begin(), _nmYn.end(),
-                    [xt, evalType](NOMAD::EvalPoint evalPointYn) {
-                        return evalPointYn.dominates(xt, evalType);
+                    [xt, evalType, computeType](NOMAD::EvalPoint evalPointYn) {
+                        return evalPointYn.dominates(xt, evalType, computeType);
                     }))
     {
         flag = 1;
@@ -908,13 +910,14 @@ bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
     // no point of Yn dominates xt --> check if h(yn) < h(xt) --> Yn dominates
 
     // Case with EB constraints and a point from Yn is infeasible
-    if (!evalPointYn.getH(evalType).isDefined())
+    if (!evalPointYn.getH(evalType, computeType).isDefined())
     {
         return false;
     }
 
     // Test also case where xt has no value for h (case with EB constraint)
-    if (!xt.getH(evalType).isDefined() || evalPointYn.getH(evalType) < xt.getH(evalType))
+    if (   !xt.getH(evalType, computeType).isDefined()
+        || evalPointYn.getH(evalType, computeType) < xt.getH(evalType, computeType))
     {
         return true;
     }
@@ -925,6 +928,7 @@ bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
 
 bool NOMAD::NMReflective::pointDominatesPtsInY(const NOMAD::EvalPoint& xt, size_t nbPointsToDominate) const
 {
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
 
     if (nullptr == xt.getEval(evalType))
@@ -947,7 +951,7 @@ bool NOMAD::NMReflective::pointDominatesPtsInY(const NOMAD::EvalPoint& xt, size_
     while (itY != _nmY->end() && nDominates < nbPointsToDominate)
     {
         // xt < y ?
-        if (xt.dominates(*itY, evalType))
+        if (xt.dominates(*itY, evalType, computeType))
         {
             nDominates++;
         }
@@ -964,6 +968,7 @@ bool NOMAD::NMReflective::pointDominatesPtsInY(const NOMAD::EvalPoint& xt, size_
 /*------------------------------------------------------------------*/
 bool NOMAD::NMReflective::makeListY0 ()
 {
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
 
     _nmY0.clear();
@@ -986,7 +991,7 @@ bool NOMAD::NMReflective::makeListY0 ()
             const NOMAD::EvalPoint & x = (*itx);
 
             // Case x dominates y --> y cannot be included in Y0
-            if (x.dominates(y, evalType))
+            if (x.dominates(y, evalType, computeType))
             {
                 flag = 1;
                 break;
@@ -1015,6 +1020,7 @@ bool NOMAD::NMReflective::makeListY0 ()
 /*----------------------------------------------------------------*/
 bool NOMAD::NMReflective::makeListYn ()
 {
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
     _nmYn.clear();
 
@@ -1030,7 +1036,7 @@ bool NOMAD::NMReflective::makeListYn ()
             const NOMAD::EvalPoint & x = (*itx);
 
             // Case y dominates x --> y cannot be included in Yn
-            if (y.dominates(x, evalType))
+            if (y.dominates(x, evalType, computeType))
             {
                 flag = true;
                 break;

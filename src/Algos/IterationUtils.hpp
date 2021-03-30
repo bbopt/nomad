@@ -144,10 +144,9 @@ public:
     /**
      Post-processing of the points after evaluation.
      For instance, computation of a new hMax and update of the MegaIteration's Barrier.
-     Use evaluations of the type given by input parameter evalType.
      \return \c true if some value changed (ex. Barrier, hMax), \c false if nothing happened.
      */
-    virtual bool postProcessing(const EvalType& evalType);
+    virtual bool postProcessing();
 
     /// Helper for start task
     /**

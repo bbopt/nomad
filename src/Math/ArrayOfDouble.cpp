@@ -226,9 +226,7 @@ NOMAD::Double& NOMAD::ArrayOfDouble::operator[](size_t i) const
 /*                        snap to bounds                     */
 /*-----------------------------------------------------------*/
 void NOMAD::ArrayOfDouble::snapToBounds(const NOMAD::ArrayOfDouble &lowerBound,
-                                        const NOMAD::ArrayOfDouble &upperBound,
-                                        const NOMAD::ArrayOfDouble &frameCenter,
-                                        const NOMAD::ArrayOfDouble &deltaMeshSize)
+                                        const NOMAD::ArrayOfDouble &upperBound)
 {
     size_t n = size();
 
@@ -249,57 +247,15 @@ void NOMAD::ArrayOfDouble::snapToBounds(const NOMAD::ArrayOfDouble &lowerBound,
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
-    if (lowerBound.isDefined() || upperBound.isDefined())
+    for (size_t i = 0; i < n; ++i)
     {
-        for (size_t i = 0; i < n; ++i)
+        if (lowerBound.isDefined() && lowerBound[i].isDefined() && _array[i] < lowerBound[i])
         {
-            if (lowerBound[i].isDefined() && _array[i] < lowerBound[i])
-            {
-                if (deltaMeshSize.isDefined() && deltaMeshSize[i].isDefined() && deltaMeshSize[i] > 0)
-                {
-                    NOMAD::Double arrayPreviousValue = _array[i]; // for debug info
-                    _array[i] = frameCenter[i] + (lowerBound[i] - frameCenter[i]).nextMult(deltaMeshSize[i]);
-                    if (_array[i] < lowerBound[i])
-                    {
-                        //_array[i] += deltaMeshSize[i];
-                        std::cerr << "Warning: snapToBounds: Error snapping " << arrayPreviousValue << " to lower bound " << lowerBound[i] << " - frameCenter = " << frameCenter[i] << ", deltaMeshSize = " << deltaMeshSize[i] << ": it gave " << _array[i] << " which is still lower than " << lowerBound[i] << std::endl;
-                    }
-                }
-                else
-                {
-                    _array[i] = lowerBound[i];
-                }
-                continue;
-            }
-            if (upperBound[i].isDefined() && _array[i] > upperBound[i])
-            {
-                if (deltaMeshSize.isDefined() && deltaMeshSize[i].isDefined() && deltaMeshSize[i] > 0)
-                {
-                    _array[i] = frameCenter[i] + (upperBound[i] - frameCenter[i]).nextMult(deltaMeshSize[i]);
-                    if (_array[i] > upperBound[i])
-                    {
-                        _array[i] -= deltaMeshSize[i];
-                    }
-                }
-                else
-                {
-                    _array[i] = upperBound[i];
-                }
-                continue;
-            }
-            // Sanity checks
-            if (lowerBound[i].isDefined() && _array[i] < lowerBound[i])
-            {
-                std::string err = "Error: snapToBounds: Could not snap value " + _array[i].tostring();
-                err += " within lower bound " + lowerBound[i].tostring();
-                std::cerr << err << std::endl;
-            }
-            if (upperBound[i].isDefined() && _array[i] > upperBound[i])
-            {
-                std::string err = "Error: snapToBounds: Could not snap value " + _array[i].tostring();
-                err += " within upper bound " + upperBound[i].tostring();
-                std::cerr << err << std::endl;
-            }
+            _array[i] = lowerBound[i]; // True snap, ignore mesh
+        }
+        if (upperBound.isDefined() && upperBound[i].isDefined() && upperBound[i] < _array[i])
+        {
+            _array[i] = upperBound[i]; // True snap, ignore mesh
         }
     }
 }

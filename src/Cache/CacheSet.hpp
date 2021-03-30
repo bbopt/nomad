@@ -176,9 +176,10 @@ public:
      \return                 The number of eval points found.
      */
     size_t find(const Eval &refeval,
-             std::function<bool(const Eval&, const Eval&)> comp,
+             std::function<bool(const Eval&, const Eval&, const ComputeType&)> comp,
              std::vector<EvalPoint> &evalPointList,
-             const EvalType& evalType = EvalType::BB) const override;
+             const EvalType& evalType = EvalType::BB,
+             const ComputeType& computeType = ComputeType::STANDARD) const override;
 
     /**
      * \brief Get best eval points, using comp().
@@ -193,12 +194,13 @@ public:
      \param refeval                 The point of reference                                              -- \b IN.
      \return                 The number of eval points found.
      */
-    virtual size_t findBest(std::function<bool(const Eval&, const Eval&)> comp,
+    virtual size_t findBest(std::function<bool(const Eval&, const Eval&, const ComputeType&)> comp,
                      std::vector<EvalPoint> &evalPointList,
                      const bool findFeas,
                      const Double& hMax,
                      const Point& fixedVariable,
                      const EvalType& evalType,
+                     const ComputeType& computeType,
                      const Eval* refeval) const override;
 
     /// Find best feasible points, using operator<.
@@ -212,13 +214,15 @@ public:
     virtual size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
                                 const Point& fixedVariable,
                                 const EvalType& evalType,
+                                const ComputeType& computeType,
                                 const Eval* refeval) const override;
 
     /// Test if cache contains a feasible point.
     /**
      \return \c true if the cache contains at least one feasible point, \c false otherwise.
      */
-    bool hasFeas(const EvalType& evalType) const override;
+    bool hasFeas(const EvalType& evalType,
+                 const ComputeType& computeType = ComputeType::STANDARD) const override;
 
     /// Find best infeasible points, with h <= hMax, using operator<.
     /**
@@ -233,6 +237,7 @@ public:
                             const Double& hMax,
                             const Point& fixedVariable,
                             const EvalType& evalType,
+                            const ComputeType& computeType,
                             const Eval* refeval) const override;
 
     /// Get all eval points verifying a criterion function with respect to point X. The criterion function can be a measure of distance to X.
@@ -330,13 +335,6 @@ public:
     void processOnAllPoints(void (*func)(EvalPoint&), int mainThreadNum) override;
 
     void deleteSgteOnly(const int mainThreadNum) override;
-
-    /// Recompute F and H on a cache point.
-    /**
-      Helper for read - where only BBO is set.
-     \param evalPoint       The eval point to update in cache -- \b IN.
-     */
-    static void recomputeFH(EvalPoint& evalPoint);
 
 private:
     /// Private initialization function for internal use by constructor.
