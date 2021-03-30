@@ -9,6 +9,7 @@ var class_type_attribute =
     [ "isDefaultValue", "class_type_attribute.html#a3212012b857c388f919105288eb4d533", null ],
     [ "resetToDefaultValue", "class_type_attribute.html#ab9ea573a7467d73aa035d4e9edaf55ab", null ],
     [ "setValue", "class_type_attribute.html#a03bec1e144fa66c2a174aa8141aefac5", null ],
+    [ "uniqueEntry", "class_type_attribute.html#a8ff8addec81ce3c853e9ab1b18006cd9", null ],
     [ "_initValue", "class_type_attribute.html#ab490e1382eda66f19b54fb5781284cc3", null ],
     [ "_value", "class_type_attribute.html#a20297344b4bf5cca28be0f7660854a3a", null ]
 ];

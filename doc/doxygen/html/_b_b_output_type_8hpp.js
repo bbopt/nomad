@@ -16,6 +16,7 @@ var _b_b_output_type_8hpp =
     [ "isConstraint", "_b_b_output_type_8hpp.html#a850a7be97eb531fc369682309b5bda8e", null ],
     [ "operator<<", "_b_b_output_type_8hpp.html#ab1164a73b4395a9962a22d43ce3773c2", null ],
     [ "operator<<", "_b_b_output_type_8hpp.html#ac97404f9230eb8df7552dea894502cdb", null ],
+    [ "operator>>", "_b_b_output_type_8hpp.html#a05d7e56d8aec596e5fee556a9c608288", null ],
     [ "stringToBBOutputType", "_b_b_output_type_8hpp.html#af2652499be89cfa3c3a1701f81835b29", null ],
     [ "stringToBBOutputTypeList", "_b_b_output_type_8hpp.html#af2e597fbd5503128500ffbde3f143e69", null ]
 ];

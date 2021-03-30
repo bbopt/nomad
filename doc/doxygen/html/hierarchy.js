@@ -110,6 +110,7 @@ var hierarchy =
     [ "ParameterEntryComp", "struct_parameter_entry_comp.html", null ],
     [ "Parameters", "class_parameters.html", [
       [ "CacheParameters", "class_cache_parameters.html", null ],
+      [ "DeprecatedParameters", "class_deprecated_parameters.html", null ],
       [ "DisplayParameters", "class_display_parameters.html", null ],
       [ "EvalParameters", "class_eval_parameters.html", null ],
       [ "EvaluatorControlGlobalParameters", "class_evaluator_control_global_parameters.html", null ],

@@ -29,6 +29,7 @@ var class_output_queue =
     [ "setMaxStepLevel", "class_output_queue.html#a844c35b53c914593db857161a470f581", null ],
     [ "setStatsFileFormat", "class_output_queue.html#a6c9b92776d5420955747879b2b9e0fb2", null ],
     [ "setStatsFileName", "class_output_queue.html#a6fe962d546716fbe133ad668ba469cb0", null ],
+    [ "setTotalEval", "class_output_queue.html#a44dc7738b791ff5522bf36fe03dab1a7", null ],
     [ "startBlock", "class_output_queue.html#af4b91c419e82be513447d89430b2d8ca", null ],
     [ "_blockEnd", "class_output_queue.html#a1664d7596c5c8465f7a302740ce08c6c", null ],
     [ "_blockStart", "class_output_queue.html#adcf1d9824bb331dcb3900ab019d83358", null ],
@@ -44,5 +45,7 @@ var class_output_queue =
     [ "_statsFile", "class_output_queue.html#ad07afc95de4d996856bed27822a26520", null ],
     [ "_statsFileFormat", "class_output_queue.html#a2c8512e010c6f927d2b6184756b1450d", null ],
     [ "_statsLineCount", "class_output_queue.html#a8aeb51e2c79b5ecdd9cb9a6c58af15ab", null ],
-    [ "_statsStream", "class_output_queue.html#a73fce78e0ca3a49c3e0ba6da9777d1a4", null ]
+    [ "_statsStream", "class_output_queue.html#a73fce78e0ca3a49c3e0ba6da9777d1a4", null ],
+    [ "_statsWritten", "class_output_queue.html#afbb7ee21301671a342f12941fd9dc579", null ],
+    [ "_totalEval", "class_output_queue.html#a2803a6ce0453dfa3a82bf9e450632a93", null ]
 ];
