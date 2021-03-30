@@ -1,0 +1,39 @@
+###############################################################################
+######         Definition of DeprecatedParameters attributes       ############
+#####
+##### . This is used to register deprecated parameters. Only the name and
+#####     short info is used.
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value.
+#####   Only the name is important, the type and default value are not used.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). Only the internal keywords is used. If a
+#####     set method is called on the parameter, an exception will happen.
+#####
+##### . The short info describes the current valid name for this deprecated
+#####     parameter.
+#####
+################################################################################
+INITIAL_POLL_SIZE
+NOMAD::ArrayOfDouble
+-
+\( Deprecated from Nomad 3: replaced by INITIAL_FRAME_SIZE \)
+\(
+\)
+\( internal \)
+###############################################################################
+MIN_POLL_SIZE
+NOMAD::ArrayOfDouble
+-
+\( Deprecated from Nomad 3: replaced by MIN_FRAME_SIZE \)
+\(
+\)
+\( internal \)
+################################################################################
