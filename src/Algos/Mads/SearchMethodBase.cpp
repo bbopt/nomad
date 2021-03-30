@@ -59,7 +59,7 @@ void NOMAD::SearchMethodBase::init()
 void NOMAD::SearchMethodBase::endImp()
 {
     // Compute hMax and update Barrier.
-    postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
+    postProcessing();
 
     // Need to reimplement end() to set a stop reason for Mads based on the search method stop reason
 }

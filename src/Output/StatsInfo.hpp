@@ -97,6 +97,7 @@ enum class DisplayStatsType
     DS_FRAME_SIZE ,    ///< Frame size parameter Delta^f_k
     DS_DELTA_F    ,    ///< Same as \c DS_FRAME_SIZE
     DS_FRAME_CENTER ,  ///< Frame center: Point that was used as center to generate this point
+    DS_DIRECTION  ,    ///< Direction that generated this point
     DS_SOL        ,    ///< Solution vector
     DS_THREAD_ALGO,    ///< Thread number for the algorithm
     DS_THREAD_NUM ,    ///< Thread number in which this evaluation was done
@@ -142,6 +143,7 @@ private:
     ArrayOfDouble   _meshSize;
     ArrayOfDouble   _frameSize;
     Point           _frameCenter;
+    Direction       _direction;
     size_t          _lap;
     size_t          _sgte;
     size_t          _totalSgte;
@@ -189,6 +191,7 @@ public:
     void setMeshSize(const ArrayOfDouble meshSize)   { _meshSize = meshSize; }
     void setFrameSize(const ArrayOfDouble frameSize) { _frameSize = frameSize; }
     void setFrameCenter(const Point frameCenter)    { _frameCenter = frameCenter; }
+    void setDirection(const Direction direction)    { _direction = direction; }
     void setLap(const size_t lap)                   { _lap = lap; }
     void setSgte(const size_t sgte)                 { _sgte = sgte; }
     void setTotalSgte(const size_t totalSgte)       { _totalSgte = totalSgte; }
@@ -201,7 +204,9 @@ public:
     void setSuccessType(const SuccessType& success) { _success = success; }
 
     // Should this stats be printed even if DISPLAY_ALL_EVAL is false
-    bool alwaysDisplay(const bool displayInfeasible, const bool displayUnsuccessful) const;
+    bool alwaysDisplay(const bool displayInfeasible,
+                       const bool displayUnsuccessful,
+                       const bool forStatsFile) const;
 
     /// Display header
     std::string displayHeader(const DisplayStatsTypeList& format,

@@ -62,6 +62,8 @@ NOMAD::OutputQueue::OutputQueue()
   : _queue(),
     _params(),
     _statsFile(""),
+    _statsWritten(false),
+    _totalEval(0),
     _statsFileFormat(),
     _statsLineCount(0),
     _objWidth(),
@@ -94,6 +96,10 @@ NOMAD::OutputQueue::~OutputQueue()
     // Close stats file
     if (!_statsFile.empty())
     {
+        if (!_statsWritten)
+        {
+            _statsStream << "no feasible solution has been found after " << NOMAD::itos(_totalEval) << " evaluations" << std::endl;
+        }
         _statsStream.close();
     }
 }
@@ -106,8 +112,14 @@ void NOMAD::OutputQueue::reset()
     // Close stats file
     if (!_statsFile.empty())
     {
+        if (!_statsWritten)
+        {
+            _statsStream << "no feasible solution has been found after " << NOMAD::itos(_totalEval) << " evaluations" << std::endl;
+        }
         _statsStream.close();
     }
+    _statsWritten = false;
+    _totalEval = 0;
     _hasBeenInitialized = false;
 }
 
@@ -421,7 +433,7 @@ void NOMAD::OutputQueue::flushStatsToStdout(const NOMAD::StatsInfo *statsInfo)
         displayHeaderFreq = NOMAD::INF_SIZE_T;
     }
     auto displayStatsFormat     = _params->getAttributeValue<NOMAD::ArrayOfString>("DISPLAY_STATS");
-    bool displayInteresting     = statsInfo->alwaysDisplay(displayInfeasible, displayUnsuccessful);
+    bool displayInteresting     = statsInfo->alwaysDisplay(displayInfeasible, displayUnsuccessful, false);
 
     if (displayAllEval || displayInteresting)
     {
@@ -513,7 +525,7 @@ void NOMAD::OutputQueue::flushStatsToStatsFile(const NOMAD::StatsInfo *statsInfo
     // is interesting to display.
     bool displayInfeasible      = _params->getAttributeValue<bool>("DISPLAY_INFEASIBLE");
     bool displayUnsuccessful    = _params->getAttributeValue<bool>("DISPLAY_UNSUCCESSFUL");
-    bool displayInteresting     = statsInfo->alwaysDisplay(displayInfeasible, displayUnsuccessful);
+    bool displayInteresting     = statsInfo->alwaysDisplay(displayInfeasible, displayUnsuccessful, true);
     auto n = _params->getAttributeValue<NOMAD::ArrayOfDouble>("SOL_FORMAT").size();
     NOMAD::ArrayOfDouble solFormatStats(n, NOMAD::DISPLAY_PRECISION_FULL);
 
@@ -521,6 +533,7 @@ void NOMAD::OutputQueue::flushStatsToStatsFile(const NOMAD::StatsInfo *statsInfo
     {
         // Add stats information.
         _statsStream << statsInfo->display(_statsFileFormat, solFormatStats, 0, 0, false, false) << std::endl;
+        _statsWritten = true;
     }
 }
 

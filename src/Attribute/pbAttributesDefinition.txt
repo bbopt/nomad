@@ -166,18 +166,6 @@ NOMAD::ArrayOfDouble
 \( advanced initial mesh size mads gmesh \)
 RESTART_ATTRIBUTE no
 ################################################################################
-INITIAL_POLL_SIZE
-NOMAD::ArrayOfDouble
--
-\( Deprecated, see INITIAL_FRAME_SIZE \)
-\(
-
-. This is a deprecated parameter from Nomad 3. Renamed INITIAL_FRAME_SIZE.
-
-\)
-\( advanced \)
-RESTART_ATTRIBUTE no
-################################################################################
 INITIAL_FRAME_SIZE
 NOMAD::ArrayOfDouble
 -
@@ -203,18 +191,6 @@ providing both is not allowed.
 
 \)
 \( advanced intial poll frame mesh size mads gmesh \)
-RESTART_ATTRIBUTE no
-################################################################################
-MIN_POLL_SIZE
-NOMAD::ArrayOfDouble
--
-\( Deprecated, see MIN_FRAME_SIZE \)
-\(
-
-. This is a deprecated parameter from Nomad 3. Renamed MIN_FRAME_SIZE.
-
-\)
-\( advanced \)
 RESTART_ATTRIBUTE no
 ################################################################################
 MIN_FRAME_SIZE
@@ -294,25 +270,6 @@ NOMAD::Point
                                     # to their X0 values.
 \)
 \( advanced fixed variable(s) \)
-RESTART_ATTRIBUTE no
-################################################################################
-STOP_IF_FEASIBLE
-bool
-false
-\( Stop algorithm once a feasible point is obtained \)
-\(
-
-. Stopping criterion on feasibility. Can be use directly. Used by
-  the PhaseOneSearch strategy to obtain a feasible point when EB constraints are
-  set and the starting point is infeasible.
-
-. Argument: boolean.
-
-. Example:
-    . STOP_IF_FEASIBLE true.
-
-\)
-\( advanced stopping terminate(s) termination(s) phase one  \)
 RESTART_ATTRIBUTE no
 ################################################################################
 VARIABLE_GROUP

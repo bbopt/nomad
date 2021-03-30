@@ -154,6 +154,8 @@ inline std::ostream& operator<<(std::ostream& out, const BBOutputTypeList &bbout
 }
 
 
+std::istream& operator>>(std::istream& is, BBOutputTypeList& bbOutputTypeList);
+
 
 #include "../nomad_nsend.hpp"
 

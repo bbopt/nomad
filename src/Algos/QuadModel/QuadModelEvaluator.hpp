@@ -89,11 +89,6 @@ public:
                                  const Double &hMax  __attribute__((unused)),
                                  std::vector<bool> &countEval) const override;
 
-    static void evalH(const ArrayOfDouble& bbo,
-                      const BBOutputTypeList& bbot,
-                      Double &h);
-
-
 private:
     void init();
 

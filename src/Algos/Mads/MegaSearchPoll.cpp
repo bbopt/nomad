@@ -75,6 +75,9 @@ void NOMAD::MegaSearchPoll::startImp()
 bool NOMAD::MegaSearchPoll::runImp()
 {
     bool foundBetter = false;
+    // Ensure no max lap for MegaSearchPoll. Also reset counter before evaluation.
+    NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval(NOMAD::INF_SIZE_T);
+    NOMAD::EvcInterface::getEvaluatorControl()->resetLapBbEval();
 
     if ( ! _stopReasons->checkTerminate() )
     {
@@ -90,7 +93,7 @@ bool NOMAD::MegaSearchPoll::runImp()
 
 void NOMAD::MegaSearchPoll::endImp()
 {
-    postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
+    postProcessing();
 }
 
 

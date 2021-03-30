@@ -66,22 +66,29 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::defaultComputeSuccessType(
     {
         if (nullptr == evalPoint2)
         {
-            if (evalPoint1->getH(NOMAD::EvalType::BB) > hMax)
+            if (evalPoint1->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD) > hMax)
             {
                 // Even if evalPoint2 is NULL, this case is still
                 // not a success.
                 success = NOMAD::SuccessType::UNSUCCESSFUL;
             }
+            else if (evalPoint1->isFeasible(NOMAD::EvalType::BB))
+            {
+                // New feasible point: full success
+                success = NOMAD::SuccessType::FULL_SUCCESS;
+            }
             else
             {
-                success = NOMAD::SuccessType::FULL_SUCCESS;
+                // New infeasible makes for partial success, not full success
+                success = NOMAD::SuccessType::PARTIAL_SUCCESS;
             }
         }
         else
         {
-            success = NOMAD::Eval::defaultComputeSuccessType(evalPoint1->getEval(NOMAD::EvalType::BB),
-                                                             evalPoint2->getEval(NOMAD::EvalType::BB),
-                                                             hMax);
+            success = NOMAD::Eval::computeSuccessType(evalPoint1->getEval(NOMAD::EvalType::BB),
+                                                      evalPoint2->getEval(NOMAD::EvalType::BB),
+                                                      NOMAD::ComputeType::STANDARD,
+                                                      hMax);
         }
     }
 
@@ -90,22 +97,24 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::defaultComputeSuccessType(
 
 
 NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypePhaseOne(
-                            const std::shared_ptr<NOMAD::EvalPoint>& evalPoint,
-                            const std::shared_ptr<NOMAD::EvalPoint>& xInf,
-                            const NOMAD::Double& hMax)
+                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
+                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
+                                const NOMAD::Double& hMax)
 {
     NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
 
-    if (nullptr != evalPoint)
+    if (nullptr != evalPoint1)
     {
-        if (nullptr == xInf)
+        if (nullptr == evalPoint2)
         {
             success = NOMAD::SuccessType::FULL_SUCCESS;
         }
         else
         {
-            success = NOMAD::Eval::computeSuccessTypePhaseOne(evalPoint->getEval(NOMAD::EvalType::BB),
-                                                              xInf->getEval(NOMAD::EvalType::BB), hMax);
+            success = NOMAD::Eval::computeSuccessType(evalPoint1->getEval(NOMAD::EvalType::BB),
+                                                      evalPoint2->getEval(NOMAD::EvalType::BB),
+                                                      NOMAD::ComputeType::PHASE_ONE,
+                                                      hMax);
         }
     }
 
@@ -123,7 +132,7 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeSgte(
 
     if (nullptr != evalPoint1)
     {
-        if (evalPoint1->getH(evalTypeSgte) > hMax)
+        if (evalPoint1->getH(evalTypeSgte, NOMAD::ComputeType::STANDARD) > hMax)
         {
             success = NOMAD::SuccessType::UNSUCCESSFUL;
         }
@@ -133,9 +142,10 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeSgte(
         }
         else
         {
-            success = NOMAD::Eval::defaultComputeSuccessType(evalPoint1->getEval(evalTypeSgte),
-                                                             evalPoint2->getEval(evalTypeSgte),
-                                                             hMax);
+            success = NOMAD::Eval::computeSuccessType(evalPoint1->getEval(evalTypeSgte),
+                                                      evalPoint2->getEval(evalTypeSgte),
+                                                      NOMAD::ComputeType::STANDARD,
+                                                      hMax);
         }
     }
 
@@ -143,19 +153,27 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeSgte(
 }
 
 
-void NOMAD::ComputeSuccessType::setDefaultComputeSuccessTypeFunction(const NOMAD::EvalType& evalType)
+void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(const NOMAD::EvalType& evalType,
+                                                              const NOMAD::ComputeType& computeType)
 {
-    switch (evalType)
+    if (NOMAD::EvalType::BB == evalType)
     {
-        case NOMAD::EvalType::BB:
-            setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
-            break;
-        case NOMAD::EvalType::SGTE:
-            setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
-            break;
-        case NOMAD::EvalType::UNDEFINED:
-        default:
-            break;
+        if (NOMAD::ComputeType::STANDARD == computeType)
+        {
+            _computeSuccessType = NOMAD::ComputeSuccessType::defaultComputeSuccessType;
+        }
+        else if (NOMAD::ComputeType::PHASE_ONE == computeType)
+        {
+            _computeSuccessType = NOMAD::ComputeSuccessType::computeSuccessTypePhaseOne;
+        }
+        else
+        {
+            // TODO USER: Issue #491
+        }
+    }
+    else if (NOMAD::EvalType::SGTE == evalType)
+    {
+        _computeSuccessType = NOMAD::ComputeSuccessType::computeSuccessTypeSgte;
     }
 }
 

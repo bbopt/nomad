@@ -148,8 +148,8 @@ template<> bool NOMAD::StopReason<NOMAD::PhaseOneStopType>::checkTerminate() con
 {
     switch ( _stopReason )
     {
-        case NOMAD::PhaseOneStopType::NO_FEAS_PT:   //
-        case NOMAD::PhaseOneStopType::MADS_FAIL:   //
+        case NOMAD::PhaseOneStopType::NO_FEAS_PT:
+        case NOMAD::PhaseOneStopType::MADS_FAIL:
             return true;
             break;
         case NOMAD::PhaseOneStopType::STARTED:
@@ -215,8 +215,8 @@ template<> std::map<NOMAD::NMStopType,std::string> & NOMAD::StopReason<NOMAD::NM
 {
     static std::map<NOMAD::NMStopType,std::string> dictionary = {
         {NOMAD::NMStopType::STARTED,"Started"},   // Set a the begining of an EvaluatorControl Run
-        {NOMAD::NMStopType::TOO_SMALL_SIMPLEX, "Simplex Y is too small"},
-        {NOMAD::NMStopType::SIMPLEX_RANK_INSUFFICIENT, "Rank of the matrix DZ is too small"},
+        {NOMAD::NMStopType::TOO_SMALL_SIMPLEX, "Simplex Y is too small"}, ///< Not used
+        {NOMAD::NMStopType::SIMPLEX_RANK_INSUFFICIENT, "Rank of the matrix DZ is too small"}, ///< Not used
         {NOMAD::NMStopType::INITIAL_FAILED,"Initialization has failed"},
         {NOMAD::NMStopType::REFLECT_FAILED,"Reflect step has failed"}              ,
         {NOMAD::NMStopType::EXPANSION_FAILED,"Expansion step has failed"}            ,
@@ -270,7 +270,8 @@ template<> std::map<NOMAD::IterStopType,std::string> & NOMAD::StopReason<NOMAD::
     static std::map<NOMAD::IterStopType,std::string> dictionary = {
         {NOMAD::IterStopType::STARTED,"Started"},   // Set a the begining of a Step task
         {NOMAD::IterStopType::MAX_ITER_REACHED,"Maximum number of iterations reached"},
-        {NOMAD::IterStopType::STOP_ON_FEAS,"A feasible point is reached"}
+        {NOMAD::IterStopType::STOP_ON_FEAS,"A feasible point is reached"},
+        {NOMAD::IterStopType::PHASE_ONE_COMPLETED,"PhaseOne completed"}
     };
     return dictionary;
 }
@@ -283,6 +284,7 @@ template<> bool NOMAD::StopReason<NOMAD::IterStopType>::checkTerminate() const
     {
         case NOMAD::IterStopType::MAX_ITER_REACHED:
         case NOMAD::IterStopType::STOP_ON_FEAS:
+        case NOMAD::IterStopType::PHASE_ONE_COMPLETED:
             return true;
             break;
         case NOMAD::IterStopType::STARTED:

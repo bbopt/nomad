@@ -58,7 +58,7 @@
 
 // Convert a string ("BB", "SGTE")
 // to a NOMAD::EvalType.
-// "UNDEFINED" throws an exception, as well as any value other than "BB" or "SGTE".
+// "UNDEFINED" throws an exception, as well as any value other than "BB", "SGTE".
 NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst)
 {
     NOMAD::EvalType ret;

@@ -83,6 +83,7 @@ public:
     Barrier(const Double& hMax = INF,
             const Point& fixedVariable = Point(),
             const EvalType& evalType = EvalType::BB,
+            const ComputeType& computeType = ComputeType::STANDARD,
             const std::vector<EvalPoint>& evalPointList = std::vector<EvalPoint>())
       : _xFeas(),
         _xInf(),
@@ -91,7 +92,7 @@ public:
         _hMax(hMax),
         _n(0)
     {
-        init(fixedVariable, evalType, evalPointList);
+        init(fixedVariable, evalType, evalPointList, computeType);
     }
 
     /*-----------------*/
@@ -130,7 +131,7 @@ public:
      \param xFeas       The eval point to add -- \b IN.
      \param evalType    Which eval (Blackbox or Surrogate) of the EvalPoint to use to verify feasibility  -- \b IN.
      */
-    void addXFeas(const EvalPoint &xFeas, const EvalType& evalType);
+    void addXFeas(const EvalPoint &xFeas, const EvalType& evalType, const ComputeType& computeType = ComputeType::STANDARD);
 
     /// Remove feasible points from the barrier.
     void clearXFeas();
@@ -167,7 +168,7 @@ public:
      * If the point is nullptr an exception is triggered.
      \param xInf   The eval point to add -- \b IN.
      */
-    void addXInf(const EvalPoint &xInf);
+    void addXInf(const EvalPoint &xInf, const EvalType& evalType);
 
     /// Remove infeasible points from the barrier.
     void clearXInf();
@@ -181,7 +182,7 @@ public:
     /// Get first of all feasible and infeasible points.
     /** If there are feasible points, returns first feasible point.
       * else, returns first infeasible point. */
-    const NOMAD::EvalPoint& getFirstPoint() const;
+    const EvalPoint& getFirstPoint() const;
 
     /// Get the current hMax of the barrier.
     Double getHMax() const { return _hMax; }
@@ -200,7 +201,8 @@ public:
      */
     bool updateWithPoints(const std::vector<EvalPoint>& evalPointList,
                           const EvalType& evalType,
-                          const bool keepAllPoints);
+                          const ComputeType& computeType,
+                          const bool keepAllPoints = false);
 
     /// Return the barrier as a string.
     /* May be used for information, or for saving a barrier. In the former case,
@@ -223,7 +225,8 @@ private:
      */
     void init(const Point& fixedVariable,
               const EvalType& evalType,
-              const std::vector<EvalPoint>& evalPointList);
+              const std::vector<EvalPoint>& evalPointList,
+              const ComputeType& computeType);
 
     /**
      * \brief Helper function for init/constructor.
@@ -242,21 +245,25 @@ private:
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
-    void checkXFeas(const EvalType& evalType);
+    void checkXFeas(const EvalPoint &xFeas,
+                    const EvalType& evalType,
+                    const ComputeType& computeType = ComputeType::STANDARD);
 
     /**
      * \brief Helper function for insertion.
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
-    void checkXFeasIsFeas(const EvalType& evalType);
+    void checkXFeasIsFeas(const EvalPoint &xFeas,
+                          const EvalType& evalType,
+                          const ComputeType& computeType = ComputeType::STANDARD);
 
     /**
      * \brief Helper function for insertion.
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
-    void checkXInf();
+    void checkXInf(const EvalPoint &xInf, const EvalType& evalType);
 
     /**
      * \brief Helper function for init/setHMax.

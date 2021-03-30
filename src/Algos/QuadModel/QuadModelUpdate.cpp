@@ -133,10 +133,21 @@ bool NOMAD::QuadModelUpdate::runImp()
             auto radiusFactor = _runParams->getAttributeValue<NOMAD::Double>("MODEL_RADIUS_FACTOR");
             _radiuses *= radiusFactor;
         }
+        OUTPUT_DEBUG_START
+        if (nullptr != iter->getMesh())
+        {
+            s = "Mesh size: " + iter->getMesh()->getdeltaMeshSize().display();
+            AddOutputInfo(s);
+            s = "Frame size: " + iter->getMesh()->getDeltaFrameSize().display();
+            AddOutputInfo(s);
+        }
+        s = "Radiuses: " + _radiuses.display();
+        AddOutputInfo(s);
+        OUTPUT_DEBUG_END
 
         // Get valid points: notably, they have a BB evaluation.
         // Use CacheInterface to ensure the points are converted to subspace
-        auto crit = [&](const EvalPoint& evalPoint){return this->isValidForIncludeInModel(evalPoint);};
+        auto crit = [&](const NOMAD::EvalPoint& evalPoint){return this->isValidForIncludeInModel(evalPoint);};
         cacheInterface.find(crit, evalPointList, true /*find in subspace*/);
     }
 
@@ -212,7 +223,13 @@ bool NOMAD::QuadModelUpdate::runImp()
 
         // Objective
         // Update uses blackbox values
-        row_Z.set(0, 0, evalPoint.getF(NOMAD::EvalType::BB).todouble()); // 1st column: constraint model
+        if (!evalPoint.getF(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD).isDefined())
+        {
+            s = "Error: In QuadModelUpdate, this point should have a BB Eval: ";
+            s += evalPoint.displayAll();
+            throw NOMAD::Exception(__FILE__,__LINE__,s);
+        }
+        row_Z.set(0, 0, evalPoint.getF(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD).todouble()); // 1st column: constraint model
 
         NOMAD::ArrayOfDouble bbo = evalPoint.getEval(NOMAD::EvalType::BB)->getBBOutput().getBBOAsArrayOfDouble();
         // Constraints
@@ -252,12 +269,10 @@ bool NOMAD::QuadModelUpdate::runImp()
     // Check if the model is ready
     if ( model->is_ready() )
     {
-        s= "ok";
         updateSuccess = true;
     }
     else
     {
-        s="! ok";
         updateSuccess = false;
     }
 
@@ -272,7 +287,7 @@ bool NOMAD::QuadModelUpdate::runImp()
 }
 
 
-bool NOMAD::QuadModelUpdate::isValidForIncludeInModel(const EvalPoint& evalPoint) const
+bool NOMAD::QuadModelUpdate::isValidForIncludeInModel(const NOMAD::EvalPoint& evalPoint) const
 {
     if ( ! _frameCenter->NOMAD::ArrayOfDouble::isComplete() || ! _radiuses.isComplete() )
     {
@@ -294,21 +309,28 @@ bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint)
     bool validPoint = true;
     NOMAD::ArrayOfDouble bbo;
 
-    auto eval = evalPoint.getEval(NOMAD::EvalType::BB);
-    if (nullptr == eval)
+    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+    auto eval = evalPoint.getEval(evalType);
+    if (NOMAD::EvalType::BB != evalType)
     {
-        // Blackbox Eval must be available
+        validPoint = false;
+    }
+    else if (nullptr == eval)
+    {
+        // Eval must be available
         validPoint = false;
     }
     else
     {
-
         // Note: it could be discussed if points that have h > hMax should still be used
-        // to build the model. We validate them to comply with Nomad 3.
+        // to build the model (Nomad 3). We validate them to comply with Nomad 3.
+        // If f or h greater than MODEL_MAX_OUTPUT (default=1E10) the point is not valid (same as Nomad 3)
         if (   ! eval->isBBOutputComplete()
-            || (   !(NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
-                && !(NOMAD::EvalStatusType::EVAL_CONS_H_OVER == eval->getEvalStatus()) )
-            || ! eval->getF().isDefined() )
+            || !(NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
+            || !eval->getF(NOMAD::ComputeType::STANDARD).isDefined()
+            || !eval->getH(NOMAD::ComputeType::STANDARD).isDefined()
+            || eval->getF(NOMAD::ComputeType::STANDARD) > NOMAD::MODEL_MAX_OUTPUT
+            || eval->getH(NOMAD::ComputeType::STANDARD) > NOMAD::MODEL_MAX_OUTPUT)
         {
             validPoint = false;
         }
@@ -316,3 +338,4 @@ bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint)
 
     return validPoint;
 }
+

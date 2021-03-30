@@ -82,8 +82,9 @@ private:
     std::atomic<size_t>             _lapBbEval;         ///< The number of blackbox evaluations performed by a given sub algorithm (reset at Algorithm start).
     std::atomic<size_t>             _sgteEval;          ///< The number of sgte evaluations performed (since last reset)
     std::atomic<size_t>             _subBbEval;         ///< The number of bb eval for a subproblem (e.g. SSD-Mads context)
-    ComputeSuccessType              _computeSuccessType;    ///< Function used to compute SuccessType. Depends on Evaluator's EvalType.
-    std::shared_ptr<Direction>      _lastSuccessfulDir; ///< Direction of last success. May be used to sort points before evaluation.
+    ComputeType                     _computeType;       ///< How to compute f and h
+    std::shared_ptr<Direction>      _lastSuccessfulFeasDir; ///< Direction of last success for feasible points. May be used to sort points before evaluation.
+    std::shared_ptr<Direction>      _lastSuccessfulInfDir; ///< Direction of last success for infeasible points. May be used to sort points before evaluation.
     StopReason<EvalMainThreadStopType> _stopReason;
 
 public:
@@ -107,8 +108,9 @@ public:
         _lapBbEval(0),
         _sgteEval(0),
         _subBbEval(0),
-        _computeSuccessType(ComputeSuccessType(ComputeSuccessType::defaultComputeSuccessType)),
-        _lastSuccessfulDir(nullptr),
+        _computeType(ComputeType::STANDARD),
+        _lastSuccessfulFeasDir(nullptr),
+        _lastSuccessfulInfDir(nullptr),
         _stopReason()
     {
         init();
@@ -173,11 +175,13 @@ public:
     void incCurrentlyRunning();
     void decCurrentlyRunning();
 
-    void setComputeSuccessTypeFunction(const ComputeSuccessFunction &computeSuccessFunction) { _computeSuccessType.setComputeSuccessTypeFunction(computeSuccessFunction); }
-    ComputeSuccessType getComputeSuccessType() const { return _computeSuccessType; }
+    void setComputeType(const ComputeType &computeType) { _computeType = computeType; }
+    const ComputeType& getComputeType() const { return _computeType; }
 
-    void setLastSuccessfulDir(const std::shared_ptr<Direction> &dir) { _lastSuccessfulDir = dir; }
-    std::shared_ptr<Direction> getLastSuccessfulDir() const { return _lastSuccessfulDir; }
+    void setLastSuccessfulFeasDir(const std::shared_ptr<Direction> &feasDir) { _lastSuccessfulFeasDir = feasDir; }
+    const std::shared_ptr<Direction>& getLastSuccessfulFeasDir() const { return _lastSuccessfulFeasDir; }
+    void setLastSuccessfulInfDir(const std::shared_ptr<Direction> &feasDir) { _lastSuccessfulInfDir = feasDir; }
+    const std::shared_ptr<Direction>& getLastSuccessfulInfDir() const { return _lastSuccessfulInfDir; }
 
     void setStopReason(const EvalMainThreadStopType& s);
     const StopReason<EvalMainThreadStopType>& getStopReason() const { return _stopReason; }

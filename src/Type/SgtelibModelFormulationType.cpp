@@ -63,6 +63,7 @@ NOMAD::SgtelibModelFormulationType NOMAD::stringToSgtelibModelFormulationType(co
     auto ret = NOMAD::SgtelibModelFormulationType::UNDEFINED;
     std::string s = sConst;
     NOMAD::toupper(s);
+    NOMAD::trim(s);
 
     if (s == "FS")
     {

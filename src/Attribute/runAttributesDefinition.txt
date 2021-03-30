@@ -310,6 +310,29 @@ true
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
+QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR
+NOMAD::Double
+1
+\( Scale the bounds for the quad model search  \)
+\(
+
+. The quad model is built on evaluation points around a frame center. This
+defines min and max bounds, from which we define a model center. The model
+search is limited to tighter (can be wider with the parameter set to less than 1)
+bounds by reducing the distance of the optimization bounds to the model center.
+We use a reduction factor for that. If the reduction factor equals one, the min
+and max bounds are used as optimization bounds for the search. The greater the
+reduction factor, the tighter the bounds.
+
+. Argument: one Double greater than 0
+
+. Example: QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR 3.0
+
+\)
+\( develop mads quad model search sgtelib model_search bounds \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
 MODEL_DISPLAY
 std::string
 -
@@ -607,6 +630,25 @@ true
 
 \)
 \( basic mads search speculative \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SPECULATIVE_SEARCH_BASE_FACTOR
+NOMAD::Double
+4.0
+\( Distance of the MADS speculative search method \)
+\(
+
+. The MADS speculative search creates a point in a direction of success from the
+  best incumbent(s). The distance depends on the frame size, the number of search
+  points to be generated and a base factor (>1).
+
+. Argument: one NOMAD::Double strictly greater than 1.
+
+. Example: SPECULATIVE_SEARCH_BASE_FACTOR 3.0
+
+\)
+\( advanced mads search speculative \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
@@ -1101,7 +1143,7 @@ size_t
 
 . Argument: size_t
 
-. Description: Size of subroblems in PSD-Mads.
+. Description: Size of subproblems in PSD-Mads.
 
 . This attribute is used only when PSD-Mads optimization is active.
 
@@ -1232,7 +1274,7 @@ size_t
 
 . Argument: size_t
 
-. Description: Size of subroblems in SSD-Mads.
+. Description: Size of subproblems in SSD-Mads.
 
 . This attribute is used only when SSD-Mads optimization is active.
 
@@ -1301,3 +1343,43 @@ true
 \( advanced sequential space ssd mads decomposition subproblem opportunistic \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
+################################################################################
+STOP_IF_FEASIBLE
+bool
+false
+\( Stop algorithm once a feasible point is obtained \)
+\(
+
+. Stopping criterion on feasibility.
+
+. Argument: boolean.
+
+. Example:
+    . STOP_IF_FEASIBLE true.
+
+\)
+\( advanced stopping terminate(s) termination(s) \)
+RESTART_ATTRIBUTE no
+################################################################################
+STOP_IF_PHASE_ONE_SOLUTION
+bool
+false
+\( Stop algorithm once a phase one solution is obtained \)
+\(
+
+. Stopping criterion on feasibility. Used by the Phase One algorithm
+  to obtain a feasible point when EB (Extreme Barrier) constraints
+  are set and the starting point is infeasible.
+
+. A Phase One solution is a point for which the EB constraints are
+  satisfied. Any PB (Progressive Barrier) constraints are ignored.
+
+. Argument: boolean.
+
+. Example:
+    . STOP_IF_PHASE_ONE_SOLUTION true.
+
+\)
+\( advanced stopping terminate(s) termination(s) phase one  \)
+RESTART_ATTRIBUTE no
+################################################################################

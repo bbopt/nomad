@@ -58,6 +58,7 @@
 
 #include "../Eval/BBOutput.hpp"
 #include "../Param/EvalParameters.hpp"
+#include "../Type/ComputeType.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -83,7 +84,6 @@ enum class EvalStatusType
     EVAL_FAILED,            ///< Evaluation failure. Do not re-submit.
     EVAL_ERROR,             ///< Evaluation did not proceed normally. May be submitted again.
     EVAL_USER_REJECTED,     ///< Evaluation was rejected by user. May be submitted again
-    EVAL_CONS_H_OVER,       ///< Evaluation was rejected because constraint violation was higher than hMax. May be submitted again.
     EVAL_OK,                ///< Correct evaluation
     EVAL_IN_PROGRESS,       ///< Evaluation in progress
     EVAL_WAIT,              ///< Evaluation in progress for another instance of the same point: Wait for evaluation to be done.
@@ -98,46 +98,14 @@ std::string enumStr(const EvalStatusType evalStatus);
 /// Class for the representation of an evaluation at a point.
 /**
  * \note We have a separate Eval from EvalPoint so that a Point can have multiple evaluations.
- * \note The class stores value of f and h and manages the computation h (see Eval::_computeH and Eval::_computeHComponent ).
  */
 class Eval {
 
 private:
-    bool _toBeRecomputed; ///< _f and _h are buffered values. Might have to be recomputed.
-    Double _f;   ///< Value of the evaluation
-    Double _h;   ///< Value of the constraint violation
-    EvalStatusType _evalStatus;  ///> The evaluation status.
-    BBOutput _bbOutput;  ///<  The blackbox evaluation output.
-    bool _bbOutputComplete;  ///< All bbo outputs have a valid value for functions (OBJ, PB and EB).
-
-    // This method should not be static. Issue #410.
-    static std::function<SuccessType(const Eval* eval1, const Eval* eval2, const Double& hMax)> _computeSuccessType;  ///< The function called to compute success type.
-
-    /// The function that computes h from an Eval and a list of blackbox output types.
-    /**
-     * For a given Eval there can be several ways to compute infeasibility
-     depending on the listed blackbox output types. For example, during the
-     PhaseOneSearch of Mads or after the PhaseOneSearch the computation is
-     different. This function sums the infeasibility measure of all constraints
-     (see _computeHComponent function).
-     \note This method should not be static. Issue #410.
-     \note This method to be revised with issue #332.
-     */
-    static std::function<Double(const Eval& eval, const
-                                BBOutputTypeList &bbOutputTypeList)> _computeH;
-
-  /// The function computes the infeasibility measure for a constraint.
-    /**
-     * The infeasibility is computed for a given blackbox output (Double) and a
-     given output type (::BBOutputType). \n
-     * A default function is provided in Eval::defaultComputeHComponent that return max(g_i,0)^2. A user can provide a different function using the static Eval::setComputeHComponent function. \n
-     * This allows to change the computation of h or relax the constraint bounds ( hMim = 0 -> hMin>0).
-     \note This method should not be static. Issue #410.
-     \note This method to be revised with issue #332.
-     */
-    static std::function<Double(const BBOutputType &bbOutputType,
-                                size_t index,
-                                const Double &bbo)> _computeHComponent;
+    EvalStatusType _evalStatus;         ///< The evaluation status.
+    BBOutput _bbOutput;                 ///<  The blackbox evaluation output.
+    BBOutputTypeList _bbOutputTypeList; ///< List of output types: OBJ, PB, EB etc.
+    bool _bbOutputComplete;             ///< All bbo outputs have a valid value for functions (OBJ, PB and EB).
 
 public:
 
@@ -170,90 +138,41 @@ public:
     /* Get/Set */
     /*---------*/
 
-    Double getF() const;
-    void setF(const Double &f);
-
-    Double getH() const;
-    void setH(const Double &h);
+    // f and h are always recomputed.
+    Double getF(const ComputeType& = ComputeType::STANDARD) const;
+    Double getH(const ComputeType& = ComputeType::STANDARD) const;
 
     EvalStatusType getEvalStatus() const { return _evalStatus; }
     void setEvalStatus(const EvalStatusType &evalStatus) { _evalStatus = evalStatus; }
 
-    bool isBBOutputComplete () const { return _bbOutputComplete; }
-
+    bool isBBOutputComplete() const { return _bbOutputComplete; }
     BBOutput getBBOutput() const { return _bbOutput; }
-    void setBBOutput(const BBOutput &bbOutput);
-
-    /// Set blackbox output and recompute objective and infeasibility
-    void setBBOutputAndRecompute(const BBOutput &bbOutput,
-                                 const BBOutputTypeList &bbOutputType);
+    BBOutputTypeList getBBOutputTypeList() const { return _bbOutputTypeList; }
+    void setBBOutputTypeList(const BBOutputTypeList& bbOutputTypeList) { _bbOutputTypeList = bbOutputTypeList; }
 
     std::string getBBO() const { return _bbOutput.getBBO(); }
 
-    /// Set blackbox output and recompute objective and infeasibility
+    /// Set blackbox output
     void setBBO(const std::string &bbo,
-                const BBOutputTypeList &bbOutputType,
+                const BBOutputTypeList &bbOutputTypeList,
                 const bool evalOk = true);
 
     /*---------------*/
     /* Other methods */
     /*---------------*/
-
-    bool toBeRecomputed() const { return _toBeRecomputed; }
-
-
-    /// Compute objective function value.
+    /// Assess if the point is feasible.
     /**
-     \param bbOutputTypeList    The list of types of blackbox outputs -- \b IN.
-     \return                    The objective value
+     \param computeType How to compute f and h -- \b IN
+     \return                    \c true if no constraint is broken, \c false otherwise.
      */
-    Double computeF(const BBOutputTypeList &bbOutputTypeList) const;
-
-    /// Function to compute infeasibility by aggregating the contribution of each constraint into h.
-    /**
-     * This is the default function for Eval::_computeH.
-
-     \param eval                The evaluation to consider -- \b IN.
-     \param bbOutputTypeList    The list of types of blackbox outputs -- \b IN.
-     \return                    The aggregated constraint value
-     */
-    static Double defaultComputeH(const Eval& eval, const BBOutputTypeList &bbOutputTypeList);
-
-    /// Function to compute each constraint contribution.
-    /**
-     * This is the default function for Eval::_computeHComponent.
-     * If constraint is not verified (bbo>0), the contribution to h is bbo^2 for PB constraint and Infinity for EB constraint.
-
-     \param bbOutputType  The type of the considered constraint -- \b IN.
-     \param index         The index of the blackbox output (not used here) -- \b IN.
-     \param bbo           The blackbox output for the considered constraint -- \b IN.
-     \return              The component of h for constraint referred by index.
-     */
-    static Double defaultComputeHComponent( const BBOutputType & bbOutputType ,
-                                            size_t index __attribute__((unused)),
-                                            const Double &bbo );
-
-
-    /// Compute hPB - infeasibily h computed as if all EB were PB.
-    /**
-     \param eval                The evaluation -- \b IN.
-     \param bbOutputTypeList    The list of types of blackbox outputs (including EB) -- \b IN.
-     \return                    The aggregated constraint value
-     */
-    static Double computeHPB(const Eval& eval, const BBOutputTypeList &bbOutputTypeList);
-
-    /**
-     \note In order for this function to be const, Eval::_h is not be recomputed.
-     If Eval::_toBeRecomputed is true, a warning is issued.
-     */
-    bool isFeasible() const;
+    bool isFeasible(const ComputeType& computeType = ComputeType::STANDARD) const;
 
     /// Can this point be re-evaluated? Based on the eval status only.
     bool canBeReEvaluated() const;
 
     /** Should this point be saved to cache file? Based on the eval status only.
      * These eval statuses are good: EVAL_OK, EVAL_FAILED, EVAL_USER_REJECTED,
-     * EVAL_CONS_H_OVER, EVAL_ERROR.
+     * EVAL_ERROR.
      * These eval statuses are not good:
      * EVAL_NOT_STARTED, EVAL_IN_PROGRESS, EVAL_WAIT, EVAL_STATUS_UNDEFINED.
     */
@@ -295,88 +214,70 @@ public:
        with at least one strict inequality.
      * Otherwise, return false
      \param eval The right-hand side object -- \b IN.
+     \param computeType How to compute f and h -- \b IN
      \return     A boolean equal to \c true if  \c *this \c dominates \c eval.
      */
-    bool dominates(const Eval & eval) const;
+    bool dominates(const Eval& eval, const ComputeType& computeType = ComputeType::STANDARD) const;
 
     /// Comparison of 2 evaluations.
     /**
      The comparison is used to find the best feasible and infeasible points in the cache.
+     \note This is different than dominance.
+     \param eval1   First eval -- \b IN.
+     \param eval2   Second eval -- \b IN.
+     \return        If \c eval1 dominates \c eval2, return \c true. If eval1 and eval2 are both infeasible, and eval1.getH() < eval2.getH(), return \c true.
+    */
+    static bool compEvalFindBest(const Eval &eval1,
+                                 const Eval &eval2,
+                                 const ComputeType& computeType);
+
+    /// Comparison of 2 evaluations.
+    /**
+     The comparison is used to insert a point in the Barrier.
      \note This is different than dominance.
 
      \param eval1   First eval -- \b IN.
      \param eval2   Second eval -- \b IN.
      \return        If \c eval1 dominates \c eval2, return \c true. If eval1 and eval2 are both infeasible, and eval1.getH() < eval2.getH(), return \c true.
     */
-    static bool compEvalFindBest(const Eval &eval1,
-                                 const Eval &eval2);
+    static bool compInsertInBarrier(const Eval &eval1,
+                                    const Eval &eval2,
+                                    const NOMAD::ComputeType& computeType,
+                                    SuccessType successType,
+                                    bool strictEqual);
+
+    /// Comparison of 2 evaluations.
+    /**
+     This comparison is used when updating the Barrier.
+     \param eval1   First eval -- \b IN.
+     \param eval2   Second eval -- \b IN.
+     \return        \c true if \c eval1 is better than \c eval2 for the barrier.
+    */
+    static bool compEvalBarrier(const Eval &eval1,
+                                const Eval &eval2);
 
     /// Compute success type of one eval with respect to another one.
     /**
-     This is the default function for Eval::_computeSuccessType.
-
      \param eval1   First eval -- \b IN.
      \param eval2   Second eval -- \b IN.
      \param hMax    The max infeasibility for keeping points in barrier -- \b IN.
+     \param computeType How to compute f and h -- \b IN
      \return        The success type of the first eval with respect to the second one.
      */
-    static SuccessType defaultComputeSuccessType(const Eval* eval1,
-                                                 const Eval* eval2,
-                                                 const Double& hMax = INF);
-
-    /// Compute success type of one eval with respect to another one.
-    /**
-     This is NOT the default function for Eval::_computeSuccessType.
-     It is used only for PhaseOne. Requires to call ComputeSuccessType::setComputeSuccessTypeFunction
-
-     \param eval1   First eval -- \b IN.
-     \param eval2   Second eval -- \b IN.
-     \param hMax    The max infeasibility for keeping points in barrier -- \b IN.
-     \return        The success type of the first eval with respect to the second one.
-     */
-    static SuccessType computeSuccessTypePhaseOne(const Eval* eval1,
-                                                  const Eval* eval2,
-                                                  const Double& hMax  __attribute__((unused)));
-
-    /// Set which function should be used to compute success type
-    static void setComputeSuccessTypeFunction(const std::function<SuccessType(
-                                                    const Eval* eval1,
-                                                    const Eval* eval2,
-                                                    const Double& hMax)>& comp)
-    {
-        _computeSuccessType = comp;
-    }
-
-    /// Set which function to use for infeasibility (h) computation.
-    /**
-     Needed during PhaseOne to set Eval::_computeH to
-     Eval::computeSuccessTypePhaseOne instead of default Eval::defaultComputeH.
-     */
-    static void setComputeHFunction(const std::function<Double(
-                                                       const Eval& eval,
-                                                       const BBOutputTypeList &bbOutputTypeList)>& computeHfunc)
-    {
-        _computeH = computeHfunc;
-    }
-
-    /// Set which function to use for computing the components of infeasibility.
-    /**
-     Needed when a custom function is provided by user to replace
-     Eval::defaultComputeHComponent. This can be used to relax
-     some constraints for specific optimization problem. This is doable
-     in library mode.
-     */
-    static void setComputeHComponentFunction(const std::function<Double( const BBOutputType &bbOutputType,
-                                                                        size_t index ,
-                                                                        const Double & bbo)>& computeHComponentfunc)
-    {
-        _computeHComponent = computeHComponentfunc;
-    }
-
+    static SuccessType computeSuccessType(const Eval* eval1,
+                                          const Eval* eval2,
+                                          const ComputeType& computeType,
+                                          const Double& hMax = INF);
 
     /// \brief Display of eval
+    /// \param computeType How to compute f and h -- \b IN
     /// \return A formatted eval as a string
-    std::string display() const;
+    std::string display(const ComputeType& computeType = ComputeType::STANDARD, const int prec = DISPLAY_PRECISION_STD) const;
+
+private:
+    /// Helpers for getF() and getH()
+    Double computeHStandard() const;
+    Double computeFPhaseOne() const;
 };
 
 

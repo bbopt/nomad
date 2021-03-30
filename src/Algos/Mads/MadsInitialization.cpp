@@ -222,7 +222,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
 
         for (auto x0 : x0s)
         {
-            auto x0Full = x0.makeFullSpacePointFromFixed(NOMAD::SubproblemManager::getSubFixedVariable(this));
+            auto x0Full = x0.makeFullSpacePointFromFixed(NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
             AddOutputError("X0 evaluation failed for X0 = " + x0Full.display());
         }
     }
@@ -240,7 +240,9 @@ bool NOMAD::MadsInitialization::eval_x0s()
 
         // Construct barrier using x0s
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-        _barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this), evalType, evalPointX0s);
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax,
+                                                    NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
+                                                    evalType, evc->getComputeType(), evalPointX0s);
     }
 
     NOMAD::OutputQueue::Flush();

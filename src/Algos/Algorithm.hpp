@@ -77,12 +77,11 @@ protected:
     std::vector<std::string>         _prevAlgoComment; ///< Pile of previous comments, used when going back to the main algo after running a sub-algo.
     bool                             _forceAlgoComment; ///< When true, do not change comment until reset is called
 
-    bool _endDisplay;
-    
-    NOMAD::SuccessType               _algoBestSuccess ; ///< The best succes type of the algorithm (cannot always get this information from _megaIteration).
-    
+    bool                             _endDisplay;
+
+    SuccessType                      _algoBestSuccess ; ///< The best succes type of the algorithm (cannot always get this information from _megaIteration).
+
     bool                             _algoSuccessful;
-    
 
 #ifdef TIME_STATS
     size_t _totalRealAlgoTime;

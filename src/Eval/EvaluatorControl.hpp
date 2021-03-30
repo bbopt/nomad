@@ -313,10 +313,15 @@ public:
     void setBestIncumbent(const int mainThreadNum, const std::shared_ptr<EvalPoint>& bestIncumbent);
     const std::shared_ptr<EvalPoint>& getBestIncumbent(const int mainThreadNum) const;
 
-    void setComputeSuccessTypeFunction(const ComputeSuccessFunction& computeSuccessFunction);
     void setUserCompMethod(const std::shared_ptr<ComparePriorityMethod>& compMethod) { _userCompMethod = compMethod; }
 
-    void setLastSuccessfulDir(const std::shared_ptr<Direction>& dir);
+    void setComputeType(const ComputeType& computeType);
+    const ComputeType& getComputeType(const int mainThreadNum = -1) const;
+
+    void setLastSuccessfulFeasDir(const std::shared_ptr<Direction>& feasDir);
+    void setLastSuccessfulInfDir(const std::shared_ptr<Direction>& infDir);
+    const std::shared_ptr<Direction>& getLastSuccessfulFeasDir() const;
+    const std::shared_ptr<Direction>& getLastSuccessfulInfDir() const;
 
     void setStopReason(const int mainThreadNum, const EvalMainThreadStopType& s);
     const StopReason<EvalMainThreadStopType>& getStopReason(const int mainThreadNum) const;
@@ -525,10 +530,10 @@ private:
     void displayDebugWaitingInfo(time_t &lastDisplayed) const;
 
     /// Stats Output
-    void AddStatsInfo(const BlockForEval& block) const;
+    void addStatsInfo(const BlockForEval& block) const;
 
     /// History and Solution file output
-    void AddDirectToFileInfo(EvalQueuePointPtr evalQueuePoint) const;
+    void addDirectToFileInfo(EvalQueuePointPtr evalQueuePoint) const;
 
 };
 

@@ -310,7 +310,7 @@ $(document).ready(function(){initNavTree('_mads_initialization_8cpp_source.html'
 <div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160; </div>
 <div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;        <span class="keywordflow">for</span> (<span class="keyword">auto</span> x0 : x0s)</div>
 <div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;        {</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;            <span class="keyword">auto</span> x0Full = x0.makeFullSpacePointFromFixed(NOMAD::SubproblemManager::getSubFixedVariable(<span class="keyword">this</span>));</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;            <span class="keyword">auto</span> x0Full = x0.makeFullSpacePointFromFixed(NOMAD::SubproblemManager::getInstance()-&gt;getSubFixedVariable(<span class="keyword">this</span>));</div>
 <div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;            AddOutputError(<span class="stringliteral">&quot;X0 evaluation failed for X0 = &quot;</span> + x0Full.display());</div>
 <div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;        }</div>
 <div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    }</div>
@@ -328,25 +328,27 @@ $(document).ready(function(){initNavTree('_mads_initialization_8cpp_source.html'
 <div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160; </div>
 <div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;        <span class="comment">// Construct barrier using x0s</span></div>
 <div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;        <span class="keyword">auto</span> hMax = _runParams-&gt;getAttributeValue&lt;NOMAD::Double&gt;(<span class="stringliteral">&quot;H_MAX_0&quot;</span>);</div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;        _barrier = std::make_shared&lt;NOMAD::Barrier&gt;(hMax, NOMAD::SubproblemManager::getSubFixedVariable(<span class="keyword">this</span>), evalType, evalPointX0s);</div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;    }</div>
-<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160; </div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    NOMAD::OutputQueue::Flush();</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;        _barrier = std::make_shared&lt;NOMAD::Barrier&gt;(hMax,</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;                                                    NOMAD::SubproblemManager::getInstance()-&gt;getSubFixedVariable(<span class="keyword">this</span>),</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;                                                    evalType, evc-&gt;getComputeType(), evalPointX0s);</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    }</div>
 <div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160; </div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    <span class="keywordflow">return</span> evalOk;</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;}</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    NOMAD::OutputQueue::Flush();</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160; </div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    <span class="keywordflow">return</span> evalOk;</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="a_array_of_point_8hpp_html_ace9bde2bdb00351527956c67f758fef6"><div class="ttname"><a href="_array_of_point_8hpp.html#ace9bde2bdb00351527956c67f758fef6">ArrayOfPoint</a></div><div class="ttdeci">std::vector&lt; Point &gt; ArrayOfPoint</div><div class="ttdoc">Type definition for the representation of a vector of points.</div><div class="ttdef"><b>Definition:</b> <a href="_array_of_point_8hpp_source.html#l00063">ArrayOfPoint.hpp:63</a></div></div>
 <div class="ttc" id="a_eval_point_8hpp_html_a556a13b2011fb7bc0ccad64493e4deaf"><div class="ttname"><a href="_eval_point_8hpp.html#a556a13b2011fb7bc0ccad64493e4deaf">findInList</a></div><div class="ttdeci">bool findInList(const Point &amp;point, const std::vector&lt; EvalPoint &gt; &amp;evalPointList, EvalPoint &amp;foundEvalPoint)</div><div class="ttdoc">Utility to find Point in EvalPoint vector.</div></div>
-<div class="ttc" id="a_eval_point_8hpp_html_a31bc0dd895b94bf547ee5c482509e1e6"><div class="ttname"><a href="_eval_point_8hpp.html#a31bc0dd895b94bf547ee5c482509e1e6">EvalPointSet</a></div><div class="ttdeci">std::set&lt; EvalPoint, EvalPointCompare &gt; EvalPointSet</div><div class="ttdoc">Definition for EvalPointSet.</div><div class="ttdef"><b>Definition:</b> <a href="_eval_point_8hpp_source.html#l00371">EvalPoint.hpp:371</a></div></div>
+<div class="ttc" id="a_eval_point_8hpp_html_a31bc0dd895b94bf547ee5c482509e1e6"><div class="ttname"><a href="_eval_point_8hpp.html#a31bc0dd895b94bf547ee5c482509e1e6">EvalPointSet</a></div><div class="ttdeci">std::set&lt; EvalPoint, EvalPointCompare &gt; EvalPointSet</div><div class="ttdoc">Definition for EvalPointSet.</div><div class="ttdef"><b>Definition:</b> <a href="_eval_point_8hpp_source.html#l00375">EvalPoint.hpp:375</a></div></div>
 <div class="ttc" id="a_output_queue_8hpp_html_a839e12bb6d5988f0a7aac31b41a090b8"><div class="ttname"><a href="_output_queue_8hpp.html#a839e12bb6d5988f0a7aac31b41a090b8">OUTPUT_INFO_END</a></div><div class="ttdeci">#define OUTPUT_INFO_END</div><div class="ttdef"><b>Definition:</b> <a href="_output_queue_8hpp_source.html#l00151">OutputQueue.hpp:151</a></div></div>
 <div class="ttc" id="a_output_queue_8hpp_html_a43dd0d3c3ade2ef684520ebe50b76141"><div class="ttname"><a href="_output_queue_8hpp.html#a43dd0d3c3ade2ef684520ebe50b76141">OUTPUT_INFO_START</a></div><div class="ttdeci">#define OUTPUT_INFO_START</div><div class="ttdef"><b>Definition:</b> <a href="_output_queue_8hpp_source.html#l00148">OutputQueue.hpp:148</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_411efccbd5e576f82c71dd79c3c5caa4.html">Algos</a></li><li class="navelem"><a class="el" href="dir_9c2ad70377b8871382ce2d13c7aa17bb.html">Mads</a></li><li class="navelem"><a class="el" href="_mads_initialization_8cpp.html">MadsInitialization.cpp</a></li>
-    <li class="footer">Generated on Tue Dec 1 2020 17:08:18 for NOMAD Source by
+    <li class="footer">Generated on Tue Mar 30 2021 16:31:31 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

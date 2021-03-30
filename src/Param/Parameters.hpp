@@ -138,7 +138,6 @@ class Parameters
 {
 private:
 
-    static ParameterEntries _paramEntries; ///< The set of entries obtained when reading a parameter file.
 
     std::ostringstream _streamedAttribute; ///< The attributes in a format ready to be printed with Parameters::getSetAttributeAsString.
 
@@ -147,7 +146,8 @@ protected:
     /*---------*/
     /* Members */
     /*---------*/
-
+    static ParameterEntries _paramEntries; ///< The set of entries obtained when reading a parameter file.
+    
     std::string _typeName; ///< The type of parameters: ex. Problem, Run
 
 

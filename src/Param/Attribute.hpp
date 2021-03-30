@@ -65,8 +65,7 @@
  A Nomad parameter has a name, some help and info, some  keywords and some additional flags :
  - Attribute::_uniqueEntry, a flag for a parameter that cannot appear more than once in a file.
  - Attribute::_algoCompatibilityCheck, a flag for a parameter that can be used to check if two sets of parameters can produce the same run.
- - Attribute::_restartAttribute, a flag for a parameter that can be changed when doing a restart. \n
-
+ - Attribute::_restartAttribute, a flag for a parameter that can be changed when doing a restart.
  */
 class Attribute {
 public:
@@ -153,7 +152,6 @@ protected:
     bool        _algoCompatibilityCheck; ///< Flag for parameter that can be used to check if two sets of parameters can produce the same run.
     bool        _restartAttribute; ///< Flag for parameter that can be changed when doing a restart
     bool        _uniqueEntry; ///< Flag for a parameter that cannot appear more than once in a file
-
 };
 
 

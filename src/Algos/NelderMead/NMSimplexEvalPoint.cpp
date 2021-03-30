@@ -53,12 +53,14 @@ bool NOMAD::NMSimplexEvalPointCompare::operator()(const NOMAD::EvalPoint& lhs,
 {
     // Workaround to get EvalType for ComputeSuccessType.
     NOMAD::EvalType evalType = NOMAD::EvalType::BB;
+    NOMAD::ComputeType computeType = NOMAD::ComputeType::STANDARD;
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     if (nullptr != evc)
     {
         evalType = evc->getEvalType();
+        computeType = evc->getComputeType();
     }
-    NOMAD::ComputeSuccessType computeSuccess(evalType);
+    NOMAD::ComputeSuccessType computeSuccess(evalType, computeType);
 
     // This could be an inefficient function (see issue #392)
     NOMAD::SuccessType success = computeSuccess(std::make_shared<NOMAD::EvalPoint>(lhs),
@@ -77,8 +79,8 @@ bool NOMAD::NMSimplexEvalPointCompare::operator()(const NOMAD::EvalPoint& lhs,
     }
 
     // No dominance, compare h values.
-    NOMAD::Double h1 = lhs.getH();
-    NOMAD::Double h2 = rhs.getH();
+    NOMAD::Double h1 = lhs.getH(evalType, computeType);
+    NOMAD::Double h2 = rhs.getH(evalType, computeType);
     if (h1.isDefined() && h2.isDefined())
     {
         if (h1 < h2)

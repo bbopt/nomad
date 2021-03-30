@@ -52,24 +52,15 @@
  */
 #include "../Eval/Eval.hpp"
 
-// static member initialization
-std::function<NOMAD::SuccessType(const NOMAD::Eval* eval1, const NOMAD::Eval* eval2, const NOMAD::Double& hMax)> NOMAD::Eval::_computeSuccessType = NOMAD::Eval::defaultComputeSuccessType;
-
-std::function<NOMAD::Double(const NOMAD::Eval& eval, const NOMAD::BBOutputTypeList &bbOutputTypeList)> NOMAD::Eval::_computeH = NOMAD::Eval::defaultComputeH;
-
-std::function<NOMAD::Double(const NOMAD::BBOutputType &bbOutputType, size_t index, const NOMAD::Double& bbo)> NOMAD::Eval::_computeHComponent = NOMAD::Eval::defaultComputeHComponent;
-
 
 /*---------------------------------------------------------------------*/
 /*                            Constructor 1                            */
 /*---------------------------------------------------------------------*/
 // Note: NOMAD::Double() makes value = NOMAD::NaN; defined = false.
 NOMAD::Eval::Eval()
-  : _toBeRecomputed(false),
-    _f(),
-    _h(NOMAD::INF),
-    _evalStatus(NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED),
+  : _evalStatus(NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED),
     _bbOutput(""),
+    _bbOutputTypeList(),
     _bbOutputComplete(false)
 {
 }
@@ -80,25 +71,16 @@ NOMAD::Eval::Eval()
 /*---------------------------------------------------------------------*/
 NOMAD::Eval::Eval(std::shared_ptr<NOMAD::EvalParameters> params,
                   const NOMAD::BBOutput &bbOutput)
-  : _toBeRecomputed(true),
-    _f(),
-    _h(NOMAD::INF),
-    _evalStatus(NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED),
-    _bbOutput(bbOutput)
+  : _evalStatus(NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED),
+    _bbOutput(bbOutput),
+    _bbOutputTypeList()
 {
-    auto bbOutputType = params->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
+    _bbOutputTypeList = params->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
 
+    _bbOutputComplete = _bbOutput.isComplete(_bbOutputTypeList);
 
-    // Note: if bbOutput is not eval_ok, then _f and _h end up undefined Doubles.
-    _f = computeF(bbOutputType);
-
-    // Set H
-    setH (_computeH(*this, bbOutputType));
-    _toBeRecomputed = false;
-
-    _bbOutputComplete = _bbOutput.isComplete(bbOutputType);
-
-    if (_bbOutput.getEvalOk() && _f.isDefined())
+    NOMAD::Double f = getF(NOMAD::ComputeType::STANDARD);
+    if (_bbOutput.getEvalOk() && f.isDefined())
     {
         _evalStatus = NOMAD::EvalStatusType::EVAL_OK;
     }
@@ -113,13 +95,10 @@ NOMAD::Eval::Eval(std::shared_ptr<NOMAD::EvalParameters> params,
 /*                           Copy Constructor                          */
 /*---------------------------------------------------------------------*/
 NOMAD::Eval::Eval(const NOMAD::Eval &eval)
-  : _toBeRecomputed(eval._toBeRecomputed),
-    _f(eval._f),
-    _h(eval._h),
-    _evalStatus(eval._evalStatus),
+  : _evalStatus(eval._evalStatus),
     _bbOutput(eval._bbOutput),
+    _bbOutputTypeList(eval._bbOutputTypeList),
     _bbOutputComplete(eval._bbOutputComplete)
-
 {
 }
 
@@ -127,128 +106,10 @@ NOMAD::Eval::Eval(const NOMAD::Eval &eval)
 /*-----------------------*/
 /*     Other methods     */
 /*-----------------------*/
-// Compute f
-NOMAD::Double NOMAD::Eval::computeF(const NOMAD::BBOutputTypeList &bbOutputTypeList) const
+bool NOMAD::Eval::isFeasible(const NOMAD::ComputeType& computeType) const
 {
-    NOMAD::Double f;
-    if (_bbOutput.getEvalOk())
-    {
-        f = _bbOutput.getObjective(bbOutputTypeList);
-    }
-    return f;
-}
-
-
-/// Compute h for a given BB Output Type list
-NOMAD::Double NOMAD::Eval::defaultComputeH(const NOMAD::Eval& eval, const NOMAD::BBOutputTypeList &bbOutputTypeList)
-{
-    NOMAD::Double h = 0.0;
-    const NOMAD::ArrayOfDouble bbo = eval.getBBOutput().getBBOAsArrayOfDouble();
-    bool hPos = false;
-
-    if (eval.getBBOutput().getEvalOk())
-    {
-
-        size_t bboIndex = 0;
-        for (auto bbOutputType : bbOutputTypeList)
-        {
-
-            if ( NOMAD::BBOutputTypeIsConstraint(bbOutputType) )
-            {
-
-                /// The computeHComponent function has default version using cons*cons for PB constraint.
-                /// The default function can be replaced by a custom one using the Eval::setComputeHComponent static function.
-                NOMAD::Double hComp = _computeHComponent(bbOutputType , bboIndex, bbo[bboIndex]);
-
-                /// Aggregate the H component for a given constraint to H.
-
-                // Violated Extreme Barrier constraint:
-                // Set h to infinity and break.
-                if (NOMAD::INF == hComp)
-                {
-                    h = NOMAD::INF;
-                    break;
-                }
-                if (bbo[bboIndex] > 0)
-                {
-                    hPos = true;
-                    h += hComp;
-                }
-            }
-            bboIndex++;
-        }
-    }
-
-    // Failsafe: If at least one PB constraint is positive, h must be set
-    // to at least epsilon so that the Eval is recognized as infeasible.
-    // Catch cases such as constraint violated by 1e-8, which gives h = 1e-16
-    // which is considered as 0.
-    if (hPos && (0 == h))
-    {
-        h = NOMAD::Double::getEpsilon();
-    }
-
-
-    return h;
-}
-
-
-/// Default computation of h component for a constraint (squared bbo for PB)
-NOMAD::Double NOMAD::Eval::defaultComputeHComponent( const NOMAD::BBOutputType & bbOutputType , size_t index __attribute__((unused)), const NOMAD::Double &bbo )
-{
-    if ( ! NOMAD::BBOutputTypeIsConstraint(bbOutputType) )
-    {
-        std::string str = "H component must be computed from BB output that is a constraint";
-        throw NOMAD::Exception(__FILE__, __LINE__, str);
-    }
-
-    NOMAD::Double h = 0.0;
-    if (bbo > 0)
-    {
-        if (NOMAD::BBOutputType::EB == bbOutputType)
-        {
-            h = NOMAD::INF;
-        }
-        else if (NOMAD::BBOutputType::PB == bbOutputType)
-        {
-            h = bbo * bbo;
-        }
-    }
-
-    return h;
-}
-
-
-NOMAD::Double NOMAD::Eval::computeHPB(const NOMAD::Eval& eval, const NOMAD::BBOutputTypeList &bbOutputTypeList)
-{
-    NOMAD::BBOutputTypeList bbOutputTypeListPB;
-    for (auto bbOutputType : bbOutputTypeList)
-    {
-        if (NOMAD::BBOutputType::EB == bbOutputType)
-        {
-            // Replace EB by PB
-            bbOutputTypeListPB.push_back(NOMAD::BBOutputType::PB);
-        }
-        else
-        {
-            bbOutputTypeListPB.push_back(bbOutputType);
-        }
-    }
-    // Compute h with EB replaced by PB.
-    // Required to revert to default compute H to have access to custom compute H component function.
-    return defaultComputeH(eval, bbOutputTypeListPB);
-}
-
-
-bool NOMAD::Eval::isFeasible() const
-{
-    if (_toBeRecomputed)
-    {
-        std::cerr << "Warning: Eval::isFeasible() called on an Eval that needs to be recomputed." << std::endl;
-    }
-
-    // Comparison of NOMAD::Double accounts for epsilon
-    return ( _h == 0.0 );
+    NOMAD::Double h = getH(computeType);
+    return (h.isDefined() && h.todouble() < NOMAD::Double::getEpsilon());
 }
 
 
@@ -259,7 +120,6 @@ bool NOMAD::Eval::canBeReEvaluated() const
     if (   _evalStatus == NOMAD::EvalStatusType::EVAL_OK
         || _evalStatus == NOMAD::EvalStatusType::EVAL_NOT_STARTED
         || _evalStatus == NOMAD::EvalStatusType::EVAL_USER_REJECTED
-        || _evalStatus == NOMAD::EvalStatusType::EVAL_CONS_H_OVER
         || _evalStatus == NOMAD::EvalStatusType::EVAL_ERROR)
     {
         reEval = true;
@@ -278,7 +138,6 @@ bool NOMAD::Eval::goodForCacheFile() const
     if (_evalStatus == NOMAD::EvalStatusType::EVAL_OK
         || _evalStatus == NOMAD::EvalStatusType::EVAL_FAILED
         || _evalStatus == NOMAD::EvalStatusType::EVAL_USER_REJECTED
-        || _evalStatus == NOMAD::EvalStatusType::EVAL_CONS_H_OVER
         || _evalStatus == NOMAD::EvalStatusType::EVAL_ERROR)
     {
         goodForCache = true;
@@ -287,104 +146,186 @@ bool NOMAD::Eval::goodForCacheFile() const
 }
 
 
-/*----------------------------------------*/
-/*      Get f. Warn if recompute needed.  */
-/*----------------------------------------*/
-NOMAD::Double NOMAD::Eval::getF() const
+/*------------------------------------*/
+/*      Get f. Always recomputed.     */
+/*------------------------------------*/
+NOMAD::Double NOMAD::Eval::getF(const NOMAD::ComputeType& computeType) const
 {
-    if (_toBeRecomputed)
+    NOMAD::Double f;
+    switch (computeType)
     {
-        std::cerr << "Warning: Eval::getF() called on an Eval that needs to be recomputed." << std::endl;
+        case NOMAD::ComputeType::STANDARD:
+            if (_bbOutput.getEvalOk())
+            {
+                f = _bbOutput.getObjective(_bbOutputTypeList);
+            }
+            break;
+        case NOMAD::ComputeType::PHASE_ONE:
+            f = computeFPhaseOne();
+            break;
+        case NOMAD::ComputeType::USER:
+            // TODO USER ComputeType: Issue #491
+            break;
+        default:
+            throw NOMAD::Exception(__FILE__,__LINE__,"getF(): ComputeType not supported");
     }
-    return _f;
+
+    return f;
 }
 
 
-/*----------------------------------------*/
-/*      Set f and update eval status      */
-/*----------------------------------------*/
-void NOMAD::Eval::setF(const NOMAD::Double &f)
+/*-------------------------------------*/
+/*      Get h. Always recomputed.      */
+/*-------------------------------------*/
+NOMAD::Double NOMAD::Eval::getH(const NOMAD::ComputeType& computeType) const
 {
-    _f = f;
+    NOMAD::Double h = 0.0;
+    const NOMAD::ArrayOfDouble bboArray = _bbOutput.getBBOAsArrayOfDouble();
 
-    _evalStatus = f.isDefined() ? NOMAD::EvalStatusType::EVAL_OK : NOMAD::EvalStatusType::EVAL_FAILED;
+    switch (computeType)
+    {
+        case NOMAD::ComputeType::STANDARD:
+            h = computeHStandard();
+            break;
+        case NOMAD::ComputeType::PHASE_ONE:
+            h = 0.0;
+            break;
+        case NOMAD::ComputeType::USER:
+            // TODO USER ComputeType: Issue #491
+            break;
+        default:
+            throw NOMAD::Exception(__FILE__,__LINE__,"getH(): ComputeType not supported");
+    }
+
+    return h;
 }
 
 
-/*----------------------------------------*/
-/*      Get h. Warn if recompute needed.  */
-/*----------------------------------------*/
-NOMAD::Double NOMAD::Eval::getH() const
+NOMAD::Double NOMAD::Eval::computeHStandard() const
 {
-    if (_toBeRecomputed)
+    NOMAD::Double h = 0.0;
+    const NOMAD::ArrayOfDouble bboArray = _bbOutput.getBBOAsArrayOfDouble();
+    bool hPos = false;
+
+    if (_bbOutput.getEvalOk())
     {
-        std::cerr << "Warning: Eval::getH() called on an Eval that needs to be recomputed." << std::endl;
+        size_t bboIndex = 0;
+        for (auto bbOutputType : _bbOutputTypeList)
+        {
+            NOMAD::Double bboI = bboArray[bboIndex];
+            bboIndex++;
+            if (!NOMAD::BBOutputTypeIsConstraint(bbOutputType))
+            {
+                continue;
+            }
+            else if (!bboI.isDefined())
+            {
+                h = NOMAD::Double();    // h is undefined
+                break;
+            }
+            else if (bboI > 0.0)
+            {
+                hPos = true;
+                NOMAD::Double hTemp = 0.0;
+                if (NOMAD::BBOutputType::EB == bbOutputType)
+                {
+                    hTemp = NOMAD::INF;
+                }
+                else if (NOMAD::BBOutputType::PB == bbOutputType)
+                {
+                    hTemp = bboI * bboI;
+                }
+
+                // Violated Extreme Barrier constraint:
+                // Set h to infinity and break.
+                if (NOMAD::INF == hTemp)
+                {
+                    h = NOMAD::INF;
+                    break;
+                }
+                h += hTemp;
+            }
+        }
     }
-    return _h;
+
+    // Failsafe: If at least one PB constraint is positive, h must be set
+    // to at least epsilon so that the Eval is recognized as infeasible.
+    // Catch cases such as constraint violated by 1e-8, which gives h = 1e-16
+    // which is considered as 0.
+    if (hPos && h.isDefined() && (0 == h))
+    {
+        h = NOMAD::Double::getEpsilon();
+    }
+
+    return h;
 }
 
 
-/*--------------------------------------*/
-/*      Set h and feasibility flag      */
-/*--------------------------------------*/
-void NOMAD::Eval::setH(const NOMAD::Double &h)
+NOMAD::Double NOMAD::Eval::computeFPhaseOne() const
 {
-    if (h < 0)
+    NOMAD::Double f = 0.0;
+    const NOMAD::ArrayOfDouble bboArray = _bbOutput.getBBOAsArrayOfDouble();
+    bool fPos = false;
+
+    if (_bbOutput.getEvalOk())
     {
-        std::string err = "Error: Trying to set a negative h (" + h.tostring() + ")";
-        throw NOMAD::Exception(__FILE__, __LINE__, err);
+        size_t bboIndex = 0;
+        for (auto bbOutputType : _bbOutputTypeList)
+        {
+            NOMAD::Double bboI = bboArray[bboIndex];
+            bboIndex++;
+            if (NOMAD::BBOutputType::EB != bbOutputType)
+            {
+                continue;
+            }
+            else if (!bboI.isDefined())
+            {
+                f = NOMAD::Double();    // Undefined;
+            }
+            else if (bboI > 0.0)
+            {
+                fPos = true;
+                f += bboI * bboI;
+            }
+        }
     }
-    _h = h;
+
+    // Failsafe: If at least one EB constraint is positive, f is set
+    // to at least epsilon.
+    if (fPos && f.isDefined() && (0 == f))
+    {
+        f = NOMAD::Double::getEpsilon();
+    }
+
+    return f;
 }
 
 
 /*-----------------------*/
 /*      Set BBOutput     */
 /*-----------------------*/
-void NOMAD::Eval::setBBOutput(const NOMAD::BBOutput &bbOutput)
-{
-    _bbOutput = bbOutput;
-    _toBeRecomputed = true;
-    _bbOutputComplete = false;
-}
-
-
-void NOMAD::Eval::setBBOutputAndRecompute(const NOMAD::BBOutput& bbOutput,
-                                          const NOMAD::BBOutputTypeList& bbOutputType)
-{
-    setBBOutput(bbOutput);
-    if (!bbOutput.checkSizeMatch(bbOutputType))
-    {
-        _evalStatus = NOMAD::EvalStatusType::EVAL_ERROR;
-        _bbOutputComplete =false;
-    }
-    else
-    {
-        setF(computeF(bbOutputType));
-        setH(_computeH(*this, bbOutputType));
-        _bbOutputComplete = _bbOutput.isComplete(bbOutputType);
-    }
-    _toBeRecomputed = false;
-}
-
-
 void NOMAD::Eval::setBBO(const std::string &bbo,
-                         const NOMAD::BBOutputTypeList &bbOutputType,
+                         const NOMAD::BBOutputTypeList &bbOutputTypeList,
                          const bool evalOk)
 {
-    _bbOutput.setBBO(bbo, evalOk);
-    if (bbOutputType.size() > 0)
+    _bbOutput = NOMAD::BBOutput(bbo, evalOk);
+    _bbOutputTypeList = bbOutputTypeList;
+
+    if (bbOutputTypeList.empty())
     {
-        setF(computeF(bbOutputType));
-        setH(_computeH(*this, bbOutputType));
-        _toBeRecomputed = false;
-        _bbOutputComplete = _bbOutput.isComplete(bbOutputType);
+        // Assume it will be set later.
+    }
+    else if (!_bbOutput.checkSizeMatch(bbOutputTypeList))
+    {
+        _evalStatus = NOMAD::EvalStatusType::EVAL_ERROR;
+        _bbOutputComplete = false;
     }
     else
     {
-        _toBeRecomputed = true;
-        _bbOutputComplete = false;
+        _bbOutputComplete = _bbOutput.isComplete(_bbOutputTypeList);
+        _evalStatus = getF(NOMAD::ComputeType::STANDARD).isDefined() ? NOMAD::EvalStatusType::EVAL_OK : NOMAD::EvalStatusType::EVAL_FAILED;
     }
+
 }
 
 
@@ -397,12 +338,14 @@ bool NOMAD::Eval::operator==(const NOMAD::Eval &e) const
     // Compare f and h.
 
     bool equal = false;
+    NOMAD::Double f1 = getF(NOMAD::ComputeType::STANDARD);
+    NOMAD::Double f2 = e.getF(NOMAD::ComputeType::STANDARD);
 
     if (this == &e)
     {
         equal = true;
     }
-    else if (!_f.isDefined() || !e._f.isDefined())
+    else if (!f1.isDefined() || !f2.isDefined())
     {
         // If either value is undefined, consider Evals not equal - even if both are undefined.
         equal = false;
@@ -410,7 +353,17 @@ bool NOMAD::Eval::operator==(const NOMAD::Eval &e) const
     else
     {
         // General case
-        equal = ( (_f == e._f) && (_h == e._h) );
+        NOMAD::Double h1 = getH(NOMAD::ComputeType::STANDARD);
+        NOMAD::Double h2 = e.getH(NOMAD::ComputeType::STANDARD);
+        // As for f, if either h value is undefined, consider Evals not equal - even if both are undefined.
+        if (!h1.isDefined() || !h2.isDefined())
+        {
+            equal = false;
+        }
+        else
+        {
+            equal = ( (f1 == f2) && (h1 == h2) );
+        }
     }
 
     return equal;
@@ -422,7 +375,7 @@ bool NOMAD::Eval::operator==(const NOMAD::Eval &e) const
 /*--------------------------------------------------------------------------*/
 bool NOMAD::Eval::operator<(const NOMAD::Eval &eval) const
 {
-    return dominates(eval);
+    return dominates(eval, NOMAD::ComputeType::STANDARD);
 }
 
 
@@ -436,20 +389,20 @@ bool NOMAD::Eval::operator<(const NOMAD::Eval &eval) const
 /* Otherwise, return false.                                                 */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
-bool NOMAD::Eval::dominates(const NOMAD::Eval &eval) const
+bool NOMAD::Eval::dominates(const NOMAD::Eval &eval, const NOMAD::ComputeType &computeType) const
 {
     bool dom = false;
 
-    NOMAD::Double f1 = getF();
-    NOMAD::Double h1 = getH();
-    NOMAD::Double f2 = eval.getF();
-    NOMAD::Double h2 = eval.getH();
+    NOMAD::Double f1 = getF(computeType);
+    NOMAD::Double h1 = getH(computeType);
+    NOMAD::Double f2 = eval.getF(computeType);
+    NOMAD::Double h2 = eval.getH(computeType);
 
-    if (isFeasible() && eval.isFeasible())
+    if (isFeasible(computeType) && eval.isFeasible(computeType))
     {
         dom = (f1 < f2);
     }
-    else if (!isFeasible() && !eval.isFeasible())
+    else if (!isFeasible(computeType) && !eval.isFeasible(computeType))
     {
         if (h1 != NOMAD::INF)
         {
@@ -464,20 +417,76 @@ bool NOMAD::Eval::dominates(const NOMAD::Eval &eval) const
 
 
 // Comparison function used for Cache's findBest functions.
-bool NOMAD::Eval::compEvalFindBest(const NOMAD::Eval &eval1, const NOMAD::Eval &eval2)
+bool NOMAD::Eval::compEvalFindBest(const NOMAD::Eval &eval1, const NOMAD::Eval &eval2, const NOMAD::ComputeType& computeType)
 {
     // Success is PARTIAL_SUCCESS or FULL_SUCCESS
     // if eval1 is better than eval2.
     // hMax is ignored (set to NOMAD::INF).
-    NOMAD::SuccessType success = _computeSuccessType(&eval1, &eval2, NOMAD::INF);
+    NOMAD::SuccessType success = computeSuccessType(&eval1, &eval2, computeType, NOMAD::INF);
 
     return (success >= NOMAD::SuccessType::PARTIAL_SUCCESS);
 }
 
 
-NOMAD::SuccessType NOMAD::Eval::defaultComputeSuccessType(const NOMAD::Eval* eval1,
-                                                          const NOMAD::Eval* eval2,
-                                                          const NOMAD::Double& hMax)
+/*
+NOMAD::SuccessType NOMAD::Eval::computeSuccessType(const NOMAD::Eval* eval1,
+                                                   const NOMAD::Eval* eval2,
+                                                   const NOMAD::ComputeType& computeType,
+                                                   const NOMAD::Double& hMax)
+*/
+// Comparison function used for Cache's findBest functions.
+bool NOMAD::Eval::compInsertInBarrier(const NOMAD::Eval &eval1,
+                                      const NOMAD::Eval &eval2,
+                                      const NOMAD::ComputeType& computeType,
+                                      NOMAD::SuccessType successType,
+                                      bool strictEqual)
+{
+    // Success is PARTIAL_SUCCESS or FULL_SUCCESS
+    // if eval1 is better than eval2.
+    // hMax is ignored (set to NOMAD::INF).
+    NOMAD::SuccessType success = computeSuccessType(&eval1, &eval2, computeType, NOMAD::INF);
+    if (strictEqual)
+    {
+        return (success == successType);
+    }
+    else
+    {
+        return (success >= successType);
+    }
+}
+
+
+// Comparison function used for Barrier update function.
+bool NOMAD::Eval::compEvalBarrier(const NOMAD::Eval &eval1, const NOMAD::Eval &eval2)
+{
+    // - If eval1 domnates eval2, return true.
+    // - Else, return true if eval1's f is better than eval2's.
+    bool isBetter = false;
+    if (eval1.dominates(eval2))
+    {
+        isBetter = true;
+    }
+    else if (eval2.dominates(eval1))
+    {
+        isBetter = false;
+    }
+    else if (eval1.getF() < eval2.getF())
+    {
+        isBetter = true;
+    }
+    else if (eval2.getF() < eval1.getF())
+    {
+        isBetter = false;
+    }
+
+    return isBetter;
+}
+
+
+NOMAD::SuccessType NOMAD::Eval::computeSuccessType(const NOMAD::Eval* eval1,
+                                                   const NOMAD::Eval* eval2,
+                                                   const NOMAD::ComputeType& computeType,
+                                                   const NOMAD::Double& hMax)
 {
     // NOT_EVALUATED,      // Not evaluated yet
     // UNSUCCESSFUL,       // Failure
@@ -490,36 +499,45 @@ NOMAD::SuccessType NOMAD::Eval::defaultComputeSuccessType(const NOMAD::Eval* eva
     {
         if (nullptr == eval2)
         {
-            if (eval1->getH() > hMax)
+            if (eval1->getH(computeType) > hMax)
             {
                 // Even if eval2 is NULL, this case is not successful.
                 success = NOMAD::SuccessType::UNSUCCESSFUL;
             }
             else
             {
-                success = NOMAD::SuccessType::FULL_SUCCESS;
+                // A new infeasible point, without prior infeasible point, is partial success,
+                // not a full success.
+                if (eval1->isFeasible())
+                {
+                    success = NOMAD::SuccessType::FULL_SUCCESS;
+                }
+                else
+                {
+                    success = NOMAD::SuccessType::PARTIAL_SUCCESS;
+                }
             }
         }
         else
         {
-            if (eval1->dominates(*eval2))
+            if (eval1->dominates(*eval2, computeType))
             {
                 // Whether eval1 and eval2 are both feasible, or both
                 // infeasible, dominance means FULL_SUCCESS.
                 success = NOMAD::SuccessType::FULL_SUCCESS;
             }
-            else if (eval1->isFeasible() && eval2->isFeasible())
+            else if (eval1->isFeasible(computeType) && eval2->isFeasible(computeType))
             {
                 // Eval1 and eval2 are both feasible, but eval1 does
                 // not dominate eval2.
                 success = NOMAD::SuccessType::UNSUCCESSFUL;
             }
-            else if (!eval1->isFeasible() && !eval2->isFeasible())
+            else if (!eval1->isFeasible(computeType) && !eval2->isFeasible(computeType))
             {
                 // Comparing two infeasible points
-                if (eval1->getH() <= hMax
-                    && eval1->getH() < eval2->getH()
-                    && eval1->getF() > eval2->getF())
+                if (eval1->getH(computeType) <= hMax
+                    && eval1->getH(computeType) < eval2->getH(computeType)
+                    && eval1->getF(computeType) > eval2->getF(computeType))
                 {
                     // Partial success (improving). Found an infeasible
                     // solution with a better h. f is worse.
@@ -537,62 +555,31 @@ NOMAD::SuccessType NOMAD::Eval::defaultComputeSuccessType(const NOMAD::Eval* eva
 }
 
 
-NOMAD::SuccessType NOMAD::Eval::computeSuccessTypePhaseOne(const NOMAD::Eval* eval1,
-                                                           const NOMAD::Eval* eval2,
-                                                           const NOMAD::Double& hMax)
-{
-    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
-
-    if (nullptr != eval1)
-    {
-        if (eval1->isFeasible())
-        {
-            success = NOMAD::SuccessType::FULL_SUCCESS;
-        }
-        else if (nullptr == eval2)
-        {
-            success = NOMAD::SuccessType::FULL_SUCCESS;
-        }
-        else
-        {
-            if (eval1->getH() < eval2->getH())
-            {
-                success = NOMAD::SuccessType::FULL_SUCCESS;
-            }
-            else
-            {
-                success = NOMAD::SuccessType::UNSUCCESSFUL;
-            }
-        }
-    }
-
-    return success;
-}
-
-
 /*--------------------------------------------------*/
 /*                      display                     */
 /*--------------------------------------------------*/
-std::string NOMAD::Eval::display() const
+std::string NOMAD::Eval::display(const NOMAD::ComputeType& computeType, const int prec) const
 {
     std::string s;
 
     s += NOMAD::enumStr(_evalStatus);
     s += "\t ";
-    if (_f.isDefined())
+    NOMAD::Double f = getF(computeType);
+    NOMAD::Double h = getH(computeType);
+    if (f.isDefined())
     {
         s += "f = ";
-        s += _f.tostring();
+        s += f.display(prec);
     }
     else
     {
         s += "Undefined f";
     }
     s += "\t ";
-    if (_h.isDefined())
+    if (h.isDefined())
     {
         s += "h = ";
-        s += _h.tostring();
+        s += h.display(prec);
     }
     else
     {
@@ -621,9 +608,6 @@ std::string NOMAD::enumStr(const NOMAD::EvalStatusType evalStatus)
             break;
         case NOMAD::EvalStatusType::EVAL_USER_REJECTED:
             str = "Evaluation rejected by user (may be submitted again)";
-            break;
-        case NOMAD::EvalStatusType::EVAL_CONS_H_OVER:
-            str = "Evaluation constraint violation is too high (may be submitted again)";
             break;
         case NOMAD::EvalStatusType::EVAL_OK:
             str = "Evaluation OK";
@@ -663,9 +647,6 @@ std::ostream& NOMAD::operator<<(std::ostream& out, const NOMAD::EvalStatusType &
             break;
         case NOMAD::EvalStatusType::EVAL_USER_REJECTED:
             out << "EVAL_USER_REJECTED";
-            break;
-        case NOMAD::EvalStatusType::EVAL_CONS_H_OVER:
-            out << "EVAL_CONS_H_OVER";
             break;
         case NOMAD::EvalStatusType::EVAL_OK:
             out << "EVAL_OK";
@@ -710,10 +691,6 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalStatusType &evalSta
     else if ("EVAL_USER_REJECTED" == s)
     {
         evalStatus = NOMAD::EvalStatusType::EVAL_USER_REJECTED;
-    }
-    else if ("EVAL_CONS_H_OVER" == s)
-    {
-        evalStatus = NOMAD::EvalStatusType::EVAL_CONS_H_OVER;
     }
     else if ("EVAL_OK" == s)
     {

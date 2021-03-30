@@ -90,6 +90,7 @@ bool NOMAD::NMInitializeSimplex::runImp()
 bool NOMAD::NMInitializeSimplex::createSimplex()
 {
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
 
     auto iter = dynamic_cast<const NOMAD::NMIteration*>( NOMAD::Step::_parentStep );
     if (nullptr == iter)
@@ -271,8 +272,8 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
 
     int count_feasible = 0;
 
-    if ( (*itT).getH(evalType).isDefined()
-        && (*itT).isFeasible(evalType) )
+    if ( (*itT).getH(evalType, computeType).isDefined()
+        && (*itT).isFeasible(evalType, computeType) )
         count_feasible = 1 ;
 
     itT++;
@@ -323,7 +324,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
             OUTPUT_DEBUG_START
             dbgInfo2.addMsg( " ---> zk KEPT in Y " );
             OUTPUT_DEBUG_END
-            if ( (*itT).isFeasible(evalType) )
+            if ( (*itT).isFeasible(evalType, computeType) )
                 count_feasible++;
             k++;
             itT++;

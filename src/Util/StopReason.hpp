@@ -131,8 +131,8 @@ enum class ModelStopType : int
 enum class NMStopType : int
 {
     STARTED                     ,  ///< Started (no stop)
-    TOO_SMALL_SIMPLEX           ,
-    SIMPLEX_RANK_INSUFFICIENT   ,
+    TOO_SMALL_SIMPLEX           ,  ///< Not used
+    SIMPLEX_RANK_INSUFFICIENT   ,  ///< Not used
     INITIAL_FAILED              ,  ///< No valid point during initialization
     REFLECT_FAILED              ,
     EXPANSION_FAILED            ,
@@ -177,9 +177,10 @@ enum class EvalMainThreadStopType : int
 /// Stop type that can happen at the end of an iteration
 enum class IterStopType : int
 {
-    STARTED                  ,  ///< Started (no stop)
-    MAX_ITER_REACHED         ,   ///< Max number of iterations
-    STOP_ON_FEAS            ,  ///< Stop because a feasible point is reached.
+    STARTED                 ,  ///< Started (no stop)
+    MAX_ITER_REACHED        ,  ///< Max number of iterations
+    STOP_ON_FEAS            ,  ///< Stop because a feasible point is reached
+    PHASE_ONE_COMPLETED     ,  ///< Stop because PhaseOne is done
     LAST
 };
 

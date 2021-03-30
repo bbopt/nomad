@@ -23,6 +23,7 @@ var defines_8hpp =
     [ "INT_DISPLAY_WIDTH", "defines_8hpp.html#ab5fde8acd3b37998c66a4b05e84808da", null ],
     [ "M_INF_INT", "defines_8hpp.html#a42810a712c39b4557f9e04f4f6437596", null ],
     [ "MAX_DIMENSION", "defines_8hpp.html#a56ef116030c20785d5b5d865db064a5b", null ],
+    [ "MODEL_MAX_OUTPUT", "defines_8hpp.html#a2d6d365be71d745bb448339350cb575d", null ],
     [ "NaN", "defines_8hpp.html#ab4ff070ea4fc5d50ffe530252867dc44", null ],
     [ "NB_DIGITS_BEFORE_POINT", "defines_8hpp.html#a94510ec9d576bc7fa9493335a6008940", null ],
     [ "P_INF_INT", "defines_8hpp.html#ad4fddd5952be3227113a18a35163f450", null ]

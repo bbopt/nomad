@@ -75,8 +75,6 @@ void NOMAD::SpeculativeSearchMethod::init()
 
 void NOMAD::SpeculativeSearchMethod::generateTrialPointsImp()
 {
-    std::shared_ptr<NOMAD::Point> pointFrom;
-
     if (nullptr == _iterAncestor)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"SpeculativeSearchMethod: must have an iteration ancestor");
@@ -89,6 +87,9 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsImp()
         throw NOMAD::Exception(__FILE__,__LINE__,"SpeculativeSearchMethod needs a barrier");
     }
 
+    // Get the base factor for speculative seach
+    auto baseFactor = _runParams->getAttributeValue<NOMAD::Double>("SPECULATIVE_SEARCH_BASE_FACTOR");
+
     // Generate points starting from all points in the barrier.
     // If FRAME_CENTER_USE_CACHE is false (default), that is the same
     // as using the best feasible and best infeasible points.
@@ -96,7 +97,7 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsImp()
     {
         bool canGenerate = true;
         // Test that the frame center has a valid generating direction
-        pointFrom = frameCenter.getPointFrom(NOMAD::SubproblemManager::getSubFixedVariable(this));
+        auto pointFrom = frameCenter.getPointFrom(NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
         if (nullptr == pointFrom || *pointFrom == frameCenter)
         {
             canGenerate = false;
@@ -104,24 +105,10 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsImp()
 
         if (canGenerate)
         {
+            // Note: Recomputing direction, instead of using frameCenter.getDirection(),
+            // to ensure we work in subspace.
             auto dir = NOMAD::Point::vectorize(*pointFrom, frameCenter);
 
-            // Make the direction intersect the frame
-            auto mesh = _iterAncestor->getMesh();
-            if (nullptr == mesh)
-            {
-                throw NOMAD::Exception(__FILE__,__LINE__,"SpeculativeSearchMethod: must have a mesh");
-            }
-            NOMAD::ArrayOfDouble deltaFrameSize = mesh->getDeltaFrameSize();
-            NOMAD::ArrayOfDouble factor(dir.size(),0.0);
-            for (size_t i = 0; i < dir.size(); ++i)
-            {
-                if ( dir[i] != 0 )
-                {
-                    // CT TODO determine the base factor. 3 gives better results on 18pbs with constraints than 1.
-                    factor[i] = max(deltaFrameSize[i]/dir[i].abs()-1.0,3.0);
-                }
-            }
             OUTPUT_INFO_START
             AddOutputInfo("Direction before scaling: " + dir.display());
             OUTPUT_INFO_END
@@ -132,7 +119,7 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsImp()
                 auto diri = dir;
                 for(size_t j = 0 ; j < dir.size(); j++)
                 {
-                    diri[j] *= factor[j] * i;
+                    diri[j] *= baseFactor * i;
                 }
 
                 OUTPUT_INFO_START
@@ -140,11 +127,10 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsImp()
                 OUTPUT_INFO_END
 
                 // Generate
-                NOMAD::Point point = NOMAD::Point(*(frameCenter.getX()) + diri);
+                auto evalPoint = NOMAD::EvalPoint(*(pointFrom->getX()) + diri);
 
                 // Insert the point
-                auto evalPoint = NOMAD::EvalPoint(point);
-                evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(frameCenter), NOMAD::SubproblemManager::getSubFixedVariable(this));
+                evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
                 evalPoint.setGenStep(getName());
                 insertTrialPoint(evalPoint);
             }

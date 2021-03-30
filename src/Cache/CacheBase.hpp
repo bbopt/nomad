@@ -253,9 +253,9 @@ public:
      * Depending on its EvalStatus, on maxNumberEval, and on the evalType,
        return \c true if it should be evaluated again,
        \c false otherwise.
-     \param evalPoint           The eval point to insert in the cache -- \b IN.
-     \param maxNumberEval  The max number of evals           -- \b IN.
-     \param evalType             Look at the Blackbox or Surrogate eval of the EvalPoint  -- \b IN.
+     \param evalPoint       The eval point to insert in the cache -- \b IN.
+     \param maxNumberEval   The max number of evals           -- \b IN.
+     \param evalType        Look at the Blackbox or Surrogate eval of the EvalPoint  -- \b IN.
      \return                A boolean indicating if we should eval this point.
      */
     virtual bool smartInsert(const EvalPoint &evalPoint,
@@ -266,8 +266,8 @@ public:
     /**
      Get all eval points at point x from the cache (pure virtual function).
 
-     \param x                             The point to find in cache             -- \b IN.
-     \param evalPointList  The list of eval points found in cache -- \b OUT.
+     \param x               The point to find in cache             -- \b IN.
+     \param evalPointList   The list of eval points found in cache -- \b OUT.
      \return                The number of points found.
      */
     virtual size_t find(const Point x,
@@ -277,79 +277,84 @@ public:
     /// Get all eval points for which comp(refeval) returns true.
     /**
      The comparison function tests if an eval point's eval is inferior to refeval.
-     \param refeval                The point of reference                                      -- \b IN.
-     \param comp                       The comparison function                                     -- \b IN.
+     \param refeval         The point of reference                                      -- \b IN.
+     \param comp            The comparison function                                     -- \b IN.
      \param evalPointList   The list of eval points found in cache that match comp()    -- \b OUT.
-     \param evalType              Look at the blackbox or surrogate eval of the EvalPoint     -- \b IN.
+     \param evalType        Look at the blackbox or surrogate eval of the EvalPoint     -- \b IN.
      \return                The number of points found.
      */
     virtual size_t find(const Eval &refeval,
-                        std::function<bool(const Eval&, const Eval&)> comp,
+                        std::function<bool(const Eval&, const Eval&, const ComputeType&)> comp,
                         std::vector<EvalPoint> &evalPointList,
-                        const EvalType& evalType = EvalType::BB) const = 0;
+                        const EvalType& evalType = EvalType::BB,
+                        const ComputeType& computeType = ComputeType::STANDARD) const = 0;
 
 
     /// Get best eval points, using comp(). Only the points with eval status EVAL_OK are considered.
     /**
-     \param comp                         The comparison function                                    -- \b IN.
-     \param evalPointList     The best eval points that verify comp()==true  in a list   -- \b OUT.
-     \param findFeas                The flag to find feasible points                           -- \b IN.
-     \param hMax                         The hmax to detect feasibility                             -- \b IN.
-     \param fixedVariable     Searching for a subproblem defined by this point -- \b IN.
-     \param evalType                Which Eval of the EvalPoint to look at  -- \b IN.
-     \param refeval                  The upper bound eval reference to accelerate the search  (can be nullptr)   -- \b IN.
-     \return                 The number of eval points found.
+     \param comp            The comparison function                                    -- \b IN.
+     \param evalPointList   The best eval points that verify comp()==true  in a list   -- \b OUT.
+     \param findFeas        The flag to find feasible points                           -- \b IN.
+     \param hMax            The hmax to detect feasibility                             -- \b IN.
+     \param fixedVariable   Searching for a subproblem defined by this point           -- \b IN.
+     \param evalType        Which Eval of the EvalPoint to look at                     -- \b IN.
+     \param refeval         The upper bound eval reference to accelerate the search  (can be nullptr) -- \b IN.
+     \return                The number of eval points found.
      */
-    virtual size_t findBest(std::function<bool(const Eval&, const Eval&)> comp,
+    virtual size_t findBest(std::function<bool(const Eval&, const Eval&, const ComputeType&)> comp,
                             std::vector<EvalPoint> &evalPointList,
                             const bool findFeas,
                             const Double& hMax,
                             const Point& fixedVariable,
                             const EvalType& evalType,
+                            const ComputeType& computeType,
                             const Eval* refeval) const = 0;
 
 
     /// Find best feasible points in the cache using operator<.
     /**
-     \param evalPointList  The best feasible eval points in a list  -- \b OUT.
-     \param fixedVariable  Searching for a subproblem defined by this point -- \b IN.
-     \param evalType             Which eval (Blackbox or Surrogate) of the EvalPoint to look at  -- \b IN.
-     \param refeval               The upper bound eval reference to accelerate the search  (can be nullptr)   -- \b IN.
+     \param evalPointList   The best feasible eval points in a list  -- \b OUT.
+     \param fixedVariable   Searching for a subproblem defined by this point -- \b IN.
+     \param evalType        Which eval (Blackbox or Surrogate) of the EvalPoint to look at  -- \b IN.
+     \param refeval         The upper bound eval reference to accelerate the search  (can be nullptr)   -- \b IN.
      \return                The number of eval points found.
      */
     virtual size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
                             const Point& fixedVariable,
                             const EvalType& evalType,
+                            const ComputeType& computeType,
                             const Eval* refeval) const = 0;
 
     /// Test if cache contains feasible points.
     /**
       \return \c true if the cache contains at least one feasible point, \c false otherwise.
      */
-    virtual bool hasFeas(const EvalType& evalType = EvalType::BB) const = 0;
+    virtual bool hasFeas(const EvalType& evalType = EvalType::BB,
+                         const ComputeType& computeType = ComputeType::STANDARD) const = 0;
 
     /// Find best infeasible points, with h <= hMax, using operator< (pure virtual).
     /**
-     \param evalPointList  The best infeasible eval points in a list  -- \b OUT.
-     \param hMax                      Select a point if h <= hMax                -- \b IN.
-     \param fixedVariable  Searching for a subproblem defined by this point -- \b IN.
-     \param evalType             Which eval (Blackbox or Surrogate) of the EvalPoint to look at  -- \b IN.
-     \param refeval                The upper bound eval reference to accelerate the search  (can be nullptr)   -- \b IN.
+     \param evalPointList   The best infeasible eval points in a list                                   -- \b OUT.
+     \param hMax            Select a point if h <= hMax                                                 -- \b IN.
+     \param fixedVariable   Searching for a subproblem defined by this point                            -- \b IN.
+     \param evalType        Which eval (Blackbox or Surrogate) of the EvalPoint to look at              -- \b IN.
+     \param refeval         The upper bound eval reference to accelerate the search (can be nullptr)    -- \b IN.
      \return                The number of eval points found.
      */
     virtual size_t findBestInf(std::vector<EvalPoint> &evalPointList,
                             const Double& hMax,
                             const Point& fixedVariable,
                             const EvalType& evalType,
+                            const ComputeType& computeType,
                             const Eval* refeval) const = 0;
 
     /// Get all eval points within a distance of point X.
     /**
-     \param X                               The point of reference                                         -- \b IN.
-     \param crit                        The criteria function                                 -- \b IN.
-     \param evalPointList    The eval points within the prescribed distance of X            -- \b OUT.
-     \param maxEvalPoints    The maximum number of points to select                         -- \b IN.
-     \return                 The number of eval points found.
+     \param X               The point of reference                              -- \b IN.
+     \param crit            The criteria function                               -- \b IN.
+     \param evalPointList   The eval points within the prescribed distance of X -- \b OUT.
+     \param maxEvalPoints   The maximum number of points to select              -- \b IN.
+     \return                The number of eval points found.
      */
     virtual size_t find(const Point & X,
                         std::function<bool(const Point&, const EvalPoint &)> crit,
@@ -362,9 +367,9 @@ public:
     /**
      All the points for which crit() return \c true are put in evalPointList.
 
-     \param crit                        The criteria function                               -- \b IN.
-     \param evalPointList    The eval points within the prescribed distance of X -- \b OUT.
-     \return                 The number of eval points found.
+     \param crit            The criteria function                               -- \b IN.
+     \param evalPointList   The eval points within the prescribed distance of X -- \b OUT.
+     \return                The number of eval points found.
      */
     virtual size_t find(std::function<bool(const EvalPoint&)> crit,
                         std::vector<EvalPoint> &evalPointList) const = 0;
@@ -375,10 +380,10 @@ public:
     /**
      All the points for which the two crit() functions return \c true are put in evalPointList.
 
-     \param crit1                      The first criteria function                               -- \b IN.
-     \param crit2                      The first criteria function                               -- \b IN.
-     \param evalPointList    The eval points within the prescribed distance of X            -- \b OUT.
-     \return                 The number of eval points found.
+     \param crit1           The first criteria function                             -- \b IN.
+     \param crit2           The second criteria function                            -- \b IN.
+     \param evalPointList   The eval points within the prescribed distance of X     -- \b OUT.
+     \return                The number of eval points found.
      */
     virtual size_t find(std::function<bool(const EvalPoint&)> crit1,
                         std::function<bool(const EvalPoint&)> crit2,
@@ -392,8 +397,8 @@ public:
 
     /// Get all points of the cache and put them into a list.
     /**
-     \param evalPointList     The list of all eval points -- \c OUT.
-     \return                  The dimension of the list.
+     \param evalPointList   The list of all eval points -- \c OUT.
+     \return                The dimension of the list.
      */
     size_t getAllPoints(std::vector<EvalPoint> &evalPointList) const;
 
@@ -402,7 +407,7 @@ public:
      * Look for Point and update the Eval part.\n
      * Eval is assumed non-NULL. \n
      * If the point is not found, throw an exception.
-     \param evalPoint       The eval point to update                        -- \b IN.
+     \param evalPoint       The eval point to update                                        -- \b IN.
      \param evalType        Which eval (Blackbox or Surrogate) of the EvalPoint to look at  -- \b IN.
      \return                A boolean indicating if update succeeded (\c true), \c false if there was an error.
      */

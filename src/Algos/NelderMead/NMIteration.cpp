@@ -158,7 +158,7 @@ bool NOMAD::NMIteration::runImp()
     }
     // Perform SHRINK only for a standalone NM optimization ELSE stop NM
     if ( ! _stopReasons->checkTerminate() &&
-         stepType == NMStepType::SHRINK  )
+         stepType == NMStepType::SHRINK && !nmOpt )
     {
         auto nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get ( _stopReasons );
         nmStopReason->set( NOMAD::NMStopType::NM_STOP_NO_SHRINK );

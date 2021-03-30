@@ -115,7 +115,7 @@ void NOMAD::LHSearchMethod::generateTrialPointsImp()
     {
         // Insert point (if possible)
         NOMAD::EvalPoint evalPoint(point);
-        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(frameCenter), NOMAD::SubproblemManager::getSubFixedVariable(this));
+        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
         evalPoint.setGenStep(getName());
         insertTrialPoint(evalPoint);
     }

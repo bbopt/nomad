@@ -5,5 +5,5 @@ u.exe: u.cpp
 
 
 clean:
-	rm -f u.exe u.o cache.txt
+	rm -f u.exe u.o cache.txt out1 out2 out3 out10
 

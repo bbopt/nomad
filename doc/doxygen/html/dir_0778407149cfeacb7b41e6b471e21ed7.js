@@ -6,6 +6,8 @@ var dir_0778407149cfeacb7b41e6b471e21ed7 =
     [ "BBOutputType.hpp", "_b_b_output_type_8hpp.html", "_b_b_output_type_8hpp" ],
     [ "CallbackType.cpp", "_callback_type_8cpp.html", null ],
     [ "CallbackType.hpp", "_callback_type_8hpp.html", "_callback_type_8hpp" ],
+    [ "ComputeType.cpp", "_compute_type_8cpp.html", null ],
+    [ "ComputeType.hpp", "_compute_type_8hpp.html", "_compute_type_8hpp" ],
     [ "DirectionType.cpp", "_direction_type_8cpp.html", null ],
     [ "DirectionType.hpp", "_direction_type_8hpp.html", "_direction_type_8hpp" ],
     [ "EvalType.cpp", "_eval_type_8cpp.html", null ],

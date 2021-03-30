@@ -180,3 +180,16 @@ size_t NOMAD::getNbObj(const BBOutputTypeList& bbotList)
 
     return nbObj;
 }
+
+
+std::istream& NOMAD::operator>>(std::istream& is, NOMAD::BBOutputTypeList &bbOutputTypeList)
+{
+    std::string s;
+
+    while (is >> s)
+    {
+        bbOutputTypeList.push_back(NOMAD::stringToBBOutputType(s));
+    }
+
+    return is;
+}
