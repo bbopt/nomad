@@ -14,12 +14,12 @@ All users can find in Chapters 4 to 7 ways to tailor problem definition, algorit
 * Tricks that may help solving specific problems are presented in Chapter 5.
 
 How to cite NOMAD
-=================
+-----------------
 
 Please cite NOMAD with references [27, 50].
 
 Textbook
-========
+--------
 
 A complete introduction to derivative-free and blackbox opti- mization can be found in the textbook [24].
  
