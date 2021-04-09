@@ -322,8 +322,8 @@ bool solveNomadProblem(NomadProblem nomad_problem,
 
         // Set the best feasible and best infeasible solutions ; TODO maybe change
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, nullptr);
-        auto nbInf = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, nullptr);
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
+        auto nbInf = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
 
         if (nbInf > 0)
         {
