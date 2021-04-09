@@ -18,7 +18,7 @@
 <area shape="rect" id="node15" href="$_pb_parameters_8hpp.html" title=" " alt="" coords="2080,1079,2278,1105"/>
 <area shape="rect" id="node22" href="$_barrier_8hpp.html" title=" " alt="" coords="2077,609,2214,635"/>
 <area shape="rect" id="node28" href="$_run_parameters_8hpp.html" title=" " alt="" coords="2070,915,2277,941"/>
-<area shape="rect" id="node31" href="$_eval_type_8hpp.html" title="Types for Evaluation: Blackbox, Surrogate." alt="" coords="1344,1377,1499,1404"/>
+<area shape="rect" id="node31" href="$_eval_type_8hpp.html" title="Types for Evaluation: Blackbox, Model." alt="" coords="1344,1377,1499,1404"/>
 <area shape="rect" id="node32" href="$_output_info_8hpp.html" title=" " alt="" coords="2970,1079,3148,1105"/>
 <area shape="rect" id="node35" href="$_callback_type_8hpp.html" title="Types for Callback." alt="" coords="2806,1377,2989,1404"/>
 <area shape="rect" id="node8" href="$_array_of_double_8hpp.html" title="Base class to be used for an array of n Double values, as base class for Point and Direction." alt="" coords="2435,1377,2630,1404"/>

@@ -99,9 +99,9 @@ $(document).ready(function(){initNavTree('class_cache_base.html',''); initResiza
   <tr><td class="entry"><a class="el" href="class_cache_base.html#a3e56c36b9175f786651d78257a08a80b">CacheBase</a>(const std::shared_ptr&lt; CacheParameters &gt; &amp;cacheParams)</td><td class="entry"><a class="el" href="class_cache_base.html">CacheBase</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">explicit</span><span class="mlabel">protected</span></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="class_cache_base.html#ac6dd0fc871d71c7228fa5298b6aa275a">CacheBase</a>(CacheBase const &amp;)=delete</td><td class="entry"><a class="el" href="class_cache_base.html">CacheBase</a></td><td class="entry"></td></tr>
   <tr><td class="entry"><a class="el" href="class_cache_base.html#a36d1dfd2a75d2a6c9c7bcd69522a8b83">clear</a>()=0</td><td class="entry"><a class="el" href="class_cache_base.html">CacheBase</a></td><td class="entry"><span class="mlabel">pure virtual</span></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_cache_base.html#a9c9623ab867f1620099b0cb1d372ffa3">clearSgte</a>(const int mainThreadNum)=0</td><td class="entry"><a class="el" href="class_cache_base.html">CacheBase</a></td><td class="entry"><span class="mlabel">pure virtual</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="class_cache_base.html#a0ff764e2a0a7130ff28dfce31a61ff3a">clearModelEval</a>(const int mainThreadNum)=0</td><td class="entry"><a class="el" href="class_cache_base.html">CacheBase</a></td><td class="entry"><span class="mlabel">pure virtual</span></td></tr>
   <tr><td class="entry"><a class="el" href="class_cache_base.html#a62d1376ee251c29d9a762582ab74b7f2">computeMeanF</a>(Double &amp;mean) const</td><td class="entry"><a class="el" href="class_cache_base.html">CacheBase</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">virtual</span></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_cache_base.html#a29063aa4c20857c36cd6bbfec1110e05">deleteSgteOnly</a>(const int mainThreadNum)=0</td><td class="entry"><a class="el" href="class_cache_base.html">CacheBase</a></td><td class="entry"><span class="mlabel">pure virtual</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="class_cache_base.html#a741380d21b04db31f3e25d7316da4218">deleteModelEvalOnly</a>(const int mainThreadNum)=0</td><td class="entry"><a class="el" href="class_cache_base.html">CacheBase</a></td><td class="entry"><span class="mlabel">pure virtual</span></td></tr>
   <tr><td class="entry"><a class="el" href="class_cache_base.html#a13d33285d6e67d672e9e30e3cf21403f">displayAll</a>() const</td><td class="entry"><a class="el" href="class_cache_base.html">CacheBase</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">virtual</span></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="class_cache_base.html#a743cd26b4f9d3009a512134dcbfc26bf">find</a>(const Point &amp;x, EvalPoint &amp;evalPoint, const EvalType evalType=EvalType::UNDEFINED) const =0</td><td class="entry"><a class="el" href="class_cache_base.html">CacheBase</a></td><td class="entry"><span class="mlabel">pure virtual</span></td></tr>
   <tr><td class="entry"><a class="el" href="class_cache_base.html#af7f3af7bfe33453ed3fc7c9fa7dfa9a9">find</a>(const Point x, std::vector&lt; EvalPoint &gt; &amp;evalPointList) const =0</td><td class="entry"><a class="el" href="class_cache_base.html">CacheBase</a></td><td class="entry"><span class="mlabel">pure virtual</span></td></tr>
@@ -139,7 +139,7 @@ $(document).ready(function(){initNavTree('class_cache_base.html',''); initResiza
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Mar 30 2021 16:31:32 for NOMAD Source by
+    <li class="footer">Generated on Fri Apr 9 2021 13:32:05 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

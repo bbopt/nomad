@@ -174,40 +174,22 @@ $(document).ready(function(){initNavTree('_l_h_search_method_8cpp_source.html','
 <div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    <span class="keyword">auto</span> lowerBound = _pbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;LOWER_BOUND&quot;</span>);</div>
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    <span class="keyword">auto</span> upperBound = _pbParams-&gt;getAttributeValue&lt;NOMAD::ArrayOfDouble&gt;(<span class="stringliteral">&quot;UPPER_BOUND&quot;</span>);</div>
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160; </div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    <span class="comment">// Update undefined values of lower and upper bounds to use values based</span></div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    <span class="comment">// on DeltaFrameSize.</span></div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <span class="comment">// Based on the code in NOMAD 3, but slightly different.</span></div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="comment">// If we used INF values instead of these, we get huge values for the</span></div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <span class="comment">// generated points. It is not elegant.</span></div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    NOMAD::ArrayOfDouble deltaFrameSize = mesh-&gt;getDeltaFrameSize();</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    NOMAD::Double scaleFactor = sqrt(-log(<a class="code" href="defines_8hpp.html#ad0fca8699981da6f314a04d1991a18eb">NOMAD::DEFAULT_EPSILON</a>));</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; i++)</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    {</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;        <span class="keywordflow">if</span> (!lowerBound[i].isDefined())</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;        {</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;            lowerBound[i] = frameCenter[i] - 10.0 * deltaFrameSize[i] * scaleFactor;</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;        }</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;        <span class="keywordflow">if</span> (!upperBound[i].isDefined())</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;        {</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;            upperBound[i] = frameCenter[i] + 10.0 * deltaFrameSize[i] * scaleFactor;</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;        }</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    }</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <span class="comment">// Apply Latin Hypercube algorithm</span></div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    NOMAD::LHS lhs(n, p, lowerBound, upperBound);</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    <span class="keyword">auto</span> pointVector = lhs.Sample();</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160; </div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <span class="comment">// Insert the point. Projection on mesh and snap to bounds is done in SearchMethod</span></div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="keywordflow">for</span> (<span class="keyword">auto</span> point : pointVector)</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    {</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;        <span class="comment">// Insert point (if possible)</span></div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;        NOMAD::EvalPoint evalPoint(point);</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;        evalPoint.setPointFrom(std::make_shared&lt;NOMAD::EvalPoint&gt;(frameCenter), NOMAD::SubproblemManager::getInstance()-&gt;getSubFixedVariable(<span class="keyword">this</span>));</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        evalPoint.setGenStep(getName());</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;        insertTrialPoint(evalPoint);</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;    }</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;}</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    NOMAD::ArrayOfDouble deltaFrameSize = mesh-&gt;getDeltaFrameSize();</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    NOMAD::Double scaleFactor = sqrt(-log(<a class="code" href="defines_8hpp.html#ad0fca8699981da6f314a04d1991a18eb">NOMAD::DEFAULT_EPSILON</a>));</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <span class="comment">// Apply Latin Hypercube algorithm (provide frameCenter, deltaFrameSize, and scaleFactor for updating bounds)</span></div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    NOMAD::LHS lhs(n, p, lowerBound, upperBound, frameCenter, deltaFrameSize, scaleFactor);</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <span class="keyword">auto</span> pointVector = lhs.Sample();</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    <span class="comment">// Insert the point. Projection on mesh and snap to bounds is done in SearchMethod</span></div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keywordflow">for</span> (<span class="keyword">auto</span> point : pointVector)</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    {</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        <span class="comment">// Insert point (if possible)</span></div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;        NOMAD::EvalPoint evalPoint(point);</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;        evalPoint.setPointFrom(std::make_shared&lt;NOMAD::EvalPoint&gt;(frameCenter), NOMAD::SubproblemManager::getInstance()-&gt;getSubFixedVariable(<span class="keyword">this</span>));</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;        evalPoint.setGenStep(getName());</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;        insertTrialPoint(evalPoint);</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    }</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="adefines_8hpp_html_ad0fca8699981da6f314a04d1991a18eb"><div class="ttname"><a href="defines_8hpp.html#ad0fca8699981da6f314a04d1991a18eb">DEFAULT_EPSILON</a></div><div class="ttdeci">const double DEFAULT_EPSILON</div><div class="ttdoc">Default epsilon used by Double.</div><div class="ttdef"><b>Definition:</b> <a href="defines_8hpp_source.html#l00108">defines.hpp:108</a></div></div>
@@ -215,7 +197,7 @@ $(document).ready(function(){initNavTree('_l_h_search_method_8cpp_source.html','
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_411efccbd5e576f82c71dd79c3c5caa4.html">Algos</a></li><li class="navelem"><a class="el" href="dir_9c2ad70377b8871382ce2d13c7aa17bb.html">Mads</a></li><li class="navelem"><a class="el" href="_l_h_search_method_8cpp.html">LHSearchMethod.cpp</a></li>
-    <li class="footer">Generated on Tue Mar 30 2021 16:31:31 for NOMAD Source by
+    <li class="footer">Generated on Fri Apr 9 2021 13:32:04 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

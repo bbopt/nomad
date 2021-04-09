@@ -6,7 +6,7 @@
 <area shape="rect" id="node12" href="$nomad__nsend_8hpp.html" title=" " alt="" coords="2241,1080,2394,1107"/>
 <area shape="rect" id="node34" href="$_point_8hpp.html" title="Point." alt="" coords="1422,632,1554,659"/>
 <area shape="rect" id="node47" href="$_compute_type_8hpp.html" title="Types for Computation of f and h: Blackbox, PhaseOne." alt="" coords="2974,1005,3159,1032"/>
-<area shape="rect" id="node48" href="$_eval_type_8hpp.html" title="Types for Evaluation: Blackbox, Surrogate." alt="" coords="3184,1005,3339,1032"/>
+<area shape="rect" id="node48" href="$_eval_type_8hpp.html" title="Types for Evaluation: Blackbox, Model." alt="" coords="3184,1005,3339,1032"/>
 <area shape="rect" id="node4" title=" " alt="" coords="2547,169,2634,196"/>
 <area shape="rect" id="node5" href="$_b_b_output_8hpp.html" title="Output of a Blackbox evaluation." alt="" coords="2609,707,2765,733"/>
 <area shape="rect" id="node27" href="$_eval_parameters_8hpp.html" title=" " alt="" coords="751,169,961,196"/>
