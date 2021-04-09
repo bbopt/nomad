@@ -1,0 +1,266 @@
+###############################################################################
+#######     Definition of Run Parameters attributes (PSD-SSD)      ############
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+PSD_MADS_OPTIMIZATION
+bool
+0
+\( PSD-MADS optimization algorithm \)
+\(
+
+. Use PSD-MADS algorithm.
+
+. Argument: bool
+
+. Description: Parallel Space Decomposition with Mads (no parallelism)
+
+. This option deactivates any other optimization strategy.
+
+. Example: PSD_MADS_OPTIMIZATION true
+
+\)
+\( advanced psd mads parallel decomposition \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+PSD_MADS_NB_VAR_IN_SUBPROBLEM
+size_t
+2
+\( Number of variables in PSD-MADS subproblems \)
+\(
+
+. When using Parallel Space Decomposition (PSD) MADS algorithm, select the
+  number of variables in Mads subproblems.
+
+. Argument: size_t
+
+. Description: Size of subproblems in PSD-Mads.
+
+. This attribute is used only when PSD-Mads optimization is active.
+
+. Example: PSD_MADS_NB_VAR_IN_SUBPROBLEM 3
+
+\)
+\( advanced psd mads parallel decomposition subproblem \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+PSD_MADS_NB_SUBPROBLEM
+size_t
+INF
+\( Number of PSD-MADS subproblems \)
+\(
+
+. When using Parallel Space Decomposition (PSD) MADS algorithm, select the number of
+  Mads subproblems. By default (INF), the number of subproblems is adjusted to
+  cover all variables.
+
+. Argument: size_t
+
+. This attribute is used only when PSD-Mads optimization is active.
+
+. Example: PSD_MADS_NB_SUBPROBLEM 2
+
+\)
+\( advanced psd mads parallel decomposition subproblem \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+PSD_MADS_ITER_OPPORTUNISTIC
+bool
+true
+\( Opportunistic strategy between the Mads subproblems in PSD-MADS \)
+\(
+
+. When using Parallel Space Decomposition (PSD) MADS algorithm, the launch
+  of Mads subproblems during an iteration can be opportunistically stopped when
+  a success is obtained by a Mads subproblem.
+
+. Argument: bool
+
+. This attribute is used only when PSD-Mads optimization is active.
+
+. Example: PSD_MADS_OPPORTUNISTIC false
+
+\)
+\( advanced parallel space mads parallel decomposition subproblem opportunistic \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+PSD_MADS_ORIGINAL
+bool
+false
+\( Use NOMAD 3 strategy for mesh update in PSD-MADS \)
+\(
+
+. When using Parallel Space Decomposition (PSD) MADS algorithm,
+  NOMAD 3 strategy is to always update the mesh whenever a new pollster is launched.
+  NOMAD 4 strategy is more defined as for which conditions must be met for
+  the mesh to be updated.
+
+. Argument: bool
+
+. This attribute is used only when PSD-Mads optimization is active.
+
+. Example: PSD_MADS_ORIGINAL false
+
+\)
+\( advanced parallel space mads parallel decomposition subproblem original \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE
+NOMAD::Double
+70
+\( Percentage of variables that must be covered in subproblems before updating mesh \)
+\(
+
+. When using Parallel Space Decomposition (PSD) MADS algorithm,
+  update (enlarge or refine) the mesh when this percentage of variables is
+  covered by subproblems.
+
+. A lower value makes for more frequent updates. A larger value makes
+  mesh updates less frequent.
+
+. Argument: Double between 0 and 100
+
+. This attribute is used only when PSD-Mads optimization is active.
+
+. Example: PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE 80
+
+\)
+\( advanced parallel space mads parallel subproblem \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+SSD_MADS_OPTIMIZATION
+bool
+0
+\( SSD-MADS optimization algorithm \)
+\(
+
+. Use SSD-MADS algorithm.
+
+. Argument: bool
+
+. Description: Sequential Space Decomposition with Mads (no parallelism)
+
+. This option deactivates any other optimization strategy.
+
+. Example: SSD_MADS_OPTIMIZATION true
+
+\)
+\( advanced ssd mads sequential decomposition \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+SSD_MADS_NB_VAR_IN_SUBPROBLEM
+size_t
+2
+\( Number of variables in SSD-MADS subproblems \)
+\(
+
+. When using Sequential Space Decomposition (SSD) MADS algorithm, select the
+  number of variables in Mads subproblems.
+
+. Argument: size_t
+
+. Description: Size of subproblems in SSD-Mads.
+
+. This attribute is used only when SSD-Mads optimization is active.
+
+. Example: SSD_MADS_NB_VAR_IN_SUBPROBLEM 3
+
+\)
+\( advanced ssd mads sequential decomposition subproblem \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+SSD_MADS_NB_SUBPROBLEM
+size_t
+INF
+\( Number of SSD-MADS subproblems \)
+\(
+
+. When using Sequential Space Decomposition (SSD) MADS algorithm, select the number of
+  Mads subproblems. By default (INF), the number of subproblems is adjusted to
+  cover all variables.
+
+. Argument: size_t
+
+. This attribute is used only when SSD-Mads optimization is active.
+
+. Example: SSD_MADS_NB_SUBPROBLEM 2
+
+\)
+\( advanced ssd mads sequential decomposition subproblem \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+SSD_MADS_RESET_VAR_PICKUP_SUBPROBLEM
+bool
+false
+\( Reset random variable pick-up for each subproblem \)
+\(
+
+. Argument: bool
+
+. This attribute is used only when SSD-Mads optimization is active.
+
+. Example: SSD_MADS_RESET_VAR_PICKUP_SUBPROBLEM true
+
+\)
+\( advanced ssd mads sequential decomposition subproblem \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+SSD_MADS_ITER_OPPORTUNISTIC
+bool
+true
+\( Opportunistic strategy between the Mads subproblems in SSD-MADS \)
+\(
+
+. When using Sequential Space Decomposition (SSD) MADS algorithm, the sequence
+  of Mads subproblems during an iteration can be opportunistically stopped when
+  a success is obtained by a Mads subproblem.
+
+. Argument: bool
+
+. This attribute is used only when SSD-Mads optimization is active.
+
+. Example: SSD_MADS_OPPORTUNISTIC false
+
+\)
+\( advanced sequential space ssd mads decomposition subproblem opportunistic \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
