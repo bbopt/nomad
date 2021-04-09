@@ -122,17 +122,17 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypePhaseOne(
 }
 
 
-NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeSgte(
+NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeModel(
                                 const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
                                 const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
                                 const NOMAD::Double& hMax)
 {
     NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
-    const NOMAD::EvalType evalTypeSgte = NOMAD::EvalType::SGTE;
+    const NOMAD::EvalType evalTypeModel = NOMAD::EvalType::MODEL;
 
     if (nullptr != evalPoint1)
     {
-        if (evalPoint1->getH(evalTypeSgte, NOMAD::ComputeType::STANDARD) > hMax)
+        if (evalPoint1->getH(evalTypeModel, NOMAD::ComputeType::STANDARD) > hMax)
         {
             success = NOMAD::SuccessType::UNSUCCESSFUL;
         }
@@ -142,8 +142,8 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeSgte(
         }
         else
         {
-            success = NOMAD::Eval::computeSuccessType(evalPoint1->getEval(evalTypeSgte),
-                                                      evalPoint2->getEval(evalTypeSgte),
+            success = NOMAD::Eval::computeSuccessType(evalPoint1->getEval(evalTypeModel),
+                                                      evalPoint2->getEval(evalTypeModel),
                                                       NOMAD::ComputeType::STANDARD,
                                                       hMax);
         }
@@ -171,9 +171,9 @@ void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(const NOMAD::EvalT
             // TODO USER: Issue #491
         }
     }
-    else if (NOMAD::EvalType::SGTE == evalType)
+    else if (NOMAD::EvalType::MODEL == evalType)
     {
-        _computeSuccessType = NOMAD::ComputeSuccessType::computeSuccessTypeSgte;
+        _computeSuccessType = NOMAD::ComputeSuccessType::computeSuccessTypeModel;
     }
 }
 

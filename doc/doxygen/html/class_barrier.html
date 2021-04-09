@@ -293,7 +293,7 @@ Private Attributes</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">hMax</td><td>The max of h to keep a point in the barrier &ndash; <b>IN</b>. </td></tr>
     <tr><td class="paramname">fixedVariable</td><td>The fixed variables have a fixed value &ndash; <b>IN</b>. </td></tr>
-    <tr><td class="paramname">evalType</td><td>Type of evaluation (BB or SGTE) &ndash; <b>IN</b>. </td></tr>
+    <tr><td class="paramname">evalType</td><td>Type of evaluation (BB or MODEL) &ndash; <b>IN</b>. </td></tr>
     <tr><td class="paramname">evalPointList</td><td>Additional points to consider in building the barrier &ndash; <b>IN</b>. </td></tr>
   </table>
   </dd>
@@ -349,7 +349,7 @@ Private Attributes</h2></td></tr>
 <p>If the point is feasible it is added, if not an exception is triggered. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">xFeas</td><td>The eval point to add &ndash; <b>IN</b>. </td></tr>
-    <tr><td class="paramname">evalType</td><td>Which eval (Blackbox or Surrogate) of the <a class="el" href="class_eval_point.html" title="Class for the representation of an evaluation point.">EvalPoint</a> to use to verify feasibility &ndash; <b>IN</b>. </td></tr>
+    <tr><td class="paramname">evalType</td><td>Which eval (Blackbox or Model) of the <a class="el" href="class_eval_point.html" title="Class for the representation of an evaluation point.">EvalPoint</a> to use to verify feasibility &ndash; <b>IN</b>. </td></tr>
   </table>
   </dd>
 </dl>
@@ -918,7 +918,7 @@ Private Attributes</h2></td></tr>
 <p>Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">fixedVariable</td><td>The fixed variables have a fixed value &ndash; <b>IN</b>. </td></tr>
-    <tr><td class="paramname">evalType</td><td>Which eval (Blackbox or Surrogate) to use to verify feasibility &ndash; <b>IN</b>. </td></tr>
+    <tr><td class="paramname">evalType</td><td>Which eval (Blackbox or Model) to use to verify feasibility &ndash; <b>IN</b>. </td></tr>
     <tr><td class="paramname">evalPointList</td><td>Additional points to consider to construct barrier. &ndash; <b>IN</b>. </td></tr>
   </table>
   </dd>
@@ -1332,7 +1332,7 @@ Private Attributes</h2></td></tr>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="class_barrier.html">Barrier</a></li>
-    <li class="footer">Generated on Tue Mar 30 2021 16:31:32 for NOMAD Source by
+    <li class="footer">Generated on Fri Apr 9 2021 13:32:05 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

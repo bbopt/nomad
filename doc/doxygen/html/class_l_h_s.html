@@ -111,9 +111,9 @@ Collaboration diagram for LHS:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a4300320767cf89df7eae5a6837d9126a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_l_h_s.html#a4300320767cf89df7eae5a6837d9126a">LHS</a> (const size_t n, const size_t p, const <a class="el" href="class_array_of_double.html">ArrayOfDouble</a> lowerBound, const <a class="el" href="class_array_of_double.html">ArrayOfDouble</a> upperBound)</td></tr>
-<tr class="memdesc:a4300320767cf89df7eae5a6837d9126a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="class_l_h_s.html#a4300320767cf89df7eae5a6837d9126a">More...</a><br /></td></tr>
-<tr class="separator:a4300320767cf89df7eae5a6837d9126a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a510e58d8942952292fb1e35444de15bb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_l_h_s.html#a510e58d8942952292fb1e35444de15bb">LHS</a> (const size_t n, const size_t p, const <a class="el" href="class_array_of_double.html">ArrayOfDouble</a> &amp;lowerBound, const <a class="el" href="class_array_of_double.html">ArrayOfDouble</a> &amp;upperBound, const NOMAD::Point &amp;frameCenter=NOMAD::Point(), const NOMAD::ArrayOfDouble &amp;deltaFrameSize=NOMAD::ArrayOfDouble(), const NOMAD::Double &amp;scaleFactor=NOMAD::Double())</td></tr>
+<tr class="memdesc:a510e58d8942952292fb1e35444de15bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="class_l_h_s.html#a510e58d8942952292fb1e35444de15bb">More...</a><br /></td></tr>
+<tr class="separator:a510e58d8942952292fb1e35444de15bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf0085d2219c70b6c4f5b99d93875808"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_array_of_double.html">ArrayOfDouble</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_l_h_s.html#abf0085d2219c70b6c4f5b99d93875808">getLowerBound</a> () const</td></tr>
 <tr class="memdesc:abf0085d2219c70b6c4f5b99d93875808"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get lower bound.  <a href="class_l_h_s.html#abf0085d2219c70b6c4f5b99d93875808">More...</a><br /></td></tr>
 <tr class="separator:abf0085d2219c70b6c4f5b99d93875808"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -158,8 +158,8 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="_l_h_s_8hpp_source.html#l00068">68</a> of file <a class="el" href="_l_h_s_8hpp_source.html">LHS.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a4300320767cf89df7eae5a6837d9126a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4300320767cf89df7eae5a6837d9126a">&#9670;&nbsp;</a></span>LHS()</h2>
+<a id="a510e58d8942952292fb1e35444de15bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a510e58d8942952292fb1e35444de15bb">&#9670;&nbsp;</a></span>LHS()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -182,14 +182,32 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="class_array_of_double.html">ArrayOfDouble</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="class_array_of_double.html">ArrayOfDouble</a> &amp;&#160;</td>
           <td class="paramname"><em>lowerBound</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="class_array_of_double.html">ArrayOfDouble</a>&#160;</td>
-          <td class="paramname"><em>upperBound</em>&#160;</td>
+          <td class="paramtype">const <a class="el" href="class_array_of_double.html">ArrayOfDouble</a> &amp;&#160;</td>
+          <td class="paramname"><em>upperBound</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const NOMAD::Point &amp;&#160;</td>
+          <td class="paramname"><em>frameCenter</em> = <code>NOMAD::Point()</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const NOMAD::ArrayOfDouble &amp;&#160;</td>
+          <td class="paramname"><em>deltaFrameSize</em> = <code>NOMAD::ArrayOfDouble()</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const NOMAD::Double &amp;&#160;</td>
+          <td class="paramname"><em>scaleFactor</em> = <code>NOMAD::Double()</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -244,8 +262,8 @@ Private Attributes</h2></td></tr>
 <p>Get lower bound. </p>
 <dl class="section return"><dt>Returns</dt><dd>Lower bound as <code><a class="el" href="class_array_of_double.html" title="Class for the representation of an array of n values.">ArrayOfDouble</a></code>. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_l_h_s_8hpp_source.html#l00093">93</a> of file <a class="el" href="_l_h_s_8hpp_source.html">LHS.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_l_h_s.html#ab56ae60c4e794348bfff5ce3ec4e2713">_lowerBound</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_l_h_s_8hpp_source.html#l00096">96</a> of file <a class="el" href="_l_h_s_8hpp_source.html">LHS.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_l_h_s.html#ab56ae60c4e794348bfff5ce3ec4e2713">_lowerBound</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -276,8 +294,8 @@ Private Attributes</h2></td></tr>
 <p>Get upper bound. </p>
 <dl class="section return"><dt>Returns</dt><dd>Upper bound as <code><a class="el" href="class_array_of_double.html" title="Class for the representation of an array of n values.">ArrayOfDouble</a></code>. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_l_h_s_8hpp_source.html#l00105">105</a> of file <a class="el" href="_l_h_s_8hpp_source.html">LHS.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_l_h_s.html#ab1df6479e444d65186d654ec28428842">_upperBound</a>; }</div>
+<p class="definition">Definition at line <a class="el" href="_l_h_s_8hpp_source.html#l00108">108</a> of file <a class="el" href="_l_h_s_8hpp_source.html">LHS.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;{ <span class="keywordflow">return</span> <a class="code" href="class_l_h_s.html#ab1df6479e444d65186d654ec28428842">_upperBound</a>; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -368,8 +386,8 @@ Private Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="_l_h_s_8hpp_source.html#l00099">99</a> of file <a class="el" href="_l_h_s_8hpp_source.html">LHS.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;{ <a class="code" href="class_l_h_s.html#ab56ae60c4e794348bfff5ce3ec4e2713">_lowerBound</a> = lowerBound; }</div>
+<p class="definition">Definition at line <a class="el" href="_l_h_s_8hpp_source.html#l00102">102</a> of file <a class="el" href="_l_h_s_8hpp_source.html">LHS.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;{ <a class="code" href="class_l_h_s.html#ab56ae60c4e794348bfff5ce3ec4e2713">_lowerBound</a> = lowerBound; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -405,8 +423,8 @@ Private Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="_l_h_s_8hpp_source.html#l00111">111</a> of file <a class="el" href="_l_h_s_8hpp_source.html">LHS.hpp</a>.</p>
-<div class="fragment"><div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;{ <a class="code" href="class_l_h_s.html#ab1df6479e444d65186d654ec28428842">_upperBound</a> = upperBound; }</div>
+<p class="definition">Definition at line <a class="el" href="_l_h_s_8hpp_source.html#l00114">114</a> of file <a class="el" href="_l_h_s_8hpp_source.html">LHS.hpp</a>.</p>
+<div class="fragment"><div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;{ <a class="code" href="class_l_h_s.html#ab1df6479e444d65186d654ec28428842">_upperBound</a> = upperBound; }</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -526,7 +544,7 @@ Private Attributes</h2></td></tr>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="class_l_h_s.html">LHS</a></li>
-    <li class="footer">Generated on Tue Mar 30 2021 16:31:32 for NOMAD Source by
+    <li class="footer">Generated on Fri Apr 9 2021 13:32:05 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

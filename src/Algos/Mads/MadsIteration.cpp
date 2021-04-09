@@ -88,7 +88,7 @@ bool NOMAD::MadsIteration::runImp()
 
     // Parameter Update is handled at the upper level - MegaIteration.
 
-    if (_runParams->getAttributeValue<bool>("GENERATE_ALL_POINTS_BEFORE_EVAL")
+    if (_runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL")
         && !_stopReasons->checkTerminate())
     {
         MegaSearchPoll megaStep( this );

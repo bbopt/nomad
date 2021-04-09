@@ -80,11 +80,10 @@ void NOMAD::AllParameters::read(const std::string &paramFile, bool overwrite , b
 
     // Read all entries
     NOMAD::Parameters::readParamFileAndSetEntries(paramFile, overwrite ,resetAllEntries );
-    
-    
+
     // Read entries to detect deprecated entries explicitly set
     _deprecatedParams->readAndDetectExplicitlySet();
-    
+
     // Read entries and set attribute values for each type of parameters
     _runParams->readEntries();
     _pbParams->readEntries();

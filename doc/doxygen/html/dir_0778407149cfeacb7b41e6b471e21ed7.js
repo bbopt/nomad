@@ -10,6 +10,8 @@ var dir_0778407149cfeacb7b41e6b471e21ed7 =
     [ "ComputeType.hpp", "_compute_type_8hpp.html", "_compute_type_8hpp" ],
     [ "DirectionType.cpp", "_direction_type_8cpp.html", null ],
     [ "DirectionType.hpp", "_direction_type_8hpp.html", "_direction_type_8hpp" ],
+    [ "EvalSortType.cpp", "_eval_sort_type_8cpp.html", null ],
+    [ "EvalSortType.hpp", "_eval_sort_type_8hpp.html", "_eval_sort_type_8hpp" ],
     [ "EvalType.cpp", "_eval_type_8cpp.html", null ],
     [ "EvalType.hpp", "_eval_type_8hpp.html", "_eval_type_8hpp" ],
     [ "LHSearchType.cpp", "_l_h_search_type_8cpp.html", null ],

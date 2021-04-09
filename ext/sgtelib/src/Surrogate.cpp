@@ -202,10 +202,10 @@ bool SGTELIB::Surrogate::build ( void ) {
   // Before building the surrogate, the trainingset must be ready
   _trainingset.build();
 
-  if (!_trainingset.is_ready()) {
-    _ready = false;
-    return false;
-  }
+   if (!_trainingset.is_ready()) {
+     _ready = false;
+     return false;
+   }
 
   // Number of points in the training set.
   _p_ts = _trainingset.get_nb_points();

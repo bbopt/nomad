@@ -135,6 +135,10 @@ bool NOMAD::Mads::runImp()
 
 void NOMAD::Mads::hotRestartOnUserInterrupt()
 {
+    if (_stopReasons->checkTerminate())
+    {
+        return;
+    }
 #ifdef TIME_STATS
     if (isRootAlgo())
     {

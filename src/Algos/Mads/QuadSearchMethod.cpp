@@ -94,7 +94,7 @@ void NOMAD::QuadSearchMethod::init()
             setEnabled(false);
         }
 
-        auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
+        auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
         _displayLevel = modelDisplay.empty()
                             ? NOMAD::OutputLevel::LEVEL_DEBUGDEBUG
                             : NOMAD::OutputLevel::LEVEL_INFO;

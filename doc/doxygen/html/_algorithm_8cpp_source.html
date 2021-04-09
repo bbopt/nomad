@@ -329,7 +329,7 @@ $(document).ready(function(){initNavTree('_algorithm_8cpp_source.html',''); init
 <div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    <span class="comment">// By default reset the lap counter for BbEval and set the lap maxBbEval to INF</span></div>
 <div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;    NOMAD::EvcInterface::getEvaluatorControl()-&gt;resetLapBbEval();</div>
 <div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;    NOMAD::EvcInterface::getEvaluatorControl()-&gt;setLapMaxBbEval( <a class="code" href="defines_8hpp.html#a012ac2c9fae8df4037d839f2315906f9">NOMAD::INF_SIZE_T</a> );</div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;    NOMAD::EvcInterface::getEvaluatorControl()-&gt;resetSgteEval();</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;    NOMAD::EvcInterface::getEvaluatorControl()-&gt;resetModelEval();</div>
 <div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160; </div>
 <div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> == _megaIteration)</div>
 <div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;    {</div>
@@ -602,15 +602,15 @@ $(document).ready(function(){initNavTree('_algorithm_8cpp_source.html',''); init
 <div class="line"><a name="l00514"></a><span class="lineno">  514</span>&#160;    <span class="keywordtype">size_t</span> bbEval       = NOMAD::EvcInterface::getEvaluatorControl()-&gt;getBbEval();</div>
 <div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160;    <span class="keywordtype">size_t</span> lapBbEval    = NOMAD::EvcInterface::getEvaluatorControl()-&gt;getLapBbEval();</div>
 <div class="line"><a name="l00516"></a><span class="lineno">  516</span>&#160;    <span class="keywordtype">size_t</span> nbEval       = NOMAD::EvcInterface::getEvaluatorControl()-&gt;getNbEval();</div>
-<div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;    <span class="keywordtype">size_t</span> sgteEval     = NOMAD::EvcInterface::getEvaluatorControl()-&gt;getSgteEval();</div>
-<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160;    <span class="keywordtype">size_t</span> totalSgteEval = NOMAD::EvcInterface::getEvaluatorControl()-&gt;getTotalSgteEval();</div>
+<div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;    <span class="keywordtype">size_t</span> modelEval    = NOMAD::EvcInterface::getEvaluatorControl()-&gt;getModelEval();</div>
+<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160;    <span class="keywordtype">size_t</span> totalModelEval = NOMAD::EvcInterface::getEvaluatorControl()-&gt;getTotalModelEval();</div>
 <div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;    <span class="keywordtype">size_t</span> nbCacheHits  = NOMAD::CacheBase::getNbCacheHits();</div>
 <div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160;    <span class="keywordtype">int</span> nbEvalNoCount   = <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(nbEval - bbEval - nbCacheHits);</div>
 <div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160; </div>
 <div class="line"><a name="l00522"></a><span class="lineno">  522</span>&#160;    <span class="comment">// What needs to be shown, according to the counts and to the value of isSub</span></div>
 <div class="line"><a name="l00523"></a><span class="lineno">  523</span>&#160;    <span class="keywordtype">bool</span> showNbEvalNoCount  = (nbEvalNoCount &gt; 0);</div>
-<div class="line"><a name="l00524"></a><span class="lineno">  524</span>&#160;    <span class="keywordtype">bool</span> showSgteEval       = isSub &amp;&amp; (sgteEval &gt; 0);</div>
-<div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;    <span class="keywordtype">bool</span> showTotalSgteEval  = (totalSgteEval &gt; 0);</div>
+<div class="line"><a name="l00524"></a><span class="lineno">  524</span>&#160;    <span class="keywordtype">bool</span> showModelEval      = isSub &amp;&amp; (modelEval &gt; 0);</div>
+<div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;    <span class="keywordtype">bool</span> showTotalModelEval = (totalModelEval &gt; 0);</div>
 <div class="line"><a name="l00526"></a><span class="lineno">  526</span>&#160;    <span class="keywordtype">bool</span> showNbCacheHits    = (nbCacheHits &gt; 0);</div>
 <div class="line"><a name="l00527"></a><span class="lineno">  527</span>&#160;    <span class="keywordtype">bool</span> showNbEval         = (nbEval &gt; bbEval);</div>
 <div class="line"><a name="l00528"></a><span class="lineno">  528</span>&#160;    <span class="keywordtype">bool</span> showLapBbEval      = isSub &amp;&amp; (bbEval &gt; lapBbEval &amp;&amp; lapBbEval &gt; 0);</div>
@@ -622,8 +622,8 @@ $(document).ready(function(){initNavTree('_algorithm_8cpp_source.html',''); init
 <div class="line"><a name="l00534"></a><span class="lineno">  534</span>&#160;                                                 : NOMAD::OutputLevel::LEVEL_NORMAL;</div>
 <div class="line"><a name="l00535"></a><span class="lineno">  535</span>&#160; </div>
 <div class="line"><a name="l00536"></a><span class="lineno">  536</span>&#160;    <span class="comment">// Padding for nice presentation</span></div>
-<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;    std::string sFeedBbEval, sFeedLapBbEval, sFeedNbEvalNoCount, sFeedSgteEval,</div>
-<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;                sFeedTotalSgteEval, sFeedCacheHits, sFeedNbEval;</div>
+<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;    std::string sFeedBbEval, sFeedLapBbEval, sFeedNbEvalNoCount, sFeedModelEval,</div>
+<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;                sFeedTotalModelEval, sFeedCacheHits, sFeedNbEval;</div>
 <div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160; </div>
 <div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;    <span class="comment">// Conditional values: showNbEval, showNbEvalNoCount, showLapBbEval</span></div>
 <div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160;    <span class="keywordflow">if</span> (showLapBbEval)  <span class="comment">// Longest title</span></div>
@@ -631,8 +631,8 @@ $(document).ready(function(){initNavTree('_algorithm_8cpp_source.html',''); init
 <div class="line"><a name="l00543"></a><span class="lineno">  543</span>&#160;        sFeedBbEval += <span class="stringliteral">&quot;                 &quot;</span>;</div>
 <div class="line"><a name="l00544"></a><span class="lineno">  544</span>&#160;        <span class="comment">//sFeedLapBbEval += &quot;&quot;;</span></div>
 <div class="line"><a name="l00545"></a><span class="lineno">  545</span>&#160;        sFeedNbEvalNoCount += <span class="stringliteral">&quot;   &quot;</span>;</div>
-<div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160;        sFeedSgteEval += <span class="stringliteral">&quot;                     &quot;</span>;</div>
-<div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160;        sFeedTotalSgteEval += <span class="stringliteral">&quot;               &quot;</span>;</div>
+<div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160;        sFeedModelEval += <span class="stringliteral">&quot;                    &quot;</span>;</div>
+<div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160;        sFeedTotalModelEval += <span class="stringliteral">&quot;              &quot;</span>;</div>
 <div class="line"><a name="l00548"></a><span class="lineno">  548</span>&#160;        sFeedCacheHits += <span class="stringliteral">&quot;                           &quot;</span>;</div>
 <div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160;        sFeedNbEval += <span class="stringliteral">&quot;          &quot;</span>;</div>
 <div class="line"><a name="l00550"></a><span class="lineno">  550</span>&#160;    }</div>
@@ -641,8 +641,8 @@ $(document).ready(function(){initNavTree('_algorithm_8cpp_source.html',''); init
 <div class="line"><a name="l00553"></a><span class="lineno">  553</span>&#160;        sFeedBbEval += <span class="stringliteral">&quot;              &quot;</span>;</div>
 <div class="line"><a name="l00554"></a><span class="lineno">  554</span>&#160;        <span class="comment">//sFeedLapBbEval += &quot;&quot;;</span></div>
 <div class="line"><a name="l00555"></a><span class="lineno">  555</span>&#160;        <span class="comment">//sFeedNbEvalNoCount += &quot;&quot;;</span></div>
-<div class="line"><a name="l00556"></a><span class="lineno">  556</span>&#160;        sFeedSgteEval += <span class="stringliteral">&quot;                  &quot;</span>;</div>
-<div class="line"><a name="l00557"></a><span class="lineno">  557</span>&#160;        sFeedTotalSgteEval += <span class="stringliteral">&quot;            &quot;</span>;</div>
+<div class="line"><a name="l00556"></a><span class="lineno">  556</span>&#160;        sFeedModelEval += <span class="stringliteral">&quot;                 &quot;</span>;</div>
+<div class="line"><a name="l00557"></a><span class="lineno">  557</span>&#160;        sFeedTotalModelEval += <span class="stringliteral">&quot;           &quot;</span>;</div>
 <div class="line"><a name="l00558"></a><span class="lineno">  558</span>&#160;        sFeedCacheHits += <span class="stringliteral">&quot;                        &quot;</span>;</div>
 <div class="line"><a name="l00559"></a><span class="lineno">  559</span>&#160;        sFeedNbEval += <span class="stringliteral">&quot;       &quot;</span>;</div>
 <div class="line"><a name="l00560"></a><span class="lineno">  560</span>&#160;    }</div>
@@ -651,155 +651,165 @@ $(document).ready(function(){initNavTree('_algorithm_8cpp_source.html',''); init
 <div class="line"><a name="l00563"></a><span class="lineno">  563</span>&#160;        sFeedBbEval += <span class="stringliteral">&quot;       &quot;</span>;</div>
 <div class="line"><a name="l00564"></a><span class="lineno">  564</span>&#160;        <span class="comment">//sFeedLapBbEval += &quot;&quot;;</span></div>
 <div class="line"><a name="l00565"></a><span class="lineno">  565</span>&#160;        <span class="comment">//sFeedNbEvalNoCount += &quot;&quot;;</span></div>
-<div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;        sFeedSgteEval += <span class="stringliteral">&quot;           &quot;</span>;</div>
-<div class="line"><a name="l00567"></a><span class="lineno">  567</span>&#160;        sFeedTotalSgteEval += <span class="stringliteral">&quot;     &quot;</span>;</div>
+<div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;        sFeedModelEval += <span class="stringliteral">&quot;          &quot;</span>;</div>
+<div class="line"><a name="l00567"></a><span class="lineno">  567</span>&#160;        sFeedTotalModelEval += <span class="stringliteral">&quot;    &quot;</span>;</div>
 <div class="line"><a name="l00568"></a><span class="lineno">  568</span>&#160;        sFeedCacheHits += <span class="stringliteral">&quot;                 &quot;</span>;</div>
 <div class="line"><a name="l00569"></a><span class="lineno">  569</span>&#160;        <span class="comment">//sFeedNbEval += &quot;&quot;;</span></div>
 <div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160;    }</div>
-<div class="line"><a name="l00571"></a><span class="lineno">  571</span>&#160; </div>
-<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160;    std::string sBbEval         = <span class="stringliteral">&quot;Blackbox evaluations: &quot;</span> + sFeedBbEval + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(bbEval);</div>
-<div class="line"><a name="l00573"></a><span class="lineno">  573</span>&#160;    std::string sLapBbEval      = <span class="stringliteral">&quot;Sub-optimization blackbox evaluations: &quot;</span> + sFeedLapBbEval + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(lapBbEval);</div>
-<div class="line"><a name="l00574"></a><span class="lineno">  574</span>&#160;    std::string sNbEvalNoCount  = <span class="stringliteral">&quot;Blackbox evaluation (not counting): &quot;</span> + sFeedNbEvalNoCount + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(nbEvalNoCount);</div>
-<div class="line"><a name="l00575"></a><span class="lineno">  575</span>&#160;    std::string sSgteEval       = <span class="stringliteral">&quot;Sgte evaluations: &quot;</span> + sFeedSgteEval + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(sgteEval);</div>
-<div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;    std::string sTotalSgteEval  = <span class="stringliteral">&quot;Total sgte evaluations: &quot;</span> + sFeedTotalSgteEval + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(totalSgteEval);</div>
-<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;    std::string sCacheHits      = <span class="stringliteral">&quot;Cache hits: &quot;</span> + sFeedCacheHits + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(nbCacheHits);</div>
-<div class="line"><a name="l00578"></a><span class="lineno">  578</span>&#160;    std::string sNbEval         = <span class="stringliteral">&quot;Total number of evaluations: &quot;</span> + sFeedNbEval + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(nbEval);</div>
-<div class="line"><a name="l00579"></a><span class="lineno">  579</span>&#160; </div>
-<div class="line"><a name="l00580"></a><span class="lineno">  580</span>&#160; </div>
-<div class="line"><a name="l00581"></a><span class="lineno">  581</span>&#160;<span class="preprocessor">#ifdef TIME_STATS</span></div>
-<div class="line"><a name="l00582"></a><span class="lineno">  582</span>&#160;    std::string sTotalRealTime  = <span class="stringliteral">&quot;Total real time (round s):    &quot;</span> + std::to_string(_totalRealAlgoTime);</div>
-<div class="line"><a name="l00583"></a><span class="lineno">  583</span>&#160;    std::string sTotalCPUTime   = <span class="stringliteral">&quot;Total CPU time (s):           &quot;</span> + std::to_string(_totalCPUAlgoTime);</div>
-<div class="line"><a name="l00584"></a><span class="lineno">  584</span>&#160;<span class="preprocessor"> #endif // TIME_STATS</span></div>
-<div class="line"><a name="l00585"></a><span class="lineno">  585</span>&#160; </div>
-<div class="line"><a name="l00586"></a><span class="lineno">  586</span>&#160;    AddOutputInfo(<span class="stringliteral">&quot;&quot;</span>, outputLevelHigh); <span class="comment">// skip line</span></div>
-<div class="line"><a name="l00587"></a><span class="lineno">  587</span>&#160;    <span class="comment">// Always show number of blackbox evaluations</span></div>
-<div class="line"><a name="l00588"></a><span class="lineno">  588</span>&#160;    AddOutputInfo(sBbEval, outputLevelHigh);</div>
-<div class="line"><a name="l00589"></a><span class="lineno">  589</span>&#160;    <span class="comment">// The other values are conditional to the show* booleans</span></div>
-<div class="line"><a name="l00590"></a><span class="lineno">  590</span>&#160;    <span class="keywordflow">if</span> (showLapBbEval)</div>
-<div class="line"><a name="l00591"></a><span class="lineno">  591</span>&#160;    {</div>
-<div class="line"><a name="l00592"></a><span class="lineno">  592</span>&#160;        AddOutputInfo(sLapBbEval, outputLevelNormal);</div>
-<div class="line"><a name="l00593"></a><span class="lineno">  593</span>&#160;    }</div>
-<div class="line"><a name="l00594"></a><span class="lineno">  594</span>&#160;    <span class="keywordflow">if</span> (showNbEvalNoCount)</div>
-<div class="line"><a name="l00595"></a><span class="lineno">  595</span>&#160;    {</div>
-<div class="line"><a name="l00596"></a><span class="lineno">  596</span>&#160;        AddOutputInfo(sNbEvalNoCount, outputLevelNormal);</div>
-<div class="line"><a name="l00597"></a><span class="lineno">  597</span>&#160;    }</div>
-<div class="line"><a name="l00598"></a><span class="lineno">  598</span>&#160;    <span class="keywordflow">if</span> (showSgteEval)</div>
-<div class="line"><a name="l00599"></a><span class="lineno">  599</span>&#160;    {</div>
-<div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;        AddOutputInfo(sSgteEval, outputLevelNormal);</div>
-<div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;    }</div>
-<div class="line"><a name="l00602"></a><span class="lineno">  602</span>&#160;    <span class="keywordflow">if</span> (showTotalSgteEval)</div>
-<div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;    {</div>
-<div class="line"><a name="l00604"></a><span class="lineno">  604</span>&#160;        AddOutputInfo(sTotalSgteEval, outputLevelNormal);</div>
-<div class="line"><a name="l00605"></a><span class="lineno">  605</span>&#160;    }</div>
-<div class="line"><a name="l00606"></a><span class="lineno">  606</span>&#160;    <span class="keywordflow">if</span> (showNbCacheHits)</div>
-<div class="line"><a name="l00607"></a><span class="lineno">  607</span>&#160;    {</div>
-<div class="line"><a name="l00608"></a><span class="lineno">  608</span>&#160;        AddOutputInfo(sCacheHits, outputLevelNormal);</div>
-<div class="line"><a name="l00609"></a><span class="lineno">  609</span>&#160;    }</div>
-<div class="line"><a name="l00610"></a><span class="lineno">  610</span>&#160;    <span class="keywordflow">if</span> (showNbEval)</div>
-<div class="line"><a name="l00611"></a><span class="lineno">  611</span>&#160;    {</div>
-<div class="line"><a name="l00612"></a><span class="lineno">  612</span>&#160;        AddOutputInfo(sNbEval, outputLevelNormal);</div>
-<div class="line"><a name="l00613"></a><span class="lineno">  613</span>&#160;    }</div>
-<div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160; </div>
-<div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160;<span class="preprocessor">#ifdef TIME_STATS</span></div>
-<div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160;    {</div>
-<div class="line"><a name="l00617"></a><span class="lineno">  617</span>&#160;        AddOutputInfo(sTotalRealTime, outputLevelNormal);</div>
-<div class="line"><a name="l00618"></a><span class="lineno">  618</span>&#160;        AddOutputInfo(sTotalCPUTime, outputLevelNormal);</div>
+<div class="line"><a name="l00571"></a><span class="lineno">  571</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (showTotalModelEval)</div>
+<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160;    {</div>
+<div class="line"><a name="l00573"></a><span class="lineno">  573</span>&#160;        sFeedBbEval += <span class="stringliteral">&quot;   &quot;</span>;</div>
+<div class="line"><a name="l00574"></a><span class="lineno">  574</span>&#160;        <span class="comment">//sFeedLapBbEval += &quot;&quot;;</span></div>
+<div class="line"><a name="l00575"></a><span class="lineno">  575</span>&#160;        <span class="comment">//sFeedNbEvalNoCount += &quot;&quot;;</span></div>
+<div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;        <span class="comment">//sFeedModelEval += &quot;          &quot;;</span></div>
+<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;        <span class="comment">//sFeedTotalModelEval += &quot;    &quot;;</span></div>
+<div class="line"><a name="l00578"></a><span class="lineno">  578</span>&#160;        <span class="comment">//sFeedCacheHits += &quot;                 &quot;;</span></div>
+<div class="line"><a name="l00579"></a><span class="lineno">  579</span>&#160;        <span class="comment">//sFeedNbEval += &quot;&quot;;</span></div>
+<div class="line"><a name="l00580"></a><span class="lineno">  580</span>&#160;    }</div>
+<div class="line"><a name="l00581"></a><span class="lineno">  581</span>&#160; </div>
+<div class="line"><a name="l00582"></a><span class="lineno">  582</span>&#160;    std::string sBbEval         = <span class="stringliteral">&quot;Blackbox evaluations: &quot;</span> + sFeedBbEval + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(bbEval);</div>
+<div class="line"><a name="l00583"></a><span class="lineno">  583</span>&#160;    std::string sLapBbEval      = <span class="stringliteral">&quot;Sub-optimization blackbox evaluations: &quot;</span> + sFeedLapBbEval + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(lapBbEval);</div>
+<div class="line"><a name="l00584"></a><span class="lineno">  584</span>&#160;    std::string sNbEvalNoCount  = <span class="stringliteral">&quot;Blackbox evaluation (not counting): &quot;</span> + sFeedNbEvalNoCount + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(nbEvalNoCount);</div>
+<div class="line"><a name="l00585"></a><span class="lineno">  585</span>&#160;    std::string sModelEval      = <span class="stringliteral">&quot;Model evaluations: &quot;</span> + sFeedModelEval + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(modelEval);</div>
+<div class="line"><a name="l00586"></a><span class="lineno">  586</span>&#160;    std::string sTotalModelEval = <span class="stringliteral">&quot;Total model evaluations: &quot;</span> + sFeedTotalModelEval + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(totalModelEval);</div>
+<div class="line"><a name="l00587"></a><span class="lineno">  587</span>&#160;    std::string sCacheHits      = <span class="stringliteral">&quot;Cache hits: &quot;</span> + sFeedCacheHits + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(nbCacheHits);</div>
+<div class="line"><a name="l00588"></a><span class="lineno">  588</span>&#160;    std::string sNbEval         = <span class="stringliteral">&quot;Total number of evaluations: &quot;</span> + sFeedNbEval + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(nbEval);</div>
+<div class="line"><a name="l00589"></a><span class="lineno">  589</span>&#160; </div>
+<div class="line"><a name="l00590"></a><span class="lineno">  590</span>&#160; </div>
+<div class="line"><a name="l00591"></a><span class="lineno">  591</span>&#160;<span class="preprocessor">#ifdef TIME_STATS</span></div>
+<div class="line"><a name="l00592"></a><span class="lineno">  592</span>&#160;    std::string sTotalRealTime  = <span class="stringliteral">&quot;Total real time (round s):    &quot;</span> + std::to_string(_totalRealAlgoTime);</div>
+<div class="line"><a name="l00593"></a><span class="lineno">  593</span>&#160;    std::string sTotalCPUTime   = <span class="stringliteral">&quot;Total CPU time (s):           &quot;</span> + std::to_string(_totalCPUAlgoTime);</div>
+<div class="line"><a name="l00594"></a><span class="lineno">  594</span>&#160;<span class="preprocessor"> #endif // TIME_STATS</span></div>
+<div class="line"><a name="l00595"></a><span class="lineno">  595</span>&#160; </div>
+<div class="line"><a name="l00596"></a><span class="lineno">  596</span>&#160;    AddOutputInfo(<span class="stringliteral">&quot;&quot;</span>, outputLevelHigh); <span class="comment">// skip line</span></div>
+<div class="line"><a name="l00597"></a><span class="lineno">  597</span>&#160;    <span class="comment">// Always show number of blackbox evaluations</span></div>
+<div class="line"><a name="l00598"></a><span class="lineno">  598</span>&#160;    AddOutputInfo(sBbEval, outputLevelHigh);</div>
+<div class="line"><a name="l00599"></a><span class="lineno">  599</span>&#160;    <span class="comment">// The other values are conditional to the show* booleans</span></div>
+<div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;    <span class="keywordflow">if</span> (showLapBbEval)</div>
+<div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;    {</div>
+<div class="line"><a name="l00602"></a><span class="lineno">  602</span>&#160;        AddOutputInfo(sLapBbEval, outputLevelNormal);</div>
+<div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;    }</div>
+<div class="line"><a name="l00604"></a><span class="lineno">  604</span>&#160;    <span class="keywordflow">if</span> (showNbEvalNoCount)</div>
+<div class="line"><a name="l00605"></a><span class="lineno">  605</span>&#160;    {</div>
+<div class="line"><a name="l00606"></a><span class="lineno">  606</span>&#160;        AddOutputInfo(sNbEvalNoCount, outputLevelNormal);</div>
+<div class="line"><a name="l00607"></a><span class="lineno">  607</span>&#160;    }</div>
+<div class="line"><a name="l00608"></a><span class="lineno">  608</span>&#160;    <span class="keywordflow">if</span> (showModelEval)</div>
+<div class="line"><a name="l00609"></a><span class="lineno">  609</span>&#160;    {</div>
+<div class="line"><a name="l00610"></a><span class="lineno">  610</span>&#160;        AddOutputInfo(sModelEval, outputLevelNormal);</div>
+<div class="line"><a name="l00611"></a><span class="lineno">  611</span>&#160;    }</div>
+<div class="line"><a name="l00612"></a><span class="lineno">  612</span>&#160;    <span class="keywordflow">if</span> (showTotalModelEval)</div>
+<div class="line"><a name="l00613"></a><span class="lineno">  613</span>&#160;    {</div>
+<div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160;        AddOutputInfo(sTotalModelEval, outputLevelNormal);</div>
+<div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160;    }</div>
+<div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160;    <span class="keywordflow">if</span> (showNbCacheHits)</div>
+<div class="line"><a name="l00617"></a><span class="lineno">  617</span>&#160;    {</div>
+<div class="line"><a name="l00618"></a><span class="lineno">  618</span>&#160;        AddOutputInfo(sCacheHits, outputLevelNormal);</div>
 <div class="line"><a name="l00619"></a><span class="lineno">  619</span>&#160;    }</div>
-<div class="line"><a name="l00620"></a><span class="lineno">  620</span>&#160;<span class="preprocessor">#endif // TIME_STATS</span></div>
-<div class="line"><a name="l00621"></a><span class="lineno">  621</span>&#160;}</div>
-<div class="line"><a name="l00622"></a><span class="lineno">  622</span>&#160; </div>
-<div class="line"><a name="l00623"></a><span class="lineno">  623</span>&#160; </div>
-<div class="line"><a name="l00624"></a><span class="lineno">  624</span>&#160;<span class="keywordtype">bool</span> NOMAD::Algorithm::isSubAlgo()<span class="keyword"> const</span></div>
-<div class="line"><a name="l00625"></a><span class="lineno">  625</span>&#160;<span class="keyword"></span>{</div>
-<div class="line"><a name="l00626"></a><span class="lineno">  626</span>&#160;    <span class="keywordtype">bool</span> isSub = <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00627"></a><span class="lineno">  627</span>&#160; </div>
-<div class="line"><a name="l00628"></a><span class="lineno">  628</span>&#160;    <span class="keyword">auto</span> parentAlgo = getParentOfType&lt;NOMAD::Algorithm*&gt;();</div>
-<div class="line"><a name="l00629"></a><span class="lineno">  629</span>&#160;    <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> != parentAlgo)</div>
-<div class="line"><a name="l00630"></a><span class="lineno">  630</span>&#160;    {</div>
-<div class="line"><a name="l00631"></a><span class="lineno">  631</span>&#160;        isSub = <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00632"></a><span class="lineno">  632</span>&#160;    }</div>
+<div class="line"><a name="l00620"></a><span class="lineno">  620</span>&#160;    <span class="keywordflow">if</span> (showNbEval)</div>
+<div class="line"><a name="l00621"></a><span class="lineno">  621</span>&#160;    {</div>
+<div class="line"><a name="l00622"></a><span class="lineno">  622</span>&#160;        AddOutputInfo(sNbEval, outputLevelNormal);</div>
+<div class="line"><a name="l00623"></a><span class="lineno">  623</span>&#160;    }</div>
+<div class="line"><a name="l00624"></a><span class="lineno">  624</span>&#160; </div>
+<div class="line"><a name="l00625"></a><span class="lineno">  625</span>&#160;<span class="preprocessor">#ifdef TIME_STATS</span></div>
+<div class="line"><a name="l00626"></a><span class="lineno">  626</span>&#160;    {</div>
+<div class="line"><a name="l00627"></a><span class="lineno">  627</span>&#160;        AddOutputInfo(sTotalRealTime, outputLevelNormal);</div>
+<div class="line"><a name="l00628"></a><span class="lineno">  628</span>&#160;        AddOutputInfo(sTotalCPUTime, outputLevelNormal);</div>
+<div class="line"><a name="l00629"></a><span class="lineno">  629</span>&#160;    }</div>
+<div class="line"><a name="l00630"></a><span class="lineno">  630</span>&#160;<span class="preprocessor">#endif // TIME_STATS</span></div>
+<div class="line"><a name="l00631"></a><span class="lineno">  631</span>&#160;}</div>
+<div class="line"><a name="l00632"></a><span class="lineno">  632</span>&#160; </div>
 <div class="line"><a name="l00633"></a><span class="lineno">  633</span>&#160; </div>
-<div class="line"><a name="l00634"></a><span class="lineno">  634</span>&#160;    <span class="keywordflow">return</span> isSub;</div>
-<div class="line"><a name="l00635"></a><span class="lineno">  635</span>&#160;}</div>
-<div class="line"><a name="l00636"></a><span class="lineno">  636</span>&#160; </div>
+<div class="line"><a name="l00634"></a><span class="lineno">  634</span>&#160;<span class="keywordtype">bool</span> NOMAD::Algorithm::isSubAlgo()<span class="keyword"> const</span></div>
+<div class="line"><a name="l00635"></a><span class="lineno">  635</span>&#160;<span class="keyword"></span>{</div>
+<div class="line"><a name="l00636"></a><span class="lineno">  636</span>&#160;    <span class="keywordtype">bool</span> isSub = <span class="keyword">false</span>;</div>
 <div class="line"><a name="l00637"></a><span class="lineno">  637</span>&#160; </div>
-<div class="line"><a name="l00638"></a><span class="lineno">  638</span>&#160;<span class="keywordtype">bool</span> NOMAD::Algorithm::terminate(<span class="keyword">const</span> <span class="keywordtype">size_t</span> iteration)</div>
-<div class="line"><a name="l00639"></a><span class="lineno">  639</span>&#160;{</div>
-<div class="line"><a name="l00640"></a><span class="lineno">  640</span>&#160;    <span class="keywordflow">return</span> _termination-&gt;terminate(iteration);</div>
-<div class="line"><a name="l00641"></a><span class="lineno">  641</span>&#160;}</div>
-<div class="line"><a name="l00642"></a><span class="lineno">  642</span>&#160; </div>
+<div class="line"><a name="l00638"></a><span class="lineno">  638</span>&#160;    <span class="keyword">auto</span> parentAlgo = getParentOfType&lt;NOMAD::Algorithm*&gt;();</div>
+<div class="line"><a name="l00639"></a><span class="lineno">  639</span>&#160;    <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> != parentAlgo)</div>
+<div class="line"><a name="l00640"></a><span class="lineno">  640</span>&#160;    {</div>
+<div class="line"><a name="l00641"></a><span class="lineno">  641</span>&#160;        isSub = <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00642"></a><span class="lineno">  642</span>&#160;    }</div>
 <div class="line"><a name="l00643"></a><span class="lineno">  643</span>&#160; </div>
-<div class="line"><a name="l00644"></a><span class="lineno">  644</span>&#160;<span class="keywordtype">void</span> NOMAD::Algorithm::display ( std::ostream&amp; os )<span class="keyword"> const</span></div>
-<div class="line"><a name="l00645"></a><span class="lineno">  645</span>&#160;<span class="keyword"></span>{</div>
+<div class="line"><a name="l00644"></a><span class="lineno">  644</span>&#160;    <span class="keywordflow">return</span> isSub;</div>
+<div class="line"><a name="l00645"></a><span class="lineno">  645</span>&#160;}</div>
 <div class="line"><a name="l00646"></a><span class="lineno">  646</span>&#160; </div>
-<div class="line"><a name="l00647"></a><span class="lineno">  647</span>&#160;    os &lt;&lt; <span class="stringliteral">&quot;MEGA_ITERATION &quot;</span> &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00648"></a><span class="lineno">  648</span>&#160;    os &lt;&lt; *_megaIteration &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00649"></a><span class="lineno">  649</span>&#160;    os &lt;&lt; <span class="stringliteral">&quot;NB_EVAL &quot;</span> &lt;&lt; NOMAD::EvcInterface::getEvaluatorControl()-&gt;getNbEval() &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00650"></a><span class="lineno">  650</span>&#160;    os &lt;&lt; <span class="stringliteral">&quot;NB_BB_EVAL &quot;</span> &lt;&lt; NOMAD::EvcInterface::getEvaluatorControl()-&gt;getBbEval() &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00651"></a><span class="lineno">  651</span>&#160;    <a class="code" href="defines_8hpp.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> x, y, z;</div>
-<div class="line"><a name="l00652"></a><span class="lineno">  652</span>&#160;    NOMAD::RNG::getPrivateSeed(x, y, z);</div>
-<div class="line"><a name="l00653"></a><span class="lineno">  653</span>&#160;    os &lt;&lt; <span class="stringliteral">&quot;RNG &quot;</span> &lt;&lt; x &lt;&lt; <span class="stringliteral">&quot; &quot;</span> &lt;&lt; y &lt;&lt; <span class="stringliteral">&quot; &quot;</span> &lt;&lt; z &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00654"></a><span class="lineno">  654</span>&#160; </div>
-<div class="line"><a name="l00655"></a><span class="lineno">  655</span>&#160;}</div>
+<div class="line"><a name="l00647"></a><span class="lineno">  647</span>&#160; </div>
+<div class="line"><a name="l00648"></a><span class="lineno">  648</span>&#160;<span class="keywordtype">bool</span> NOMAD::Algorithm::terminate(<span class="keyword">const</span> <span class="keywordtype">size_t</span> iteration)</div>
+<div class="line"><a name="l00649"></a><span class="lineno">  649</span>&#160;{</div>
+<div class="line"><a name="l00650"></a><span class="lineno">  650</span>&#160;    <span class="keywordflow">return</span> _termination-&gt;terminate(iteration);</div>
+<div class="line"><a name="l00651"></a><span class="lineno">  651</span>&#160;}</div>
+<div class="line"><a name="l00652"></a><span class="lineno">  652</span>&#160; </div>
+<div class="line"><a name="l00653"></a><span class="lineno">  653</span>&#160; </div>
+<div class="line"><a name="l00654"></a><span class="lineno">  654</span>&#160;<span class="keywordtype">void</span> NOMAD::Algorithm::display ( std::ostream&amp; os )<span class="keyword"> const</span></div>
+<div class="line"><a name="l00655"></a><span class="lineno">  655</span>&#160;<span class="keyword"></span>{</div>
 <div class="line"><a name="l00656"></a><span class="lineno">  656</span>&#160; </div>
-<div class="line"><a name="l00657"></a><span class="lineno">  657</span>&#160; </div>
-<div class="line"><a name="l00658"></a><span class="lineno">  658</span>&#160;std::ostream&amp; <a class="code" href="_algorithm_8hpp.html#a3125845fe2fd43073fe4781c4b31147e">NOMAD::operator&lt;&lt;</a>(std::ostream&amp; os, <span class="keyword">const</span> NOMAD::Algorithm &amp; mads)</div>
-<div class="line"><a name="l00659"></a><span class="lineno">  659</span>&#160;{</div>
-<div class="line"><a name="l00660"></a><span class="lineno">  660</span>&#160;    mads.display(os);</div>
-<div class="line"><a name="l00661"></a><span class="lineno">  661</span>&#160;    <span class="keywordflow">return</span> os;</div>
-<div class="line"><a name="l00662"></a><span class="lineno">  662</span>&#160;}</div>
-<div class="line"><a name="l00663"></a><span class="lineno">  663</span>&#160; </div>
+<div class="line"><a name="l00657"></a><span class="lineno">  657</span>&#160;    os &lt;&lt; <span class="stringliteral">&quot;MEGA_ITERATION &quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00658"></a><span class="lineno">  658</span>&#160;    os &lt;&lt; *_megaIteration &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00659"></a><span class="lineno">  659</span>&#160;    os &lt;&lt; <span class="stringliteral">&quot;NB_EVAL &quot;</span> &lt;&lt; NOMAD::EvcInterface::getEvaluatorControl()-&gt;getNbEval() &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00660"></a><span class="lineno">  660</span>&#160;    os &lt;&lt; <span class="stringliteral">&quot;NB_BB_EVAL &quot;</span> &lt;&lt; NOMAD::EvcInterface::getEvaluatorControl()-&gt;getBbEval() &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00661"></a><span class="lineno">  661</span>&#160;    <a class="code" href="defines_8hpp.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> x, y, z;</div>
+<div class="line"><a name="l00662"></a><span class="lineno">  662</span>&#160;    NOMAD::RNG::getPrivateSeed(x, y, z);</div>
+<div class="line"><a name="l00663"></a><span class="lineno">  663</span>&#160;    os &lt;&lt; <span class="stringliteral">&quot;RNG &quot;</span> &lt;&lt; x &lt;&lt; <span class="stringliteral">&quot; &quot;</span> &lt;&lt; y &lt;&lt; <span class="stringliteral">&quot; &quot;</span> &lt;&lt; z &lt;&lt; std::endl;</div>
 <div class="line"><a name="l00664"></a><span class="lineno">  664</span>&#160; </div>
-<div class="line"><a name="l00665"></a><span class="lineno">  665</span>&#160;<span class="keywordtype">void</span> <a class="code" href="fileutils_8hpp.html#a9e8c661ce80594dfa6d796a1d285b1a3">NOMAD::Algorithm::read</a>(std::istream&amp; is)</div>
-<div class="line"><a name="l00666"></a><span class="lineno">  666</span>&#160;{</div>
-<div class="line"><a name="l00667"></a><span class="lineno">  667</span>&#160;    <span class="comment">// Read line by line</span></div>
-<div class="line"><a name="l00668"></a><span class="lineno">  668</span>&#160;    std::string name;</div>
-<div class="line"><a name="l00669"></a><span class="lineno">  669</span>&#160; </div>
-<div class="line"><a name="l00670"></a><span class="lineno">  670</span>&#160;    <span class="keywordtype">int</span> nbEval = 0, nbBbEval = 0;</div>
-<div class="line"><a name="l00671"></a><span class="lineno">  671</span>&#160;    <a class="code" href="defines_8hpp.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> x, y, z;</div>
-<div class="line"><a name="l00672"></a><span class="lineno">  672</span>&#160; </div>
-<div class="line"><a name="l00673"></a><span class="lineno">  673</span>&#160;    <span class="keywordflow">while</span> (is &gt;&gt; name &amp;&amp; is.good() &amp;&amp; !is.eof())</div>
-<div class="line"><a name="l00674"></a><span class="lineno">  674</span>&#160;    {</div>
-<div class="line"><a name="l00675"></a><span class="lineno">  675</span>&#160;        <span class="keywordflow">if</span> (<span class="stringliteral">&quot;MEGA_ITERATION&quot;</span> == name)</div>
-<div class="line"><a name="l00676"></a><span class="lineno">  676</span>&#160;        {</div>
-<div class="line"><a name="l00677"></a><span class="lineno">  677</span>&#160;            is &gt;&gt; *_megaIteration;</div>
-<div class="line"><a name="l00678"></a><span class="lineno">  678</span>&#160;        }</div>
-<div class="line"><a name="l00679"></a><span class="lineno">  679</span>&#160;        <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<span class="stringliteral">&quot;NB_EVAL&quot;</span> == name)</div>
-<div class="line"><a name="l00680"></a><span class="lineno">  680</span>&#160;        {</div>
-<div class="line"><a name="l00681"></a><span class="lineno">  681</span>&#160;            is &gt;&gt; nbEval;</div>
-<div class="line"><a name="l00682"></a><span class="lineno">  682</span>&#160;        }</div>
-<div class="line"><a name="l00683"></a><span class="lineno">  683</span>&#160;        <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<span class="stringliteral">&quot;NB_BB_EVAL&quot;</span> == name)</div>
-<div class="line"><a name="l00684"></a><span class="lineno">  684</span>&#160;        {</div>
-<div class="line"><a name="l00685"></a><span class="lineno">  685</span>&#160;            is &gt;&gt; nbBbEval;</div>
-<div class="line"><a name="l00686"></a><span class="lineno">  686</span>&#160;        }</div>
-<div class="line"><a name="l00687"></a><span class="lineno">  687</span>&#160;        <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<span class="stringliteral">&quot;RNG&quot;</span> == name)</div>
-<div class="line"><a name="l00688"></a><span class="lineno">  688</span>&#160;        {</div>
-<div class="line"><a name="l00689"></a><span class="lineno">  689</span>&#160;            is &gt;&gt; x &gt;&gt; y &gt;&gt; z;</div>
-<div class="line"><a name="l00690"></a><span class="lineno">  690</span>&#160;            NOMAD::RNG::setPrivateSeed(x, y, z);</div>
-<div class="line"><a name="l00691"></a><span class="lineno">  691</span>&#160;        }</div>
-<div class="line"><a name="l00692"></a><span class="lineno">  692</span>&#160;        <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00693"></a><span class="lineno">  693</span>&#160;        {</div>
-<div class="line"><a name="l00694"></a><span class="lineno">  694</span>&#160;            <span class="comment">// Put back name to istream. Maybe there is a simpler way.</span></div>
-<div class="line"><a name="l00695"></a><span class="lineno">  695</span>&#160;            <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> i = 0; i &lt; name.size(); i++)</div>
-<div class="line"><a name="l00696"></a><span class="lineno">  696</span>&#160;            {</div>
-<div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;                is.unget();</div>
-<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;            }</div>
-<div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;            <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;        }</div>
-<div class="line"><a name="l00701"></a><span class="lineno">  701</span>&#160;    }</div>
-<div class="line"><a name="l00702"></a><span class="lineno">  702</span>&#160; </div>
-<div class="line"><a name="l00703"></a><span class="lineno">  703</span>&#160;    NOMAD::EvcInterface::getEvaluatorControl()-&gt;setBbEval(nbBbEval);</div>
-<div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160;    NOMAD::EvcInterface::getEvaluatorControl()-&gt;setNbEval(nbEval);</div>
-<div class="line"><a name="l00705"></a><span class="lineno">  705</span>&#160; </div>
-<div class="line"><a name="l00706"></a><span class="lineno">  706</span>&#160;}</div>
-<div class="line"><a name="l00707"></a><span class="lineno">  707</span>&#160; </div>
-<div class="line"><a name="l00708"></a><span class="lineno">  708</span>&#160; </div>
-<div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160;std::istream&amp; <a class="code" href="_algorithm_8hpp.html#a4ba58ceaeafcf3f240f01b32c38eccd9">NOMAD::operator&gt;&gt;</a>(std::istream&amp; is, NOMAD::Algorithm&amp; algo)</div>
-<div class="line"><a name="l00710"></a><span class="lineno">  710</span>&#160;{</div>
-<div class="line"><a name="l00711"></a><span class="lineno">  711</span>&#160;    algo.read(is);</div>
-<div class="line"><a name="l00712"></a><span class="lineno">  712</span>&#160;    <span class="keywordflow">return</span> is;</div>
-<div class="line"><a name="l00713"></a><span class="lineno">  713</span>&#160; </div>
-<div class="line"><a name="l00714"></a><span class="lineno">  714</span>&#160;}</div>
+<div class="line"><a name="l00665"></a><span class="lineno">  665</span>&#160;}</div>
+<div class="line"><a name="l00666"></a><span class="lineno">  666</span>&#160; </div>
+<div class="line"><a name="l00667"></a><span class="lineno">  667</span>&#160; </div>
+<div class="line"><a name="l00668"></a><span class="lineno">  668</span>&#160;std::ostream&amp; <a class="code" href="_algorithm_8hpp.html#a3125845fe2fd43073fe4781c4b31147e">NOMAD::operator&lt;&lt;</a>(std::ostream&amp; os, <span class="keyword">const</span> NOMAD::Algorithm &amp; mads)</div>
+<div class="line"><a name="l00669"></a><span class="lineno">  669</span>&#160;{</div>
+<div class="line"><a name="l00670"></a><span class="lineno">  670</span>&#160;    mads.display(os);</div>
+<div class="line"><a name="l00671"></a><span class="lineno">  671</span>&#160;    <span class="keywordflow">return</span> os;</div>
+<div class="line"><a name="l00672"></a><span class="lineno">  672</span>&#160;}</div>
+<div class="line"><a name="l00673"></a><span class="lineno">  673</span>&#160; </div>
+<div class="line"><a name="l00674"></a><span class="lineno">  674</span>&#160; </div>
+<div class="line"><a name="l00675"></a><span class="lineno">  675</span>&#160;<span class="keywordtype">void</span> <a class="code" href="fileutils_8hpp.html#a9e8c661ce80594dfa6d796a1d285b1a3">NOMAD::Algorithm::read</a>(std::istream&amp; is)</div>
+<div class="line"><a name="l00676"></a><span class="lineno">  676</span>&#160;{</div>
+<div class="line"><a name="l00677"></a><span class="lineno">  677</span>&#160;    <span class="comment">// Read line by line</span></div>
+<div class="line"><a name="l00678"></a><span class="lineno">  678</span>&#160;    std::string name;</div>
+<div class="line"><a name="l00679"></a><span class="lineno">  679</span>&#160; </div>
+<div class="line"><a name="l00680"></a><span class="lineno">  680</span>&#160;    <span class="keywordtype">int</span> nbEval = 0, nbBbEval = 0;</div>
+<div class="line"><a name="l00681"></a><span class="lineno">  681</span>&#160;    <a class="code" href="defines_8hpp.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> x, y, z;</div>
+<div class="line"><a name="l00682"></a><span class="lineno">  682</span>&#160; </div>
+<div class="line"><a name="l00683"></a><span class="lineno">  683</span>&#160;    <span class="keywordflow">while</span> (is &gt;&gt; name &amp;&amp; is.good() &amp;&amp; !is.eof())</div>
+<div class="line"><a name="l00684"></a><span class="lineno">  684</span>&#160;    {</div>
+<div class="line"><a name="l00685"></a><span class="lineno">  685</span>&#160;        <span class="keywordflow">if</span> (<span class="stringliteral">&quot;MEGA_ITERATION&quot;</span> == name)</div>
+<div class="line"><a name="l00686"></a><span class="lineno">  686</span>&#160;        {</div>
+<div class="line"><a name="l00687"></a><span class="lineno">  687</span>&#160;            is &gt;&gt; *_megaIteration;</div>
+<div class="line"><a name="l00688"></a><span class="lineno">  688</span>&#160;        }</div>
+<div class="line"><a name="l00689"></a><span class="lineno">  689</span>&#160;        <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<span class="stringliteral">&quot;NB_EVAL&quot;</span> == name)</div>
+<div class="line"><a name="l00690"></a><span class="lineno">  690</span>&#160;        {</div>
+<div class="line"><a name="l00691"></a><span class="lineno">  691</span>&#160;            is &gt;&gt; nbEval;</div>
+<div class="line"><a name="l00692"></a><span class="lineno">  692</span>&#160;        }</div>
+<div class="line"><a name="l00693"></a><span class="lineno">  693</span>&#160;        <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<span class="stringliteral">&quot;NB_BB_EVAL&quot;</span> == name)</div>
+<div class="line"><a name="l00694"></a><span class="lineno">  694</span>&#160;        {</div>
+<div class="line"><a name="l00695"></a><span class="lineno">  695</span>&#160;            is &gt;&gt; nbBbEval;</div>
+<div class="line"><a name="l00696"></a><span class="lineno">  696</span>&#160;        }</div>
+<div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;        <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<span class="stringliteral">&quot;RNG&quot;</span> == name)</div>
+<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;        {</div>
+<div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;            is &gt;&gt; x &gt;&gt; y &gt;&gt; z;</div>
+<div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;            NOMAD::RNG::setPrivateSeed(x, y, z);</div>
+<div class="line"><a name="l00701"></a><span class="lineno">  701</span>&#160;        }</div>
+<div class="line"><a name="l00702"></a><span class="lineno">  702</span>&#160;        <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00703"></a><span class="lineno">  703</span>&#160;        {</div>
+<div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160;            <span class="comment">// Put back name to istream. Maybe there is a simpler way.</span></div>
+<div class="line"><a name="l00705"></a><span class="lineno">  705</span>&#160;            <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> i = 0; i &lt; name.size(); i++)</div>
+<div class="line"><a name="l00706"></a><span class="lineno">  706</span>&#160;            {</div>
+<div class="line"><a name="l00707"></a><span class="lineno">  707</span>&#160;                is.unget();</div>
+<div class="line"><a name="l00708"></a><span class="lineno">  708</span>&#160;            }</div>
+<div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160;            <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00710"></a><span class="lineno">  710</span>&#160;        }</div>
+<div class="line"><a name="l00711"></a><span class="lineno">  711</span>&#160;    }</div>
+<div class="line"><a name="l00712"></a><span class="lineno">  712</span>&#160; </div>
+<div class="line"><a name="l00713"></a><span class="lineno">  713</span>&#160;    NOMAD::EvcInterface::getEvaluatorControl()-&gt;setBbEval(nbBbEval);</div>
+<div class="line"><a name="l00714"></a><span class="lineno">  714</span>&#160;    NOMAD::EvcInterface::getEvaluatorControl()-&gt;setNbEval(nbEval);</div>
+<div class="line"><a name="l00715"></a><span class="lineno">  715</span>&#160; </div>
+<div class="line"><a name="l00716"></a><span class="lineno">  716</span>&#160;}</div>
+<div class="line"><a name="l00717"></a><span class="lineno">  717</span>&#160; </div>
+<div class="line"><a name="l00718"></a><span class="lineno">  718</span>&#160; </div>
+<div class="line"><a name="l00719"></a><span class="lineno">  719</span>&#160;std::istream&amp; <a class="code" href="_algorithm_8hpp.html#a4ba58ceaeafcf3f240f01b32c38eccd9">NOMAD::operator&gt;&gt;</a>(std::istream&amp; is, NOMAD::Algorithm&amp; algo)</div>
+<div class="line"><a name="l00720"></a><span class="lineno">  720</span>&#160;{</div>
+<div class="line"><a name="l00721"></a><span class="lineno">  721</span>&#160;    algo.read(is);</div>
+<div class="line"><a name="l00722"></a><span class="lineno">  722</span>&#160;    <span class="keywordflow">return</span> is;</div>
+<div class="line"><a name="l00723"></a><span class="lineno">  723</span>&#160; </div>
+<div class="line"><a name="l00724"></a><span class="lineno">  724</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="a_array_of_point_8hpp_html_ace9bde2bdb00351527956c67f758fef6"><div class="ttname"><a href="_array_of_point_8hpp.html#ace9bde2bdb00351527956c67f758fef6">ArrayOfPoint</a></div><div class="ttdeci">std::vector&lt; Point &gt; ArrayOfPoint</div><div class="ttdoc">Type definition for the representation of a vector of points.</div><div class="ttdef"><b>Definition:</b> <a href="_array_of_point_8hpp_source.html#l00063">ArrayOfPoint.hpp:63</a></div></div>
@@ -817,7 +827,7 @@ $(document).ready(function(){initNavTree('_algorithm_8cpp_source.html',''); init
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_411efccbd5e576f82c71dd79c3c5caa4.html">Algos</a></li><li class="navelem"><a class="el" href="_algorithm_8cpp.html">Algorithm.cpp</a></li>
-    <li class="footer">Generated on Tue Mar 30 2021 16:31:30 for NOMAD Source by
+    <li class="footer">Generated on Fri Apr 9 2021 13:32:04 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

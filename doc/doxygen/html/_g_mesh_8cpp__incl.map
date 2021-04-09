@@ -14,7 +14,7 @@
 <area shape="rect" id="node6" href="$_mesh_base_8hpp.html" title="Base class for mesh." alt="" coords="1850,401,2019,427"/>
 <area shape="rect" id="node20" href="$_pb_parameters_8hpp.html" title=" " alt="" coords="3431,483,3628,509"/>
 <area shape="rect" id="node34" href="$_barrier_8hpp.html" title=" " alt="" coords="1342,557,1479,584"/>
-<area shape="rect" id="node36" href="$_eval_type_8hpp.html" title="Types for Evaluation: Blackbox, Surrogate." alt="" coords="2089,1005,2244,1032"/>
+<area shape="rect" id="node36" href="$_eval_type_8hpp.html" title="Types for Evaluation: Blackbox, Model." alt="" coords="2089,1005,2244,1032"/>
 <area shape="rect" id="node37" href="$_output_info_8hpp.html" title=" " alt="" coords="3500,557,3679,584"/>
 <area shape="rect" id="node39" href="$_run_parameters_8hpp.html" title=" " alt="" coords="3410,319,3617,345"/>
 <area shape="rect" id="node41" href="$_callback_type_8hpp.html" title="Types for Callback." alt="" coords="1553,1005,1735,1032"/>

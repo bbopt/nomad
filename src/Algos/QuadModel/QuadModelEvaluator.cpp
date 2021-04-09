@@ -125,7 +125,7 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
         // work around by constructing a suitable string.
         // Note: Why set some default values on bbo?
         NOMAD::ArrayOfString defbbo(bbot.size(), "-1");
-        (*it)->setBBO(defbbo.display(), bbot, NOMAD::EvalType::SGTE);
+        (*it)->setBBO(defbbo.display(), bbot, NOMAD::EvalType::MODEL);
 
     }
 
@@ -181,14 +181,14 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
             newbbo[i] = M_predict.get(j,static_cast<int>(i));
         }
         NOMAD::ArrayOfDouble fullPrecision(bbot.size(), NOMAD::DISPLAY_PRECISION_FULL);
-        (*it)->setBBO(newbbo.display(fullPrecision), bbot, NOMAD::EvalType::SGTE);
+        (*it)->setBBO(newbbo.display(fullPrecision), bbot, NOMAD::EvalType::MODEL);
 
         // ================== //
         // Exit Status        //
         // ================== //
         countEval.push_back( true );
         evalOk.push_back(true);
-        (*it)->setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, NOMAD::EvalType::SGTE);
+        (*it)->setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, NOMAD::EvalType::MODEL);
 
     }
 

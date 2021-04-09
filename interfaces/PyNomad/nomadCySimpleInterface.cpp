@@ -134,11 +134,8 @@ static void printPyNomadUsage()
     std::cout << "     # Compute objective f"                                           << std::endl;
     std::cout << "     f = sum([x.get_coord(i)**2 for i in range(dim)])"                << std::endl;
     std::cout << "     # Set output on x"                                               << std::endl;
-    std::cout << "     # Converting to bytes is necessary for both arguments"           << std::endl;
-    std::cout << "     # First argument: blackbox output"                               << std::endl;
-    // VRM This second argument should be simplified... but that's the way it is currently.
-    std::cout << "     # Second argument: parameter BB_OUTPUT_TYPE"                     << std::endl;
-    std::cout << "     x.setBBO(str(f).encode(\"UTF-8\"), B\"OBJ\")"                    << std::endl;
+    std::cout << "     # Converting to bytes is necessary"                              << std::endl;
+    std::cout << "     x.setBBO(str(f).encode(\"UTF-8\"))"                              << std::endl;
     std::cout << "     # return 1 if evaluation is successful, 0 if it failed"          << std::endl;
     std::cout << "     return 1"                                                        << std::endl;
     std::cout                                                                           << std::endl;
@@ -157,7 +154,7 @@ static void printPyNomadUsage()
     std::cout << "         x = block.get_x(k)"                                          << std::endl;
     std::cout << "         dim = x.size()"                                              << std::endl;
     std::cout << "         f = sum([x.get_coord(i)**2 for i in range(dim)])"            << std::endl;
-    std::cout << "         x.setBBO(str(f).encode(\"UTF-8\"), B\"OBJ\")"                << std::endl;
+    std::cout << "         x.setBBO(str(f).encode(\"UTF-8\"))"                          << std::endl;
     std::cout << "         evalOk[k] = True"                                            << std::endl;
     std::cout << "     # return a list where 1 is success, 0 is a failed evaluation"    << std::endl;
     std::cout << "     return evalOk"                                                   << std::endl;
@@ -368,8 +365,6 @@ static void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams,
             allParams->setAttributeValue("DIMENSION", dimension);
         }
 
-        // VRM: Do we have to reset evaluation number?
-
         // The seed will always be to its default value
         NOMAD::RNG::resetPrivateSeedToDefault();
 
@@ -441,8 +436,8 @@ static int runNomad(Callback cb,
 
         // Set the best feasible and best infeasible solutions
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, nullptr);
-        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, nullptr);
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
+        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
 
         if (nbInf > 0)
         {

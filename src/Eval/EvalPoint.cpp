@@ -60,7 +60,7 @@ int NOMAD::EvalPoint::_currentTag = -1;
 NOMAD::EvalPoint::EvalPoint ()
   : NOMAD::Point(),
     _eval(nullptr),
-    _evalSgte(nullptr),
+    _evalModel(nullptr),
     _tag(-1),
     _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
@@ -78,7 +78,7 @@ NOMAD::EvalPoint::EvalPoint ()
 NOMAD::EvalPoint::EvalPoint(size_t n)
   : NOMAD::Point(n),
     _eval(nullptr),
-    _evalSgte(nullptr),
+    _evalModel(nullptr),
     _tag(-1),
     _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
@@ -96,7 +96,7 @@ NOMAD::EvalPoint::EvalPoint(size_t n)
 NOMAD::EvalPoint::EvalPoint(const NOMAD::Point &x)
   : NOMAD::Point(x),
     _eval(nullptr),
-    _evalSgte(nullptr),
+    _evalModel(nullptr),
     _tag(-1),
     _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
@@ -130,16 +130,16 @@ void NOMAD::EvalPoint::copyMembers(const NOMAD::EvalPoint &evalPoint)
     _numberEval = evalPoint._numberEval;
 
     _eval = nullptr;
-    _evalSgte = nullptr;
+    _evalModel = nullptr;
     if (nullptr != evalPoint._eval)
     {
         // deep copy.
         _eval = NOMAD::EvalUPtr(new NOMAD::Eval(*evalPoint.getEval(NOMAD::EvalType::BB)));
     }
-    if (nullptr != evalPoint._evalSgte)
+    if (nullptr != evalPoint._evalModel)
     {
         // deep copy.
-        _evalSgte = NOMAD::EvalUPtr(new NOMAD::Eval(*evalPoint.getEval(NOMAD::EvalType::SGTE)));
+        _evalModel = NOMAD::EvalUPtr(new NOMAD::Eval(*evalPoint.getEval(NOMAD::EvalType::MODEL)));
     }
 
     // shallow copy
@@ -184,14 +184,14 @@ NOMAD::EvalPoint & NOMAD::EvalPoint::operator=(const NOMAD::EvalPoint &evalPoint
         _eval = NOMAD::EvalUPtr(new NOMAD::Eval(*evalPoint._eval));
     }
 
-    if (nullptr == evalPoint._evalSgte)
+    if (nullptr == evalPoint._evalModel)
     {
-        _evalSgte = nullptr;
+        _evalModel = nullptr;
     }
     else
     {
         // deep copy.
-        _evalSgte = NOMAD::EvalUPtr(new NOMAD::Eval(*evalPoint._evalSgte));
+        _evalModel = NOMAD::EvalUPtr(new NOMAD::Eval(*evalPoint._evalModel));
     }
 
     return *this;
@@ -211,7 +211,7 @@ NOMAD::EvalPoint::~EvalPoint ()
 /*-----------------------------------------------------------*/
 /*                           operator ==                     */
 /*-----------------------------------------------------------*/
-// Note: Considering both eval (bb) and evalSgte.
+// Note: Considering both eval (bb) and evalModel.
 bool NOMAD::EvalPoint::operator== (const NOMAD::EvalPoint &evalPoint) const
 {
     // First compare Points.
@@ -245,9 +245,9 @@ bool NOMAD::EvalPoint::operator== (const NOMAD::EvalPoint &evalPoint) const
     }
     if (equal)
     {
-        // Compare Evals (sgte).
-        auto eval = getEval(NOMAD::EvalType::SGTE);
-        auto eval2 = evalPoint.getEval(NOMAD::EvalType::SGTE);
+        // Compare Evals (model).
+        auto eval = getEval(NOMAD::EvalType::MODEL);
+        auto eval2 = evalPoint.getEval(NOMAD::EvalType::MODEL);
         if (nullptr == eval && nullptr == eval2)
         {
             // Both Evals are NULL.
@@ -309,8 +309,8 @@ NOMAD::Eval* NOMAD::EvalPoint::getEval(const NOMAD::EvalType& evalType) const
 
     switch (evalType)
     {
-        case NOMAD::EvalType::SGTE:
-            eval = _evalSgte.get();
+        case NOMAD::EvalType::MODEL:
+            eval = _evalModel.get();
             break;
         case NOMAD::EvalType::BB:
             eval = _eval.get();
@@ -332,8 +332,8 @@ void NOMAD::EvalPoint::setEval(const NOMAD::Eval& eval,
 
     switch (evalType)
     {
-        case NOMAD::EvalType::SGTE:
-            _evalSgte = NOMAD::EvalUPtr(new NOMAD::Eval(eval));
+        case NOMAD::EvalType::MODEL:
+            _evalModel = NOMAD::EvalUPtr(new NOMAD::Eval(eval));
             break;
         case NOMAD::EvalType::BB:
         default:
@@ -400,8 +400,8 @@ void NOMAD::EvalPoint::setBBO(const std::string &bbo,
         switch (evalType)
         {
             // Create new Eval
-            case NOMAD::EvalType::SGTE:
-                _evalSgte = NOMAD::EvalUPtr(new NOMAD::Eval());
+            case NOMAD::EvalType::MODEL:
+                _evalModel = NOMAD::EvalUPtr(new NOMAD::Eval());
                 break;
             case NOMAD::EvalType::BB:
             default:
@@ -467,8 +467,8 @@ void NOMAD::EvalPoint::setEvalStatus(const NOMAD::EvalStatusType &evalStatus,
     {
         switch (evalType)
         {
-            case NOMAD::EvalType::SGTE:
-                _evalSgte = NOMAD::EvalUPtr(new NOMAD::Eval());
+            case NOMAD::EvalType::MODEL:
+                _evalModel = NOMAD::EvalUPtr(new NOMAD::Eval());
                 break;
             case NOMAD::EvalType::BB:
             default:
@@ -607,9 +607,9 @@ bool NOMAD::EvalPoint::toEval(short maxPointEval, const NOMAD::EvalType& evalTyp
         // Too many evaluations, return false.
         reEval = false;
     }
-    else if (NOMAD::EvalType::SGTE == evalType)
+    else if (NOMAD::EvalType::MODEL == evalType)
     {
-        // If using sgte, never allow re-evaluation.
+        // If using model, never allow re-evaluation.
         reEval = false;
     }
     else if (_numberEval >= 1 && NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
@@ -669,21 +669,21 @@ std::string NOMAD::EvalPoint::displayAll(const NOMAD::ComputeType& computeType) 
         s += _eval->display(computeType);
         s += ")";
     }
-    if (nullptr != _evalSgte)
+    if (nullptr != _evalModel)
     {
         s += "\t";
-        s += "(SGTE - ";
-        s += _evalSgte->display(computeType);
+        s += "(MODEL - ";
+        s += _evalModel->display(computeType);
         s += ")";
     }
     return s;
 }
 
 
-// Determine if an evalpoint has a sgte eval.
-bool NOMAD::EvalPoint::hasSgteEval(const NOMAD::EvalPoint& evalPoint)
+// Determine if an evalpoint has a model eval.
+bool NOMAD::EvalPoint::hasModelEval(const NOMAD::EvalPoint& evalPoint)
 {
-    return (nullptr != evalPoint.getEval(NOMAD::EvalType::SGTE));
+    return (nullptr != evalPoint.getEval(NOMAD::EvalType::MODEL));
 }
 
 
@@ -717,7 +717,7 @@ std::ostream& NOMAD::operator<<(std::ostream& os, const NOMAD::EvalPoint &evalPo
     // Since this operator is used to write cache, we need full precision on point.
     os << p.display(NOMAD::ArrayOfDouble(evalPoint.size(), NOMAD::DISPLAY_PRECISION_FULL));
 
-    // Never use sgte in input/output stream operators
+    // Never use model eval in input/output stream operators
     const NOMAD::Eval* eval = evalPoint.getEval(NOMAD::EvalType::BB);
     if (nullptr != eval)
     {
@@ -758,7 +758,7 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalPoint &evalPoint)
         is >> evalStatus;
         if (NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED != evalStatus)
         {
-            // Never use sgte in input/output stream operators
+            // Never use model eval in input/output stream operators
             evalPoint.setEvalStatus(evalStatus, NOMAD::EvalType::BB);
 
             // Read BBOutput

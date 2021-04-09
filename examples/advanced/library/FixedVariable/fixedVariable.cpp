@@ -79,14 +79,14 @@ void initParams1(NOMAD::AllParameters &p)
     p.getDispParams()->setAttributeValue("DISPLAY_ALL_EVAL", false);
     p.getDispParams()->setAttributeValue("DISPLAY_INFEASIBLE", true);
     p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL", false);
-    p.getDispParams()->setAttributeValue("MAX_DISPLAY_STEP_LEVEL", 20);
+    p.getDispParams()->setAttributeValue("DISPLAY_MAX_STEP_LEVEL", 20);
     p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("BBE THREAD_NUM ( SOL ) OBJ"));
 
     p.getEvaluatorControlGlobalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
     p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("PB OBJ"));
 
     p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES", false);
-    p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL", true);
+    p.getEvaluatorControlParams()->setAttributeValue("EVAL_OPPORTUNISTIC", true);
     p.getRunParams()->setAttributeValue("H_MAX_0", NOMAD::Double(200000));
 
     // This does not work, to fix.

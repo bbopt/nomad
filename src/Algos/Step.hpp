@@ -361,7 +361,7 @@ protected:
      */
     void verifyParentNotNull();
 
-    /// Helper for validating steps depending on parameter GENERATE_ALL_POINTS_BEFORE_EVAL
+    /// Helper for validating steps depending on parameter MEGA_SEARCH_POLL
     void verifyGenerateAllPointsBeforeEval(const std::string& method, const bool expected) const;
 
     /// Helpers for hot restart, to be called at the start and end of any override.

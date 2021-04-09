@@ -48,7 +48,7 @@
 
 // Manager for SgtelibModel iterations.
 // Steps:
-// - Generate points, using sgte model
+// - Generate points, using sgtelib model
 // - Evaluate points
 // - Post-processing
 

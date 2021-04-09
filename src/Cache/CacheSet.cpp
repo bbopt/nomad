@@ -268,7 +268,7 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
         // If doEval is set to true, the point could be evaluated twice.
         // If doEval is set to false, there might be cases where it is not evaluated at all.
 
-        // Only warn outside of sgte context.
+        // Only warn when in blackbox context.
         if (NOMAD::EvalType::BB == evalType)
         {
             OUTPUT_INFO_START
@@ -279,12 +279,12 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
 
             // Avoid re-evaluating BB.
             //doEval = false;
-            // VRM This will have to be re-assessed.
+            // TODO This will have to be re-assessed.
             doEval = canEval;
         }
         else
         {
-            // It is ok to re-evaluate SGTE points.
+            // It is ok to re-evaluate MODEL points.
             doEval = true;
         }
     }
@@ -615,10 +615,10 @@ bool NOMAD::CacheSet::clear()
 }
 
 
-// Clear all sgte evaluations from the cache
-void NOMAD::CacheSet::clearSgte(const int mainThreadNum)
+// Clear all quad and sgtelib model evaluations from the cache
+void NOMAD::CacheSet::clearModelEval(const int mainThreadNum)
 {
-    processOnAllPoints(NOMAD::EvalPoint::clearEvalSgte, mainThreadNum);
+    processOnAllPoints(NOMAD::EvalPoint::clearModelEval, mainThreadNum);
 }
 
 
@@ -776,7 +776,7 @@ void NOMAD::CacheSet::processOnAllPoints(void (*func)(NOMAD::EvalPoint&), const 
 }
 
 
-void NOMAD::CacheSet::deleteSgteOnly(const int mainThreadNum)
+void NOMAD::CacheSet::deleteModelEvalOnly(const int mainThreadNum)
 {
 #ifdef _OPENMP
     omp_set_lock(&_cacheLock);
@@ -879,6 +879,7 @@ std::ostream& NOMAD::operator<<(std::ostream& os, const NOMAD::CacheSet& cache)
 std::istream& NOMAD::operator>>(std::istream& is, NOMAD::CacheSet& cache)
 {
     std::string s;
+    NOMAD::BBOutputTypeList bbOutputTypes;
 
     is >> s;
     if ("CACHE_HITS" == s)
@@ -899,8 +900,6 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::CacheSet& cache)
     is >> s;
     if ("BB_OUTPUT_TYPE" == s)
     {
-        NOMAD::BBOutputTypeList bbOutputTypes;
-
         while (is >> s && is.good() && !is.eof())
         {
             if (NOMAD::ArrayOfDouble::pStart == s)
@@ -921,6 +920,7 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::CacheSet& cache)
     NOMAD::EvalPoint evalPoint;
     while (is >> evalPoint && is.good() && !is.eof())
     {
+        evalPoint.setBBOutputType(bbOutputTypes);
         cache.insert(evalPoint);
     }
 

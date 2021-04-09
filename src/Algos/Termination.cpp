@@ -47,7 +47,6 @@
 #include "../Algos/Algorithm.hpp"
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Termination.hpp"
-#include "../Cache/CacheBase.hpp"
 #include "../Util/Clock.hpp"
 
 void NOMAD::Termination::init()
@@ -144,9 +143,9 @@ void NOMAD::Termination::endImp()
         {
             terminationInfo += " " + NOMAD::itos(evc->getBlockEval());
         }
-        else if (evc->testIf(NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED))
+        else if (evc->testIf(NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED))
         {
-            terminationInfo += " " + NOMAD::itos(evc->getTotalSgteEval());
+            terminationInfo += " " + NOMAD::itos(evc->getTotalModelEval());
         }
         else if (evc->testIf(NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED))
         {

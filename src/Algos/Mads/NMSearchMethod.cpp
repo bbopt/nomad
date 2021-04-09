@@ -53,7 +53,7 @@
 
 void NOMAD::NMSearchMethod::init()
 {
-    if ( _runParams->getAttributeValue<bool>("GENERATE_ALL_POINTS_BEFORE_EVAL") )
+    if ( _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL") )
     {
         _name = "Search (Nelder Mead single pass)";
     }

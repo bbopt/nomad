@@ -60,7 +60,7 @@
 #include "../nomad_nsbegin.hpp"
 /// Definition for compute success type function.
 /**
- A function of this type compares two EvalPoints, and returns the SuccessType resulting from the comparison. The function is a member of ComputeSuccessType class and set using ComputeSuccessType::setComputeSuccessTypeFunction. \n For example, computing success type is changed when optimizing a surrogate instead of blackbox.
+ A function of this type compares two EvalPoints, and returns the SuccessType resulting from the comparison. The function is a member of ComputeSuccessType class and set using ComputeSuccessType::setComputeSuccessTypeFunction. \n For example, computing success type is changed when optimizing a model instead of blackbox.
 */
 typedef std::function<SuccessType(const EvalPointPtr &p1,
                                   const EvalPointPtr &p2,
@@ -104,14 +104,14 @@ public:
                                                  const EvalPointPtr& evalPoint2,
                                                  const Double& hMax = INF);
 
-    /// Function to compute success type for a surrogate evaluation.
+    /// Function to compute success type for a model evaluation.
     /**
      \param evalPoint1  First eval queue point -- \b IN.
      \param evalPoint2  Second eval queue point -- \b IN.
      \param hMax        Max acceptable infeasibility to keep point in barrier   -- \b IN.
      \return            Success type.
      */
-    static SuccessType computeSuccessTypeSgte(const EvalPointPtr& evalPoint1,
+    static SuccessType computeSuccessTypeModel(const EvalPointPtr& evalPoint1,
                                               const EvalPointPtr& evalPoint2,
                                               const Double& hMax = INF);
 
@@ -128,7 +128,7 @@ public:
 
 private:
     /// Helper for Constructor.
-    /// Set default function for comparing EvalPoints, depending if the evaluation is surrogate or blackbox
+    /// Set default function for comparing EvalPoints, depending if the evaluation is model or blackbox
     void setComputeSuccessTypeFunction(const EvalType& evalType, const ComputeType& computeType);
 
 };

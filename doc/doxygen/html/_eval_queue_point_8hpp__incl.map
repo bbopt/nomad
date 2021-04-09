@@ -8,7 +8,7 @@
 <area shape="rect" id="node4" href="$_eval_8hpp.html" title="Evaluation at a point." alt="" coords="1919,169,2041,196"/>
 <area shape="rect" id="node35" href="$_point_8hpp.html" title="Point." alt="" coords="1770,707,1902,733"/>
 <area shape="rect" id="node48" href="$_compute_type_8hpp.html" title="Types for Computation of f and h: Blackbox, PhaseOne." alt="" coords="1587,1080,1773,1107"/>
-<area shape="rect" id="node49" href="$_eval_type_8hpp.html" title="Types for Evaluation: Blackbox, Surrogate." alt="" coords="1408,1080,1563,1107"/>
+<area shape="rect" id="node49" href="$_eval_type_8hpp.html" title="Types for Evaluation: Blackbox, Model." alt="" coords="1408,1080,1563,1107"/>
 <area shape="rect" id="node6" href="$_b_b_output_8hpp.html" title="Output of a Blackbox evaluation." alt="" coords="3055,781,3211,808"/>
 <area shape="rect" id="node28" href="$_eval_parameters_8hpp.html" title=" " alt="" coords="1875,244,2085,271"/>
 <area shape="rect" id="node7" href="$_b_b_output_type_8hpp.html" title="types for BBOutput" alt="" coords="3055,1080,3243,1107"/>

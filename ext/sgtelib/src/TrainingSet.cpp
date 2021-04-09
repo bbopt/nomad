@@ -275,12 +275,12 @@ void SGTELIB::TrainingSet::build ( void ){
     // Check singular data (inf and void)
     if (check_singular_data())
     {
-#ifdef SGTELIB_DEBUG
+    #ifdef SGTELIB_DEBUG
         std::cout << "SGTELIB::TrainingSet::check_singular_data(): incorrect data. Some _Z has no defined value !\n";
-#endif
+    #endif
         return;
     }
-      
+
     // Compute bounds over columns of X and Z
     compute_bounds();
 
@@ -405,45 +405,44 @@ bool SGTELIB::TrainingSet::add_point ( const double * xnew ,
                       Matrix::row_vector ( znew , _m ) );
 }//
 
-
 /*---------------------------------------------------*/
 /*  compute the mean and std over                    */
 /*  the columns of a matrix                          */
 /*---------------------------------------------------*/
 bool SGTELIB::TrainingSet::check_singular_data ( void ){
-
-  int i,j;
-  bool e = false;
-  // Check that all the _X data are defined
-  for ( j = 0 ; j < _n ; j++ ) {
-    for ( i = 0 ; i < _p ; i++ ) {
-      if ( ! isdef(_X.get(i,j))){
-        std::cout << "_X(" << i << "," << j << ") = " << _X.get(i,j) << "\n";
-        e = true;
-      }
+    
+    int i,j;
+    bool e = false;
+    // Check that all the _X data are defined
+    for ( j = 0 ; j < _n ; j++ ) {
+        for ( i = 0 ; i < _p ; i++ ) {
+            if ( ! isdef(_X.get(i,j))){
+                std::cout << "_X(" << i << "," << j << ") = " << _X.get(i,j) << "\n";
+                e = true;
+            }
+        }
     }
-  }
-
-  // Check that, for each output index, SOME data are defined
-  bool isdef_Zj; // True if at least one value is defined for output j.
-  // Loop on the output indexes
-  for ( j = 0 ; j < _m ; j++ ) {
-    // no def value so far
-    isdef_Zj = false;
-    for ( i = 0 ; i < _p ; i++ ) {
-      if (isdef(_Z.get(i,j))){
-        isdef_Zj = true;
-        break;
-      }
+    
+    // Check that, for each output index, SOME data are defined
+    bool isdef_Zj; // True if at least one value is defined for output j.
+    // Loop on the output indexes
+    for ( j = 0 ; j < _m ; j++ ) {
+        // no def value so far
+        isdef_Zj = false;
+        for ( i = 0 ; i < _p ; i++ ) {
+            if (isdef(_Z.get(i,j))){
+                isdef_Zj = true;
+                break;
+            }
+        }
+        // if there is more than 10 points and no correct value was found, return flag error.
+        if ( (_p>10) && ( ! isdef_Zj) ){
+            e = true;
+        }
     }
-    // if there is more than 10 points and no correct value was found, return an error.
-    if ( (_p>10) && ( ! isdef_Zj) ){
-      e = true; 
-    }
-  }
-
+    
     return e;
-
+    
 }//
 
 /*---------------------------------------------------*/
@@ -1323,7 +1322,7 @@ std::list<int> SGTELIB::TrainingSet::select_greedy ( const Matrix & X,
       #endif
       // Update lambda
       lambda *= 0.99;
-      if (lambda<1e-6) break;
+      if (lambda<1e-8) break;
     }
     else{
       #ifdef SGTELIB_DEBUG

@@ -49,7 +49,11 @@ Attribute/evalAttributesDefinition.txt
 Attribute/evaluatorControlAttributesDefinition.txt
 Attribute/evaluatorControlGlobalAttributesDefinition.txt
 Attribute/pbAttributesDefinition.txt
-Attribute/runAttributesDefinition.txt)
+Attribute/runAttributesDefinition.txt
+Attribute/runAttributesDefinitionNM.txt
+Attribute/runAttributesDefinitionPSDSSD.txt
+Attribute/runAttributesDefinitionQuadModel.txt
+Attribute/runAttributesDefinitionSgtelibModel.txt)
 
 set(ATTRIBUTE_HEADERS
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/cacheAttributesDefinition.hpp
@@ -59,7 +63,11 @@ ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evalAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evaluatorControlAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evaluatorControlGlobalAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/pbAttributesDefinition.hpp
-${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinition.hpp)
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinition.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionNM.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionPSDSSD.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionQuadModel.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionSgtelibModel.hpp)
 
 set(ATTRIBUTE_HEADERS_GENERATOR
 Attribute/WriteAttributeDefinitionFile.cpp
@@ -212,6 +220,7 @@ Type/BBOutputType.hpp
 Type/CallbackType.hpp
 Type/ComputeType.hpp
 Type/DirectionType.hpp
+Type/EvalSortType.hpp
 Type/EvalType.hpp
 Type/LHSearchType.hpp
 Type/ListOfVariableGroup.hpp
@@ -224,6 +233,7 @@ Type/BBOutputType.cpp
 Type/CallbackType.cpp
 Type/ComputeType.cpp
 Type/DirectionType.cpp
+Type/EvalSortType.cpp
 Type/EvalType.cpp
 Type/LHSearchType.cpp
 Type/ListOfVariableGroup.cpp

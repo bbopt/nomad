@@ -78,7 +78,7 @@ void initParams1(NOMAD::AllParameters &p)
     p.getEvaluatorControlGlobalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
     p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ PB PB"));
 
-    p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL", false);
+    p.getEvaluatorControlParams()->setAttributeValue("EVAL_OPPORTUNISTIC", false);
     p.getRunParams()->setAttributeValue("NM_OPTIMIZATION",true);
 
     p.getRunParams()->setAttributeValue("HOT_RESTART_ON_USER_INTERRUPT", false);

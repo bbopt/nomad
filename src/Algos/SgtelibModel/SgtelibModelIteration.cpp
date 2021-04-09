@@ -99,7 +99,7 @@ bool NOMAD::SgtelibModelIteration::runImp()
 }
 
 
-// Oracle points are the best points found in sub optimization on sgte model.
+// Oracle points are the best points found in sub optimization on sgtelib model.
 const NOMAD::EvalPointSet& NOMAD::SgtelibModelIteration::getOraclePoints() const
 {
     return _optimize->getOraclePoints();

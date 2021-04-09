@@ -155,12 +155,12 @@ void NOMAD::DisplayParameters::checkAndComply(
         setAttributeValue("STATS_FILE", statsFileParam);
     }
 
-    auto mainStatsFileName = getAttributeValueProtected<std::string>("MAIN_STATS_FILE",false) ;
-    if (!mainStatsFileName.empty() && mainStatsFileName.compare("-") != 0  )
+    auto evalStatsFileName = getAttributeValueProtected<std::string>("EVAL_STATS_FILE",false) ;
+    if (!evalStatsFileName.empty() && evalStatsFileName.compare("-") != 0  )
     {
         auto seed = runParams->getAttributeValue<int>("SEED");
-        NOMAD::completeFileName(mainStatsFileName, problemDir, addSeedToFileNames, seed);
-        setAttributeValue("MAIN_STATS_FILE", mainStatsFileName);
+        NOMAD::completeFileName(evalStatsFileName, problemDir, addSeedToFileNames, seed);
+        setAttributeValue("EVAL_STATS_FILE", evalStatsFileName);
     }
 
     /*------------------------------------------------------*/

@@ -148,7 +148,11 @@ public:
     bool isBBOutputComplete() const { return _bbOutputComplete; }
     BBOutput getBBOutput() const { return _bbOutput; }
     BBOutputTypeList getBBOutputTypeList() const { return _bbOutputTypeList; }
-    void setBBOutputTypeList(const BBOutputTypeList& bbOutputTypeList) { _bbOutputTypeList = bbOutputTypeList; }
+    void setBBOutputTypeList(const BBOutputTypeList& bbOutputTypeList)
+    {
+        _bbOutputTypeList = bbOutputTypeList;
+        _bbOutputComplete = _bbOutput.isComplete(bbOutputTypeList);
+    }
 
     std::string getBBO() const { return _bbOutput.getBBO(); }
 

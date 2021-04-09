@@ -71,7 +71,7 @@ void NOMAD::QuadModelOptimize::init()
 
 void NOMAD::QuadModelOptimize::startImp()
 {
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
+    auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
     _displayLevel = (std::string::npos != modelDisplay.find("O"))
         ? NOMAD::OutputLevel::LEVEL_INFO
         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
@@ -79,7 +79,7 @@ void NOMAD::QuadModelOptimize::startImp()
     OUTPUT_INFO_START
     std::string s;
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
-    s = "MAX_SGTE_EVAL: " + std::to_string(evcParams->getAttributeValue<size_t>("MAX_SGTE_EVAL"));
+    s = "QUAD_MODEL_MAX_EVAL: " + std::to_string(evcParams->getAttributeValue<size_t>("QUAD_MODEL_MAX_EVAL"));
     AddOutputInfo(s, _displayLevel);
     s = "BBOT: " + NOMAD::BBOutputTypeListToString(NOMAD::QuadModelAlgo::getBBOutputType());
     AddOutputInfo(s, _displayLevel);
@@ -127,7 +127,7 @@ bool NOMAD::QuadModelOptimize::runImp()
 void NOMAD::QuadModelOptimize::endImp()
 {
     // Clean up the cache of points having only EvalType::SGTE
-    NOMAD::CacheBase::getInstance()->deleteSgteOnly(NOMAD::getThreadNum());
+    NOMAD::CacheBase::getInstance()->deleteModelEvalOnly(NOMAD::getThreadNum());
 }
 
 
@@ -139,7 +139,7 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
 
     // Ensure there is no model used in model optimization.
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
-    _optRunParams->setAttributeValue("SGTELIB_SEARCH", false);
+    _optRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("NM_SEARCH", false);
 
     // Set direction type to Ortho 2n
@@ -220,7 +220,7 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     evc->setOpportunisticEval(false);
     evc->setUseCache(false);
 
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
+    auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
 
     auto fullFixedVar = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
     OUTPUT_INFO_START
@@ -239,7 +239,7 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     auto previousEvaluator = evc->setEvaluator(ev);
     if (nullptr == previousEvaluator)
     {
-        std::cerr << "Warning: QuadModelOptimize: Could not set SGTE Evaluator" << std::endl;
+        std::cerr << "Warning: QuadModelOptimize: Could not set MODEL Evaluator" << std::endl;
         return;
     }
 
@@ -266,12 +266,12 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     // Parameters for mads (_optRunParams and _optPbParams) are already updated.
     auto mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams);
     mads->setName(mads->getName() + " (QuadModelOptimize)");
-    evc->resetSgteEval();
+    evc->resetModelEval();
     mads->start();
     runOk = mads->run();
     mads->end();
 
-    evc->resetSgteEval();
+    evc->resetModelEval();
     evc->setEvaluator(previousEvaluator);
 
     // Note: No need to check the Mads stop reason: It is not a stop reason

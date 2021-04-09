@@ -150,7 +150,7 @@ void NOMAD::Poll::endImp()
 
 
 // Generate new points to evaluate
-// Note: Used whether GENERATE_ALL_POINTS_BEFORE_EVAL is true or false.
+// Note: Used whether MEGA_SEARCH_POLL is true or false.
 void NOMAD::Poll::generateTrialPoints()
 {
     for (auto pollMethod : _pollMethods)
@@ -250,7 +250,7 @@ std::shared_ptr<NOMAD::PollMethodBase> NOMAD::Poll::createPollMethod(const bool 
     }
     else
     {
-        dirType = _runParams->getAttributeValue<DirectionType>("SEC_POLL_DIR_TYPES");
+        dirType = _runParams->getAttributeValue<DirectionType>("DIRECTION_TYPE_SECONDARY_POLL");
     }
 
     switch (dirType)

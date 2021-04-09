@@ -89,12 +89,18 @@ $(document).ready(function(){initNavTree('_main_step_8cpp.html',''); initResizab
 
 <p>Main <a class="el" href="class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,...">Step</a> to hold MADS.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &quot;<a class="el" href="_cache_set_8hpp_source.html">../Cache/CacheSet.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_algo_stop_reasons_8hpp_source.html">../Algos/AlgoStopReasons.hpp</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_algo_stop_reasons_8hpp_source.html">../Algos/AlgoStopReasons.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_evc_interface_8hpp_source.html">../Algos/EvcInterface.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_main_step_8hpp_source.html">../Algos/MainStep.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_subproblem_manager_8hpp_source.html">../Algos/SubproblemManager.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_cache_set_8hpp_source.html">../Cache/CacheSet.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_l_h_s_8hpp_source.html">../Math/LHS.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_r_n_g_8hpp_source.html">../Math/RNG.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_output_queue_8hpp_source.html">../Output/OutputQueue.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_output_direct_to_file_8hpp_source.html">../Output/OutputDirectToFile.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_l_h_search_type_8hpp_source.html">../Type/LHSearchType.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_clock_8hpp_source.html">../Util/Clock.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="fileutils_8hpp_source.html">../Util/fileutils.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_l_h_8hpp_source.html">../Algos/LatinHypercubeSampling/LH.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_mads_8hpp_source.html">../Algos/Mads/Mads.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_mads_iteration_8hpp_source.html">../Algos/Mads/MadsIteration.hpp</a>&quot;</code><br />
@@ -102,65 +108,61 @@ $(document).ready(function(){initNavTree('_main_step_8cpp.html',''); initResizab
 <code>#include &quot;<a class="el" href="_n_m_8hpp_source.html">../Algos/NelderMead/NM.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_phase_one_8hpp_source.html">../Algos/PhaseOne/PhaseOne.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_s_s_d_mads_8hpp_source.html">../Algos/SSDMads/SSDMads.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_output_queue_8hpp_source.html">../Output/OutputQueue.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_output_direct_to_file_8hpp_source.html">../Output/OutputDirectToFile.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_clock_8hpp_source.html">../Util/Clock.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="fileutils_8hpp_source.html">../Util/fileutils.hpp</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for MainStep.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="_main_step_8cpp__incl.png" border="0" usemap="#_2home_2nomad_2_git_2nomad_2src_2_algos_2_main_step_8cpp" alt=""/></div>
 <map name="_2home_2nomad_2_git_2nomad_2src_2_algos_2_main_step_8cpp" id="_2home_2nomad_2_git_2nomad_2src_2_algos_2_main_step_8cpp">
-<area shape="rect" title="Main Step to hold MADS." alt="" coords="3304,5,3488,47"/>
-<area shape="rect" href="_cache_set_8hpp.html" title="Simple implementation of Cache derived from CacheBase, using set or unordered_set." alt="" coords="1106,333,1273,360"/>
-<area shape="rect" href="_algo_stop_reasons_8hpp.html" title=" " alt="" coords="3521,259,3735,285"/>
-<area shape="rect" href="_evc_interface_8hpp.html" title=" " alt="" coords="2486,333,2669,360"/>
-<area shape="rect" href="_main_step_8hpp.html" title="Main Step to hold MADS, or other Algorithms." alt="" coords="2769,259,2932,285"/>
-<area shape="rect" href="_subproblem_manager_8hpp.html" title=" " alt="" coords="2957,259,3193,285"/>
-<area shape="rect" href="_r_n_g_8hpp.html" title="Custom class for random number generator." alt="" coords="4064,572,4192,599"/>
-<area shape="rect" href="_l_h_8hpp.html" title=" " alt="" coords="2917,169,3155,211"/>
-<area shape="rect" href="_mads_8hpp.html" title=" " alt="" coords="3229,177,3405,203"/>
-<area shape="rect" href="_mads_iteration_8hpp.html" title=" " alt="" coords="2101,259,2331,285"/>
-<area shape="rect" href="_search_8hpp.html" title=" " alt="" coords="2579,95,2765,121"/>
-<area shape="rect" href="_n_m_8hpp.html" title=" " alt="" coords="3785,169,3938,211"/>
-<area shape="rect" href="_phase_one_8hpp.html" title=" " alt="" coords="3123,95,3359,121"/>
-<area shape="rect" href="_s_s_d_mads_8hpp.html" title=" " alt="" coords="3481,177,3709,203"/>
-<area shape="rect" href="_output_queue_8hpp.html" title=" " alt="" coords="4314,415,4510,442"/>
-<area shape="rect" href="_output_direct_to_file_8hpp.html" title=" " alt="" coords="4535,408,4713,449"/>
-<area shape="rect" href="_clock_8hpp.html" title="Clock class (headers)" alt="" coords="4712,647,4837,673"/>
-<area shape="rect" href="fileutils_8hpp.html" title="Utility functions about files (headers)" alt="" coords="4991,572,5129,599"/>
-<area shape="rect" href="_cache_base_8hpp.html" title="Base class for cache." alt="" coords="1100,415,1279,442"/>
-<area shape="rect" href="_eval_point_8hpp.html" title="Evaluation point." alt="" coords="1543,497,1697,524"/>
-<area shape="rect" href="nomad__nsbegin_8hpp.html" title=" " alt="" coords="961,721,1127,748"/>
-<area shape="rect" href="nomad__nsend_8hpp.html" title=" " alt="" coords="3239,721,3393,748"/>
-<area shape="rect" title=" " alt="" coords="853,497,920,524"/>
-<area shape="rect" title=" " alt="" coords="4473,647,4535,673"/>
-<area shape="rect" href="_cache_parameters_8hpp.html" title=" " alt="" coords="1848,647,2069,673"/>
-<area shape="rect" title=" " alt="" coords="1340,572,1383,599"/>
-<area shape="rect" href="_eval_8hpp.html" title="Evaluation at a point." alt="" coords="1559,572,1681,599"/>
-<area shape="rect" href="_compute_type_8hpp.html" title="Types for Computation of f and h: Blackbox, PhaseOne." alt="" coords="1310,647,1495,673"/>
-<area shape="rect" href="_point_8hpp.html" title="Point." alt="" coords="2398,647,2530,673"/>
-<area shape="rect" href="_eval_type_8hpp.html" title="Types for Evaluation: Blackbox, Surrogate." alt="" coords="1111,572,1265,599"/>
-<area shape="rect" title=" " alt="" coords="5021,721,5099,748"/>
-<area shape="rect" href="_all_stop_reasons_8hpp.html" title=" " alt="" coords="2657,647,2847,673"/>
-<area shape="rect" href="_exception_8hpp.html" title="Custom class for exceptions (headers)" alt="" coords="3531,647,3685,673"/>
-<area shape="rect" href="_step_8hpp.html" title=" " alt="" coords="2673,415,2804,442"/>
-<area shape="rect" href="_evaluator_control_8hpp.html" title="Management for evaluation." alt="" coords="1621,647,1824,673"/>
-<area shape="rect" href="_mesh_base_8hpp.html" title="Base class for mesh." alt="" coords="2507,572,2677,599"/>
-<area shape="rect" href="_output_info_8hpp.html" title=" " alt="" coords="4256,497,4435,524"/>
-<area shape="rect" href="_stats_info_8hpp.html" title="Class for Stats info and display." alt="" coords="4419,572,4587,599"/>
-<area shape="rect" href="_algorithm_8hpp.html" title=" " alt="" coords="3289,333,3455,360"/>
-<area shape="rect" href="_evaluator_8hpp.html" title="Evaluation of blackbox functions." alt="" coords="1428,415,1583,442"/>
-<area shape="rect" href="_all_parameters_8hpp.html" title=" " alt="" coords="2802,572,3001,599"/>
-<area shape="rect" href="_display_parameters_8hpp.html" title=" " alt="" coords="3862,647,4093,673"/>
-<area shape="rect" href="_subproblem_8hpp.html" title="Subproblem of lesser dimension than the original problem." alt="" coords="2201,572,2381,599"/>
-<area shape="rect" href="defines_8hpp.html" title="Definitions." alt="" coords="4861,647,4997,673"/>
-<area shape="rect" href="_iteration_utils_8hpp.html" title=" " alt="" coords="2546,259,2745,285"/>
-<area shape="rect" href="_iteration_8hpp.html" title=" " alt="" coords="2253,333,2411,360"/>
-<area shape="rect" href="_search_method_base_8hpp.html" title=" " alt="" coords="2536,169,2755,211"/>
-<area shape="rect" title=" " alt="" coords="4745,721,4804,748"/>
-<area shape="rect" title=" " alt="" coords="5173,647,5248,673"/>
-<area shape="rect" title=" " alt="" coords="5273,647,5346,673"/>
+<area shape="rect" title="Main Step to hold MADS." alt="" coords="2696,5,2880,47"/>
+<area shape="rect" href="_algo_stop_reasons_8hpp.html" title=" " alt="" coords="2666,259,2881,285"/>
+<area shape="rect" href="_evc_interface_8hpp.html" title=" " alt="" coords="2498,333,2681,360"/>
+<area shape="rect" href="_main_step_8hpp.html" title="Main Step to hold MADS, or other Algorithms." alt="" coords="1268,259,1431,285"/>
+<area shape="rect" href="_subproblem_manager_8hpp.html" title=" " alt="" coords="1691,259,1927,285"/>
+<area shape="rect" href="_cache_set_8hpp.html" title="Simple implementation of Cache derived from CacheBase, using set or unordered_set." alt="" coords="1489,490,1655,517"/>
+<area shape="rect" href="_l_h_s_8hpp.html" title=" " alt="" coords="2142,647,2266,673"/>
+<area shape="rect" href="_r_n_g_8hpp.html" title="Custom class for random number generator." alt="" coords="3496,647,3624,673"/>
+<area shape="rect" href="_output_queue_8hpp.html" title=" " alt="" coords="3953,490,4149,517"/>
+<area shape="rect" href="_output_direct_to_file_8hpp.html" title=" " alt="" coords="3749,483,3928,524"/>
+<area shape="rect" href="_l_h_search_type_8hpp.html" title="Type for parameter LH_SEARCH." alt="" coords="4291,721,4477,748"/>
+<area shape="rect" href="_clock_8hpp.html" title="Clock class (headers)" alt="" coords="4141,721,4267,748"/>
+<area shape="rect" href="fileutils_8hpp.html" title="Utility functions about files (headers)" alt="" coords="4505,647,4642,673"/>
+<area shape="rect" href="_l_h_8hpp.html" title=" " alt="" coords="2825,169,3063,211"/>
+<area shape="rect" href="_mads_8hpp.html" title=" " alt="" coords="2295,177,2471,203"/>
+<area shape="rect" href="_mads_iteration_8hpp.html" title=" " alt="" coords="3241,259,3471,285"/>
+<area shape="rect" href="_search_8hpp.html" title=" " alt="" coords="3017,95,3202,121"/>
+<area shape="rect" href="_n_m_8hpp.html" title=" " alt="" coords="2546,169,2699,211"/>
+<area shape="rect" href="_phase_one_8hpp.html" title=" " alt="" coords="2139,95,2375,121"/>
+<area shape="rect" href="_s_s_d_mads_8hpp.html" title=" " alt="" coords="1941,177,2169,203"/>
+<area shape="rect" title=" " alt="" coords="4811,796,4888,823"/>
+<area shape="rect" href="nomad__nsbegin_8hpp.html" title=" " alt="" coords="936,796,1101,823"/>
+<area shape="rect" href="nomad__nsend_8hpp.html" title=" " alt="" coords="2899,796,3053,823"/>
+<area shape="rect" href="_all_stop_reasons_8hpp.html" title=" " alt="" coords="2926,572,3117,599"/>
+<area shape="rect" href="_exception_8hpp.html" title="Custom class for exceptions (headers)" alt="" coords="3217,721,3370,748"/>
+<area shape="rect" href="_step_8hpp.html" title=" " alt="" coords="2951,408,3081,435"/>
+<area shape="rect" href="_evaluator_control_8hpp.html" title="Management for evaluation." alt="" coords="1208,721,1411,748"/>
+<area shape="rect" href="_mesh_base_8hpp.html" title="Base class for mesh." alt="" coords="3061,490,3230,517"/>
+<area shape="rect" href="_output_info_8hpp.html" title=" " alt="" coords="3800,572,3979,599"/>
+<area shape="rect" href="_point_8hpp.html" title="Point." alt="" coords="1638,721,1770,748"/>
+<area shape="rect" href="nomad__version_8hpp.html" title=" " alt="" coords="943,871,1094,897"/>
+<area shape="rect" href="_stop_reason_8hpp.html" title=" " alt="" coords="3051,647,3218,673"/>
+<area shape="rect" title=" " alt="" coords="4347,796,4421,823"/>
+<area shape="rect" title=" " alt="" coords="3750,721,3813,748"/>
+<area shape="rect" href="_stats_info_8hpp.html" title="Class for Stats info and display." alt="" coords="3952,647,4120,673"/>
+<area shape="rect" href="_algorithm_8hpp.html" title=" " alt="" coords="2053,333,2219,360"/>
+<area shape="rect" href="_evaluator_8hpp.html" title="Evaluation of blackbox functions." alt="" coords="904,572,1059,599"/>
+<area shape="rect" href="_all_parameters_8hpp.html" title=" " alt="" coords="1869,647,2067,673"/>
+<area shape="rect" href="_eval_point_8hpp.html" title="Evaluation point." alt="" coords="1437,647,1592,673"/>
+<area shape="rect" href="_display_parameters_8hpp.html" title=" " alt="" coords="2150,721,2381,748"/>
+<area shape="rect" href="_subproblem_8hpp.html" title="Subproblem of lesser dimension than the original problem." alt="" coords="1233,647,1413,673"/>
+<area shape="rect" href="_cache_base_8hpp.html" title="Base class for cache." alt="" coords="1483,572,1661,599"/>
+<area shape="rect" href="defines_8hpp.html" title="Definitions." alt="" coords="4552,721,4688,748"/>
+<area shape="rect" title=" " alt="" coords="4519,796,4577,823"/>
+<area shape="rect" title=" " alt="" coords="4175,796,4233,823"/>
+<area shape="rect" title=" " alt="" coords="4763,721,4837,748"/>
+<area shape="rect" title=" " alt="" coords="4862,721,4935,748"/>
+<area shape="rect" href="_iteration_utils_8hpp.html" title=" " alt="" coords="2959,259,3158,285"/>
+<area shape="rect" href="_iteration_8hpp.html" title=" " alt="" coords="3009,333,3167,360"/>
+<area shape="rect" href="_search_method_base_8hpp.html" title=" " alt="" coords="3087,169,3305,211"/>
 </map>
 </div>
 </div>
@@ -177,7 +179,7 @@ Include dependency graph for MainStep.cpp:</div>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_411efccbd5e576f82c71dd79c3c5caa4.html">Algos</a></li><li class="navelem"><a class="el" href="_main_step_8cpp.html">MainStep.cpp</a></li>
-    <li class="footer">Generated on Tue Mar 30 2021 16:31:31 for NOMAD Source by
+    <li class="footer">Generated on Fri Apr 9 2021 13:32:04 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

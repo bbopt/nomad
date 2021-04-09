@@ -66,8 +66,8 @@ private:
     EvalPointSet                _oraclePoints;
     OutputLevel                 _displayLevel;
 
-    // Vector of EvalPoints which have a Sgte eval
-    std::vector<EvalPoint>      _cacheSgte;
+    // Vector of EvalPoints which have a model eval
+    std::vector<EvalPoint>      _cacheModelEval;
 
     // Mesh and frame center to project on
     std::shared_ptr<MeshBase>   _mesh;

@@ -95,6 +95,7 @@ void NOMAD::MadsInitialization::validateX0s() const
             validX0available = true;
         }
     }
+
     if (validX0available)
     {
         if (!err.empty())
@@ -110,11 +111,11 @@ void NOMAD::MadsInitialization::validateX0s() const
         if (cacheSize > 0)
         {
             err += " Hint: Try not setting X0 so that the cache is used (";
-            err += std::to_string(cacheSize) + " points)";
+            err += std::to_string(cacheSize) + " points).";
         }
         else
         {
-            err += ". Cache is empty.";
+            err += " Cache is empty. Hint: Try setting LH_SEARCH so that the Latin Hypercube Search is used to find initial points.";
         }
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
@@ -232,7 +233,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
         for (auto evalPointX0 : evalPointX0s)
         {
             s = "Using X0: ";
-            // BB: Simple display. SGTE: Full display.
+            // BB: Simple display. MODEL: Full display.
             s += (NOMAD::EvalType::BB == evalType) ? evalPointX0.display() : evalPointX0.displayAll();
         }
         AddOutputInfo(s);

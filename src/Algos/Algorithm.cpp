@@ -241,7 +241,7 @@ void NOMAD::Algorithm::startImp()
     // By default reset the lap counter for BbEval and set the lap maxBbEval to INF
     NOMAD::EvcInterface::getEvaluatorControl()->resetLapBbEval();
     NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval( NOMAD::INF_SIZE_T );
-    NOMAD::EvcInterface::getEvaluatorControl()->resetSgteEval();
+    NOMAD::EvcInterface::getEvaluatorControl()->resetModelEval();
 
     if (nullptr == _megaIteration)
     {
@@ -514,15 +514,15 @@ void NOMAD::Algorithm::displayEvalCounts() const
     size_t bbEval       = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
     size_t lapBbEval    = NOMAD::EvcInterface::getEvaluatorControl()->getLapBbEval();
     size_t nbEval       = NOMAD::EvcInterface::getEvaluatorControl()->getNbEval();
-    size_t sgteEval     = NOMAD::EvcInterface::getEvaluatorControl()->getSgteEval();
-    size_t totalSgteEval = NOMAD::EvcInterface::getEvaluatorControl()->getTotalSgteEval();
+    size_t modelEval    = NOMAD::EvcInterface::getEvaluatorControl()->getModelEval();
+    size_t totalModelEval = NOMAD::EvcInterface::getEvaluatorControl()->getTotalModelEval();
     size_t nbCacheHits  = NOMAD::CacheBase::getNbCacheHits();
     int nbEvalNoCount   = static_cast<int>(nbEval - bbEval - nbCacheHits);
 
     // What needs to be shown, according to the counts and to the value of isSub
     bool showNbEvalNoCount  = (nbEvalNoCount > 0);
-    bool showSgteEval       = isSub && (sgteEval > 0);
-    bool showTotalSgteEval  = (totalSgteEval > 0);
+    bool showModelEval      = isSub && (modelEval > 0);
+    bool showTotalModelEval = (totalModelEval > 0);
     bool showNbCacheHits    = (nbCacheHits > 0);
     bool showNbEval         = (nbEval > bbEval);
     bool showLapBbEval      = isSub && (bbEval > lapBbEval && lapBbEval > 0);
@@ -534,8 +534,8 @@ void NOMAD::Algorithm::displayEvalCounts() const
                                                  : NOMAD::OutputLevel::LEVEL_NORMAL;
 
     // Padding for nice presentation
-    std::string sFeedBbEval, sFeedLapBbEval, sFeedNbEvalNoCount, sFeedSgteEval,
-                sFeedTotalSgteEval, sFeedCacheHits, sFeedNbEval;
+    std::string sFeedBbEval, sFeedLapBbEval, sFeedNbEvalNoCount, sFeedModelEval,
+                sFeedTotalModelEval, sFeedCacheHits, sFeedNbEval;
 
     // Conditional values: showNbEval, showNbEvalNoCount, showLapBbEval
     if (showLapBbEval)  // Longest title
@@ -543,8 +543,8 @@ void NOMAD::Algorithm::displayEvalCounts() const
         sFeedBbEval += "                 ";
         //sFeedLapBbEval += "";
         sFeedNbEvalNoCount += "   ";
-        sFeedSgteEval += "                     ";
-        sFeedTotalSgteEval += "               ";
+        sFeedModelEval += "                    ";
+        sFeedTotalModelEval += "              ";
         sFeedCacheHits += "                           ";
         sFeedNbEval += "          ";
     }
@@ -553,8 +553,8 @@ void NOMAD::Algorithm::displayEvalCounts() const
         sFeedBbEval += "              ";
         //sFeedLapBbEval += "";
         //sFeedNbEvalNoCount += "";
-        sFeedSgteEval += "                  ";
-        sFeedTotalSgteEval += "            ";
+        sFeedModelEval += "                 ";
+        sFeedTotalModelEval += "           ";
         sFeedCacheHits += "                        ";
         sFeedNbEval += "       ";
     }
@@ -563,17 +563,27 @@ void NOMAD::Algorithm::displayEvalCounts() const
         sFeedBbEval += "       ";
         //sFeedLapBbEval += "";
         //sFeedNbEvalNoCount += "";
-        sFeedSgteEval += "           ";
-        sFeedTotalSgteEval += "     ";
+        sFeedModelEval += "          ";
+        sFeedTotalModelEval += "    ";
         sFeedCacheHits += "                 ";
+        //sFeedNbEval += "";
+    }
+    else if (showTotalModelEval)
+    {
+        sFeedBbEval += "   ";
+        //sFeedLapBbEval += "";
+        //sFeedNbEvalNoCount += "";
+        //sFeedModelEval += "          ";
+        //sFeedTotalModelEval += "    ";
+        //sFeedCacheHits += "                 ";
         //sFeedNbEval += "";
     }
 
     std::string sBbEval         = "Blackbox evaluations: " + sFeedBbEval + NOMAD::itos(bbEval);
     std::string sLapBbEval      = "Sub-optimization blackbox evaluations: " + sFeedLapBbEval + NOMAD::itos(lapBbEval);
     std::string sNbEvalNoCount  = "Blackbox evaluation (not counting): " + sFeedNbEvalNoCount + NOMAD::itos(nbEvalNoCount);
-    std::string sSgteEval       = "Sgte evaluations: " + sFeedSgteEval + NOMAD::itos(sgteEval);
-    std::string sTotalSgteEval  = "Total sgte evaluations: " + sFeedTotalSgteEval + NOMAD::itos(totalSgteEval);
+    std::string sModelEval      = "Model evaluations: " + sFeedModelEval + NOMAD::itos(modelEval);
+    std::string sTotalModelEval = "Total model evaluations: " + sFeedTotalModelEval + NOMAD::itos(totalModelEval);
     std::string sCacheHits      = "Cache hits: " + sFeedCacheHits + NOMAD::itos(nbCacheHits);
     std::string sNbEval         = "Total number of evaluations: " + sFeedNbEval + NOMAD::itos(nbEval);
 
@@ -595,13 +605,13 @@ void NOMAD::Algorithm::displayEvalCounts() const
     {
         AddOutputInfo(sNbEvalNoCount, outputLevelNormal);
     }
-    if (showSgteEval)
+    if (showModelEval)
     {
-        AddOutputInfo(sSgteEval, outputLevelNormal);
+        AddOutputInfo(sModelEval, outputLevelNormal);
     }
-    if (showTotalSgteEval)
+    if (showTotalModelEval)
     {
-        AddOutputInfo(sTotalSgteEval, outputLevelNormal);
+        AddOutputInfo(sTotalModelEval, outputLevelNormal);
     }
     if (showNbCacheHits)
     {

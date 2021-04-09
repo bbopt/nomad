@@ -159,6 +159,9 @@ $(document).ready(function(){initNavTree('globals_func.html',''); initResizable(
 : <a class="el" href="_eval_8hpp.html#a6dbf14c2ae18a2f498cb2bb8f000a75f">Eval.hpp</a>
 , <a class="el" href="utils_8hpp.html#af87daa42425b69a880b4025dda36cbf3">utils.hpp</a>
 </li>
+<li>evalSortTypeToString()
+: <a class="el" href="_eval_sort_type_8hpp.html#a2c49facdebc8311102dff9a261aaa9e4">EvalSortType.hpp</a>
+</li>
 <li>evalTypeToString()
 : <a class="el" href="_eval_type_8hpp.html#a61b0172169b6df9cb6af7858114f273e">EvalType.hpp</a>
 </li>
@@ -343,40 +346,41 @@ $(document).ready(function(){initNavTree('globals_func.html',''); initResizable(
 </li>
 <li>operator&lt;&lt;()
 : <a class="el" href="_algorithm_8hpp.html#a3125845fe2fd43073fe4781c4b31147e">Algorithm.hpp</a>
-, <a class="el" href="_b_b_output_type_8hpp.html#ac97404f9230eb8df7552dea894502cdb">BBOutputType.hpp</a>
-, <a class="el" href="_direction_type_8hpp.html#a7fd4ea7ef4a50e2402122dfd0086d385">DirectionType.hpp</a>
-, <a class="el" href="_l_h_search_type_8hpp.html#ad021c616acef9c85cdb5d3c4980972ef">LHSearchType.hpp</a>
-, <a class="el" href="_b_b_input_type_8hpp.html#a3978bb61d2aefa3c7cfdfc61d90a24f9">BBInputType.hpp</a>
-, <a class="el" href="_eval_type_8hpp.html#a7873f099874737f24ab0d8549db1ecbe">EvalType.hpp</a>
-, <a class="el" href="_eval_point_8hpp.html#a4b390dff5fa22c1231cfca0695fc1b81">EvalPoint.hpp</a>
-, <a class="el" href="_mesh_base_8hpp.html#a8a6756878a6262b9a78a560acec25308">MeshBase.hpp</a>
-, <a class="el" href="_b_b_input_type_8hpp.html#a1b75a22f2eb9fc3d4a40b718e2a3ea80">BBInputType.hpp</a>
-, <a class="el" href="_direction_8hpp.html#a006c44b9af2ccac5ec4899bdfcc3621e">Direction.hpp</a>
-, <a class="el" href="_n_m_mega_iteration_8hpp.html#a7de6965d8009fde61f1e914996d4a24c">NMMegaIteration.hpp</a>
-, <a class="el" href="_eval_8hpp.html#a66d750dd3e0d263c4caf11ec888e45e9">Eval.hpp</a>
-, <a class="el" href="_array_of_string_8hpp.html#a8c7ddc07ebf155565d921e63b8d22563">ArrayOfString.hpp</a>
 , <a class="el" href="_attribute_8hpp.html#a58bd3e3ec88a2d602533dc2a246c9ba1">Attribute.hpp</a>
-, <a class="el" href="_sgtelib_model_formulation_type_8hpp.html#ace9f48c66f2ed9b2f977bb9f7ecafed5">SgtelibModelFormulationType.hpp</a>
-, <a class="el" href="_sgtelib_model_mega_iteration_8hpp.html#aa64123508aa79748aff8155978119112">SgtelibModelMegaIteration.hpp</a>
-, <a class="el" href="_array_of_point_8hpp.html#ac1ca0cab98086bbec0b7d16b574af170">ArrayOfPoint.hpp</a>
-, <a class="el" href="_b_b_output_type_8hpp.html#ab1164a73b4395a9962a22d43ce3773c2">BBOutputType.hpp</a>
-, <a class="el" href="_mads_mega_iteration_8hpp.html#aaed733a5075bedf857508c481c1b495e">MadsMegaIteration.hpp</a>
-, <a class="el" href="_list_of_variable_group_8hpp.html#a6bf329bca02973c24003e91e6629c7ab">ListOfVariableGroup.hpp</a>
-, <a class="el" href="_b_b_output_8hpp.html#a7eb6d958762e35b80bb9836098007e7c">BBOutput.hpp</a>
-, <a class="el" href="_stats_info_8hpp.html#a07e108b15daa323ba2a5b34b5be690a9">StatsInfo.hpp</a>
-, <a class="el" href="_sgtelib_model_feasibility_type_8hpp.html#a41912e233a3b3903509cad0b92353ebb">SgtelibModelFeasibilityType.hpp</a>
-, <a class="el" href="_compute_type_8hpp.html#a3d0aeed4ca031d9778f451c670e6e775">ComputeType.hpp</a>
-, <a class="el" href="_parameter_entry_8hpp.html#ab759d68344aed8718046fcfea44289fb">ParameterEntry.hpp</a>
-, <a class="el" href="_quad_model_mega_iteration_8hpp.html#ac60ddd1445e12dccbf5ebacabfb5d9f3">QuadModelMegaIteration.hpp</a>
-, <a class="el" href="_point_8hpp.html#aa02eff2d9aae013f84052606b923d0b4">Point.hpp</a>
-, <a class="el" href="_list_of_variable_group_8hpp.html#a95f577c62f1f70adc9024950b485e4fb">ListOfVariableGroup.hpp</a>
-, <a class="el" href="_mega_iteration_8hpp.html#ae491ae1d7b91e4cb947269c70875f2c5">MegaIteration.hpp</a>
-, <a class="el" href="_b_b_input_8hpp.html#ae8319e3b5e97c038f4067a9e170f6bb0">BBInput.hpp</a>
-, <a class="el" href="_cache_set_8hpp.html#a3f373b0f8e1d558c29e2dca1e7ba57cb">CacheSet.hpp</a>
-, <a class="el" href="_array_of_double_8hpp.html#a78da70e44ce9e4e733bf47c3cb8cbc84">ArrayOfDouble.hpp</a>
 , <a class="el" href="_double_8cpp.html#a42806451e98ee88216c7331c3d0cce5c">Double.cpp</a>
+, <a class="el" href="_parameter_entry_8hpp.html#ab759d68344aed8718046fcfea44289fb">ParameterEntry.hpp</a>
+, <a class="el" href="_b_b_output_type_8hpp.html#ab1164a73b4395a9962a22d43ce3773c2">BBOutputType.hpp</a>
+, <a class="el" href="_cache_set_8hpp.html#a3f373b0f8e1d558c29e2dca1e7ba57cb">CacheSet.hpp</a>
+, <a class="el" href="_sgtelib_model_formulation_type_8hpp.html#ace9f48c66f2ed9b2f977bb9f7ecafed5">SgtelibModelFormulationType.hpp</a>
+, <a class="el" href="_list_of_variable_group_8hpp.html#a6bf329bca02973c24003e91e6629c7ab">ListOfVariableGroup.hpp</a>
+, <a class="el" href="_sgtelib_model_feasibility_type_8hpp.html#a41912e233a3b3903509cad0b92353ebb">SgtelibModelFeasibilityType.hpp</a>
+, <a class="el" href="_n_m_mega_iteration_8hpp.html#a7de6965d8009fde61f1e914996d4a24c">NMMegaIteration.hpp</a>
+, <a class="el" href="_sgtelib_model_mega_iteration_8hpp.html#aa64123508aa79748aff8155978119112">SgtelibModelMegaIteration.hpp</a>
+, <a class="el" href="_eval_8hpp.html#a66d750dd3e0d263c4caf11ec888e45e9">Eval.hpp</a>
+, <a class="el" href="_array_of_point_8hpp.html#ac1ca0cab98086bbec0b7d16b574af170">ArrayOfPoint.hpp</a>
+, <a class="el" href="_eval_point_8hpp.html#a4b390dff5fa22c1231cfca0695fc1b81">EvalPoint.hpp</a>
+, <a class="el" href="_list_of_variable_group_8hpp.html#a95f577c62f1f70adc9024950b485e4fb">ListOfVariableGroup.hpp</a>
+, <a class="el" href="_b_b_output_8hpp.html#a7eb6d958762e35b80bb9836098007e7c">BBOutput.hpp</a>
+, <a class="el" href="_b_b_output_type_8hpp.html#ac97404f9230eb8df7552dea894502cdb">BBOutputType.hpp</a>
+, <a class="el" href="_b_b_input_type_8hpp.html#a3978bb61d2aefa3c7cfdfc61d90a24f9">BBInputType.hpp</a>
+, <a class="el" href="_quad_model_mega_iteration_8hpp.html#ac60ddd1445e12dccbf5ebacabfb5d9f3">QuadModelMegaIteration.hpp</a>
+, <a class="el" href="_b_b_input_type_8hpp.html#a1b75a22f2eb9fc3d4a40b718e2a3ea80">BBInputType.hpp</a>
+, <a class="el" href="_point_8hpp.html#aa02eff2d9aae013f84052606b923d0b4">Point.hpp</a>
+, <a class="el" href="_eval_sort_type_8hpp.html#ad8722f44960a7a7f588a2dc1f98179cc">EvalSortType.hpp</a>
+, <a class="el" href="_array_of_double_8hpp.html#a78da70e44ce9e4e733bf47c3cb8cbc84">ArrayOfDouble.hpp</a>
 , <a class="el" href="_barrier_8hpp.html#a22a6d1d621576966dd60e20875e00852">Barrier.hpp</a>
+, <a class="el" href="_mega_iteration_8hpp.html#ae491ae1d7b91e4cb947269c70875f2c5">MegaIteration.hpp</a>
+, <a class="el" href="_mesh_base_8hpp.html#a8a6756878a6262b9a78a560acec25308">MeshBase.hpp</a>
+, <a class="el" href="_mads_mega_iteration_8hpp.html#aaed733a5075bedf857508c481c1b495e">MadsMegaIteration.hpp</a>
 , <a class="el" href="_parameter_entries_8hpp.html#a6b9d7e6acf5fc358284f742d27bb87ad">ParameterEntries.hpp</a>
+, <a class="el" href="_b_b_input_8hpp.html#ae8319e3b5e97c038f4067a9e170f6bb0">BBInput.hpp</a>
+, <a class="el" href="_direction_type_8hpp.html#a7fd4ea7ef4a50e2402122dfd0086d385">DirectionType.hpp</a>
+, <a class="el" href="_array_of_string_8hpp.html#a8c7ddc07ebf155565d921e63b8d22563">ArrayOfString.hpp</a>
+, <a class="el" href="_l_h_search_type_8hpp.html#ad021c616acef9c85cdb5d3c4980972ef">LHSearchType.hpp</a>
+, <a class="el" href="_compute_type_8hpp.html#a3d0aeed4ca031d9778f451c670e6e775">ComputeType.hpp</a>
+, <a class="el" href="_direction_8hpp.html#a006c44b9af2ccac5ec4899bdfcc3621e">Direction.hpp</a>
+, <a class="el" href="_eval_type_8hpp.html#a7873f099874737f24ab0d8549db1ecbe">EvalType.hpp</a>
+, <a class="el" href="_stats_info_8hpp.html#a07e108b15daa323ba2a5b34b5be690a9">StatsInfo.hpp</a>
 </li>
 <li>operator&lt;=()
 : <a class="el" href="_double_8hpp.html#a812a4a08846008fdc3c7bf8a2106bea7">Double.hpp</a>
@@ -542,6 +546,9 @@ $(document).ready(function(){initNavTree('globals_func.html',''); initResizable(
 <li>stringToDirectionType()
 : <a class="el" href="_direction_type_8hpp.html#ab08959a7ba50d22ab53c09887ca02dc9">DirectionType.hpp</a>
 </li>
+<li>stringToEvalSortType()
+: <a class="el" href="_eval_sort_type_8hpp.html#adbfa9e63c9e2f9cbb683fa79797602ab">EvalSortType.hpp</a>
+</li>
 <li>stringToEvalType()
 : <a class="el" href="_eval_type_8hpp.html#a7511a61b13522cfa38623f1617cc67d3">EvalType.hpp</a>
 </li>
@@ -590,7 +597,7 @@ $(document).ready(function(){initNavTree('globals_func.html',''); initResizable(
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Mar 30 2021 16:31:33 for NOMAD Source by
+    <li class="footer">Generated on Fri Apr 9 2021 13:32:06 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

@@ -62,7 +62,7 @@ NOMAD::SgtelibModelEvaluator::SgtelibModelEvaluator(const std::shared_ptr<NOMAD:
                                    const NOMAD::SgtelibModelFeasibilityType& modelFeasibility,
                                    const double tc,
                                    const NOMAD::Point& fixedVariable)
-  : NOMAD::Evaluator(evalParams, NOMAD::EvalType::SGTE),
+  : NOMAD::Evaluator(evalParams, NOMAD::EvalType::MODEL),
     _modelAlgo(modelAlgo),
     _modelDisplay(modelDisplay),
     _diversification(diversification),
@@ -159,7 +159,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
         // work around by constructing a suitable string.
         // Note: Why set some default values on bbo?
         NOMAD::ArrayOfString defbbo(bbot.size(), "-1");
-        x.setBBO(defbbo.display(), bbot, NOMAD::EvalType::SGTE);
+        x.setBBO(defbbo.display(), bbot, NOMAD::EvalType::MODEL);
 
         // ------------------------- //
         //   Objective Prediction    //
@@ -460,7 +460,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             newbbo[i] = obj;
         }
     }
-    x.setBBO(newbbo.display(), bbot, NOMAD::EvalType::SGTE);
+    x.setBBO(newbbo.display(), bbot, NOMAD::EvalType::MODEL);
 
     // ================== //
     //       DISPLAY      //
@@ -485,7 +485,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     }
     s = "Exclusion area penalty = " + penalty.display();
     NOMAD::OutputQueue::Add(s, _displayLevel);
-    s = "Model Output = (" + x.getBBO(NOMAD::EvalType::SGTE) + ")";
+    s = "Model Output = (" + x.getBBO(NOMAD::EvalType::MODEL) + ")";
     NOMAD::OutputQueue::Add(s, _displayLevel);
     OUTPUT_INFO_END
 
@@ -499,7 +499,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     // Exit Status        //
     // ================== //
     countEval = true;
-    x.setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, NOMAD::EvalType::SGTE);
+    x.setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, NOMAD::EvalType::MODEL);
 
     // Convert back x to full space
     x = x.makeFullSpacePointFromFixed(_fixedVariable);

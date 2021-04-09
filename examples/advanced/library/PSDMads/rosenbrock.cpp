@@ -115,8 +115,8 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->setAttributeValue("NM_SEARCH",false);
     allParams->setAttributeValue("PSD_MADS_OPTIMIZATION",true);
     allParams->setAttributeValue("PSD_MADS_NB_VAR_IN_SUBPROBLEM",2);
-    allParams->setAttributeValue("PSD_MADS_SUBPROBLEM_PCT_COVERAGE",NOMAD::Double(0.0));
-    allParams->setAttributeValue("MAX_BB_EVAL_IN_SUBPROBLEM",10);
+    allParams->setAttributeValue("PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE",NOMAD::Double(0.0));
+    allParams->setAttributeValue("PSD_MADS_SUBPROBLEM_MAX_BB_EVAL",10);
     allParams->setAttributeValue("NB_THREADS_OPENMP",4);
     
     // Constraints and objective

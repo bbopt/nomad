@@ -221,10 +221,7 @@ bool NOMAD::IterationUtils::evalTrialPoints(NOMAD::Step *step)
     // and the queue may be empty.
     _nbEvalPointsThatNeedEval = NOMAD::EvcInterface::getEvaluatorControl()->getQueueSize(NOMAD::getThreadNum());
 
-    // When doSort is false, lexicographical order is used.
-    auto disable = step->getRunParams()->getAttributeValue<NOMAD::ArrayOfString>("DISABLE");
-    bool doSort = (-1 == disable.find("EVAL_SORT"));
-    NOMAD::EvcInterface::getEvaluatorControl()->unlockQueue(doSort);
+    NOMAD::EvcInterface::getEvaluatorControl()->unlockQueue(true);  // true: do sort
 
     if (_nbEvalPointsThatNeedEval > 0)
     {
