@@ -18,9 +18,9 @@ UTILS_LIB_NAME    = nomadUtils
 EVAL_LIB_NAME     = nomadEval
 ALGOS_LIB_NAME    = nomadAlgos
 
-SGTE_LIB_NAME             = sgtelib
+SGTELIB_NAME              = sgtelib
 
-LIB_DYNAMIC               = -l$(UTILS_LIB_NAME) -l$(EVAL_LIB_NAME) -l$(ALGOS_LIB_NAME) -l$(SGTE_LIB_NAME)
+LIB_DYNAMIC               = -l$(UTILS_LIB_NAME) -l$(EVAL_LIB_NAME) -l$(ALGOS_LIB_NAME) -l$(SGTELIB_NAME)
 
 ifeq ($(VARIANT), release)
 CXXFLAGS            = -O2

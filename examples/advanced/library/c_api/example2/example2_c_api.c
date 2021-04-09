@@ -161,7 +161,7 @@ int solve_speedreducer_pb()
     addNomadBoolParam(nomad_pb, "DISPLAY_UNSUCCESSFUL", false);
 
     // set non opportunistic eval
-    addNomadBoolParam(nomad_pb, "OPPORTUNISTIC_EVAL", false);
+    addNomadBoolParam(nomad_pb, "EVAL_OPPORTUNISTIC", false);
 
     // run problem
     double x0[7] = {3.000000000000000e+00,
