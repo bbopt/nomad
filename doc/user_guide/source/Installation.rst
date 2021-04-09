@@ -1,10 +1,10 @@
+.. _S2:
 Installation
 ============
 
 Todo
 
-Tests
-=====
+Testing installation
+^^^^^^^^^^^^^^^^^^^^
 
-Todo
-
+Examples, unit tests and integration tests.

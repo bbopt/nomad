@@ -6,39 +6,51 @@
 Nomad 4 User Guide
 ==================
 
-* A general introduction of NOMAD is presented in Chapter 1.
-* *New users* of NOMAD:
-   
-   - Chapter 2 describes how to install the software application.
-   - Chapter 3 describes how to get started with NOMAD.
+* A general introduction of NOMAD is presented in Section `Target to section S1`_.
+* **New users** of NOMAD:
+
+   - Section `S2`_ describes how to install the software application.
+   - Section `S4`_ describes how to get started with NOMAD.
 
 * NOMAD utilization:
-  
-   - All users can find in Chapters 4 to 7 ways to tailor problem definition, algorithmic settings and software output.
 
-* Tricks that may help solving specific problems are presented in Chapter 5.
+   - Starting from Section `S4`_, all users can find ways to tailor problem definition, algorithmic settings and software output.
 
-* Please cite NOMAD with references [27, 50].
+* Tricks for specific problem solving are presented in Section `S6`_.
 
-* A complete introduction to derivative-free and blackbox optimization can be found in the textbook [24].
+* Please cite NOMAD with references::
+
+      C. Audet, S. Le Digabel, and C. Tribes.
+      NOMAD user guide. Technical Report G-2009-37, Les cahiers du GERAD, 2009.
+
+      S. Le Digabel.
+      Algorithm 909: NOMAD: Nonlinear Optimization with the MADS algorithm.
+      ACM Transactions on Mathematical Software, 37(4):44:1–44:15, 2011.
+
+* A complete introduction to derivative-free and blackbox optimization can be found in the textbook::
+
+      C. Audet and W. Hare.
+      Derivative-Free and Blackbox Optimization.
+      Springer Series in Operations Research and Financial Engineering.
+      Springer International Publishing, Berlin, 2017.
+
+.. figure:: ../figs/livre_DFO_AuHa2017.png
 
 .. toctree::
-   :maxdepth: 1 
+   :maxdepth: 1
    :caption: Introduction:
 
-   Preface 
    Introduction
 
 .. toctree::
    :maxdepth: 1
-   :caption: First NOMAD steps:
+   :caption: Installation and tests:
 
    Installation
-   Tests
 
 .. toctree::
    :maxdepth: 1
-   :caption: Basic NOMAD usage:
+   :caption: First NOMAD steps:
 
    GettingStarted
    HowToUseNomad
@@ -64,9 +76,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-
-
-
-
-
