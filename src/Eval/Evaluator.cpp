@@ -258,7 +258,7 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
         return evalOk;
     }
 
-    auto evalFormat = _evalParams->getAttributeValue<NOMAD::ArrayOfDouble>("EVAL_FORMAT");
+    auto evalFormat = _evalParams->getAttributeValue<NOMAD::ArrayOfDouble>("BB_EVAL_FORMAT");
     for (auto it = block.begin(); it != block.end(); it++)
     {
         std::shared_ptr<NOMAD::EvalPoint> x = (*it);

@@ -321,7 +321,7 @@ template<> std::map<NOMAD::EvalMainThreadStopType,std::string> & NOMAD::StopReas
         {NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS,    "Success found and opportunistic strategy is used"},
         {NOMAD::EvalMainThreadStopType::EMPTY_LIST_OF_POINTS,     "Tried to eval an empty list"},
         {NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED,     "No more points to evaluate"},
-        {NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED,    "Max number of surrogate evaluations reached"}
+        {NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED,   "Max number of model evaluations reached"}
     };
     return dictionary;
 }
@@ -353,7 +353,7 @@ template<> bool NOMAD::StopReason<NOMAD::EvalMainThreadStopType>::checkTerminate
     {
         case NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED:
         case NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED:
-        case NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED:
+        case NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED:
             return true;
             break;
         case NOMAD::EvalMainThreadStopType::STARTED:

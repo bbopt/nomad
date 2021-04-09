@@ -130,7 +130,7 @@ bool NOMAD::QuadModelUpdate::runImp()
             _radiuses = iter->getMesh()->getDeltaFrameSize();
 
             // Multiply by radius parameter
-            auto radiusFactor = _runParams->getAttributeValue<NOMAD::Double>("MODEL_RADIUS_FACTOR");
+            auto radiusFactor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_RADIUS_FACTOR");
             _radiuses *= radiusFactor;
         }
         OUTPUT_DEBUG_START
@@ -305,7 +305,7 @@ bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint)
     // - Not a NaN
     // - Not a fail
     // - All outputs defined
-    // - Blackbox OBJ available (Not sgte)
+    // - Blackbox OBJ available (Not MODEL)
     bool validPoint = true;
     NOMAD::ArrayOfDouble bbo;
 

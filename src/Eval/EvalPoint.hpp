@@ -81,7 +81,7 @@ private:
 
     EvalUPtr _eval;       ///< Value of the evaluation (truth / blackbox)
 
-    EvalUPtr _evalSgte;   ///< Value of the surrogate evaluation
+    EvalUPtr _evalModel;   ///< Value of the model evaluation
 
     mutable int  _tag; ///< Tag: Ordinal representing the order of creation
 
@@ -145,17 +145,17 @@ public:
     /// Get Point part of this EvalPoint
     const Point* getX() const { return dynamic_cast<const Point*>(this); }
 
-    /// Get the Eval part of this EvalPoint, using the right EvalType (BB or SGTE)
+    /// Get the Eval part of this EvalPoint, using the right EvalType (BB or MODEL)
     Eval* getEval(const EvalType& evalType = EvalType::BB) const;
 
-    /// Set the Eval part of this EvalPoint, using the right EvalType (BB or SGTE)
+    /// Set the Eval part of this EvalPoint, using the right EvalType (BB or MODEL)
     void setEval(const Eval& eval, const EvalType& evalType);
 
-    /// Clear the surrogate evaluation of \c *this
-    void clearEvalSgte() { _evalSgte = nullptr; }
+    /// Clear the model evaluation of \c *this
+    void clearModelEval() { _evalModel = nullptr; }
 
-    /// Clear the surrogate evaluation of a point
-    static void clearEvalSgte(EvalPoint& evalPoint) { evalPoint.clearEvalSgte(); }
+    /// Clear the model evaluation of a point
+    static void clearModelEval(EvalPoint& evalPoint) { evalPoint.clearModelEval(); }
 
     /// Get the objective function value of Eval of this EvalType,
     /// using the given ComputeType.
@@ -171,7 +171,7 @@ public:
     /**
      \param bbo                 The string containg the raw result of the blackbox evaluation -- \b IN.
      \param bbOutputTypeList    The list of blackbox output types -- \b IN.
-     \param evalType            Blackbox or surrogate evaluation  -- \b IN.
+     \param evalType            Blackbox or model evaluation  -- \b IN.
      \param evalOk              Flag for evaluation status  -- \b IN.
     */
     void setBBO(const std::string &bbo,
@@ -179,15 +179,15 @@ public:
                 const EvalType& evalType = EvalType::BB,
                 const bool evalOk = true);
 
-    /// Set the true or surrogate blackbox output from a \c string.
+    /// Set the true or model blackbox output from a \c string.
     /**
      \param bbo             The string containg the raw result of the blackbox evaluation -- \b IN.
      \param sBBOutputTypes  The blackbox output types coded as a single string -- \b IN.
-     \param evalType        Blackbox or surrogate evaluation  -- \b IN.
+     \param evalType        Blackbox or model evaluation  -- \b IN.
      \param evalOk          Flag for evaluation status  -- \b IN.
      */
     void setBBO(const std::string &bbo,
-                const std::string &sBBOutputTypes,
+                const std::string &sBBOutputTypes = "",
                 const EvalType& evalType = EvalType::BB,
                 const bool evalOk = true);
 
@@ -243,7 +243,7 @@ public:
     /// Comparison operator used by NM algorithm.
     /**
      \param rhs         Second eval points to compare      -- \b IN.
-     \param evalType    Blackbox or surrogate evaluation  -- \b IN.
+     \param evalType    Blackbox or model evaluation  -- \b IN.
      \param computeType How to compute f and h -- \b IN
      \return        \c true if \c *this dominates x.
      */
@@ -302,7 +302,7 @@ public:
     std::string display(const ArrayOfDouble &pointFormat = ArrayOfDouble(),
                         const int &solFormat = NOMAD::DISPLAY_PRECISION_FULL) const;
 
-    /// Display both true and surrogate evaluations.  Useful for debugging
+    /// Display both true and model evaluations. Useful for debugging
     std::string displayAll(const ComputeType& computeType = ComputeType::STANDARD) const;
 
     /// Function to test if evaluation is required.
@@ -311,7 +311,7 @@ public:
      * (possibly re-evaluate) this point?
 
      \param maxPointEval    The maximum number of point evaluations  -- \b IN.
-     \param evalType        Blackbox or surrogate evaluation  -- \b IN.
+     \param evalType        Blackbox or model evaluation  -- \b IN.
      \return                \c true if evaluation is required and \c false otherwise.
      */
     bool toEval(short maxPointEval, const EvalType& evalType) const;
@@ -325,8 +325,8 @@ public:
         throw Exception(__FILE__,__LINE__,"Error: Calling EvalPoint::isDefined(). Choose ArrayOfDouble::isDefined() or Double::isDefined() instead.");
     }
 
-    // Determine if an evalpoint has a sgte eval.
-    static bool hasSgteEval(const EvalPoint& evalPoint);
+    // Determine if an evalpoint has a model eval.
+    static bool hasModelEval(const EvalPoint& evalPoint);
     // Determine if an evalpoint has a bb (regular) eval.
     static bool hasBbEval(const EvalPoint& evalPoint);
     /// Used for phase one

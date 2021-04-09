@@ -78,8 +78,8 @@ NOMAD::StatsInfo::StatsInfo()
     _frameCenter(),
     _direction(),
     _lap(0),
-    _sgte(0),
-    _totalSgte(0),
+    _modelEval(0),
+    _totalModelEval(0),
     _sol(),
     _threadAlgoNum(0),
     _threadNum(0),
@@ -226,9 +226,9 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     {
         ret = NOMAD::DisplayStatsType::DS_LAP;
     }
-    else if (s == "SGTE")
+    else if (s == "MODEL_EVAL")
     {
-        ret = NOMAD::DisplayStatsType::DS_SGTE;
+        ret = NOMAD::DisplayStatsType::DS_MODEL_EVAL;
     }
     else if (s == "SOL")
     {
@@ -250,9 +250,9 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     {
         ret = NOMAD::DisplayStatsType::DS_SUCCESS_TYPE;
     }
-    else if (s == "TOTAL_SGTE")
+    else if (s == "TOTAL_MODEL_EVAL")
     {
-        ret = NOMAD::DisplayStatsType::DS_TOTAL_SGTE;
+        ret = NOMAD::DisplayStatsType::DS_TOTAL_MODEL_EVAL;
     }
     else
     {
@@ -322,8 +322,8 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "DELTA_F";
         case NOMAD::DisplayStatsType::DS_LAP:
             return "LAP";
-        case NOMAD::DisplayStatsType::DS_SGTE:
-            return "SGTE";
+        case NOMAD::DisplayStatsType::DS_MODEL_EVAL:
+            return "MODEL_EVAL";
         case NOMAD::DisplayStatsType::DS_SOL:
             return "SOL";
         case NOMAD::DisplayStatsType::DS_THREAD_ALGO:
@@ -334,8 +334,8 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "GEN_STEP";
         case NOMAD::DisplayStatsType::DS_SUCCESS_TYPE:
             return "SUCCESS_TYPE";
-        case NOMAD::DisplayStatsType::DS_TOTAL_SGTE:
-            return "TOTAL_SGTE";
+        case NOMAD::DisplayStatsType::DS_TOTAL_MODEL_EVAL:
+            return "TOTAL_MODEL_EVAL";
         case NOMAD::DisplayStatsType::DS_USER:
             return "USER";
         case NOMAD::DisplayStatsType::DS_UNDEFINED:
@@ -509,9 +509,9 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
         {
             out += NOMAD::itos(_lap);
         }
-        else if (NOMAD::DisplayStatsType::DS_SGTE == statsType)
+        else if (NOMAD::DisplayStatsType::DS_MODEL_EVAL == statsType)
         {
-            out += NOMAD::itos(_sgte);
+            out += NOMAD::itos(_modelEval);
         }
         else if (NOMAD::DisplayStatsType::DS_SOL == statsType)
         {
@@ -535,9 +535,9 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
         {
             out += NOMAD::enumStr(_success);
         }
-        else if (NOMAD::DisplayStatsType::DS_TOTAL_SGTE == statsType)
+        else if (NOMAD::DisplayStatsType::DS_TOTAL_MODEL_EVAL == statsType)
         {
-            out += NOMAD::itos(_totalSgte);
+            out += NOMAD::itos(_totalModelEval);
         }
         else if (NOMAD::DisplayStatsType::DS_USER == statsType)
         {

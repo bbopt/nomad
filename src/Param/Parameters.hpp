@@ -147,7 +147,7 @@ protected:
     /* Members */
     /*---------*/
     static ParameterEntries _paramEntries; ///< The set of entries obtained when reading a parameter file.
-    
+
     std::string _typeName; ///< The type of parameters: ex. Problem, Run
 
 
@@ -252,6 +252,9 @@ public:
      \return \c true if we need to call checkAndComply().
      */
     bool toBeChecked() const;
+
+    /// Get the names of all the Attributes for this Parameter instance
+    std::vector<std::string> getAttributeNames() const;
 
     /**
      Return the name of a parameter type. Ex. Problem, Run

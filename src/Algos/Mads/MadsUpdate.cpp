@@ -158,7 +158,7 @@ bool NOMAD::MadsUpdate::runImp()
         // This is the value from the previous MegaIteration. If it
         // was not evaluated, ignore the test.
         // If queue is not cleared between runs, also ignore the test.
-        const bool clearEvalQueue = evc->getEvaluatorControlGlobalParams()->getAttributeValue<bool>("CLEAR_EVAL_QUEUE");
+        const bool clearEvalQueue = evc->getEvaluatorControlGlobalParams()->getAttributeValue<bool>("EVAL_QUEUE_CLEAR");
         const bool megaIterEvaluated = (NOMAD::SuccessType::NOT_EVALUATED != megaIter->getSuccessType());
         if (!clearEvalQueue && megaIterEvaluated && (success != megaIter->getSuccessType()))
         {

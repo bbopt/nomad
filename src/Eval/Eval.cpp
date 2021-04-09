@@ -152,13 +152,11 @@ bool NOMAD::Eval::goodForCacheFile() const
 NOMAD::Double NOMAD::Eval::getF(const NOMAD::ComputeType& computeType) const
 {
     NOMAD::Double f;
+
     switch (computeType)
     {
         case NOMAD::ComputeType::STANDARD:
-            if (_bbOutput.getEvalOk())
-            {
-                f = _bbOutput.getObjective(_bbOutputTypeList);
-            }
+            f = _bbOutput.getObjective(_bbOutputTypeList);
             break;
         case NOMAD::ComputeType::PHASE_ONE:
             f = computeFPhaseOne();
@@ -180,7 +178,6 @@ NOMAD::Double NOMAD::Eval::getF(const NOMAD::ComputeType& computeType) const
 NOMAD::Double NOMAD::Eval::getH(const NOMAD::ComputeType& computeType) const
 {
     NOMAD::Double h = 0.0;
-    const NOMAD::ArrayOfDouble bboArray = _bbOutput.getBBOAsArrayOfDouble();
 
     switch (computeType)
     {

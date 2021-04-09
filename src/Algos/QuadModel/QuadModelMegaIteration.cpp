@@ -58,9 +58,9 @@ void NOMAD::QuadModelMegaIteration::init()
 
 NOMAD::QuadModelMegaIteration::~QuadModelMegaIteration()
 {
-    // Clear sgte info from cache.
+    // Clear model info from cache.
     // Very important so we don't have false info in a later MegaIteration.
-    NOMAD::CacheBase::getInstance()->clearSgte(NOMAD::getThreadNum());
+    NOMAD::CacheBase::getInstance()->clearModelEval(NOMAD::getThreadNum());
 }
 
 
@@ -187,9 +187,9 @@ bool NOMAD::QuadModelMegaIteration::runImp()
 
 void NOMAD::QuadModelMegaIteration::endImp()
 {
-    // Clear sgte info from cache.
+    // Clear model info from cache.
     // Very important so we don't have false info in a later MegaIteration.
-    NOMAD::CacheBase::getInstance()->clearSgte(NOMAD::getThreadNum());
+    NOMAD::CacheBase::getInstance()->clearModelEval(NOMAD::getThreadNum());
     NOMAD::MegaIteration::endImp();
 }
 

@@ -159,7 +159,7 @@ void NOMAD::OutputQueue::initParameters(const std::shared_ptr<NOMAD::DisplayPara
     }
 
     setDisplayDegree(_params->getAttributeValue<int>("DISPLAY_DEGREE"));
-    _maxStepLevel = _params->getAttributeValue<size_t>("MAX_DISPLAY_STEP_LEVEL");
+    _maxStepLevel = _params->getAttributeValue<size_t>("DISPLAY_MAX_STEP_LEVEL");
 
     _objWidth = params->getAttributeValue<size_t>("OBJ_WIDTH");
     _hWidth   = _objWidth;

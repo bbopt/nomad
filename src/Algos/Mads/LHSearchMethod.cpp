@@ -86,28 +86,10 @@ void NOMAD::LHSearchMethod::generateTrialPointsImp()
     auto lowerBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
     auto upperBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
 
-    // Update undefined values of lower and upper bounds to use values based
-    // on DeltaFrameSize.
-    // Based on the code in NOMAD 3, but slightly different.
-    // If we used INF values instead of these, we get huge values for the
-    // generated points. It is not elegant.
     NOMAD::ArrayOfDouble deltaFrameSize = mesh->getDeltaFrameSize();
     NOMAD::Double scaleFactor = sqrt(-log(NOMAD::DEFAULT_EPSILON));
-
-    for (size_t i = 0; i < n; i++)
-    {
-        if (!lowerBound[i].isDefined())
-        {
-            lowerBound[i] = frameCenter[i] - 10.0 * deltaFrameSize[i] * scaleFactor;
-        }
-        if (!upperBound[i].isDefined())
-        {
-            upperBound[i] = frameCenter[i] + 10.0 * deltaFrameSize[i] * scaleFactor;
-        }
-    }
-
-    // Apply Latin Hypercube algorithm
-    NOMAD::LHS lhs(n, p, lowerBound, upperBound);
+    // Apply Latin Hypercube algorithm (provide frameCenter, deltaFrameSize, and scaleFactor for updating bounds)
+    NOMAD::LHS lhs(n, p, lowerBound, upperBound, frameCenter, deltaFrameSize, scaleFactor);
     auto pointVector = lhs.Sample();
 
     // Insert the point. Projection on mesh and snap to bounds is done in SearchMethod

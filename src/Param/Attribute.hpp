@@ -77,6 +77,7 @@ public:
     virtual bool isForAlgoCompatibilityCheck() { return _algoCompatibilityCheck; }
     virtual bool isRestartAttribute() { return _restartAttribute; }
     virtual bool getParamFromUniqueEntry() { return _uniqueEntry; }
+    virtual bool isInternal() { return _internal; }
 
     void setShortInfo(const std::string& s) { _shortInfo = s; }
     void setHelpInfo(const std::string& s) { _helpInfo = s; }
@@ -104,8 +105,11 @@ public:
           _keywords(Keywords),
           _algoCompatibilityCheck(algoCompatibilityCheck),
           _restartAttribute(restartAttribute),
-          _uniqueEntry(uniqueEntry)
-    {}
+          _uniqueEntry(uniqueEntry),
+          _internal(false)
+    { if (Keywords.find("internal") != std::string::npos)
+        _internal=true ;
+    }
 
     Attribute (const std::string& Name, bool algoCompatibilityCheck,
                bool restartAttribute, bool uniqueEntry,
@@ -115,7 +119,8 @@ public:
           _helpInfo(HelpInfo),
           _algoCompatibilityCheck(algoCompatibilityCheck),
           _restartAttribute(restartAttribute),
-          _uniqueEntry(uniqueEntry)
+          _uniqueEntry(uniqueEntry),
+          _internal(false)
     {}
 
     Attribute (const std::string& Name, bool algoCompatibilityCheck,
@@ -124,14 +129,16 @@ public:
           _shortInfo(ShortInfo),
           _algoCompatibilityCheck(algoCompatibilityCheck),
           _restartAttribute(restartAttribute),
-          _uniqueEntry(uniqueEntry)
+          _uniqueEntry(uniqueEntry),
+          _internal(false)
     {}
 
     Attribute(const std::string& Name)
         : _name(Name),
         _algoCompatibilityCheck(false),
         _restartAttribute(false),
-        _uniqueEntry(true)
+        _uniqueEntry(true),
+        _internal(false)
     {}
 
     virtual void display( std::ostream& os , bool flagShortInfo = true ) const
@@ -152,6 +159,7 @@ protected:
     bool        _algoCompatibilityCheck; ///< Flag for parameter that can be used to check if two sets of parameters can produce the same run.
     bool        _restartAttribute; ///< Flag for parameter that can be changed when doing a restart
     bool        _uniqueEntry; ///< Flag for a parameter that cannot appear more than once in a file
+    bool        _internal; ///< Flag for interanl parameter
 };
 
 

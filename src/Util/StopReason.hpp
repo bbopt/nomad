@@ -169,7 +169,7 @@ enum class EvalMainThreadStopType : int
     OPPORTUNISTIC_SUCCESS   ,  ///< Success found and opportunistic strategy is used
     EMPTY_LIST_OF_POINTS    ,  ///< Tried to eval an empty list
     ALL_POINTS_EVALUATED    ,  ///< No more points to evaluate
-    MAX_SGTE_EVAL_REACHED   ,  ///< Max number of surrogate evaluations
+    MAX_MODEL_EVAL_REACHED  ,  ///< Max number of quad or sgtelib model evaluations
     LAST
 };
 

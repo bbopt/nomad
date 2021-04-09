@@ -239,7 +239,7 @@ bool NOMAD::PSDMads::doUpdateMesh() const
     }
 
     bool doUpdate = false;
-    auto coverage = _runParams->getAttributeValue<NOMAD::Double>("PSD_MADS_SUBPROBLEM_PCT_COVERAGE");
+    auto coverage = _runParams->getAttributeValue<NOMAD::Double>("PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE");
     coverage /= 100.0;
 
     int nbRemaining = 0;

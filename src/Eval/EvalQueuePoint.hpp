@@ -69,7 +69,7 @@
 class EvalQueuePoint : public EvalPoint
 {
 private:
-    const EvalType  _evalType;          ///< Must this point be evaluated by BB or by SGTE evaluator
+    const EvalType  _evalType;          ///< Must this point be evaluated by BB or by MODEL evaluator
     SuccessType     _success;           ///< Result of the comparison of evalPoint's eval with barrier
     bool            _relativeSuccess;   ///< Did better than the previous evaluation
 
@@ -89,7 +89,7 @@ public:
     /// Constructor
     /**
      \param evalPoint       The point to eval and its evaluation. It is what goes in the cache.-- \b IN.
-     \param evalType         The type of evaluation (BB, SGTE,...).-- \b IN.
+     \param evalType        The type of evaluation (BB, MODEL,...).-- \b IN.
      */
     explicit EvalQueuePoint(const EvalPoint& evalPoint, const EvalType& evalType)
       : EvalPoint(evalPoint),

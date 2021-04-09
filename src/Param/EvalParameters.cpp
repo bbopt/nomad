@@ -153,17 +153,17 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
         setAttributeValue("BB_OUTPUT_TYPE", bbOType );
     }
 
-    /*------------------------*/
-    /* EVAL_FORMAT (internal) */
-    /*------------------------*/
+    /*---------------------------*/
+    /* BB_EVAL_FORMAT (internal) */
+    /*---------------------------*/
     size_t n = pbParams->getAttributeValue<size_t>("DIMENSION");
-    auto evalFormat = getAttributeValueProtected<NOMAD::ArrayOfDouble>("EVAL_FORMAT",false);
+    auto evalFormat = getAttributeValueProtected<NOMAD::ArrayOfDouble>("BB_EVAL_FORMAT",false);
     if (!evalFormat.isDefined())
     {
         // Default precision is computed based on Epsilon.
         int defaultPrec = static_cast<int>(-log10(NOMAD::Double::getEpsilon())) + 1;
         evalFormat.reset(n, defaultPrec);
-        setAttributeValue("EVAL_FORMAT", evalFormat);
+        setAttributeValue("BB_EVAL_FORMAT", evalFormat);
     }
 
     auto bbInputType = pbParams->getAttributeValue<NOMAD::BBInputTypeList>("BB_INPUT_TYPE");
@@ -177,7 +177,7 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
             evalFormat[i] = -1;
         }
     }
-    setAttributeValue("EVAL_FORMAT", evalFormat);
+    setAttributeValue("BB_EVAL_FORMAT", evalFormat);
 
     _toBeChecked = false;
 

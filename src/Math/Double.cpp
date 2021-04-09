@@ -526,7 +526,8 @@ std::string NOMAD::Double::display(const int prec, const size_t refWidth) const
         // Ex: 447.000774493 -> 447.000774
         // If it is smaller, use the string and complete with space padding.
         // Ex. -1878.99 -> "-1878.99    "
-        if ( NOMAD::nbDecimals(s) >= (size_t)prec)
+        size_t nbDec = NOMAD::nbDecimals(s);
+        if (nbDec >= (size_t)prec)
         {
             oss << std::setprecision(prec) << std::setw(static_cast<int>(width)) << _value;
         }
@@ -540,17 +541,18 @@ std::string NOMAD::Double::display(const int prec, const size_t refWidth) const
             oss << std::setw(static_cast<int>(width)) << s;
         }
 
-        // Replace superfluous 0's and trailing numbers with spaces
-        size_t pos0 = oss.str().find_last_not_of('0') + 1;
-        if (std::string::npos != pos0)
+        // Replace superfluous 0's with spaces
+        size_t pos0 = oss.str().find_last_not_of("0");
+        if (std::string::npos != pos0 && nbDec > 0)
         {
             s = oss.str();
+            if ('.' == s[pos0]) { pos0++; } // Leave an extra '0' after the decimal point
+            pos0++; // Start replacing from first non-0 char
             size_t nbRep = s.size() - pos0;
             std::string sSpaces(nbRep, ' ');
             s.replace(pos0, nbRep, sSpaces);
             oss.str(s);
         }
-
     }
     else if (_defined)
     {

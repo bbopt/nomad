@@ -49,6 +49,7 @@
 #include "../Eval/EvaluatorControl.hpp"
 #include "../Output/OutputQueue.hpp"
 #include "../Output/OutputDirectToFile.hpp"
+#include "../Type/EvalSortType.hpp"
 #include "../Util/AllStopReasons.hpp"
 #include "../Util/Clock.hpp"
 #include <unistd.h> // For usleep
@@ -172,15 +173,15 @@ NOMAD::EvcMainThreadInfo& NOMAD::EvaluatorControl::getMainThreadInfo(const int t
 }
 
 
-size_t NOMAD::EvaluatorControl::getSgteEval(const int mainThreadNum) const
+size_t NOMAD::EvaluatorControl::getModelEval(const int mainThreadNum) const
 {
-    return getMainThreadInfo(mainThreadNum).getSgteEval();
+    return getMainThreadInfo(mainThreadNum).getModelEval();
 }
 
 
-void NOMAD::EvaluatorControl::resetSgteEval(const int mainThreadNum)
+void NOMAD::EvaluatorControl::resetModelEval(const int mainThreadNum)
 {
-    getMainThreadInfo(mainThreadNum).resetSgteEval();
+    getMainThreadInfo(mainThreadNum).resetModelEval();
 }
 
 
@@ -629,7 +630,7 @@ bool NOMAD::EvaluatorControl::popBlock(NOMAD::BlockForEval &block)
     bool success = false;
     bool popWorks = true;
     size_t bbBlockSize = NOMAD::INF_SIZE_T;
-    size_t sgteBlockSize = NOMAD::INF_SIZE_T;
+    size_t modelBlockSize = NOMAD::INF_SIZE_T;
     size_t blockSize = 1;
     bool gotBlockSize = false;
 
@@ -641,7 +642,7 @@ bool NOMAD::EvaluatorControl::popBlock(NOMAD::BlockForEval &block)
         try
         {
             bbBlockSize = _evalContGlobalParams->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE");
-            sgteBlockSize = _evalContGlobalParams->getAttributeValue<size_t>("SGTE_MAX_BLOCK_SIZE");
+            modelBlockSize = _evalContGlobalParams->getAttributeValue<size_t>("MODEL_MAX_BLOCK_SIZE");
             gotBlockSize = true;
         }
         catch (NOMAD::ParameterToBeChecked &e)
@@ -684,8 +685,8 @@ bool NOMAD::EvaluatorControl::popBlock(NOMAD::BlockForEval &block)
                     case NOMAD::EvalType::BB:
                         blockSize = bbBlockSize;
                         break;
-                    case NOMAD::EvalType::SGTE:
-                        blockSize = sgteBlockSize;
+                    case NOMAD::EvalType::MODEL:
+                        blockSize = modelBlockSize;
                         break;
                     default:
                         std::cerr << "EvaluatorControl::popBlock: Unknown eval type " << blockEvalType << std::endl;
@@ -710,16 +711,17 @@ void NOMAD::EvaluatorControl::sort()
     const int mainThreadNum = NOMAD::getThreadNum();
 
     std::shared_ptr<NOMAD::ComparePriorityMethod> compMethod = nullptr;
+    auto evalSortType =  _evalContGlobalParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT");
     // If there is an user-defined sort method, use it.
     if (nullptr != _userCompMethod)
     {
         compMethod = _userCompMethod;
     }
-    else if (_evalContGlobalParams->getAttributeValue<bool>("RANDOM_EVAL_SORT"))
+    else if (NOMAD::EvalSortType::RANDOM == evalSortType)
     {
         compMethod = std::make_shared<NOMAD::RandomComp>(getQueueSize(mainThreadNum));
     }
-    else
+    else if (NOMAD::EvalSortType::DIR_LAST_SUCCESS == evalSortType)
     {
         // Default: Use last successful directions.
         // Fill vector for argument to OrderByDirection.
@@ -732,13 +734,12 @@ void NOMAD::EvaluatorControl::sort()
         }
         compMethod = std::make_shared<NOMAD::OrderByDirection>(lastSuccessfulFeasDirs, lastSuccessfulInfDirs);
     }
-
-    if (nullptr == compMethod)
+    else if (NOMAD::EvalSortType::LEXICOGRAPHICAL == evalSortType)
     {
-        // Do not sort.
-        std::cerr << "Warning: ComparePriorityMethod not set" << std::endl;
+        // Points are already in lexicographical order.
     }
-    else
+
+    if (nullptr != compMethod)
     {
         NOMAD::ComparePriority comp(compMethod);
 
@@ -839,7 +840,7 @@ size_t NOMAD::EvaluatorControl::clearQueue(const int mainThreadNum, const bool s
 
 
 // Evaluate all points in the queue, or stop under some conditions.
-// If strategy is opportunistic (parameter OPPORTUNISTIC_EVAL), stop
+// If strategy is opportunistic (parameter EVAL_OPPORTUNISTIC), stop
 // as soon as a successful point is found, and flush the queue.
 //
 // Points must already be in the cache.
@@ -1012,7 +1013,7 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
     }   // End of while loop: Exit for this main thread.
         // Other threads keep on looping.
 
-    const bool clearEvalQueue = _evalContGlobalParams->getAttributeValue<bool>("CLEAR_EVAL_QUEUE");
+    const bool clearEvalQueue = _evalContGlobalParams->getAttributeValue<bool>("EVAL_QUEUE_CLEAR");
 
     if (inMainThread)
     {
@@ -1169,7 +1170,7 @@ bool NOMAD::EvaluatorControl::stopMainEval(const int mainThreadNum) const
 // Eval at most a total maxBbEval, maxEval, or maxBlockEval points in the queue.
 // If this condition is true, we assume that it will remain true for the
 // rest of the optimization.
-// If the condition is true temporary, for example lap or sgte evals,
+// If the condition is true temporary, for example lap or model evals,
 // use stopMainEval().
 bool NOMAD::EvaluatorControl::reachedMaxEval() const
 {
@@ -1243,12 +1244,12 @@ bool NOMAD::EvaluatorControl::reachedMaxEval() const
 }
 
 
-// Have we reached max eval for a sub step: Number of laps, number of Sgte evals?
+// Have we reached max eval for a sub step: Number of laps, number of Model evals?
 bool NOMAD::EvaluatorControl::reachedMaxStepEval(const int mainThreadNum) const
 {
     bool ret = false;
 
-    if (   getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED)
+    if (   getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED)
         || getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED)
         || getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED))
     {
@@ -1256,18 +1257,15 @@ bool NOMAD::EvaluatorControl::reachedMaxStepEval(const int mainThreadNum) const
         return true;
     }
 
-    // Note: Default for NOMAD 3 is 10000. Default for NOMAD 4 is 100.
-    // Look if/how we can increment the number of evaluations without
-    // increasing the time too much.
-    const size_t maxSgteEval = _evalContGlobalParams->getAttributeValue<size_t>("MAX_SGTE_EVAL");
+    const size_t maxModelEval = _evalContGlobalParams->getAttributeValue<size_t>("MODEL_MAX_EVAL");
     const size_t maxLapBbEval = getMainThreadInfo(mainThreadNum).getLapMaxBbEval();
     const size_t maxBbEvalInSub = getMaxBbEvalInSubproblem(mainThreadNum);
     std::string s = "Reached sub step stop criterion: ";
-    if (maxSgteEval < NOMAD::INF_SIZE_T && getSgteEval(mainThreadNum) >= maxSgteEval)
+    if (maxModelEval < NOMAD::INF_SIZE_T && getModelEval(mainThreadNum) >= maxModelEval)
     {
-        // Reached maxSgteEval, max number of eval in Sgte context.
-        getMainThreadInfo(mainThreadNum).setStopReason(NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED);
-        s += getStopReasonAsString(mainThreadNum) + " " + NOMAD::itos(getSgteEval(mainThreadNum));
+        // Reached maxModelEval, max number of eval in a Quad or Sgtelib model context.
+        getMainThreadInfo(mainThreadNum).setStopReason(NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED);
+        s += getStopReasonAsString(mainThreadNum) + " " + NOMAD::itos(getModelEval(mainThreadNum));
         ret = true;
     }
     else if (maxLapBbEval < NOMAD::INF_SIZE_T && getLapBbEval(mainThreadNum) >= maxLapBbEval)
@@ -1344,7 +1342,7 @@ void NOMAD::EvaluatorControl::addDirectToFileInfo(NOMAD::EvalQueuePointPtr evalQ
 {
     OUTPUT_DIRECTTOFILE_START
 
-    // SGTE optimizations generate a lot of output. Do not write them into file.
+    // MODEL optimizations generate a lot of output. Do not write them into file.
     // Only show BB optimizations.
     if (NOMAD::EvalType::BB != evalQueuePoint->getEvalType())
     {
@@ -1372,7 +1370,7 @@ void NOMAD::EvaluatorControl::addStatsInfo(const NOMAD::BlockForEval& block) con
     for (auto it = block.begin(); it < block.end(); it++)
     {
         NOMAD::EvalQueuePointPtr evalQueuePoint = (*it);
-        // SGTE optimizations generate a lot of stats output. Do not show them.
+        // MODEL optimizations generate a lot of stats output. Do not show them.
         // Only show BB optimizations.
         if (NOMAD::EvalType::BB != evalQueuePoint->getEvalType())
         {
@@ -1402,12 +1400,12 @@ void NOMAD::EvaluatorControl::addStatsInfo(const NOMAD::BlockForEval& block) con
         stats->setFeasBBE(_feasBBEval);
         stats->setInfBBE(_infBBEval);
         stats->setLap(getLapBbEval(mainThreadNum));
-        stats->setSgte(getSgteEval(mainThreadNum));
-        stats->setTotalSgte(_totalSgteEval);
+        stats->setModelEval(getModelEval(mainThreadNum));
+        stats->setTotalModelEval(_totalModelEval);
         stats->setBlkEva(_blockEval);
         stats->setBlkSize(block.size());
         stats->setBBO(evalQueuePoint->getBBO(NOMAD::EvalType::BB));
-        stats->setEval(_nbEvalSentToEvaluator);
+        stats->setEval(getNbEval());
         stats->setNbRelativeSuccess(_nbRelativeSuccess);
         stats->setPhaseOneSuccess(_nbPhaseOneSuccess);
         stats->setCacheHits(NOMAD::CacheBase::getNbCacheHits());
@@ -1668,16 +1666,29 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
         NOMAD::EvalPointPtr evalPoint = block[index];
         const int mainThreadNum = evalPoint->getThreadAlgo();
         NOMAD::ComputeType computeType = getComputeType(mainThreadNum);
+        auto eval = evalPoint->getEval(evalType);
 
-        // Adjust EvalOk if needed
+        // Adjust bbOutputType if needed
+        if (   evalOk[index]
+            && nullptr != eval
+            && eval->getBBOutputTypeList().empty())
+        {
+            auto bbOutputTypeList = evaluator.getEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
+            if (!bbOutputTypeList.empty())
+            {
+                eval->setBBOutputTypeList(bbOutputTypeList);
+            }
+        }
+
+        // Set EvalOk to false if f or h is not defined
         if (evalOk[index]
-            && (nullptr != evalPoint->getEval(evalType))
-            && !evalPoint->getEval(evalType)->getBBOutputTypeList().empty()
+            && (nullptr != eval)
             && (   !evalPoint->getF(evalType, computeType).isDefined()
                 || !evalPoint->getH(evalType, computeType).isDefined()))
         {
             std::string modifMsg = "Warning: EvaluatorControl: Point ";
-            modifMsg += evalPoint->display() + ": Eval ok but ";
+            auto evalFormat = getEvalParams()->getAttributeValue<NOMAD::ArrayOfDouble>("BB_EVAL_FORMAT");
+            modifMsg += evalPoint->display(evalFormat) + ": Eval ok but ";
             modifMsg += (!evalPoint->getF(evalType, computeType).isDefined()) ? "f not defined" : "h not defined";
             modifMsg += ". Setting evalOk to false.";
             OUTPUT_INFO_START
@@ -1689,7 +1700,7 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
             evalPoint->setEvalStatus(NOMAD::EvalStatusType::EVAL_FAILED, evalType);
         }
 
-        if (evalOk[index] && nullptr == evalPoint->getEval(evalType))
+        if (evalOk[index] && nullptr == eval)
         {
             // Error: evalOk is true, but Eval is NULL.
             std::string err = "EvaluatorControl: Eval Single Point: no Eval on EvalPoint that was just evaluated. " + evalPoint->display();
@@ -1697,11 +1708,11 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
         }
 
         // Update all counters
-        // Note: _bbEval, and EvcMainThreadInfo members _lapBbEval, _sgteEval, _subBbEval, are atomic.
-        if (NOMAD::EvalType::SGTE == evalType)
+        // Note: _bbEval, and EvcMainThreadInfo members _lapBbEval, _modelEval, _subBbEval, are atomic.
+        if (NOMAD::EvalType::MODEL == evalType)
         {
-            getMainThreadInfo(mainThreadNum).incSgteEval(1);
-            _totalSgteEval++;
+            getMainThreadInfo(mainThreadNum).incModelEval(1);
+            _totalModelEval++;
         }
         else
         {
@@ -1856,7 +1867,7 @@ void NOMAD::EvaluatorControl::updateEvalStatusAfterEval(NOMAD::EvalPoint &evalPo
     else if (evalStatus == NOMAD::EvalStatusType::EVAL_WAIT)
     {
         // Wait for evaluation to be done.
-        // Note: if USE_CACHE is false, we should not be waiting for evaluation.
+        // Note: if EVAL_USE_CACHE is false, we should not be waiting for evaluation.
         // Re-evaluation is permitted.
         NOMAD::EvalPoint foundEvalPoint;
         NOMAD::EvalStatusType foundEvalStatus = NOMAD::EvalStatusType::EVAL_NOT_STARTED;

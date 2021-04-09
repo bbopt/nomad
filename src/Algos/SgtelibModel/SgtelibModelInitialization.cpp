@@ -191,7 +191,7 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
         }
         NOMAD::EvalPoint evalPoint_x0(x0);
         cacheInterface.find(x0, evalPoint_x0, NOMAD::EvalType::BB);
-        // To evaluate X0, use blackbox, not sgte.
+        // To evaluate X0, use blackbox, not sgtelib model.
         if (evalPoint_x0.isEvalOk(NOMAD::EvalType::BB))
         {
             // evalOk is true if at least one evaluation is Ok
@@ -214,8 +214,8 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     }
     else
     {
-        auto sgteStopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
-        sgteStopReason->set(NOMAD::ModelStopType::X0_FAIL);
+        auto sgtelibModelStopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+        sgtelibModelStopReason->set(NOMAD::ModelStopType::X0_FAIL);
     }
 
     NOMAD::OutputQueue::Flush();

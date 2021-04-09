@@ -77,7 +77,7 @@ public:
      * hMax will be updated during optimization.
      \param hMax            The max of h to keep a point in the barrier -- \b IN.
      \param fixedVariable   The fixed variables have a fixed value -- \b IN.
-     \param evalType        Type of evaluation (BB or SGTE) -- \b IN.
+     \param evalType        Type of evaluation (BB or MODEL) -- \b IN.
      \param evalPointList   Additional points to consider in building the barrier -- \b IN.
      */
     Barrier(const Double& hMax = INF,
@@ -129,7 +129,7 @@ public:
     /**
      * If the point is feasible it is added, if not an exception is triggered.
      \param xFeas       The eval point to add -- \b IN.
-     \param evalType    Which eval (Blackbox or Surrogate) of the EvalPoint to use to verify feasibility  -- \b IN.
+     \param evalType    Which eval (Blackbox or Model) of the EvalPoint to use to verify feasibility  -- \b IN.
      */
     void addXFeas(const EvalPoint &xFeas, const EvalType& evalType, const ComputeType& computeType = ComputeType::STANDARD);
 
@@ -219,9 +219,9 @@ private:
      * \brief Helper function for constructor.
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
-     \param fixedVariable  The fixed variables have a fixed value     -- \b IN.
-     \param evalType        Which eval (Blackbox or Surrogate) to use to verify feasibility  -- \b IN.
-     \param evalPointList Additional points to consider to construct barrier. -- \b IN.
+     \param fixedVariable   The fixed variables have a fixed value     -- \b IN.
+     \param evalType        Which eval (Blackbox or Model) to use to verify feasibility  -- \b IN.
+     \param evalPointList   Additional points to consider to construct barrier. -- \b IN.
      */
     void init(const Point& fixedVariable,
               const EvalType& evalType,

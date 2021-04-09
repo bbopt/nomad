@@ -77,7 +77,7 @@ public:
 
     /**
      - Generate new points to evaluate. Use all enabled search methods.
-     - To be used only when parameter GENERATE_ALL_POINTS_BEFORE_EVAL is true.
+     - To be used only when parameter MEGA_SEARCH_POLL is true.
      */
     void generateTrialPoints() override;
 
@@ -93,7 +93,7 @@ private:
 
     /// Implementation of the start task.
     /**
-     Just perform a sanity check on GENERATE_ALL_POINTS_BEFORE_EVAL that must be false.
+     Just perform a sanity check on MEGA_SEARCH_POLL that must be false.
      */
     virtual void startImp() override;
 

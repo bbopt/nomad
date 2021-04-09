@@ -62,9 +62,9 @@ void NOMAD::SgtelibModelMegaIteration::init()
 
 NOMAD::SgtelibModelMegaIteration::~SgtelibModelMegaIteration()
 {
-    // Clear sgte info from cache.
+    // Clear model info from cache.
     // Very important so we don't have false info in a later MegaIteration.
-    NOMAD::CacheBase::getInstance()->clearSgte(NOMAD::getThreadNum());
+    NOMAD::CacheBase::getInstance()->clearModelEval(NOMAD::getThreadNum());
 }
 
 
@@ -75,8 +75,8 @@ void NOMAD::SgtelibModelMegaIteration::startImp()
 
     if (0 == getTrialPointsCount())
     {
-        auto sgteStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
-        sgteStopReasons->set(NOMAD::ModelStopType::NOT_ENOUGH_POINTS);
+        auto sgtelibModelStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+        sgtelibModelStopReasons->set(NOMAD::ModelStopType::NOT_ENOUGH_POINTS);
     }
 
 }
@@ -104,8 +104,8 @@ bool NOMAD::SgtelibModelMegaIteration::runImp()
     if (!foundBetter)
     {
         // If no better points found, we should terminate, otherwise we will spin.
-        auto sgteStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
-        sgteStopReasons->set(NOMAD::ModelStopType::NO_NEW_POINTS_FOUND);
+        auto sgtelibModelStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+        sgtelibModelStopReasons->set(NOMAD::ModelStopType::NO_NEW_POINTS_FOUND);
     }
 
 
@@ -117,9 +117,9 @@ void NOMAD::SgtelibModelMegaIteration::endImp()
 {
     postProcessing();
 
-    // Clear sgte info from cache.
+    // Clear model info from cache.
     // Very important so we don't have false info in a later MegaIteration.
-    NOMAD::CacheBase::getInstance()->clearSgte(NOMAD::getThreadNum());
+    NOMAD::CacheBase::getInstance()->clearModelEval(NOMAD::getThreadNum());
     NOMAD::MegaIteration::endImp();
 }
 
@@ -131,7 +131,7 @@ void NOMAD::SgtelibModelMegaIteration::generateIterations()
     size_t k = _k;  // Main iteration counter
     // Note: NOMAD 3 uses SGTELIB_MODEL_TRIALS only.
     size_t nbIter = _runParams->getAttributeValue<size_t>("MAX_ITERATION_PER_MEGAITERATION");
-    nbIter = std::min(nbIter, _runParams->getAttributeValue<size_t>("SGTELIB_MODEL_TRIALS"));
+    nbIter = std::min(nbIter, _runParams->getAttributeValue<size_t>("SGTELIB_MODEL_SEARCH_TRIALS"));
 
     for (size_t iterCount = 0; iterCount < nbIter; iterCount++)
     {
@@ -217,8 +217,8 @@ void NOMAD::SgtelibModelMegaIteration::runIterationsAndSetTrialPoints()
         // If this iteration failed to generate new points, end it here.
         if (0 == nbInserted)
         {
-            auto sgteStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
-            sgteStopReasons->set(NOMAD::ModelStopType::NO_NEW_POINTS_FOUND);
+            auto sgtelibModelStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+            sgtelibModelStopReasons->set(NOMAD::ModelStopType::NO_NEW_POINTS_FOUND);
         }
 
         // Update MegaIteration's stop reason
@@ -252,7 +252,7 @@ void NOMAD::SgtelibModelMegaIteration::generateTrialPoints()
 void NOMAD::SgtelibModelMegaIteration::filterCache()
 {
     // Select additonal candidates out of the cache
-    int nbCandidates = _runParams->getAttributeValue<int>("SGTELIB_MODEL_CANDIDATES_NB");
+    int nbCandidates = _runParams->getAttributeValue<int>("SGTELIB_MODEL_SEARCH_CANDIDATES_NB");
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
 
     if (nbCandidates < 0)

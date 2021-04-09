@@ -55,7 +55,7 @@
 /// Manager class for QuadModelAlgo iterations.
 /**
  Steps:
- - Start: generate points, using sgte model
+ - Start: generate points, using quad model
  - Run: Evaluate points
  - End: Post-processing
 */

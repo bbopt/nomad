@@ -45,6 +45,7 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
+#include "../Type/EvalSortType.hpp"
 
 
 /*----------------------------------------*/
@@ -146,14 +147,73 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
         }
     }
 
-    auto sgteBlockSize = getAttributeValueProtected<size_t>("SGTE_MAX_BLOCK_SIZE", false);
-    if (0 == sgteBlockSize)
+    // Set value of MODEL_MAX_EVAL (internal) to QUAD_MODEL_MAX_EVAL or SGTELIB_MODEL_MAX_EVAL.
+    auto quadModelMaxEval = getAttributeValueProtected<size_t>("QUAD_MODEL_MAX_EVAL", false);
+    auto sgtelibModelMaxEval = getAttributeValueProtected<size_t>("SGTELIB_MODEL_MAX_EVAL", false);
+    bool quadModelChanged = isSetByUser("QUAD_MODEL_MAX_EVAL") || !isAttributeDefaultValue<size_t>("QUAD_MODEL_MAX_EVAL");
+    bool sgtelibModelChanged = isSetByUser("SGTELIB_MODEL_MAX_EVAL") || !isAttributeDefaultValue<size_t>("SGTELIB_MODEL_MAX_EVAL");
+    auto modelMaxEval = quadModelMaxEval;
+    if (quadModelChanged && sgtelibModelChanged && quadModelMaxEval != sgtelibModelMaxEval)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "Parameter SGTE_MAX_BLOCK_SIZE must be positive");
+        // See issue #505
+        std::cerr << "Warning: Currently not supported: QUAD_MODEL_MAX_EVAL (";
+        std::cerr << quadModelMaxEval << ") different than SGTELIB_MODEL_MAX_EVAL (";
+        std::cerr << sgtelibModelMaxEval << "). Using only the value of QUAD_MODEL_MAX_EVAL." << std::endl;
+        setAttributeValue("MODEL_MAX_EVAL", quadModelMaxEval);
     }
-    else if (sgteBlockSize > getAttributeValueProtected<size_t>("MAX_SGTE_EVAL", false))
+    else if (quadModelChanged)
     {
-        setAttributeValue("SGTE_MAX_BLOCK_SIZE", getAttributeValueProtected<size_t>("MAX_SGTE_EVAL", false));
+        setAttributeValue("MODEL_MAX_EVAL", quadModelMaxEval);
+    }
+    else
+    {
+        setAttributeValue("MODEL_MAX_EVAL", sgtelibModelMaxEval);
+        modelMaxEval = sgtelibModelMaxEval;
+    }
+
+    // Set value of MODEL_MAX_BLOCK_SIZE (internal) to QUAD_MODEL_MAX_BLOCK_SIZE or SGTELIB_MODEL_MAX_BLOCK_SIZE.
+    auto quadModelBlockSize = getAttributeValueProtected<size_t>("QUAD_MODEL_MAX_BLOCK_SIZE", false);
+    auto sgtelibModelBlockSize = getAttributeValueProtected<size_t>("SGTELIB_MODEL_MAX_BLOCK_SIZE", false);
+    quadModelChanged = isSetByUser("QUAD_MODEL_MAX_BLOCK_SIZE") || !isAttributeDefaultValue<size_t>("QUAD_MODEL_MAX_BLOCK_SIZE");
+    sgtelibModelChanged = isSetByUser("SGTELIB_MODEL_MAX_BLOCK_SIZE") || !isAttributeDefaultValue<size_t>("SGTELIB_MODEL_MAX_BLOCK_SIZE");
+
+    if (0 == quadModelBlockSize)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Parameter QUAD_MODEL_MAX_BLOCK_SIZE must be positive");
+    }
+    else if (quadModelBlockSize > modelMaxEval)
+    {
+        setAttributeValue("QUAD_MODEL_MAX_BLOCK_SIZE", modelMaxEval);
+        quadModelBlockSize = modelMaxEval;
+        quadModelChanged = !isAttributeDefaultValue<size_t>("QUAD_MODEL_MAX_BLOCK_SIZE");
+    }
+
+    if (0 == sgtelibModelBlockSize)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Parameter SGTELIB_MODEL_MAX_BLOCK_SIZE must be positive");
+    }
+    else if (sgtelibModelBlockSize > modelMaxEval)
+    {
+        setAttributeValue("SGTELIB_MODEL_MAX_BLOCK_SIZE", modelMaxEval);
+        sgtelibModelBlockSize = modelMaxEval;
+        sgtelibModelChanged = !isAttributeDefaultValue<size_t>("SGTELIB_MODEL_MAX_BLOCK_SIZE");
+    }
+
+    if (quadModelChanged && sgtelibModelChanged && quadModelBlockSize != sgtelibModelBlockSize)
+    {
+        // See issue #505
+        std::cerr << "Warning: Currently not supported: QUAD_MODEL_MAX_BLOCK_SIZE (";
+        std::cerr << quadModelBlockSize << ") different than SGTELIB_MODEL_MAX_BLOCK_SIZE (";
+        std::cerr << sgtelibModelBlockSize << "). Using only the value of QUAD_MODEL_MAX_BLOCK_SIZE." << std::endl;
+        setAttributeValue("MODEL_MAX_BLOCK_SIZE", quadModelBlockSize);
+    }
+    else if (quadModelChanged)
+    {
+        setAttributeValue("MODEL_MAX_BLOCK_SIZE", quadModelBlockSize);
+    }
+    else
+    {
+        setAttributeValue("MODEL_MAX_BLOCK_SIZE", sgtelibModelBlockSize);
     }
 
     _toBeChecked = false;

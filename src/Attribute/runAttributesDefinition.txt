@@ -31,29 +31,6 @@
 #####         values may be assigned to this parameter.
 #####
 ###############################################################################
-SEED
-int
-0
-\( The seed for the pseudo-random number generator \)
-\(
-
-. Random seed
-
-. Argument: one nonnegative integer (max UINT32_MAX), or -1, or the string 'DIFF'
-
-. The default value is used for each run if the parameter is not provided.
-
-. If '-1' or 'DIFF' is entered the seed is different for each run (PID is used).
-
-. The seed is used in the output file names
-
-. Example: SEED 123456
-
-\)
-\( advanced seed(s) random number run \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
 ADD_SEED_TO_FILE_NAMES
 bool
 true
@@ -71,23 +48,150 @@ true
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ################################################################################
-NB_THREADS_OPENMP
-int
--1
-\( The number of threads when OpenMP parallel evaluations
-are enabled \)
+ANISOTROPIC_MESH
+bool
+true
+\( MADS uses anisotropic mesh for generating directions \)
 \(
 
-. Set the number of threads to be used by OpenMP.
+. MADS uses anisotropic mesh for generating directions
 
-. Argument: One positive integer, or -1. A value of -1 means OpenMP decides
-  by itself.
+. Argument: one boolean ('yes' or 'no')
 
-. Example: NB_THREADS_OPENMP 8
+. Example: ANISOTROPIC_MESH no
 
 \)
-\( advanced thread(s) openmp parallel eval(s) evaluation(s) \)
+\( advanced mads direction(s) anisotropic anisotropy aniso \)
 ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+ANISOTROPY_FACTOR
+NOMAD::Double
+0.1
+\( MADS anisotropy factor for mesh size change \)
+\(
+
+. Set anisotropy_factor for mesh relative coarsening/refining if the anisotropic
+  mesh is enabled.
+
+. Argument: one positive real
+
+. Example: ANISOTROPY_FACTOR 0.05
+
+\)
+\( advanced mads direction(s) anisotropic anisotropy aniso \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+DIRECTION_TYPE
+NOMAD::DirectionType
+ORTHO 2N
+\( Type of direction for Mads poll \)
+\(
+. Type of direction used by Mads poll to generate trial points. In NOMAD 4, this
+  is can be set only once (UNIQUE_ENTRY true) but in Nomad 3 several direction
+  types can be combined. See issue #397.
+
+. Arguments: one direction type in {ORTHO 2N, N+1 UNI, SINGLE, DOUBLE}
+
+
+. Example:
+    . DIRECTION_TYPE N+1 UNI
+
+\)
+\( advanced poll direction ortho \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+DIRECTION_TYPE_SECONDARY_POLL
+NOMAD::DirectionType
+DOUBLE
+\( Direction type for Mads secondary poll \)
+\(
+. Direction type for the secondary poll
+
+. Arguments: same as DIRECTION_TYPE
+
+. If DIRECTION_TYPE is ORTHO 2N, then default DIRECTION_TYPE_SECONDARY_POLL is DOUBLE.
+
+. If DIRECTION_TYPE is not ORTHO 2N, then default DIRECTION_TYPE_SECONDARY_POLL is SINGLE.
+
+. Example: DIRECTION_TYPE_SECONDARY_POLL ORTHO 2N
+
+. See also: RHO
+\)
+\( advanced poll direction primary secondary \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+FRAME_CENTER_USE_CACHE
+bool
+false
+\( Find best points in the cache and use them as frame centers \)
+\(
+. When this parameter is true, when the Update step occurs, the points with
+  the best values are found in the Cache. Multiple points may have the same
+  value. These points are all used as frame centers for the next Search and
+  Poll steps.
+
+. When this parameter is false, the frame centers (one feasible and one
+  infeasible) are kept from previous iterations. This is the classical
+  MADS algorithm.
+
+\)
+\( advanced \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+H_MAX_0
+NOMAD::Double
+NOMAD::INF
+\( Initial value of hMax. \)
+\(
+. Initial value of hMax. Used for progressive barrier (PB) constraints.
+
+. Argument: one positive real.
+
+. Points x such that h(x) > hMax are rejected. h measures the feasibility, or
+  how much the constraints are violated.
+
+. Example: H_MAX_0 100.0
+
+\)
+\( advanced hmax h_max constraint(s) pb feasibility progressive barrier \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+HOT_RESTART_FILE
+std::string
+hotrestart.txt
+\( The name of the hot restart file \)
+\(
+
+. Name of the file where the information about hot restart is kept.
+
+
+\)
+\( advanced hot restart file(s) file interrupt \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################
+HOT_RESTART_ON_USER_INTERRUPT
+bool
+false
+\( Flag to perform a hot restart on user interrupt \)
+\(
+
+. If true, when NOMAD runs and the user does an interruption (CTRL+C),
+  then the parameters can be modified. Upon pressing CTRL+D, the resolution
+  continues where it was stopped, using the modified parameters.
+
+. If false, when NOMAD runs and the user does an interruption (CTRL+C),
+  the resolution ends.
+
+\)
+\( advanced hot restart file(s) interrupt \)
+ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ################################################################################
 HOT_RESTART_READ_FILES
@@ -126,36 +230,99 @@ false
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ################################################################################
-HOT_RESTART_ON_USER_INTERRUPT
+MAX_ITERATIONS
+size_t
+INF
+\( The maximum number of iterations of the MADS algorithm \)
+\(
+
+. Maximum number of iterations
+
+. Argument: one positive integer. INF means there is no maximum.
+
+. Example: MAX_ITERATIONS 1000
+
+\)
+\( advanced max maximum iteration(s) stop(s) stopping criterion(s) \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MAX_ITERATION_PER_MEGAITERATION
+size_t
+INF
+\( Maximum number of Iterations to generate for each MegaIteration. \)
+\(
+. Maximum number of Iterations to generate for each MegaIteration.
+
+. Argument: one positive integer. INF means there is no maximum.
+
+. If there are few points in the barrier, this parameter has no effect.
+
+. If FRAME_CENTER_USE_CACHE is false, this parameter has no effect.
+
+. If there are many points in the barrier, this parameter limits
+  the number of iterations generated.
+  A mixture of feasible and infeasible points of the barrier is used to
+  generate iterations.
+  Each iteration uses a point of the barrier as frame center.
+
+\)
+\( advanced \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MAX_TIME
+size_t
+INF
+\( Maximum wall-clock time in seconds \)
+\(
+. Argument: one positive integer. INF means there is no maximum.
+
+. Example: MAX_TIME 3600 # one hour max
+
+\)
+\( basic clock stop time \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+################################################################################
+MEGA_SEARCH_POLL
 bool
 false
-\( Flag to perform a hot restart on user interrupt \)
+\( Evaluate points generated from Search and Poll steps all at once \)
 \(
+. If true, generate all points from Search and Poll steps, and then
+  start evaluation. This method is preferred when multiple processes
+  are available in parallel to evaluate points. This way, more processes
+  will work on evaluating points simultaneously.
 
-. If true, when NOMAD runs and the user does an interruption (CTRL+C),
-  then the parameters can be modified. Upon pressing CTRL+D, the resolution
-  continues where it was stopped, using the modified parameters.
-
-. If false, when NOMAD runs and the user does an interruption (CTRL+C),
-  the resolution ends.
+. If false, generate points from Search, evaluate them, and then continue
+  to Poll, or to next Search. This is the classic way of evaluation.
+  If multiple processes are available for evaluation, and the Search step
+  generated a single point, only that point is evaluated while the other
+  processes do nothing.
 
 \)
-\( advanced hot restart file(s) interrupt \)
-ALGO_COMPATIBILITY_CHECK no
-RESTART_ATTRIBUTE no
+\( advanced \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
 ################################################################################
-HOT_RESTART_FILE
-std::string
-hotrestart.txt
-\( The name of the hot restart file \)
+NB_THREADS_OPENMP
+int
+-1
+\( The number of threads when OpenMP parallel evaluations
+are enabled \)
 \(
 
-. Name of the file where the information about hot restart is kept.
+. Set the number of threads to be used by OpenMP.
 
+. Argument: One positive integer, or -1. A value of -1 means OpenMP decides
+  by itself.
+
+. Example: NB_THREADS_OPENMP 8
 
 \)
-\( advanced hot restart file(s) file interrupt \)
-ALGO_COMPATIBILITY_CHECK no
+\( advanced thread(s) openmp parallel eval(s) evaluation(s) \)
+ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################
 REJECT_UNKNOWN_PARAMETERS
@@ -174,445 +341,45 @@ false
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ################################################################################
-LH_SEARCH
-NOMAD::LHSearchType
--
-\( Latin Hypercube Sampling Search method \)
+RHO
+NOMAD::Double
+0.1
+\( Rho parameter of the progressive barrier \)
 \(
+. Used to choose if the primary frame center is the feasible or infeasible
+  incumbent.
 
-. Latin-Hypercube sampling (search)
+. Argument: real
 
-. Arguments: two size_t p0 and pi
+. If the value is negative, both feasible and infeasible incumbents are
+  treated as primary poll centers.
 
-. p0: number of initial LH search points
-
-. pi: LH search points at each iteration
-
-. The search can be opportunistic or not
-  (parameter OPPORTUNISTIC_EVAL)
-
-. Example: LH_SEARCH 100 0
-
+. Example: RHO 0.5
 \)
-\( basic search latin hypercube sampling opportunistic_lh \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-LH_EVAL
-size_t
-0
-\( Latin Hypercube Sampling of points (no optimization) \)
-\(
-
-. Latin-Hypercube sampling (evaluations)
-
-. Argument: A positive integer p < INF
-
-. p: number of LH points
-
-. All points will be evaluated (no opportunism). This options will deactivate
-  any optimization strategy.
-
-. The LH sampling requires to have both lower and upper bounds defined.
-
-. Example: LH_EVAL 100
-
-\)
-\( basic latin hypercube sampling \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-SGTELIB_MODEL_EVAL
-bool
-0
-\( Sgtelib Model Sampling of points \)
-\(
-
-. Sgtelib Model sampling
-
-. Argument: bool
-
-. Best points are taken from the cache
-
-. A model is computed
-
-. The most promising points according to that model are evaluated
-
-. No opportunism
-
-. This option deactivates other optimization strategies.
-
-. Example: SGTELIB_MODEL_EVAL true
-
-\)
-\( advanced sgtelib model sampling \)
+\( advanced primary secondary \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################
-H_MAX_0
-NOMAD::Double
-NOMAD::INF
-\( Initial value of hMax. \)
-\(
-. Initial value of hMax. Used for progressive barrier (PB) constraints.
-
-. Argument: one positive real.
-
-. Points x such that h(x) > hMax are rejected. h measures the feasibility, or
-  how much the constraints are violated.
-
-. Example: H_MAX_0 100.0
-
-\)
-\( advanced hmax h_max constraint(s) pb feasibility progressive barrier \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SGTELIB_SEARCH
-bool
-false
-\( Model search using Sgtelib \)
-\(
-
-. MADS model search, using Bastien Talgorn's Sgtelib
-
-. This replaces the MODEL_SEARCH parameter from NOMAD 3
-
-. Argument: one boolean ('yes' or 'no')
-
-. Disabled for more than 50 variables
-
-. Example: SGTELIB_SEARCH yes
-
-. See also: DISABLE
-\)
-\( basic mads model search sgtelib model_search \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-QUAD_MODEL_SEARCH
-bool
-true
-\( Quad model search using Sgtelib \)
-\(
-
-. MADS model search, using Bastien Talgorn's Sgtelib with quad models
-
-. Argument: one boolean ('yes' or 'no')
-
-. Disabled for more than 50 variables
-
-. Example: QUAD_MODEL_SEARCH yes
-
-. See also: DISABLE
-\)
-\( basic mads quad model search sgtelib model_search \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR
-NOMAD::Double
-1
-\( Scale the bounds for the quad model search  \)
-\(
-
-. The quad model is built on evaluation points around a frame center. This
-defines min and max bounds, from which we define a model center. The model
-search is limited to tighter (can be wider with the parameter set to less than 1)
-bounds by reducing the distance of the optimization bounds to the model center.
-We use a reduction factor for that. If the reduction factor equals one, the min
-and max bounds are used as optimization bounds for the search. The greater the
-reduction factor, the tighter the bounds.
-
-. Argument: one Double greater than 0
-
-. Example: QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR 3.0
-
-\)
-\( develop mads quad model search sgtelib model_search bounds \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-MODEL_DISPLAY
-std::string
--
-\( Display of a model \)
-\(
-. Control the display of the quad model search and quad model optimization.
-  These details are only shown if DISPLAY_DEGREE is FULL (3) or more.
-
-. Arguments: a string containing one or several of the following letters
-
-. \"S\": General information on the model (sgtelib or quad) search or optimization
-
-. \"F\": Details of the filter step
-
-. \"O\": Details of the models optimization
-
-. \"P\": Details of the projection
-
-. \"U\": Details of the model update
-
-. \"I\": Advancement of the model optimization
-
-. \"X\": Display of all of the model evaluations
-
-. Example: MODEL_DISPLAY SPF # display the general information on the search
-                                       and on the filter and projection steps
-\)
-\( developer advanced model quad sgtelib \)
-ALGO_COMPATIBILITY_CHECK no
-RESTART_ATTRIBUTE no
-################################################################################
-QUAD_MODEL_OPTIMIZATION
-bool
-false
-\( Quad model stand alone optimization for constrained and unconstrained pbs \)
-\(
-
-. Quadratic model optimization for constrained and unconstrained
-  optimization
-
-. Argument: bool
-
-. Stand alone quadratic model optimization will deactivate any optimization
-  strategy.
-
-. Example: QUAD_MODEL_OPTIMIZATION true
-
-\)
-\( advanced sgtelib quadratic quad optimization simplex \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SGTELIB_MODEL_DEFINITION
-NOMAD::ArrayOfString
--
-\( Definition of the surrogate model \)
-\(
-. Argument: Array of string that represent the Sgtelib model definition. See sgtelib manual.
-
-. Example: TYPE PRS DEGREE 1 # builds a linear model
-.          TYPE PRS DEGREE 2 # builds a quadratic model
-.          TYPE RBF          # builds an RBF model
-.          TYPE ENSEMBLE     # builds an ensemble of models
-           # builds a lowess model with local linear regression
-           # and optimized kernel shape:
-.          TYPE LOWESS DEGREE 1 KERNEL_COEF OPTIM
-.          # Variation that gives good results:
-           TYPE LOWESS DEGREE 1 KERNEL_SHAPE OPTIM KERNEL_COEF OPTIM RIDGE 0 METRIC AOECV
-\)
-\( advanced sgtelib search model model_search interpolation regression \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-SGTELIB_MODEL_TRIALS
-size_t
-1
-\( Max number of sgtelib model search failures before going to the poll step \)
-\(
-. Max number of sgtelib model search failures before going to the poll step.
-
-. Argument: one positive integer
-
-. Note: The minimum between this parameter and MAX_ITERATION_PER_MEGAITERATION
-  will be used.
-
-. Example: SGTELIB_MODEL_TRIALS 5
-\)
-\( developer trials sgtelib model search \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-SGTELIB_MODEL_FORMULATION
-NOMAD::SgtelibModelFormulationType
-FS
-\( Formulation of the surrogate problem \)
-\(
-. Formulation of the surrogate problem.
-
-. Argument: one string in {'FS', 'EIS', 'FSP',
-                           'EFI', 'EFIS','EFIM','EFIC',
-                           'PFI',
-                           'D',
-                           'EXTERN'}
-
-. Description of the surrogate problem formulations :
-    (FS)   min f    -d.sigma_f
-           st  c_j  -d.sigma_j <= 0
-
-    (EIS)  min -EI  -d.sigma_f
-           st  c_j  -d.sigma_j <= 0
-
-    (FSP)  min f    -d.sigma_f
-           st  P >= 1/2
-
-    (EFI)  min -EFI
-
-    (EFIS) min -EFI -d.sigma_f
-
-    (EFIM) min -EFI -d.sigma_f.mu
-
-    (EFIM) min -EFI -d.(EI.mu+P.sigma_f)
-
-    (PFI)  min -PFI
-
-    (D)    min -distance_to_closest
-
-. Example: SGTELIB_MODEL_FORMULATION EFI
-\)
-\( developer advanced surrogate problem expected improvement diversification model sgtelib \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-SGTELIB_MODEL_FEASIBILITY
-NOMAD::SgtelibModelFeasibilityType
-C
-\( Method used to model the feasibility of a point \)
-\(
-. Method used to model the feasibility of a point.
-
-. Arguments: one character in {'C', 'H', 'M', 'P'}
-
-. Example: SGTELIB_MODEL_FEASIBILITY C  # 1 model per constraint
-           SGTELIB_MODEL_FEASIBILITY H  # 1 model of the aggregate constraint
-           SGTELIB_MODEL_FEASIBILITY M  # 1 model of the max of the constraints
-           SGTELIB_MODEL_FEASIBILITY B  # 1 binary model of the feasibility
-\)
-\( developer advanced feasibility constraints interpolation regression model sgtelib \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-SGTELIB_MODEL_DIVERSIFICATION
-NOMAD::Double
-0.01
-\( Coefficient of the exploration term in the surrogate problem \)
-\(
-. Coefficient of the exploration term in the surrogate problem.
-
-. Argument: one positive real
-
-. Example: SGTELIB_MODEL_DIVERSIFICATION 0    # no exploration
-           SGTELIB_MODEL_DIVERSIFICATION 0.01 # light exploration
-           SGTELIB_MODEL_DIVERSIFICATION 0.1  # medium exploration
-           SGTELIB_MODEL_DIVERSIFICATION 1    # strong exploration
-\)
-\( developer advanced model sgtelib \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-SGTELIB_MODEL_EXCLUSION_AREA
-NOMAD::Double
-0.0
-\( Exclusion area for the sgtelib model search around points of the cache \)
-\(
-. Defines an exclusion area for the sgtelib model search around points of the cache
-
-. Arguments: one real number in [0, 0.5]
-
-. Example: SGTELIB_MODEL_EXCLUSION_AREA 0 # no exclusion area
-           SGTELIB_MODEL_EXCLUSION_AREA 0.1 # small exclusion area
-           SGTELIB_MODEL_EXCLUSION_AREA 0.5 # large exclusion area
-
-\)
-\( developer advanced model sgtelib \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-SGTELIB_MODEL_CANDIDATES_NB
+SEED
 int
--1
-\( Number of candidates returned by the sgtelib model search \)
+0
+\( The seed for the pseudo-random number generator \)
 \(
-. Number of candidates returned by the sgtelib model search.
 
-. Argument: one integer
+. Random seed
 
-. If smaller or equal to 0, then the number of candidates
-  will be the largest value between BB_MAX_BLOCK_SIZE and
-  2 * DIMENSION
+. Argument: one nonnegative integer (max UINT32_MAX), or -1, or the string 'DIFF'
 
-. Example: SGTELIB_MODEL_CANDIDATES_NB 8
-\)
-\( developer advanced model sgtelib \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-SGTELIB_MIN_POINTS_FOR_MODEL
-size_t
-1
-\( Minimum number of valid points necessary to build a model \)
-\(
-. Defines the minimum number of valid points beyond which no model will
-  be build
+. The default value is used for each run if the parameter is not provided.
 
-. Arguments: one positive integer
+. If '-1' or 'DIFF' is entered the seed is different for each run (PID is used).
 
-. Example: SGTELIB_MIN_POINTS_FOR_MODEL 5
+. The seed is used in the output file names
+
+. Example: SEED 123456
 
 \)
-\( developer advanced model sgtelib \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-SGTELIB_MAX_POINTS_FOR_MODEL
-size_t
-100
-\( Maximum number of valid points used to build a model \)
-\(
-. Defines the maximum number of valid points kept to build a model.
-  Extra points are ignored.
-
-. Arguments: one positive integer
-
-. Example: SGTELIB_MAX_POINTS_FOR_MODEL 96
-
-\)
-\( developer advanced model sgtelib \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-SGTELIB_MODEL_FILTER
-std::string
-2345
-\( Methods used in the sgtelib search filter to return several search candidates \)
-\(
-. Methods used in the sgtelib search filter to return several search candidates
-
-. Arguments: a string containing several integers from 0 to 5
-
-. Method 0: Select the best candidate
-
-. Method 1: Select the most remote candidate
-
-. Method 2: Select the best candidate, with minimal distance to the cache
-
-. Method 3: Select the best candidate, with minimal margin in feasibility
-
-. Method 4: Select the candidate with the best isolation number
-
-. Method 5: Select the candidate with the best density number
-
-. Examples: SGTELIB_MODEL_FILTER 0    # Only method 0 will be used
-            SGTELIB_MODEL_FILTER 01   # Alternate between method 0 and 1
-            SGTELIB_MODEL_FILTER 2345 # Cycle through methods 2, 3, 4 and 5
-\)
-\( developer advanced model sgtelib \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-MODEL_SEARCH_PROJ_TO_MESH
-bool
-true
-\( Model search trial points are projected to the mesh \)
-\(
-. True if model search trial points are projected to the mesh
-
-. Argument: one boolean ('yes' or 'no')
-
-. Example: MODEL_SEARCH_PROJ_TO_MESH no
-\)
-\( developer models sgtelib \)
+\( advanced seed(s) random number run \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
@@ -670,680 +437,6 @@ size_t
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
-DIRECTION_TYPE
-NOMAD::DirectionType
-ORTHO 2N
-\( Type of direction for Mads poll \)
-\(
-. Type of direction used by Mads poll to generate trial points. In NOMAD 4, this
-  is can be set only once (UNIQUE_ENTRY true) but in Nomad 3 several direction
-  types can be combined. See issue #397.
-
-. Arguments: one direction type in {ORTHO 2N, N+1 UNI, SINGLE, DOUBLE}
-
-
-. Example:
-    . DIRECTION_TYPE N+1 UNI
-
-\)
-\( advanced poll direction ortho \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SEC_POLL_DIR_TYPES
-NOMAD::DirectionType
-DOUBLE
-\( Type of direction for Mads secondary poll \)
-\(
-. Types of directions for the secondary poll
-
-. Arguments: same as DIRECTION_TYPE
-
-. If DIRECTION_TYPE is ORTHO 2N, then default SEC_POLL_DIR_TYPES is DOUBLE.
-
-. If DIRECTION_TYPE is not ORTHO 2N, then default SEC_POLL_DIR_TYPES is SINGLE.
-
-. Example: SEC_POLL_DIR_TYPES ORTHO 2N
-
-. See also: RHO
-\)
-\( advanced poll direction primary secondary \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-RHO
-NOMAD::Double
-0.1
-\( Rho parameter of the progressive barrier \)
-\(
-. Used to choose if the primary frame center is the feasible or infeasible
-  incumbent.
-
-. Argument: real
-
-. If the value is negative, both feasible and infeasible incumbents are
-  treated as primary poll centers.
-
-. Example: RHO 0.5
-\)
-\( advanced primary secondary \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-ANISOTROPIC_MESH
-bool
-true
-\( MADS uses anisotropic mesh for generating directions \)
-\(
-
-. MADS uses anisotropic mesh for generating directions
-
-. Argument: one boolean ('yes' or 'no')
-
-. Example: ANISOTROPIC_MESH no
-
-\)
-\( advanced mads direction(s) anisotropic anisotropy aniso \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-ANISOTROPY_FACTOR
-NOMAD::Double
-0.1
-\( MADS anisotropy factor for mesh size change \)
-\(
-
-. Set anisotropy_factor for mesh relative coarsening/refining if the anisotropic
-  mesh is enabled.
-
-. Argument: one positive real
-
-. Example: ANISOTROPY_FACTOR 0.05
-
-\)
-\( advanced mads direction(s) anisotropic anisotropy aniso \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-GENERATE_ALL_POINTS_BEFORE_EVAL
-bool
-false
-\( Evaluate points generated from Search and Poll steps all at once \)
-\(
-. If true, generate all points from Search and Poll steps, and then
-  start evaluation. This method is preferred when multiple processes
-  are available in parallel to evaluate points. This way, more processes
-  will work on evaluating points simultaneously.
-
-. If false, generate points from Search, evaluate them, and then continue
-  to Poll, or to next Search. This is the classic way of evaluation.
-  If multiple processes are available for evaluation, and the Search step
-  generated a single point, only that point is evaluated while the other
-  processes do nothing.
-
-\)
-\( advanced \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-USER_CALLS_ENABLED
-bool
-true
-\( Controls the automatic calls to user function \)
-\(
-. If true the user functions are called (update_iteration, ...)
-
-\)
-\( advanced user(s) callback function(s) \)
-ALGO_COMPATIBILITY_CHECK no
-RESTART_ATTRIBUTE yes
-################################################################################
-FRAME_CENTER_USE_CACHE
-bool
-false
-\( Find best points in the cache and use them as frame centers \)
-\(
-. When this parameter is true, when the Update step occurs, the points with
-  the best values are found in the Cache. Multiple points may have the same
-  value. These points are all used as frame centers for the next Search and
-  Poll steps.
-
-. When this parameter is false, the frame centers (one feasible and one
-  infeasible) are kept from previous iterations. This is the classical
-  MADS algorithm.
-
-\)
-\( advanced \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-MAX_TIME
-size_t
-INF
-\( Maximum wall-clock time in seconds \)
-\(
-. Argument: one positive integer. INF means there is no maximum.
-
-. Example: MAX_TIME 3600 # one hour max
-
-\)
-\( basic clock stop time \)
-ALGO_COMPATIBILITY_CHECK no
-RESTART_ATTRIBUTE yes
-################################################################################
-NM_OPTIMIZATION
-bool
-false
-\( Nelder Mead stand alone optimization for constrained and unconstrained pbs \)
-\(
-
-. Nelder Mead optimization for constrained and unconstrained optimization
-
-. Argument: bool
-
-. Stand alone Nelder Mead optimization will deactivate any optimization strategy.
-
-. Example: NM_OPTIMIZATION true
-
-\)
-\( advanced nelder mead simplex \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-NM_SEARCH
-bool
-true
-\( Nelder Mead optimization used as a search step for Mads \)
-\(
-
-. Nelder Mead optimization as a search step for Mads
-
-. Argument: bool
-
-. If NM_OPTIMIZATION is true, no optimization algorithm will be performed.
-
-. Example: NM_SEARCH fase
-
-\)
-\( advanced nelder mead simplex mads search\)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-NM_SIMPLEX_INCLUDE_LENGTH
-NOMAD::Double
-INF
-\( Construct NM simplex using points in cache.\)
-\(
-
-. Construct NM simplex using points in cache within a given distance of poll
-  center in absolute value.
-
-. Argument: Positive double. INF means all points are considered.
-
-. Example: NM_SIMPLEX_INCLUDE_LENGTH 0.2
-
-\)
-\( advanced nelder mead simplex length\)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-NM_SIMPLEX_INCLUDE_FACTOR
-size_t
-8
-\( Construct NM simplex using points in cache.\)
-\(
-
-. Construct NM simplex using points in cache within a given length of frame center
-  relative. The length equals the include factor multiplied by the frame size.
-  Used only if the mesh is defined.
-
-. Argument: Positive integer. INF means all points are considered.
-
-. Example: NM_SIMPLEX_INCLUDE_FACTOR 10
-
-\)
-\( advanced nelder mead simplex include factor length poll \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-NM_DELTA_E
-NOMAD::Double
-2
-\( NM expansion parameter delta_e.\)
-\(
-
-. Nelder Mead expansion parameter
-
-. Argument: Positive NOMAD::Double > 1
-
-. Example: NM_DELTA_E 2.5
-
-\)
-\( advanced nelder mead simplex expansion \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-NM_DELTA_IC
-NOMAD::Double
--0.5
-\( NM inside contraction parameter delta_ic.\)
-\(
-
-. Nelder Mead inside contraction parameter
-
-. Argument: Negative NOMAD::Double
-
-. Example: NM_DELTA_IC -1
-
-\)
-\( advanced nelder mead simplex inside contraction \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-NM_DELTA_OC
-NOMAD::Double
-0.5
-\( NM outside contraction parameter delta_oc.\)
-\(
-
-. Nelder Mead outside contraction parameter
-
-. Argument: Positive NOMAD::Double <= 1
-
-. Example: NM_DELTA_OC 0.8
-
-\)
-\( advanced nelder mead simplex outside contraction \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-NM_GAMMA
-NOMAD::Double
-0.5
-\( NM shrink parameter gamma.\)
-\(
-
-. Nelder Mead shrink parameter
-
-. Argument: Positive NOMAD::Double <= 1
-
-. Example: NM_GAMMA 0.8
-
-\)
-\( advanced nelder mead simplex shrink \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-NM_SEARCH_MAX_TRIAL_PTS_NFACTOR
-size_t
-80
-\( NM-Mads search stopping criterion.\)
-\(
-
-. NM-Mads stopping criterion. Max number of trial pts < dimension * NFactor
-
-. Argument: Positive integer. INF disables this criterion.
-
-. Example: NM_SEARCH_MAX_TRIAL_PTS_NFACTOR 100
-
-\)
-\( advanced nelder mead mads search stop trial \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-NM_SEARCH_RANK_EPS
-NOMAD::Double
-0.01
-\( NM-Mads epsilon for the rank of DZ.\)
-\(
-
-. Precision to detect when a vector increases the rank or not.
-
-. Argument: Positive double.
-
-. Example: NM_SEARCH_RANK_EPS 1E-4
-
-\)
-\( advanced nelder mead mads search rank DZ \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-NM_SEARCH_STOP_ON_SUCCESS
-bool
-false
-\( NM-Mads search stops on success.\)
-\(
-
-. NM-Mads search opportunistically stops on success.
-
-. Argument: boolean.
-
-. Example: NM_SEARCH_STOP_ON_SUCCESS false
-
-\)
-\( advanced nelder mead mads search opportunistic success \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-DISABLE
-NOMAD::ArrayOfString
--
-\(Forcefully disable a feature\)
-\(
-. This parameter is used to forcefully disable a feature.
-
-. Argument: MODELS or EVAL_SORT
-
-. DISABLE MODELS disables all uses of models. It is equivalent to set:
-      QUAD_MODEL_SEARCH and SGTELIB_SEARCH no
-
-. WARNING: Settings of SGTELIB_SEARCH will be ignored
-
-. DISABLE EVAL_SORT enforces that points remain in lexicographical order
-  before being send to evaluation.
-
-\)
-\( advanced model \)
-UNIQUE_ENTRY false
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-MODEL_RADIUS_FACTOR
-NOMAD::Double
-2.0
-\( Model radius factor \)
-\(
-. Model radius factor
-
-. This parameter is used to select points to build the model
-
-. Frame size is multiplied by this factor to get the search radius
-
-. Points inside a circle centered on the poll center, within this radius,
-  are selected to build the model
-
-. Arguments: one strictly positive real
-
-. Example: MODEL_RADIUS_FACTOR 1.0
-\)
-\( developer model \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-MAX_ITERATIONS
-size_t
-INF
-\( The maximum number of iterations of the MADS algorithm \)
-\(
-
-. Maximum number of iterations
-
-. Argument: one positive integer. INF means there is no maximum.
-
-. Example: MAX_ITERATIONS 1000
-
-\)
-\( advanced max maximum iteration(s) stop(s) stopping criterion(s) \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-MAX_ITERATION_PER_MEGAITERATION
-size_t
-INF
-\( Maximum number of Iterations to generate for each MegaIteration. \)
-\(
-. Maximum number of Iterations to generate for each MegaIteration.
-
-. Argument: one positive integer. INF means there is no maximum.
-
-. If there are few points in the barrier, this parameter has no effect.
-
-. If FRAME_CENTER_USE_CACHE is false, this parameter has no effect.
-
-. If there are many points in the barrier, this parameter limits
-  the number of iterations generated.
-  A mixture of feasible and infeasible points of the barrier is used to
-  generate iterations.
-  Each iteration uses a point of the barrier as frame center.
-
-\)
-\( advanced \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-PSD_MADS_OPTIMIZATION
-bool
-0
-\( PSD-MADS optimization algorithm \)
-\(
-
-. Use PSD-MADS algorithm.
-
-. Argument: bool
-
-. Description: Parallel Space Decomposition with Mads (no parallelism)
-
-. This option deactivates any other optimization strategy.
-
-. Example: PSD_MADS_OPTIMIZATION true
-
-\)
-\( advanced psd mads parallel decomposition \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-PSD_MADS_NB_VAR_IN_SUBPROBLEM
-size_t
-2
-\( Number of variables in PSD-MADS subproblems \)
-\(
-
-. When using Parallel Space Decomposition (PSD) MADS algorithm, select the
-  number of variables in Mads subproblems.
-
-. Argument: size_t
-
-. Description: Size of subproblems in PSD-Mads.
-
-. This attribute is used only when PSD-Mads optimization is active.
-
-. Example: PSD_MADS_NB_VAR_IN_SUBPROBLEM 3
-
-\)
-\( advanced psd mads parallel decomposition subproblem \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-PSD_MADS_NB_SUBPROBLEM
-size_t
-INF
-\( Number of PSD-MADS subproblems \)
-\(
-
-. When using Parallel Space Decomposition (PSD) MADS algorithm, select the number of
-  Mads subproblems. By default (INF), the number of subproblems is adjusted to
-  cover all variables.
-
-. Argument: size_t
-
-. This attribute is used only when PSD-Mads optimization is active.
-
-. Example: PSD_MADS_NB_SUBPROBLEM 2
-
-\)
-\( advanced psd mads parallel decomposition subproblem \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-PSD_MADS_ITER_OPPORTUNISTIC
-bool
-true
-\( Opportunistic strategy between the Mads subproblems in PSD-MADS \)
-\(
-
-. When using Parallel Space Decomposition (PSD) MADS algorithm, the launch
-  of Mads subproblems during an iteration can be opportunistically stopped when
-  a success is obtained by a Mads subproblem.
-
-. Argument: bool
-
-. This attribute is used only when PSD-Mads optimization is active.
-
-. Example: PSD_MADS_OPPORTUNISTIC false
-
-\)
-\( advanced parallel space mads parallel decomposition subproblem opportunistic \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-PSD_MADS_ORIGINAL
-bool
-false
-\( Use NOMAD 3 strategy for mesh update in PSD-MADS \)
-\(
-
-. When using Parallel Space Decomposition (PSD) MADS algorithm,
-  NOMAD 3 strategy is to always update the mesh whenever a new pollster is launched.
-  NOMAD 4 strategy is more defined as for which conditions must be met for
-  the mesh to be updated.
-
-. Argument: bool
-
-. This attribute is used only when PSD-Mads optimization is active.
-
-. Example: PSD_MADS_ORIGINAL false
-
-\)
-\( advanced parallel space mads parallel decomposition subproblem original \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-PSD_MADS_SUBPROBLEM_PCT_COVERAGE
-NOMAD::Double
-70
-\( Percentage of variables that must be covered in subproblems before updating mesh \)
-\(
-
-. When using Parallel Space Decomposition (PSD) MADS algorithm,
-  update (enlarge or refine) the mesh when this percentage of variables is
-  covered by subproblems.
-
-- A lower value makes for more frequent updates. A larger value makes
-  mesh updates less frequent.
-
-. Argument: Double between 0 and 100
-
-. This attribute is used only when PSD-Mads optimization is active.
-
-. Example: PSD_MADS_SUBPROBLEM_PCT_COVERAGE 80
-
-\)
-\( advanced parallel space mads parallel subproblem \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SSD_MADS_OPTIMIZATION
-bool
-0
-\( SSD-MADS optimization algorithm \)
-\(
-
-. Use SSD-MADS algorithm.
-
-. Argument: bool
-
-. Description: Sequential Space Decomposition with Mads (no parallelism)
-
-. This option deactivates any other optimization strategy.
-
-. Example: SSD_MADS_OPTIMIZATION true
-
-\)
-\( advanced ssd mads sequential decomposition \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SSD_MADS_NB_VAR_IN_SUBPROBLEM
-size_t
-2
-\( Number of variables in SSD-MADS subproblems \)
-\(
-
-. When using Sequential Space Decomposition (SSD) MADS algorithm, select the
-  number of variables in Mads subproblems.
-
-. Argument: size_t
-
-. Description: Size of subproblems in SSD-Mads.
-
-. This attribute is used only when SSD-Mads optimization is active.
-
-. Example: SSD_MADS_NB_VAR_IN_SUBPROBLEM 3
-
-\)
-\( advanced ssd mads sequential decomposition subproblem \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SSD_MADS_NB_SUBPROBLEM
-size_t
-INF
-\( Number of SSD-MADS subproblems \)
-\(
-
-. When using Sequential Space Decomposition (SSD) MADS algorithm, select the number of
-  Mads subproblems. By default (INF), the number of subproblems is adjusted to
-  cover all variables.
-
-. Argument: size_t
-
-. This attribute is used only when SSD-Mads optimization is active.
-
-. Example: SSD_MADS_NB_SUBPROBLEM 2
-
-\)
-\( advanced ssd mads sequential decomposition subproblem \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SSD_MADS_RESET_VAR_PICKUP_SUBPROBLEM
-bool
-false
-\( Reset random variable pick-up for each subproblem \)
-\(
-
-. Argument: bool
-
-. This attribute is used only when SSD-Mads optimization is active.
-
-. Example: SSD_MADS_RESET_VAR_PICKUP_SUBPROBLEM true
-
-\)
-\( advanced ssd mads sequential decomposition subproblem \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SSD_MADS_ITER_OPPORTUNISTIC
-bool
-true
-\( Opportunistic strategy between the Mads subproblems in SSD-MADS \)
-\(
-
-. When using Sequential Space Decomposition (SSD) MADS algorithm, the sequence
-  of Mads subproblems during an iteration can be opportunistically stopped when
-  a success is obtained by a Mads subproblem.
-
-. Argument: bool
-
-. This attribute is used only when SSD-Mads optimization is active.
-
-. Example: SSD_MADS_OPPORTUNISTIC false
-
-\)
-\( advanced sequential space ssd mads decomposition subproblem opportunistic \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
 STOP_IF_FEASIBLE
 bool
 false
@@ -1382,4 +475,16 @@ false
 \)
 \( advanced stopping terminate(s) termination(s) phase one  \)
 RESTART_ATTRIBUTE no
+################################################################################
+USER_CALLS_ENABLED
+bool
+true
+\( Controls the automatic calls to user function \)
+\(
+. If true the user functions are called (update_iteration, ...)
+
+\)
+\( advanced user(s) callback function(s) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
 ################################################################################

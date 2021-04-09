@@ -89,7 +89,7 @@ private:
     /// Did the user redefine eval_x() for single point, or should we use BB_EXE ?
     mutable EvalXDefined _evalXDefined;
 
-    /** If we are using SGTE, it means EvalPoint's surrogate evaluation needs to be updated.
+    /** If we are using MODEL, it means EvalPoint's model evaluation needs to be updated.
      *  If we are using BB, the blackbox evaluation is updated.
      */
     const EvalType _evalType;
@@ -99,7 +99,7 @@ public:
     /// Constructor
     /**
      \param evalParams      The parameters to control the behavior of the evaluator
-     \param evalType        Which type of Eval will be updated by this Evaluator:                        blackbox (BB) or surrogate (SGTE)
+     \param evalType        Which type of Eval will be updated by this Evaluator: blackbox (BB) or quad or sgtelib model (MODEL)
      \param evalXDefined    Flag.
      */
     explicit Evaluator(const std::shared_ptr<EvalParameters> &evalParams,

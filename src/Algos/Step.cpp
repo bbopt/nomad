@@ -294,12 +294,12 @@ void NOMAD::Step::verifyParentNotNull()
 
 void NOMAD::Step::verifyGenerateAllPointsBeforeEval(const std::string& method, const bool expected) const
 {
-    bool actual = _runParams->getAttributeValue<bool>("GENERATE_ALL_POINTS_BEFORE_EVAL");
+    bool actual = _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL");
 
     if (expected != actual)
     {
         std::string err = "Error: " + method + " should only be called if ";
-        err += " parameter GENERATE_ALL_POINTS_BEFORE_EVAL is ";
+        err += " parameter MEGA_SEARCH_POLL is ";
         err += (expected ? "true" : "false");
         throw NOMAD::StepException(__FILE__,__LINE__,err, this);
     }
@@ -501,6 +501,10 @@ bool NOMAD::Step::hasPhaseOneSolution() const
 
 void NOMAD::Step::hotRestartOnUserInterrupt()
 {
+    if (_stopReasons->checkTerminate())
+    {
+        return;
+    }
     hotRestartBeginHelper();
 
     hotRestartEndHelper();
@@ -513,7 +517,7 @@ void NOMAD::Step::hotRestartBeginHelper()
         && !_runParams->getAttributeValue<bool>("HOT_RESTART_ON_USER_INTERRUPT"))
     {
         setUserTerminate();
-        _stopReasons->set( NOMAD::BaseStopType::CTRL_C);
+        _stopReasons->set(NOMAD::BaseStopType::CTRL_C);
     }
 }
 

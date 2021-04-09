@@ -53,15 +53,38 @@
 
 
 // Constructor
-NOMAD::LHS::LHS(size_t n,
-                size_t p,
-                NOMAD::ArrayOfDouble lowerBound,
-                NOMAD::ArrayOfDouble upperBound)
+NOMAD::LHS::LHS(const size_t n,
+                const size_t p,
+                const NOMAD::ArrayOfDouble& lowerBound,
+                const NOMAD::ArrayOfDouble& upperBound,
+                const NOMAD::Point& frameCenter,
+                const NOMAD::ArrayOfDouble& deltaFrameSize,
+                const NOMAD::Double& scaleFactor)
 :   _n(n),
     _p(p),
     _lowerBound(lowerBound),
     _upperBound(upperBound)
 {
+    // Update undefined values of lower and upper bounds to use values based
+    // on deltaFrameSize.
+    // Based on the code in NOMAD 3, but slightly different.
+    // Do not use INF values for bounds, that will generate points with huge
+    // values. It is not elegant.
+    if (frameCenter.isComplete() && deltaFrameSize.isComplete() && scaleFactor.isDefined())
+    {
+        for (size_t i = 0; i < n; i++)
+        {
+            if (!_lowerBound[i].isDefined())
+            {
+                _lowerBound[i] = frameCenter[i] - 10.0 * deltaFrameSize[i] * scaleFactor;
+            }
+            if (!_upperBound[i].isDefined())
+            {
+                _upperBound[i] = frameCenter[i] + 10.0 * deltaFrameSize[i] * scaleFactor;
+            }
+        }
+    }
+
     if (!_lowerBound.isComplete())
     {
         std::string s = "LHS Lower bound needs to be completely defined. Values given: ";

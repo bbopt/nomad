@@ -125,11 +125,11 @@ bool NOMAD::BBOutput::isComplete(const NOMAD::BBOutputTypeList &bbOutputType) co
 
 NOMAD::Double NOMAD::BBOutput::getObjective(const NOMAD::BBOutputTypeList &bbOutputType) const
 {
-    NOMAD::ArrayOfString array(_rawBBO);
     NOMAD::Double obj;
 
-    if (!bbOutputType.empty() && checkSizeMatch(bbOutputType))
+    if (_evalOk && !bbOutputType.empty() && checkSizeMatch(bbOutputType))
     {
+        NOMAD::ArrayOfString array(_rawBBO);
         for (size_t i = 0; i < array.size(); i++)
         {
             if (NOMAD::BBOutputType::OBJ == bbOutputType[i])
@@ -145,11 +145,11 @@ NOMAD::Double NOMAD::BBOutput::getObjective(const NOMAD::BBOutputTypeList &bbOut
 
 NOMAD::ArrayOfDouble NOMAD::BBOutput::getConstraints(const NOMAD::BBOutputTypeList &bbOutputType) const
 {
-    NOMAD::ArrayOfString array(_rawBBO);
     NOMAD::ArrayOfDouble constraints;
 
-    if (!bbOutputType.empty() && checkSizeMatch(bbOutputType))
+    if (_evalOk && !bbOutputType.empty() && checkSizeMatch(bbOutputType))
     {
+        NOMAD::ArrayOfString array(_rawBBO);
         for (size_t i = 0; i < array.size(); i++)
         {
             if ( NOMAD::BBOutputTypeIsConstraint(bbOutputType[i]) )

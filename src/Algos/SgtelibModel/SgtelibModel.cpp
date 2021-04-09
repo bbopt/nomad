@@ -70,7 +70,7 @@ void NOMAD::SgtelibModel::init()
 
     if (NOMAD::SgtelibModelFormulationType::EXTERN == modelFormulation)
     {
-        // Extern SGTE. Early out.
+        // Extern model. Early out.
         return;
     }
 
@@ -100,7 +100,7 @@ void NOMAD::SgtelibModel::init()
     // Build the Sgtelib Model
     _model = std::shared_ptr<SGTELIB::Surrogate>(SGTELIB::Surrogate_Factory(*_trainingSet, modelDefinition.display()));
 
-    // Instantiate Sgte initialization class
+    // Instantiate sgtelib model initialization class
     _initialization = std::make_unique<NOMAD::SgtelibModelInitialization>(this);
 }
 
@@ -147,7 +147,7 @@ bool NOMAD::SgtelibModel::isReady() const
         auto modelFormulation = _runParams->getAttributeValue<NOMAD::SgtelibModelFormulationType>("SGTELIB_MODEL_FORMULATION");
         if (NOMAD::SgtelibModelFormulationType::EXTERN == modelFormulation)
         {
-            // Extern SGTE.
+            // Extern model.
             _ready = true;
             retReady = true;
         }
@@ -470,7 +470,7 @@ NOMAD::EvalPointSet NOMAD::SgtelibModel::createOraclePoints()
     // generate oracle points.
     // For this reason, k and success are irrelevant.
     // Barrier points are used to create Iterations. A sub Mads will be run
-    // on every Iteration, using sgte evaluation.
+    // on every Iteration, using model evaluation.
     NOMAD::SgtelibModelMegaIteration megaIteration(this, 0, _barrierForX0s, NOMAD::SuccessType::NOT_EVALUATED);
     megaIteration.generateTrialPoints();
 

@@ -154,7 +154,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
             // cache is not used, update tag here.
             trialPoint.updateTag();
             // Look in EvaluatorControl's Barrier if the point is already evaluated.
-            // Only do this when EvalType is BB. If it is SGTE, always reevaluate.
+            // Only do this when EvalType is BB. If it is MODEL, always reevaluate.
             if (NOMAD::EvalType::BB == evalType)
             {
                 auto barrier = _evaluatorControl->getBarrier();

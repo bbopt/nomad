@@ -75,7 +75,7 @@ void NOMAD::DeprecatedParameters::readAndDetectExplicitlySet()
 
     std::shared_ptr<NOMAD::ParameterEntry> pe;
     std::string paramName;
-    
+
     // Loop on all registered attributes.
     // Set the attribute value from entries
     // according to its type

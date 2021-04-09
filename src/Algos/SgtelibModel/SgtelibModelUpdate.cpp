@@ -69,7 +69,7 @@ void NOMAD::SgtelibModelUpdate::init()
 
 void NOMAD::SgtelibModelUpdate::startImp()
 {
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
+    auto modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
     _displayLevel = (std::string::npos != modelDisplay.find("U"))
                         ? NOMAD::OutputLevel::LEVEL_INFO
                         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
@@ -107,7 +107,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
 
     if (NOMAD::SgtelibModelFormulationType::EXTERN == modelFormulation)
     {
-        // Extern SGTE. Early out
+        // Extern model. Early out
         OUTPUT_INFO_START
         AddOutputInfo("FORMULATION: EXTERN.", _displayLevel);
         OUTPUT_INFO_END
@@ -155,7 +155,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
         radius = modelAlgo->getMesh()->getDeltaFrameSize();
     }
     // Multiply by radius parameter
-    auto radiusFactor = _runParams->getAttributeValue<NOMAD::Double>("MODEL_RADIUS_FACTOR");
+    auto radiusFactor = _runParams->getAttributeValue<NOMAD::Double>("SGTELIB_MODEL_RADIUS_FACTOR");
     radius *= radiusFactor;
 
     // Get all frame centers
@@ -213,8 +213,8 @@ bool NOMAD::SgtelibModelUpdate::runImp()
     if (nbValidPoints < minNbPoints)
     {
         // If no points available, it is impossible to build a model.
-        auto sgteStopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
-        sgteStopReason->set(NOMAD::ModelStopType::NOT_ENOUGH_POINTS);
+        auto sgtelibModelStopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+        sgtelibModelStopReason->set(NOMAD::ModelStopType::NOT_ENOUGH_POINTS);
 
         OUTPUT_INFO_START
         AddOutputInfo("Sgtelib Model has not enough points to build model");
@@ -367,7 +367,7 @@ bool NOMAD::SgtelibModelUpdate::validForUpdate(const NOMAD::EvalPoint& evalPoint
     // - Not a NaN
     // - Not a fail
     // - All outputs defined
-    // - Blackbox OBJ available (Not sgte)
+    // - Blackbox OBJ available (Not MODEL)
     bool validPoint = true;
     NOMAD::ArrayOfDouble bbo;
 
