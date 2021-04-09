@@ -3,14 +3,29 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Nomad 4 User Guide's!
-================================
+Nomad 4 User Guide
+==================
+
+* A general introduction of NOMAD is presented in Chapter 1.
+* *New users* of NOMAD:
+   
+   - Chapter 2 describes how to install the software application.
+   - Chapter 3 describes how to get started with NOMAD.
+
+* NOMAD utilization:
+  
+   - All users can find in Chapters 4 to 7 ways to tailor problem definition, algorithmic settings and software output.
+
+* Tricks that may help solving specific problems are presented in Chapter 5.
+
+* Please cite NOMAD with references [27, 50].
+
+* A complete introduction to derivative-free and blackbox optimization can be found in the textbook [24].
 
 .. toctree::
    :maxdepth: 1 
-   :caption: Welcome:
+   :caption: Introduction:
 
-   HowToUseTheGuide
    Preface 
    Introduction
 
@@ -22,7 +37,7 @@ Welcome to Nomad 4 User Guide's!
    Tests
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Basic NOMAD usage:
 
    GettingStarted
