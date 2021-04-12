@@ -1,3 +1,5 @@
+.. _tricks_of_the_trade:
+
 Tricks of the trade
 ===================
 

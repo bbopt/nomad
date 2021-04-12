@@ -1,4 +1,5 @@
-.. _Target to section S1:
+.. _introduction:
+
 Introduction
 ============
 
@@ -45,12 +46,12 @@ NOMAD does not provide a graphical user interface to define and perform optimiza
 * Launch the execution at the command prompt OR from another executable system call.
 
 
-Users can find several examples provided in the installation package and described in this user guide to perform customization for their problems. The installation procedure is given in `S2`_. New users should refer to `S3`_ to get started. The most important instructions to use NOMAD are in 'S4'_. In addition, tricks that may help solving specific problems and improve NOMAD efficiency are presented in 'S5'_. Advanced parameters and functionalities are presented in Sections 'S6'_ and 'S7'_.
+Users can find several examples provided in the installation package and described in this user guide to perform customization for their problems. The installation procedure is given in :ref:`installation`. New users should refer to :ref:`getting_started`. The most important instructions to use NOMAD are in :ref:'how_to_use_nomad'. In addition, tricks that may help solving specific problems and improve NOMAD efficiency are presented in :ref:`tricks_of_the_trade`. Advanced parameters and functionalities are presented in Section :ref:`advanced_functionalities`.
 
 Supported platforms and environments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-NOMAD source codes are in C++ and are identical for all supported platforms. See Section `S2`_ for details to obtain binaries from the source files.
+NOMAD source codes are in C++ and are identical for all supported platforms. See Section :ref:`installation` for details to obtain binaries from the source files.
 
 Authors and fundings
 ^^^^^^^^^^^^^^^^^^^^

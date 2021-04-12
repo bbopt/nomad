@@ -1,3 +1,5 @@
+.. _how_to_use_nomad:
+
 How to use NOMAD
 ================
 
@@ -27,5 +29,3 @@ Python interface
 ----------------
 
 ...
-
-

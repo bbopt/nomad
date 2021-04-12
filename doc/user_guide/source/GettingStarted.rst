@@ -1,3 +1,5 @@
+.. _getting_started:
+
 Getting started
 ===============
 
@@ -33,6 +35,3 @@ How to conduct optimization
 Optimization is conducted by starting NOMAD executable in a command window with the parameter file name given as argument. To illustrate the execution, the example provided in $NOMAD_HOME/examples/basic/batch/single_obj/ is considered:
 
 Todo
-
-
-

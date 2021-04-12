@@ -1,22 +1,17 @@
-.. Nomad 4 User Guide documentation master file, created by
-   sphinx-quickstart on Thu Apr  8 10:39:53 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Nomad 4 User Guide
 ==================
 
-* A general introduction of NOMAD is presented in Section `Target to section S1`_.
+* A general introduction of NOMAD is presented in Section :ref:`introduction`.
 * **New users** of NOMAD:
 
-   - Section `S2`_ describes how to install the software application.
-   - Section `S4`_ describes how to get started with NOMAD.
+   - Section :ref:`installation` describes how to install the software application.
+   - Section :ref:`getting_started` describes how to get started with NOMAD.
 
 * NOMAD utilization:
 
-   - Starting from Section `S4`_, all users can find ways to tailor problem definition, algorithmic settings and software output.
+   - Starting from Section :ref:`how_to_use_nomad`, all users can find ways to tailor problem definition, algorithmic settings and software output.
 
-* Tricks for specific problem solving are presented in Section `S6`_.
+* Tricks for specific problem solving are presented in Section :ref:`tricks_of_the_trade`.
 
 * Please cite NOMAD with references::
 

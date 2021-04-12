@@ -1,3 +1,5 @@
+.. _advanced_functionalities:
+
 Advanced functionalities
 ========================
 
@@ -8,7 +10,7 @@ Blackbox evaluation of a block of trial points
 
 ...
 
-Parallel evaluations 
+Parallel evaluations
 --------------------
 
 ...
@@ -22,4 +24,3 @@ User search
 -----------
 
 ...
-

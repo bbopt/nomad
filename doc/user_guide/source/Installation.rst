@@ -1,4 +1,5 @@
-.. _S2:
+.. _installation:
+
 Installation
 ============
 
