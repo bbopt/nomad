@@ -6,7 +6,28 @@ Introduction
 .. note::
    NOMAD = Nonlinear Optimization by Mesh Adaptive Direct Search
 
-NOMAD is a software application for simulation-based optimization. It can efficiently explore a design space in search of better solutions for a large spectrum of optimization problems.
+NOMAD is a software application for simulation-based optimization. It can efficiently explore a design space in search of better solutions for a large spectrum of optimization problems. NOMAD is at its best when  applied to blackbox functions.
+
+.. figure:: ../figs/blackbox.png
+   :align: center
+   :alt: Blackbox optimization
+
+Such functions are typically the result of expensive computer simulations which
+* have no exploitable property such as derivatives,
+* may be contaminated by noise,
+* may fail to give a result even for feasible points.
+
+NOMAD  is a ``C++`` implementation of the  **Mesh Adaptive Direct Search (MADS)** algorithm (see Refs [AbAuDeLe09]_, [AuDe2006]_, [AuDe09a]_ for details) designed for constrained optimization of blackbox functions in the form
+
+.. math::
+
+   \min_{x \in \Omega} f(x)
+
+where the feasible set :math:`\Omega = \{ x \in X : c_j(x) \leq 0, j \in J\} \subset \mathbb{R}^n`, :math:`f, c_j : X \rightarrow \mathbb{R} \cup \{ \infty \}` for  all :math:`j \in J= \{ 1,2,\ldots,m \}`, and where :math:`X` is a subset of :math:`\mathbb{R}^n`.
+
+.. [AbAuDeLe09] M.A. Abramson, C. Audet, J.E. Dennis, Jr., and S. Le Digabel. OrthoMADS: A Deterministic MADS Instance with Orthogonal Directions. SIAM Journal on Optimization, 20(2):948–966, 2009.
+.. [AuDe2006] C. Audet and J.E. Dennis, Jr. Mesh adaptive direct search algorithms for constrained optimization. SIAM Journal on Optimization, 17(1):188–217, 2006.
+.. [AuDe09a] C. Audet and J.E. Dennis, Jr. A Progressive Barrier for Derivative-Free Nonlinear Programming. SIAM Journal on Optimization, 20(1):445–472, 2009.
 
 
 Preface
@@ -24,20 +45,21 @@ This guide describes how to use NOMAD to solve your blackbox optimization proble
 Basics of the Mads algorithm
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-At the core of NOMAD resides the Mesh Adaptive Direct Search (MADS) algorithm. As the name implies, this method generates iterates on a series of meshes with varying size. A mesh is a discretization of the space of variables. However, also as the name implies, the algorithm performs an adaptive search on the meshes including controlling the refinement of the meshes. The reader interested in the rather technical details should read Reference [1]_.
+At the core of NOMAD resides the Mesh Adaptive Direct Search (MADS) algorithm. As the name implies, this method generates iterates on a series of meshes with varying size. A mesh is a discretization of the space of variables. However, also as the name implies, the algorithm performs an adaptive search on the meshes including controlling the refinement of the meshes. The reader interested in the rather technical details should read Reference [AuDe2006]_.
 
 The objective of each iteration of the MADS algorithm, is to generate a trial point on the mesh that improves the current best solution. When an iteration fails to achieve this, the next iteration is initiated on a finer mesh.
 
-Each iteration is composed of two principal steps called the search and the poll steps [1]_. The search step is crucial in practice because it is so flexible, but it is a difficulty for the theory for the same reason. search can return any point on the underlying mesh, but of course, it is trying to identify a point that improves the current best solution.
+Each iteration is composed of two principal steps called the search and the poll steps [AuDe2006]_. The search step is crucial in practice because it is so flexible, but it is a difficulty for the theory for the same reason. search can return any point on the underlying mesh, but of course, it is trying to identify a point that improves the current best solution.
 
 The poll step is more rigidly defined, though there is still some flexibility in how this is implemented. The poll step generates trial mesh points in the vicinity of the best current solution. Since the poll step is the basis of the convergence analysis, it is the part of the algorithm where most research has been concentrated.
-
-.. [1] C. Audet and J.E. Dennis, Jr. Mesh adaptive direct search algorithms for constrained optimization. SIAM Journal on Optimization, 17(1):188–217, 2006.
 
 Using NOMAD
 ^^^^^^^^^^^
 
-NOMAD does not provide a graphical user interface to define and perform optimization. Minimally, users must accomplish several tasks to solve their own optimization problems:
+.. warning::
+   NOMAD does not provide a graphical user interface to define and perform optimization.
+
+Minimally, users must accomplish several tasks to solve their own optimization problems:
 
 * Create a custom blackbox program(s) to evaluate the functions :math:`f` and :math:`c_j` OR embed the functions evaluations in C++ source code to be linked with the NOMAD library.
 
@@ -56,10 +78,17 @@ NOMAD source codes are in C++ and are identical for all supported platforms. See
 Authors and fundings
 ^^^^^^^^^^^^^^^^^^^^
 
-The development of NOMAD started in 2001, and was funded in part by .....
+The development of NOMAD started in 2001. Three versions of NOMAD have been developed before NOMAD 4. NOMAD 4 and NOMAD 3 are currently supported. NOMAD 4 is almost a completely new code compared with NOMAD 3.
 
+NOMAD 4 has been funded by Huawei Canada, Rio Tinto, Hydro-Québec, NSERC (Natural Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute for Data Valorization)
 
-Developers of the methods behind NOMAD include:
+NOMAD 3 was created and developed by Charles Audet, Sebastien Le Digabel, Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR and Exxon Mobil.                                                               #
+
+NOMAD 1 and 2 were created and developed by Mark Abramson, Charles Audet, Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and Exxon Mobil.
+
+The library for dynamic surrogates (SGTELIB) has been developed by Bastien Talgorn (bastien-talgorn@fastmail.com), McGill University, Montreal. The SGTELIB is included in NOMAD since version 3.8.0.
+
+**Developers** of the methods behind NOMAD include:
 
 * Mark A. Abramson (abramson@mathematics.byu.edu), Bringham Young University.
 * Charles Audet (www.gerad.ca/Charles.Audet), GERAD and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
@@ -68,9 +97,6 @@ Developers of the methods behind NOMAD include:
 * Viviane Rochon Montplaisir, www.gerad.ca and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
 * Christophe Tribes, www.gerad.ca and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
 
-The library for dynamic surrogates (SGTELIB) has been developed by Bastien Talgorn (bastien-talgorn@fastmail.com), McGill University, Montreal. The SGTELIB is included in NOMAD since version 3.8.0.
-
-Version 3.5.1 (and above) of NOMAD is developed by Viviane Rochon Montplaisir and Christophe Tribes. Version 3.0 (and above) was developed by Sébastien Le Digabel. Previous versions were written by Gilles Couture.
 
 Acknowledgments
 ^^^^^^^^^^^^^^^
@@ -79,7 +105,10 @@ The developers of NOMAD wish to thank Florian Chambon, Mohamed Sylla and Quentin
 
 A special thank to Maud Bay, Eve Bélisle, Vincent Garnier, Michal Kvasnička, Alexander Lutz, Rosa-Maria Torres-Calderon, Yuri Vilmanis, Martin Posch, Etienne Duclos, Emmanuel Bigeon, Walid Zghal, Jerawan Armstrong, Stéphane Alarie and Klaus Truemper for their feedbacks and tests that significantly contributed to improve NOMAD. Some features of NOMAD have been developed under the impulsion of enthusiastic users/developers: Andrea Ianni, Florian Chambon, Mohamed Sylla, Quentin Reynaud, Amina Ihaddadene, Bastien Talgorn, Nadir Amaioua and Catherine Poissant. We also wish to thank Pascal Côté for his contribution in the development of the Python interface pyNomad and Jonathan Currie for the development of the foundations for a strong NOMAD interface for MATLAB.
 
-Finally, many thanks to the TOMS anonymous referees for their useful comments which helped a lot to improve the code and the text of [50].
+The contributed of  Miguel Anjos, Romain Couderc, Miguel Diago Martinez, Solène Kojtych, Guillaume Lameynardie, Wim Lavrijsen, Alexis Montoison, Caroline Rocha and Ludovic Salomon was highly appreciated during the development and testing of NOMAD 4.
+
+.. Finally, many thanks to the TOMS anonymous referees for their useful comments which helped a lot to improve the code and the text of [50].
+
 
 
 License
@@ -93,6 +122,11 @@ For more information, please refer to the local copy of the license obtained dur
 Contact us
 ==========
 
-All queries can be submitted by email at nomad@gerad.ca. In particular, feel free to ask technical support for problem specification (creating parameter files or integration with various types of simulations) and system support (installation and plateform-dependent problems).
+All queries can be submitted by email at
+
+.. note::
+   nomad@gerad.ca.
+
+In particular, feel free to ask technical support for problem specification (creating parameter files or integration with various types of simulations) and system support (installation and plateform-dependent problems).
 
 Bug reports and suggestions are valuable to us! We are committed to answer to posted requests as quickly as possible.

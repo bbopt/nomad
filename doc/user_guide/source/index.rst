@@ -1,26 +1,32 @@
 Nomad 4 User Guide
 ==================
 
-* A general introduction of NOMAD is presented in Section :ref:`introduction`.
-* **New users** of NOMAD:
+.. warning::
+   NOMAD is a blackbox optimization software.
 
-   - Section :ref:`installation` describes how to install the software application.
-   - Section :ref:`getting_started` describes how to get started with NOMAD.
+   NOMAD 3 software is still currently available but will be replaced by NOMAD 4 in the future.
+
+   This user guide is specific to NOMAD 4 `<https://www.gerad.ca/nomad/>`_.
+
+
+* A general presentation of NOMAD is given in Section :ref:`introduction`.
+
+* **New users** of NOMAD should refer to:
+
+   - Section :ref:`installation`
+   - Section :ref:`getting_started`
 
 * NOMAD utilization:
 
    - Starting from Section :ref:`how_to_use_nomad`, all users can find ways to tailor problem definition, algorithmic settings and software output.
 
-* Tricks for specific problem solving are presented in Section :ref:`tricks_of_the_trade`.
+* Refer to Section :ref:`tricks_of_the_trade` for specific problem solving.
 
-* Please cite NOMAD with references::
+* Please cite NOMAD 4 with references::
 
-      C. Audet, S. Le Digabel, and C. Tribes.
-      NOMAD user guide. Technical Report G-2009-37, Les cahiers du GERAD, 2009.
-
-      S. Le Digabel.
-      Algorithm 909: NOMAD: Nonlinear Optimization with the MADS algorithm.
-      ACM Transactions on Mathematical Software, 37(4):44:1–44:15, 2011.
+      C. Audet, S. Le Digabel, V. Rochon Montplaisir, and C. Tribes
+      NOMAD version 4: Nonlinear optimization with the MADS algorithm.
+      ACM Transactions on Mathematical Software, Submitted.
 
 * A complete introduction to derivative-free and blackbox optimization can be found in the textbook::
 
