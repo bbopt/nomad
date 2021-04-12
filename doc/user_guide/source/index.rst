@@ -18,9 +18,9 @@ Nomad 4 User Guide
 
 * NOMAD utilization:
 
-   - Starting from Section :ref:`how_to_use_nomad`, all users can find ways to tailor problem definition, algorithmic settings and software output.
+   - Starting from Section :ref:`basic_nomad_usage`, all users can find ways to tailor problem definition, algorithmic settings and software output.
 
-* Refer to Section :ref:`tricks_of_the_trade` for specific problem solving.
+* Refer to Sections :ref:`advanced_functionalities` and :ref:`tricks_of_the_trade` for specific problem solving.
 
 * Please cite NOMAD 4 with references::
 

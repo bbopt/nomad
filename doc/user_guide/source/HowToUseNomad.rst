@@ -1,9 +1,9 @@
-.. _how_to_use_nomad:
+.. _basic_nomad_usage:
 
-How to use NOMAD
-================
+Basic NOMAD usage
+=================
 
-This chapter describes how to use NOMAD for solving blackbox optimization problems.
+This chapter describes how to use NOMAD for solving blackbox optimization problems. Functionalities of NOMAD that are considered more advanced such as parallel evaluations are presented in Section :ref:`advanced_functionalities`.
 
 TODO
 
