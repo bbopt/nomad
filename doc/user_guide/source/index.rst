@@ -42,7 +42,7 @@ A complete introduction to derivative-free and blackbox optimization can be foun
     Springer International Publishing, Berlin, 2017.
 
 .. |dfo_book| image:: ../figs/livre_DFO_AuHa2017.png
-               :width: 50 pt
+               :width: 60 pt
 
 .. toctree::
    :maxdepth: 1
