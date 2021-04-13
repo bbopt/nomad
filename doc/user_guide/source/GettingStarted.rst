@@ -34,7 +34,7 @@ A valid blackbox program:
     - returns evaluation values on standard output or file,
     - returns an evaluation status.
 
-In what follows we use the example in the ``$NOMAD_HOME/examples/basic/batch/single_boj``. This example optimization problem has a single objective, 5 variables, 2 nonlinear constraints and 8 bound constraints.
+In what follows we use the example in the ``$NOMAD_HOME/examples/basic/batch/single_obj``. This example optimization problem has a single objective, 5 variables, 2 nonlinear constraints and 8 bound constraints:
 
 
 .. image:: ../figs/example1.png
@@ -57,95 +57,37 @@ The blackbox ``C++`` program of the previous example to evaluate the objective a
 .. code-block:: c++
    :linenos:
 
-   #include <fstream>      // For ifstream
-   #include <iostream>
-   #include <cmath>        // For sqrt
-   #include <stdexcept>    // For logic_error
+    #include <cmath>
+    #include <iostream>
+    #include <fstream>
+    #include <cstdlib>
+    using namespace std;
 
-   const int n = 10;
+    int main ( int argc , char ** argv ) {
 
-   int main (int argc, char **argv)
-   {
-       bool eval_ok = false;
+    double f = 1e20, c1 = 1e20 , c2 = 1e20;
+    double x[5];
 
-       // Remotely based on G2.
-       double f = 1e+20, g1 = 1e+20, g2 = 1e+20, g3 = 1e+20;
-       double sum1 = 0.0, sum2 = 0.0, sum3 = 0.0, prod1 = 1.0, prod2 = 1.0;
-       double x[n];
-
-       bool x0read = false;
-       if (argc >= 2)
-       {
-           std::string x0file = argv[1];
-           std::ifstream in (argv[1]);
-           for (int i = 0; i < n; i++)
-           {
-               if (in.fail())
-               {
-                   std::cerr << "Error reading file " << x0file << " for x0." << std::endl;
-                   x0read = false;
-                   break;
-               }
-               in >> x[i];
-               x0read = true;
-           }
-           in.close();
-       }
-
-       if (x0read)
-       {
-           try
-           {
-               for (int i = 0; i < n ; i++)
-               {
-                   sum1  += pow(cos(x[i]), 4);
-                   sum2  += x[i];
-                   sum3  += (i+1)*x[i]*x[i];
-                   prod1 *= pow(cos(x[i]), 2);
-                   if (prod2 != 0.0)
-                   {
-                       if (x[i] == 0.0)
-                       {
-                           prod2 = 0.0;
-                       }
-                       else
-                       {
-                           prod2 *= x[i];
-                       }
-                   }
-               }
-
-               g1 = -prod2 + 0.75;
-               g2 = sum2 -7.5 * n;
-
-               f = 10*g1 + 10*g2;
-               if (0.0 != sum3)
-               {
-                   f -= (sum1 -2*prod1) / std::abs(sqrt(sum3));
-               }
-               // Scale
-               if (!std::isnan(f))
-               {
-                   f *= 1e-5;
-               }
-
-               eval_ok = !std::isnan(f);
-
-               g3 = - (f + 2000);
-           }
-           catch (std::exception &e)
-           {
-               std::string err("Exception: ");
-               err += e.what();
-               throw std::logic_error(err);
-           }
-       }
-
-       std::cout << f << " " << g1 << " " << g2 << " " << g3 << std::endl;
-
-       // Return 0 if eval_ok.
-       return !eval_ok;
-   }
+    if ( argc >= 2 ) {
+        c1 = 0.0 , c2 = 0.0;
+        ifstream in ( argv[1] );
+        for ( int i = 0 ; i < 5 ; i++ ) {
+            in >> x[i];
+            c1 += pow ( x[i]-1 , 2 );
+            c2 += pow ( x[i]+1 , 2 );
+        }
+        f = x[4];
+        if ( in.fail() )
+            f = c1 = c2 = 1e20;
+        else {
+            c1 = c1 - 25;
+            c2 = 25 - c2;
+        }
+        in.close();
+    }
+    cout << f << " " << c1 << " " << c2 << endl;
+    return 0;
+}
 
 With **GNU compiler** ``g++``, the blackbox compilation and test are as follows:
 
@@ -255,36 +197,34 @@ To illustrate the execution, the example provided in ``$NOMAD_HOME/examples/basi
   bb.cpp bb.exe CMakeLists.txt makefile param.txt x.txt
   >$NOMAD_HOME/build/release/bin/nomad param.txt
   BBE ( SOL ) OBJ
-  1   (   0          0          0          0          0        )    0        (Phase One)
-  6   (   0          4          0          0          0        )    0        (Phase One)
-  26  (   1.4        5          0         -0.6       -0.4      )   -0.4
-  27  (   2.6        4          0         -1.4       -0.8      )   -0.8
-  31  (   1.63       3          0.92      -1.78      -0.88     )   -0.88
-  35  (   2.46       3          0.97      -1.87      -0.92     )   -0.92
-  39  (   3.2        3          0.16      -1.26      -1.05     )   -1.05
-  40  (   4.27       2         -0.23      -1.07      -1.36     )   -1.36
-  45  (   3.0        1          1.22      -1.92      -1.5      )   -1.5
-  46  (   3.2        0          1.83      -2.19      -1.86     )   -1.86
-  55  (   3.91      -0          1.02      -1.32      -1.95     )   -1.95
-  65  (   3.61      -0          1.28      -1.83      -1.99     )   -1.99
-  76  (   3.94       1          0.63      -1.14      -2.02     )   -2.02
-  77  (   4.32       1          0.02      -0.61      -2.11     )   -2.11
-  82  (   3.68       0          0.97      -1.23      -2.15     )   -2.15
-  86  (   3.91       1          0.5       -0.6       -2.2      )   -2.2
-  87  (   4.07       1          0.1        0.01      -2.31     )   -2.31
-  92  (   3.67       1          0.56      -0.47      -2.36     )   -2.36
-  93  (   3.35       1          0.84      -0.39      -2.48     )   -2.48
-  97  (   4.15       1         -0.37       0.57      -2.49     )   -2.49
-  99  (   3.61       1          0.1        0.4       -2.56     )   -2.56
-  Reached stop criterion: Max number of blackbox evaluations (Eval Global) 100
-  100 (   3.27       2          0.15       0.75      -2.7      )   -2.7
-  A termination criterion is reached: Max number of blackbox evaluations (Eval Global) Success found and opportunistic strategy is used 100
+    1   (   0          0          0          0          0        )    0        (Phase One)
+    8   (   0          4          0          0          0        )    0        (Phase One)
+    28  (   1.4        5          0         -0.6       -0.4      )   -0.4
+    29  (   2.6        4          0         -1.4       -0.8      )   -0.8
+    33  (   1.63       3          0.92      -1.78      -0.88     )   -0.88
+    37  (   2.46       3          0.97      -1.87      -0.92     )   -0.92
+    41  (   3.2        3          0.16      -1.26      -1.05     )   -1.05
+    42  (   4.27       2         -0.23      -1.07      -1.36     )   -1.36
+    47  (   3.0        1          1.22      -1.92      -1.5      )   -1.5
+    48  (   3.2        0          1.83      -2.19      -1.86     )   -1.86
+    57  (   3.91      -0          1.02      -1.32      -1.95     )   -1.95
+    67  (   3.61      -0          1.28      -1.83      -1.99     )   -1.99
+    78  (   3.94       1          0.63      -1.14      -2.02     )   -2.02
+    79  (   4.32       1          0.02      -0.61      -2.11     )   -2.11
+    84  (   3.68       0          0.97      -1.23      -2.15     )   -2.15
+    88  (   3.91       1          0.5       -0.6       -2.2      )   -2.2
+    89  (   4.07       1          0.1        0.01      -2.31     )   -2.31
+    94  (   3.67       1          0.56      -0.47      -2.36     )   -2.36
+    95  (   3.35       1          0.84      -0.39      -2.48     )   -2.48
+    99  (   4.15       1         -0.37       0.57      -2.49     )   -2.49
+    Reached stop criterion: Max number of blackbox evaluations (Eval Global) 100
+    A termination criterion is reached: Max number of blackbox evaluations (Eval Global) No more points to evaluate 100
 
-  Best feasible solution:     #1543 ( 3.27 2 0.15 0.75 -2.7 ) Evaluation OK    f =  -2.7000000000000001776     h =   0
+    Best feasible solution:     #1540 ( 4.15 1 -0.37 0.57 -2.49 )   Evaluation OK    f =  -2.4900000000000002132     h =   0
 
-  Best infeasible solution:   #1512 ( 3.79 0 1.14 -1.75 -1.97 )   Evaluation OK    f =  -1.9699999999999999734     h =   0.03500640999999999475
+    Best infeasible solution:   #1512 ( 3.79 0 1.14 -1.75 -1.97 )   Evaluation OK    f =  -1.9699999999999999734     h =   0.03500640999999999475
 
-  Blackbox evaluations:        100
-  Total model evaluations:     1348
-  Cache hits:                  3
-  Total number of evaluations: 103
+    Blackbox evaluations:        100
+    Total model evaluations:     1348
+    Cache hits:                  3
+    Total number of evaluations: 103

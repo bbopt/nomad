@@ -1,7 +1,7 @@
-add_executable(bb_single_obj.exe bb.cpp )
+add_executable(bb.exe bb.cpp )
 
 # installing executables and libraries
-install(TARGETS bb_single_obj.exe
+install(TARGETS bb.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example
