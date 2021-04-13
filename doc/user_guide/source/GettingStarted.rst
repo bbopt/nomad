@@ -18,7 +18,7 @@ This chapter explains how to get started with NOMAD in batch mode. The following
 * How to provide parameters for defining the problem and displaying optimization results.
 * How to conduct optimization.
 
-.. warning::
+.. note::
    Building NOMAD binaries and running the examples provided during the installation requires to have a ``C++`` compiler installed on your machine.
    Basic compilation instructions will be provided for **GCC** (the GNU Compiler Collection).
 
@@ -28,24 +28,21 @@ Create blackbox programs
 
 To conduct optimization in batch mode the users must define their separate blackbox program coded as a standalone program. Blackbox program executions are managed by NOMAD with system calls.
 
-.. sidebar:: A valid blackbox program:
-
+A valid blackbox program:
     - takes an input vector file as single argument,
-
     - reads space-separated values in input vector file,
-
     - returns evaluation values on standard output or file,
-
     - returns an evaluation status.
 
-In what follows we use the example in the ``$NOMAD_HOME/examples/basic/batch/example1``. This example optimization problem has a single objective, 10 variables, 3 nonlinear constraints and 20 bound constraints.
+In what follows we use the example in the ``$NOMAD_HOME/examples/basic/batch/single_boj``. This example optimization problem has a single objective, 5 variables, 2 nonlinear constraints and 8 bound constraints.
+
 
 .. image:: ../figs/example1.png
     :align: left
     :width: 650
     :alt: example 1
 
-.. warning:: The blackbox programs may be coded in any language (even scripts) but must respect **NOMAD format**:
+.. note:: The blackbox programs may be coded in any language (even scripts) but must respect **NOMAD format**:
 
     1. The blackbox program must be callable in a terminal window at the command prompt and take the input vector file name as a single argument. For the example above, the blackbox executable is ``bb.exe``, one can execute it with the command  ``./bb.exe x.txt``. Here ``x.txt`` is a text file containing a total of 5 values.
 
@@ -156,20 +153,21 @@ With **GNU compiler** ``g++``, the blackbox compilation and test are as follows:
 
 2. Compile the blackbox program  with the following command ``g++ -o bb.exe bb.cpp``.
 
-3. Test the executable with the text file ``x0.txt`` containing ``5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0`` by entering the command ``bb.exe x0.txt``.
+3. Test the executable with the text file ``x.txt`` containing ``0 0 0 0 0`` by entering the command ``bb.exe x.txt``.
 
-4. This test  should display ``-976.565 -9.76562e+06 -25 -1023.44``, which means that the point :math:`x = (5~5~5~5~5~5~5~5~5~5)^T` has an objective value of :math:`f(x)=-976.565`, but is not feasible, since the all constraints verify  (:math:`c_j(x)<=0`).
+4. This test  should display ``0 -20 20``, which means that the point :math:`x = (0~0~0~0~0)^T` has an objective value of :math:`f(x)=0`, but is not feasible, since the second constraint is not
+satisfied (:math:`c_2(x) = 20 > 0`).
 
 ::
 
-  > cd $NOMAD_HOME/examples/basic/batch/example1
+  > cd $NOMAD_HOME/examples/basic/batch/single_obj
   > g++ -o bb.exe bb.cpp
-  > more x0.txt
-  5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0
-  > ./bb.exe x0.txt
-  -976.565 -9.76562e+06 -25 -1023.44
+  > more x.txt
+  0 0 0 0 0
+  > ./bb.exe x.txt
+  0 -20 20
 
-.. warning::
+.. note::
 
   The order of the displayed outputs must correspond to the order defined in the parameter file (see `BB_OUTPUT_TYPE <output types>`_ below).
   If variables have bound constraints, they must be defined in the parameters file and should not appear in the blackbox code.
@@ -200,59 +198,96 @@ Here are some of the most important parameters defining an optimization problem 
 
   The order in which the parameters appear in the file or their case is unimportant.
 
-The parameter file for the example is as follows:
+Example of a basic parameters file extracted from ``$NOMAD_HOME/examples/basic/batch/single_obj/param.txt``. The comments in the file
+describes some of the syntactic rules to provide parameters:
 
 ::
 
-  # PROBLEM PARAMETERS
-  ####################
+    DIMENSION      5              # number of variables
 
-  # Number of variables
-  DIMENSION 10
+    BB_EXE         bb.exe         # 'bb.exe' is a program that
+    BB_OUTPUT_TYPE OBJ PB EB      # takes in argument the name of
+                                  # a text file containing 5
+                                  # values, and that displays 3
+                                  # values that correspond to the
+                                  # objective function value (OBJ),
+                                  # and two constraints values g1
+                                  # and g2 with g1 <= 0 and
+                                  # g2 <= 0; 'PB' and 'EB'
+                                  # correspond to constraints that
+                                  # are treated by the Progressive
+                                  # and Extreme Barrier approaches
+                                  # (all constraint-handling
+                                  #  options are described in the
+                                  #  detailed parameters list)
 
-  # Black box
-  BB_EXE bb.exe
-  BB_OUTPUT_TYPE OBJ PB PB EB
+    X0             ( 0 0 0 0 0 )  # starting point
 
-  # Starting point
-  X0 ( 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 )
+    LOWER_BOUND    * -6           # all variables are >= -6
+    UPPER_BOUND    ( 5 6 7 - - )  # x_1 <= 5, x_2 <= 6, x_3 <= 7
+                                  # x_4 and x_5 have no bounds
 
-  # Bounds are useful to avoid extreme values
-  LOWER_BOUND * -20.0
-  UPPER_BOUND *  20.0
-
-  # Some variables must be multiple of 1, others of 0.5
-  GRANULARITY ( 1 1 0.5 1 1 1 1 0.5 1 1 )
-
-  # ALGORITHM PARAMETERS
-  ######################
-
-  # The algorithm terminates after that number black-box evaluations
-  MAX_BB_EVAL 1000
-
-  # The algorithm terminates after that total number of evaluations,
-  # including cache hits
-  MAX_EVAL 200
-
-  # Parameters for display
-  DISPLAY_DEGREE 2
-  DISPLAY_ALL_EVAL 1
-  DISPLAY_STATS BBE ( SOL ) OBJ
+    MAX_BB_EVAL    100            # the algorithm terminates when
+                                  # 100 black-box evaluations have
+                                  # been made
 
 
-The constraints defined in the parameters file are of different types. The first and second constraint :math:`c_1(x) \leq 0` and :math:`c_2(x) \leq 0` are treated by  the *Progressive Barrier* approach (*PB*), which allows constraint violations.  The third constraint, :math:`c_3(x) \leq 0`, is treated by the  *Extreme Barrier* approach (*EB*) that forbids violations. Hence, evaluations not satisfying *EB* constraints are simply not considered when trying to improve the solution.
+
+The constraints defined in the parameters file are of different types. The first constraint :math:`c_1(x) \leq 0` is treated by the *Progressive Barrier* approach (*PB*), which allows constraint violations.  The second constraint, :math:`c_3(x) \leq 0`, is treated by the  *Extreme Barrier* approach (*EB*) that forbids violations. Hence, evaluations not satisfying extreme barrier constraints are simply not considered when trying to improve the solution.
+
+In the example above, the algorithmic parameters of NOMAD need not to be set because default
+values are considered. This will provide the best results in most situations.
+
 
 Conduct optimization
 ^^^^^^^^^^^^^^^^^^^^
 
-Optimization is conducted by starting NOMAD executable in a command window with the parameter file name given as argument. To illustrate the execution, the example provided in ``$NOMAD_HOME/examples/basic/batch/example1/`` is considered:
+Optimization is conducted by starting NOMAD executable in a command window with the parameter file name given as argument.
+::
+    $NOMAD_HOME/bin/nomad param.txt
+To illustrate the execution, the example provided in ``$NOMAD_HOME/examples/basic/batch/single_obj/`` is considered:
 
 ::
 
-  > cd $NOMAD_HOME/examples/basic/batch/example1
+  > cd $NOMAD_HOME/examples/basic/batch/single_obj
   > ls
-  bb.cpp  bb.exe  param.txt  x.txt
-  >$NOMAD_HOME/bin/nomad param.txt
+  bb.cpp bb.exe CMakeLists.txt makefile param.txt x.txt
+  >$NOMAD_HOME/build/release/bin/nomad param.txt
+  BBE ( SOL ) OBJ
+  1   (   0          0          0          0          0        )    0        (Phase One)
+  6   (   0          4          0          0          0        )    0        (Phase One)
+  26  (   1.4        5          0         -0.6       -0.4      )   -0.4
+  27  (   2.6        4          0         -1.4       -0.8      )   -0.8
+  31  (   1.63       3          0.92      -1.78      -0.88     )   -0.88
+  35  (   2.46       3          0.97      -1.87      -0.92     )   -0.92
+  39  (   3.2        3          0.16      -1.26      -1.05     )   -1.05
+  40  (   4.27       2         -0.23      -1.07      -1.36     )   -1.36
+  45  (   3.0        1          1.22      -1.92      -1.5      )   -1.5
+  46  (   3.2        0          1.83      -2.19      -1.86     )   -1.86
+  55  (   3.91      -0          1.02      -1.32      -1.95     )   -1.95
+  65  (   3.61      -0          1.28      -1.83      -1.99     )   -1.99
+  76  (   3.94       1          0.63      -1.14      -2.02     )   -2.02
+  77  (   4.32       1          0.02      -0.61      -2.11     )   -2.11
+  82  (   3.68       0          0.97      -1.23      -2.15     )   -2.15
+  86  (   3.91       1          0.5       -0.6       -2.2      )   -2.2
+  87  (   4.07       1          0.1        0.01      -2.31     )   -2.31
+  92  (   3.67       1          0.56      -0.47      -2.36     )   -2.36
+  93  (   3.35       1          0.84      -0.39      -2.48     )   -2.48
+  97  (   4.15       1         -0.37       0.57      -2.49     )   -2.49
+  99  (   3.61       1          0.1        0.4       -2.56     )   -2.56
+  Reached stop criterion: Max number of blackbox evaluations (Eval Global) 100
+  100 (   3.27       2          0.15       0.75      -2.7      )   -2.7
+  A termination criterion is reached: Max number of blackbox evaluations (Eval Global) Success found and opportunistic strategy is used 100
+  
+  Best feasible solution:     #1543 ( 3.27 2 0.15 0.75 -2.7 ) Evaluation OK    f =  -2.7000000000000001776     h =   0
+  
+  Best infeasible solution:   #1512 ( 3.79 0 1.14 -1.75 -1.97 )   Evaluation OK    f =  -1.9699999999999999734     h =   0.03500640999999999475
+  
+  Blackbox evaluations:        100
+  Total model evaluations:     1348
+  Cache hits:                  3
+  Total number of evaluations: 103
 
 
-Todo
+
+
