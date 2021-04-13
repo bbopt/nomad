@@ -47,8 +47,10 @@
 
 #include "../Algos/EvcInterface.hpp"
 #include "../Cache/CacheBase.hpp"
+#include "../Math/RNG.hpp"
 #include "../Nomad/nomad.hpp"
 #include "../Param/AllParameters.hpp"
+#include "../Type/LHSearchType.hpp"
 
 #include <string.h>
 #include <iostream>
@@ -64,6 +66,7 @@ struct NomadProblemInfo
     // bb_inputs: array of bb_inputs
     // nb_outputs: number of blackbox outputs
     // bb_outputs: array of bb_outputs
+    // count_eval: set to true if the evaluation has to be counted.
     // must return true if works, otherwise false.
     // WARNING: all arrays must be allocated before and deallocated after.
     Callback_BB_single bb_single;
@@ -73,27 +76,15 @@ struct NomadProblemInfo
 
     int nb_inputs;  // number of inputs
     int nb_outputs; // number of outputs
-
-    double *x_lb; // lower bounds (can be null)
-    double *x_ub; // upper bounds (can be null)
-
-    char *type_bb_outputs; // follow the conventions of Nomad.
-
-    int max_bb_eval; // maximum number of evaluations allowed
 };
 
 NomadProblem createNomadProblem(
     Callback_BB_single bb_single, // black box function
     int nb_inputs,                // number of inputs
-    int nb_outputs,               // number of outputs
-    double *x_lb,                 // lower bounds (can be null)
-    double *x_ub,                 // upper bounds (can be null)
-    char *type_bb_outputs,        // follow the conventions of Nomad.
-    int max_bb_eval               // maximum number of evaluations allowed
-)
+    int nb_outputs)               // number of outputs
 {
     // check inputs; redundant but no choice
-    if (nb_inputs < 1 || nb_outputs < 1 || bb_single == nullptr || type_bb_outputs == nullptr || max_bb_eval < 1)
+    if (nb_inputs < 1 || nb_outputs < 1 || bb_single == nullptr)
     {
         return nullptr;
     }
@@ -102,36 +93,6 @@ NomadProblem createNomadProblem(
     retval->bb_single = bb_single;
     retval->nb_inputs = nb_inputs;
     retval->nb_outputs = nb_outputs;
-    retval->max_bb_eval = max_bb_eval;
-
-    if (x_lb != nullptr)
-    {
-        retval->x_lb = new double[nb_inputs];
-        for (int i = 0; i < nb_inputs; ++i)
-        {
-            retval->x_lb[i] = x_lb[i];
-        }
-    }
-    else
-    {
-        retval->x_lb = nullptr;
-    }
-
-    if (x_ub != nullptr)
-    {
-        retval->x_ub = new double[nb_inputs];
-        for (int i = 0; i < nb_inputs; ++i)
-        {
-            retval->x_ub[i] = x_ub[i];
-        }
-    }
-    else
-    {
-        retval->x_ub = nullptr;
-    }
-
-    retval->type_bb_outputs = new char[strlen(type_bb_outputs) + 1];
-    strcpy(retval->type_bb_outputs, type_bb_outputs);
 
     retval->p = std::make_shared<NOMAD::AllParameters>();
 
@@ -140,52 +101,65 @@ NomadProblem createNomadProblem(
 
 void freeNomadProblem(NomadProblem nomad_problem)
 {
-    if (!nomad_problem->x_lb)
-    {
-        delete[] nomad_problem->x_lb;
-    }
-    if (!nomad_problem->x_ub)
-    {
-        delete[] nomad_problem->x_ub;
-    }
     nomad_problem->bb_single = nullptr;
-    delete[] nomad_problem->type_bb_outputs;
     nomad_problem->p = nullptr;
 }
 
-// TODO think about conversion string c c++
-
-// Display parameters
-bool addNomadBoolDispParam(NomadProblem nomad_problem,
-                           char *keyword,
-                           bool flag)
+bool addNomadParam(NomadProblem nomad_problem, char *keyword_value_pair)
 {
-    nomad_problem->p->getDispParams()->setAttributeValue(keyword, flag);
+    nomad_problem->p->readParamLine(std::string(keyword_value_pair));
     return true;
 }
 
-bool addNomadValDispParam(NomadProblem nomad_problem,
-                          char *keyword,
-                          int flag)
+bool addNomadValParam(NomadProblem nomad_problem, char *keyword, int value)
 {
-    nomad_problem->p->getDispParams()->setAttributeValue(keyword, flag);
+    nomad_problem->p->setAttributeValue(std::string(keyword), value);
     return true;
 }
 
-bool addNomadStringDispParam(NomadProblem nomad_problem,
-                             char *keyword,
-                             char *param_str)
+bool addNomadBoolParam(NomadProblem nomad_problem, char *keyword, bool value)
 {
-    nomad_problem->p->getDispParams()->setAttributeValue(keyword, param_str);
+    nomad_problem->p->setAttributeValue(std::string(keyword), value);
     return true;
 }
 
-// Run parameters
-bool addNomadBoolRunParam(NomadProblem nomad_problem,
-                          char *keyword,
-                          bool flag)
+bool addNomadStringParam(NomadProblem nomad_problem, char *keyword, char *param_str)
 {
-    nomad_problem->p->getRunParams()->setAttributeValue(keyword, flag);
+    // particular values
+    if (std::string(keyword) == "BB_INPUT_TYPE")
+    {
+        nomad_problem->p->getPbParams()->setAttributeValue("BB_INPUT_TYPE",
+                                                           NOMAD::stringToBBInputTypeList(std::string(param_str)));
+    }
+    else if (std::string(keyword) == "BB_OUTPUT_TYPE")
+    {
+        nomad_problem->p->getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE",
+                                                             NOMAD::stringToBBOutputTypeList(std::string(param_str)));
+    }
+    else if (std::string(keyword) == "LH_SEARCH")
+    {
+        nomad_problem->p->getRunParams()->setAttributeValue("LH_SEARCH", NOMAD::LHSearchType(std::string(param_str)));
+    }
+    else if (std::string(keyword) == "DISPLAY_STATS")
+    {
+        nomad_problem->p->getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString(std::string(param_str)));
+    }
+    // other values
+    else
+    {
+        nomad_problem->p->setAttributeValue(std::string(keyword), std::string(param_str));
+    }
+    return true;
+}
+
+bool addNomadArrayOfDoubleParam(NomadProblem nomad_problem, char *keyword, double *array_param) 
+{
+    NOMAD::ArrayOfDouble param(nomad_problem->nb_inputs);
+    for (size_t i = 0; i < nomad_problem->nb_inputs; ++i) 
+    {
+        param[i] = array_param[i];
+    }
+    nomad_problem->p->setAttributeValue(std::string(keyword), param);
     return true;
 }
 
@@ -244,7 +218,7 @@ public:
         try
         {
             // call function
-            eval_ok = _bb_single(_nbInputs, bb_inputs, _nbOutputs, bb_outputs, _data_user_ptr);
+            eval_ok = _bb_single(_nbInputs, bb_inputs, _nbOutputs, bb_outputs, &countEval, _data_user_ptr);
 
             // collect outputs parameters
             auto bbOutputType = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
@@ -267,80 +241,52 @@ public:
         delete[] bb_inputs;
         delete[] bb_outputs;
 
-        countEval = true;
         return eval_ok;
     }
 };
 
 bool solveNomadProblem(NomadProblem nomad_problem,
-                      double *x0,
-                      bool *exists_feas_sol,
-                      double *bb_best_x_feas,
-                      double *bb_best_feas_outputs,
-                      bool *exists_inf_sol,
-                      double *bb_best_x_inf,
-                      double *bb_best_inf_outputs,
-                      NomadUserDataPtr data_user_ptr)
+                       int nb_starting_points,
+                       double *x0s,
+                       bool *exists_feas_sol,
+                       double *bb_best_x_feas,
+                       double *bb_best_feas_outputs,
+                       bool *exists_inf_sol,
+                       double *bb_best_x_inf,
+                       double *bb_best_inf_outputs,
+                       NomadUserDataPtr data_user_ptr)
 {
-    if (!x0 || !exists_feas_sol || !bb_best_x_feas || !bb_best_feas_outputs || !exists_inf_sol || !bb_best_x_inf || !bb_best_inf_outputs)
+    if ((nb_starting_points < 1) || !x0s || !exists_feas_sol || !bb_best_x_feas || !bb_best_feas_outputs || !exists_inf_sol || !bb_best_x_inf || !bb_best_inf_outputs)
     {
         std::cerr << "All parameters must not be null" << std::endl;
         return 1;
     }
+
     // Configure main parameters
     nomad_problem->p->getPbParams()->setAttributeValue("DIMENSION", nomad_problem->nb_inputs);
 
-    // TODO : check according to C string C++string
-    std::string type_bb_outputs_wrap(nomad_problem->type_bb_outputs);
-    nomad_problem->p->getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE",
-                                                         NOMAD::stringToBBOutputTypeList(type_bb_outputs_wrap));
-
-    // Fix bounds
-    if (nomad_problem->x_lb != nullptr)
-    {
-        NOMAD::ArrayOfDouble lb(nomad_problem->nb_inputs);
-        for (size_t i = 0; i < nomad_problem->nb_inputs; ++i)
-        {
-            lb[i] = nomad_problem->x_lb[i];
-        }
-        nomad_problem->p->getPbParams()->setAttributeValue("LOWER_BOUND", lb);
-    }
-
-    if (nomad_problem->x_ub != nullptr)
-    {
-        NOMAD::ArrayOfDouble ub(nomad_problem->nb_inputs);
-        for (size_t i = 0; i < nomad_problem->nb_inputs; ++i)
-        {
-            ub[i] = nomad_problem->x_ub[i];
-        }
-        nomad_problem->p->getPbParams()->setAttributeValue("UPPER_BOUND", ub);
-    }
-
-
     // starting points
-    if (x0 != nullptr) {
-        NOMAD::Point start_x0(nomad_problem->nb_inputs);
-        for (size_t i = 0; i < nomad_problem->nb_inputs; ++i) {
-            start_x0[i] = x0[i];
+    if (x0s != nullptr) {
+        NOMAD::ArrayOfPoint start_x0s;
+        for (size_t pt_index = 0; pt_index < nb_starting_points; ++pt_index)
+        {
+            NOMAD::Point start_x0(nomad_problem->nb_inputs);
+            for (size_t i = 0; i < nomad_problem->nb_inputs; ++i)
+            {
+                start_x0[i] = x0s[i + pt_index * nomad_problem->nb_inputs];
+            }
+            start_x0s.push_back(start_x0);
         }
-        nomad_problem->p->getPbParams()->setAttributeValue("X0", start_x0);
+        nomad_problem->p->setAttributeValue<NOMAD::ArrayOfPoint>("X0", start_x0s);
     }
-
-    // Fix max bb evaluations
-    nomad_problem->p->getEvaluatorControlParams()->setAttributeValue("MAX_BB_EVAL", nomad_problem->max_bb_eval);
 
     // TODO : for the moment allow only one blackbox call.
-    nomad_problem->p->getEvaluatorControlParams()->setAttributeValue<size_t>("BB_MAX_BLOCK_SIZE", 1);
+    nomad_problem->p->getEvaluatorControlGlobalParams()->setAttributeValue<size_t>("BB_MAX_BLOCK_SIZE", 1);
 
     // TODO: For the moment, let these attributes
-    nomad_problem->p->getDispParams()->setAttributeValue("DISPLAY_DEGREE", 2);
-    nomad_problem->p->getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL ( SOL ) OBJ CONS_H H_MAX"));
-
     nomad_problem->p->getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
     nomad_problem->p->getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
-
-    // parameters validation
-    nomad_problem->p->checkAndComply();
+    nomad_problem->p->setAttributeValue("HOT_RESTART_ON_USER_INTERRUPT", false);
 
     // Initialization of main results
     *exists_feas_sol = false;
@@ -359,6 +305,9 @@ bool solveNomadProblem(NomadProblem nomad_problem,
         NOMAD::MainStep TheMainStep;
         TheMainStep.setAllParameters(nomad_problem->p);
 
+        // Must perform check and comply before creating the evaluator
+        nomad_problem->p->checkAndComply();
+
         std::unique_ptr<CInterfaceEval> ev(new CInterfaceEval(nomad_problem->p->getEvalParams(),
                                                               nomad_problem->bb_single,
                                                               nomad_problem->nb_inputs,
@@ -373,10 +322,8 @@ bool solveNomadProblem(NomadProblem nomad_problem,
 
         // Set the best feasible and best infeasible solutions ; TODO maybe change
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        const NOMAD::Eval* refevalFeas;
-        const NOMAD::Eval* refevalInfeas;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB,refevalFeas);
-        auto nbInf = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB,refevalInfeas);
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
+        auto nbInf = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
 
         if (nbInf > 0)
         {
@@ -426,10 +373,10 @@ bool solveNomadProblem(NomadProblem nomad_problem,
         }
 
         // reset parameters in case someone wants to restart an optimization again
-        nomad_problem->p->resetToDefaultValues();
+        // nomad_problem->p->resetToDefaultValues();
 
         NOMAD::OutputQueue::Flush();
-        NOMAD::CacheBase::getInstance()->clear();
+        NOMAD::MainStep::resetComponentsBetweenOptimization();
 
         return 0;
     }

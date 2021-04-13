@@ -75,8 +75,6 @@ class MegaIteration: public Step
 
 
 protected:
-    std::vector<std::shared_ptr<Iteration>> _iterList; ///< A collection of additional iterations: Help generate more eval points.
-
     /**
      The barrier holds xFeas, xInf and hMax.
     xFeas and xInf will be used as frame centers.
@@ -86,7 +84,6 @@ protected:
 
 
     size_t _k;          ///< Main counter
-    size_t _nbIterRun;  ///< Number of iterations run within this MegaIteration
 
     /**
      Success type of this step. Initialized with the run of the previous
@@ -119,10 +116,6 @@ public:
     /*---------*/
     /* Get/Set */
     /*---------*/
-
-    size_t getNbIterations() const                              { return _iterList.size(); }
-    const std::shared_ptr<Iteration>& getIter(size_t i) const   { return _iterList[i]; }
-
     size_t getK() const                                         { return _k; }
     void setK(const size_t k)                                   { _k = k; }
     size_t getNextK() const;

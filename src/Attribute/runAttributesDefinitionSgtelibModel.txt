@@ -1,0 +1,352 @@
+###############################################################################
+#######   Definition of Run Parameters attributes (SGTELIB MODEL)  ############
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+SGTELIB_MODEL_EVAL
+bool
+0
+\( Sgtelib Model Sampling of points \)
+\(
+
+. Sgtelib Model sampling
+
+. Argument: bool
+
+. Best points are taken from the cache
+
+. A model is computed
+
+. The most promising points according to that model are evaluated
+
+. No opportunism
+
+. This option deactivates other optimization strategies.
+
+. Example: SGTELIB_MODEL_EVAL true
+
+\)
+\( advanced sgtelib model sampling \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+SGTELIB_MODEL_SEARCH
+bool
+false
+\( Model search using Sgtelib \)
+\(
+
+. MADS model search, using Bastien Talgorn's Sgtelib using a model definition
+
+. Argument: one boolean ('yes' or 'no')
+
+. Disabled for more than 50 variables
+
+. See SGTELIB_MODEL_DEFINITION for the definition of the model
+
+. Example: SGTELIB_MODEL_SEARCH yes
+
+\)
+\( basic mads model search sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_DISPLAY
+std::string
+-
+\( Display of a model \)
+\(
+. Control the display of the sgtelib model search and sgtelib model optimization.
+  These details are only shown if DISPLAY_DEGREE is FULL (3) or more.
+
+. Arguments: a string containing one or several of the following letters
+
+. \"S\": General information on the model search or optimization
+
+. \"F\": Details of the filter step
+
+. \"O\": Details of the models optimization
+
+. \"P\": Details of the projection
+
+. \"U\": Details of the model update
+
+. \"I\": Advancement of the model optimization
+
+. \"X\": Display of all of the model evaluations
+
+. Example: SGTELIB_MODEL_DISPLAY SPF # display the general information on the search
+                                       and on the filter and projection steps
+\)
+\( developer advanced model quad sgtelib \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################
+SGTELIB_MODEL_DEFINITION
+NOMAD::ArrayOfString
+-
+\( Definition of the Sgtelib model \)
+\(
+. Argument: Array of string that represent the Sgtelib model definition. See sgtelib manual.
+
+. See SGTELIB_MODEL_SEARCH or SGTELIB_MODEL_EVAL to enable model use.
+
+. Example: TYPE PRS DEGREE 1 # builds a linear model
+.          TYPE PRS DEGREE 2 # builds a quadratic model
+.          TYPE RBF          # builds an RBF model
+.          TYPE ENSEMBLE     # builds an ensemble of models
+           # builds a lowess model with local linear regression
+           # and optimized kernel shape:
+.          TYPE LOWESS DEGREE 1 KERNEL_COEF OPTIM
+.          # Variation that gives good results:
+           TYPE LOWESS DEGREE 1 KERNEL_SHAPE OPTIM KERNEL_COEF OPTIM RIDGE 0 METRIC AOECV
+\)
+\( advanced sgtelib search model model_search interpolation regression \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_SEARCH_TRIALS
+size_t
+1
+\( Max number of sgtelib model search failures before going to the poll step \)
+\(
+. Max number of sgtelib model search failures before going to the poll step.
+
+. Argument: one positive integer
+
+. Note: The minimum between this parameter and MAX_ITERATION_PER_MEGAITERATION
+  will be used.
+
+. Example: SGTELIB_MODEL_SEARCH_TRIALS 5
+\)
+\( developer trials sgtelib model search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_FORMULATION
+NOMAD::SgtelibModelFormulationType
+FS
+\( Formulation of the sgtelib model problem \)
+\(
+. Formulation of the sgtelib model problem.
+
+. Argument: one string in {'FS', 'EIS', 'FSP',
+                           'EFI', 'EFIS','EFIM','EFIC',
+                           'PFI',
+                           'D',
+                           'EXTERN'}
+
+. Description of the sgtelib problem formulations :
+    (FS)   min f    -d.sigma_f
+           st  c_j  -d.sigma_j <= 0
+
+    (EIS)  min -EI  -d.sigma_f
+           st  c_j  -d.sigma_j <= 0
+
+    (FSP)  min f    -d.sigma_f
+           st  P >= 1/2
+
+    (EFI)  min -EFI
+
+    (EFIS) min -EFI -d.sigma_f
+
+    (EFIM) min -EFI -d.sigma_f.mu
+
+    (EFIM) min -EFI -d.(EI.mu+P.sigma_f)
+
+    (PFI)  min -PFI
+
+    (D)    min -distance_to_closest
+
+. Example: SGTELIB_MODEL_FORMULATION EFI
+\)
+\( developer advanced problem expected improvement diversification model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_FEASIBILITY
+NOMAD::SgtelibModelFeasibilityType
+C
+\( Method used to model the feasibility of a point \)
+\(
+. Method used to model the feasibility of a point.
+
+. Arguments: one character in {'C', 'H', 'M', 'P'}
+
+. Example: SGTELIB_MODEL_FEASIBILITY C  # 1 model per constraint
+           SGTELIB_MODEL_FEASIBILITY H  # 1 model of the aggregate constraint
+           SGTELIB_MODEL_FEASIBILITY M  # 1 model of the max of the constraints
+           SGTELIB_MODEL_FEASIBILITY B  # 1 binary model of the feasibility
+\)
+\( developer advanced feasibility constraints interpolation regression model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_DIVERSIFICATION
+NOMAD::Double
+0.01
+\( Coefficient of the exploration term in the sgtelib model problem \)
+\(
+. Coefficient of the exploration term in the sgtelib model problem.
+
+. Argument: one positive real
+
+. Example: SGTELIB_MODEL_DIVERSIFICATION 0    # no exploration
+           SGTELIB_MODEL_DIVERSIFICATION 0.01 # light exploration
+           SGTELIB_MODEL_DIVERSIFICATION 0.1  # medium exploration
+           SGTELIB_MODEL_DIVERSIFICATION 1    # strong exploration
+\)
+\( developer advanced model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_SEARCH_EXCLUSION_AREA
+NOMAD::Double
+0.0
+\( Exclusion area for the sgtelib model search around points of the cache \)
+\(
+. Defines an exclusion area for the sgtelib model search around points of the cache
+
+. Arguments: one real number in [0, 0.5]
+
+. Example: SGTELIB_MODEL_SEARCH_EXCLUSION_AREA 0 # no exclusion area
+           SGTELIB_MODEL_SEARCH_EXCLUSION_AREA 0.1 # small exclusion area
+           SGTELIB_MODEL_SEARCH_EXCLUSION_AREA 0.5 # large exclusion area
+
+\)
+\( developer advanced model sgtelib search exclusion \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_SEARCH_CANDIDATES_NB
+int
+-1
+\( Number of candidates returned by the sgtelib model search \)
+\(
+. Number of candidates returned by the sgtelib model search.
+
+. Argument: one integer
+
+. If smaller or equal to 0, then the number of candidates
+  will be the largest value between BB_MAX_BLOCK_SIZE and
+  2 * DIMENSION
+
+. Example: SGTELIB_MODEL_SEARCH_CANDIDATES_NB 8
+\)
+\( developer advanced model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MIN_POINTS_FOR_MODEL
+size_t
+1
+\( Minimum number of valid points necessary to build a model \)
+\(
+. Defines the minimum number of valid points beyond which no model will
+  be build
+
+. Arguments: one positive integer
+
+. Example: SGTELIB_MIN_POINTS_FOR_MODEL 5
+
+\)
+\( developer advanced model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MAX_POINTS_FOR_MODEL
+size_t
+100
+\( Maximum number of valid points used to build a model \)
+\(
+. Defines the maximum number of valid points kept to build a model.
+  Extra points are ignored.
+
+. Arguments: one positive integer
+
+. Example: SGTELIB_MAX_POINTS_FOR_MODEL 96
+
+\)
+\( developer advanced model sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_SEARCH_FILTER
+std::string
+2345
+\( Methods used in the sgtelib search filter to return several search candidates \)
+\(
+. Methods used in the sgtelib search filter to return several search candidates
+
+. Arguments: a string containing several integers from 0 to 5
+
+. Method 0: Select the best candidate
+
+. Method 1: Select the most remote candidate
+
+. Method 2: Select the best candidate, with minimal distance to the cache
+
+. Method 3: Select the best candidate, with minimal margin in feasibility
+
+. Method 4: Select the candidate with the best isolation number
+
+. Method 5: Select the candidate with the best density number
+
+. Examples: SGTELIB_MODEL_SEARCH_FILTER 0    # Only method 0 will be used
+            SGTELIB_MODEL_SEARCH_FILTER 01   # Alternate between method 0 and 1
+            SGTELIB_MODEL_SEARCH_FILTER 2345 # Cycle through methods 2, 3, 4 and 5
+\)
+\( developer advanced model search sgtelib \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_RADIUS_FACTOR
+NOMAD::Double
+2.0
+\( Sgtelib model radius factor \)
+\(
+. Sgtelib model radius factor
+
+. This parameter is used to select points to build the sgtelib model
+
+. Frame size is multiplied by this factor to get the search radius
+
+. Points inside a circle centered on the poll center, within this radius,
+  are selected to build the sgtelib model
+
+. Arguments: one strictly positive real
+
+. Example: SGTELIB_MODEL_RADIUS_FACTOR 1.0
+\)
+\( developer sgtelib model radius \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################

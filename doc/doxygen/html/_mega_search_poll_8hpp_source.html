@@ -135,102 +135,81 @@ $(document).ready(function(){initNavTree('_mega_search_poll_8hpp_source.html',''
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="preprocessor">#define __NOMAD400_MEGASEARCHPOLL__</span></div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; </div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="preprocessor">#include &quot;../../Algos/IterationUtils.hpp&quot;</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="preprocessor">#include &quot;../../Algos/Mads/MadsIteration.hpp&quot;</span></div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="preprocessor">#include &quot;../../nomad_nsbegin.hpp&quot;</span></div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="comment">/// Class for the mega search and poll of MADS</span></div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="comment"></span><span class="comment">/**</span></div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="comment"> Calling the start function generates search and poll trial points at the same time before starting evaluation.</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="comment"> Calling the run function starts the evaluaions.</span></div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="comment"> The postprocessing is performed when calling the end funcion.</span></div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00060"></a><span class="lineno"><a class="line" href="class_mega_search_poll.html">   60</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_mega_search_poll.html">MegaSearchPoll</a>: <span class="keyword">public</span> <a class="code" href="class_step.html">Step</a>, <span class="keyword">public</span> <a class="code" href="class_iteration_utils.html">IterationUtils</a></div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;{</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="keyword">private</span>:<span class="comment"></span></div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="comment">     Hash table to remember which iteration generated this point.</span></div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="comment">     I tried working around it, but in the end it is easier to just</span></div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="comment">    remember the iteration.</span></div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="comment">    Mutable because it is updated in generateTrialPoints().</span></div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00069"></a><span class="lineno"><a class="line" href="class_mega_search_poll.html#afdc090546f22c9eadf6cf6603fc67dd5">   69</a></span>&#160;    <span class="keyword">mutable</span> std::map&lt;EvalPoint, std::shared_ptr&lt;MadsIteration&gt;, <a class="code" href="class_eval_point_compare.html">EvalPointCompare</a>&gt; <a class="code" href="class_mega_search_poll.html#afdc090546f22c9eadf6cf6603fc67dd5">_iterForPoint</a>;</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160; </div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;<span class="keyword">public</span>:<span class="comment"></span></div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;<span class="comment">    /// Constructor</span></div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="comment"></span><span class="comment">    /**</span></div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="comment">     \param parentStep The parent of this step</span></div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00076"></a><span class="lineno"><a class="line" href="class_mega_search_poll.html#a6611027953818d4f98a56dcf4dc7659e">   76</a></span>&#160;    <span class="keyword">explicit</span> <a class="code" href="class_mega_search_poll.html#a6611027953818d4f98a56dcf4dc7659e">MegaSearchPoll</a>(<span class="keyword">const</span> <a class="code" href="class_step.html">Step</a>* parentStep )</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;      : <a class="code" href="class_step.html">Step</a>( parentStep ),</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        <a class="code" href="class_iteration_utils.html">IterationUtils</a>( parentStep ),</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;        <a class="code" href="class_mega_search_poll.html#afdc090546f22c9eadf6cf6603fc67dd5">_iterForPoint</a>()</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    {</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        <a class="code" href="class_mega_search_poll.html#a6a082fedd71099f9ff8120225228d679">init</a>();</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    }</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    <span class="comment">// Destructor</span></div>
-<div class="line"><a name="l00085"></a><span class="lineno"><a class="line" href="class_mega_search_poll.html#a1a961f80677ab85d36f93ee9d7e194e5">   85</a></span>&#160;    <span class="keyword">virtual</span> <a class="code" href="class_mega_search_poll.html#a1a961f80677ab85d36f93ee9d7e194e5">~MegaSearchPoll</a>()</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    {</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;        <a class="code" href="class_mega_search_poll.html#afdc090546f22c9eadf6cf6603fc67dd5">_iterForPoint</a>.clear();</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    }</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;<span class="comment">     Get which iteration generated a point. This is used by evaluator control interface. Having the iteration, gives access to the mesh and some of its attributes.</span></div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <span class="keyword">const</span> std::shared_ptr&lt;MadsIteration&gt; <a class="code" href="class_mega_search_poll.html#ab3f4a143311965c5cea1114bd5b9cf69">getIterForPoint</a>(<span class="keyword">const</span> <a class="code" href="class_eval_point.html">EvalPoint</a>&amp; point) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;<span class="comment">    /// Generate the trial poins for the search and poll steps.</span></div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;<span class="comment"></span><span class="comment">    /**</span></div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="comment">     Call MegaSearchPoll::generateTrialPoints.</span></div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span>    <a class="code" href="class_mega_search_poll.html#ae35d60a8bebd14f95abdf7ba7c9e8caa">startImp</a>() <span class="keyword">override</span>;</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;<span class="comment">    ///Start evaluations</span></div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="comment"></span>    <span class="keyword">virtual</span> <span class="keywordtype">bool</span>    <a class="code" href="class_mega_search_poll.html#a01331ced339bd09eae32e8af5ef30643">runImp</a>() <span class="keyword">override</span>;</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;<span class="comment">     Call for postprocessing: computation of a new hMax and update of the barrier.</span></div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span>    <a class="code" href="class_mega_search_poll.html#a47a55354d63e8864d35106494141a3f0">endImp</a>() <span class="keyword">override</span> ;</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160; </div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_mega_search_poll.html#a6a082fedd71099f9ff8120225228d679">init</a>();</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;<span class="comment">    /// Generate new points to evaluate</span></div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;<span class="comment"></span><span class="comment">    /**</span></div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;<span class="comment">     The trial points are produced using poll and search. The duplicates are removed and they are merged all together.</span></div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_mega_search_poll.html#a8152fa764937108c794b538371fe03d6">generateTrialPoints</a>() <span class="keyword">override</span> ;</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160; </div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160; </div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;};</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160; </div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;<span class="preprocessor">#include &quot;../../nomad_nsend.hpp&quot;</span></div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160; </div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;<span class="preprocessor">#endif // __NOMAD400_MEGASEARCHPOLL__</span></div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="preprocessor">#include &quot;../../nomad_nsbegin.hpp&quot;</span></div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="comment">/// Class for the mega search and poll of MADS</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="comment"></span><span class="comment">/**</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="comment"> Calling the start function generates search and poll trial points at the same time before starting evaluation.</span></div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="comment"> Calling the run function starts the evaluaions.</span></div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="comment"> The postprocessing is performed when calling the end funcion.</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00059"></a><span class="lineno"><a class="line" href="class_mega_search_poll.html">   59</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_mega_search_poll.html">MegaSearchPoll</a>: <span class="keyword">public</span> <a class="code" href="class_step.html">Step</a>, <span class="keyword">public</span> <a class="code" href="class_iteration_utils.html">IterationUtils</a></div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;{</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="keyword">public</span>:<span class="comment"></span></div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="comment">    /// Constructor</span></div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="comment"></span><span class="comment">    /**</span></div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="comment">     \param parentStep The parent of this step</span></div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00066"></a><span class="lineno"><a class="line" href="class_mega_search_poll.html#a6611027953818d4f98a56dcf4dc7659e">   66</a></span>&#160;    <span class="keyword">explicit</span> <a class="code" href="class_mega_search_poll.html#a6611027953818d4f98a56dcf4dc7659e">MegaSearchPoll</a>(<span class="keyword">const</span> <a class="code" href="class_step.html">Step</a>* parentStep )</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;      : <a class="code" href="class_step.html">Step</a>( parentStep ),</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        <a class="code" href="class_iteration_utils.html">IterationUtils</a>( parentStep )</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    {</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        <a class="code" href="class_mega_search_poll.html#a6a082fedd71099f9ff8120225228d679">init</a>();</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    }</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160; </div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    <span class="comment">// Destructor</span></div>
+<div class="line"><a name="l00074"></a><span class="lineno"><a class="line" href="class_mega_search_poll.html#a1a961f80677ab85d36f93ee9d7e194e5">   74</a></span>&#160;    <span class="keyword">virtual</span> <a class="code" href="class_mega_search_poll.html#a1a961f80677ab85d36f93ee9d7e194e5">~MegaSearchPoll</a>()</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    {</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    }</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;<span class="comment">    /// Generate the trial poins for the search and poll steps.</span></div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;<span class="comment"></span><span class="comment">    /**</span></div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;<span class="comment">     Call MegaSearchPoll::generateTrialPoints.</span></div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span>    <a class="code" href="class_mega_search_poll.html#ae35d60a8bebd14f95abdf7ba7c9e8caa">startImp</a>() <span class="keyword">override</span>;</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;<span class="comment">    ///Start evaluations</span></div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;<span class="comment"></span>    <span class="keyword">virtual</span> <span class="keywordtype">bool</span>    <a class="code" href="class_mega_search_poll.html#a01331ced339bd09eae32e8af5ef30643">runImp</a>() <span class="keyword">override</span>;</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;<span class="comment">    /**</span></div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;<span class="comment">     Call for postprocessing: computation of a new hMax and update of the barrier.</span></div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span>    <a class="code" href="class_mega_search_poll.html#a47a55354d63e8864d35106494141a3f0">endImp</a>() <span class="keyword">override</span> ;</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_mega_search_poll.html#a6a082fedd71099f9ff8120225228d679">init</a>();</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;<span class="comment">    /// Generate new points to evaluate</span></div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;<span class="comment"></span><span class="comment">    /**</span></div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;<span class="comment">     The trial points are produced using poll and search. The duplicates are removed and they are merged all together.</span></div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_mega_search_poll.html#a8152fa764937108c794b538371fe03d6">generateTrialPoints</a>() <span class="keyword">override</span> ;</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160; </div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;};</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160; </div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;<span class="preprocessor">#include &quot;../../nomad_nsend.hpp&quot;</span></div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; </div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;<span class="preprocessor">#endif // __NOMAD400_MEGASEARCHPOLL__</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="aclass_mega_search_poll_html_a01331ced339bd09eae32e8af5ef30643"><div class="ttname"><a href="class_mega_search_poll.html#a01331ced339bd09eae32e8af5ef30643">MegaSearchPoll::runImp</a></div><div class="ttdeci">virtual bool runImp() override</div><div class="ttdoc">Start evaluations.</div></div>
 <div class="ttc" id="aclass_step_html"><div class="ttname"><a href="class_step.html">Step</a></div><div class="ttdoc">Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,...</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00068">Step.hpp:68</a></div></div>
-<div class="ttc" id="aclass_mega_search_poll_html_afdc090546f22c9eadf6cf6603fc67dd5"><div class="ttname"><a href="class_mega_search_poll.html#afdc090546f22c9eadf6cf6603fc67dd5">MegaSearchPoll::_iterForPoint</a></div><div class="ttdeci">std::map&lt; EvalPoint, std::shared_ptr&lt; MadsIteration &gt;, EvalPointCompare &gt; _iterForPoint</div><div class="ttdef"><b>Definition:</b> <a href="_mega_search_poll_8hpp_source.html#l00069">MegaSearchPoll.hpp:69</a></div></div>
-<div class="ttc" id="aclass_mega_search_poll_html"><div class="ttname"><a href="class_mega_search_poll.html">MegaSearchPoll</a></div><div class="ttdoc">Class for the mega search and poll of MADS.</div><div class="ttdef"><b>Definition:</b> <a href="_mega_search_poll_8hpp_source.html#l00060">MegaSearchPoll.hpp:60</a></div></div>
+<div class="ttc" id="aclass_mega_search_poll_html"><div class="ttname"><a href="class_mega_search_poll.html">MegaSearchPoll</a></div><div class="ttdoc">Class for the mega search and poll of MADS.</div><div class="ttdef"><b>Definition:</b> <a href="_mega_search_poll_8hpp_source.html#l00059">MegaSearchPoll.hpp:59</a></div></div>
 <div class="ttc" id="aclass_mega_search_poll_html_a8152fa764937108c794b538371fe03d6"><div class="ttname"><a href="class_mega_search_poll.html#a8152fa764937108c794b538371fe03d6">MegaSearchPoll::generateTrialPoints</a></div><div class="ttdeci">void generateTrialPoints() override</div><div class="ttdoc">Generate new points to evaluate.</div></div>
 <div class="ttc" id="aclass_iteration_utils_html"><div class="ttname"><a href="class_iteration_utils.html">IterationUtils</a></div><div class="ttdoc">Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati...</div><div class="ttdef"><b>Definition:</b> <a href="_iteration_utils_8hpp_source.html#l00064">IterationUtils.hpp:64</a></div></div>
-<div class="ttc" id="aclass_eval_point_html"><div class="ttname"><a href="class_eval_point.html">EvalPoint</a></div><div class="ttdoc">Class for the representation of an evaluation point.</div><div class="ttdef"><b>Definition:</b> <a href="_eval_point_8hpp_source.html#l00075">EvalPoint.hpp:75</a></div></div>
 <div class="ttc" id="aclass_mega_search_poll_html_a47a55354d63e8864d35106494141a3f0"><div class="ttname"><a href="class_mega_search_poll.html#a47a55354d63e8864d35106494141a3f0">MegaSearchPoll::endImp</a></div><div class="ttdeci">virtual void endImp() override</div></div>
-<div class="ttc" id="aclass_mega_search_poll_html_ab3f4a143311965c5cea1114bd5b9cf69"><div class="ttname"><a href="class_mega_search_poll.html#ab3f4a143311965c5cea1114bd5b9cf69">MegaSearchPoll::getIterForPoint</a></div><div class="ttdeci">const std::shared_ptr&lt; MadsIteration &gt; getIterForPoint(const EvalPoint &amp;point) const</div></div>
-<div class="ttc" id="aclass_mega_search_poll_html_a1a961f80677ab85d36f93ee9d7e194e5"><div class="ttname"><a href="class_mega_search_poll.html#a1a961f80677ab85d36f93ee9d7e194e5">MegaSearchPoll::~MegaSearchPoll</a></div><div class="ttdeci">virtual ~MegaSearchPoll()</div><div class="ttdef"><b>Definition:</b> <a href="_mega_search_poll_8hpp_source.html#l00085">MegaSearchPoll.hpp:85</a></div></div>
+<div class="ttc" id="aclass_mega_search_poll_html_a1a961f80677ab85d36f93ee9d7e194e5"><div class="ttname"><a href="class_mega_search_poll.html#a1a961f80677ab85d36f93ee9d7e194e5">MegaSearchPoll::~MegaSearchPoll</a></div><div class="ttdeci">virtual ~MegaSearchPoll()</div><div class="ttdef"><b>Definition:</b> <a href="_mega_search_poll_8hpp_source.html#l00074">MegaSearchPoll.hpp:74</a></div></div>
 <div class="ttc" id="aclass_mega_search_poll_html_ae35d60a8bebd14f95abdf7ba7c9e8caa"><div class="ttname"><a href="class_mega_search_poll.html#ae35d60a8bebd14f95abdf7ba7c9e8caa">MegaSearchPoll::startImp</a></div><div class="ttdeci">virtual void startImp() override</div><div class="ttdoc">Generate the trial poins for the search and poll steps.</div></div>
-<div class="ttc" id="aclass_mega_search_poll_html_a6611027953818d4f98a56dcf4dc7659e"><div class="ttname"><a href="class_mega_search_poll.html#a6611027953818d4f98a56dcf4dc7659e">MegaSearchPoll::MegaSearchPoll</a></div><div class="ttdeci">MegaSearchPoll(const Step *parentStep)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_mega_search_poll_8hpp_source.html#l00076">MegaSearchPoll.hpp:76</a></div></div>
-<div class="ttc" id="aclass_eval_point_compare_html"><div class="ttname"><a href="class_eval_point_compare.html">EvalPointCompare</a></div><div class="ttdoc">Class for eval point compare.</div><div class="ttdef"><b>Definition:</b> <a href="_eval_point_8hpp_source.html#l00356">EvalPoint.hpp:356</a></div></div>
+<div class="ttc" id="aclass_mega_search_poll_html_a6611027953818d4f98a56dcf4dc7659e"><div class="ttname"><a href="class_mega_search_poll.html#a6611027953818d4f98a56dcf4dc7659e">MegaSearchPoll::MegaSearchPoll</a></div><div class="ttdeci">MegaSearchPoll(const Step *parentStep)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_mega_search_poll_8hpp_source.html#l00066">MegaSearchPoll.hpp:66</a></div></div>
 <div class="ttc" id="aclass_mega_search_poll_html_a6a082fedd71099f9ff8120225228d679"><div class="ttname"><a href="class_mega_search_poll.html#a6a082fedd71099f9ff8120225228d679">MegaSearchPoll::init</a></div><div class="ttdeci">void init()</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_411efccbd5e576f82c71dd79c3c5caa4.html">Algos</a></li><li class="navelem"><a class="el" href="dir_9c2ad70377b8871382ce2d13c7aa17bb.html">Mads</a></li><li class="navelem"><a class="el" href="_mega_search_poll_8hpp.html">MegaSearchPoll.hpp</a></li>
-    <li class="footer">Generated on Tue Dec 1 2020 17:08:18 for NOMAD Source by
+    <li class="footer">Generated on Fri Apr 9 2021 13:32:04 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

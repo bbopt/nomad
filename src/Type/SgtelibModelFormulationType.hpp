@@ -71,7 +71,7 @@ enum class SgtelibModelFormulationType
     EFIC  ,  /// min -EFI-lambda*(EI*sigma+P*mu)
     PFI   ,  /// min -PFI
     D     ,  /// min -distance_to_closest
-    EXTERN,  /// min f, st c, with extern sgte.exe model
+    EXTERN,  /// min f, st c, with extern executable model
     UNDEFINED /// Undefined
 };
 

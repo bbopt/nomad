@@ -67,14 +67,8 @@ uint32_t NOMAD::RNG::_z = z_def;
 
 void NOMAD::RNG::setSeed(int s)
 {
-    bool newSeed = false;
-
     if (s <= INT_MAX && s >= 0)
     {
-        if (_s != s)
-        {
-            newSeed = true;
-        }
         _s = s;
     }
     else
@@ -83,11 +77,8 @@ void NOMAD::RNG::setSeed(int s)
                                 "NOMAD::RNG::setSeed(): invalid seed. Seed should be in [0,INT_MAX]");
     }
 
-    // Only reset to default values if the seed has really changed.
-    if (newSeed)
-    {
-        resetPrivateSeedToDefault();
-    }
+    // Always reset the private seed to default values
+    resetPrivateSeedToDefault();
 
     for (int i = 0; i < _s; i++)
     {

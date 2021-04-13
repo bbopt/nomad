@@ -46,11 +46,13 @@
 
 #include "../Algos/SubproblemManager.hpp"
 
-// Initialize static variables
-std::map<const NOMAD::Algorithm*, const NOMAD::Subproblem> NOMAD::SubproblemManager::_map = std::map<const NOMAD::Algorithm*, const NOMAD::Subproblem>();
+// Initialize singleton
+std::unique_ptr<NOMAD::SubproblemManager> NOMAD::SubproblemManager::_single=nullptr;
+
+
 #ifdef _OPENMP
 omp_lock_t NOMAD::SubproblemManager::_mapLock;
-#endif // _OPENMP
+#endif
 
 void NOMAD::SubproblemManager::init()
 {
@@ -66,6 +68,7 @@ void NOMAD::SubproblemManager::destroy()
     omp_destroy_lock(&_mapLock);
 #endif // _OPENMP
 }
+
 
 
 void NOMAD::SubproblemManager::addSubproblem(const NOMAD::Algorithm* algo, const NOMAD::Subproblem& subproblem)

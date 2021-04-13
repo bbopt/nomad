@@ -101,29 +101,64 @@ size_t
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
-SGTE_MAX_BLOCK_SIZE
+QUAD_MODEL_MAX_BLOCK_SIZE
 size_t
 INF
 \( Size of blocks of points, to be used for parallel evaluations \)
 \(
-. Maximum size of a block of evaluations send to the sgtelib
-  at once. Opportunistic strategies may apply after
-  each block of evaluations.
+. Maximum size of a block of evaluations send to the quad model evaluator
+  at once. Opportunistic strategies may apply after each block of evaluations.
 
-. Depending on the algorithm phase, the sgtelib will
-  receive at most SGTE_MAX_BLOCK_SIZE points to evaluate.
+. Depending on the algorithm phase, the quad model will
+  receive at most QUAD_MODEL_MAX_BLOCK_SIZE points to evaluate.
 
 . When this parameter is greater than one, the number of evaluations
-  may exceed the MAX_SGTE_EVAL stopping criterion.
+  may exceed the QUAD_MODEL_MAX_EVAL stopping criterion.
 
 . Argument: integer > 0
 
-. Example: SGTE_MAX_BLOCK_SIZE 100
+. Example: QUAD_MODEL_MAX_BLOCK_SIZE 100
            The blackbox executable receives blocks of
            at most 100 points for evaluation.
 
 \)
 \( advanced block parallel \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_MAX_BLOCK_SIZE
+size_t
+INF
+\( Size of blocks of points, to be used for parallel evaluations \)
+\(
+. Maximum size of a block of evaluations send to the sgtelib model evaluator
+  at once. Opportunistic strategies may apply after each block of evaluations.
+
+. Depending on the algorithm phase, the sgtelib will
+  receive at most SGTELIB_MODEL_MAX_BLOCK_SIZE points to evaluate.
+
+. When this parameter is greater than one, the number of evaluations
+  may exceed the SGTELIB_MODEL_MAX_EVAL stopping criterion.
+
+. Argument: integer > 0
+
+. Example: SGTELIB_MODEL_MAX_BLOCK_SIZE 100
+           The blackbox executable receives blocks of
+           at most 100 points for evaluation.
+
+\)
+\( advanced block parallel \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MODEL_MAX_BLOCK_SIZE
+size_t
+INF
+\( Internal parameter for QUAD_MODEL_MAX_BLOCK_SIZE and SGTELIB_MODEL_MAX_BLOCK_SIZE \)
+\(
+. CANNOT BE MODIFIED BY USER. Internal parameter.
+\)
+\( internal \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
@@ -146,30 +181,7 @@ INF
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
-MAX_SGTE_EVAL
-size_t
-1000
-\( Max number of sgtelib model evaluations for each optimization of the surrogate problem \)
-\(
-. Max number of sgtelib model evaluations for each optimization of the surrogate
-  problem.
-
-. Argument: one integer > 0
-
-. The number of evaluations may exceed this parameter when parameter SGTE_MAX_BLOCK_SIZE
-  is greater than one.
-
-. Note: In NOMAD 3, the default is 10000. Early tests in NOMAD 4 show extremely
-  long resolution times for this value. The default value is set to 1000 until
-  more investigation is done.
-
-. Example: MAX_SGTE_EVAL 5000
-\)
-\( advanced sgtelib search model model_search \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-CLEAR_EVAL_QUEUE
+EVAL_QUEUE_CLEAR
 bool
 true
 \( Opportunistic strategy: Flag to clear EvaluatorControl queue between each run \)
@@ -210,19 +222,71 @@ std::string
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ################################################################################
-RANDOM_EVAL_SORT
-bool
-false
-\( Mix points randomly before evaluation \)
+EVAL_QUEUE_SORT
+NOMAD::EvalSortType
+DIR_LAST_SUCCESS
+\( How to sort points before evaluation \)
 \(
-. Trial points are mixed randomly before evaluation, instead of being sorted
+. Argument: One of RANDOM, LEXICOGRAPHICAL, DIR_LAST_SUCCESS
 
-. Argument: one boolean ('yes' or 'no\')
+. DIR_LAST_SUCCESS: Points that are generated in a direction similar to the
+  last direction that provided a successful point are evaluated first.
 
-. Example: RANDOM_EVAL_SORT true
+. LEXICOGRAPHICAL: Points are sorted in lexicographical order before evaluation.
+
+. RANDOM: Mix points randomly before evaluation, instead of sorting them.
+
+. Example: EVAL_QUEUE_SORT LEXICOGRAPHICAL
 
 \)
 \( advanced \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
+################################################################################
+QUAD_MODEL_MAX_EVAL
+size_t
+1000
+\( Max number of model evaluations for each optimization of the quad model problem \)
+\(
+. Max number of model evaluations for each optimization of the quad model problem.
+
+. Argument: one integer > 0
+
+. The number of evaluations may exceed this parameter when parameter QUAD_MODEL_MAX_BLOCK_SIZE
+  is greater than one.
+
+. Example: QUAD_MODEL_MAX_EVAL 5000
+\)
+\( advanced quad search model model_search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SGTELIB_MODEL_MAX_EVAL
+size_t
+1000
+\( Max number of model evaluations for each optimization of the sgtelib model problem \)
+\(
+. Max number of model evaluations for each optimization of the sgtelib model problem.
+
+. Argument: one integer > 0
+
+. The number of evaluations may exceed this parameter when parameter SGTELIB_MODEL_MAX_BLOCK_SIZE
+  is greater than one.
+
+. Example: SGTELIB_MODEL_MAX_EVAL 5000
+\)
+\( advanced sgtelib search model model_search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MODEL_MAX_EVAL
+size_t
+1000
+\( Internal parameter for QUAD_MODEL_MAX_EVAL and SGTELIB_MODEL_MAX_EVAL \)
+\(
+. CANNOT BE MODIFIED BY USER. Internal parameter.
+\)
+\( internal \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
 ################################################################################

@@ -15,19 +15,19 @@ X0 ( 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )
 ######################
 # ALGORITHM PARAMETERS
 ######################
-SGTELIB_SEARCH no
+SGTELIB_MODEL_SEARCH no
 
 # The algorithm terminates after that number black-box evaluations
 MAX_BB_EVAL 1000
 
-GENERATE_ALL_POINTS_BEFORE_EVAL false
+MEGA_SEARCH_POLL false
 
 # The algorithm terminates after that total number of evaluations,
 # including cache hits
 MAX_EVAL 200
 
 # Search and Poll steps end as soon as a success is found
-OPPORTUNISTIC_EVAL true
+EVAL_OPPORTUNISTIC true
 
 
 # Parameters for display

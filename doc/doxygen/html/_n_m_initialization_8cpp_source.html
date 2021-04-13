@@ -189,67 +189,71 @@ $(document).ready(function(){initNavTree('_n_m_initialization_8cpp_source.html',
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;        std::copy(_trialPoints.begin(), _trialPoints.end(),</div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;                          std::back_inserter(evalPointList));</div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;        <span class="keyword">auto</span> hMax = _runParams-&gt;getAttributeValue&lt;NOMAD::Double&gt;(<span class="stringliteral">&quot;H_MAX_0&quot;</span>);</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;        _barrier = std::make_shared&lt;NOMAD::Barrier&gt;(hMax, NOMAD::SubproblemManager::getSubFixedVariable(<span class="keyword">this</span>), NOMAD::EvcInterface::getEvaluatorControl()-&gt;getEvalType(), evalPointList);</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    }</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;}</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;<span class="keywordtype">bool</span> NOMAD::NMInitialization::checkCacheCanFormSimplex()</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;{</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    <span class="comment">// Complete this function: see Issue #393</span></div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    <span class="keywordtype">size_t</span> n = _pbParams-&gt;getAttributeValue&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;DIMENSION&quot;</span>);</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <span class="keywordflow">if</span> ( NOMAD::CacheBase::getInstance()-&gt;size() &lt; n+1 )</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160; </div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;}</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160; </div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;<span class="comment">// Generate trial points to form a simplex</span></div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;<span class="keywordtype">void</span> NOMAD::NMInitialization::generateTrialPoints()</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;{</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;    NOMAD::Point x0 = _pbParams-&gt;getAttributeValue&lt;NOMAD::Point&gt;(<span class="stringliteral">&quot;X0&quot;</span>);</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    <span class="keywordtype">size_t</span> n = _pbParams-&gt;getAttributeValue&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;DIMENSION&quot;</span>);</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160; </div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;    <span class="keywordflow">if</span> (!x0.isComplete() || x0.size() != n)</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;    {</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;        std::string err = <span class="stringliteral">&quot;Initialization: evalY0: Invalid X0 &quot;</span> + x0.display();</div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;        <span class="keywordtype">size_t</span> cacheSize = NOMAD::CacheBase::getInstance()-&gt;size();</div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;        <span class="keywordflow">if</span> (cacheSize &gt; 0)</div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;        {</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;            err += <span class="stringliteral">&quot;. Hint: Try not setting X0 so that the cache is used (&quot;</span>;</div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;            err += std::to_string(cacheSize) + <span class="stringliteral">&quot; points)&quot;</span>;</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;        }</div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;        <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;        {</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;            err += <span class="stringliteral">&quot;. Cache is empty.&quot;</span>;</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;        _barrier = std::make_shared&lt;NOMAD::Barrier&gt;(hMax,</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;                                NOMAD::SubproblemManager::getInstance()-&gt;getSubFixedVariable(<span class="keyword">this</span>),</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;                                NOMAD::EvcInterface::getEvaluatorControl()-&gt;getEvalType(),</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;                                NOMAD::EvcInterface::getEvaluatorControl()-&gt;getComputeType(),</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;                                evalPointList);</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    }</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;}</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160; </div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;<span class="keywordtype">bool</span> NOMAD::NMInitialization::checkCacheCanFormSimplex()</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;{</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    <span class="comment">// Complete this function: see Issue #393</span></div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    <span class="keywordtype">size_t</span> n = _pbParams-&gt;getAttributeValue&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;DIMENSION&quot;</span>);</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    <span class="keywordflow">if</span> ( NOMAD::CacheBase::getInstance()-&gt;size() &lt; n+1 )</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160; </div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;}</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160; </div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;<span class="comment">// Generate trial points to form a simplex</span></div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;<span class="keywordtype">void</span> NOMAD::NMInitialization::generateTrialPoints()</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;{</div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;    NOMAD::Point x0 = _pbParams-&gt;getAttributeValue&lt;NOMAD::Point&gt;(<span class="stringliteral">&quot;X0&quot;</span>);</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;    <span class="keywordtype">size_t</span> n = _pbParams-&gt;getAttributeValue&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;DIMENSION&quot;</span>);</div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160; </div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    <span class="keywordflow">if</span> (!x0.isComplete() || x0.size() != n)</div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;    {</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;        std::string err = <span class="stringliteral">&quot;Initialization: evalY0: Invalid X0 &quot;</span> + x0.display();</div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;        <span class="keywordtype">size_t</span> cacheSize = NOMAD::CacheBase::getInstance()-&gt;size();</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;        <span class="keywordflow">if</span> (cacheSize &gt; 0)</div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;        {</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;            err += <span class="stringliteral">&quot;. Hint: Try not setting X0 so that the cache is used (&quot;</span>;</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;            err += std::to_string(cacheSize) + <span class="stringliteral">&quot; points)&quot;</span>;</div>
 <div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;        }</div>
-<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__, __LINE__, err);</div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;    }</div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160; </div>
-<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;    NOMAD::EvalPoint evalPoint_x0(x0);</div>
-<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;    insertTrialPoint(evalPoint_x0);</div>
-<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    <a class="code" href="_output_queue_8hpp.html#a43dd0d3c3ade2ef684520ebe50b76141">OUTPUT_INFO_START</a></div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;    AddOutputInfo(<span class="stringliteral">&quot;Using X0: &quot;</span> + evalPoint_x0.display());</div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    <a class="code" href="_output_queue_8hpp.html#a839e12bb6d5988f0a7aac31b41a090b8">OUTPUT_INFO_END</a></div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160; </div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    <span class="comment">// Method to generate simplex points using X0 adapted from fminsearch (matlab)</span></div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    <span class="keyword">const</span> NOMAD::Double usualDelta = 0.05;    <span class="comment">//  x0 + 5 percent</span></div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;    <span class="keyword">const</span> NOMAD::Double zeroDelta = 0.00025;  <span class="comment">//</span></div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;    <span class="keywordflow">for</span> ( <span class="keywordtype">size_t</span> j = 0 ; j &lt; n ; j++ )</div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;    {</div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;        NOMAD::EvalPoint trialPoint(x0);</div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;        <span class="keywordflow">if</span> ( trialPoint[j] != 0 )</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;            trialPoint[j] *= (1 + usualDelta );</div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;        <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;            trialPoint[j] = zeroDelta;</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160; </div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;        insertTrialPoint(trialPoint);</div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    }</div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160; </div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;    <a class="code" href="_output_queue_8hpp.html#a43dd0d3c3ade2ef684520ebe50b76141">OUTPUT_INFO_START</a></div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;    NOMAD::OutputQueue::Flush();</div>
-<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;    <a class="code" href="_output_queue_8hpp.html#a839e12bb6d5988f0a7aac31b41a090b8">OUTPUT_INFO_END</a></div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;}</div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;        <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;        {</div>
+<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;            err += <span class="stringliteral">&quot;. Cache is empty.&quot;</span>;</div>
+<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;        }</div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__, __LINE__, err);</div>
+<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    }</div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160; </div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    NOMAD::EvalPoint evalPoint_x0(x0);</div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;    insertTrialPoint(evalPoint_x0);</div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    <a class="code" href="_output_queue_8hpp.html#a43dd0d3c3ade2ef684520ebe50b76141">OUTPUT_INFO_START</a></div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    AddOutputInfo(<span class="stringliteral">&quot;Using X0: &quot;</span> + evalPoint_x0.display());</div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;    <a class="code" href="_output_queue_8hpp.html#a839e12bb6d5988f0a7aac31b41a090b8">OUTPUT_INFO_END</a></div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160; </div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;    <span class="comment">// Method to generate simplex points using X0 adapted from fminsearch (matlab)</span></div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;    <span class="keyword">const</span> NOMAD::Double usualDelta = 0.05;    <span class="comment">//  x0 + 5 percent</span></div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;    <span class="keyword">const</span> NOMAD::Double zeroDelta = 0.00025;  <span class="comment">//</span></div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;    <span class="keywordflow">for</span> ( <span class="keywordtype">size_t</span> j = 0 ; j &lt; n ; j++ )</div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;    {</div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;        NOMAD::EvalPoint trialPoint(x0);</div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;        <span class="keywordflow">if</span> ( trialPoint[j] != 0 )</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;            trialPoint[j] *= (1 + usualDelta );</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;        <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;            trialPoint[j] = zeroDelta;</div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160; </div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;        insertTrialPoint(trialPoint);</div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;    }</div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160; </div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;    <a class="code" href="_output_queue_8hpp.html#a43dd0d3c3ade2ef684520ebe50b76141">OUTPUT_INFO_START</a></div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;    NOMAD::OutputQueue::Flush();</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;    <a class="code" href="_output_queue_8hpp.html#a839e12bb6d5988f0a7aac31b41a090b8">OUTPUT_INFO_END</a></div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="a_output_queue_8hpp_html_a839e12bb6d5988f0a7aac31b41a090b8"><div class="ttname"><a href="_output_queue_8hpp.html#a839e12bb6d5988f0a7aac31b41a090b8">OUTPUT_INFO_END</a></div><div class="ttdeci">#define OUTPUT_INFO_END</div><div class="ttdef"><b>Definition:</b> <a href="_output_queue_8hpp_source.html#l00151">OutputQueue.hpp:151</a></div></div>
@@ -258,7 +262,7 @@ $(document).ready(function(){initNavTree('_n_m_initialization_8cpp_source.html',
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_411efccbd5e576f82c71dd79c3c5caa4.html">Algos</a></li><li class="navelem"><a class="el" href="dir_ee28acfb67aef77794981dd5e08251bb.html">NelderMead</a></li><li class="navelem"><a class="el" href="_n_m_initialization_8cpp.html">NMInitialization.cpp</a></li>
-    <li class="footer">Generated on Tue Dec 1 2020 17:08:18 for NOMAD Source by
+    <li class="footer">Generated on Fri Apr 9 2021 13:32:04 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

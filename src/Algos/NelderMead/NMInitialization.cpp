@@ -101,7 +101,11 @@ void NOMAD::NMInitialization::endImp()
         std::copy(_trialPoints.begin(), _trialPoints.end(),
                           std::back_inserter(evalPointList));
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-        _barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this), NOMAD::EvcInterface::getEvaluatorControl()->getEvalType(), evalPointList);
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax,
+                                NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
+                                NOMAD::EvcInterface::getEvaluatorControl()->getEvalType(),
+                                NOMAD::EvcInterface::getEvaluatorControl()->getComputeType(),
+                                evalPointList);
     }
 }
 

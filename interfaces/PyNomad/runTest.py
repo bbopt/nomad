@@ -5,7 +5,7 @@ import PyNomad
 def bb(x):
     dim = x.size()
     f = sum([x.get_coord(i)**2 for i in range(dim)])    
-    x.setBBO(str(f).encode("UTF-8"), B"OBJ")
+    x.setBBO(str(f).encode("UTF-8"))
     return 1 # 1: success 0: failed evaluation
 
 x0 = [0.71, 0.51, 0.51]

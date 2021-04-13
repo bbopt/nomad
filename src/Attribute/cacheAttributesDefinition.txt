@@ -31,23 +31,6 @@
 #####         values may be assigned to this parameter.
 #####
 ###############################################################################
-MAX_CACHE_SIZE
-size_t
-INF
-\( Termination criterion on the number of evaluation points stored in the cache \)
-\(
-
-. The program terminates as soon as the cache reaches this size.
-
-. Argument: one positive integer (expressed in number of evaluation points).
-
-. Example: MAX_CACHE_SIZE 10000
-
-\)
-\( advanced termination cache \)
-ALGO_COMPATIBILITY_CHECK no
-RESTART_ATTRIBUTE no
-###############################################################################
 CACHE_FILE
 std::string
 ""
@@ -66,6 +49,24 @@ std::string
 
 \)
 \( basic cache file \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+###############################################################################
+CACHE_SIZE_MAX
+size_t
+INF
+\( Maximum number of evaluation points to be stored in the cache \)
+\(
+
+. The cache will be purged from older points if it reaches this number
+  of evaluation points.
+
+. Argument: one positive integer (expressed in number of evaluation points).
+
+. Example: CACHE_SIZE_MAX 10000
+
+\)
+\( advanced cache \)
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ###############################################################################

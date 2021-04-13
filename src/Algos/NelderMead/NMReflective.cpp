@@ -46,6 +46,7 @@
 
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/NelderMead/NMReflective.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 
@@ -53,7 +54,7 @@ const NOMAD::Double deltaR = 1;
 
 void NOMAD::NMReflective::init()
 {
-    _name = getAlgoName() + "Step";
+    _name = "NM Step";
 
     _currentStepType = _nextStepType = NMStepType::UNSET;
 
@@ -85,19 +86,19 @@ void NOMAD::NMReflective::setCurrentNMStepType ( NMStepType stepType )
 
     switch ( _currentStepType ) {
         case NMStepType::REFLECT:
-            _name = getAlgoName() + "Reflect";
+            _name = "NM Reflect";
             _delta = deltaR;
             break;
         case NMStepType::EXPAND:
-            _name = getAlgoName() + "Expansion";
+            _name = "NM Expansion";
             _delta = _deltaE;
             break;
         case NMStepType::OUTSIDE_CONTRACTION:
-            _name = getAlgoName() + "Outside Contraction";
+            _name = "NM Outside Contraction";
             _delta = _deltaOC;
             break;
         case NMStepType::INSIDE_CONTRACTION:
-            _name = getAlgoName() + "Inside Contraction";
+            _name = "NM Inside Contraction";
             _delta = _deltaIC;
             break;
         default:
@@ -109,7 +110,6 @@ void NOMAD::NMReflective::setCurrentNMStepType ( NMStepType stepType )
 
 void NOMAD::NMReflective::startImp()
 {
-
     // Specific
     if ( _currentStepType == NMStepType::UNSET )
         throw NOMAD::Exception(__FILE__,__LINE__,"The NM step type must be set");
@@ -121,8 +121,6 @@ void NOMAD::NMReflective::startImp()
     {
         verifyPointsAreOnMesh(getName());
     }
-    updatePointsWithFrameCenter();
-
 }
 
 
@@ -164,7 +162,7 @@ bool NOMAD::NMReflective::runImp()
         setNextNMStepType();
 
     // From IterationUtils
-    postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
+    postProcessing();
 
     return foundBetter;
 }
@@ -230,12 +228,20 @@ void NOMAD::NMReflective::generateTrialPoints()
     {
         xt[k] = yc[k] + d[k];
     }
+    std::shared_ptr<NOMAD::EvalPoint> pointFrom = nullptr;
+    auto barrier = getMegaIterationBarrier();
+    if (nullptr != barrier)
+    {
+        pointFrom = std::make_shared<NOMAD::EvalPoint>(barrier->getFirstPoint());
+        xt.setPointFrom(pointFrom, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+    }
 
     auto lb = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
     auto ub = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
 
     if (snapPointToBoundsAndProjectOnMesh(xt, lb, ub))
     {
+        xt.setGenStep(getName());
         bool inserted = insertTrialPoint(xt);
 
         OUTPUT_INFO_START
@@ -258,8 +264,6 @@ void NOMAD::NMReflective::generateTrialPoints()
     {
         verifyPointsAreOnMesh(getName());
     }
-    updatePointsWithFrameCenter();
-
 }
 
 
@@ -304,7 +308,7 @@ void NOMAD::NMReflective::setAfterReflect( void )
     if ( getNbEvalPointsThatNeededEval() == 0 )
     {
         OUTPUT_DEBUG_START
-        AddOutputDebug("Cannot create a proper reflect point xr. Next, perform Inside Contraction.");
+        AddOutputDebug("Cannot create a proper reflect point xr. Next perform Inside Contraction.");
         OUTPUT_DEBUG_END
         _nextStepType = NMStepType::INSIDE_CONTRACTION;
         return;
@@ -332,7 +336,7 @@ void NOMAD::NMReflective::setAfterReflect( void )
     {
         // In NM-Mads paper: x_r belongs to the inside contraction zone. Next, perform inside contraction.
         OUTPUT_DEBUG_START
-        AddOutputDebug("The reflect point xr: " + _xr.display() + " is dominated by Yn. Next, perform Inside Contraction.");
+        AddOutputDebug("The reflect point xr: " + _xr.display() + " is dominated by Yn. Next perform Inside Contraction.");
         OUTPUT_DEBUG_END
         _nextStepType = NMStepType::INSIDE_CONTRACTION;
     }
@@ -354,7 +358,7 @@ void NOMAD::NMReflective::setAfterReflect( void )
         else
         {
             OUTPUT_DEBUG_START
-            AddOutputDebug(" Cannot insert xr in Y. Perform shrink (if available).");
+            AddOutputDebug(" Cannot insert xr in Y. Next perform shrink (if available).");
             OUTPUT_DEBUG_END
             _nextStepType = NMStepType::SHRINK;
         }
@@ -363,7 +367,7 @@ void NOMAD::NMReflective::setAfterReflect( void )
     {
         // In NM-Mads paper: x_r belongs to the outside reflection zone. Next, perform outside contraction.
         OUTPUT_DEBUG_START
-        AddOutputDebug("The reflect point xr: " + _xr.display() + " dominates 1 or 0 point of Y. Next, perform Outside Contraction.");
+        AddOutputDebug("The reflect point xr: " + _xr.display() + " dominates 1 or 0 point of Y. Next perform Outside Contraction.");
         OUTPUT_DEBUG_END
         _nextStepType = NMStepType::OUTSIDE_CONTRACTION;
     }
@@ -414,7 +418,7 @@ void NOMAD::NMReflective::setAfterExpand( void )
     {
         // No point inserted.
         OUTPUT_DEBUG_START
-        AddOutputDebug("The insertion in Y of the best of xr and xe dit not maintain a proper Y. Perform shrink (if available).");
+        AddOutputDebug("The insertion in Y of the best of xr and xe did not maintain a proper Y. Perform shrink (if available).");
         OUTPUT_DEBUG_END
         _nextStepType = NMStepType::SHRINK;
     }
@@ -511,7 +515,7 @@ void NOMAD::NMReflective::setAfterInsideContract ( void )
     {
         _nextStepType = NMStepType::SHRINK;
         OUTPUT_DEBUG_START
-        AddOutputDebug("Yn dominates xic: " + _xic.display() + " Next, perform Shrink.");
+        AddOutputDebug("Yn dominates xic: " + _xic.display() + " Next perform Shrink.");
         OUTPUT_DEBUG_END
         return;
     }
@@ -534,7 +538,7 @@ void NOMAD::NMReflective::setAfterInsideContract ( void )
         {
             // The insertion did not maintain a proper Y (insufficient rank or failed insertion)
             OUTPUT_DEBUG_START
-            AddOutputDebug("Cannot insert xic in Y. Perform Shrink if available." );
+            AddOutputDebug("Cannot insert xic in Y. Next perform Shrink (if available)." );
             OUTPUT_DEBUG_END
             _nextStepType = NMStepType::SHRINK;
         }
@@ -830,6 +834,7 @@ bool NOMAD::NMReflective::insertInY(const NOMAD::EvalPoint& x)
 
 bool NOMAD::NMReflective::pointDominatesY0( const NOMAD::EvalPoint & xt ) const
 {
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
     std::string s;
 
@@ -852,8 +857,8 @@ bool NOMAD::NMReflective::pointDominatesY0( const NOMAD::EvalPoint & xt ) const
 
     // xt < y ?
     if (std::any_of(_nmY0.begin(), _nmY0.end(),
-                    [xt, evalType](NOMAD::EvalPoint evalPointY0) {
-                        return xt.dominates(evalPointY0, evalType);
+                    [xt, evalType, computeType](NOMAD::EvalPoint evalPointY0) {
+                        return xt.dominates(evalPointY0, evalType, computeType);
                     }))
     {
         return true;
@@ -865,6 +870,7 @@ bool NOMAD::NMReflective::pointDominatesY0( const NOMAD::EvalPoint & xt ) const
 
 bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
 {
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
 
     if (_nmYn.size() == 0)
@@ -888,8 +894,8 @@ bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
     // Without constraints, Yn contains a single point
     int flag = 0;
     if (std::any_of(_nmYn.begin(), _nmYn.end(),
-                    [xt, evalType](NOMAD::EvalPoint evalPointYn) {
-                        return evalPointYn.dominates(xt, evalType);
+                    [xt, evalType, computeType](NOMAD::EvalPoint evalPointYn) {
+                        return evalPointYn.dominates(xt, evalType, computeType);
                     }))
     {
         flag = 1;
@@ -904,13 +910,14 @@ bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
     // no point of Yn dominates xt --> check if h(yn) < h(xt) --> Yn dominates
 
     // Case with EB constraints and a point from Yn is infeasible
-    if (!evalPointYn.getH(evalType).isDefined())
+    if (!evalPointYn.getH(evalType, computeType).isDefined())
     {
         return false;
     }
 
     // Test also case where xt has no value for h (case with EB constraint)
-    if (!xt.getH(evalType).isDefined() || evalPointYn.getH(evalType) < xt.getH(evalType))
+    if (   !xt.getH(evalType, computeType).isDefined()
+        || evalPointYn.getH(evalType, computeType) < xt.getH(evalType, computeType))
     {
         return true;
     }
@@ -921,6 +928,7 @@ bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
 
 bool NOMAD::NMReflective::pointDominatesPtsInY(const NOMAD::EvalPoint& xt, size_t nbPointsToDominate) const
 {
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
 
     if (nullptr == xt.getEval(evalType))
@@ -943,7 +951,7 @@ bool NOMAD::NMReflective::pointDominatesPtsInY(const NOMAD::EvalPoint& xt, size_
     while (itY != _nmY->end() && nDominates < nbPointsToDominate)
     {
         // xt < y ?
-        if (xt.dominates(*itY, evalType))
+        if (xt.dominates(*itY, evalType, computeType))
         {
             nDominates++;
         }
@@ -960,6 +968,7 @@ bool NOMAD::NMReflective::pointDominatesPtsInY(const NOMAD::EvalPoint& xt, size_
 /*------------------------------------------------------------------*/
 bool NOMAD::NMReflective::makeListY0 ()
 {
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
 
     _nmY0.clear();
@@ -982,7 +991,7 @@ bool NOMAD::NMReflective::makeListY0 ()
             const NOMAD::EvalPoint & x = (*itx);
 
             // Case x dominates y --> y cannot be included in Y0
-            if (x.dominates(y, evalType))
+            if (x.dominates(y, evalType, computeType))
             {
                 flag = 1;
                 break;
@@ -1011,6 +1020,7 @@ bool NOMAD::NMReflective::makeListY0 ()
 /*----------------------------------------------------------------*/
 bool NOMAD::NMReflective::makeListYn ()
 {
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
     _nmYn.clear();
 
@@ -1026,7 +1036,7 @@ bool NOMAD::NMReflective::makeListYn ()
             const NOMAD::EvalPoint & x = (*itx);
 
             // Case y dominates x --> y cannot be included in Yn
-            if (y.dominates(x, evalType))
+            if (y.dominates(x, evalType, computeType))
             {
                 flag = true;
                 break;

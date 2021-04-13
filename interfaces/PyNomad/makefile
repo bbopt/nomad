@@ -8,16 +8,21 @@ $(info Anaconda Version $(conda_version))
 endif
 
 ifdef USE_OPENMP
+FLAG_OPENMP=1
 $(info USE_OPENMP is set)
 else
 $(info USE_OPENMP is not set)
+FLAG_OPENMP=0
 endif
 
+TOP = $(shell pwd | sed 's/\/interfaces.*//')
+
+
 all:
-	python setup_PyNomad.py $(USE_OPENMP) build_ext --inplace
+	python setup_PyNomad.py $(FLAG_OPENMP) $(TOP)/build/release build_ext --inplace
 
 lib:
-	python setup_PyNomad.py install --user
+	python setup_PyNomad.py $(FLAG_OPENMP) $(TOP)/build/release install --user
 
 clean:
 	@echo Cleaning PyNomad directory...

@@ -45,7 +45,7 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../../Algos/Mads/LHSearchMethod.hpp"
-#include "../../Algos/Mads/MadsIteration.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Math/LHS.hpp"
 #include "../../Type/LHSearchType.hpp"
 
@@ -61,7 +61,6 @@ void NOMAD::LHSearchMethod::init()
 
 void NOMAD::LHSearchMethod::generateTrialPointsImp()
 {
-
     if (nullptr == _iterAncestor)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"LHSearchMethod: must have an iteration ancestor");
@@ -71,11 +70,15 @@ void NOMAD::LHSearchMethod::generateTrialPointsImp()
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"LHSearchMethod: must have a mesh");
     }
-    auto frameCenter = _iterAncestor->getFrameCenter();
-    if (nullptr == frameCenter)
+
+    // The frame center is only used to compute bounds, if they are not defined.
+    // Use the first available point.
+    auto barrier = getMegaIterationBarrier();
+    if (nullptr == barrier)
     {
-        throw NOMAD::Exception(__FILE__,__LINE__,"LHSearchMethod: must have a frameCenter");
+        throw NOMAD::Exception(__FILE__,__LINE__,"LHSearchMethod: must have a MadsMegaIteration ancestor with a barrier");
     }
+    auto frameCenter = barrier->getFirstPoint();
 
     auto lhSearch = _runParams->getAttributeValue<NOMAD::LHSearchType>("LH_SEARCH");
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
@@ -83,36 +86,19 @@ void NOMAD::LHSearchMethod::generateTrialPointsImp()
     auto lowerBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
     auto upperBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
 
-
-    // Update undefined values of lower and upper bounds to use values based
-    // on DeltaFrameSize.
-    // Based on the code in NOMAD 3, but slightly different.
-    // If we used INF values instead of these, we get huge values for the
-    // generated points. It is not elegant.
     NOMAD::ArrayOfDouble deltaFrameSize = mesh->getDeltaFrameSize();
     NOMAD::Double scaleFactor = sqrt(-log(NOMAD::DEFAULT_EPSILON));
-
-    for (size_t i = 0; i < n; i++)
-    {
-        if (!lowerBound[i].isDefined())
-        {
-            lowerBound[i] = (*frameCenter)[i] - 10.0 * deltaFrameSize[i] * scaleFactor;
-        }
-        if (!upperBound[i].isDefined())
-        {
-            upperBound[i] = (*frameCenter)[i] + 10.0 * deltaFrameSize[i] * scaleFactor;
-        }
-    }
-
-    // Apply Latin Hypercube algorithm
-    NOMAD::LHS lhs(n, p, lowerBound, upperBound);
+    // Apply Latin Hypercube algorithm (provide frameCenter, deltaFrameSize, and scaleFactor for updating bounds)
+    NOMAD::LHS lhs(n, p, lowerBound, upperBound, frameCenter, deltaFrameSize, scaleFactor);
     auto pointVector = lhs.Sample();
 
     // Insert the point. Projection on mesh and snap to bounds is done in SearchMethod
     for (auto point : pointVector)
     {
         // Insert point (if possible)
-        insertTrialPoint(NOMAD::EvalPoint(point));
-
+        NOMAD::EvalPoint evalPoint(point);
+        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+        evalPoint.setGenStep(getName());
+        insertTrialPoint(evalPoint);
     }
 }

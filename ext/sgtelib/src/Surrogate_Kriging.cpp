@@ -81,7 +81,6 @@ bool SGTELIB::Surrogate_Kriging::build_private ( void ) {
   // The build mainly consists of computing alpha  
 
   // Compute scaling distance for each training point
-  const int mvar = _trainingset.get_mvar();
   const int nvar = _trainingset.get_nvar();
   const SGTELIB::Matrix & Zs = get_matrix_Zs();
 
@@ -104,11 +103,11 @@ bool SGTELIB::Surrogate_Kriging::build_private ( void ) {
   _beta.set_name("beta");
   _alpha.set_name("alpha");
   
-  _var = SGTELIB::Matrix("var",1,mvar);
+  _var = SGTELIB::Matrix("var",1,_m);
   double v;
   SGTELIB::Matrix Zj;
   SGTELIB::Matrix Vj;
-  for (int j=0 ; j<mvar ; j++){
+  for (int j=0 ; j<_m ; j++){
     Zj = Zs.get_col(j);
     Zj = (Zj-_H*_beta.get_col(j));
     Vj = Zj.transpose() * _Ri * Zj;

@@ -53,7 +53,7 @@
 
 void NOMAD::NMSearchMethod::init()
 {
-    if ( _runParams->getAttributeValue<bool>("GENERATE_ALL_POINTS_BEFORE_EVAL") )
+    if ( _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL") )
     {
         _name = "Search (Nelder Mead single pass)";
     }
@@ -94,8 +94,6 @@ bool NOMAD::NMSearchMethod::runImp()
     nm->start();
     bool foundBetter = nm->run();
     nm->end();
-    
-    
 
     return foundBetter;
 }
@@ -108,7 +106,10 @@ void NOMAD::NMSearchMethod::generateTrialPointsImp()
 
     auto madsIteration = getParentOfType<MadsIteration*>();
 
-    NOMAD::NMAllReflective allReflective(this, madsIteration->getFrameCenter(), madsIteration->getMesh());
+    // Note: Use first point of barrier as simplex center.
+    NOMAD::NMAllReflective allReflective(this,
+                            std::make_shared<NOMAD::EvalPoint>(getMegaIterationBarrier()->getFirstPoint()),
+                            madsIteration->getMesh());
     allReflective.start();
     allReflective.end();
 

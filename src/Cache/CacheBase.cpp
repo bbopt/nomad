@@ -65,7 +65,7 @@ void NOMAD::CacheBase::init()
         _cacheParams = std::shared_ptr<CacheParameters>(new NOMAD::CacheParameters());
     }
 
-    _maxSize  = _cacheParams->getAttributeValue<size_t>("MAX_CACHE_SIZE") ;
+    _maxSize  = _cacheParams->getAttributeValue<size_t>("CACHE_SIZE_MAX") ;
     _filename = _cacheParams->getAttributeValue<std::string>("CACHE_FILE");
     // Verify filename has full path, otherwise, confusion will arise
     if (!_filename.empty() && !NOMAD::isAbsolute(_filename))

@@ -33,6 +33,7 @@ var class_double =
     [ "operator=", "class_double.html#af33278488b9cb6453bed84ef21758d01", null ],
     [ "operator=", "class_double.html#ac5d2ec9ba78899856f5d733c2b4bfb91", null ],
     [ "pow2", "class_double.html#a727e92a7ab1661350ce4c5ea456c48ae", null ],
+    [ "previousMult", "class_double.html#aec8ac3ea7a83589f55161b229d19783d", null ],
     [ "relativeAtof", "class_double.html#a63b4eee374e7a1f0f358c3ac47127a65", null ],
     [ "relErr", "class_double.html#a21dbfbc1f02231b50a2d340716ef8f48", null ],
     [ "reset", "class_double.html#aa75a91cc48e82af9e55782e3b67b586b", null ],

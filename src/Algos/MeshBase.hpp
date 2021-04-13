@@ -84,6 +84,8 @@ protected:
     const ArrayOfDouble  _minMeshSize;   ///< The minimum mesh size (stopping criterion).
     const ArrayOfDouble  _initialFrameSize; ///< The initial frame size.
     const ArrayOfDouble  _minFrameSize; ///< The minimum frame size (stopping criterion).
+    const ArrayOfDouble _lowerBound;
+    const ArrayOfDouble _upperBound;
 
 public:
 

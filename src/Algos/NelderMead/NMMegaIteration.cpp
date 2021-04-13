@@ -64,7 +64,7 @@ void NOMAD::NMMegaIteration::init()
 
 void NOMAD::NMMegaIteration::startImp()
 {
-    // Create a Nelder Mead iteration for a frame center.
+    // Create a Nelder Mead iteration for a simplex center.
     // Use xFeas or xInf if XFeas is not available.
     // During NM we use a single iteration object with several start, run, end for the various iterations of the algorithm.
 
@@ -103,10 +103,10 @@ void NOMAD::NMMegaIteration::startImp()
         }
 
         OUTPUT_DEBUG_START
-        auto frameCenter = _nmIteration->getFrameCenter();
-        AddOutputDebug("Frame center: " + frameCenter->display());
-        auto previousFrameCenter = frameCenter->getPointFrom();
-        AddOutputDebug("Previous frame center: " + (previousFrameCenter ? previousFrameCenter->display() : "NULL"));
+        auto simplexCenter = _nmIteration->getSimplexCenter();
+        AddOutputDebug("Simplex center: " + simplexCenter->display());
+        auto previousSimplexCenter = simplexCenter->getPointFrom();
+        AddOutputDebug("Previous simplex center: " + (previousSimplexCenter ? previousSimplexCenter->display() : "NULL"));
         OUTPUT_DEBUG_END
     }
 }
@@ -131,7 +131,7 @@ bool NOMAD::NMMegaIteration::runImp()
         throw NOMAD::Exception(__FILE__, __LINE__, "No iteration to run");
     }
 
-    const size_t maxIter = _runParams->getAttributeValue<size_t>("MAX_ITERATION_PER_MEGAITERATION");
+    const size_t maxIter = NOMAD::D_INT_MAX; // Could be a parameter.
     size_t nbMegaIter = 0;
     while ( ! _stopReasons->checkTerminate() && nbMegaIter < maxIter )
     {

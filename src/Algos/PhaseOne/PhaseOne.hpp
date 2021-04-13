@@ -60,18 +60,8 @@
 class PhaseOne: public Algorithm
 {
 private:
-
     std::shared_ptr<Mads>    _mads;
     std::shared_ptr<AlgoStopReasons<MadsStopType>>    _madsStopReasons;
-
-
-    /**
-      The list of ::BBOutputType parameters used for this Phase One.
-      Used to recompute h values at the end of Phase One.
-      Since the recompute methods are static, this member
-      needs to be static.
-     */
-    static BBOutputTypeList _bboutputtypes;
 
 public:
     /// Constructor
@@ -92,8 +82,6 @@ public:
     }
     virtual ~PhaseOne() {}
 
-    static void setBBOutputTypes(const BBOutputTypeList& bboutputtypes) { _bboutputtypes = bboutputtypes; }
-
     /**
      - Setup EvalPoint success computation to be based on h rather than f.
      - Recompute points in cache.
@@ -110,20 +98,6 @@ public:
 private:
     /// Helper for constructor
     void init();
-
-    /*------------------------*/
-    /* Private helper methods */
-    /*------------------------*/
-    /**
-     Static function called by Cache::processOnAllPoints().
-     */
-    static void recomputeH(EvalPoint& evalPoint);
-
-    /**
-     Static function called by Cache::processOnAllPoints().
-     */
-    static void recomputeHPB(EvalPoint& evalPoint);
-
 };
 
 #include "../../nomad_nsend.hpp"

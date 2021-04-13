@@ -62,34 +62,34 @@ void NOMAD::SgtelibModelFilterCache::init()
     _name = getAlgoName() + "Search Filter";
     verifyParentNotNull();
 
-    // Find cache points with Sgte evaluation
+    // Find cache points with model evaluation
     NOMAD::CacheInterface cacheInterface(this);
-    size_t nbSgte = cacheInterface.find(NOMAD::EvalPoint::hasSgteEval, _cacheSgte);
+    size_t nbModelEval = cacheInterface.find(NOMAD::EvalPoint::hasModelEval, _cacheModelEval);
 
     // Initialize structures
     // Objective function (prediction)
-    _f.resize(nbSgte);
+    _f.resize(nbModelEval);
     // Aggregate constraint (prediction)
-    _h.resize(nbSgte);
+    _h.resize(nbModelEval);
     // Feasibility value (max of cj)
-    _hmax.resize(nbSgte);
+    _hmax.resize(nbModelEval);
     // Distance to main cache.
-    _DX.resize(nbSgte);
+    _DX.resize(nbModelEval);
     // Distance between each pair of points
-    _DSS.resize(nbSgte);
-    for (size_t i = 0; i < nbSgte; i++)
+    _DSS.resize(nbModelEval);
+    for (size_t i = 0; i < nbModelEval; i++)
     {
-        _DSS[i].resize(nbSgte);
+        _DSS[i].resize(nbModelEval);
     }
     // Initial isolation distances
-    _distIsolation.resize(nbSgte);
+    _distIsolation.resize(nbModelEval);
 
-    _keep.resize(nbSgte);
-    _DT.resize(nbSgte);
-    _DTX.resize(nbSgte);
-    _nIsolation.resize(nbSgte);
-    _nDensity.resize(nbSgte);
-    for (size_t i = 0; i < nbSgte; i++)
+    _keep.resize(nbModelEval);
+    _DT.resize(nbModelEval);
+    _DTX.resize(nbModelEval);
+    _nIsolation.resize(nbModelEval);
+    _nDensity.resize(nbModelEval);
+    for (size_t i = 0; i < nbModelEval; i++)
     {
         _keep[i] = false;
         _DT[i] = NOMAD::INF;
@@ -109,14 +109,14 @@ void NOMAD::SgtelibModelFilterCache::startImp()
 bool NOMAD::SgtelibModelFilterCache::runImp()
 {
     std::string s;  // Used for output
-    size_t nbSgte = _cacheSgte.size();
+    size_t nbModelEval = _cacheModelEval.size();
     auto modelFormulation = _runParams->getAttributeValue<NOMAD::SgtelibModelFormulationType>("SGTELIB_MODEL_FORMULATION");
 
     // Get used methods from parameter
     const size_t methodMax = 10;
     bool useMethod[methodMax] = { false };
     size_t nbMethods = 0;
-    std::string filterParam = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_FILTER");
+    std::string filterParam = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_SEARCH_FILTER");
     for (size_t i = 0; i < methodMax; i++)
     {
         if (std::string::npos != filterParam.find(NOMAD::itos(i)))
@@ -149,7 +149,7 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
 
     if (0 == nbMethods)
     {
-        s = "No filter method selected, parameter SGTELIB_MODEL_FILTER";
+        s = "No filter method selected, parameter SGTELIB_MODEL_SEARCH_FILTER";
         throw NOMAD::Exception(__FILE__, __LINE__, s);
     }
 
@@ -200,7 +200,7 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
         if ( (iSelect >= 0) && (!_keep[iSelect]))
         {
             OUTPUT_INFO_START
-            s = "--> Selection of search point " + _cacheSgte[iSelect].displayAll();
+            s = "--> Selection of search point " + _cacheModelEval[iSelect].displayAll();
             NOMAD::OutputQueue::Add(s, _displayLevel);
             OUTPUT_INFO_END
 
@@ -210,7 +210,7 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
 
             // _DT and _distIsolation are updated.
             // _nIsolation is reset if needed.
-            for (size_t i = 0; i < nbSgte; i++)
+            for (size_t i = 0; i < nbModelEval; i++)
             {
                 if (_DT[i] > _DSS[i][iSelect])
                 {
@@ -240,11 +240,11 @@ bool NOMAD::SgtelibModelFilterCache::runImp()
     }
 
     // Update oracle points
-    for (size_t i = 0; i < nbSgte; i++)
+    for (size_t i = 0; i < nbModelEval; i++)
     {
         if (_keep[i])
         {
-            _oraclePoints.insert(_cacheSgte[i]);
+            _oraclePoints.insert(_cacheModelEval[i]);
         }
         if (_oraclePoints.size() >= _nbCandidates)
         {
@@ -268,29 +268,28 @@ void NOMAD::SgtelibModelFilterCache::endImp()
 
 void NOMAD::SgtelibModelFilterCache::computeInitialValues()
 {
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
+    auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
     _displayLevel = (std::string::npos != modelDisplay.find("F"))
                                             ? NOMAD::OutputLevel::LEVEL_INFO
                                             : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
 
-    size_t nbSgte = _cacheSgte.size();
+    size_t nbModelEval = _cacheModelEval.size();
     std::string s;
 
 
 
     // Compute values for _f, _h, _hmax, _DX, _DTX.
-    for (size_t i = 0; i < nbSgte; i++)
+    for (size_t i = 0; i < nbModelEval; i++)
     {
-        NOMAD::EvalPoint x(_cacheSgte[i]);
-        _modelAlgo->checkHF(x);
-        _f[i] = x.getF(NOMAD::EvalType::SGTE).todouble();
-        _h[i] = x.getH(NOMAD::EvalType::SGTE).todouble();
+        NOMAD::EvalPoint x(_cacheModelEval[i]);
+        _f[i] = x.getF(NOMAD::EvalType::MODEL, NOMAD::ComputeType::STANDARD).todouble();
+        _h[i] = x.getH(NOMAD::EvalType::MODEL, NOMAD::ComputeType::STANDARD).todouble();
 
         // Compute hmax = max_j c_j for x_i
         // NOTE: this computation looks cumbersome, there may be some
         // simplifications that could be done.
         _hmax[i] = -NOMAD::INF;
-        NOMAD::ArrayOfDouble bbo = x.getEval(NOMAD::EvalType::SGTE)->getBBOutput().getBBOAsArrayOfDouble();
+        NOMAD::ArrayOfDouble bbo = x.getEval(NOMAD::EvalType::MODEL)->getBBOutput().getBBOAsArrayOfDouble();
         auto evalParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvalParams();
         const auto bbot = evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
         for (size_t j = 0; j < bbo.size(); j++)
@@ -302,7 +301,7 @@ void NOMAD::SgtelibModelFilterCache::computeInitialValues()
         }
 
         // Compute distance to main cache.
-        // In cache, find a point that has a bb (non-sgte) eval, and which is at
+        // In cache, find a point that has a bb (non-model) eval, and which is at
         // a minimal euclidian distance from x.
         // Keep this distance DX.
         double d = NOMAD::INF;
@@ -322,28 +321,28 @@ void NOMAD::SgtelibModelFilterCache::computeInitialValues()
     s = "Compute distances";
     NOMAD::OutputQueue::Add(s, _displayLevel);
     OUTPUT_INFO_END
-    for (size_t i = 0; i < nbSgte; i++)
+    for (size_t i = 0; i < nbModelEval; i++)
     {
         _DSS[i][i] = 0;
-        for (size_t j = i + 1; j < nbSgte; j++)
+        for (size_t j = i + 1; j < nbModelEval; j++)
         {
-            _DSS[i][j] = NOMAD::Point::dist(_cacheSgte[i], _cacheSgte[j]).todouble();
+            _DSS[i][j] = NOMAD::Point::dist(_cacheModelEval[i], _cacheModelEval[j]).todouble();
             _DSS[j][i] = _DSS[i][j];
         }
     }
 
-    //  Compute initial isolation distances
-    // The isolation of a point i of the surrogate cache,
+    // Compute initial isolation distances.
+    // The isolation of a point i of the cache
     // is the distance to the closest point that is better than i.
     OUTPUT_INFO_START
     s = "Compute isolations";
     NOMAD::OutputQueue::Add(s, _displayLevel);
     OUTPUT_INFO_END
 
-    for (size_t i = 0; i < nbSgte; i++)
+    for (size_t i = 0; i < nbModelEval; i++)
     {
         double d = INF;
-        for (size_t j = 0; j < nbSgte; j++)
+        for (size_t j = 0; j < nbModelEval; j++)
         {
             // If the point j is better than i
             if ( (_h[j] < _h[i]) || ((_h[j] == _h[i]) && (_f[j] < _f[i])) )
@@ -355,7 +354,7 @@ void NOMAD::SgtelibModelFilterCache::computeInitialValues()
     }
 
     // Compute _hmaxThreshold
-    for (size_t i = 0; i < nbSgte; i++)
+    for (size_t i = 0; i < nbModelEval; i++)
     {
         if (_hmax[i] < 0)
         {
@@ -387,14 +386,14 @@ void NOMAD::SgtelibModelFilterCache::freeSpace()
 
     _keep.clear();
 
-    _cacheSgte.clear();
+    _cacheModelEval.clear();
 }
 
 
 int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod method)
 {
     std::string s;
-    size_t nbSgte = _cacheSgte.size();
+    size_t nbModelEval = _cacheModelEval.size();
 
     int iSelect = -1;
     double fmin = NOMAD::INF;
@@ -413,7 +412,7 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
     {
         case NOMAD::FilterSelectionMethod::METHOD_BEST:
             // Select the best points
-            for (size_t i = 0; i < nbSgte; i++)
+            for (size_t i = 0; i < nbModelEval; i++)
             {
                 if ((!_keep[i]) && (_DTX[i] > 0))
                 {
@@ -431,7 +430,7 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
         case NOMAD::FilterSelectionMethod::METHOD_MOST_DISTANT:
             // Special case for formulation D
             // Select the most distant point
-            for (size_t i = 0; i < nbSgte; i++)
+            for (size_t i = 0; i < nbModelEval; i++)
             {
                 if ( (!_keep[i]) && (_DTX[i] >= dmax) )
                 {
@@ -448,7 +447,7 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
             s = "dmin = " + NOMAD::Double(dmin).display();
             NOMAD::OutputQueue::Add(s, _displayLevel);
             OUTPUT_INFO_END
-            for (size_t i = 0; i < nbSgte; i++)
+            for (size_t i = 0; i < nbModelEval; i++)
             {
                 if ( (!_keep[i]) && (_DTX[i] >= dmin) )
                 {
@@ -476,7 +475,7 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
 
         case NOMAD::FilterSelectionMethod::METHOD_BEST_GOOD_HMAX:
             // Select the best points with a good enough value of hmax
-            for (size_t i = 0; i < nbSgte; i++)
+            for (size_t i = 0; i < nbModelEval; i++)
             {
                 if ( (!_keep[i]) && (_hmax[i] <= _hmaxThreshold)
                     && (_f[i] < fmin) && (_DTX[i] > deltaMNorm) )
@@ -499,7 +498,7 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
         case NOMAD::FilterSelectionMethod::METHOD_HIGHEST_ISOLATION:
             // Select point with highest isolation number
 
-            for (size_t i = 0; i < nbSgte; i++)
+            for (size_t i = 0; i < nbModelEval; i++)
             {
                 if ( (!_keep[i]) && (_distIsolation[i] > 0) )
                 {
@@ -508,7 +507,7 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
                     if (-1 == ni)
                     {
                         ni = 0;
-                        for (size_t j = 0; j < nbSgte; j++)
+                        for (size_t j = 0; j < nbModelEval; j++)
                         {
                             if (_DSS[i][j] <= _distIsolation[i])
                             {
@@ -532,7 +531,7 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
             // Select point with highest density number
 
             nmax = 0;
-            for (size_t i = 0; i < nbSgte; i++)
+            for (size_t i = 0; i < nbModelEval; i++)
             {
                 if ( (!_keep[i]) && (_DTX[i] > 0) )
                 {
@@ -541,7 +540,7 @@ int NOMAD::SgtelibModelFilterCache::applyMethod(NOMAD::FilterSelectionMethod met
                     if (-1 == ni)
                     {
                         ni = 0;
-                        for (size_t j = 0; j < nbSgte; j++)
+                        for (size_t j = 0; j < nbModelEval; j++)
                         {
                             if ( _DSS[i][j] <= _DTX[i] )
                             {

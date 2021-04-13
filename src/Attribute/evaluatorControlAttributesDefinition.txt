@@ -33,7 +33,7 @@
 ################################################################################
 # For now, only the boolean is implemented. No minimum number of
 #success, no lucky eval, etc.
-OPPORTUNISTIC_EVAL
+EVAL_OPPORTUNISTIC
 bool
 true
 \( Opportunistic strategy: Terminate evaluations as soon as a success is found \)
@@ -50,14 +50,14 @@ true
 
 . Type 'nomad -h opportunistic' to see advanced options
 
-. Example: OPPORTUNISTIC_EVAL no  # complete evaluations
+. Example: EVAL_OPPORTUNISTIC no  # complete evaluations
 
 \)
 \( advanced opportunistic oppor eval(s) evaluation(s) terminate list success(es) \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
-USE_CACHE
+EVAL_USE_CACHE
 bool
 true
 \( Use cache in algorithms \)
@@ -76,23 +76,53 @@ true
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################
-MAX_BB_EVAL_IN_SUBPROBLEM
+PSD_MADS_SUBPROBLEM_MAX_BB_EVAL
 size_t
 INF
 \( Max number of evaluations for each subproblem \)
 \(
 
-. Used in the context of Sequential Space Decomposition (SSD) MADS
-  and Parallel Space Decomposition (PSD) MADS algorithms.
+. Used in the context of Parallel Space Decomposition (PSD) MADS algorithm.
 
 . Select the max number of evaluations in each Mads subproblem.
 
 . Argument: size_t
 
-. Example: MAX_BB_EVAL_IN_SUBPROBLEM 10
+. Example: PSD_MADS_SUBPROBLEM_MAX_BB_EVAL 10
 
 \)
-\( advanced psd ssd mads parallel sequential decomposition subproblem \)
+\( advanced psd mads parallel decomposition subproblem \)
 ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+SSD_MADS_SUBPROBLEM_MAX_BB_EVAL
+size_t
+INF
+\( Max number of evaluations for each subproblem \)
+\(
+. Used in the context of Sequential Space Decomposition (SSD) MADS algorithm.
+
+. Select the max number of evaluations in each Mads subproblem.
+
+. Argument: size_t
+
+. Example: SSD_MADS_SUBPROBLEM_MAX_BB_EVAL 10
+
+\)
+\( advanced ssd mads sequential decomposition subproblem \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+SUBPROBLEM_MAX_BB_EVAL
+size_t
+INF
+\( Internal parameter for PSD_MADS_SUBPROBLEM_MAX_BB_EVAL and SSD_MADS_SUBPROBLEM_MAX_BB_EVAL \)
+\(
+
+. CANNOT BE MODIFIED BY USER. Internal parameter.
+
+\)
+\( internal \)
+ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ################################################################################

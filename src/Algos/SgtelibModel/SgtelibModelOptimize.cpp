@@ -51,6 +51,7 @@
 #include "../../Algos/SgtelibModel/SgtelibModelOptimize.hpp"
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Output/OutputQueue.hpp"
+#include "../../Type/DirectionType.hpp"
 #include "../../Type/LHSearchType.hpp"
 
 void NOMAD::SgtelibModelOptimize::init()
@@ -66,7 +67,7 @@ void NOMAD::SgtelibModelOptimize::init()
 
 void NOMAD::SgtelibModelOptimize::startImp()
 {
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
+    auto modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
     _displayLevel = (std::string::npos != modelDisplay.find("O"))
                         ? NOMAD::OutputLevel::LEVEL_INFO
                         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
@@ -74,7 +75,7 @@ void NOMAD::SgtelibModelOptimize::startImp()
     OUTPUT_INFO_START
     std::string s;
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
-    s = "MAX_SGTE_EVAL: " + std::to_string(evcParams->getAttributeValue<size_t>("MAX_SGTE_EVAL"));
+    s = "SGTELIB_MODEL_MAX_EVAL: " + std::to_string(evcParams->getAttributeValue<size_t>("SGTELIB_MODEL_MAX_EVAL"));
     AddOutputInfo(s, _displayLevel);
     s = "BBOT: " + NOMAD::BBOutputTypeListToString(NOMAD::SgtelibModel::getBBOutputType());
     AddOutputInfo(s, _displayLevel);
@@ -110,10 +111,10 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         evc->setOpportunisticEval(false);
         evc->setUseCache(false);
 
-        auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
+        auto modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
         auto diversification = _runParams->getAttributeValue<NOMAD::Double>("SGTELIB_MODEL_DIVERSIFICATION");
         auto modelFeasibility = _runParams->getAttributeValue<NOMAD::SgtelibModelFeasibilityType>("SGTELIB_MODEL_FEASIBILITY");
-        double tc = _runParams->getAttributeValue<NOMAD::Double>("SGTELIB_MODEL_EXCLUSION_AREA").todouble();
+        double tc = _runParams->getAttributeValue<NOMAD::Double>("SGTELIB_MODEL_SEARCH_EXCLUSION_AREA").todouble();
 
         if (nullptr == _modelAlgo)
         {
@@ -124,14 +125,14 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         auto ev = std::make_shared<NOMAD::SgtelibModelEvaluator>(
                                                 evc->getEvalParams(), _modelAlgo, modelDisplay,
                                                 diversification, modelFeasibility, tc,
-                                                NOMAD::SubproblemManager::getSubFixedVariable(this));
+                                                NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
 
         // Replace the EvaluatorControl's evaluator with this one
         // we just created
         auto previousEvaluator = evc->setEvaluator(ev);
         if (nullptr == previousEvaluator)
         {
-            std::cerr << "Warning: QuadModelOptimize: Could not set SGTE Evaluator" << std::endl;
+            std::cerr << "Warning: QuadModelOptimize: Could not set MODEL Evaluator" << std::endl;
             return false;
         }
 
@@ -142,11 +143,11 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         _mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams);
         _mads->setName(_mads->getName() + " (SgtelibModelOptimize)");
         _mads->setEndDisplay(false);
-        evc->resetSgteEval();
+        evc->resetModelEval();
         _mads->start();
         optimizeOk = _mads->run();
         _mads->end();
-        evc->resetSgteEval();
+        evc->resetModelEval();
         evc->setEvaluator(previousEvaluator);
 
         // Note: No need to check the Mads stop reason: It is not a stop reason
@@ -162,8 +163,8 @@ bool NOMAD::SgtelibModelOptimize::runImp()
 
     if (!optimizeOk)
     {
-        auto sgteStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
-        sgteStopReasons->set(NOMAD::ModelStopType::MODEL_OPTIMIZATION_FAIL);
+        auto sgetlibModelStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+        sgetlibModelStopReasons->set(NOMAD::ModelStopType::MODEL_OPTIMIZATION_FAIL);
     }
 
     return optimizeOk;
@@ -180,17 +181,17 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
     _optRunParams = std::make_shared<NOMAD::RunParameters>(*_refRunParams);
 
     // Ensure there is no model used in model optimization.
-    _optRunParams->setAttributeValue("SGTELIB_SEARCH", false);
+    _optRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
-    NOMAD::ArrayOfString disable;
-    disable.add(std::string("MODELS"));
-    _optRunParams->setAttributeValue("DISABLE", disable);
+
+    // Set direction type to Ortho 2n
+    _optRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
 
     // Use isotropic mesh
     _optRunParams->setAttributeValue("ANISOTROPIC_MESH", false);
 
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
-    std::string lhstr = std::to_string(int(evcParams->getAttributeValue<size_t>("MAX_SGTE_EVAL") * 0.3));
+    std::string lhstr = std::to_string(int(evcParams->getAttributeValue<size_t>("SGTELIB_MODEL_MAX_EVAL") * 0.3));
     lhstr += " 0";
     NOMAD::LHSearchType lhSearch(lhstr);
     _optRunParams->setAttributeValue("LH_SEARCH", lhSearch);
@@ -206,28 +207,43 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
 
 
 void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& lowerBound,
-                                                    const NOMAD::ArrayOfDouble& upperBound,
-                                                    const NOMAD::ArrayOfDouble& initialMeshSize,
-                                                    const NOMAD::ArrayOfDouble& initialFrameSize)
+                                                    const NOMAD::ArrayOfDouble& upperBound)
 {
     _optPbParams = std::make_shared<NOMAD::PbParameters>(*_refPbParams);
 
     _optPbParams->setAttributeValue("LOWER_BOUND", lowerBound);
     _optPbParams->setAttributeValue("UPPER_BOUND", upperBound);
 
-    // Find best points (SGTE evals) and use them as X0s to optimize models.
+    // Reset initial mesh and frame sizes
+    // The initial mesh and frame sizes will be calculated from bounds and X0
+    _optPbParams->resetToDefaultValue("INITIAL_MESH_SIZE");
+    _optPbParams->resetToDefaultValue("INITIAL_FRAME_SIZE");
+    // Use default min mesh and frame sizes
+    _optPbParams->resetToDefaultValue("MIN_MESH_SIZE");
+    _optPbParams->resetToDefaultValue("MIN_FRAME_SIZE");
+
+    // Granularity is set to 0 and bb_input_type is set to all continuous variables. Candidate points are projected on the mesh before evaluation.
+    _optPbParams->resetToDefaultValue("GRANULARITY");
+    _optPbParams->resetToDefaultValue("BB_INPUT_TYPE");
+
+    // No variable groups are considered for suboptimization
+    _optPbParams->resetToDefaultValue("VARIABLE_GROUP");
+
+    // Find best points (MODEL evals) and use them as X0s to optimize models.
     NOMAD::CacheInterface cacheInterface(this);
     std::vector<NOMAD::EvalPoint> evalPointFeasList;
     std::vector<NOMAD::EvalPoint> evalPointInfList;
     NOMAD::Double hMax = _modelAlgo->getHMax();
 
-    // Only looking into sgte evaluations here
+    // Only looking into model evaluations here
     cacheInterface.findBestFeas(evalPointFeasList,
-                                NOMAD::EvalType::SGTE,
+                                NOMAD::EvalType::MODEL,
+                                NOMAD::ComputeType::STANDARD,
                                 nullptr);
     cacheInterface.findBestInf(evalPointInfList,
                                hMax,
-                               NOMAD::EvalType::SGTE,
+                               NOMAD::EvalType::MODEL,
+                               NOMAD::ComputeType::STANDARD,
                                nullptr);
 
     NOMAD::ArrayOfPoint x0s;
@@ -245,7 +261,7 @@ void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& 
             x0s.push_back(*(evalPointX0.getX()));
         }
     }
-    // Fallback: No SGTE points found. Use points from an upper Mads barrier
+    // Fallback: No MODEL points found. Use points from an upper Mads barrier
     // (_barrierForX0s).
     if (0 == x0s.size())
     {
@@ -259,15 +275,6 @@ void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& 
         }
     }
     _optPbParams->setAttributeValue("X0", x0s);
-
-    if (initialMeshSize.isDefined() && initialMeshSize.isComplete())
-    {
-        _optPbParams->setAttributeValue("INITIAL_MESH_SIZE", initialMeshSize);
-    }
-    if (initialFrameSize.isDefined() && initialFrameSize.isComplete())
-    {
-        _optPbParams->setAttributeValue("INITIAL_FRAME_SIZE", initialFrameSize);
-    }
 
     // We do not want certain warnings appearing in sub-optimization.
     _optPbParams->doNotShowWarnings();

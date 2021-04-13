@@ -113,6 +113,30 @@ void NOMAD::toupper(std::list<std::string> &ls)
     }
 }
 
+
+/*-----------------------------------------------------------------*/
+/*                             NOMAD::trim                         */
+/*-----------------------------------------------------------------*/
+void NOMAD::trim(std::string &s)
+{
+    // Trim extra spaces at the beginning
+    size_t space_index = s.find(' ');
+    while (s.size() > 0 && 0 == space_index)
+    {
+        s.replace(0, 1, "");
+        space_index = s.find(' ');
+    }
+
+    // Trim extra spaces at the end
+    size_t space_rindex = s.rfind(' ');
+    while (s.size() > 0 && s.size()-1 == space_rindex)
+    {
+        s.replace(space_rindex, 1, "");
+        space_rindex = s.rfind(' ');
+    }
+}
+
+
 /*-----------------------------------------------------------------*/
 /*                             NOMAD::atoi                         */
 /*-----------------------------------------------------------------*/

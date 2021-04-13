@@ -59,9 +59,9 @@ void NOMAD::QuadModelEvaluator::init()
                         ? NOMAD::OutputLevel::LEVEL_INFO
                         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
 
-    if ( nullptr == _model)
+    if (nullptr == _model)
     {
-            throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: a model is required (nullptr)");
+        throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: a model is required (nullptr)");
     }
 }
 
@@ -125,7 +125,7 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
         // work around by constructing a suitable string.
         // Note: Why set some default values on bbo?
         NOMAD::ArrayOfString defbbo(bbot.size(), "-1");
-        (*it)->setBBO(defbbo.display(), bbot, NOMAD::EvalType::SGTE);
+        (*it)->setBBO(defbbo.display(), bbot, NOMAD::EvalType::MODEL);
 
     }
 
@@ -141,11 +141,10 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
 #pragma omp critical(SgtelibEvalX)
 #endif // _OPENMP
     {
+        _model->check_ready(__FILE__,__FUNCTION__,__LINE__);
 
-    _model->check_ready(__FILE__,__FUNCTION__,__LINE__);
-
-    _model->predict(X_predict, &M_predict);
-    NOMAD::OutputQueue::Add("ok", _displayLevel);
+        _model->predict(X_predict, &M_predict);
+        NOMAD::OutputQueue::Add("ok", _displayLevel);
     }
 
     j = 0;
@@ -172,31 +171,24 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
         // ====================================== //
         // Application of the formulation         //
         // ====================================== //
-        NOMAD::Double obj;
         NOMAD::ArrayOfDouble newbbo(bbot.size(), -1);
 
-        // ------------------------- //
-        //   Set obj and BBO         //
-        // ------------------------- //
+        // ----------------- //
+        //   Set BBO         //
+        // ----------------- //
         for (size_t i = 0; i < nbModels; i++)
         {
             newbbo[i] = M_predict.get(j,static_cast<int>(i));
-            if (bbot[i] == NOMAD::BBOutputType::OBJ)
-                obj = newbbo[i];
         }
-        (*it)->setBBO(newbbo.display(), bbot, NOMAD::EvalType::SGTE);
-
-        NOMAD::Double h;
-        evalH(newbbo, bbot, h);
-        (*it)->setF(obj, NOMAD::EvalType::SGTE);
-        (*it)->setH(h, NOMAD::EvalType::SGTE);
+        NOMAD::ArrayOfDouble fullPrecision(bbot.size(), NOMAD::DISPLAY_PRECISION_FULL);
+        (*it)->setBBO(newbbo.display(fullPrecision), bbot, NOMAD::EvalType::MODEL);
 
         // ================== //
         // Exit Status        //
         // ================== //
         countEval.push_back( true );
         evalOk.push_back(true);
-        (*it)->setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, NOMAD::EvalType::SGTE);
+        (*it)->setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, NOMAD::EvalType::MODEL);
 
     }
 
@@ -208,73 +200,5 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
 
     return evalOk;
 }
-
-
-
-/*----------------------------------------------------------------*/
-/*     compute model h and f values given one blackbox output     */
-/*----------------------------------------------------------------*/
-void NOMAD::QuadModelEvaluator::evalH(const NOMAD::ArrayOfDouble& bbo,
-                                         const NOMAD::BBOutputTypeList& bbot,
-                                         NOMAD::Double &h)
-{
-    // Note: This method must be reviewed if new BBOutputTypes are added.
-
-    const auto hMin = 0.0; // H_MIN not implemented
-
-    h = 0.0;
-    const size_t m = bbo.size();
-
-    if ( m != bbot.size() )
-    {
-        std::string s = "QuadModelEvaluator::evalH() called with an invalid bbo argument";
-        std::cerr << s << std::endl;
-        throw NOMAD::Exception ( __FILE__, __LINE__, s);
-    }
-
-    NOMAD::Double bboi;
-    for (size_t i = 0 ; i < m ; ++i)
-    {
-        bboi = bbo[i];
-        if (bboi.isDefined())
-        {
-            if (bbot[i] == NOMAD::BBOutputType::EB)
-            {
-                if ( bboi > hMin )
-                {
-                    h = +INF;
-                    return;
-                }
-            }
-            else if (bbot[i] == NOMAD::BBOutputType::PB)
-            {
-               if ( bboi > hMin )
-                {
-                    // Only L2 is supported.
-                    h += bboi * bboi;
-                    /*
-                    switch ( hNorm )
-                    {
-                        case NOMAD::L1:
-                            h += bboi;
-                            break;
-                        case NOMAD::L2:
-                            h += bboi * bboi;
-                            break;
-                        case NOMAD::LINF:
-                            if ( bboi > h )
-                                h = bboi;
-                            break;
-                    }
-                    */
-                }
-            }
-
-        }
-    }
-    //if ( hNorm == NOMAD::L2 )
-    h = h.sqrt();
-
-} // end evalH
 
 

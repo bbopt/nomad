@@ -54,10 +54,6 @@
 /*-------------------------*/
 void NOMAD::EvcMainThreadInfo::init()
 {
-    if (nullptr != _evaluator)
-    {
-        _computeSuccessType.setDefaultComputeSuccessTypeFunction(_evaluator->getEvalType());
-    }
 }
 
 
@@ -65,10 +61,6 @@ std::shared_ptr<NOMAD::Evaluator> NOMAD::EvcMainThreadInfo::setEvaluator(std::sh
 {
     auto previousEvaluator = _evaluator;
     _evaluator = evaluator;
-    if (nullptr != _evaluator)
-    {
-        _computeSuccessType.setDefaultComputeSuccessTypeFunction(_evaluator->getEvalType());
-    }
 
     return previousEvaluator;
 }
@@ -109,7 +101,7 @@ bool NOMAD::EvcMainThreadInfo::getOpportunisticEval() const
     {
         try
         {
-            return _evalContParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL");
+            return _evalContParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC");
         }
         catch (NOMAD::ParameterToBeChecked &e)
         {
@@ -122,7 +114,7 @@ bool NOMAD::EvcMainThreadInfo::getOpportunisticEval() const
 
 void NOMAD::EvcMainThreadInfo::setOpportunisticEval(const bool opportunisticEval)
 {
-    _evalContParams->setAttributeValue("OPPORTUNISTIC_EVAL", opportunisticEval);
+    _evalContParams->setAttributeValue("EVAL_OPPORTUNISTIC", opportunisticEval);
     _evalContParams->checkAndComply();
 }
 
@@ -133,7 +125,7 @@ bool NOMAD::EvcMainThreadInfo::getUseCache() const
     {
         try
         {
-            return _evalContParams->getAttributeValue<bool>("USE_CACHE");
+            return _evalContParams->getAttributeValue<bool>("EVAL_USE_CACHE");
         }
         catch (NOMAD::ParameterToBeChecked &e)
         {
@@ -146,7 +138,7 @@ bool NOMAD::EvcMainThreadInfo::getUseCache() const
 
 void NOMAD::EvcMainThreadInfo::setUseCache(const bool useCache)
 {
-    _evalContParams->setAttributeValue("USE_CACHE", useCache);
+    _evalContParams->setAttributeValue("EVAL_USE_CACHE", useCache);
     _evalContParams->checkAndComply();
 }
 
@@ -157,7 +149,7 @@ size_t NOMAD::EvcMainThreadInfo::getMaxBbEvalInSubproblem() const
     {
         try
         {
-            return _evalContParams->getAttributeValue<size_t>("MAX_BB_EVAL_IN_SUBPROBLEM");
+            return _evalContParams->getAttributeValue<size_t>("SUBPROBLEM_MAX_BB_EVAL");
         }
         catch (NOMAD::ParameterToBeChecked &e)
         {
@@ -170,7 +162,7 @@ size_t NOMAD::EvcMainThreadInfo::getMaxBbEvalInSubproblem() const
 
 void NOMAD::EvcMainThreadInfo::setMaxBbEvalInSubproblem(const size_t maxBbEval)
 {
-    _evalContParams->setAttributeValue("MAX_BB_EVAL_IN_SUBPROBLEM", maxBbEval);
+    _evalContParams->setAttributeValue("SUBPROBLEM_MAX_BB_EVAL", maxBbEval);
     _evalContParams->checkAndComply();
 }
 
@@ -185,10 +177,10 @@ void NOMAD::EvcMainThreadInfo::resetLapBbEval()
 }
 
 
-void NOMAD::EvcMainThreadInfo::resetSgteEval()
+void NOMAD::EvcMainThreadInfo::resetModelEval()
 {
-    _sgteEval = 0;
-    if (NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED == _stopReason.get())
+    _modelEval = 0;
+    if (NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED == _stopReason.get())
     {
         _stopReason.set(NOMAD::EvalMainThreadStopType::STARTED);
     }
@@ -213,7 +205,8 @@ const std::shared_ptr<NOMAD::EvalPoint>& NOMAD::EvcMainThreadInfo::getBestIncumb
 
 void NOMAD::EvcMainThreadInfo::setBestIncumbent(const std::shared_ptr<NOMAD::EvalPoint>& bestIncumbent)
 {
-    if (_computeSuccessType(bestIncumbent, _bestIncumbent) >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+    NOMAD::ComputeSuccessType computeSuccess(_evaluator->getEvalType(), _computeType);
+    if (computeSuccess(bestIncumbent, _bestIncumbent) >= NOMAD::SuccessType::PARTIAL_SUCCESS)
     {
         _bestIncumbent = bestIncumbent;
     }

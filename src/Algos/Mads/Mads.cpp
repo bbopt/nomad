@@ -50,6 +50,9 @@
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Output/OutputQueue.hpp"
 #include "../../Util/fileutils.hpp"
+#ifdef TIME_STATS
+#include "../../Util/Clock.hpp"
+#endif
 
 void NOMAD::Mads::init()
 {
@@ -63,7 +66,7 @@ void NOMAD::Mads::init()
 
 bool NOMAD::Mads::runImp()
 {
-    size_t k = 0;   // Iteration number
+    size_t k = 1;   // Iteration number
     NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
     bool successFound = false;
@@ -132,6 +135,10 @@ bool NOMAD::Mads::runImp()
 
 void NOMAD::Mads::hotRestartOnUserInterrupt()
 {
+    if (_stopReasons->checkTerminate())
+    {
+        return;
+    }
 #ifdef TIME_STATS
     if (isRootAlgo())
     {

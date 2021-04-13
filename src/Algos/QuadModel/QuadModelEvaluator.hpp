@@ -52,7 +52,7 @@
 
 #include "../../nomad_nsbegin.hpp"
 
-/// Class for evaluating trial points as EvalType::SGTE.
+/// Class for evaluating trial points as EvalType::MODEL.
 class QuadModelEvaluator : public Evaluator
 {
 private:
@@ -71,7 +71,7 @@ public:
                                 const std::shared_ptr<SGTELIB::Surrogate>& model,
                                 const std::string& modelDisplay,
                                 const Point& fixedVariable)
-      : Evaluator(evalParams, EvalType::SGTE),
+      : Evaluator(evalParams, EvalType::MODEL),
         _model(model),
         _modelDisplay(modelDisplay),
         _displayLevel(OutputLevel::LEVEL_INFO),
@@ -88,11 +88,6 @@ public:
     std::vector<bool> eval_block(Block &block,
                                  const Double &hMax  __attribute__((unused)),
                                  std::vector<bool> &countEval) const override;
-
-    static void evalH(const ArrayOfDouble& bbo,
-                      const BBOutputTypeList& bbot,
-                      Double &h);
-
 
 private:
     void init();

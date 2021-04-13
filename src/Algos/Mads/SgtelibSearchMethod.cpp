@@ -64,7 +64,7 @@ void NOMAD::SgtelibSearchMethod::init()
     verifyParentNotNull();
 
     const auto parentSearch = getParentStep()->getParentOfType<NOMAD::SgtelibSearchMethod*>(false);
-    setEnabled((nullptr == parentSearch) && _runParams->getAttributeValue<bool>("SGTELIB_SEARCH"));
+    setEnabled((nullptr == parentSearch) && _runParams->getAttributeValue<bool>("SGTELIB_MODEL_SEARCH"));
 #ifndef USE_SGTELIB
     if (isEnabled())
     {
@@ -96,7 +96,7 @@ void NOMAD::SgtelibSearchMethod::init()
             setEnabled(false);
         }
 
-        auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
+        auto modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
         _displayLevel = modelDisplay.empty()
                             ? NOMAD::OutputLevel::LEVEL_DEBUGDEBUG
                             : NOMAD::OutputLevel::LEVEL_INFO;
@@ -136,20 +136,7 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsImp()
     // Get Iteration
     const NOMAD::MadsIteration* iteration = getParentOfType<NOMAD::MadsIteration*>();
 
-    // SgtelibSearchMethod is processed on all points of the barrier.
-    // For this reason, we perform it only once by MegaIteration. Otherwise
-    // we would be doing the same thing multiple times.
-    if (!iteration->isMainIteration())
-    {
-        OUTPUT_INFO_START
-        auto megaIter = getParentOfType<NOMAD::MadsMegaIteration*>();
-        s = iteration->getName() + " is not main iteration of " + megaIter->getName();
-        s += ". " + _name + " not performed.";
-        AddOutputInfo(s, _displayLevel);
-        OUTPUT_INFO_END
-    }
-
-    else if (!_stopReasons->checkTerminate())
+    if (!_stopReasons->checkTerminate())
     {
         // Initial displays
         OUTPUT_INFO_START
@@ -163,7 +150,7 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsImp()
         // Here, NOMAD 3 uses parameter SGTELIB_MODEL_TRIALS: Max number of
         // sgtelib model search failures before going to the poll step.
         // Not used.
-        //const size_t kkmax = _runParams->getAttributeValue<size_t>("SGTELIB_MODEL_TRIALS");
+        //const size_t kkmax = _runParams->getAttributeValue<size_t>("SGTELIB_MODEL_SEARCH_TRIALS");
         /*----------------*/
         /*  oracle points */
         /*----------------*/
@@ -176,12 +163,12 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsImp()
             AddOutputInfo(s, _displayLevel);
             OUTPUT_INFO_END
 
-            auto sgteStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_modelAlgo->getAllStopReasons());
-            if (nullptr == sgteStopReasons)
+            auto sgtelibModelStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_modelAlgo->getAllStopReasons());
+            if (nullptr == sgtelibModelStopReasons)
             {
                 throw NOMAD::Exception(__FILE__, __LINE__, "SgtelibModel Algorithm must have a Sgtelib stop reason");
             }
-            sgteStopReasons->set(NOMAD::ModelStopType::ORACLE_FAIL);
+            sgtelibModelStopReasons->set(NOMAD::ModelStopType::ORACLE_FAIL);
         }
         else
         {

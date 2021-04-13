@@ -56,7 +56,7 @@
 void NOMAD::NM::init()
 {
     _name = "NM";
-    if ( _runParams->getAttributeValue<bool>("GENERATE_ALL_POINTS_BEFORE_EVAL") )
+    if ( _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL") )
     {
         _name += " One Iteration";
     }

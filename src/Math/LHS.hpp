@@ -83,8 +83,11 @@ public:
      */
     explicit LHS(const size_t n,
                  const size_t p,
-                 const ArrayOfDouble lowerBound,
-                 const ArrayOfDouble upperBound);
+                 const ArrayOfDouble& lowerBound,
+                 const ArrayOfDouble& upperBound,
+                 const NOMAD::Point& frameCenter = NOMAD::Point(),
+                 const NOMAD::ArrayOfDouble& deltaFrameSize = NOMAD::ArrayOfDouble(),
+                 const NOMAD::Double& scaleFactor = NOMAD::Double());
 
     /// Get lower bound
     /**

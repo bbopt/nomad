@@ -56,9 +56,9 @@
 #include "../Util/utils.hpp"
 
 
-// Convert a string ("BB", "SGTE")
+// Convert a string ("BB", "MODEL")
 // to a NOMAD::EvalType.
-// "UNDEFINED" throws an exception, as well as any value other than "BB" or "SGTE".
+// "UNDEFINED" throws an exception, as well as any value other than "BB", "MODEL".
 NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst)
 {
     NOMAD::EvalType ret;
@@ -69,9 +69,9 @@ NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst)
     {
         ret = NOMAD::EvalType::BB;
     }
-    else if (s == "SGTE")
+    else if (s == "MODEL")
     {
-        ret = NOMAD::EvalType::SGTE;
+        ret = NOMAD::EvalType::MODEL;
     }
     else
     {
@@ -94,8 +94,8 @@ std::string NOMAD::evalTypeToString(const NOMAD::EvalType& evalType)
         case NOMAD::EvalType::BB:
             s = "BB";
             break;
-        case NOMAD::EvalType::SGTE:
-            s = "SGTE";
+        case NOMAD::EvalType::MODEL:
+            s = "MODEL";
             break;
         case NOMAD::EvalType::UNDEFINED:
             s = "UNDEFINED";

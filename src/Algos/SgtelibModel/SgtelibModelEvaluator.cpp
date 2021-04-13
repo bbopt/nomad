@@ -62,7 +62,7 @@ NOMAD::SgtelibModelEvaluator::SgtelibModelEvaluator(const std::shared_ptr<NOMAD:
                                    const NOMAD::SgtelibModelFeasibilityType& modelFeasibility,
                                    const double tc,
                                    const NOMAD::Point& fixedVariable)
-  : NOMAD::Evaluator(evalParams, NOMAD::EvalType::SGTE),
+  : NOMAD::Evaluator(evalParams, NOMAD::EvalType::MODEL),
     _modelAlgo(modelAlgo),
     _modelDisplay(modelDisplay),
     _diversification(diversification),
@@ -159,7 +159,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
         // work around by constructing a suitable string.
         // Note: Why set some default values on bbo?
         NOMAD::ArrayOfString defbbo(bbot.size(), "-1");
-        x.setBBO(defbbo.display(), bbot, NOMAD::EvalType::SGTE);
+        x.setBBO(defbbo.display(), bbot, NOMAD::EvalType::MODEL);
 
         // ------------------------- //
         //   Objective Prediction    //
@@ -368,7 +368,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             {
                 if (bbot[i] != NOMAD::BBOutputType::OBJ)
                 {
-                    newbbo[i] = M_predict.get(0,k) - _diversification*STD_predict.get(0,k+1);
+                    newbbo[i] = M_predict.get(0,k+1) - _diversification*STD_predict.get(0,k+1);
                     k++;
                 }
             }
@@ -460,11 +460,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             newbbo[i] = obj;
         }
     }
-    x.setBBO(newbbo.display(), bbot, NOMAD::EvalType::SGTE);
-
-    evalH(newbbo, bbot, h);
-    x.setF(obj, NOMAD::EvalType::SGTE);
-    x.setH(h, NOMAD::EvalType::SGTE);
+    x.setBBO(newbbo.display(), bbot, NOMAD::EvalType::MODEL);
 
     // ================== //
     //       DISPLAY      //
@@ -489,7 +485,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     }
     s = "Exclusion area penalty = " + penalty.display();
     NOMAD::OutputQueue::Add(s, _displayLevel);
-    s = "Model Output = (" + x.getBBO(NOMAD::EvalType::SGTE) + ")";
+    s = "Model Output = (" + x.getBBO(NOMAD::EvalType::MODEL) + ")";
     NOMAD::OutputQueue::Add(s, _displayLevel);
     OUTPUT_INFO_END
 
@@ -503,7 +499,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     // Exit Status        //
     // ================== //
     countEval = true;
-    x.setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, NOMAD::EvalType::SGTE);
+    x.setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, NOMAD::EvalType::MODEL);
 
     // Convert back x to full space
     x = x.makeFullSpacePointFromFixed(_fixedVariable);
@@ -511,72 +507,5 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     // Always eval_ok = true
     return true;
 }
-
-
-/*----------------------------------------------------------------*/
-/*     compute model h and f values given one blackbox output     */
-/*----------------------------------------------------------------*/
-void NOMAD::SgtelibModelEvaluator::evalH(const NOMAD::ArrayOfDouble& bbo,
-                                         const NOMAD::BBOutputTypeList& bbot,
-                                         NOMAD::Double &h)
-{
-    // Note: This method must be reviewed if new BBOutputTypes are added.
-
-    const auto hMin = 0.0; // H_MIN not implemented
-
-    h = 0.0;
-    const size_t m = bbo.size();
-
-    if ( m != bbot.size() )
-    {
-        std::string s = "SgtelibModelEvaluator::evalH() called with an invalid bbo argument";
-        std::cerr << s << std::endl;
-        throw NOMAD::Exception ( __FILE__, __LINE__, s);
-    }
-
-    NOMAD::Double bboi;
-    for (size_t i = 0 ; i < m ; ++i)
-    {
-        bboi = bbo[i];
-        if (bboi.isDefined())
-        {
-            if (bbot[i] == NOMAD::BBOutputType::EB)
-            {
-                if ( bboi > hMin )
-                {
-                    h = +INF;
-                    return;
-                }
-            }
-            else if (bbot[i] == NOMAD::BBOutputType::PB)
-            {
-               if ( bboi > hMin )
-                {
-                    // Only L2 is supported.
-                    h += bboi * bboi;
-                    /*
-                    switch ( hNorm )
-                    {
-                        case NOMAD::L1:
-                            h += bboi;
-                            break;
-                        case NOMAD::L2:
-                            h += bboi * bboi;
-                            break;
-                        case NOMAD::LINF:
-                            if ( bboi > h )
-                                h = bboi;
-                            break;
-                    }
-                    */
-                }
-            }
-
-        }
-    }
-    //if ( hNorm == NOMAD::L2 )
-    h = h.sqrt();
-
-} // end evalH
 
 
