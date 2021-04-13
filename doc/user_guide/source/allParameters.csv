@@ -1,0 +1,4 @@
+﻿Name , Type , Argument , Short description , Default
+ANISOTROPY_FACTOR,Adv.,NOMAD::Double,Set anisotropy_factor for mesh relative coarsening/refining if the anisotropic mesh is enabled,0.1
+ANISOTROPIC_MESH,Adv.,bool,MADS uses anisotropic mesh for generation directions,true
+DIMENSION, Bas., integer, Number of variables (see :ref:`Dimension <basic_parameters_description>`), No default
