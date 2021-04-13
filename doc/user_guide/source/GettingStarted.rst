@@ -34,7 +34,7 @@ A valid blackbox program:
     - returns evaluation values on standard output or file,
     - returns an evaluation status.
 
-In what follows we use the example in the ``$NOMAD_HOME/examples/basic/batch/single_boj``. This example optimization problem has a single objective, 5 variables, 2 nonlinear constraints and 8 bound constraints.
+In what follows we use the example in the ``$NOMAD_HOME/examples/basic/batch/single_obj``. This example optimization problem has a single objective, 5 variables, 2 nonlinear constraints and 8 bound constraints.
 
 
 .. image:: ../figs/example1.png
