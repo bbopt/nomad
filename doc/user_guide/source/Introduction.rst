@@ -72,12 +72,12 @@ Minimally, users must accomplish several tasks to solve their own optimization p
 * Launch the execution at the command prompt OR from another executable system call.
 
 
-Users can find several examples provided in the installation package and described in this user guide to perform customization for their problems. The installation procedure is given in :ref:`installation`. New users should refer to :ref:`getting_started`. The most important instructions to use NOMAD are in :ref:'how_to_use_nomad'. In addition, tricks that may help solving specific problems and improve NOMAD efficiency are presented in :ref:`tricks_of_the_trade`. Advanced parameters and functionalities are presented in Section :ref:`advanced_functionalities`.
+Users can find several examples provided in the installation package and described in this user guide to perform customization for their problems. The installation procedure is given in :ref:`installation`. New users should refer to :ref:`getting_started`. The most important instructions to use NOMAD are in :ref:'how_to_use_nomad'. In addition, tricks that may help solving specific problems and improve NOMAD efficiency are presented in :ref:`tricks_of_the_trade`. Advanced parameters and functionalities are presented in :ref:`advanced_functionalities`.
 
 Supported platforms and environments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-NOMAD source codes are in C++ and are identical for all supported platforms. See Section :ref:`installation` for details to obtain binaries from the source files.
+NOMAD source codes are in C++ and are identical for all supported platforms. See :ref:`installation` for details to obtain binaries from the source files.
 
 Authors and fundings
 ^^^^^^^^^^^^^^^^^^^^
@@ -98,8 +98,8 @@ The library for dynamic surrogates (SGTELIB) has been developed by Bastien Talgo
 * Charles Audet (`<https://www.gerad.ca/Charles.Audet>`_), GERAD and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
 * J.E. Dennis Jr. (`<http://www.caam.rice.edu/∼dennis>`_), Computational and Applied Mathematics Department, Rice University.
 * Sébastien Le Digabel (`<http://www.gerad.ca/Sebastien.Le.Digabel>`_), GERAD and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
-* Viviane Rochon Montplaisir, GERAD (`<http://www.gerad.ca>`_) and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
-* Christophe Tribes, GERAD (`<http://www.gerad.ca>`_) and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
+* Viviane Rochon Montplaisir, GERAD (`<https://www.gerad.ca/en/people/viviane-rochon-montplaisir>`_) and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
+* Christophe Tribes, GERAD (`<https://www.gerad.ca/en/people/christophe-tribes>`_) and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
 
 
 Acknowledgments
@@ -109,7 +109,7 @@ The developers of NOMAD wish to thank Florian Chambon, Mohamed Sylla and Quentin
 
 A special thank to Maud Bay, Eve Bélisle, Vincent Garnier, Michal Kvasnička, Alexander Lutz, Rosa-Maria Torres-Calderon, Yuri Vilmanis, Martin Posch, Etienne Duclos, Emmanuel Bigeon, Walid Zghal, Jerawan Armstrong, Stéphane Alarie and Klaus Truemper for their feedbacks and tests that significantly contributed to improve NOMAD. Some features of NOMAD have been developed under the impulsion of enthusiastic users/developers: Andrea Ianni, Florian Chambon, Mohamed Sylla, Quentin Reynaud, Amina Ihaddadene, Bastien Talgorn, Nadir Amaioua and Catherine Poissant. We also wish to thank Pascal Côté for his contribution in the development of the Python interface pyNomad and Jonathan Currie for the development of the foundations for a strong NOMAD interface for MATLAB.
 
-The contributions of  Miguel Anjos, Romain Couderc, Miguel Diago Martinez, Solène Kojtych, Guillaume Lameynardie, Wim Lavrijsen, Alexis Montoison, Caroline Rocha and Ludovic Salomon was highly appreciated during the development and testing of NOMAD 4.
+The contributions of  Miguel Anjos, Romain Couderc, Miguel Diago Martinez, Solène Kojtych, Guillaume Lameynardie, Wim Lavrijsen, Alexis Montoison, Caroline Rocha, Ludovic Salomon and Renaud Saltet was highly appreciated during the development and testing of NOMAD 4.
 
 .. Finally, many thanks to the TOMS anonymous referees for their useful comments which helped a lot to improve the code and the text of [50].
 

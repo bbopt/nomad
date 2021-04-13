@@ -51,7 +51,7 @@ In what follows we use the example in the ``$NOMAD_HOME/examples/basic/batch/exa
 
     2. NOMAD will manage the creation of the **input file consisting of one value for each variable separated by space** and the execution of the blackbox program.
 
-    3. The blackbox program must return the evaluation values by displaying them in the **standard output** (default) or by writing them in an output file (see Section :ref:`advanced_functionalities` about advanced output options). It must also **return an evaluation status of 0** to indicate that the evaluation went well. Otherwise NOMAD considers that the evaluation has failed.
+    3. The blackbox program must return the evaluation values by displaying them in the **standard output** (default) or by writing them in an output file (see :ref:`advanced_functionalities` about advanced output options). It must also **return an evaluation status of 0** to indicate that the evaluation went well. Otherwise NOMAD considers that the evaluation has failed.
 
     4. The minimum number of values displayed by the blackbox program corresponds to the number of constraints plus one (or two for bi-objective problems) representing the objective function(s) that one seeks to minimize. The constraints values correspond to left-hand side of constraints of the form :math:`c_j \leq 0` (for example, the constraint :math:`0 \leq x_1 + x_2 \leq 10` must be displayed with the two quantities :math:`c_1(x)=-x_1-x_2` and :math:`c_2(x)=x_1+x_2-10`).
 

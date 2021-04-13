@@ -30,15 +30,19 @@ Please cite NOMAD 4 with reference:
    NOMAD version 4: Nonlinear optimization with the MADS algorithm.
    *ACM Transactions on Mathematical Software*, Submitted.
 
+.. sidebar:: Reference book
+
+       |dfo_book|
+
 A complete introduction to derivative-free and blackbox optimization can be found in the textbook:
 
 .. [AuHa2017] C. Audet and W. Hare.
     Derivative-Free and Blackbox Optimization.
     *Springer Series in Operations Research and Financial Engineering.*
-    Springer International Publishing, Berlin, 2017. |dfo_book|
+    Springer International Publishing, Berlin, 2017.
 
 .. |dfo_book| image:: ../figs/livre_DFO_AuHa2017.png
-               :width: 30 pt
+               :width: 50 pt
 
 .. toctree::
    :maxdepth: 1
