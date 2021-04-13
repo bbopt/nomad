@@ -4,31 +4,34 @@ Nomad 4 User Guide
 .. warning::
    NOMAD is a blackbox optimization software.
 
-   NOMAD 3 software is still currently available but will be replaced by NOMAD 4 in the future.
+   This user guide is specific to NOMAD 4.
 
-   This user guide is specific to NOMAD 4 `<https://www.gerad.ca/nomad/>`_.
+   NOMAD 3 is still available. It will be replaced by NOMAD 4 in the future.
+
+   Get NOMAD 3 and 4 at `<https://www.gerad.ca/nomad/>`_.
 
 
-* A general presentation of NOMAD is given in Section :ref:`introduction`.
 
-* **New users** of NOMAD should refer to:
+A general presentation of NOMAD is given in :ref:`introduction`.
 
-   - Section :ref:`installation`
-   - Section :ref:`getting_started`
+**New users** of NOMAD should refer to
 
-* NOMAD utilization:
+* :ref:`installation`
+* :ref:`getting_started`
 
-   - Starting from Section :ref:`basic_nomad_usage`, all users can find ways to tailor problem definition, algorithmic settings and software output.
+**Using NOMAD**
 
-* Refer to Sections :ref:`advanced_functionalities` and :ref:`tricks_of_the_trade` for specific problem solving.
+* Starting from :ref:`basic_nomad_usage`, all users can find ways to tailor problem definition, algorithmic settings and software output.
 
-* Please cite NOMAD 4 with references::
+* Refer to :ref:`advanced_functionalities` and :ref:`tricks_of_the_trade` for specific problem solving.
+
+Please cite NOMAD 4 with references::
 
       C. Audet, S. Le Digabel, V. Rochon Montplaisir, and C. Tribes
       NOMAD version 4: Nonlinear optimization with the MADS algorithm.
       ACM Transactions on Mathematical Software, Submitted.
 
-* A complete introduction to derivative-free and blackbox optimization can be found in the textbook::
+A complete introduction to derivative-free and blackbox optimization can be found in the textbook::
 
       C. Audet and W. Hare.
       Derivative-Free and Blackbox Optimization.
