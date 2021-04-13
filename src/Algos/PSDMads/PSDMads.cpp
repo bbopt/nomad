@@ -52,8 +52,7 @@
 #include "../../Algos/PSDMads/PSDMadsMegaIteration.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
-
-#include <unistd.h> // For usleep
+#include "../../Util/MicroSleep.hpp"
 
 // Initialize static lock variable
 omp_lock_t NOMAD::PSDMads::_psdMadsLock;

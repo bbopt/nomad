@@ -48,9 +48,25 @@
 #include "../Util/fileutils.hpp"
 #include <fstream>  // For ofstream
 #include <stdio.h>  // For popen
+#ifndef _WIN32
+#include <unistd.h> // for getpid
+#else
+#include <process.h>
+#define getpid _getpid
+#define popen  _popen
+#define pclose _pclose
+#endif
 
 // Initialize statics
 std::vector<std::string> NOMAD::Evaluator::_tmpFiles = std::vector<std::string>();
+
+namespace {
+    // the cleanup of temporary files at program shutdown needs to remain with this
+    // translation unit to guarantee the correct destruction order
+    struct TmpFilesCleanup {
+        ~TmpFilesCleanup() { NOMAD::Evaluator::removeTmpFiles(); }
+    } _TmpFilesCleanup;
+}
 
 //
 // Constructor

@@ -109,7 +109,7 @@ bool NOMAD::IterationUtils::snapPointToBoundsAndProjectOnMesh(
     {
         fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(_parentStep);
     }
-    catch (NOMAD::Exception &e)
+    catch (NOMAD::Exception &/*e*/)
     {
         if (nullptr != evalPoint.getPointFrom())
         {

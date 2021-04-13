@@ -47,6 +47,7 @@
 #ifndef __NOMAD400_EVCINTERFACE__
 #define __NOMAD400_EVCINTERFACE__
 
+#include "../nomad_platform.hpp"
 #include "../Algos/Step.hpp"
 #include "../Eval/EvaluatorControl.hpp"
 
@@ -63,7 +64,7 @@ private:
     const Step* _step;      ///< Step that uses the EvaluatorControl
     Point _fixedVariable;   ///< Full dimension point including fixed variables
 
-    static std::shared_ptr<EvaluatorControl> _evaluatorControl; ///< Static EvaluatorControl
+    DLL_ALGO_API static std::shared_ptr<EvaluatorControl> _evaluatorControl; ///< Static EvaluatorControl
 
 public:
     /// Constructor

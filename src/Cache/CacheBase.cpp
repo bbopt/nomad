@@ -79,7 +79,7 @@ void NOMAD::CacheBase::init()
 }
 
 
-bool isTrue(const NOMAD::EvalPoint& evalPoint __attribute__((unused)))
+bool isTrue(const NOMAD::EvalPoint& NOMAD_UNUSED(evalPoint))
 {
     return true;
 }

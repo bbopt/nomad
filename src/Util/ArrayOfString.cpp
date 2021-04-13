@@ -50,6 +50,7 @@
  \date   February 2018
  \see    ArrayOfString.hpp
  */
+#include <algorithm>
 #include <sstream>
 
 #include "../Util/ArrayOfString.hpp"

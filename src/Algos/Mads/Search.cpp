@@ -44,6 +44,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../nomad_platform.hpp"
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/Search.hpp"
 #include "../../Algos/Mads/QuadSearchMethod.hpp"
@@ -100,7 +101,7 @@ void NOMAD::Search::init()
 void NOMAD::Search::startImp()
 {
    // Sanity check.
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 
 }
 
@@ -111,7 +112,7 @@ bool NOMAD::Search::runImp()
     std::string s;
 
     // Sanity check. The runImp function should be called only when trial points are generated and evaluated for each search method separately.
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 
     if (!isEnabled())
     {
@@ -183,7 +184,7 @@ bool NOMAD::Search::runImp()
 void NOMAD::Search::endImp()
 {
     // Sanity check. The endImp function should be called only when trial points are generated and evaluated for each search method separately.
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 
     if (!isEnabled())
     {
@@ -204,7 +205,7 @@ void NOMAD::Search::endImp()
 void NOMAD::Search::generateTrialPoints()
 {
     // Sanity check. The generateTrialPoints function should be called only when trial points are generated for all each search method. After that all trials points evaluated at once.
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, true);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, true);
 
     for (auto searchMethod : _searchMethods)
     {

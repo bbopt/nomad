@@ -47,6 +47,7 @@
 #ifndef __NOMAD400_STEP__
 #define __NOMAD400_STEP__
 
+#include "../nomad_platform.hpp"
 #include "../Algos/MeshBase.hpp"
 #include "../Eval/Barrier.hpp"
 #include "../Output/OutputInfo.hpp"
@@ -375,8 +376,8 @@ private:
     void init();
 
     // Default callbacks. They do nothing.
-    static void defaultStepEnd(const Step& step  __attribute__((unused)), bool &stop) { stop = false; }
-    static void defaultHotRestart(std::vector<std::string>& paramLines  __attribute__((unused))) {};
+    static void defaultStepEnd(const Step& NOMAD_UNUSED(step), bool &stop) { stop = false; }
+    static void defaultHotRestart(std::vector<std::string>& NOMAD_UNUSED(paramLines)) {};
 
     /**
      Default task always executed when start() is called

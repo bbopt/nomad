@@ -51,6 +51,7 @@
  \see    utils.hpp
  */
 #include <algorithm>    // for for_each
+#include <cctype>       // for toupper
 #ifdef _OPENMP
 #include <omp.h>
 #endif // _OPENMP

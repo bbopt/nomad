@@ -55,6 +55,7 @@
 #define __NOMAD400_POINT__
 
 #include <numeric>
+#include "../nomad_platform.hpp"
 #include "../Math/ArrayOfDouble.hpp"
 #include "../Math/Direction.hpp"
 
@@ -135,7 +136,7 @@ public:
      * Ends up to lexicographic order. Not useful. Throw an exception.
      * Ignore warning about unused variable point
      */
-    bool operator<(const Point &point __attribute__((unused))) const
+    bool operator<(const Point &NOMAD_UNUSED(point)) const
     {
         throw Exception(__FILE__,__LINE__,"Error: Attempting to use lexicographical order on a Point.");
     }

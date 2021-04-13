@@ -52,8 +52,7 @@
 #include "../../Algos/Mads/MadsInitialization.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
-
-#include <unistd.h> // For usleep
+#include "../../Util/MicroSleep.hpp"
 
 void NOMAD::MadsInitialization::init()
 {

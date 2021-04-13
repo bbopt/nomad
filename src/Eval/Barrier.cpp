@@ -155,7 +155,7 @@ void NOMAD::Barrier::checkCache()
     {
         NOMAD::CacheBase::getInstance();
     }
-    catch (NOMAD::Exception &e)
+    catch (NOMAD::Exception & /*e*/)
     {
         throw NOMAD::Exception(__FILE__, __LINE__,
                                "Cache must be instantiated before initializing Barrier.");

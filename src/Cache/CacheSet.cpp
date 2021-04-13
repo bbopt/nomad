@@ -52,6 +52,7 @@
  */
 #include "../Cache/CacheSet.hpp"
 #include "../Output/OutputQueue.hpp"
+#include "../Util/MicroSleep.hpp"
 #include "../Util/fileutils.hpp"
 
 #include <fstream>
@@ -76,9 +77,6 @@ void NOMAD::CacheSet::init()
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "CacheParameters::checkAndComply() needs to be called before constructing a CacheSet.");
     }
-#ifdef _OPENMP
-    omp_init_lock(&_cacheLock);
-#endif // _OPENMP
 }
 
 
@@ -99,24 +97,30 @@ void NOMAD::CacheSet::destroy()
 void NOMAD::CacheSet::setInstance(const std::shared_ptr<NOMAD::CacheParameters>& cacheParams,
                                   const BBOutputTypeList& bbOutputType)
 {
+    bool called_twice = false;
 #ifdef _OPENMP
-    // Lock cache set before creating instance
-    omp_set_lock(&_cacheLock);
-#endif
-
+#pragma omp critical(initCacheLock)
+    {
+#endif // _OPENMP
     if ( _single == nullptr )
     {
+#ifdef _OPENMP
+        omp_init_lock(&_cacheLock);
+#endif // _OPENMP
         _single = std::unique_ptr<NOMAD::CacheSet>(new CacheSet(cacheParams)) ;
+    } else {
+        called_twice = true;
     }
-    else
+#ifdef _OPENMP
+#pragma omp flush
+    } // end critical section initCacheLock
+#endif // _OPENMP
+
+    if (called_twice)
     {
         std::string err = "Cannot get instance. NOMAD::CacheSet::setInstance must be called only ONCE before calling NOMAD::CacheBase::getInstance()" ;
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
-
-#ifdef _OPENMP
-    omp_unset_lock(& _cacheLock);
-#endif // _OPENMP
 
     _bbOutputType = bbOutputType;
 

@@ -54,7 +54,11 @@
 #include "../Type/SgtelibModelFeasibilityType.hpp"
 #include "../Type/SgtelibModelFormulationType.hpp"
 #include "../Util/fileutils.hpp"
-
+#ifdef _WIN32
+#include <io.h>    // For _access
+#define access _access
+#define R_OK 04
+#endif
 
 // The deep copy of parameters. Used only by derived object that implemented the copy constructor and copy assignment
 void NOMAD::Parameters::copyParameters(const Parameters& params)

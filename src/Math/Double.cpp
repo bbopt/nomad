@@ -50,6 +50,7 @@
  \date   2010-04-02
  \see    Double.hpp
  */
+#include <cctype>   // for toupper
 #include <iomanip>  // For std::setprecision
 #include "../Math/Double.hpp"
 #include "../Util/defines.hpp"
@@ -788,11 +789,11 @@ std::size_t NOMAD::Double::nbDecimals( ) const
     }
 
     NOMAD::Double rem( _value );
-    int dec = std::floor(log10(rem.todouble()));
+    int dec = (int)std::floor(log10(rem.todouble()));
     rem -= pow(10, dec);
     while (rem._value >= _epsilon)
     {
-        dec = std::floor(log10(rem.todouble()));
+        dec = (int)std::floor(log10(rem.todouble()));
         rem -= pow(10, dec);
     }
     if (dec > 0)

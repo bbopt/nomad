@@ -46,6 +46,7 @@
 #ifndef __NOMAD400_QUAD_MODEL_EVALUATION__
 #define __NOMAD400_QUAD_MODEL_EVALUATION__
 
+#include "../../nomad_platform.hpp"
 #include "../../Eval/Evaluator.hpp"
 #include "../../Output/OutputInfo.hpp"
 #include "../../../ext/sgtelib/src/Surrogate.hpp"
@@ -86,7 +87,7 @@ public:
      Points for evaluations are given in a block. Sgtelib models handle the points as a matrix and return a matrix for outputs.
      */
     std::vector<bool> eval_block(Block &block,
-                                 const Double &hMax  __attribute__((unused)),
+                                 const Double &NOMAD_UNUSED(hMax),
                                  std::vector<bool> &countEval) const override;
 
 private:

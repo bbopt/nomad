@@ -89,10 +89,6 @@ protected:
     double _totalCPUAlgoTime;
 #endif // TIME_STATS
 
-#ifdef _OPENMP
-    static omp_lock_t _algoCommentLock;
-#endif // _OPENMP
-
 public:
     /// Constructor
     /**

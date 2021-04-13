@@ -90,18 +90,21 @@ NOMAD::OutputDirectToFile::~OutputDirectToFile()
 // Access to singleton
 std::unique_ptr<NOMAD::OutputDirectToFile>& NOMAD::OutputDirectToFile::getInstance()
 {
-#ifdef _OPENMP
-    // Lock queue before creating singleton
-    omp_set_lock(&_s_output_lock);
-#endif
     if (nullptr == _single)
     {
-        _single = std::unique_ptr<OutputDirectToFile> (new OutputDirectToFile()) ;
+#ifdef _OPENMP
+#pragma omp critical(initODFLock)
+        if (nullptr == _single)
+        {
+        omp_init_lock(&_s_output_lock);
+#endif
+            _single = std::unique_ptr<OutputDirectToFile> (new OutputDirectToFile()) ;
+#ifdef _OPENMP
+#pragma omp flush
+        } // end critical section initODFLock
+#endif // _OPENMP
     }
 
-#ifdef _OPENMP
-    omp_unset_lock(&_s_output_lock);
-#endif // _OPENMP
     return _single;
 }
 

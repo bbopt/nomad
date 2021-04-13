@@ -55,6 +55,8 @@
 #define __NOMAD400_ARRAYOFDOUBLE__
 
 #include <numeric>
+
+#include "../nomad_platform.hpp"
 #include "../Math/Double.hpp"
 #include "../Util/ArrayOfString.hpp"
 
@@ -68,8 +70,8 @@ class ArrayOfDouble {
 
 public:
 
-    static const std::string pStart; ///< Static variable used for array delimitation.
-    static const std::string pEnd; ///< Static variable used for array delimitation.
+    DLL_UTIL_API static const std::string pStart; ///< Static variable used for array delimitation.
+    DLL_UTIL_API static const std::string pEnd; ///< Static variable used for array delimitation.
 
 protected:
     /*---------*/

@@ -52,6 +52,10 @@
  */
 #include "../Util/fileutils.hpp"
 #include "../Util/utils.hpp"
+#ifdef _WIN32
+#include <direct.h>     // for getcwd
+#define getcwd _getcwd
+#endif
 
 /*-----------------------------------------------------------------*/
 /*              check if a file exists and is executable           */
@@ -95,15 +99,10 @@ bool NOMAD::checkWriteFile(const std::string &filename)
 std::string NOMAD::curdir()
 {
     char dirbuff[1024];
-#ifdef WINDOWS
-#include <direct.h>
-    _getcwd(dirbuff, 1024);
-#else
     if (nullptr == getcwd(dirbuff, 1024))
     {
         std::cerr << "Warning: Could not get current directory" << std::endl;
     }
-#endif
     std::string dir(dirbuff);
 
     return dir;

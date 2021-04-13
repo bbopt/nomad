@@ -291,7 +291,7 @@ void NOMAD::RunParameters::checkAndComply(
         bool nbMadsSubproblemSetByUser = true;
         if (nbMadsSubproblem == INF_SIZE_T)
         {
-            nbMadsSubproblem = std::round(n/nbVariablesInSubproblem)+1; // Add an additional mads for the pollster
+            nbMadsSubproblem = (size_t)std::round(n/nbVariablesInSubproblem)+1; // Add an additional mads for the pollster
             nbMadsSubproblemSetByUser = false;
         }
         if (useAlgoPSDMads)

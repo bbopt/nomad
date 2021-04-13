@@ -141,7 +141,7 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
                 }
             }
 
-            std::cerr << "All variables are granular. MAX_EVAL is set to " << new_max_eval << " to prevent algorithm from circling around best solution indefinetely" << std::endl;
+            std::cerr << "All variables are granular. MAX_EVAL is set to " << new_max_eval << " to prevent algorithm from circling around best solution indefinitely" << std::endl;
 
             setAttributeValue("MAX_EVAL",new_max_eval);
         }

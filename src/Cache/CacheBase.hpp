@@ -56,6 +56,7 @@
 #include <atomic>       // For atomic
 #include <vector>
 
+#include "../nomad_platform.hpp"
 #include "../Eval/EvalPoint.hpp"
 #include "../Param/CacheParameters.hpp"
 
@@ -88,7 +89,7 @@ protected:
      *   It could be a set (CacheSet), an unordered_set (CacheSet with
      *   precompiler option USE_UNORDEREDSET) map, multimap, SQL database, etc.
     */
-    static std::atomic<size_t> _nbCacheHits;
+    DLL_EVAL_API static std::atomic<size_t> _nbCacheHits;
 
     /// Name of the file to write or read cache to.
     /**
@@ -107,7 +108,7 @@ protected:
     /// The cache parameters used by the cache
     std::shared_ptr<CacheParameters> _cacheParams;
 
-    static std::unique_ptr<CacheBase> _single; ///< The singleton
+    DLL_EVAL_API static std::unique_ptr<CacheBase> _single; ///< The singleton
 
     /// Dimension of the points in the cache.
     /**
@@ -208,11 +209,12 @@ public:
        each EvalPoint may be processed in place. It is not needed
        to remove it from the cache, process it, and then put it back.
      */
-    virtual void processOnAllPoints(void (*func)(EvalPoint&) __attribute__((unused)))
+    typedef void (*EvalFunc_t)(EvalPoint&);
+    virtual void processOnAllPoints(EvalFunc_t NOMAD_UNUSED(func))
     {
         std::cerr << "Warning: processOnAllPoints is not implemented for this type of cache." << std::endl;
     }
-    virtual void processOnAllPoints(void (*func)(EvalPoint&) __attribute__((unused)), const int mainThreadNum __attribute__((unused)))
+    virtual void processOnAllPoints(EvalFunc_t NOMAD_UNUSED(func), const int NOMAD_UNUSED(mainThreadNum))
     {
         std::cerr << "Warning: processOnAllPoints is not implemented for this type of cache." << std::endl;
     }

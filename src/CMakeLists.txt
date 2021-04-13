@@ -478,6 +478,11 @@ add_custom_command(
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+# export all symbols on Windows
+if (WIN32)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 # Utils
 add_library (nomadUtils SHARED ${MATH_SOURCES} ${OUTPUT_SOURCES} ${PARAM_SOURCES} ${TYPE_SOURCES} ${UTIL_SOURCES} ${ATTRIBUTE_HEADERS})
 target_include_directories(nomadUtils PUBLIC
@@ -487,6 +492,9 @@ target_include_directories(nomadUtils PUBLIC
 )
 if(OpenMP_CXX_FOUND)
     target_link_libraries(nomadUtils PUBLIC OpenMP::OpenMP_CXX)
+endif()
+if (WIN32)
+    target_compile_definitions(nomadUtils PRIVATE -DDLL_UTIL_EXPORTS)
 endif()
 
 # Evals
@@ -498,6 +506,9 @@ target_include_directories(nomadEval PUBLIC
 target_link_libraries(nomadEval PUBLIC nomadUtils)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(nomadEval PUBLIC OpenMP::OpenMP_CXX)
+endif()
+if (WIN32)
+    target_compile_definitions(nomadEval PRIVATE -DDLL_EVAL_EXPORTS)
 endif()
 
 # Algos
@@ -525,6 +536,9 @@ else()
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+endif()
+if (WIN32)
+    target_compile_definitions(nomadAlgos PRIVATE -DDLL_ALGO_EXPORTS)
 endif()
 
 #

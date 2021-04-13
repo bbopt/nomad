@@ -44,6 +44,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../nomad_platform.hpp"
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/MegaSearchPoll.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
@@ -100,7 +101,7 @@ void NOMAD::MegaSearchPoll::endImp()
 // Generate new points to evaluate from Poll and Search
 void NOMAD::MegaSearchPoll::generateTrialPoints()
 {
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, true);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, true);
     OUTPUT_INFO_START
     AddOutputInfo("Generate points for " + _name, true, false);
     OUTPUT_INFO_END

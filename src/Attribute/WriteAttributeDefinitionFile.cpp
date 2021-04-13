@@ -49,6 +49,7 @@
 // to be modified.
 
 #include <algorithm>    // for for_each
+#include <cctype>       // for toupper, isdigit
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>

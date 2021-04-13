@@ -43,96 +43,29 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   MicroSleep.hpp
+ \brief  Portable usleep function (headers)
+ \author Wim Lavrijsen
+ \date   2021-03-24
+ \see    MicroSleep.hpp
+ */
+#ifndef __NOMAD400_MICROSLEEP__
+#define __NOMAD400_MICROSLEEP__
 
-#include "../../nomad_platform.hpp"
-#include "../../Algos/NelderMead/NMAllReflective.hpp"
-#include "../../Algos/NelderMead/NMReflective.hpp"
-#include "../../Algos/SubproblemManager.hpp"
+#ifdef _WIN32
+#include <chrono>
+#include <thread>
 
+#include "../nomad_nsbegin.hpp"
 
-void NOMAD::NMAllReflective::startImp()
-{
-    if ( ! _stopReasons->checkTerminate() )
-    {
-        // The iteration start function manages the simplex creation.
-        NMIteration::startImp();
-
-        // Generate REFLECT, EXPANSION, INSIDE_CONTRACTION, OUTSIDE_CONTRACTION (no SHRINK)
-        // All points are generated before evaluation
-        verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, true);
-
-        generateTrialPoints();
-        verifyPointsAreOnMesh(getName());
-    }
+static inline void usleep(uint64_t usec) {
+    std::this_thread::sleep_for(std::chrono::microseconds(usec));
 }
 
+#include "../nomad_nsend.hpp"
+#else
+#include <unistd.h>
+#endif
 
-void NOMAD::NMAllReflective::generateTrialPoints ()
-{
-    NOMAD::NMReflective reflect( this );
-
-    // Need to set the current step type before starting
-    reflect.setCurrentNMStepType( NMStepType::REFLECT );
-
-    // Create trial points but no evaluation
-    reflect.start();
-    reflect.end();
-    auto trialPts = reflect.getTrialPoints();
-    for (auto evalPoint : trialPts)
-    {
-        evalPoint.setGenStep(getName());
-        insertTrialPoint(evalPoint);
-    }
-
-    // Expand simplex
-    if ( ! _stopReasons->checkTerminate() )
-    {
-        reflect.setCurrentNMStepType( NMStepType::EXPAND );
-        reflect.start();
-        reflect.end();
-        trialPts = reflect.getTrialPoints();
-        for (auto evalPoint : trialPts)
-        {
-            evalPoint.setGenStep(getName());
-            insertTrialPoint(evalPoint);
-        }
-
-    }
-
-    // Inside contraction of simplex
-    if ( ! _stopReasons->checkTerminate() )
-    {
-        reflect.setCurrentNMStepType( NMStepType::INSIDE_CONTRACTION );
-        reflect.start();
-        reflect.end();
-        trialPts = reflect.getTrialPoints();
-        for (auto evalPoint : trialPts)
-        {
-            evalPoint.setGenStep(getName());
-            insertTrialPoint(evalPoint);
-        }
-
-    }
-
-    // Outside contraction of simplex
-    if ( ! _stopReasons->checkTerminate() )
-    {
-        reflect.setCurrentNMStepType( NMStepType::OUTSIDE_CONTRACTION );
-        reflect.start();
-        reflect.end();
-        trialPts = reflect.getTrialPoints();
-        for (auto evalPoint : trialPts)
-        {
-            evalPoint.setGenStep(getName());
-            insertTrialPoint(evalPoint);
-        }
-
-    }
-
-    // If everything is ok we terminate a single NM iteration completed anyway
-    if ( ! _stopReasons->checkTerminate() )
-    {
-        auto nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get ( getAllStopReasons() );
-        nmStopReason->set(NOMAD::NMStopType::NM_SINGLE_COMPLETED);
-    }
-}
+#endif // __NOMAD400_MICROSLEEP__

@@ -31,8 +31,13 @@ elseif (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5)
         message(FATAL_ERROR "Clang version has not been tested for Nomad!")
     endif()
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    # require at least 15.0 (MSVC 2017) for C++14 support
+    if (MSVC_TOOLSET_VERSION VERSION_LESS 141)
+        message(FATAL_ERROR "MSVC version ${CMAKE_CXX_COMPILER_VERSION} has not been tested for Nomad!")
+    endif()
 else()
-    message(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang and GCC.")
+    message(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang, GCC, and MSVC.")
 endif()
 
 #options

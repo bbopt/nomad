@@ -59,9 +59,6 @@
 #include "../Util/Clock.hpp"
 #endif // TIME_STATS
 
-#ifdef _OPENMP
-omp_lock_t NOMAD::Algorithm::_algoCommentLock;
-#endif // _OPENMP
 
 void NOMAD::Algorithm::init()
 {
@@ -85,10 +82,6 @@ void NOMAD::Algorithm::init()
     if ( nullptr == _stopReasons )
         throw NOMAD::StepException(__FILE__, __LINE__,
                                "Valid stop reasons must be provided to the Algorithm constructor.", this);
-
-#ifdef _OPENMP
-    omp_init_lock(&_algoCommentLock);
-#endif // _OPENMP
 
     // Check pbParams if needed, ex. if a copy of PbParameters was given to the Algorithm constructor.
     _pbParams->checkAndComply();
@@ -118,9 +111,6 @@ void NOMAD::Algorithm::init()
 NOMAD::Algorithm::~Algorithm()
 {
     NOMAD::SubproblemManager::getInstance()->removeSubproblem(this);
-#ifdef _OPENMP
-    omp_destroy_lock(&_algoCommentLock);
-#endif // _OPENMP
 }
 
 
@@ -137,7 +127,8 @@ void NOMAD::Algorithm::setAlgoComment(const std::string& algoComment, const bool
     else
     {
 #ifdef _OPENMP
-        omp_set_lock(&_algoCommentLock);
+#pragma omp critical(pushAlgoComment)
+        {
 #endif // _OPENMP
         if (!_forceAlgoComment)
         {
@@ -153,7 +144,8 @@ void NOMAD::Algorithm::setAlgoComment(const std::string& algoComment, const bool
             _forceAlgoComment = true;
         }
 #ifdef _OPENMP
-        omp_unset_lock(&_algoCommentLock);
+#pragma omp flush
+        } // end critical section pushAlgoComment
 #endif // _OPENMP
     }
 }
@@ -170,7 +162,8 @@ void NOMAD::Algorithm::resetPreviousAlgoComment(const bool force)
     else
     {
 #ifdef _OPENMP
-        omp_set_lock(&_algoCommentLock);
+#pragma omp critical(pushAlgoComment)
+        {
 #endif // _OPENMP
         if (!_forceAlgoComment || force)
         {
@@ -190,7 +183,8 @@ void NOMAD::Algorithm::resetPreviousAlgoComment(const bool force)
             }
         }
 #ifdef _OPENMP
-        omp_unset_lock(&_algoCommentLock);
+#pragma omp flush
+        } // end critical section pushAlgoComment
 #endif // _OPENMP
     }
 }

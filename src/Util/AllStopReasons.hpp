@@ -46,6 +46,7 @@
 #ifndef __NOMAD400_ALLSTOPREASONS__
 #define __NOMAD400_ALLSTOPREASONS__
 
+#include "../nomad_platform.hpp"
 #include "../Util/StopReason.hpp"
 
 #include "../nomad_nsbegin.hpp"
@@ -74,8 +75,8 @@ public:
     {}
 
 private:
-    static StopReason<BaseStopType> _baseStopReason; ///< A single base stop reason is considered for NOMAD.
-    static StopReason<EvalGlobalStopType> _evalGlobalStopReason; ///< An eval stop reason valable for the whole of NOMAD.
+    DLL_UTIL_API static StopReason<BaseStopType> _baseStopReason; ///< A single base stop reason is considered for NOMAD.
+    DLL_UTIL_API static StopReason<EvalGlobalStopType> _evalGlobalStopReason; ///< An eval stop reason valable for the whole of NOMAD.
     StopReason<IterStopType> _iterStopReason; ///< An iteration stop reason.
 
 public:
