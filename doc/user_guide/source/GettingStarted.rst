@@ -178,7 +178,14 @@ With **GNU compiler** ``g++``, the blackbox compilation and test are as follows:
 Provide parameters
 ^^^^^^^^^^^^^^^^^^
 
-In batch mode, the parameters are provided in a text file using predefined keywords followed by one or more argument. Here are some of the most important parameters defining an optimization problem (without brackets):
+In batch mode, the parameters are provided in a text file using predefined keywords followed by one or more argument.
+
+.. note::
+
+  Help on parameters is accessible at the command prompt:
+  ``$NOMAD_HOME/bin/nomad -h param_name``
+
+Here are some of the most important parameters defining an optimization problem (without brackets):
 
 * The number of variables (``DIMENSION n``).
 * The name of the blackbox executable that outputs the objective and the constraints (``BB_EXE bb_name``).
@@ -188,12 +195,12 @@ In batch mode, the parameters are provided in a text file using predefined keywo
 * An optional stopping criterion (``MAX_BB_EVAL max_bb_eval``, for example). If no stopping criterion is specified, the algorithm will stop as soon as the mesh size reaches a given tolerance.
 * Any entry on a line is ignored after the character ‘#’.
 
-The order in which the parameters appear in the file or their case is unimportant.
 
 .. note::
 
-  Help on parameters is accessible at the command prompt:
-  ``$NOMAD_HOME/bin/nomad -h param_name``
+  The order in which the parameters appear in the file or their case is unimportant.
+
+The parameter file for the example is as follows:
 
 ::
 
