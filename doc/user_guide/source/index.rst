@@ -2,38 +2,39 @@ Nomad 4 User Guide
 ==================
 
 .. warning::
-   NOMAD is a blackbox optimization software `<https://www.gerad.ca/nomad/>`_.
-
-   NOMAD 3 software is still currently available but will be replaced by NOMAD 4 in the future.
+   NOMAD is a blackbox optimization software.
 
    This user guide is specific to NOMAD 4.
 
+   NOMAD 3 is still available. It will be replaced by NOMAD 4 in the future.
 
-* A general presentation of NOMAD is given in Section :ref:`introduction`.
+   Get NOMAD 3 and 4 at `<https://www.gerad.ca/nomad/>`_.
 
-* **New users** of NOMAD should refer to:
 
-   - Section :ref:`installation`
-   - Section :ref:`getting_started`
+A general presentation of NOMAD is given in :ref:`introduction`.
 
-* NOMAD utilization:
+**New users** of NOMAD should refer to
 
-   - Starting from Section :ref:`basic_nomad_usage`, all users can find ways to tailor problem definition, algorithmic settings and software output.
+* :ref:`installation`
+* :ref:`getting_started`
 
-* Refer to Sections :ref:`advanced_functionalities` and :ref:`tricks_of_the_trade` for specific problem solving.
+**Using NOMAD**
 
-* Please cite NOMAD 4 with references::
+* Starting from :ref:`basic_nomad_usage`, all users can find ways to tailor problem definition, algorithmic settings and software output.
 
-      C. Audet, S. Le Digabel, V. Rochon Montplaisir, and C. Tribes
-      NOMAD version 4: Nonlinear optimization with the MADS algorithm.
-      ACM Transactions on Mathematical Software, Submitted.
+* Refer to :ref:`advanced_functionalities` and :ref:`tricks_of_the_trade` for specific problem solving.
 
-* A complete introduction to derivative-free and blackbox optimization can be found in the textbook::
+Please cite NOMAD 4 with reference:
 
-      C. Audet and W. Hare.
-      Derivative-Free and Blackbox Optimization.
-      Springer Series in Operations Research and Financial Engineering.
-      Springer International Publishing, Berlin, 2017.
+.. [AuLeRoTr2021] C. Audet, S. Le Digabel, V. Rochon Montplaisir, and C. Tribes. NOMAD version 4: Nonlinear optimization with the MADS algorithm.
+   *ACM Transactions on Mathematical Software*, Submitted.
+
+A complete introduction to derivative-free and blackbox optimization can be found in the textbook:
+
+.. [AuHa2017] C. Audet and W. Hare.
+    Derivative-Free and Blackbox Optimization.
+    *Springer Series in Operations Research and Financial Engineering.*
+    Springer International Publishing, Berlin, 2017.
 
 .. figure:: ../figs/livre_DFO_AuHa2017.png
 
