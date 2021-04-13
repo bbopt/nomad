@@ -34,5 +34,7 @@ MAX_BB_EVAL    100            # the algorithm terminates when
                               # local disk)
 
 
+DISPLAY_UNSUCCESSFUL false    # Display only successful evaluations
+
 DISPLAY_STATS BBE ( SOL ) OBJ # Display the number of evaluation (BBE),
 							  # the current solution ( SOL ) and the objective
