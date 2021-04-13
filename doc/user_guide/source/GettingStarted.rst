@@ -169,7 +169,7 @@ satisfied (:math:`c_2(x) = 20 > 0`).
 
 .. note::
 
-  The order of the displayed outputs must correspond to the order defined in the parameter file (see `BB_OUTPUT_TYPE <output types>`_ below).
+  The order of the displayed outputs must correspond to the order defined in the parameter file (see :ref:`bb_output_type` for details).
   If variables have bound constraints, they must be defined in the parameters file and should not appear in the blackbox code.
 
 
@@ -243,11 +243,12 @@ Conduct optimization
 ^^^^^^^^^^^^^^^^^^^^
 
 Optimization is conducted by starting NOMAD executable in a command window with the parameter file name given as argument.
-::
-    $NOMAD_HOME/bin/nomad param.txt
-To illustrate the execution, the example provided in ``$NOMAD_HOME/examples/basic/batch/single_obj/`` is considered:
 
 ::
+
+    $NOMAD_HOME/bin/nomad param.txt
+
+To illustrate the execution, the example provided in ``$NOMAD_HOME/examples/basic/batch/single_obj/`` is considered::
 
   > cd $NOMAD_HOME/examples/basic/batch/single_obj
   > ls
@@ -278,16 +279,12 @@ To illustrate the execution, the example provided in ``$NOMAD_HOME/examples/basi
   Reached stop criterion: Max number of blackbox evaluations (Eval Global) 100
   100 (   3.27       2          0.15       0.75      -2.7      )   -2.7
   A termination criterion is reached: Max number of blackbox evaluations (Eval Global) Success found and opportunistic strategy is used 100
-  
+
   Best feasible solution:     #1543 ( 3.27 2 0.15 0.75 -2.7 ) Evaluation OK    f =  -2.7000000000000001776     h =   0
-  
+
   Best infeasible solution:   #1512 ( 3.79 0 1.14 -1.75 -1.97 )   Evaluation OK    f =  -1.9699999999999999734     h =   0.03500640999999999475
-  
+
   Blackbox evaluations:        100
   Total model evaluations:     1348
   Cache hits:                  3
   Total number of evaluations: 103
-
-
-
-

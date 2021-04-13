@@ -99,7 +99,7 @@ A mapping between the names of the blackbox programs and the ``BB_OUTPUT_TYPE`` 
 
   BB_EXE         bb1.exe bb2.exe    # defines two blackboxes
   BB_OUTPUT_TYPE OBJ     EB         # `bb1.exe' and `bb2.exe'
-                                  # with one output each
+                                    # with one output each
 
 Blackbox program names can be repeated to establish more complex mapping::
 
@@ -137,16 +137,90 @@ Or::
 ``BB_INPUT_TYPE``
 """""""""""""""""
 
+This parameter indicates the types of each variable. It may be defined once with a list of :math:`n` input types with format  ``(t1 t2 ... tn)`` or `` * t``. Input types ``t`` are values in ``R, B, I``. ``R`` is for real/continuous variables, ``B`` for binary variables, and ``I`` for integer variables. The default type is ``R``.
+
+Please note that categorical variables (mixed integer variable) are not yet supported in NOMAD 4 but are available in NOMAD 3.
+
+
+
+
 .. _bb_output_type:
 
 ``BB_OUTPUT_TYPE``
 """"""""""""""""""
+
+This parameter characterizes the values supplied by the blackbox, and in particular tells how constraint values are to be treated. The arguments are a list of :math:`m` types, where :math:`m` is the number of outputs of the  blackbox. At least one of these values must correspond to the objective function that NOMAD minimizes. Currently, NOMAD 4 only supports single objective problem (NOMAD 3 can handle bi-objective). Other values typically are constraints of the form :math:`c_j(x) \leq 0`, and the blackbox  must display the left-hand side of the constraint with this format.
+
+.. note:: A terminology is used to describe the different types of constraints [AuDe09a]_
+
+  * ``EB`` constraints correspond to constraints that need to be always satisfied (*unrelaxable constraints*). The technique used to deal with those is the **Extreme Barrier** approach, consisting in simply rejecting the  infeasible points.
+
+  * ``PB`` and ``F`` constraints correspond to constraints that need to be satisfied only at the solution, and not necessarily at intermediate points (*relaxable constraints*). More precisely, ``F`` constraints are treated with the **Filter** approach [AuDe04a]_,  and ``PB`` constraints are treated with the **Progressive Barrier**  approach [AuDe09a]_.
+
+  * There may be another type of constraints, the *hidden constraints*, but these only  appear inside the blackbox during an execution, and thus they   cannot be indicated in advance to NOMAD  (when such a constraint is violated, the evaluation simply fails and the point  is not considered).
+
+  If the user is not sure about the nature of its constraints, we suggest using the keyword ``CSTR``, which corresponds by default to ``PB`` constraints.
+
+All the types are:
+
++---------------+-------------------------------------------------------+
+| ``CNT_EVAL``  |  Must be 0 or 1: count or not the blackbox evaluation |
++---------------+-------------------------------------------------------+
+| ``EB``        | Constraint treated with **Extreme Barrier**           |
+|               | (infeasible points are ignored)                       |
++---------------+-------------------------------------------------------+
+| ``F``         | Constraint treated with **Filter** approach           |
++---------------+-------------------------------------------------------+
+| ``NOTHING``   | The output is ignored                                 |
+| ``EXTRA_O``   |                                                       |
+| ``-``         |                                                       |
++---------------+-------------------------------------------------------+
+| ``OBJ``       | Objective value to be minimized                       |
++---------------+-------------------------------------------------------+
+| ``PB``        | Constraint treated with **Progressive Barrier**       |
+| ``CSTR``      |                                                       |
++---------------+-------------------------------------------------------+
+
+
+Please note that ``F`` constraints are not compatible with ``CSTR`` or ``PB``. However, ``EB`` can be combined  with ``F``, ``CSTR`` or ``PB``.
+
+
+
+
 
 .. _bounds:
 
 ``LOWER_BOUND`` and ``UPPER_BOUND``
 """""""""""""""""""""""""""""""""""
 
+.. warning:: NOMAD is 0 based :math:`\rightarrow` The first variable has a 0 index.
+
+Parameters ``LOWER_BOUND`` and ``UPPER_BOUND`` are used to define bounds on variables. For example, with :math:`n=7`::
+
+  LOWER_BOUND  0-2  -5.0
+  LOWER_BOUND  3     0.0
+  LOWER_BOUND  5-6  -4.0
+  UPPER_BOUND  0-5   8.0
+
+
+is equivalent to::
+
+  LOWER_BOUND ( -5 -5 -5 0 - -4 -4 ) # `-' or `-inf' means that x_4
+                                     # has no lower bound
+  UPPER_BOUND (  8 8 8 8 8 8 inf )   # `-' or `inf' or `+inf' means
+                                     # that x_6 has no upper bound.
+
+Each of these two sequences define the following bounds
+
+.. math::
+
+  -5 ~ \leq x_0 \leq ~ 8 \\
+  -5 ~ \leq x_1 \leq ~ 8 \\
+  -5 ~ \leq x_2 \leq ~ 8 \\
+   0 ~ \leq x_3 \leq ~ 8 \\
+            x_4 \leq ~ 8 \\
+  -4 ~ \leq x_5 \leq ~ 8 \\
+  -4 ~ \leq x_6 \qquad \\
 
 
 .. _algorithmic_parameters:
@@ -162,14 +236,6 @@ Output parameters
 ^^^^^^^^^^^^^^^^^
 
 
-.. _library_mode:
+.. topic:: References
 
-Optimization in library mode
-----------------------------
-
-...
-
-Python interface
-----------------
-
-...
+  .. [AuDe04a] C. Audet and J.E. Dennis, Jr. A pattern search filter method for nonlinear programming without derivatives. *SIAM Journal on Optimization*, 14(4):980–1010, 2004.
