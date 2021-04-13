@@ -254,40 +254,34 @@ To illustrate the execution, the example provided in ``$NOMAD_HOME/examples/basi
   bb.cpp bb.exe CMakeLists.txt makefile param.txt x.txt
   >$NOMAD_HOME/build/release/bin/nomad param.txt
   BBE ( SOL ) OBJ
-  1   (   0          0          0          0          0        )    0        (Phase One)
-  6   (   0          4          0          0          0        )    0        (Phase One)
-  26  (   1.4        5          0         -0.6       -0.4      )   -0.4
-  27  (   2.6        4          0         -1.4       -0.8      )   -0.8
-  31  (   1.63       3          0.92      -1.78      -0.88     )   -0.88
-  35  (   2.46       3          0.97      -1.87      -0.92     )   -0.92
-  39  (   3.2        3          0.16      -1.26      -1.05     )   -1.05
-  40  (   4.27       2         -0.23      -1.07      -1.36     )   -1.36
-  45  (   3.0        1          1.22      -1.92      -1.5      )   -1.5
-  46  (   3.2        0          1.83      -2.19      -1.86     )   -1.86
-  55  (   3.91      -0          1.02      -1.32      -1.95     )   -1.95
-  65  (   3.61      -0          1.28      -1.83      -1.99     )   -1.99
-  76  (   3.94       1          0.63      -1.14      -2.02     )   -2.02
-  77  (   4.32       1          0.02      -0.61      -2.11     )   -2.11
-  82  (   3.68       0          0.97      -1.23      -2.15     )   -2.15
-  86  (   3.91       1          0.5       -0.6       -2.2      )   -2.2
-  87  (   4.07       1          0.1        0.01      -2.31     )   -2.31
-  92  (   3.67       1          0.56      -0.47      -2.36     )   -2.36
-  93  (   3.35       1          0.84      -0.39      -2.48     )   -2.48
-  97  (   4.15       1         -0.37       0.57      -2.49     )   -2.49
-  99  (   3.61       1          0.1        0.4       -2.56     )   -2.56
-  Reached stop criterion: Max number of blackbox evaluations (Eval Global) 100
-  100 (   3.27       2          0.15       0.75      -2.7      )   -2.7
-  A termination criterion is reached: Max number of blackbox evaluations (Eval Global) Success found and opportunistic strategy is used 100
-  
-  Best feasible solution:     #1543 ( 3.27 2 0.15 0.75 -2.7 ) Evaluation OK    f =  -2.7000000000000001776     h =   0
-  
-  Best infeasible solution:   #1512 ( 3.79 0 1.14 -1.75 -1.97 )   Evaluation OK    f =  -1.9699999999999999734     h =   0.03500640999999999475
-  
-  Blackbox evaluations:        100
-  Total model evaluations:     1348
-  Cache hits:                  3
-  Total number of evaluations: 103
+    1   (   0          0          0          0          0        )    0        (Phase One)
+    8   (   0          4          0          0          0        )    0        (Phase One)
+    28  (   1.4        5          0         -0.6       -0.4      )   -0.4
+    29  (   2.6        4          0         -1.4       -0.8      )   -0.8
+    33  (   1.63       3          0.92      -1.78      -0.88     )   -0.88
+    37  (   2.46       3          0.97      -1.87      -0.92     )   -0.92
+    41  (   3.2        3          0.16      -1.26      -1.05     )   -1.05
+    42  (   4.27       2         -0.23      -1.07      -1.36     )   -1.36
+    47  (   3.0        1          1.22      -1.92      -1.5      )   -1.5
+    48  (   3.2        0          1.83      -2.19      -1.86     )   -1.86
+    57  (   3.91      -0          1.02      -1.32      -1.95     )   -1.95
+    67  (   3.61      -0          1.28      -1.83      -1.99     )   -1.99
+    78  (   3.94       1          0.63      -1.14      -2.02     )   -2.02
+    79  (   4.32       1          0.02      -0.61      -2.11     )   -2.11
+    84  (   3.68       0          0.97      -1.23      -2.15     )   -2.15
+    88  (   3.91       1          0.5       -0.6       -2.2      )   -2.2
+    89  (   4.07       1          0.1        0.01      -2.31     )   -2.31
+    94  (   3.67       1          0.56      -0.47      -2.36     )   -2.36
+    95  (   3.35       1          0.84      -0.39      -2.48     )   -2.48
+    99  (   4.15       1         -0.37       0.57      -2.49     )   -2.49
+    Reached stop criterion: Max number of blackbox evaluations (Eval Global) 100
+    A termination criterion is reached: Max number of blackbox evaluations (Eval Global) No more points to evaluate 100
 
+    Best feasible solution:     #1540 ( 4.15 1 -0.37 0.57 -2.49 )   Evaluation OK    f =  -2.4900000000000002132     h =   0
 
+    Best infeasible solution:   #1512 ( 3.79 0 1.14 -1.75 -1.97 )   Evaluation OK    f =  -1.9699999999999999734     h =   0.03500640999999999475
 
-
+    Blackbox evaluations:        100
+    Total model evaluations:     1348
+    Cache hits:                  3
+    Total number of evaluations: 103
