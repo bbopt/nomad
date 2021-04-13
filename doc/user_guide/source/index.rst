@@ -26,7 +26,8 @@ A general presentation of NOMAD is given in :ref:`introduction`.
 
 Please cite NOMAD 4 with reference:
 
-.. [AuLeRoTr2021] C. Audet, S. Le Digabel, V. Rochon Montplaisir, and C. Tribes. NOMAD version 4: Nonlinear optimization with the MADS algorithm.
+.. [AuLeRoTr2021] C. Audet, S. Le Digabel, V. Rochon Montplaisir, and C. Tribes.
+   NOMAD version 4: Nonlinear optimization with the MADS algorithm.
    *ACM Transactions on Mathematical Software*, Submitted.
 
 A complete introduction to derivative-free and blackbox optimization can be found in the textbook:
@@ -34,9 +35,10 @@ A complete introduction to derivative-free and blackbox optimization can be foun
 .. [AuHa2017] C. Audet and W. Hare.
     Derivative-Free and Blackbox Optimization.
     *Springer Series in Operations Research and Financial Engineering.*
-    Springer International Publishing, Berlin, 2017.
+    Springer International Publishing, Berlin, 2017. |dfo_book|
 
-.. figure:: ../figs/livre_DFO_AuHa2017.png
+.. |dfo_book| image:: ../figs/livre_DFO_AuHa2017.png
+               :width: 30 pt
 
 .. toctree::
    :maxdepth: 1
@@ -57,20 +59,15 @@ A complete introduction to derivative-free and blackbox optimization can be foun
    GettingStarted
    HowToUseNomad
    TricksOfTheTrade
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Advanced NOMAD usage:
-
-   AdvancedParameters
    AdvancedFunctionalities
+
 
 .. toctree::
    :maxdepth: 1
    :caption: Additional information:
 
    ReleaseNotes
-   DevelopperParameters
+   Appendix
 
 Indices and tables
 ==================
