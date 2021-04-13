@@ -54,7 +54,7 @@
 
 /**
  Class to generate points for single pass NM on all reflective steps (REFLECT, EXPAND, INSIDE_CONTRACTION and OUTSIDE_CONTRACTION).
- The NMAllReflective::startImp function manages the creation process. The initial simplex is created by calling NMIteration::startImp(). The points are projected on mesh and updated with the information of the creating frame center.
+ The NMAllReflective::startImp function manages the creation process. The initial simplex is created by calling NMIteration::startImp(). The points are projected on mesh and updated with the information of the creating simplex center.
  */
 class NMAllReflective: public NMIteration, public NMIterationUtils
 {
@@ -62,13 +62,13 @@ public:
     /// Constructor
     /**
      \param parentStep      The parent step of this step -- \b IN.
-     \param frameCenter     The MADS frame center is used as simplex "center"  -- \b IN.
-     \param madsMesh        Mads Mesh for trial point projection (can be null) -- \b IN.
+     \param simplexCenter   The MADS frame center is used as simplex "center"  -- \b IN.
+     \param madsMesh        Mads Mesh for trial point projection and simplex scaling (can be null) -- \b IN.
      */
     explicit NMAllReflective(const Step* parentStep,
-                             const std::shared_ptr<EvalPoint>& frameCenter,
+                             const std::shared_ptr<EvalPoint>& simplexCenter,
                              const std::shared_ptr<MeshBase>& madsMesh)
-      : NMIteration(parentStep, frameCenter, 0, madsMesh),
+      : NMIteration(parentStep, simplexCenter, 0, madsMesh),
         NMIterationUtils(parentStep)
     {
         _stopReasons = std::make_shared<AlgoStopReasons<NMStopType>>();
@@ -84,7 +84,7 @@ private:
      - create the initial simplex if it is empty.
      - call NMAllReflective::generateTrialPoints
      - verify that trial points are on mesh.
-     - update points with frame center.
+     - update points with simplex center.
      */
     void startImp() override ;
 

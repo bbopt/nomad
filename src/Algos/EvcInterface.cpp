@@ -62,7 +62,7 @@ void NOMAD::EvcInterface::init()
     verifyStepNotNull();
     verifyEvaluatorControlNotNull();
 
-    _fixedVariable = NOMAD::SubproblemManager::getSubFixedVariable(_step);
+    _fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(_step);
 }
 
 
@@ -154,7 +154,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
             // cache is not used, update tag here.
             trialPoint.updateTag();
             // Look in EvaluatorControl's Barrier if the point is already evaluated.
-            // Only do this when EvalType is BB. If it is SGTE, always reevaluate.
+            // Only do this when EvalType is BB. If it is MODEL, always reevaluate.
             if (NOMAD::EvalType::BB == evalType)
             {
                 auto barrier = _evaluatorControl->getBarrier();
@@ -174,14 +174,10 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
             NOMAD::EvalQueuePointPtr evalQueuePoint(new NOMAD::EvalQueuePoint(trialPoint, evalType));
             if (useMesh && nullptr == iteration)
             {
-                iteration = dynamic_cast<NOMAD::Iteration*>(megaSearchPoll->getIterForPoint(trialPointSub).get());
-                if (nullptr == iteration)
-                {
-                    std::string s = _step->getName();
-                    s += ": In keepPointsThatNeedEval: Could not determine iteration for point ";
-                    s += trialPoint.display();
-                    throw NOMAD::StepException(__FILE__,__LINE__, s, _step);
-                }
+                std::string s = _step->getName();
+                s += ": In keepPointsThatNeedEval: Could not determine iteration for point ";
+                s += trialPoint.display();
+                throw NOMAD::StepException(__FILE__,__LINE__, s, _step);
             }
             if ( useMesh )
             {
@@ -266,15 +262,16 @@ void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::Barrier>& subB
     // Clear xFeas and xInf lists and recompute them
     fullBarrier->clearXFeas();
     fullBarrier->clearXInf();
+    auto evalType = _evaluatorControl->getEvalType();
     for (auto xFeas : subBarrier->getAllXFeas())
     {
         auto xFeasFull = xFeas.makeFullSpacePointFromFixed(_fixedVariable);
-        fullBarrier->addXFeas(xFeasFull, _evaluatorControl->getEvalType());
+        fullBarrier->addXFeas(xFeasFull, evalType, _evaluatorControl->getComputeType());
     }
     for (auto xInf : subBarrier->getAllXInf())
     {
         auto xInfFull = xInf.makeFullSpacePointFromFixed(_fixedVariable);
-        fullBarrier->addXInf(xInfFull);
+        fullBarrier->addXInf(xInfFull, evalType);
     }
     auto refBestFeas = subBarrier->getRefBestFeas();
     auto refBestInf  = subBarrier->getRefBestInf();
@@ -291,7 +288,7 @@ void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::Barrier>& subB
 }
 
 
-bool NOMAD::EvcInterface::findInBarrier(const Point& x, EvalPoint& evalPoint) const
+bool NOMAD::EvcInterface::findInBarrier(const NOMAD::Point& x, NOMAD::EvalPoint& evalPoint) const
 {
     bool pointFound = false;
 

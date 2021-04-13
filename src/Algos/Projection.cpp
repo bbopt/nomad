@@ -68,7 +68,7 @@ NOMAD::Projection::Projection(const NOMAD::Step* parentStep,
     IterationUtils(parentStep),
     _oraclePoints(oraclePoints),
     _displayLevel(NOMAD::OutputLevel::LEVEL_INFO),
-    _cacheSgte(0),
+    _cacheModelEval(0),
     _mesh(nullptr),
     _frameCenter(nullptr),
     _indexSet()
@@ -87,16 +87,17 @@ void NOMAD::Projection::init()
     _name = "Projection";
     verifyParentNotNull();
 
-    // Find cache points with Sgte evaluation
+    // Find cache points with model evaluation
     NOMAD::CacheInterface cacheInterface(this);
-    cacheInterface.find(NOMAD::EvalPoint::hasSgteEval, _cacheSgte);
+    cacheInterface.find(NOMAD::EvalPoint::hasModelEval, _cacheModelEval);
 
     auto iter = getParentOfType<NOMAD::Iteration*>();
 
     if (nullptr != iter)
     {
         _mesh = iter->getMesh();
-        _frameCenter = iter->getFrameCenter();
+        auto barrier = iter->getMegaIterationBarrier();
+        _frameCenter = std::make_shared<NOMAD::EvalPoint>(barrier->getFirstPoint());
         if (_frameCenter)
         {
             buildIndexSet(_frameCenter->size());
@@ -236,14 +237,12 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
 
 
     // Evaluate projection trial points
-    // in the surrogate model
+    // in the dynamic (quad or sgtelib) model
     // TODO Analyse from NOMAD 3 and see if we can do something similiar
     // in NOMAD 4. It may not be worth it, it seems more like an
     // issue of sorting the points accorting to a SgtelibModel, and
     // that would be better done in the EvaluatorControl.
     //evaluateProjectionTrialPoints(trySet, ev, keep, bestEvalPoint);
-
-    // TODO add something like SgtelibModel::checkHF() to postprocessing?
 
 }
 
@@ -286,7 +285,7 @@ void NOMAD::Projection::stdProjectedPoint(const NOMAD::EvalPoint& oraclePoint)
     {
         NOMAD::CacheInterface cacheInterface(this);
         const int maxNumEval = 1;
-        doInsert = cacheInterface.smartInsert(evalPoint, maxNumEval, NOMAD::EvalType::SGTE);
+        doInsert = cacheInterface.smartInsert(evalPoint, maxNumEval, NOMAD::EvalType::MODEL);
     }
 
     if (doInsert)
@@ -508,7 +507,6 @@ void NOMAD::Projection::evaluateProjectionTrialPoints(const NOMAD::EvalPointSet&
         {
             // Eval (with the same evaluator as for the model optimization)
             ev.eval_x(evalPoint, 0.0, countEval);
-            _modelAlgo->checkHF(evalPoint);
 
             auto f = evalPoint.getF(evalType);
             auto h = evalPoint.getH(evalType);

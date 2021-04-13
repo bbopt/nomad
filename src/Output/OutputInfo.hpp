@@ -108,8 +108,6 @@ public:
     const ArrayOfString& getMsg() const { return _msg; }
     void addMsg(const std::string& msg) { _msg.add(msg); }
 
-    void addMsgAndSol(const std::string& msg, const Point& point);
-
     const OutputLevel& getOutputLevel() const { return _outputLevel; }
     void setOutputLevel(const OutputLevel& outputLevel) { _outputLevel = outputLevel; }
 

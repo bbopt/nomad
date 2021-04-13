@@ -63,6 +63,7 @@ NOMAD::SgtelibModelFeasibilityType NOMAD::stringToSgtelibModelFeasibilityType(co
     auto ret = NOMAD::SgtelibModelFeasibilityType::UNDEFINED;
     std::string s = sConst;
     NOMAD::toupper(s);
+    NOMAD::trim(s);
 
     if (s == "C")
     {

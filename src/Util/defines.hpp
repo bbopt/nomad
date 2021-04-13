@@ -138,6 +138,9 @@ const int DISPLAY_PRECISION_FULL = 20;  ///< Display all decimals
 const int NB_DIGITS_BEFORE_POINT = 3;   // "Precision" before decimal point
 const int INT_DISPLAY_WIDTH = 3;        // Width for integers
 
+// Maximal output value for points used for models.
+const double MODEL_MAX_OUTPUT = 1E10;
+
 
 // -------------------------
 // Related to MADS algorithm

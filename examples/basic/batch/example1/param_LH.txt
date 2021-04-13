@@ -34,7 +34,7 @@ MAX_EVAL 1100
 LH_SEARCH 100 10
 
 # Search and Poll stop as soon as a success is found
-OPPORTUNISTIC_EVAL true
+EVAL_OPPORTUNISTIC true
 
 # Using /tmp as temporary directory will make resolution faster
 TMP_DIR /tmp

@@ -95,6 +95,7 @@ void NOMAD::MadsInitialization::validateX0s() const
             validX0available = true;
         }
     }
+
     if (validX0available)
     {
         if (!err.empty())
@@ -110,11 +111,11 @@ void NOMAD::MadsInitialization::validateX0s() const
         if (cacheSize > 0)
         {
             err += " Hint: Try not setting X0 so that the cache is used (";
-            err += std::to_string(cacheSize) + " points)";
+            err += std::to_string(cacheSize) + " points).";
         }
         else
         {
-            err += ". Cache is empty.";
+            err += " Cache is empty. Hint: Try setting LH_SEARCH so that the Latin Hypercube Search is used to find initial points.";
         }
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
@@ -222,7 +223,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
 
         for (auto x0 : x0s)
         {
-            auto x0Full = x0.makeFullSpacePointFromFixed(NOMAD::SubproblemManager::getSubFixedVariable(this));
+            auto x0Full = x0.makeFullSpacePointFromFixed(NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
             AddOutputError("X0 evaluation failed for X0 = " + x0Full.display());
         }
     }
@@ -232,7 +233,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
         for (auto evalPointX0 : evalPointX0s)
         {
             s = "Using X0: ";
-            // BB: Simple display. SGTE: Full display.
+            // BB: Simple display. MODEL: Full display.
             s += (NOMAD::EvalType::BB == evalType) ? evalPointX0.display() : evalPointX0.displayAll();
         }
         AddOutputInfo(s);
@@ -240,7 +241,9 @@ bool NOMAD::MadsInitialization::eval_x0s()
 
         // Construct barrier using x0s
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-        _barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this), evalType, evalPointX0s);
+        _barrier = std::make_shared<NOMAD::Barrier>(hMax,
+                                                    NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
+                                                    evalType, evc->getComputeType(), evalPointX0s);
     }
 
     NOMAD::OutputQueue::Flush();

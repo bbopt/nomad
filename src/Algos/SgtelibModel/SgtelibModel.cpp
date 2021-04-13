@@ -70,7 +70,7 @@ void NOMAD::SgtelibModel::init()
 
     if (NOMAD::SgtelibModelFormulationType::EXTERN == modelFormulation)
     {
-        // Extern SGTE. Early out.
+        // Extern model. Early out.
         return;
     }
 
@@ -100,7 +100,7 @@ void NOMAD::SgtelibModel::init()
     // Build the Sgtelib Model
     _model = std::shared_ptr<SGTELIB::Surrogate>(SGTELIB::Surrogate_Factory(*_trainingSet, modelDefinition.display()));
 
-    // Instantiate Sgte initialization class
+    // Instantiate sgtelib model initialization class
     _initialization = std::make_unique<NOMAD::SgtelibModelInitialization>(this);
 }
 
@@ -147,7 +147,7 @@ bool NOMAD::SgtelibModel::isReady() const
         auto modelFormulation = _runParams->getAttributeValue<NOMAD::SgtelibModelFormulationType>("SGTELIB_MODEL_FORMULATION");
         if (NOMAD::SgtelibModelFormulationType::EXTERN == modelFormulation)
         {
-            // Extern SGTE.
+            // Extern model.
             _ready = true;
             retReady = true;
         }
@@ -245,6 +245,31 @@ void NOMAD::SgtelibModel::setModelBounds(std::shared_ptr<SGTELIB::Matrix> X)
 } // end setModelBounds
 
 
+std::vector<NOMAD::EvalPoint> NOMAD::SgtelibModel::getX0s() const
+{
+    std::vector<NOMAD::EvalPoint> x0s;
+
+    if (nullptr != _barrierForX0s)
+    {
+        x0s = _barrierForX0s->getAllPoints();
+    }
+
+   return x0s;
+}
+
+
+// Return point used as frame center.
+std::shared_ptr<NOMAD::EvalPoint> NOMAD::SgtelibModel::getX0() const
+{
+    std::shared_ptr<NOMAD::EvalPoint> x0;
+    if (nullptr != _barrierForX0s)
+    {
+        x0 = std::make_shared<NOMAD::EvalPoint>(_barrierForX0s->getFirstPoint());
+    }
+    return x0;
+}
+
+
 /*------------------------------------------------------------------------*/
 /*                          Extended Bounds                               */
 /*------------------------------------------------------------------------*/
@@ -288,15 +313,11 @@ void NOMAD::SgtelibModel::startImp()
     // Manages initialization among other things.
     NOMAD::Algorithm::startImp();
 
-    // Setup EvalPoint success computation to be based on sgte rather than bb.
-    NOMAD::EvcInterface::getEvaluatorControl()->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
-
     // There is no upper step, so barrier is not inherited from an Algorithm Ancestor.
     // Barrier was computed in the Initialization step.
     // This barrier is in subspace.
     // X0s are found relative to BB, not SGTE
     _barrierForX0s = _initialization->getBarrier();
-
 }
 
 
@@ -314,15 +335,15 @@ bool NOMAD::SgtelibModel::runImp()
         if (nullptr == barrier)
         {
             auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-            barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getSubFixedVariable(this),
-                                                       NOMAD::EvalType::BB);
+            barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
+                                                       NOMAD::EvalType::BB,
+                                                       NOMAD::EvcInterface::getEvaluatorControl()->getComputeType());
         }
         NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
         while (!_termination->terminate(k))
         {
-            // Create an MegaIteration: manage multiple iterations around
-            // different frame centers at the same time.
+            // Create an MegaIteration: manage multiple iterations at the same time.
             NOMAD::SgtelibModelMegaIteration megaIteration(this, k, barrier, megaIterSuccess);
             megaIteration.start();
             megaIteration.run();
@@ -358,9 +379,6 @@ bool NOMAD::SgtelibModel::runImp()
 
 void NOMAD::SgtelibModel::endImp()
 {
-    // Reset success computation function
-    NOMAD::EvcInterface::getEvaluatorControl()->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
-
     NOMAD::Algorithm::endImp();
 }
 
@@ -396,42 +414,6 @@ NOMAD::Double NOMAD::SgtelibModel::getDeltaMNorm() const
     }
 
     return deltaMNorm;
-}
-
-
-/*------------------------------------------------------------------------*/
-/*          Check that h & f are defined, and if not, correct it          */
-/*------------------------------------------------------------------------*/
-void NOMAD::SgtelibModel::checkHF(NOMAD::EvalPoint& x) const
-{
-    NOMAD::Double f = x.getF(NOMAD::EvalType::SGTE);
-    NOMAD::Double h = x.getH(NOMAD::EvalType::SGTE);
-
-    if (!f.isDefined())
-    {
-        // Should not happen
-        // was:
-        //f = x.get_bb_outputs().get_coord(_p.get_index_obj().front());
-        AddOutputWarning("Warning: SgtelibModel::checkHF(): f is not defined and needs to be recomputed.");
-    }
-
-    if (!h.isDefined())
-    {
-        // Also should not happen
-        const auto bbo  = x.getEval(NOMAD::EvalType::SGTE)->getBBOutput().getBBOAsArrayOfDouble();
-        const auto bbot = NOMAD::SgtelibModel::getBBOutputType();
-        NOMAD::SgtelibModelEvaluator::evalH(bbo, bbot, h);
-        AddOutputWarning("Warning: SgtelibModel::checkHF(): h is not defined and needs to be recomputed.");
-    }
-
-    if ( !f.isDefined() || !h.isDefined() )
-    {
-        f = NOMAD::INF;
-        h = NOMAD::INF;
-    }
-
-    x.setF(f, NOMAD::EvalType::SGTE);
-    x.setH(h, NOMAD::EvalType::SGTE);
 }
 
 
@@ -481,41 +463,18 @@ size_t NOMAD::SgtelibModel::getNbModels(const NOMAD::SgtelibModelFeasibilityType
 }
 
 
-std::vector<NOMAD::EvalPoint> NOMAD::SgtelibModel::getX0s() const
-{
-    std::vector<NOMAD::EvalPoint> x0s;
-
-    if (nullptr != _barrierForX0s)
-    {
-        x0s = _barrierForX0s->getAllPoints();
-    }
-
-    return x0s;
-}
-
-
 // To be used outside of SgtelibModel, e.g., in SgtelibSearchMethod.
 NOMAD::EvalPointSet NOMAD::SgtelibModel::createOraclePoints()
 {
-    // As long as we are managing points using their SGTE evaluation,
-    // setup EvalPoint success computation to be based on SGTE rather than BB.
-    // Setting the ComputeSuccessType function ensures that at all steps,
-    // we compare oranges with oranges (i.e., SGTE with SGTE).
-    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    evc->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
-
     // Create one MegaIteration. It will not be run. It is used to
     // generate oracle points.
     // For this reason, k and success are irrelevant.
     // Barrier points are used to create Iterations. A sub Mads will be run
-    // on every Iteration, using sgte evaluation.
+    // on every Iteration, using model evaluation.
     NOMAD::SgtelibModelMegaIteration megaIteration(this, 0, _barrierForX0s, NOMAD::SuccessType::NOT_EVALUATED);
     megaIteration.generateTrialPoints();
 
     NOMAD::OutputQueue::Flush();
-
-    // Reset success computation function
-    evc->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
 
     // The returned EvalPoints are not evaluated by the blackbox, but they will be soon.
     return megaIteration.getTrialPoints();

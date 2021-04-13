@@ -43,21 +43,31 @@ Algos/Termination.cpp)
 #
 set(ATTRIBUTE_TEXT
 Attribute/cacheAttributesDefinition.txt
+Attribute/deprecatedAttributesDefinition.txt
 Attribute/displayAttributesDefinition.txt
 Attribute/evalAttributesDefinition.txt
 Attribute/evaluatorControlAttributesDefinition.txt
 Attribute/evaluatorControlGlobalAttributesDefinition.txt
 Attribute/pbAttributesDefinition.txt
-Attribute/runAttributesDefinition.txt)
+Attribute/runAttributesDefinition.txt
+Attribute/runAttributesDefinitionNM.txt
+Attribute/runAttributesDefinitionPSDSSD.txt
+Attribute/runAttributesDefinitionQuadModel.txt
+Attribute/runAttributesDefinitionSgtelibModel.txt)
 
 set(ATTRIBUTE_HEADERS
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/cacheAttributesDefinition.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/deprecatedAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/displayAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evalAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evaluatorControlAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evaluatorControlGlobalAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/pbAttributesDefinition.hpp
-${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinition.hpp)
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinition.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionNM.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionPSDSSD.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionQuadModel.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionSgtelibModel.hpp)
 
 set(ATTRIBUTE_HEADERS_GENERATOR
 Attribute/WriteAttributeDefinitionFile.cpp
@@ -168,6 +178,7 @@ Param/AllParameters.hpp
 Param/Attribute.hpp
 Param/AttributeFactory.hpp
 Param/CacheParameters.hpp
+Param/DeprecatedParameters.hpp
 Param/DisplayParameters.hpp
 Param/EvalParameters.hpp
 Param/EvaluatorControlParameters.hpp
@@ -186,6 +197,7 @@ Param/AllParameters.cpp
 Param/Attribute.cpp
 Param/AttributeFactory.cpp
 Param/CacheParameters.cpp
+Param/DeprecatedParameters.cpp
 Param/DisplayParameters.cpp
 Param/EvalParameters.cpp
 Param/EvaluatorControlParameters.cpp
@@ -206,7 +218,9 @@ set(TYPE_HEADERS
 Type/BBInputType.hpp
 Type/BBOutputType.hpp
 Type/CallbackType.hpp
+Type/ComputeType.hpp
 Type/DirectionType.hpp
+Type/EvalSortType.hpp
 Type/EvalType.hpp
 Type/LHSearchType.hpp
 Type/ListOfVariableGroup.hpp
@@ -217,7 +231,9 @@ set(TYPE_SOURCES
 Type/BBInputType.cpp
 Type/BBOutputType.cpp
 Type/CallbackType.cpp
+Type/ComputeType.cpp
 Type/DirectionType.cpp
+Type/EvalSortType.cpp
 Type/EvalType.cpp
 Type/LHSearchType.cpp
 Type/ListOfVariableGroup.cpp

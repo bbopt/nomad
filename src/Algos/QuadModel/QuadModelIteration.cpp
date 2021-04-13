@@ -63,6 +63,7 @@ void NOMAD::QuadModelIteration::reset()
     }
 }
 
+
 void NOMAD::QuadModelIteration::init()
 {
     _name = getAlgoName() + NOMAD::Iteration::getName();
@@ -121,7 +122,7 @@ bool NOMAD::QuadModelIteration::runImp()
         optimize.end();
     }
 
-    // Update MegaIteration success type (use deconstification!)
+    // Update MegaIteration success type
     NOMAD::SuccessType success = optimize.getSuccessType();
     auto megaIter = getParentOfType<NOMAD::MegaIteration*>();
     megaIter->setSuccessType(success);

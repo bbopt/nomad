@@ -134,384 +134,395 @@ $(document).ready(function(){initNavTree('_run_parameters_8cpp_source.html','');
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="preprocessor">#include &quot;../Math/RNG.hpp&quot;</span>  <span class="comment">// for setSeed()</span></div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="preprocessor">#include &quot;../Param/RunParameters.hpp&quot;</span></div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="preprocessor">#include &quot;../Util/fileutils.hpp&quot;</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="preprocessor">#include &quot;../nomad_version.hpp&quot;</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="preprocessor">#include &quot;../Type/DirectionType.hpp&quot;</span></div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="preprocessor">#include &quot;../Util/fileutils.hpp&quot;</span></div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="preprocessor">#include &quot;../nomad_version.hpp&quot;</span></div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; </div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="comment">// Static members initialization</span></div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="keywordtype">bool</span> NOMAD::RunParameters::_warningUnknownParamShown = <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160; </div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="comment">/*----------------------------------------*/</span></div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="comment">/*         initializations (private)      */</span></div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="comment">/*----------------------------------------*/</span></div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="keywordtype">void</span> NOMAD::RunParameters::init()</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;{</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    _typeName = <span class="stringliteral">&quot;Run&quot;</span>;</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160; </div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    <span class="keywordflow">try</span></div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    {</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="preprocessor">        #include &quot;../Attribute/runAttributesDefinition.hpp&quot;</span></div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        registerAttributes( <a class="code" href="cache_attributes_definition_8hpp.html#a68ca731e70b4c5ef6ca341d4fa668775">_definition</a> );</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; </div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        <span class="comment">// Registered attributes using defined keywords (not in preprocessed special header file)</span></div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        registerAttribute&lt;NOMAD::Double&gt;(<span class="stringliteral">&quot;EPSILON&quot;</span>, <a class="code" href="defines_8hpp.html#ad0fca8699981da6f314a04d1991a18eb">NOMAD::DEFAULT_EPSILON</a>, <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;            <span class="stringliteral">&quot; NOMAD precision for comparison of values &quot;</span>,</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;            <span class="stringliteral">&quot; \n \n . NOMAD precision for comparison of values \n &quot;</span>,<span class="stringliteral">&quot; advanced precision double(s) value(s) number(s) &quot;</span>);</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;        registerAttribute&lt;std::string&gt;(<span class="stringliteral">&quot;UNDEF_STR&quot;</span>, <a class="code" href="defines_8hpp.html#af00d9aac33e0443e88b33a7f95fd391c">NOMAD::DEFAULT_UNDEF_STR</a>, <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;            <span class="stringliteral">&quot;String for undefined values &quot;</span>,</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;            <span class="stringliteral">&quot; \n \n String for undefined values \n &quot;</span>,<span class="stringliteral">&quot; advanced undef(ined) value(s) string(s) &quot;</span>);</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        registerAttribute&lt;std::string&gt;(<span class="stringliteral">&quot;NOMAD_VERSION&quot;</span>, <a class="code" href="nomad__version_8hpp.html#a31fa73290cf20df9c2fda42ff9b3bdff">NOMAD_VERSION_NUMBER</a>, <span class="keyword">true</span>,</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;            <span class="stringliteral">&quot; NOMAD version number (for runner) &quot;</span>,</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;            <span class="stringliteral">&quot; \n \n . NOMAD version number (optional) \n  . If not compatible with current version will trigger exception \n &quot;</span> ,<span class="stringliteral">&quot; advanced nomad version(s) release(s) revision(s) &quot;</span> );</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;        registerAttribute&lt;std::string&gt;(<span class="stringliteral">&quot;INF_STR&quot;</span>, <a class="code" href="defines_8hpp.html#a23d599cb26f81f00afe8c7f6fcb32341">NOMAD::DEFAULT_INF_STR</a>, <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;            <span class="stringliteral">&quot;String for infinite values&quot;</span>,</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;            <span class="stringliteral">&quot; \n \n . String for infinite values \n &quot;</span>,<span class="stringliteral">&quot; advanced string(s) inf(inite) value(s) &quot;</span>);</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;        registerAttribute&lt;std::string&gt;(<span class="stringliteral">&quot;PROBLEM_DIR&quot;</span>, std::string(<span class="stringliteral">&quot;.&quot;</span>) + <a class="code" href="defines_8hpp.html#a1d4d06c46005a7fb5ba5b5520d32099d">NOMAD::DIR_SEP</a> , <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;            <span class="stringliteral">&quot;Problem directory &quot;</span> ,</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;            <span class="stringliteral">&quot;\n \n . Problem directory \n . To complete \n &quot;</span>,<span class="stringliteral">&quot; problem dir(ectory) folder(s) &quot;</span>);</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        <span class="comment">// Note: we cannot call checkAndComply() here, the default values</span></div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;        <span class="comment">// are not valid.</span></div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    }</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    <span class="keywordflow">catch</span> (NOMAD::Exception &amp; e)</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    {</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;        std::string errorMsg = <span class="stringliteral">&quot;Attribute registration failed: &quot;</span>;</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;        errorMsg += e.what();</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, errorMsg);</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    }</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;}</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160; </div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;<span class="comment">/*----------------------------------------*/</span></div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;<span class="comment">/*            check the parameters        */</span></div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="comment">/*----------------------------------------*/</span></div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;<span class="keywordtype">void</span> NOMAD::RunParameters::checkAndComply(</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;        <span class="keyword">const</span> std::shared_ptr&lt;NOMAD::EvaluatorControlGlobalParameters&gt;&amp; evaluatorControlGlobalParams,</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;        <span class="keyword">const</span> std::shared_ptr&lt;NOMAD::PbParameters&gt;&amp; pbParams)</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;{</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    std::string err;</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    checkInfo();</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; </div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keywordflow">if</span> (!toBeChecked())</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    {</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;        <span class="comment">// Early out</span></div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;        <span class="keywordflow">return</span>;</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    }</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="comment">// Static members initialization</span></div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="keywordtype">bool</span> NOMAD::RunParameters::_warningUnknownParamShown = <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="comment">/*----------------------------------------*/</span></div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="comment">/*         initializations (private)      */</span></div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="comment">/*----------------------------------------*/</span></div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="keywordtype">void</span> NOMAD::RunParameters::init()</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;{</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    _typeName = <span class="stringliteral">&quot;Run&quot;</span>;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    <span class="keywordflow">try</span></div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    {</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="preprocessor">        #include &quot;../Attribute/runAttributesDefinition.hpp&quot;</span></div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        registerAttributes( _definition );</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160; </div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;<span class="preprocessor">        #include &quot;../Attribute/runAttributesDefinitionLH.hpp&quot;</span></div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        registerAttributes( _definition );</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160; </div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="preprocessor">        #include &quot;../Attribute/runAttributesDefinitionNM.hpp&quot;</span></div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;        registerAttributes( _definition );</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; </div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;<span class="preprocessor">        #include &quot;../Attribute/runAttributesDefinitionPSDSSD.hpp&quot;</span></div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;        registerAttributes( _definition );</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;<span class="preprocessor">        #include &quot;../Attribute/runAttributesDefinitionQuadModel.hpp&quot;</span></div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;        registerAttributes( _definition );</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;<span class="preprocessor">        #include &quot;../Attribute/runAttributesDefinitionSgtelibModel.hpp&quot;</span></div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;        registerAttributes( _definition );</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        <span class="comment">// Registered attributes using defined keywords (not in preprocessed special header file)</span></div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;        registerAttribute&lt;NOMAD::Double&gt;(<span class="stringliteral">&quot;EPSILON&quot;</span>, <a class="code" href="defines_8hpp.html#ad0fca8699981da6f314a04d1991a18eb">NOMAD::DEFAULT_EPSILON</a>, <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;            <span class="stringliteral">&quot; NOMAD precision for comparison of values &quot;</span>,</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;            <span class="stringliteral">&quot; \n \n . NOMAD precision for comparison of values \n &quot;</span>,<span class="stringliteral">&quot; advanced precision double(s) value(s) number(s) &quot;</span>);</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;        registerAttribute&lt;std::string&gt;(<span class="stringliteral">&quot;UNDEF_STR&quot;</span>, <a class="code" href="defines_8hpp.html#af00d9aac33e0443e88b33a7f95fd391c">NOMAD::DEFAULT_UNDEF_STR</a>, <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;            <span class="stringliteral">&quot;String for undefined values &quot;</span>,</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;            <span class="stringliteral">&quot; \n \n String for undefined values \n &quot;</span>,<span class="stringliteral">&quot; advanced undef(ined) value(s) string(s) &quot;</span>);</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        registerAttribute&lt;std::string&gt;(<span class="stringliteral">&quot;NOMAD_VERSION&quot;</span>, <a class="code" href="nomad__version_8hpp.html#a31fa73290cf20df9c2fda42ff9b3bdff">NOMAD_VERSION_NUMBER</a>, <span class="keyword">true</span>,</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;            <span class="stringliteral">&quot; NOMAD version number (for runner) &quot;</span>,</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;            <span class="stringliteral">&quot; \n \n . NOMAD version number (optional) \n  . If not compatible with current version will trigger exception \n &quot;</span> ,<span class="stringliteral">&quot; advanced nomad version(s) release(s) revision(s) &quot;</span> );</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;        registerAttribute&lt;std::string&gt;(<span class="stringliteral">&quot;INF_STR&quot;</span>, <a class="code" href="defines_8hpp.html#a23d599cb26f81f00afe8c7f6fcb32341">NOMAD::DEFAULT_INF_STR</a>, <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;            <span class="stringliteral">&quot;String for infinite values&quot;</span>,</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;            <span class="stringliteral">&quot; \n \n . String for infinite values \n &quot;</span>,<span class="stringliteral">&quot; advanced string(s) inf(inite) value(s) &quot;</span>);</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        registerAttribute&lt;std::string&gt;(<span class="stringliteral">&quot;PROBLEM_DIR&quot;</span>, std::string(<span class="stringliteral">&quot;.&quot;</span>) + <a class="code" href="defines_8hpp.html#a1d4d06c46005a7fb5ba5b5520d32099d">NOMAD::DIR_SEP</a> , <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;            <span class="stringliteral">&quot;Problem directory &quot;</span> ,</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;            <span class="stringliteral">&quot;\n \n . Problem directory \n . To complete \n &quot;</span>,<span class="stringliteral">&quot; problem dir(ectory) folder(s) &quot;</span>);</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;        <span class="comment">// Note: we cannot call checkAndComply() here, the default values</span></div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;        <span class="comment">// are not valid.</span></div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    }</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    <span class="keywordflow">catch</span> (NOMAD::Exception &amp; e)</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    {</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;        std::string errorMsg = <span class="stringliteral">&quot;Attribute registration failed: &quot;</span>;</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;        errorMsg += e.what();</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, errorMsg);</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    }</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;}</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
 <div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160; </div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <span class="comment">// check the non-interpreted parameters:</span></div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="comment">//const std::shared_ptr&lt;NOMAD::ParameterEntry&gt; pe = getNonInterpretedParamEntry();</span></div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    std::vector&lt;std::shared_ptr&lt;NOMAD::ParameterEntry&gt;&gt; allNonInterp = getAllNonInterpretedParamEntries();</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    <span class="keywordflow">if</span> (allNonInterp.size() &gt; 0)</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    {</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;        err = <span class="stringliteral">&quot;Unrecognized parameters in file &quot;</span> + allNonInterp[0]-&gt;getParamFile() + <span class="stringliteral">&quot;:\n&quot;</span>;</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        <span class="keywordflow">for</span> (<span class="keyword">auto</span> pe : allNonInterp)</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;        {</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;            err += <span class="stringliteral">&quot;line &quot;</span> + std::to_string(pe-&gt;getLine());</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;            err += <span class="stringliteral">&quot;: Unrecognized parameter: &quot;</span> + pe-&gt;getName() + <span class="stringliteral">&quot;\n&quot;</span>;</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;        }</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;        <span class="keywordflow">if</span> (getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;REJECT_UNKNOWN_PARAMETERS&quot;</span>, <span class="keyword">false</span>))</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;        {</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;            <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, err);</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;        }</div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;        <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;        {</div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;            <span class="keywordflow">if</span> (!_warningUnknownParamShown)</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;            {</div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;                std::cerr &lt;&lt; <span class="stringliteral">&quot;Warning: &quot;</span> &lt;&lt; err &lt;&lt; <span class="stringliteral">&quot;Ignoring unknown parameters.&quot;</span> &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;            }</div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;        }</div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    }</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160; </div>
-<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;    <span class="keyword">auto</span> problemDir = getAttributeValueProtected&lt;std::string&gt;(<span class="stringliteral">&quot;PROBLEM_DIR&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160; </div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;    <span class="keyword">auto</span> seed = getAttributeValueProtected&lt;int&gt;(<span class="stringliteral">&quot;SEED&quot;</span> ,<span class="keyword">false</span>);</div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;    <span class="keywordflow">if</span> ( seed &lt; 0)</div>
-<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;    {</div>
-<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, <span class="stringliteral">&quot;Parameters check: SEED must be non-negative&quot;</span> );</div>
-<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    }</div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160; </div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    <span class="keyword">auto</span> version_number = getAttributeValueProtected&lt;std::string&gt;(<span class="stringliteral">&quot;NOMAD_VERSION&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;    <span class="keywordflow">if</span> ( version_number != <a class="code" href="nomad__version_8hpp.html#a31fa73290cf20df9c2fda42ff9b3bdff">NOMAD_VERSION_NUMBER</a> )</div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    {</div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;        err = <span class="stringliteral">&quot;Parameters check: NOMAD_VERSION is not compatible with registered version &quot;</span> + std::string(<a class="code" href="nomad__version_8hpp.html#a31fa73290cf20df9c2fda42ff9b3bdff">NOMAD_VERSION_NUMBER</a>) + <span class="stringliteral">&quot;\n&quot;</span>;</div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;       <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, err );</div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;    }</div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160; </div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;    <span class="keyword">auto</span> anisotropyFactor = getAttributeValueProtected&lt;NOMAD::Double&gt;(<span class="stringliteral">&quot;ANISOTROPY_FACTOR&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;    <span class="keywordflow">if</span> ( anisotropyFactor &lt;= 0)</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;    {</div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, <span class="stringliteral">&quot;Parameters check: ANISOTROPY_FACTOR must be positive&quot;</span> );</div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;    }</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160; </div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;    setStaticParameters();</div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160; </div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    <span class="comment">/*-------------------*/</span></div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;    <span class="comment">/* Disable parameter */</span></div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;    <span class="comment">/*-------------------*/</span></div>
-<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;    <span class="comment">// Convert all disabled entries (MODELS, EVAL_SORT, ...) to upper case.</span></div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;    <span class="keyword">auto</span> disabledConst = getAttributeValueProtected&lt;NOMAD::ArrayOfString&gt;(<span class="stringliteral">&quot;DISABLE&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;    NOMAD::ArrayOfString disabled;</div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; disabledConst.size(); i++)</div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;    {</div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;        std::string disabledI = disabledConst[i];</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;        <a class="code" href="utils_8hpp.html#a1d2cbd818c0b3c0472e7efcd35f6a576">NOMAD::toupper</a>(disabledI);</div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;        disabled.add(disabledI);</div>
-<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;    }</div>
-<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;    setAttributeValue(<span class="stringliteral">&quot;DISABLE&quot;</span>, disabled);</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;<span class="comment">/*----------------------------------------*/</span></div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;<span class="comment">/*            check the parameters        */</span></div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;<span class="comment">/*----------------------------------------*/</span></div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;<span class="keywordtype">void</span> NOMAD::RunParameters::checkAndComply(</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;        <span class="keyword">const</span> std::shared_ptr&lt;NOMAD::EvaluatorControlGlobalParameters&gt;&amp; evaluatorControlGlobalParams,</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;        <span class="keyword">const</span> std::shared_ptr&lt;NOMAD::PbParameters&gt;&amp; pbParams)</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;{</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;    std::string err;</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;    checkInfo();</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160; </div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    <span class="keywordflow">if</span> (!toBeChecked())</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;    {</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;        <span class="comment">// Early out</span></div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;        <span class="keywordflow">return</span>;</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;    }</div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160; </div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    <span class="comment">// check the non-interpreted parameters:</span></div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;    <span class="comment">//const std::shared_ptr&lt;NOMAD::ParameterEntry&gt; pe = getNonInterpretedParamEntry();</span></div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;    std::vector&lt;std::shared_ptr&lt;NOMAD::ParameterEntry&gt;&gt; allNonInterp = getAllNonInterpretedParamEntries();</div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;    <span class="keywordflow">if</span> (allNonInterp.size() &gt; 0)</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;    {</div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;        err = <span class="stringliteral">&quot;Unrecognized parameters in file &quot;</span> + allNonInterp[0]-&gt;getParamFile() + <span class="stringliteral">&quot;:\n&quot;</span>;</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;        <span class="keywordflow">for</span> (<span class="keyword">auto</span> pe : allNonInterp)</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;        {</div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;            err += <span class="stringliteral">&quot;line &quot;</span> + std::to_string(pe-&gt;getLine());</div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;            err += <span class="stringliteral">&quot;: Unrecognized parameter: &quot;</span> + pe-&gt;getName() + <span class="stringliteral">&quot;\n&quot;</span>;</div>
+<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;        }</div>
+<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;        <span class="keywordflow">if</span> (getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;REJECT_UNKNOWN_PARAMETERS&quot;</span>, <span class="keyword">false</span>))</div>
+<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;        {</div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;            <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, err);</div>
+<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;        }</div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;        <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;        {</div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;            <span class="keywordflow">if</span> (!_warningUnknownParamShown)</div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;            {</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;                std::cerr &lt;&lt; <span class="stringliteral">&quot;Warning: &quot;</span> &lt;&lt; err &lt;&lt; <span class="stringliteral">&quot;Ignoring unknown parameters.&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;            }</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;        }</div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;    }</div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160; </div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;    <span class="keyword">auto</span> problemDir = getAttributeValueProtected&lt;std::string&gt;(<span class="stringliteral">&quot;PROBLEM_DIR&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160; </div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;    <span class="keyword">auto</span> seed = getAttributeValueProtected&lt;int&gt;(<span class="stringliteral">&quot;SEED&quot;</span> ,<span class="keyword">false</span>);</div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;    <span class="keywordflow">if</span> ( seed &lt; 0)</div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;    {</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, <span class="stringliteral">&quot;Parameters check: SEED must be non-negative&quot;</span> );</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    }</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160; </div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;    <span class="keyword">auto</span> version_number = getAttributeValueProtected&lt;std::string&gt;(<span class="stringliteral">&quot;NOMAD_VERSION&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;    <span class="keywordflow">if</span> ( version_number != <a class="code" href="nomad__version_8hpp.html#a31fa73290cf20df9c2fda42ff9b3bdff">NOMAD_VERSION_NUMBER</a> )</div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;    {</div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;        err = <span class="stringliteral">&quot;Parameters check: NOMAD_VERSION is not compatible with registered version &quot;</span> + std::string(<a class="code" href="nomad__version_8hpp.html#a31fa73290cf20df9c2fda42ff9b3bdff">NOMAD_VERSION_NUMBER</a>) + <span class="stringliteral">&quot;\n&quot;</span>;</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;       <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, err );</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;    }</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160; </div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    <span class="keyword">auto</span> anisotropyFactor = getAttributeValueProtected&lt;NOMAD::Double&gt;(<span class="stringliteral">&quot;ANISOTROPY_FACTOR&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;    <span class="keywordflow">if</span> ( anisotropyFactor &lt;= 0)</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;    {</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, <span class="stringliteral">&quot;Parameters check: ANISOTROPY_FACTOR must be positive&quot;</span> );</div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;    }</div>
 <div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160; </div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    <span class="comment">/*---------------------------*/</span></div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    <span class="comment">/* Sgtelib Search parameters */</span></div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    setStaticParameters();</div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160; </div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    <span class="comment">/*---------------------------*/</span></div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">size_t</span> bigDim = 50;</div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;    <span class="keywordtype">size_t</span> n = pbParams-&gt;getAttributeValue&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;DIMENSION&quot;</span>);</div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;<span class="preprocessor">#ifdef USE_SGTELIB</span></div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;    <span class="keywordtype">bool</span> showDisableWarn = <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;    <span class="comment">// If dimension is too large, disable models.</span></div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    disabled = getAttributeValueProtected&lt;NOMAD::ArrayOfString&gt;(<span class="stringliteral">&quot;DISABLE&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;    <span class="keywordflow">if</span> (n &gt;= bigDim)</div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;    {</div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;        <span class="keywordflow">if</span> (-1 == disabled.find(<span class="stringliteral">&quot;MODELS&quot;</span>))</div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;        {</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;            disabled.add(std::string(<span class="stringliteral">&quot;MODELS&quot;</span>));</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;            setAttributeValue(<span class="stringliteral">&quot;DISABLE&quot;</span>, disabled);</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;            std::cerr &lt;&lt; <span class="stringliteral">&quot;Warning: Dimension &quot;</span> &lt;&lt; n &lt;&lt; <span class="stringliteral">&quot; is greater than (or equal to) &quot;</span> &lt;&lt; bigDim &lt;&lt; <span class="stringliteral">&quot;. Models are disabled.&quot;</span> &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;<span class="preprocessor">#ifdef USE_SGTELIB</span></div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;            showDisableWarn = <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;        }</div>
-<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;    }</div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;<span class="preprocessor">#ifdef USE_SGTELIB</span></div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;    <span class="comment">// If models are disabled, set SGTELIB_SEARCH to false.</span></div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;    disabled = getAttributeValueProtected&lt;NOMAD::ArrayOfString&gt;(<span class="stringliteral">&quot;DISABLE&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    <span class="keywordflow">if</span> (disabled.find(<span class="stringliteral">&quot;MODELS&quot;</span>) &gt;= 0)</div>
-<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;    {</div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;        <span class="keywordflow">if</span> (getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;SGTELIB_SEARCH&quot;</span>, <span class="keyword">false</span>))</div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;        {</div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;            <span class="keywordflow">if</span> (showDisableWarn)</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;            {</div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;                std::cerr &lt;&lt; <span class="stringliteral">&quot;Warning: Models are disabled. SGTELIB_SEARCH set to false.&quot;</span> &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;            }</div>
-<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;            setAttributeValue(<span class="stringliteral">&quot;SGTELIB_SEARCH&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;        }</div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;        <span class="keywordflow">if</span> (getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;QUAD_MODEL_SEARCH&quot;</span>, <span class="keyword">false</span>))</div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;        {</div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;            <span class="keywordflow">if</span> (showDisableWarn)</div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;            {</div>
-<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;                std::cerr &lt;&lt; <span class="stringliteral">&quot;Warning: Models are disabled. QUAD_MODEL_SEARCH set to false.&quot;</span> &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;            }</div>
-<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;            setAttributeValue(<span class="stringliteral">&quot;QUAD_MODEL_SEARCH&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;        }</div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;    }</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160; </div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;    <span class="comment">// Set default value, if the parameter is not set.</span></div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;    <span class="comment">// Default value: TYPE LOWESS DEGREE 1 KERNEL_SHAPE OPTIM KERNEL_COEF OPTIM RIDGE 0 METRIC AOECV</span></div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    <span class="keyword">auto</span> sgtelibModelDefinition = getAttributeValueProtected&lt;NOMAD::ArrayOfString&gt;(<span class="stringliteral">&quot;SGTELIB_MODEL_DEFINITION&quot;</span>,<span class="keyword">false</span>);</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    <span class="keywordflow">if</span> (sgtelibModelDefinition.size() == 0)</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;    {</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;        <span class="comment">//NOMAD::ArrayOfString aos(&quot;TYPE LOWESS DEGREE 1 KERNEL_SHAPE OPTIM KERNEL_COEF OPTIM RIDGE 0 METRIC AOECV&quot;);</span></div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;        NOMAD::ArrayOfString aos(<span class="stringliteral">&quot;TYPE PRS DEGREE 2&quot;</span>);</div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;        setAttributeValue(<span class="stringliteral">&quot;SGTELIB_MODEL_DEFINITION&quot;</span>, aos );</div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    }</div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160; </div>
-<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    <span class="keyword">auto</span> sgtelibModelTrials = getAttributeValueProtected&lt;size_t&gt;(<span class="stringliteral">&quot;SGTELIB_MODEL_TRIALS&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;    <span class="keywordflow">if</span> (0 == sgtelibModelTrials)</div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;    {</div>
-<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__, __LINE__, <span class="stringliteral">&quot;Parameter SGTELIB_MODEL_TRIALS must be positive&quot;</span>);</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;    }</div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160; </div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    <span class="comment">/*--------------------------------*/</span></div>
-<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;    <span class="comment">/* Parallelism related parameters */</span></div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;    <span class="comment">/*--------------------------------*/</span></div>
-<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    <span class="comment">// Ensure we can get value for BB_MAX_BLOCK_SIZE without throwing an exception.</span></div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    <span class="keywordflow">if</span> (evaluatorControlGlobalParams-&gt;toBeChecked())</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    <span class="comment">/* Sgtelib Search parameters */</span></div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;    <span class="comment">/*---------------------------*/</span></div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">size_t</span> bigDim = 50;</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;    <span class="keywordtype">size_t</span> n = pbParams-&gt;getAttributeValue&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;DIMENSION&quot;</span>);</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;    <span class="comment">// If dimension is too large, disable models.</span></div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;    <span class="keywordflow">if</span> (n &gt;= bigDim)</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    {</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;        <span class="keywordflow">if</span> (   getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;QUAD_MODEL_SEARCH&quot;</span>, <span class="keyword">false</span>)</div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;            || getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;SGTELIB_MODEL_SEARCH&quot;</span>, <span class="keyword">false</span>))</div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;        {</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;            setAttributeValue(<span class="stringliteral">&quot;QUAD_MODEL_SEARCH&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;            setAttributeValue(<span class="stringliteral">&quot;SGTELIB_MODEL_SEARCH&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;            std::cerr &lt;&lt; <span class="stringliteral">&quot;Warning: Dimension &quot;</span> &lt;&lt; n &lt;&lt; <span class="stringliteral">&quot; is greater than (or equal to) &quot;</span> &lt;&lt; bigDim &lt;&lt; <span class="stringliteral">&quot;. Models are disabled.&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;        }</div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;    }</div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160; </div>
+<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;    <span class="comment">// Set default value, if the parameter is not set.</span></div>
+<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;    <span class="comment">// Default value: TYPE LOWESS DEGREE 1 KERNEL_SHAPE OPTIM KERNEL_COEF OPTIM RIDGE 0 METRIC AOECV</span></div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;    <span class="keyword">auto</span> sgtelibModelDefinition = getAttributeValueProtected&lt;NOMAD::ArrayOfString&gt;(<span class="stringliteral">&quot;SGTELIB_MODEL_DEFINITION&quot;</span>,<span class="keyword">false</span>);</div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;    <span class="keywordflow">if</span> (sgtelibModelDefinition.size() == 0)</div>
+<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;    {</div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;        <span class="comment">//NOMAD::ArrayOfString aos(&quot;TYPE LOWESS DEGREE 1 KERNEL_SHAPE OPTIM KERNEL_COEF OPTIM RIDGE 0 METRIC AOECV&quot;);</span></div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;        NOMAD::ArrayOfString aos(<span class="stringliteral">&quot;TYPE PRS DEGREE 2&quot;</span>);</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;        setAttributeValue(<span class="stringliteral">&quot;SGTELIB_MODEL_DEFINITION&quot;</span>, aos );</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    }</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160; </div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    <span class="keyword">auto</span> sgtelibModelSearchTrials = getAttributeValueProtected&lt;size_t&gt;(<span class="stringliteral">&quot;SGTELIB_MODEL_SEARCH_TRIALS&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;    <span class="keywordflow">if</span> (0 == sgtelibModelSearchTrials)</div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;    {</div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__, __LINE__, <span class="stringliteral">&quot;Parameter SGTELIB_MODEL_SEARCH_TRIALS must be positive&quot;</span>);</div>
+<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;    }</div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160; </div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;    <span class="comment">// Misc.</span></div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;    <span class="keyword">auto</span> frameCenterUseCache = getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;FRAME_CENTER_USE_CACHE&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;    <span class="keywordflow">if</span> (!frameCenterUseCache)</div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;    {</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;        <span class="comment">// Void parameter MAX_ITERATION_PER_MEGAITERATION</span></div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;        setAttributeValue(<span class="stringliteral">&quot;MAX_ITERATION_PER_MEGAITERATION&quot;</span>, <a class="code" href="defines_8hpp.html#a012ac2c9fae8df4037d839f2315906f9">INF_SIZE_T</a>);</div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;    }</div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160; </div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160; </div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    <span class="comment">/*--------------------------------*/</span></div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    <span class="comment">/* Parallelism related parameters */</span></div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;    <span class="comment">/*--------------------------------*/</span></div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;    <span class="comment">// Ensure we can get value for BB_MAX_BLOCK_SIZE without throwing an exception.</span></div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    <span class="keywordflow">if</span> (evaluatorControlGlobalParams-&gt;toBeChecked())</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    {</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;        evaluatorControlGlobalParams-&gt;checkAndComply();</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;    }</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;    <span class="keyword">auto</span> bbBlockSize = evaluatorControlGlobalParams-&gt;getAttributeValue&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;BB_MAX_BLOCK_SIZE&quot;</span>);</div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;    <span class="keywordflow">if</span> (0 == bbBlockSize)</div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    {</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__, __LINE__, <span class="stringliteral">&quot;Parameter BB_MAX_BLOCK_SIZE must be positive&quot;</span>);</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    }</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160; </div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;<span class="preprocessor">#ifndef USE_SGTELIB</span></div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    <span class="comment">// Look for SgtelibModel parameters that are set but cannot be used</span></div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;    <span class="keywordflow">if</span> (getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;SGTELIB_MODEL_EVAL&quot;</span>, <span class="keyword">false</span>))</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;    {</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;        err = <span class="stringliteral">&quot;Sgtelib Model sampling cannot be used. Either set parameter &quot;</span>;</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;        err += <span class="stringliteral">&quot;SGTELIB_MODEL_EVAL to false, or recompile NOMAD using option USE_SGTELIB=1.&quot;</span>;</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, err);</div>
+<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    }</div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    <span class="keywordflow">if</span> (getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;SGTELIB_MODEL_SEARCH&quot;</span>, <span class="keyword">false</span>))</div>
 <div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    {</div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;        evaluatorControlGlobalParams-&gt;checkAndComply();</div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;    }</div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;    <span class="keyword">auto</span> bbBlockSize = evaluatorControlGlobalParams-&gt;getAttributeValue&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;BB_MAX_BLOCK_SIZE&quot;</span>);</div>
-<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;    <span class="keywordflow">if</span> (0 == bbBlockSize)</div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    {</div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__, __LINE__, <span class="stringliteral">&quot;Parameter BB_MAX_BLOCK_SIZE must be positive&quot;</span>);</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    }</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;    <span class="keyword">auto</span> sgteBlockSize = evaluatorControlGlobalParams-&gt;getAttributeValue&lt;<span class="keywordtype">size_t</span>&gt;(<span class="stringliteral">&quot;SGTE_MAX_BLOCK_SIZE&quot;</span>);</div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    <span class="keywordflow">if</span> (0 == sgteBlockSize)</div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;    {</div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__, __LINE__, <span class="stringliteral">&quot;Parameter SGTE_MAX_BLOCK_SIZE must be positive&quot;</span>);</div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;        err = <span class="stringliteral">&quot;Warning: Parameter SGTELIB_MODEL_SEARCH is set to true, but &quot;</span>;</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;        err += <span class="stringliteral">&quot;Sgtelib Model sampling cannot be used. To be able to use Sgtelib Model &quot;</span>;</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;        err += <span class="stringliteral">&quot;search method, NOMAD must be recompiled using option USE_SGTELIB=1.&quot;</span>;</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;        std::cerr &lt;&lt; err &lt;&lt; std::endl;</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    }</div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;    <span class="keywordflow">if</span> (getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;QUAD_MODEL_SEARCH&quot;</span>, <span class="keyword">false</span>))</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    {</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;        err = <span class="stringliteral">&quot;Warning: Parameter QUAD_MODEL_SEARCH is set to true, but &quot;</span>;</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;        err += <span class="stringliteral">&quot;Quad Model sampling cannot be used. To be able to use Quad Model Search &quot;</span>;</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;        err += <span class="stringliteral">&quot;search method, NOMAD must be recompiled using option USE_SGTELIB=1.&quot;</span>;</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;        std::cerr &lt;&lt; err &lt;&lt; std::endl;</div>
 <div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;    }</div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160; </div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;<span class="preprocessor">#ifndef USE_SGTELIB</span></div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    <span class="comment">// Look for SgtelibModel parameters that are set but cannot be used</span></div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;    <span class="keywordflow">if</span> (getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;SGTELIB_MODEL_EVAL&quot;</span>, <span class="keyword">false</span>))</div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;    {</div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;        err = <span class="stringliteral">&quot;Sgtelib Model sampling cannot be used. Either set parameter &quot;</span>;</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;        err += <span class="stringliteral">&quot;SGTELIB_MODEL_EVAL to false, or recompile NOMAD using option USE_SGTELIB=1.&quot;</span>;</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, err);</div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    }</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;    <span class="keywordflow">if</span> (getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;SGTELIB_SEARCH&quot;</span>, <span class="keyword">false</span>))</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    {</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;        err = <span class="stringliteral">&quot;Warning: Parameter SGTELIB_SEARCH is set to true, but &quot;</span>;</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;        err += <span class="stringliteral">&quot;Sgtelib Model sampling cannot be used. To be able to use Sgtelib Model &quot;</span>;</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;        err += <span class="stringliteral">&quot;search method, NOMAD must be recompiled using option USE_SGTELIB=1.&quot;</span>;</div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;        std::cerr &lt;&lt; err &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;    }</div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    <span class="keywordflow">if</span> (getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;QUAD_MODEL_SEARCH&quot;</span>, <span class="keyword">false</span>))</div>
+<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160; </div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    <span class="comment">// Update secondary poll direction based on primary poll direction</span></div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;    <span class="comment">// If DIRECTION_TYPE is ORTHO 2N, do nothing.</span></div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;    <span class="comment">// If DIRECTION_TYPE is not ORTHO 2N, set DIRECTION_TYPE_SECONDARY_POLL to SINGLE.</span></div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;    <span class="comment">// This is not exactly the behavior of NOMAD 3, but it is close enough.</span></div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;    <span class="keyword">auto</span> primaryDirType = getAttributeValueProtected&lt;NOMAD::DirectionType&gt;(<span class="stringliteral">&quot;DIRECTION_TYPE&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;    <span class="keywordflow">if</span> (NOMAD::DirectionType::ORTHO_2N != primaryDirType)</div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    {</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;        setAttributeValue(<span class="stringliteral">&quot;DIRECTION_TYPE_SECONDARY_POLL&quot;</span>, NOMAD::DirectionType::SINGLE);</div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    }</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160; </div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;    <span class="comment">// PSD-Mads and SSD-Mads parameters</span></div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;    <span class="keywordtype">bool</span> useAlgoPSDMads = getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;PSD_MADS_OPTIMIZATION&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160; </div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;<span class="preprocessor">#ifndef _OPENMP</span></div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    <span class="keywordflow">if</span> (useAlgoPSDMads)</div>
 <div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;    {</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;        err = <span class="stringliteral">&quot;Warning: Parameter QUAD_MODEL_SEARCH is set to true, but &quot;</span>;</div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;        err += <span class="stringliteral">&quot;Quad Model sampling cannot be used. To be able to use Quad Model Search &quot;</span>;</div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;        err += <span class="stringliteral">&quot;search method, NOMAD must be recompiled using option USE_SGTELIB=1.&quot;</span>;</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;        std::cerr &lt;&lt; err &lt;&lt; std::endl;</div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;    }</div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160; </div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;    <span class="comment">// PSD-Mads and SSD-Mads parameters</span></div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;    <span class="keywordtype">bool</span> useAlgoPSDMads = getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;PSD_MADS_OPTIMIZATION&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160; </div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;<span class="preprocessor">#ifndef _OPENMP</span></div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;    <span class="keywordflow">if</span> (useAlgoPSDMads)</div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;    {</div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;        err = <span class="stringliteral">&quot;Error: PSD_MADS_OPTIMIZATION can only be used when OpenMP is available. If that is not the case, use SSD_MADS_OPTIMIZATION.&quot;</span>;</div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, err);</div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;    }</div>
-<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;<span class="preprocessor">#endif // _OPENMP</span></div>
-<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160; </div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;    <span class="keywordtype">bool</span> useAlgoSSDMads = getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;SSD_MADS_OPTIMIZATION&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;    <span class="keywordflow">if</span> (useAlgoPSDMads || useAlgoSSDMads)</div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;    {</div>
-<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;        std::string nbVarParamName = (useAlgoPSDMads ? <span class="stringliteral">&quot;PSD_MADS_NB_VAR_IN_SUBPROBLEM&quot;</span> : <span class="stringliteral">&quot;SSD_MADS_NB_VAR_IN_SUBPROBLEM&quot;</span>);</div>
-<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;        <span class="keyword">const</span> <span class="keywordtype">size_t</span> nbVariablesInSubproblem = getAttributeValueProtected&lt;size_t&gt;(nbVarParamName, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;        <span class="keywordflow">if</span> (0 == nbVariablesInSubproblem || nbVariablesInSubproblem &gt; n)</div>
-<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;        {</div>
-<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;            err = <span class="stringliteral">&quot;Parameter &quot;</span> + nbVarParamName + <span class="stringliteral">&quot; must be between 1 and &quot;</span> + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(n);</div>
-<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;            err += <span class="stringliteral">&quot;. Value provided: &quot;</span> + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(nbVariablesInSubproblem);</div>
-<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;            <span class="keywordflow">throw</span> NOMAD::InvalidParameter(__FILE__,__LINE__, err);</div>
-<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;        }</div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160; </div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;        <span class="keywordtype">size_t</span> nbMadsSubproblem = getAttributeValueProtected&lt;size_t&gt;((useAlgoPSDMads ? <span class="stringliteral">&quot;PSD_MADS_NB_SUBPROBLEM&quot;</span> : <span class="stringliteral">&quot;SSD_MADS_NB_SUBPROBLEM&quot;</span>), <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;        <span class="comment">// Distribute all the variables between subproblems of reduced dimension.</span></div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;        <span class="keywordtype">bool</span> nbMadsSubproblemSetByUser = <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;        <span class="keywordflow">if</span> (nbMadsSubproblem == <a class="code" href="defines_8hpp.html#a012ac2c9fae8df4037d839f2315906f9">INF_SIZE_T</a>)</div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;        {</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;            nbMadsSubproblem = std::round(n/nbVariablesInSubproblem)+1; <span class="comment">// Add an additional mads for the pollster</span></div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;            nbMadsSubproblemSetByUser = <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;        }</div>
-<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;        <span class="keywordflow">if</span> (useAlgoPSDMads)</div>
-<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;        {</div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;            <span class="comment">// Cannot have more subproblems than the number of threads</span></div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;            <span class="keywordtype">size_t</span> nbThreads = (size_t)getAttributeValueProtected&lt;int&gt;(<span class="stringliteral">&quot;NB_THREADS_OPENMP&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;            <span class="keywordflow">if</span> (nbMadsSubproblem &gt; nbThreads)</div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;            {</div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;                nbMadsSubproblem = nbThreads;</div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;                <span class="keywordflow">if</span> (nbMadsSubproblemSetByUser)</div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;                {</div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;                    <span class="comment">// Warn the user</span></div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;                    std::cerr &lt;&lt; <span class="stringliteral">&quot;Warning: parameter PSD_MADS_NB_SUBPROBLEM reset to number of available threads (&quot;</span> &lt;&lt; nbThreads &lt;&lt; <span class="stringliteral">&quot;)&quot;</span> &lt;&lt;  std::endl;</div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;                }</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;        err = <span class="stringliteral">&quot;Error: PSD_MADS_OPTIMIZATION can only be used when OpenMP is available. If that is not the case, use SSD_MADS_OPTIMIZATION.&quot;</span>;</div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, err);</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;    }</div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;<span class="preprocessor">#endif // _OPENMP</span></div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160; </div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;    <span class="keywordtype">bool</span> useAlgoSSDMads = getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;SSD_MADS_OPTIMIZATION&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;    <span class="keywordflow">if</span> (useAlgoPSDMads || useAlgoSSDMads)</div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;    {</div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;        std::string nbVarParamName = (useAlgoPSDMads ? <span class="stringliteral">&quot;PSD_MADS_NB_VAR_IN_SUBPROBLEM&quot;</span> : <span class="stringliteral">&quot;SSD_MADS_NB_VAR_IN_SUBPROBLEM&quot;</span>);</div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;        <span class="keyword">const</span> <span class="keywordtype">size_t</span> nbVariablesInSubproblem = getAttributeValueProtected&lt;size_t&gt;(nbVarParamName, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;        <span class="keywordflow">if</span> (0 == nbVariablesInSubproblem || nbVariablesInSubproblem &gt; n)</div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;        {</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;            err = <span class="stringliteral">&quot;Parameter &quot;</span> + nbVarParamName + <span class="stringliteral">&quot; must be between 1 and &quot;</span> + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(n);</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;            err += <span class="stringliteral">&quot;. Value provided: &quot;</span> + <a class="code" href="utils_8hpp.html#a3560e721b84955940a345d83bcceec00">NOMAD::itos</a>(nbVariablesInSubproblem);</div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;            <span class="keywordflow">throw</span> NOMAD::InvalidParameter(__FILE__,__LINE__, err);</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;        }</div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160; </div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;        <span class="keywordtype">size_t</span> nbMadsSubproblem = getAttributeValueProtected&lt;size_t&gt;((useAlgoPSDMads ? <span class="stringliteral">&quot;PSD_MADS_NB_SUBPROBLEM&quot;</span> : <span class="stringliteral">&quot;SSD_MADS_NB_SUBPROBLEM&quot;</span>), <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;        <span class="comment">// Distribute all the variables between subproblems of reduced dimension.</span></div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;        <span class="keywordtype">bool</span> nbMadsSubproblemSetByUser = <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;        <span class="keywordflow">if</span> (nbMadsSubproblem == <a class="code" href="defines_8hpp.html#a012ac2c9fae8df4037d839f2315906f9">INF_SIZE_T</a>)</div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;        {</div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;            nbMadsSubproblem = std::round(n/nbVariablesInSubproblem)+1; <span class="comment">// Add an additional mads for the pollster</span></div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;            nbMadsSubproblemSetByUser = <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;        }</div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;        <span class="keywordflow">if</span> (useAlgoPSDMads)</div>
+<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;        {</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;            <span class="comment">// Cannot have more subproblems than the number of threads</span></div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;            <span class="keywordtype">size_t</span> nbThreads = (size_t)getAttributeValueProtected&lt;int&gt;(<span class="stringliteral">&quot;NB_THREADS_OPENMP&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;            <span class="keywordflow">if</span> (nbMadsSubproblem &gt; nbThreads)</div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;            {</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;                nbMadsSubproblem = nbThreads;</div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;                <span class="keywordflow">if</span> (nbMadsSubproblemSetByUser)</div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;                {</div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;                    <span class="comment">// Warn the user</span></div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;                    std::cerr &lt;&lt; <span class="stringliteral">&quot;Warning: parameter PSD_MADS_NB_SUBPROBLEM reset to number of available threads (&quot;</span> &lt;&lt; nbThreads &lt;&lt; <span class="stringliteral">&quot;)&quot;</span> &lt;&lt;  std::endl;</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;                }</div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;            }</div>
+<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;        }</div>
+<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;        setAttributeValue((useAlgoPSDMads ? <span class="stringliteral">&quot;PSD_MADS_NB_SUBPROBLEM&quot;</span> : <span class="stringliteral">&quot;SSD_MADS_NB_SUBPROBLEM&quot;</span>), nbMadsSubproblem);</div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160; </div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;        <span class="comment">// Check parameter for coverage</span></div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;        <span class="keywordflow">if</span> (useAlgoPSDMads)</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;        {</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;            std::string covParamName = <span class="stringliteral">&quot;PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE&quot;</span>;</div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;            <span class="keyword">auto</span> coverage = getAttributeValueProtected&lt;NOMAD::Double&gt;(covParamName, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;            <span class="keywordflow">if</span> (coverage &lt; 0.0 || coverage &gt; 100.0)</div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;            {</div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;                err = <span class="stringliteral">&quot;Parameter &quot;</span> + covParamName + <span class="stringliteral">&quot; must be between 0.0 and 100.0&quot;</span>;</div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;                <span class="keywordflow">throw</span> NOMAD::InvalidParameter(__FILE__,__LINE__, err);</div>
 <div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;            }</div>
 <div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;        }</div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;        setAttributeValue((useAlgoPSDMads ? <span class="stringliteral">&quot;PSD_MADS_NB_SUBPROBLEM&quot;</span> : <span class="stringliteral">&quot;SSD_MADS_NB_SUBPROBLEM&quot;</span>), nbMadsSubproblem);</div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;    }</div>
 <div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160; </div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;        <span class="comment">// Check parameter for coverage</span></div>
-<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;        <span class="keywordflow">if</span> (useAlgoPSDMads)</div>
-<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;        {</div>
-<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;            std::string covParamName = <span class="stringliteral">&quot;PSD_MADS_SUBPROBLEM_PCT_COVERAGE&quot;</span>;</div>
-<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;            <span class="keyword">auto</span> coverage = getAttributeValueProtected&lt;NOMAD::Double&gt;(covParamName, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;            <span class="keywordflow">if</span> (coverage &lt; 0.0 || coverage &gt; 100.0)</div>
-<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;            {</div>
-<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;                err = <span class="stringliteral">&quot;Parameter &quot;</span> + covParamName + <span class="stringliteral">&quot; must be between 0.0 and 100.0&quot;</span>;</div>
-<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;                <span class="keywordflow">throw</span> NOMAD::InvalidParameter(__FILE__,__LINE__, err);</div>
-<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;            }</div>
-<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;        }</div>
-<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;    }</div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160; </div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;    <span class="comment">// Algorithm parameters: use an algorithm other than MADS.</span></div>
-<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;    <span class="comment">// They are mutually-exclusive.</span></div>
-<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;    <span class="keywordtype">bool</span> useAlgoLH = (getAttributeValueProtected&lt;size_t&gt;(<span class="stringliteral">&quot;LH_EVAL&quot;</span>, <span class="keyword">false</span>) &gt; 0);</div>
-<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;    <span class="keywordtype">bool</span> useAlgoNM = getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;NM_OPTIMIZATION&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;    <span class="keywordtype">bool</span> useAlgoQuadOpt = getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;QUAD_MODEL_OPTIMIZATION&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;    <span class="keywordtype">bool</span> useAlgoSgtelibModel = getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;SGTELIB_MODEL_EVAL&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;    <span class="keywordtype">int</span> totalAlgoSet = (int)useAlgoLH + (<span class="keywordtype">int</span>)useAlgoNM + (int)useAlgoQuadOpt</div>
-<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;                       + (<span class="keywordtype">int</span>)useAlgoPSDMads + (int)useAlgoSgtelibModel + (<span class="keywordtype">int</span>)useAlgoSSDMads;</div>
-<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160; </div>
-<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;    <span class="keywordflow">if</span> (totalAlgoSet &gt;= 2)</div>
-<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;    {</div>
-<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;        err = <span class="stringliteral">&quot;Multiple parameters for algorithms are set. &quot;</span>;</div>
-<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;        err += <span class="stringliteral">&quot;These parameters are mutually exclusive:&quot;</span>;</div>
-<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;        <span class="keywordflow">if</span> (useAlgoLH)</div>
-<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;        {</div>
-<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;            err += <span class="stringliteral">&quot; LH_EVAL&quot;</span>;</div>
-<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;        }</div>
-<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;        <span class="keywordflow">if</span> (useAlgoNM)</div>
-<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;        {</div>
-<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;            err += <span class="stringliteral">&quot; NM_OPTIMIZATION&quot;</span>;</div>
-<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;        }</div>
-<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;        <span class="keywordflow">if</span> (useAlgoPSDMads)</div>
-<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;        {</div>
-<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;            err += <span class="stringliteral">&quot; PSD_MADS_OPTIMIZATION&quot;</span>;</div>
-<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;        }</div>
-<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;        <span class="keywordflow">if</span> (useAlgoQuadOpt)</div>
-<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;        {</div>
-<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;            err += <span class="stringliteral">&quot; QUAD_MODEL_OPTIMIZATION&quot;</span>;</div>
-<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;        }</div>
-<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;        <span class="keywordflow">if</span> (useAlgoSgtelibModel)</div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;        {</div>
-<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;            err += <span class="stringliteral">&quot; SGTELIB_MODEL_EVAL&quot;</span>;</div>
-<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;        }</div>
-<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;        <span class="keywordflow">if</span> (useAlgoSSDMads)</div>
-<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;        {</div>
-<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;            err += <span class="stringliteral">&quot; SSD_MADS_OPTIMIZATION&quot;</span>;</div>
-<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;        }</div>
-<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;        err += <span class="stringliteral">&quot;. Please review parameters settings and choose only one algorithm.&quot;</span>;</div>
-<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, err);</div>
-<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;    }</div>
-<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160; </div>
-<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;    <span class="comment">/*------------------------*/</span></div>
-<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;    <span class="comment">/* Hot restart parameters */</span></div>
-<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;    <span class="comment">/* Update file names      */</span></div>
-<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;    <span class="comment">/*------------------------*/</span></div>
-<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;    std::string hotRestartFileName  = getAttributeValueProtected&lt;std::string&gt;(<span class="stringliteral">&quot;HOT_RESTART_FILE&quot;</span>,<span class="keyword">false</span>);</div>
-<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;    <span class="keywordflow">if</span> (!hotRestartFileName.empty())</div>
-<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;    {</div>
-<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;        <a class="code" href="fileutils_8hpp.html#ab7ea3b465082e1688b369f2e3225311f">NOMAD::completeFileName</a>(hotRestartFileName, problemDir);</div>
-<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;        setAttributeValue(<span class="stringliteral">&quot;HOT_RESTART_FILE&quot;</span>, hotRestartFileName);</div>
-<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;    }</div>
-<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160; </div>
-<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160; </div>
-<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;    <span class="keyword">auto</span> hMax = getAttributeValueProtected&lt;NOMAD::Double&gt;(<span class="stringliteral">&quot;H_MAX_0&quot;</span>, <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;    <span class="keywordflow">if</span> (hMax &lt;= 0)</div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;    {</div>
-<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, <span class="stringliteral">&quot;Parameters check: H_MAX_0 must be positive&quot;</span>);</div>
-<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;    }</div>
-<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160; </div>
-<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;    _warningUnknownParamShown = <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160; </div>
-<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;    _toBeChecked = <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;}</div>
-<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;<span class="comment">// End checkAndComply()</span></div>
-<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160; </div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;    <span class="comment">// Algorithm parameters: use an algorithm other than MADS.</span></div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;    <span class="comment">// They are mutually-exclusive.</span></div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;    <span class="keywordtype">bool</span> useAlgoLH = (getAttributeValueProtected&lt;size_t&gt;(<span class="stringliteral">&quot;LH_EVAL&quot;</span>, <span class="keyword">false</span>) &gt; 0);</div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;    <span class="keywordtype">bool</span> useAlgoNM = getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;NM_OPTIMIZATION&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;    <span class="keywordtype">bool</span> useAlgoQuadOpt = getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;QUAD_MODEL_OPTIMIZATION&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;    <span class="keywordtype">bool</span> useAlgoSgtelibModel = getAttributeValueProtected&lt;bool&gt;(<span class="stringliteral">&quot;SGTELIB_MODEL_EVAL&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;    <span class="keywordtype">int</span> totalAlgoSet = (int)useAlgoLH + (<span class="keywordtype">int</span>)useAlgoNM + (int)useAlgoQuadOpt</div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;                       + (<span class="keywordtype">int</span>)useAlgoPSDMads + (int)useAlgoSgtelibModel + (<span class="keywordtype">int</span>)useAlgoSSDMads;</div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160; </div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;    <span class="keywordflow">if</span> (totalAlgoSet &gt;= 2)</div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;    {</div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;        err = <span class="stringliteral">&quot;Multiple parameters for algorithms are set. &quot;</span>;</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;        err += <span class="stringliteral">&quot;These parameters are mutually exclusive:&quot;</span>;</div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;        <span class="keywordflow">if</span> (useAlgoLH)</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;        {</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;            err += <span class="stringliteral">&quot; LH_EVAL&quot;</span>;</div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;        }</div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;        <span class="keywordflow">if</span> (useAlgoNM)</div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;        {</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;            err += <span class="stringliteral">&quot; NM_OPTIMIZATION&quot;</span>;</div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;        }</div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;        <span class="keywordflow">if</span> (useAlgoPSDMads)</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;        {</div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;            err += <span class="stringliteral">&quot; PSD_MADS_OPTIMIZATION&quot;</span>;</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;        }</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;        <span class="keywordflow">if</span> (useAlgoQuadOpt)</div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;        {</div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;            err += <span class="stringliteral">&quot; QUAD_MODEL_OPTIMIZATION&quot;</span>;</div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;        }</div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;        <span class="keywordflow">if</span> (useAlgoSgtelibModel)</div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;        {</div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;            err += <span class="stringliteral">&quot; SGTELIB_MODEL_EVAL&quot;</span>;</div>
+<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;        }</div>
+<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;        <span class="keywordflow">if</span> (useAlgoSSDMads)</div>
+<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;        {</div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;            err += <span class="stringliteral">&quot; SSD_MADS_OPTIMIZATION&quot;</span>;</div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;        }</div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;        err += <span class="stringliteral">&quot;. Please review parameters settings and choose only one algorithm.&quot;</span>;</div>
+<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, err);</div>
+<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;    }</div>
+<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160; </div>
+<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;    <span class="comment">/*------------------------*/</span></div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;    <span class="comment">/* Hot restart parameters */</span></div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;    <span class="comment">/* Update file names      */</span></div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;    <span class="comment">/*------------------------*/</span></div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;    std::string hotRestartFileName  = getAttributeValueProtected&lt;std::string&gt;(<span class="stringliteral">&quot;HOT_RESTART_FILE&quot;</span>,<span class="keyword">false</span>);</div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;    <span class="keywordflow">if</span> (!hotRestartFileName.empty())</div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;    {</div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;        <a class="code" href="fileutils_8hpp.html#ab7ea3b465082e1688b369f2e3225311f">NOMAD::completeFileName</a>(hotRestartFileName, problemDir);</div>
+<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;        setAttributeValue(<span class="stringliteral">&quot;HOT_RESTART_FILE&quot;</span>, hotRestartFileName);</div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;    }</div>
+<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160; </div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160; </div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;    <span class="keyword">auto</span> hMax = getAttributeValueProtected&lt;NOMAD::Double&gt;(<span class="stringliteral">&quot;H_MAX_0&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;    <span class="keywordflow">if</span> (hMax &lt;= 0)</div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;    {</div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, <span class="stringliteral">&quot;Parameters check: H_MAX_0 must be positive&quot;</span>);</div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;    }</div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160; </div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;    <span class="comment">/*------------------------*/</span></div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;    <span class="comment">/* Speculative search     */</span></div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;    <span class="comment">/*  parameters            */</span></div>
+<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;    <span class="comment">/*------------------------*/</span></div>
+<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;    <span class="keyword">auto</span> baseFactor = getAttributeValueProtected&lt;NOMAD::Double&gt;(<span class="stringliteral">&quot;SPECULATIVE_SEARCH_BASE_FACTOR&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;    <span class="keywordflow">if</span> (baseFactor &lt;= 1)</div>
+<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;    {</div>
+<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, <span class="stringliteral">&quot;Parameters check: SPECULATIVE_SEARCH_BASE_FACTOR must be strictly greater than 1&quot;</span>);</div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;    }</div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160; </div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;    <span class="comment">/*------------------------*/</span></div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;    <span class="comment">/* Quad model search      */</span></div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;    <span class="comment">/*  parameters            */</span></div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;    <span class="comment">/*------------------------*/</span></div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;    <span class="keyword">auto</span> reductionFactor = getAttributeValueProtected&lt;NOMAD::Double&gt;(<span class="stringliteral">&quot;QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR&quot;</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;    <span class="keywordflow">if</span> (reductionFactor &lt;= 0)</div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;    {</div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;        <span class="keywordflow">throw</span> NOMAD::Exception(__FILE__,__LINE__, <span class="stringliteral">&quot;Parameters check: QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR must be strictly greater than 0&quot;</span>);</div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;    }</div>
 <div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160; </div>
-<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;<span class="keywordtype">void</span> NOMAD::RunParameters::setStaticParameters()</div>
-<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;{</div>
-<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;    <span class="comment">// Sub-method of checkAndComply() to set static variables of some classes.</span></div>
-<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;    NOMAD::RNG::setSeed ( getAttributeValueProtected&lt;int&gt;(<span class="stringliteral">&quot;SEED&quot;</span>,<span class="keyword">false</span>) );</div>
-<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;    NOMAD::Double::setEpsilon ( getAttributeValueProtected&lt;NOMAD::Double&gt;(<span class="stringliteral">&quot;EPSILON&quot;</span>,<span class="keyword">false</span>).todouble() );</div>
-<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;    NOMAD::Double::setUndefStr ( getAttributeValueProtected&lt;std::string&gt;(<span class="stringliteral">&quot;UNDEF_STR&quot;</span>,<span class="keyword">false</span>) );</div>
-<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;    NOMAD::Double::setInfStr ( getAttributeValueProtected&lt;std::string&gt;(<span class="stringliteral">&quot;INF_STR&quot;</span>,<span class="keyword">false</span>) );</div>
-<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160; </div>
-<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;    <span class="comment">// Reset parameter values from these static values, to ensure coherence.</span></div>
-<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;    <span class="comment">// This is bad because we have twice the same value for some parameters.</span></div>
-<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;    setAttributeValue ( <span class="stringliteral">&quot;SEED&quot;</span>, NOMAD::RNG::getSeed() );</div>
-<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;    setAttributeValue ( <span class="stringliteral">&quot;EPSILON&quot;</span>, NOMAD::Double(NOMAD::Double::getEpsilon()) );</div>
-<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;    setAttributeValue ( <span class="stringliteral">&quot;UNDEF_STR&quot;</span>, NOMAD::Double::getUndefStr() );</div>
-<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;    setAttributeValue ( <span class="stringliteral">&quot;INF_STR&quot;</span>, NOMAD::Double::getInfStr() );</div>
-<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;}</div>
-<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160; </div>
+<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;    _warningUnknownParamShown = <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160; </div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;    _toBeChecked = <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;}</div>
+<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;<span class="comment">// End checkAndComply()</span></div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160; </div>
+<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160; </div>
+<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;<span class="keywordtype">void</span> NOMAD::RunParameters::setStaticParameters()</div>
+<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;{</div>
+<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;    <span class="comment">// Sub-method of checkAndComply() to set static variables of some classes.</span></div>
+<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;    <span class="keywordtype">int</span> currentRNGSeed = NOMAD::RNG::getSeed();</div>
+<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;    <span class="keywordtype">int</span> seedToSet = getAttributeValueProtected&lt;int&gt;(<span class="stringliteral">&quot;SEED&quot;</span>,<span class="keyword">false</span>);</div>
+<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;    <span class="comment">// If the seed has changed we call setSeed which reset the private RNG seed to its default and runs the rand() function to set the seed (seed and private seed are different).</span></div>
+<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;    <span class="comment">// If the seed is the same as before we do nothing.</span></div>
+<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;    <span class="keywordflow">if</span> (currentRNGSeed != seedToSet)</div>
+<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;    {</div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;        NOMAD::RNG::setSeed ( seedToSet );</div>
+<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;    }</div>
+<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;    NOMAD::Double::setEpsilon ( getAttributeValueProtected&lt;NOMAD::Double&gt;(<span class="stringliteral">&quot;EPSILON&quot;</span>,<span class="keyword">false</span>).todouble() );</div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;    NOMAD::Double::setUndefStr ( getAttributeValueProtected&lt;std::string&gt;(<span class="stringliteral">&quot;UNDEF_STR&quot;</span>,<span class="keyword">false</span>) );</div>
+<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;    NOMAD::Double::setInfStr ( getAttributeValueProtected&lt;std::string&gt;(<span class="stringliteral">&quot;INF_STR&quot;</span>,<span class="keyword">false</span>) );</div>
+<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160; </div>
+<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;    <span class="comment">// Reset parameter values from these static values, to ensure coherence.</span></div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;    <span class="comment">// This is bad because we have twice the same value for some parameters.</span></div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;    setAttributeValue ( <span class="stringliteral">&quot;SEED&quot;</span>, NOMAD::RNG::getSeed() );</div>
+<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;    setAttributeValue ( <span class="stringliteral">&quot;EPSILON&quot;</span>, NOMAD::Double(NOMAD::Double::getEpsilon()) );</div>
+<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;    setAttributeValue ( <span class="stringliteral">&quot;UNDEF_STR&quot;</span>, NOMAD::Double::getUndefStr() );</div>
+<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;    setAttributeValue ( <span class="stringliteral">&quot;INF_STR&quot;</span>, NOMAD::Double::getInfStr() );</div>
+<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="anomad__version_8hpp_html_a31fa73290cf20df9c2fda42ff9b3bdff"><div class="ttname"><a href="nomad__version_8hpp.html#a31fa73290cf20df9c2fda42ff9b3bdff">NOMAD_VERSION_NUMBER</a></div><div class="ttdeci">#define NOMAD_VERSION_NUMBER</div><div class="ttdoc">Define version number.</div><div class="ttdef"><b>Definition:</b> <a href="nomad__version_8hpp_source.html#l00053">nomad_version.hpp:53</a></div></div>
-<div class="ttc" id="acache_attributes_definition_8hpp_html_a68ca731e70b4c5ef6ca341d4fa668775"><div class="ttname"><a href="cache_attributes_definition_8hpp.html#a68ca731e70b4c5ef6ca341d4fa668775">_definition</a></div><div class="ttdeci">_definition</div><div class="ttdef"><b>Definition:</b> <a href="cache_attributes_definition_8hpp_source.html#l00007">cacheAttributesDefinition.hpp:7</a></div></div>
 <div class="ttc" id="adefines_8hpp_html_af00d9aac33e0443e88b33a7f95fd391c"><div class="ttname"><a href="defines_8hpp.html#af00d9aac33e0443e88b33a7f95fd391c">DEFAULT_UNDEF_STR</a></div><div class="ttdeci">const std::string DEFAULT_UNDEF_STR</div><div class="ttdoc">Default undefined value string used by Double.</div><div class="ttdef"><b>Definition:</b> <a href="defines_8hpp_source.html#l00120">defines.hpp:120</a></div></div>
-<div class="ttc" id="autils_8hpp_html_a1d2cbd818c0b3c0472e7efcd35f6a576"><div class="ttname"><a href="utils_8hpp.html#a1d2cbd818c0b3c0472e7efcd35f6a576">toupper</a></div><div class="ttdeci">void toupper(std::string &amp;s)</div><div class="ttdoc">Put a string into upper cases.</div><div class="ttdef"><b>Definition:</b> <a href="utils_8cpp_source.html#l00084">utils.cpp:84</a></div></div>
 <div class="ttc" id="adefines_8hpp_html_a23d599cb26f81f00afe8c7f6fcb32341"><div class="ttname"><a href="defines_8hpp.html#a23d599cb26f81f00afe8c7f6fcb32341">DEFAULT_INF_STR</a></div><div class="ttdeci">const std::string DEFAULT_INF_STR</div><div class="ttdoc">Default infinity string used by Double.</div><div class="ttdef"><b>Definition:</b> <a href="defines_8hpp_source.html#l00114">defines.hpp:114</a></div></div>
 <div class="ttc" id="adefines_8hpp_html_ad0fca8699981da6f314a04d1991a18eb"><div class="ttname"><a href="defines_8hpp.html#ad0fca8699981da6f314a04d1991a18eb">DEFAULT_EPSILON</a></div><div class="ttdeci">const double DEFAULT_EPSILON</div><div class="ttdoc">Default epsilon used by Double.</div><div class="ttdef"><b>Definition:</b> <a href="defines_8hpp_source.html#l00108">defines.hpp:108</a></div></div>
 <div class="ttc" id="afileutils_8hpp_html_ab7ea3b465082e1688b369f2e3225311f"><div class="ttname"><a href="fileutils_8hpp.html#ab7ea3b465082e1688b369f2e3225311f">completeFileName</a></div><div class="ttdeci">void completeFileName(std::string &amp;filename, const std::string &amp;problemDir, bool addSeed=false, int seed=0)</div><div class="ttdef"><b>Definition:</b> <a href="fileutils_8cpp_source.html#l00298">fileutils.cpp:298</a></div></div>
@@ -522,7 +533,7 @@ $(document).ready(function(){initNavTree('_run_parameters_8cpp_source.html','');
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_3079b9de3b0ed59bcc1744ceff5423be.html">Param</a></li><li class="navelem"><a class="el" href="_run_parameters_8cpp.html">RunParameters.cpp</a></li>
-    <li class="footer">Generated on Tue Dec 1 2020 17:08:19 for NOMAD Source by
+    <li class="footer">Generated on Fri Apr 9 2021 13:32:04 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

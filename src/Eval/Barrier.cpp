@@ -50,7 +50,8 @@
 
 void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
                           const NOMAD::EvalType& evalType,
-                          const std::vector<EvalPoint>& evalPointList)
+                          const std::vector<NOMAD::EvalPoint>& evalPointList,
+                          const NOMAD::ComputeType& computeType)
 {
     std::vector<NOMAD::EvalPoint> cachePoints;
 
@@ -65,7 +66,7 @@ void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
     // Get best feasible and infeasible solutions from cache.
     // Points from cache are in full dimension. Convert them
     // to subproblem dimension.
-    if (NOMAD::CacheBase::getInstance()->findBestFeas(cachePoints, fixedVariable, evalType, nullptr) > 0)
+    if (NOMAD::CacheBase::getInstance()->findBestFeas(cachePoints, fixedVariable, evalType, computeType, nullptr) > 0)
     {
         for (auto evalPoint : cachePoints)
         {
@@ -74,7 +75,7 @@ void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
         }
         cachePoints.clear();
     }
-    if (NOMAD::CacheBase::getInstance()->findBestInf(cachePoints, _hMax, fixedVariable, evalType, nullptr) > 0)
+    if (NOMAD::CacheBase::getInstance()->findBestInf(cachePoints, _hMax, fixedVariable, evalType, computeType, nullptr) > 0)
     {
         for (auto evalPoint : cachePoints)
         {
@@ -85,41 +86,33 @@ void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
     }
 
     // Constructor's call to update should not update ref best points.
-    updateWithPoints(evalPointList, evalType, true);    // true: keep all points
+    updateWithPoints(evalPointList, evalType, computeType, true);    // true: keep all points
 
     setN();
 
 
     // Check: xFeas or xInf could be non-evaluated, but not both.
-    try
+    auto xFeas = getFirstXFeas();
+    auto xInf = getFirstXInf();
+    if (   (nullptr == xFeas || nullptr == xFeas->getEval(evalType))
+        && (nullptr == xInf  || nullptr == xInf->getEval(evalType)))
     {
-        checkXFeas(evalType);
-    }
-    catch (NOMAD::Exception &exceptionFeas)
-    {
-        try
+        std::string s = "Barrier constructor: xFeas or xInf must be evaluated.\n";
+        if (nullptr != xFeas)
         {
-            checkXInf();
+            s += "There are " + std::to_string(_xFeas.size()) + " xFeas, the first one is:\n";
+            s += xFeas->displayAll();
         }
-        catch (NOMAD::Exception &exceptionInf)
+        if (nullptr != xInf)
         {
-            std::string s = "Barrier constructor: xFeas or xInf must be evaluated.\n";
-            if (_xFeas.size() >= 1)
-            {
-                s += "There are " + std::to_string(_xFeas.size()) + " xFeas, the first one is:\n";
-                s += _xFeas[0].displayAll();
-            }
-            if (_xInf.size() >= 1)
-            {
-                s += "There are " + std::to_string(_xInf.size()) + " xInf, the first one is:\n";
-                s += _xInf[0].displayAll();
-            }
-            if (_xFeas.size() == 0 && _xInf.size() == 0)
-            {
-                s += "There are no xFeas and no xInf defined.";
-            }
-            throw NOMAD::Exception(__FILE__, __LINE__, s);
+            s += "There are " + std::to_string(_xInf.size()) + " xInf, the first one is:\n";
+            s += xInf->displayAll();
         }
+        if (_xFeas.size() == 0 && _xInf.size() == 0)
+        {
+            s += "There are no xFeas and no xInf defined.";
+        }
+        throw NOMAD::Exception(__FILE__, __LINE__, s);
     }
 
     checkHMax();
@@ -170,46 +163,54 @@ void NOMAD::Barrier::checkCache()
 }
 
 
-void NOMAD::Barrier::checkXFeas(const NOMAD::EvalType& evalType)
+void NOMAD::Barrier::checkXFeas(const NOMAD::EvalPoint &xFeas,
+                                const NOMAD::EvalType& evalType,
+                                const NOMAD::ComputeType& computeType)
 {
-    if (0 == _xFeas.size())
+    // If evalType is UNDEFINED, skip this check.
+    if (NOMAD::EvalType::UNDEFINED != evalType)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__,
-                               "Barrier: xFeas must be evaluated before being set.");
+        if (nullptr == xFeas.getEval(evalType))
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__,
+                                "Barrier: xFeas must be evaluated before being set.");
+        }
+        checkXFeasIsFeas(xFeas, evalType, computeType);
     }
-
-    checkXFeasIsFeas(evalType);
 }
 
 
-void NOMAD::Barrier::checkXFeasIsFeas(const NOMAD::EvalType& evalType)
+void NOMAD::Barrier::checkXFeasIsFeas(const NOMAD::EvalPoint &xFeas,
+                                      const NOMAD::EvalType& evalType,
+                                      const NOMAD::ComputeType& computeType)
 {
-    if (NOMAD::EvalType::UNDEFINED == evalType)
+    // If evalType is UNDEFINED, skip this check.
+    if (NOMAD::EvalType::UNDEFINED != evalType)
     {
-        // Skip this check
-    }
-    else
-    {
-        for (size_t i = 0; i < _xFeas.size(); i++)
+        auto eval = xFeas.getEval(evalType);
+        if (nullptr != eval)
         {
-            auto eval = _xFeas[i].getEval(evalType);
-            if (nullptr != eval && 0.0 != eval->getH())
+            NOMAD::Double h = eval->getH(computeType);
+            if (!h.isDefined() || 0.0 != h)
             {
-                std::string warn = "Warning: Barrier: xFeas' H value will be enforced to 0.0. xFeas input value for h was " + eval->getH().tostring();
-                std::cerr << warn << std::endl;
-                _xFeas[i].setH(0.0, evalType);
+                std::string err = "Error: Barrier: xFeas' h value must be 0.0, got: " + h.display();
+                throw NOMAD::Exception(__FILE__,__LINE__,err);
             }
         }
     }
 }
 
 
-void NOMAD::Barrier::checkXInf()
+void NOMAD::Barrier::checkXInf(const NOMAD::EvalPoint &xInf, const NOMAD::EvalType& evalType)
 {
-    if (0 == _xInf.size())
+    // If evalType is UNDEFINED, skip this check.
+    if (NOMAD::EvalType::UNDEFINED != evalType)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__,
-                               "Barrier: xInf must be evaluated before being set.");
+        if (nullptr == xInf.getEval(evalType))
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__,
+                                   "Barrier: xInf must be evaluated before being set.");
+        }
     }
 }
 
@@ -249,10 +250,11 @@ NOMAD::EvalPointPtr NOMAD::Barrier::getFirstXFeas() const
 
 
 void NOMAD::Barrier::addXFeas(const NOMAD::EvalPoint &xFeas,
-                              const NOMAD::EvalType& evalType)
+                              const NOMAD::EvalType& evalType,
+                              const NOMAD::ComputeType& computeType)
 {
+    checkXFeas(xFeas, evalType, computeType);
     _xFeas.push_back(xFeas);
-    checkXFeas(evalType);
 }
 
 
@@ -274,10 +276,11 @@ NOMAD::EvalPointPtr NOMAD::Barrier::getFirstXInf() const
 }
 
 
-void NOMAD::Barrier::addXInf(const NOMAD::EvalPoint &xInf)
+void NOMAD::Barrier::addXInf(const NOMAD::EvalPoint &xInf,
+                             const NOMAD::EvalType& evalType)
 {
+    checkXInf(xInf, evalType);
     _xInf.push_back(xInf);
-    checkXInf();
 }
 
 
@@ -288,15 +291,18 @@ void NOMAD::Barrier::addXInf(const NOMAD::EvalPoint &xInf)
 // and do not update it if the new point is equivalent.
 // we want to keep only the one that is already in the barrier.
 bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalPointList,
-                                      const EvalType& evalType,
+                                      const NOMAD::EvalType& evalType,
+                                      const NOMAD::ComputeType& computeType,
                                       const bool keepAllPoints)
 {
-    bool (*comp)(const NOMAD::Eval&, const NOMAD::Eval&) = NOMAD::Eval::compEvalFindBest;
+    bool (*comp)(const NOMAD::Eval&, const NOMAD::Eval&, const NOMAD::ComputeType&, NOMAD::SuccessType, bool) = NOMAD::Eval::compInsertInBarrier;
     bool updated = false;
     bool updatedFeas = false;
     bool updatedInf = false;
     std::string s;  // for output info
 
+    // Temporary infeasible incumbent. For insertion of more than one improving/full success
+    NOMAD::EvalPoint xInfTmp;
 
     OUTPUT_DEBUG_START
     s = "Updating barrier with " + std::to_string(evalPointList.size()) + " suggested points";
@@ -306,6 +312,10 @@ bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalP
     s = display(4);
     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
     OUTPUT_DEBUG_END
+
+    // Do separate loop on evalPointList
+    // First loop update the bestFeasible.
+    // If a point is a full success, set updatedFeas = true. This flag is used in the second loop.
 
     for (auto evalPoint : evalPointList)
     {
@@ -322,10 +332,6 @@ bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalP
             s += ": " + evalPoint.display();
             throw NOMAD::Exception(__FILE__, __LINE__, s);
         }
-        OUTPUT_DEBUG_START
-        s = "Point suggested to update barrier: " + evalPoint.display();
-        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-        OUTPUT_DEBUG_END
 
         auto eval = evalPoint.getEval(evalType);
         if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
@@ -348,8 +354,13 @@ bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalP
             continue;
         }
 
-        if (eval->isFeasible())
+        if (eval->isFeasible(computeType))
         {
+            OUTPUT_DEBUG_START
+            s = "Point suggested to update barrier (feasible): " + evalPoint.display();
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
+
             // Ensure evalPoint is as good as previous points in xFeas
             if (_xFeas.empty())
             {
@@ -361,7 +372,7 @@ bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalP
                 NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
                 OUTPUT_DEBUG_END
             }
-            else if (comp(*eval, *_xFeas[0].getEval(evalType)))
+            else if (comp(*eval, *_xFeas[0].getEval(evalType), computeType, NOMAD::SuccessType::FULL_SUCCESS,true))
             {
                 // New point is better
                 _xFeas.clear();
@@ -372,7 +383,7 @@ bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalP
                 NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
                 OUTPUT_DEBUG_END
             }
-            else if (keepAllPoints && !comp(*_xFeas[0].getEval(evalType), *eval))
+            else if (keepAllPoints && !comp(*_xFeas[0].getEval(evalType), *eval, computeType, NOMAD::SuccessType::FULL_SUCCESS, true))
             {
                 // Points are equivalent
                 // If new point is not already there, add it
@@ -394,15 +405,39 @@ bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalP
                 }
             }
         }
-        else
+    }
+    // Do separate loop on evalPointList
+    // Second loop update the bestInfeasible.
+    // Use the flag oneFeasEvalFullSuccess.
+    // If the flag is true hmax will not change. A point improving the best infeasible should not replace it.
+
+    for (auto evalPoint : evalPointList)
+    {
+        auto eval = evalPoint.getEval(evalType);
+
+        if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
         {
-            if (eval->getH() > _hMax)
+            // Suggested point is not good.
+            continue;
+        }
+
+        if (!eval->isFeasible())
+        {
+            NOMAD::Double h = eval->getH(computeType);
+            if (_hMax < NOMAD::INF && (!h.isDefined() || h > _hMax))
             {
                 OUTPUT_DEBUG_START
-                s = "H is too large: ";
-                s += eval->getH().tostring() + " > " + _hMax.tostring() + ", continue.";
-                NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-                NOMAD::OutputQueue::Flush();
+                if (h.isDefined())
+                {
+                    s = "H is too large: ";
+                    s += h.display(NOMAD::DISPLAY_PRECISION_FULL) + " > " + _hMax.display(NOMAD::DISPLAY_PRECISION_FULL) + ", continue.";
+                    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+                }
+                else
+                {
+                    s = "H is undefined";
+                    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+                }
                 OUTPUT_DEBUG_END
                 continue;
             }
@@ -417,18 +452,58 @@ bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalP
                 NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
                 OUTPUT_DEBUG_END
             }
-            else if (comp(*eval, *_xInf[0].getEval(evalType)))
+            else if (!updatedFeas && comp(*eval, *_xInf[0].getEval(evalType), computeType, NOMAD::SuccessType::PARTIAL_SUCCESS,false))
             {
-                // New point is better
-                _xInf.clear();
-                _xInf.push_back(evalPoint);
-                updatedInf = true;
-                OUTPUT_DEBUG_START
-                s = "New dominating xInf: " + evalPoint.display();
-                NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-                OUTPUT_DEBUG_END
+                if (!xInfTmp.ArrayOfDouble::isDefined() || comp(*xInfTmp.getEval(evalType),*eval,computeType, NOMAD::SuccessType::PARTIAL_SUCCESS,true))
+                {
+                    // Keep this eval point for comparison with other eval points
+                    xInfTmp = evalPoint;
+
+                    updatedInf = true;
+
+                    OUTPUT_DEBUG_START
+                    s = "New dominating xInf: " + evalPoint.display();
+                    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+                    OUTPUT_DEBUG_END
+                }
             }
-            else if (keepAllPoints && !comp(*_xInf[0].getEval(evalType), *eval))
+            else if (updatedFeas && comp(*eval, *_xInf[0].getEval(evalType), computeType, NOMAD::SuccessType::FULL_SUCCESS,true))
+            {
+                if (!xInfTmp.ArrayOfDouble::isDefined() || comp(*xInfTmp.getEval(evalType),*eval,computeType, NOMAD::SuccessType::PARTIAL_SUCCESS,true))
+                {
+                    // Keep this eval point for comparison with other eval points
+                    xInfTmp = evalPoint;
+
+                    updatedInf = true;
+
+                    OUTPUT_DEBUG_START
+                    s = "New dominating xInf: " + evalPoint.display();
+                    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+                    OUTPUT_DEBUG_END
+                }
+            }
+        }
+    }
+
+    // Keep the new best infeasible eval point
+    if (xInfTmp.ArrayOfDouble::isDefined())
+    {
+        _xInf.clear();
+        _xInf.push_back(xInfTmp);
+    }
+
+    // Perform another pass on eval points to keep points equivalent to xInf
+    if (keepAllPoints && _xInf.size() > 0)
+    {
+        for (auto evalPoint : evalPointList)
+        {
+            auto eval = evalPoint.getEval(evalType);
+            if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
+            {
+                continue;
+            }
+
+            if (!eval->isFeasible() && !comp(*_xInf[0].getEval(evalType), *eval, computeType, NOMAD::SuccessType::PARTIAL_SUCCESS, false))
             {
                 // Points are equivalent
                 // If new point is not already there, add it
@@ -451,7 +526,6 @@ bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalP
             }
         }
     }
-
     updated = updated || updatedFeas || updatedInf;
 
     OUTPUT_DEBUG_START
@@ -478,7 +552,6 @@ bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalP
     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
     OUTPUT_DEBUG_END
 
-
     return updated;
 }
 
@@ -489,7 +562,7 @@ void NOMAD::Barrier::clearXInf()
 }
 
 
-std::vector<NOMAD::EvalPoint> NOMAD::Barrier::getAllPoints()
+std::vector<NOMAD::EvalPoint> NOMAD::Barrier::getAllPoints() const
 {
     std::vector<NOMAD::EvalPoint> allPoints;
 
@@ -498,6 +571,19 @@ std::vector<NOMAD::EvalPoint> NOMAD::Barrier::getAllPoints()
     allPoints.insert(allPoints.end(), _xInf.begin(), _xInf.end());
 
     return allPoints;
+}
+
+
+const NOMAD::EvalPoint& NOMAD::Barrier::getFirstPoint() const
+{
+    if (_xFeas.size() > 0)
+    {
+        return _xFeas[0];
+    }
+    else
+    {
+        return _xInf[0];
+    }
 }
 
 
@@ -539,10 +625,9 @@ std::string NOMAD::Barrier::display(const size_t max) const
             break;
         }
     }
-    s += "H_MAX " + getHMax().tostring() + "\n";
+    s += "H_MAX " + getHMax().display(NOMAD::DISPLAY_PRECISION_FULL) + "\n";
     s += "Ref Best Feasible:   " + (_refBestFeas ? _refBestFeas->displayAll() : "NULL") + "\n";
     s += "Ref Best Infeasible: " + (_refBestInf ? _refBestInf->displayAll() : "NULL") + "\n";
-
 
     return s;
 }
@@ -586,14 +671,14 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::Barrier& barrier)
             // Looking for xFeas in cache will ensure its f and h are updated
             NOMAD::CacheBase::getInstance()->find(xFeas, xFeas);
             // EvalType undefined: No check will be done on the feasibility
-            barrier.addXFeas(xFeas, NOMAD::EvalType::UNDEFINED);
+            barrier.addXFeas(xFeas, NOMAD::EvalType::UNDEFINED, NOMAD::ComputeType::STANDARD);
         }
         else if ("X_INF" == name)
         {
             is >> xInf;
             // Looking for xInf in cache will ensure its f and h are updated
             NOMAD::CacheBase::getInstance()->find(xInf, xInf);
-            barrier.addXInf(xInf);
+            barrier.addXInf(xInf, NOMAD::EvalType::UNDEFINED);
         }
         else if ("H_MAX" == name)
         {
@@ -611,6 +696,4 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::Barrier& barrier)
     }
 
     return is;
-
 }
-

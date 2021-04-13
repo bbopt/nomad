@@ -92,10 +92,6 @@ private:
 
     /// Helper for constructor
     void init();
-
-    /// Helper for end
-    bool solHasFeas() const;
-
 };
 
 #include "../nomad_nsend.hpp"

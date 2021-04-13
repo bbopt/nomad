@@ -185,7 +185,7 @@ size_t NOMAD::CacheSet::find(const NOMAD::Point& x, NOMAD::EvalPoint &evalPoint,
 {
     size_t nbFound = 0;
 
-    EvalPointSet::const_iterator it;
+    NOMAD::EvalPointSet::const_iterator it;
 #ifdef _OPENMP
     omp_set_lock(&_cacheLock);
 #endif // _OPENMP
@@ -227,7 +227,7 @@ size_t NOMAD::CacheSet::find(const NOMAD::Point& x, NOMAD::EvalPoint &evalPoint,
 // false otherwise.
 bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
                                   const short maxNumberEval,
-                                  const EvalType& evalType)
+                                  const NOMAD::EvalType& evalType)
 {
     verifyPointComplete(evalPoint);
     verifyPointSize(evalPoint);
@@ -240,7 +240,7 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
 
     bool inserted = false;
     bool doEval;
-    std::pair<EvalPointSet::iterator,bool> ret;   // Return of the insert()
+    std::pair<NOMAD::EvalPointSet::iterator,bool> ret;   // Return of the insert()
 #ifdef _OPENMP
     omp_set_lock(&_cacheLock);
 #endif // _OPENMP
@@ -250,7 +250,7 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
 #endif // _OPENMP
     inserted = ret.second;
     bool canEval = (*ret.first).toEval(maxNumberEval, evalType);
-    if (inserted && 0 == evalPoint.getTag())
+    if (inserted && -1 == evalPoint.getTag())
     {
         ret.first->updateTag();
     }
@@ -268,7 +268,7 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
         // If doEval is set to true, the point could be evaluated twice.
         // If doEval is set to false, there might be cases where it is not evaluated at all.
 
-        // Only warn outside of sgte context.
+        // Only warn when in blackbox context.
         if (NOMAD::EvalType::BB == evalType)
         {
             OUTPUT_INFO_START
@@ -278,11 +278,13 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
             OUTPUT_INFO_END
 
             // Avoid re-evaluating BB.
-            doEval = false;
+            //doEval = false;
+            // TODO This will have to be re-assessed.
+            doEval = canEval;
         }
         else
         {
-            // It is ok to re-evaluate SGTE points.
+            // It is ok to re-evaluate MODEL points.
             doEval = true;
         }
     }
@@ -328,12 +330,13 @@ size_t NOMAD::CacheSet::find(const NOMAD::Point x, std::vector<NOMAD::EvalPoint>
 
 
 size_t NOMAD::CacheSet::find(const NOMAD::Eval &refeval,
-                             std::function<bool(const NOMAD::Eval&, const NOMAD::Eval&)> comp,
+                             std::function<bool(const NOMAD::Eval&, const NOMAD::Eval&, const NOMAD::ComputeType&)> comp,
                              std::vector<NOMAD::EvalPoint> &evalPointList,
-                             const EvalType& evalType) const
+                             const NOMAD::EvalType& evalType,
+                             const NOMAD::ComputeType& computeType) const
 {
     evalPointList.clear();
-    EvalPointSet::const_iterator it;
+    NOMAD::EvalPointSet::const_iterator it;
     for (it = _cache.begin(); it != _cache.end(); ++it)
     {
         const NOMAD::Eval* eval = it->getEval(evalType);
@@ -341,7 +344,7 @@ size_t NOMAD::CacheSet::find(const NOMAD::Eval &refeval,
         {
             continue;
         }
-        if (comp(*eval, refeval))
+        if (comp(*eval, refeval, computeType))
         {
             NOMAD::EvalPoint evalPoint(*it);
             evalPointList.push_back(evalPoint);
@@ -353,16 +356,17 @@ size_t NOMAD::CacheSet::find(const NOMAD::Eval &refeval,
 
 
 // Get best eval points, using comp()
-size_t NOMAD::CacheSet::findBest( std::function<bool(const NOMAD::Eval&, const NOMAD::Eval&)> comp,
+size_t NOMAD::CacheSet::findBest(std::function<bool(const NOMAD::Eval&, const NOMAD::Eval&, const NOMAD::ComputeType&)> comp,
                      std::vector<NOMAD::EvalPoint> &evalPointList,
                      const bool findFeas,
                      const NOMAD::Double& hMax,
                      const NOMAD::Point& fixedVariable,
-                     const EvalType& evalType,
-                     const Eval* refevalIn) const
+                     const NOMAD::EvalType& evalType,
+                     const NOMAD::ComputeType& computeType,
+                     const NOMAD::Eval* refevalIn) const
 {
     evalPointList.clear();
-    EvalPointSet::const_iterator it;
+    NOMAD::EvalPointSet::const_iterator it;
     std::shared_ptr<NOMAD::Eval> refeval = nullptr;
     if (nullptr != refevalIn)
     {
@@ -377,11 +381,11 @@ size_t NOMAD::CacheSet::findBest( std::function<bool(const NOMAD::Eval&, const N
         {
             continue;
         }
-        if (findFeas != eval->isFeasible())
+        if (findFeas != eval->isFeasible(computeType))
         {
             continue;
         }
-        if (eval->getH() > hMax)
+        if (eval->getH(computeType) > hMax)
         {
             continue;
         }
@@ -402,7 +406,7 @@ size_t NOMAD::CacheSet::findBest( std::function<bool(const NOMAD::Eval&, const N
             // Found a point with eval == refeval
             evalPointList.push_back(evalPoint);
         }
-        else if (comp(*eval, *refeval))
+        else if (comp(*eval, *refeval, computeType))
         {
             // Found a better point
             *refeval = *eval;
@@ -418,16 +422,17 @@ size_t NOMAD::CacheSet::findBest( std::function<bool(const NOMAD::Eval&, const N
 
 size_t NOMAD::CacheSet::findBestFeas(std::vector<NOMAD::EvalPoint> &evalPointList,
                                      const NOMAD::Point& fixedVariable,
-                                     const EvalType& evalType,
-                                     const Eval* refeval) const
+                                     const NOMAD::EvalType& evalType,
+                                     const NOMAD::ComputeType& computeType,
+                                     const NOMAD::Eval* refeval) const
 {
     findBest(NOMAD::Eval::compEvalFindBest, evalPointList, true, 0,
-             fixedVariable, evalType, refeval);
+             fixedVariable, evalType, computeType, refeval);
     return evalPointList.size();
 }
 
 
-bool NOMAD::CacheSet::hasFeas(const EvalType& evalType) const
+bool NOMAD::CacheSet::hasFeas(const NOMAD::EvalType& evalType, const NOMAD::ComputeType& computeType) const
 {
     bool ret = false;
 
@@ -438,7 +443,7 @@ bool NOMAD::CacheSet::hasFeas(const EvalType& evalType) const
         {
             continue;
         }
-        if (eval->isFeasible())
+        if (eval->isFeasible(computeType))
         {
             ret = true;
             break;
@@ -452,11 +457,12 @@ bool NOMAD::CacheSet::hasFeas(const EvalType& evalType) const
 size_t NOMAD::CacheSet::findBestInf(std::vector<NOMAD::EvalPoint> &evalPointList,
                                     const NOMAD::Double& hMax,
                                     const NOMAD::Point& fixedVariable,
-                                    const EvalType& evalType,
-                                    const Eval* refeval) const
+                                    const NOMAD::EvalType& evalType,
+                                    const NOMAD::ComputeType& computeType,
+                                    const NOMAD::Eval* refeval) const
 {
     findBest(NOMAD::Eval::compEvalFindBest, evalPointList, false, hMax,
-             fixedVariable, evalType, refeval);
+             fixedVariable, evalType, computeType, refeval);
 
     return evalPointList.size();
 }
@@ -474,7 +480,7 @@ size_t NOMAD::CacheSet::find(const NOMAD::Point & X,
 
     bool stopWhenMaxFound = (maxEvalPoints > 0);
     bool errSizeDisplayed = false;  // Error about size to be displayed only once.
-    EvalPointSet::const_iterator it;
+    NOMAD::EvalPointSet::const_iterator it;
     for (it = _cache.begin(); it != _cache.end(); ++it)
     {
         if (X.size() != it->size())
@@ -505,11 +511,11 @@ size_t NOMAD::CacheSet::find(const NOMAD::Point & X,
 }
 
 
-size_t NOMAD::CacheSet::find(std::function<bool(const EvalPoint&)> crit,
+size_t NOMAD::CacheSet::find(std::function<bool(const NOMAD::EvalPoint&)> crit,
                              std::vector<NOMAD::EvalPoint> &evalPointList) const
 {
     evalPointList.clear();
-    EvalPointSet::const_iterator it;
+    NOMAD::EvalPointSet::const_iterator it;
     for (it = _cache.begin(); it != _cache.end(); ++it)
     {
         NOMAD::EvalPoint evalPoint(*it);
@@ -522,13 +528,13 @@ size_t NOMAD::CacheSet::find(std::function<bool(const EvalPoint&)> crit,
     return evalPointList.size();
 }
 
-size_t NOMAD::CacheSet::find(std::function<bool(const EvalPoint&)> crit1,
-                             std::function<bool(const EvalPoint&)> crit2,
+size_t NOMAD::CacheSet::find(std::function<bool(const NOMAD::EvalPoint&)> crit1,
+                             std::function<bool(const NOMAD::EvalPoint&)> crit2,
                              std::vector<NOMAD::EvalPoint> &evalPointList) const
 {
     evalPointList.clear();
 
-    EvalPointSet::const_iterator it;
+    NOMAD::EvalPointSet::const_iterator it;
     for (it = _cache.begin(); it != _cache.end(); ++it)
     {
         if ( crit1(*it) && crit2(*it) )
@@ -546,7 +552,7 @@ size_t NOMAD::CacheSet::find(std::function<bool(const EvalPoint&)> crit1,
 // If the point is not found, it is a serious issue.
 // Don't throw an exception, to avoid a crash, but write a warning.
 // Returns true if update succeded, false if there was an error.
-bool NOMAD::CacheSet::update(const NOMAD::EvalPoint& evalPoint, const EvalType& evalType)
+bool NOMAD::CacheSet::update(const NOMAD::EvalPoint& evalPoint, const NOMAD::EvalType& evalType)
 {
     bool updateOk = false;
 
@@ -559,7 +565,7 @@ bool NOMAD::CacheSet::update(const NOMAD::EvalPoint& evalPoint, const EvalType& 
         return false;
     }
 
-    EvalPointSet::const_iterator it;
+    NOMAD::EvalPointSet::const_iterator it;
 #ifdef _OPENMP
     omp_set_lock(&_cacheLock);
 #endif // _OPENMP
@@ -609,10 +615,10 @@ bool NOMAD::CacheSet::clear()
 }
 
 
-// Clear all sgte evaluations from the cache
-void NOMAD::CacheSet::clearSgte(const int mainThreadNum)
+// Clear all quad and sgtelib model evaluations from the cache
+void NOMAD::CacheSet::clearModelEval(const int mainThreadNum)
 {
-    processOnAllPoints(NOMAD::EvalPoint::clearEvalSgte, mainThreadNum);
+    processOnAllPoints(NOMAD::EvalPoint::clearModelEval, mainThreadNum);
 }
 
 
@@ -647,7 +653,7 @@ void NOMAD::CacheSet::purge()
 
     while (_cache.size() >= _maxSize)
     {
-        EvalPointSet tmpCache;
+        NOMAD::EvalPointSet tmpCache;
         NOMAD::Double meanF;
         size_t nbElemWithF = computeMeanF(meanF);
         //std::cout << "Debug: purge: meanF = " << meanF << " nb elem = " << nbElemWithF << std::endl;
@@ -657,21 +663,21 @@ void NOMAD::CacheSet::purge()
             // Remove all EvalPoints for which f is over or equal to the mean.
             // For this, use a temporary set/cache, because we
             // cannot iterate over a set and erase items at the same time.
-            EvalPointSet::const_iterator it;
+            NOMAD::EvalPointSet::const_iterator it;
             for (it = _cache.begin(); it != _cache.end(); ++it)
             {
-                if (!it->getF(NOMAD::EvalType::BB).isDefined())
+                if (!it->getF(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD).isDefined())
                 {
                     continue;
                 }
-                if (it->getF(NOMAD::EvalType::BB) < meanF)
+                if (it->getF(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD) < meanF)
                 {
-                    //std::cout << "Debug: purge: insert EvalPoint with f = " << it->getF(NOMAD::EvalType::BB) << " to tmpCache" << std::endl;
+                    //std::cout << "Debug: purge: insert EvalPoint with f = " << it->getF(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD) << " to tmpCache" << std::endl;
                     tmpCache.insert(*it);
                 }
                 else
                 {
-                    //std::cout << "Debug: purge: Do not insert EvalPoint with f = " << it->getF(NOMAD::EvalType::BB) << " to tmpCache" << std::endl;
+                    //std::cout << "Debug: purge: Do not insert EvalPoint with f = " << it->getF(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD) << " to tmpCache" << std::endl;
                 }
             }
         }
@@ -680,7 +686,7 @@ void NOMAD::CacheSet::purge()
             // Remove arbitrarly half the elements of cache.
             // Keep the first half.
             size_t i = 0;
-            EvalPointSet::const_iterator it;
+            NOMAD::EvalPointSet::const_iterator it;
             for (it = _cache.begin(); i < _cache.size() / 2; ++it, i++)
             {
                 tmpCache.insert(*it);
@@ -714,10 +720,10 @@ size_t NOMAD::CacheSet::computeMeanF(NOMAD::Double &mean) const
     size_t nbElem = 0;
     NOMAD::Double total = 0;
     mean.reset();
-    EvalPointSet::const_iterator it;
+    NOMAD::EvalPointSet::const_iterator it;
     for (it = _cache.begin(); it != _cache.end(); ++it)
     {
-        NOMAD::Double f = it->getF(NOMAD::EvalType::BB);
+        NOMAD::Double f = it->getF(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
         if (f.isDefined())
         {
             total += f;
@@ -770,7 +776,7 @@ void NOMAD::CacheSet::processOnAllPoints(void (*func)(NOMAD::EvalPoint&), const 
 }
 
 
-void NOMAD::CacheSet::deleteSgteOnly(const int mainThreadNum)
+void NOMAD::CacheSet::deleteModelEvalOnly(const int mainThreadNum)
 {
 #ifdef _OPENMP
     omp_set_lock(&_cacheLock);
@@ -844,7 +850,7 @@ std::string NOMAD::CacheSet::displayAll() const
 // This method is used to write points to cache.
 std::ostream& NOMAD::CacheSet::displayPointsWithEval(std::ostream& os) const
 {
-    EvalPointSet::const_iterator it;
+    NOMAD::EvalPointSet::const_iterator it;
     for (it = _cache.begin(); it != _cache.end(); ++it)
     {
         NOMAD::EvalPoint evalPoint = *it;
@@ -873,6 +879,7 @@ std::ostream& NOMAD::operator<<(std::ostream& os, const NOMAD::CacheSet& cache)
 std::istream& NOMAD::operator>>(std::istream& is, NOMAD::CacheSet& cache)
 {
     std::string s;
+    NOMAD::BBOutputTypeList bbOutputTypes;
 
     is >> s;
     if ("CACHE_HITS" == s)
@@ -893,8 +900,6 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::CacheSet& cache)
     is >> s;
     if ("BB_OUTPUT_TYPE" == s)
     {
-        NOMAD::BBOutputTypeList bbOutputTypes;
-
         while (is >> s && is.good() && !is.eof())
         {
             if (NOMAD::ArrayOfDouble::pStart == s)
@@ -915,22 +920,11 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::CacheSet& cache)
     NOMAD::EvalPoint evalPoint;
     while (is >> evalPoint && is.good() && !is.eof())
     {
+        evalPoint.setBBOutputType(bbOutputTypes);
         cache.insert(evalPoint);
     }
-
-    // Need to recompute F and H on all cache points
-    NOMAD::CacheBase::getInstance()->processOnAllPoints(NOMAD::CacheSet::recomputeFH);
 
     return is;
 }
 
 
-// Recompute f and h, using BB eval.
-void NOMAD::CacheSet::recomputeFH(NOMAD::EvalPoint& evalPoint)
-{
-    auto eval = evalPoint.getEval(NOMAD::EvalType::BB);
-    if (eval)
-    {
-        eval->setBBOutputAndRecompute(eval->getBBOutput(), _bbOutputType);
-    }
-}

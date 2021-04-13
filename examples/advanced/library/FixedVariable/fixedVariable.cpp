@@ -79,14 +79,14 @@ void initParams1(NOMAD::AllParameters &p)
     p.getDispParams()->setAttributeValue("DISPLAY_ALL_EVAL", false);
     p.getDispParams()->setAttributeValue("DISPLAY_INFEASIBLE", true);
     p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL", false);
-    p.getDispParams()->setAttributeValue("MAX_DISPLAY_STEP_LEVEL", 20);
+    p.getDispParams()->setAttributeValue("DISPLAY_MAX_STEP_LEVEL", 20);
     p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("BBE THREAD_NUM ( SOL ) OBJ"));
 
     p.getEvaluatorControlGlobalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
     p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("PB OBJ"));
 
     p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES", false);
-    p.getEvaluatorControlParams()->setAttributeValue("OPPORTUNISTIC_EVAL", true);
+    p.getEvaluatorControlParams()->setAttributeValue("EVAL_OPPORTUNISTIC", true);
     p.getRunParams()->setAttributeValue("H_MAX_0", NOMAD::Double(200000));
 
     // This does not work, to fix.
@@ -195,7 +195,7 @@ int main (int argc, char **argv)
     NOMAD::EvcInterface::getEvaluatorControl()->setNbEval(0);
     std::vector<NOMAD::EvalPoint> bestFeasList;
     NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
-                                                  NOMAD::EvalType::BB, nullptr);
+                                                  NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
     // NB. Assuming the list is non-empty.
     NOMAD::Point x02 = *(bestFeasList[0].getX());
     initParams2(*params, x02);
@@ -214,7 +214,7 @@ int main (int argc, char **argv)
     NOMAD::CacheBase::getInstance()->resetNbCacheHits();
     NOMAD::EvcInterface::getEvaluatorControl()->setNbEval(0);
     NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
-                                                  NOMAD::EvalType::BB, nullptr);
+                                                  NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
     NOMAD::Point x03 = *(bestFeasList[0].getX());
     initParams3(*params , x03);
     try
@@ -230,7 +230,7 @@ int main (int argc, char **argv)
 
     // Final part: No fixed variable
     NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
-                                                  NOMAD::EvalType::BB, nullptr);
+                                                  NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
     NOMAD::Point x0final = *(bestFeasList[0].getX());
     initParamsFinal(*params,x0final);
     try

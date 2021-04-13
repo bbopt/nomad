@@ -47,7 +47,6 @@
 #define __NOMAD400_MEGASEARCHPOLL__
 
 #include "../../Algos/IterationUtils.hpp"
-#include "../../Algos/Mads/MadsIteration.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -59,15 +58,6 @@
  */
 class MegaSearchPoll: public Step, public IterationUtils
 {
-private:
-    /**
-     Hash table to remember which iteration generated this point.
-     I tried working around it, but in the end it is easier to just
-    remember the iteration.
-    Mutable because it is updated in generateTrialPoints().
-     */
-    mutable std::map<EvalPoint, std::shared_ptr<MadsIteration>, EvalPointCompare> _iterForPoint;
-
 public:
     /// Constructor
     /**
@@ -75,8 +65,7 @@ public:
      */
     explicit MegaSearchPoll(const Step* parentStep )
       : Step( parentStep ),
-        IterationUtils( parentStep ),
-        _iterForPoint()
+        IterationUtils( parentStep )
     {
         init();
     }
@@ -84,13 +73,7 @@ public:
     // Destructor
     virtual ~MegaSearchPoll()
     {
-        _iterForPoint.clear();
     }
-
-    /**
-     Get which iteration generated a point. This is used by evaluator control interface. Having the iteration, gives access to the mesh and some of its attributes.
-     */
-    const std::shared_ptr<MadsIteration> getIterForPoint(const EvalPoint& point) const;
 
 private:
 

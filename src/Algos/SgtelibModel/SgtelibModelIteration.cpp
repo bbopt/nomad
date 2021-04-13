@@ -83,23 +83,11 @@ bool NOMAD::SgtelibModelIteration::runImp()
     if (!_stopReasons->checkTerminate() && modelAlgo->isReady())
     {
         // Use the optimizer to find oracle points on this model
-        // If mesh available, add mesh and frame size arguments.
-        NOMAD::ArrayOfDouble initialMeshSize;
-        NOMAD::ArrayOfDouble initialFrameSize;
-
-        auto mesh = modelAlgo->getMesh();
-        if (nullptr != mesh)
-        {
-            initialMeshSize = mesh->getdeltaMeshSize();
-            initialFrameSize = mesh->getDeltaFrameSize();
-        }
 
         // Setup Pb parameters just before optimization.
         // This way, we get the best X0s.
         _optimize->setupPbParameters(modelAlgo->getExtendedLowerBound(),
-                                     modelAlgo->getExtendedUpperBound(),
-                                     initialMeshSize,
-                                     initialFrameSize);
+                                     modelAlgo->getExtendedUpperBound());
 
         _optimize->start();
         optimizationOk = _optimize->run();
@@ -111,7 +99,7 @@ bool NOMAD::SgtelibModelIteration::runImp()
 }
 
 
-// Oracle points are the best points found in sub optimization on sgte model.
+// Oracle points are the best points found in sub optimization on sgtelib model.
 const NOMAD::EvalPointSet& NOMAD::SgtelibModelIteration::getOraclePoints() const
 {
     return _optimize->getOraclePoints();

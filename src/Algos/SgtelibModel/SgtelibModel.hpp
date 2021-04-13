@@ -61,7 +61,7 @@
  * When used as an algorithm by itself:
  * 1- Best points (with respect to blackbox evaluation) in the cache are found.
  *    - If the cache is empty, X0 points are used.
- * 2- These points are used to build a surrogate model.
+ * 2- These points are used to build a dynamic model.
  * 3- The model is optimized. This gives oracle points.
  * 4- The oracle points are evaluated by the blackbox.
  * 5- As long as new oracle points are found, the process is repeated.
@@ -122,6 +122,11 @@ public:
     // Return hMax from _barrierForX0s.
     // It is used for the sub-Mads initialization.
     Double getHMax() const { return _barrierForX0s->getHMax(); }
+    // Return X0s' from _barrierForX0s.
+    // They are used for the sub-Mads initialization.
+    std::vector<EvalPoint> getX0s() const;
+    // Return only first X0.
+    std::shared_ptr<EvalPoint> getX0() const;
 
     std::shared_ptr<SGTELIB::TrainingSet> getTrainingSet() const { return _trainingSet; }
     std::shared_ptr<SGTELIB::Surrogate> getModel() const { return _model; }
@@ -158,8 +163,6 @@ public:
     void reset();
     void info();
 
-    void checkHF(EvalPoint& x) const;
-
     static size_t getNbModels(const SgtelibModelFeasibilityType modelFeasibility,
                               const size_t nbConstraints);
 
@@ -173,9 +176,6 @@ public:
     // This method is used by SgtelibSearchMethod.
     EvalPointSet createOraclePoints();
 
-    // Return X0s' from _barrierForX0s.
-    // They are used for the sub-Mads initialization.
-    std::vector<EvalPoint> getX0s() const;
 
 private:
     void init();
@@ -183,7 +183,6 @@ private:
     void startImp() override;
     bool runImp() override;
     void endImp() override;
-
 };
 
 #include "../../nomad_nsend.hpp"

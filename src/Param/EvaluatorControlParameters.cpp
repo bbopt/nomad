@@ -85,14 +85,22 @@ void NOMAD::EvaluatorControlParameters::checkAndComply(const std::shared_ptr<NOM
         return;
     }
 
-    // When runParameters are provided, update MAX_BB_EVAL_IN_SUBPROBLEM.
+    // When runParameters are provided, update internal parameter SUBPROBLEM_MAX_BB_EVAL.
     if (nullptr != runParams)
     {
         auto psdMadsOpt = runParams->getAttributeValue<bool>("PSD_MADS_OPTIMIZATION");
         auto ssdMadsOpt = runParams->getAttributeValue<bool>("SSD_MADS_OPTIMIZATION");
-        if (!psdMadsOpt && !ssdMadsOpt)
+        if (psdMadsOpt)
         {
-            setAttributeValue("MAX_BB_EVAL_IN_SUBPROBLEM", NOMAD::INF_SIZE_T);
+            setAttributeValue("SUBPROBLEM_MAX_BB_EVAL", getAttributeValueProtected<size_t>("PSD_MADS_SUBPROBLEM_MAX_BB_EVAL", false));
+        }
+        else if (ssdMadsOpt)
+        {
+            setAttributeValue("SUBPROBLEM_MAX_BB_EVAL", getAttributeValueProtected<size_t>("SSD_MADS_SUBPROBLEM_MAX_BB_EVAL", false));
+        }
+        else
+        {
+            setAttributeValue("SUBPROBLEM_MAX_BB_EVAL", NOMAD::INF_SIZE_T);
         }
     }
 

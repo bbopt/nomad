@@ -95,7 +95,7 @@ int NOMAD::NMIterationUtils::getRankDZ( ) const
     // The dimension of DZ (k) is related to Y
     size_t k = _nmY->size() - 1 ;
 
-    std::set<EvalPoint>::iterator itY = _nmY->begin();
+    std::set<NOMAD::EvalPoint>::iterator itY = _nmY->begin();
 
     const NOMAD::Point & y0 = (*itY);
     const size_t dim = y0.size();
@@ -122,7 +122,13 @@ int NOMAD::NMIterationUtils::getRankDZ( ) const
         OUTPUT_DEBUG_END
         for ( size_t i = 0; i < dim ; i++ )
         {
+            // To get the rank we better use a scaled DZ
+            // If Delta is not defined use 1 (no scaling)
             DZ[j][i] = ((*itY)[i].todouble() - y0[i].todouble()  );
+            if (i < _Delta.size() && _Delta[i].isDefined())
+            {
+                DZ[j][i] /= _Delta[i].todouble();
+            }
             OUTPUT_DEBUG_START
             outDbg << DZ[j][i] << " ";
             OUTPUT_DEBUG_END

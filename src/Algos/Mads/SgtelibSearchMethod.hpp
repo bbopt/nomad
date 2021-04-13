@@ -99,7 +99,9 @@ private:
     ///Generate new points (no evaluation)
     /**
      \copydoc SearchMethod::generateTrialPointsImp \n
-     This function is used only when a MADS search based on Quad Model with the option to generate all points before evaluation. It performs a single sub optimization (on the sgte) around all the points in the Barrier.
+     This function is used only when a MADS search based on Quad Model with
+     the option to generate all points before evaluation. It performs a single
+     sub optimization (on the sgtelib model) around all the points in the Barrier.
      */
     void generateTrialPointsImp() override;
 

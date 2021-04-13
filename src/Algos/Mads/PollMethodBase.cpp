@@ -44,51 +44,15 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/AlgoStopReasons.hpp"
-#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/PollMethodBase.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Output/OutputQueue.hpp"
+
 
 void NOMAD::PollMethodBase::init()
 {
     // A poll method must have a parent
     verifyParentNotNull();
-
-}
-
-void NOMAD::PollMethodBase::startImp()
-{
-    if ( ! _stopReasons->checkTerminate() )
-    {
-        // Create EvalPoints and snap to bounds and snap on mesh
-        generateTrialPoints();
-
-        // Stopping criterion
-        if ( 0 == getTrialPointsCount() )
-        {
-            auto madsStopReasons = NOMAD::AlgoStopReasons<NOMAD::MadsStopType>::get ( _stopReasons );
-            madsStopReasons->set( NOMAD::MadsStopType::MESH_PREC_REACHED );
-        }
-
-    }
-}
-
-bool NOMAD::PollMethodBase::runImp()
-{
-
-    bool foundBetter = false;
-    if ( ! _stopReasons->checkTerminate() )
-    {
-        foundBetter = evalTrialPoints(this);
-    }
-
-    return foundBetter;
-}
-
-void NOMAD::PollMethodBase::endImp()
-{
-    // Compute hMax and update Barrier.
-    postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
 }
 
 
@@ -167,19 +131,14 @@ void NOMAD::PollMethodBase::generateTrialPoints()
     OUTPUT_INFO_END
 
     // We need a frame center to start with.
-    auto frameCenter = getIterationFrameCenter();
-    if (nullptr == frameCenter || !frameCenter->ArrayOfDouble::isDefined() || frameCenter->size() != n)
+    if (!_frameCenter.ArrayOfDouble::isDefined() || _frameCenter.size() != n)
     {
-        std::string err("Invalid frame center: ");
-        if (nullptr != frameCenter)
-        {
-            err += frameCenter->display();
-        }
+        std::string err = "Invalid frame center: " + _frameCenter.display();
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
     OUTPUT_DEBUG_START
-    AddOutputDebug("Frame center: " + frameCenter->display());
+    AddOutputDebug("Frame center: " + _frameCenter.display());
     OUTPUT_DEBUG_END
 
     for (std::list<NOMAD::Direction>::iterator it = directionsFullSpace.begin(); it != directionsFullSpace.end() ; ++it)
@@ -189,39 +148,39 @@ void NOMAD::PollMethodBase::generateTrialPoints()
         // pt = frame center + direction
         for (size_t i = 0 ; i < n ; ++i )
         {
-            pt[i] = (*frameCenter)[i] + (*it)[i];
+            pt[i] = _frameCenter[i] + (*it)[i];
         }
 
+        auto evalPoint = NOMAD::EvalPoint(pt);
+        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(_frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
         // Snap the points and the corresponding direction to the bounds
-        if (snapPointToBoundsAndProjectOnMesh(pt, _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND"),
+        if (snapPointToBoundsAndProjectOnMesh(evalPoint,
+                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND"),
                                               _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND")))
         {
-            if (pt != *frameCenter->getX())
+            if (*evalPoint.getX() != *_frameCenter.getX())
             {
                 // New EvalPoint to be evaluated.
                 // Add it to the list.
-                bool inserted = insertTrialPoint(NOMAD::EvalPoint(pt));
+                evalPoint.setGenStep(getName());
+                bool inserted = insertTrialPoint(evalPoint);
 
                 OUTPUT_INFO_START
                 std::string s = "Generated point";
                 s += (inserted) ? ": " : " not inserted: ";
-                s += pt.display();
+                s += evalPoint.display();
                 AddOutputInfo(s);
                 OUTPUT_INFO_END
             }
         }
-
     }
-
-    verifyPointsAreOnMesh(getName());
-    updatePointsWithFrameCenter();
 
     OUTPUT_INFO_START
     AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");
     AddOutputInfo("Generate points for " + _name, false, true);
     OUTPUT_INFO_END
-
 }
+
 
 void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs)
 {

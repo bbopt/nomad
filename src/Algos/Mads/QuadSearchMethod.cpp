@@ -47,6 +47,7 @@
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/QuadSearchMethod.hpp"
 #include "../../Algos/QuadModel/QuadModelAlgo.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 //
@@ -93,7 +94,7 @@ void NOMAD::QuadSearchMethod::init()
             setEnabled(false);
         }
 
-        auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
+        auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
         _displayLevel = modelDisplay.empty()
                             ? NOMAD::OutputLevel::LEVEL_DEBUGDEBUG
                             : NOMAD::OutputLevel::LEVEL_INFO;
@@ -114,7 +115,11 @@ void NOMAD::QuadSearchMethod::generateTrialPointsImp()
         auto bestXFeas = madsIteration->getMegaIterationBarrier()->getFirstXFeas();
         auto bestXInf  = madsIteration->getMegaIterationBarrier()->getFirstXInf();
 
-        if (nullptr != bestXFeas)
+        auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+        auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+        if (nullptr != bestXFeas
+            && bestXFeas->getF(evalType, computeType).isDefined()
+            && bestXFeas->getF(evalType, computeType) < MODEL_MAX_OUTPUT)
         {
             NOMAD::QuadModelSinglePass singlePassFeas(this, bestXFeas, madsIteration->getMesh());
 
@@ -123,12 +128,17 @@ void NOMAD::QuadSearchMethod::generateTrialPointsImp()
 
             // Pass the generated trial pts to this
             auto trialPtsSinglePassFeas = singlePassFeas.getTrialPoints();
-            for (auto point : trialPtsSinglePassFeas)
+            for (auto evalPoint : trialPtsSinglePassFeas)
             {
-                insertTrialPoint(point);
+                evalPoint.setPointFrom(bestXFeas, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+                insertTrialPoint(evalPoint);
             }
         }
-        if (nullptr != bestXInf)
+        if (nullptr != bestXInf
+            && bestXInf->getF(evalType, computeType).isDefined()
+            && bestXInf->getF(evalType, computeType) < MODEL_MAX_OUTPUT
+            && bestXInf->getH(evalType, computeType).isDefined()
+            && bestXInf->getH(evalType, computeType) < MODEL_MAX_OUTPUT)
         {
             NOMAD::QuadModelSinglePass singlePassInf(this, bestXInf, madsIteration->getMesh());
 
@@ -137,9 +147,10 @@ void NOMAD::QuadSearchMethod::generateTrialPointsImp()
 
             // Pass the generated trial pts to this
             auto trialPtsSinglePassInf = singlePassInf.getTrialPoints();
-            for (auto point : trialPtsSinglePassInf)
+            for (auto evalPoint : trialPtsSinglePassInf)
             {
-                insertTrialPoint(point);
+                evalPoint.setPointFrom(bestXInf, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+                insertTrialPoint(evalPoint);
             }
         }
     }

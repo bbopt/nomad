@@ -48,18 +48,21 @@
 
 
 #include "../../Algos/MegaIteration.hpp"
+#include "../../Algos/QuadModel/QuadModelIteration.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
 /// Manager class for QuadModelAlgo iterations.
 /**
  Steps:
- - Start: generate points, using sgte model
+ - Start: generate points, using quad model
  - Run: Evaluate points
  - End: Post-processing
 */
 class QuadModelMegaIteration: public MegaIteration
 {
+private:
+    std::vector<std::shared_ptr<QuadModelIteration>> _iterList;
 
 public:
     /// Constructor

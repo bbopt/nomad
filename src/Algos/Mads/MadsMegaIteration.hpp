@@ -121,12 +121,6 @@ public:
     void read(  std::istream& is ) override;
     void display(  std::ostream& os ) const override ;
 
-private:
-
-    /// Helper for start()
-    // Currently not used.
-    //bool addIterationsForLargerMeshes(const EvalPoint& x0, size_t &k);
-
 };
 
 /**

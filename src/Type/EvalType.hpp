@@ -45,7 +45,7 @@
 /*---------------------------------------------------------------------------------*/
 /**
  \file   EvalType.hpp
- \brief  Types for Evaluation: Blackbox, Surrogate
+ \brief  Types for Evaluation: Blackbox, Model
  \author Viviane Rochon Montplaisir
  \date   November 2019
  \see    EvalType.cpp
@@ -62,14 +62,14 @@
 enum class EvalType
 {
     BB,                 ///< The evaluator is a blackbox.
-    SGTE,               ///< The evaluator is a surrogate function,
+    MODEL,              ///< The evaluator is a model function,
                         /// potentially much faster to run than a blackbox.
     UNDEFINED           ///< Undefined: This value may be used when the
                         ///< EvalType is not mandatory
 };
 
 
-// Convert a string (ex "BB", "SGTE")
+// Convert a string (ex "BB", "MODEL")
 // to an EvalType.
 EvalType stringToEvalType(const std::string &s);
 

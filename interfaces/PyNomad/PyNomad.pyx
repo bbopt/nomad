@@ -88,7 +88,7 @@ cdef extern from "Eval/EvalPoint.hpp" namespace "NOMAD":
         const Double& operator[](size_t i) const
         const Double& getF()
         const Double& getH()
-        void setBBO(const string &bbo, const string &sBBOutputTypes)
+        void setBBO(const string &bbo)
         string getBBO()
         size_t size()
 
@@ -111,8 +111,8 @@ cdef class PyNomadEvalPoint:
         return coord_d
 
 
-    def setBBO(self, string bbo, string sBBOutputTypes):
-        deref(self.c_ep_ptr).setBBO(bbo, sBBOutputTypes)
+    def setBBO(self, string bbo):
+        deref(self.c_ep_ptr).setBBO(bbo)
 
     def getF(self):
         cdef PyNomadDouble f = PyNomadDouble()

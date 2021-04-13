@@ -180,15 +180,11 @@ $(document).ready(function(){initNavTree('_termination_8hpp_source.html',''); in
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;<span class="comment"></span> </div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;<span class="comment">    /// Helper for constructor</span></div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_termination.html#a08a252e2fcb154883d55cd92a1b81310">init</a>();</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;<span class="comment">    /// Helper for end</span></div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;<span class="comment"></span>    <span class="keywordtype">bool</span> <a class="code" href="class_termination.html#a70df29e21cb29995d430ffedd9418e30">solHasFeas</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;};</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;<span class="preprocessor">#include &quot;../nomad_nsend.hpp&quot;</span></div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;};</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160; </div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;<span class="preprocessor">#include &quot;../nomad_nsend.hpp&quot;</span></div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160; </div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;<span class="preprocessor">#endif // __NOMAD400_TERMINATION__</span></div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="preprocessor">#endif // __NOMAD400_TERMINATION__</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="aclass_termination_html_a08a252e2fcb154883d55cd92a1b81310"><div class="ttname"><a href="class_termination.html#a08a252e2fcb154883d55cd92a1b81310">Termination::init</a></div><div class="ttdeci">void init()</div><div class="ttdoc">Helper for constructor.</div></div>
@@ -197,7 +193,6 @@ $(document).ready(function(){initNavTree('_termination_8hpp_source.html',''); in
 <div class="ttc" id="aclass_termination_html_aaeac63a4c5a381f19f20c895d8129d3d"><div class="ttname"><a href="class_termination.html#aaeac63a4c5a381f19f20c895d8129d3d">Termination::runImp</a></div><div class="ttdeci">virtual bool runImp() override</div><div class="ttdoc">Implementation for run task of algorithm Termination.</div></div>
 <div class="ttc" id="aclass_termination_html_a1c48ab60a87b8154036ef166f6422111"><div class="ttname"><a href="class_termination.html#a1c48ab60a87b8154036ef166f6422111">Termination::Termination</a></div><div class="ttdeci">Termination(const Step *parentStep, const std::shared_ptr&lt; RunParameters &gt; &amp;runParams=nullptr, const std::shared_ptr&lt; PbParameters &gt; &amp;pbParams=nullptr)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_termination_8hpp_source.html#l00061">Termination.hpp:61</a></div></div>
 <div class="ttc" id="aclass_termination_html_ab95040c62bb4fcd3afcb9aceabed5ac5"><div class="ttname"><a href="class_termination.html#ab95040c62bb4fcd3afcb9aceabed5ac5">Termination::~Termination</a></div><div class="ttdeci">virtual ~Termination()</div><div class="ttdoc">Destructor.</div><div class="ttdef"><b>Definition:</b> <a href="_termination_8hpp_source.html#l00070">Termination.hpp:70</a></div></div>
-<div class="ttc" id="aclass_termination_html_a70df29e21cb29995d430ffedd9418e30"><div class="ttname"><a href="class_termination.html#a70df29e21cb29995d430ffedd9418e30">Termination::solHasFeas</a></div><div class="ttdeci">bool solHasFeas() const</div><div class="ttdoc">Helper for end.</div></div>
 <div class="ttc" id="aclass_termination_html"><div class="ttname"><a href="class_termination.html">Termination</a></div><div class="ttdoc">Class for termination of an algorithm.</div><div class="ttdef"><b>Definition:</b> <a href="_termination_8hpp_source.html#l00057">Termination.hpp:57</a></div></div>
 <div class="ttc" id="aclass_termination_html_a33cd03059463efa76cdace9ad8d3a708"><div class="ttname"><a href="class_termination.html#a33cd03059463efa76cdace9ad8d3a708">Termination::startImp</a></div><div class="ttdeci">virtual void startImp() override</div><div class="ttdoc">Will update the step name.</div></div>
 <div class="ttc" id="aclass_termination_html_a748fce06edfb7a80c1482486c5b40b78"><div class="ttname"><a href="class_termination.html#a748fce06edfb7a80c1482486c5b40b78">Termination::terminate</a></div><div class="ttdeci">virtual bool terminate(size_t iteration)</div></div>
@@ -205,7 +200,7 @@ $(document).ready(function(){initNavTree('_termination_8hpp_source.html',''); in
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_411efccbd5e576f82c71dd79c3c5caa4.html">Algos</a></li><li class="navelem"><a class="el" href="_termination_8hpp.html">Termination.hpp</a></li>
-    <li class="footer">Generated on Tue Dec 1 2020 17:08:18 for NOMAD Source by
+    <li class="footer">Generated on Fri Apr 9 2021 13:32:04 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

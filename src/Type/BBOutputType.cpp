@@ -73,7 +73,7 @@ NOMAD::BBOutputType NOMAD::stringToBBOutputType(const std::string &sConst)
     {
         ret = NOMAD::BBOutputType::EB;
     }
-    else if (s == "PB")
+    else if (s == "PB" || s == "CSTR")
     {
         ret = NOMAD::BBOutputType::PB;
     }
@@ -179,4 +179,17 @@ size_t NOMAD::getNbObj(const BBOutputTypeList& bbotList)
     }
 
     return nbObj;
+}
+
+
+std::istream& NOMAD::operator>>(std::istream& is, NOMAD::BBOutputTypeList &bbOutputTypeList)
+{
+    std::string s;
+
+    while (is >> s)
+    {
+        bbOutputTypeList.push_back(NOMAD::stringToBBOutputType(s));
+    }
+
+    return is;
 }

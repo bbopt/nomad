@@ -15,3 +15,14 @@ endif()
 # installing executables and libraries
 install(TARGETS example.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
+
+# Add a test for this example
+if(BUILD_TESTS MATCHES ON)
+    message(STATUS "    Add example library for custom h computation") 
+
+    # Can run this test after install
+    add_test(NAME ExampleAdvancedCustomHCompute
+	COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./example.exe
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+    )
+endif()

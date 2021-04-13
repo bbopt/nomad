@@ -1,0 +1,149 @@
+###############################################################################
+#######     Definition of Run Parameters attributes (QuadModel)    ############
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+QUAD_MODEL_SEARCH
+bool
+true
+\( Quad model search \)
+\(
+
+. MADS model search, using Bastien Talgorn's Sgtelib with quad models
+
+. Argument: one boolean ('yes' or 'no')
+
+. Disabled for more than 50 variables
+
+. Example: QUAD_MODEL_SEARCH yes
+
+\)
+\( basic mads quad model search model_search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR
+NOMAD::Double
+1
+\( Scale the bounds for the quad model search  \)
+\(
+
+. The quad model is built on evaluation points around a frame center. This
+defines min and max bounds, from which we define a model center. The model
+search is limited to tighter (can be wider with the parameter set to less than 1)
+bounds by reducing the distance of the optimization bounds to the model center.
+We use a reduction factor for that. If the reduction factor equals one, the min
+and max bounds are used as optimization bounds for the search. The greater the
+reduction factor, the tighter the bounds.
+
+. Argument: one Double greater than 0
+
+. Example: QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR 3.0
+
+\)
+\( develop mads quad model search sgtelib model_search bounds \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QUAD_MODEL_DISPLAY
+std::string
+-
+\( Display of a model \)
+\(
+. Control the display of the quad model search and quad model optimization.
+  These details are only shown if DISPLAY_DEGREE is FULL (3) or more.
+
+. Arguments: a string containing one or several of the following letters
+
+. \"S\": General information on the model search or optimization
+
+. \"F\": Details of the filter step
+
+. \"O\": Details of the models optimization
+
+. \"P\": Details of the projection
+
+. \"U\": Details of the model update
+
+. \"I\": Advancement of the model optimization
+
+. \"X\": Display of all of the model evaluations
+
+. Example: QUAD_MODEL_DISPLAY SPF # display the general information on the search
+                                       and on the filter and projection steps
+\)
+\( developer advanced model quad sgtelib \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################
+QUAD_MODEL_OPTIMIZATION
+bool
+false
+\( Quad model stand alone optimization for constrained and unconstrained pbs \)
+\(
+
+. Quadratic model optimization for constrained and unconstrained
+  optimization
+
+. Argument: bool
+
+. Stand alone quadratic model optimization will deactivate any optimization
+  strategy.
+
+. Example: QUAD_MODEL_OPTIMIZATION true
+
+\)
+\( advanced sgtelib quadratic quad optimization simplex \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+QUAD_MODEL_RADIUS_FACTOR
+NOMAD::Double
+2.0
+\( Quadratic model radius factor \)
+\(
+. Quadratic model radius factor
+
+. This parameter is used to select points to build the quadratic model
+
+. Frame size is multiplied by this factor to get the search radius
+
+. Points inside a circle centered on the poll center, within this radius,
+  are selected to build the quadratic model
+
+. Arguments: one strictly positive real
+
+. Example: QUAD_MODEL_RADIUS_FACTOR 1.0
+\)
+\( developer quadratic model radius \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################

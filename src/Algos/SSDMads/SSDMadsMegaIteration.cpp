@@ -74,10 +74,10 @@ void NOMAD::SSDMadsMegaIteration::startImp()
     OUTPUT_DEBUG_END
     if ( ! _stopReasons->checkTerminate() )
     {
-        auto bestEvalPoint = _barrier->getRefBestFeas();
+        auto bestEvalPoint = _barrier->getFirstXFeas();
 
         if (bestEvalPoint == nullptr)
-            bestEvalPoint  = _barrier->getRefBestInf();
+            bestEvalPoint  = _barrier->getFirstXInf();
 
         if (bestEvalPoint == nullptr)
             throw NOMAD::Exception(__FILE__, __LINE__, "No best eval point");
@@ -175,8 +175,8 @@ bool NOMAD::SSDMadsMegaIteration::runImp()
         NOMAD::EvalPointPtr newBestFeas,newBestInf;
 
         // Use mega iteration barrier to get the reference best points (should work for opportunistic or not)
-        auto refBestFeas = _barrier->getRefBestFeas();
-        auto refBestInf = _barrier->getRefBestInf();
+        auto refBestFeas = _barrier->getFirstXFeas();
+        auto refBestInf = _barrier->getFirstXInf();
 
         // Set the iter success based on best feasible and best infeasible points found compared to initial point.
         if (iterSuccessful && (nullptr != refBestFeas || nullptr != refBestInf))
@@ -191,7 +191,7 @@ bool NOMAD::SSDMadsMegaIteration::runImp()
                 // Compute success
                 // Get which of newBestFeas and newBestInf is improving
                 // the solution. Check newBestFeas first.
-                NOMAD::ComputeSuccessType computeSuccess(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
+                NOMAD::ComputeSuccessType computeSuccess(evc->getEvalType(), evc->getComputeType());
                 subPbSuccess = computeSuccess(newBestFeas, refBestFeas);
                 if (subPbSuccess >= NOMAD::SuccessType::PARTIAL_SUCCESS)
                 {
@@ -248,11 +248,11 @@ bool NOMAD::SSDMadsMegaIteration::runImp()
         // Transfer the Mads subproblem barrier into the mega iteration barrier
         //
         // The fixed variables of the mads subproblem
-        auto fixedVariable = NOMAD::SubproblemManager::getSubFixedVariable((madsOnSubPb.get()));
+        auto fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable((madsOnSubPb.get()));
         auto evalPointList = madsOnSubPb->getMegaIterationBarrier()->getAllPoints();
         // Convert into full dimension
         NOMAD::convertPointListToFull(evalPointList, fixedVariable);
-        _barrier->updateWithPoints(evalPointList, NOMAD::EvalType::BB, true);
+        _barrier->updateWithPoints(evalPointList, NOMAD::EvalType::BB, evc->getComputeType(), true);
 
         // Reset counter will reset the EvalMainThreadStopReason if the max bb is reached for this sub optimization
         evc->resetBbEvalInSubproblem();
@@ -297,7 +297,7 @@ void NOMAD::SSDMadsMegaIteration::setupSubproblemParams ( std::shared_ptr<NOMAD:
     subProblemPbParams->doNotShowWarnings();
     if (isPollster)
     {
-        subProblemPbParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::SINGLE );
+        subProblemRunParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::SINGLE );
         subProblemRunParams->setAttributeValue("MAX_ITERATIONS", 1);
         subProblemPbParams->setAttributeValue("INITIAL_FRAME_SIZE", mainFrameSize);
 

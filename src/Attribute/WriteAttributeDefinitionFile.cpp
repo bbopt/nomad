@@ -58,13 +58,20 @@
 #include <map>
 
 // Registered attribute definition names
-const std::string attributeDefinitionNames[7] = { "displayAttributesDefinition",
+const std::string attributeDefinitionNames[13] = { "deprecatedAttributesDefinition",
+    "displayAttributesDefinition",
     "evalAttributesDefinition",
     "cacheAttributesDefinition",
     "evaluatorControlAttributesDefinition",
     "evaluatorControlGlobalAttributesDefinition",
     "pbAttributesDefinition",
-    "runAttributesDefinition" };
+    "runAttributesDefinition",
+    "runAttributesDefinitionLH",
+    "runAttributesDefinitionNM",
+    "runAttributesDefinitionPSDSSD",
+    "runAttributesDefinitionQuadModel",
+    "runAttributesDefinitionSgtelibModel"
+};
 
 /// \brief Registered attribute flags and default value
 /**

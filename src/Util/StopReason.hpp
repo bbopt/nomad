@@ -131,8 +131,8 @@ enum class ModelStopType : int
 enum class NMStopType : int
 {
     STARTED                     ,  ///< Started (no stop)
-    TOO_SMALL_SIMPLEX           ,
-    SIMPLEX_RANK_INSUFFICIENT   ,
+    TOO_SMALL_SIMPLEX           ,  ///< Not used
+    SIMPLEX_RANK_INSUFFICIENT   ,  ///< Not used
     INITIAL_FAILED              ,  ///< No valid point during initialization
     REFLECT_FAILED              ,
     EXPANSION_FAILED            ,
@@ -144,6 +144,7 @@ enum class NMStopType : int
     X0_FAILED                   ,
     NM_SINGLE_COMPLETED         ,
     NM_STOP_ON_SUCCESS          ,
+    NM_STOP_NO_SHRINK           ,
     LAST
 };
 
@@ -168,7 +169,7 @@ enum class EvalMainThreadStopType : int
     OPPORTUNISTIC_SUCCESS   ,  ///< Success found and opportunistic strategy is used
     EMPTY_LIST_OF_POINTS    ,  ///< Tried to eval an empty list
     ALL_POINTS_EVALUATED    ,  ///< No more points to evaluate
-    MAX_SGTE_EVAL_REACHED   ,  ///< Max number of surrogate evaluations
+    MAX_MODEL_EVAL_REACHED  ,  ///< Max number of quad or sgtelib model evaluations
     LAST
 };
 
@@ -176,9 +177,10 @@ enum class EvalMainThreadStopType : int
 /// Stop type that can happen at the end of an iteration
 enum class IterStopType : int
 {
-    STARTED                  ,  ///< Started (no stop)
-    MAX_ITER_REACHED         ,   ///< Max number of iterations
-    STOP_ON_FEAS            ,  ///< Stop because a feasible point is reached.
+    STARTED                 ,  ///< Started (no stop)
+    MAX_ITER_REACHED        ,  ///< Max number of iterations
+    STOP_ON_FEAS            ,  ///< Stop because a feasible point is reached
+    PHASE_ONE_COMPLETED     ,  ///< Stop because PhaseOne is done
     LAST
 };
 

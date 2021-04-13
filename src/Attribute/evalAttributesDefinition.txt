@@ -75,6 +75,7 @@ OBJ
 . Available types
     . OBJ       : objective value to minimize (define twice for bi-objective)
     . PB        : constraint <= 0 treated with Progressive Barrier (PB)
+    . CSTR      : same as 'PB'
     . EB        : constraint <= 0 treated with Extreme Barrier (EB)
     . F         : constraint <= 0 treated with Filter
     . NOTHING   : this output is ignored
@@ -91,6 +92,23 @@ OBJ
 
 \)
 \( basic bb exe blackbox(s) output(s) constraint(s) type(s) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################
+BB_EVAL_FORMAT
+NOMAD::ArrayOfDouble
+-
+\( Format of the doubles sent to the blackbox evaluator \)
+\(
+
+. BB_EVAL_FORMAT is computed from the BB_INPUT_TYPE parameter.
+
+. Gives the format precision for doubles sent to blackbox evaluator.
+
+. CANNOT BE MODIFIED BY USER. Internal parameter.
+
+\)
+\( internal \)
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ################################################################################

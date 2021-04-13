@@ -198,11 +198,9 @@ public:
     // Return A \c bool equal to \c true if at least one value to be defined, \c false if not.
     bool toBeDefined() const;
 
-    /// Snap an array to the bounds. Remain on mesh centered on frameCenter.
+    /// Snap an array to the bounds. Ignore mesh.
     void snapToBounds(const ArrayOfDouble &lb,
-                      const ArrayOfDouble &ub,
-                      const ArrayOfDouble &frameCenter,
-                      const ArrayOfDouble &meshSize);
+                      const ArrayOfDouble &ub);
 
     /// Verify if the array is inside the bounds. Ignores undefined bounds.
     bool inBounds(const ArrayOfDouble &lowerBound,

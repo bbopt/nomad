@@ -386,115 +386,123 @@ $(document).ready(function(){initNavTree('_step_8hpp_source.html',''); initResiz
 <div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;    <span class="keyword">const</span> std::shared_ptr&lt;MeshBase&gt; <a class="code" href="class_step.html#ad03f8fb51e2134cd4d89dead0fe25bcb">getIterationMesh</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;<span class="comment"></span> </div>
 <div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;<span class="comment">     \return The frameCenter for the first Iteration ancestor of this Step.</span></div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;<span class="comment">     \return The Barrier for the main MegaIteration ancestor of this Step.</span></div>
 <div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;    <span class="keyword">const</span> std::shared_ptr&lt;EvalPoint&gt; <a class="code" href="class_step.html#a142d525ba5ad9f655d7ac1da9fb794b4">getIterationFrameCenter</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;    <span class="keyword">const</span> std::shared_ptr&lt;Barrier&gt; <a class="code" href="class_step.html#a74b22a9058b66397d317d77493577ed2">getMegaIterationBarrier</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;<span class="comment"></span> </div>
 <div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<span class="comment">     \return The Barrier for the main MegaIteration ancestor of this Step.</span></div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;    <span class="keyword">const</span> std::shared_ptr&lt;Barrier&gt; <a class="code" href="class_step.html#a74b22a9058b66397d317d77493577ed2">getMegaIterationBarrier</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;<span class="comment">    Start of the Step. Initialize values for the run.</span></div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;<span class="comment">    */</span></div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_step.html#ad50196a963b217bb3c901a48f2eced29">start</a>() ;</div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;<span class="comment">    Placeholder to be implemented in derived classes. Called by start.</span></div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;<span class="comment">    */</span></div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_step.html#a5269e61ecd447dd0a04c06588d7007f8">startImp</a>() = 0 ;</div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;<span class="comment">     * Perform main step task.</span></div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;<span class="comment">     * Main part of the Step</span></div>
-<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;<span class="comment">     \return \c true if the Step was positive, for instance, a success was found;</span></div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;<span class="comment">     \c false if there was no success running this step</span></div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<span class="comment">     \return \c true if either the cache has a feasible solution,</span></div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;<span class="comment">       or the MegaIteration ancestor&#39;s barrier has a feasible solution.</span></div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="class_step.html#a808cf03b44c1d048fd18f4549453a34f">solHasFeas</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;<span class="comment">    /**</span></div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;<span class="comment">     \return \c true if either the cache has a phase one solution,</span></div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;<span class="comment">       or the MegaIteration ancestor&#39;s barrier has a phase one solution.</span></div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;<span class="comment">       // A phase one solution has a PHASE_ONE Eval with f = 0.</span></div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="class_step.html#a27407440876f0f05a6866d6ed54f03be">hasPhaseOneSolution</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;<span class="comment">    /**</span></div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;<span class="comment">    Start of the Step. Initialize values for the run.</span></div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;<span class="comment">    */</span></div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_step.html#ad50196a963b217bb3c901a48f2eced29">start</a>() ;</div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;<span class="comment">    /**</span></div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;<span class="comment">    Placeholder to be implemented in derived classes. Called by start.</span></div>
 <div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;<span class="comment">    */</span></div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="class_step.html#a46439d01e8a7aef7ab74d51d77195e9e">run</a>();</div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_step.html#a5269e61ecd447dd0a04c06588d7007f8">startImp</a>() = 0 ;</div>
 <div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;<span class="comment"></span> </div>
 <div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;<span class="comment">    Placeholder to be implemented in derived classes. Called by run.</span></div>
-<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;<span class="comment">    */</span></div>
-<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="class_step.html#ac2771de5b7ada4dab52b72e8231adee8">runImp</a>() = 0 ;</div>
-<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;<span class="comment">     * End of the Step. Clean up structures, flush output.</span></div>
-<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;<span class="comment">    */</span></div>
-<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_step.html#a97f43d5b2e7b3f0055bb6f0ed643b00f">end</a>();</div>
-<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;<span class="comment">    Placeholder to be implemented by derived classes. Called by end.</span></div>
-<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;<span class="comment">    */</span></div>
-<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_step.html#a1b8bf9ded4986610e0207b6a64151269">endImp</a>() = 0 ;</div>
-<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;<span class="comment">    /// Helper for hot restart functionalities</span></div>
-<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;<span class="comment"></span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_step.html#accafc540e05f1f52e59d85e864595e84">hotRestartOnUserInterrupt</a>();</div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;<span class="comment">     * Perform main step task.</span></div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;<span class="comment">     * Main part of the Step</span></div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;<span class="comment">     \return \c true if the Step was positive, for instance, a success was found;</span></div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;<span class="comment">     \c false if there was no success running this step</span></div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;<span class="comment">    */</span></div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="class_step.html#a46439d01e8a7aef7ab74d51d77195e9e">run</a>();</div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;<span class="comment">    /**</span></div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;<span class="comment">    Placeholder to be implemented in derived classes. Called by run.</span></div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;<span class="comment">    */</span></div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="class_step.html#ac2771de5b7ada4dab52b72e8231adee8">runImp</a>() = 0 ;</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;<span class="comment">    /**</span></div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;<span class="comment">     * End of the Step. Clean up structures, flush output.</span></div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;<span class="comment">    */</span></div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_step.html#a97f43d5b2e7b3f0055bb6f0ed643b00f">end</a>();</div>
 <div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;<span class="comment">    /// For debugging purposes. Show the stack of Steps for this step.</span></div>
-<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_step.html#ab413d7fd3cb216eddebb1b824aa38b0c">debugShowCallStack</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160; </div>
-<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;<span class="keyword">protected</span>:<span class="comment"></span></div>
-<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;<span class="comment">    /// Helper for constructors.</span></div>
-<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;<span class="comment"></span><span class="comment">    /**</span></div>
-<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;<span class="comment">     Throw Exception when not verified.</span></div>
-<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_step.html#ab12ad9f5bc052d7c12605f0b27d7a975">verifyParentNotNull</a>();</div>
-<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;<span class="comment">    /// Helper for validating steps depending on parameter GENERATE_ALL_POINTS_BEFORE_EVAL</span></div>
-<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_step.html#a02192f582e180ac892f95551bd092503">verifyGenerateAllPointsBeforeEval</a>(<span class="keyword">const</span> std::string&amp; method, <span class="keyword">const</span> <span class="keywordtype">bool</span> expected) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;<span class="comment">    /// Helpers for hot restart, to be called at the start and end of any override.</span></div>
-<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_step.html#a039318d62a4272dea10dee12289d8b7f">hotRestartBeginHelper</a>();<span class="comment"></span></div>
-<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;<span class="comment">    /// Helpers for hot restart, to be called at the start and end of any override.</span></div>
-<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_step.html#a42b7a9b94db6bc19425f28deb2ae2629">hotRestartEndHelper</a>();</div>
-<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160; </div>
-<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;<span class="comment">    /// Helper for constructor</span></div>
-<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_step.html#aa086f1f88f839e4aa2f38d9c2f3eb7e7">init</a>();</div>
-<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160; </div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;    <span class="comment">// Default callbacks. They do nothing.</span></div>
-<div class="line"><a name="l00370"></a><span class="lineno"><a class="line" href="class_step.html#abb132ccb8544d4eb30f76cae8f5f66d6">  370</a></span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="class_step.html#abb132ccb8544d4eb30f76cae8f5f66d6">defaultStepEnd</a>(<span class="keyword">const</span> <a class="code" href="class_step.html">Step</a>&amp; step  __attribute__((unused)), <span class="keywordtype">bool</span> &amp;stop) { stop = <span class="keyword">false</span>; }</div>
-<div class="line"><a name="l00371"></a><span class="lineno"><a class="line" href="class_step.html#ad22f039be1662d8b52893652c8f4d804">  371</a></span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="class_step.html#ad22f039be1662d8b52893652c8f4d804">defaultHotRestart</a>(std::vector&lt;std::string&gt;&amp; paramLines  __attribute__((unused))) {};</div>
-<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;<span class="comment">     Default task always executed when start() is called</span></div>
-<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_step.html#a5254d288c436553dc25810097b3979dc">defaultStart</a>();</div>
-<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;<span class="comment">     Default task always executed when end() is called</span></div>
-<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_step.html#a5646d627324bed960998d2e39fc04e23">defaultEnd</a>();</div>
-<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160; </div>
-<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;};</div>
-<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160; </div>
-<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160; </div>
-<div class="line"><a name="l00386"></a><span class="lineno"><a class="line" href="class_step_exception.html">  386</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_step_exception.html">StepException</a> : <span class="keyword">public</span> <a class="code" href="class_exception.html">Exception</a></div>
-<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;{</div>
-<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;<span class="keyword">public</span>:<span class="comment"></span></div>
-<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;<span class="comment">    /// Constructor</span></div>
-<div class="line"><a name="l00390"></a><span class="lineno"><a class="line" href="class_step_exception.html#a40693a2c24bff529b484a6ab3189b1d4">  390</a></span>&#160;<span class="comment"></span>    <a class="code" href="class_step_exception.html#a40693a2c24bff529b484a6ab3189b1d4">StepException</a>(<span class="keyword">const</span> std::string&amp; file, <span class="keyword">const</span> <span class="keywordtype">size_t</span> line, <span class="keyword">const</span> std::string &amp; msg, <span class="keyword">const</span> <a class="code" href="class_step.html">Step</a>* step)</div>
-<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;      : <a class="code" href="class_exception.html">Exception</a>(file, line, msg)</div>
-<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;    {</div>
-<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;        <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> != step)</div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;        {</div>
-<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;            step-&gt;<a class="code" href="class_step.html#ab413d7fd3cb216eddebb1b824aa38b0c">debugShowCallStack</a>();</div>
-<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;        }</div>
-<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;    }</div>
-<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;};</div>
-<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160; </div>
-<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;<span class="preprocessor">#include &quot;../nomad_nsend.hpp&quot;</span></div>
-<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160; </div>
-<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;<span class="preprocessor">#endif // __NOMAD400_STEP__</span></div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;<span class="comment">    /**</span></div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;<span class="comment">    Placeholder to be implemented by derived classes. Called by end.</span></div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;<span class="comment">    */</span></div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_step.html#a1b8bf9ded4986610e0207b6a64151269">endImp</a>() = 0 ;</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;<span class="comment">    /// Helper for hot restart functionalities</span></div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;<span class="comment"></span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_step.html#accafc540e05f1f52e59d85e864595e84">hotRestartOnUserInterrupt</a>();</div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;<span class="comment">    /// For debugging purposes. Show the stack of Steps for this step.</span></div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_step.html#ab413d7fd3cb216eddebb1b824aa38b0c">debugShowCallStack</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160; </div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;<span class="keyword">protected</span>:<span class="comment"></span></div>
+<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;<span class="comment">    /// Helper for constructors.</span></div>
+<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;<span class="comment"></span><span class="comment">    /**</span></div>
+<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;<span class="comment">     Throw Exception when not verified.</span></div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_step.html#ab12ad9f5bc052d7c12605f0b27d7a975">verifyParentNotNull</a>();</div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;<span class="comment">    /// Helper for validating steps depending on parameter MEGA_SEARCH_POLL</span></div>
+<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_step.html#a02192f582e180ac892f95551bd092503">verifyGenerateAllPointsBeforeEval</a>(<span class="keyword">const</span> std::string&amp; method, <span class="keyword">const</span> <span class="keywordtype">bool</span> expected) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;<span class="comment">    /// Helpers for hot restart, to be called at the start and end of any override.</span></div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_step.html#a039318d62a4272dea10dee12289d8b7f">hotRestartBeginHelper</a>();<span class="comment"></span></div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;<span class="comment">    /// Helpers for hot restart, to be called at the start and end of any override.</span></div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_step.html#a42b7a9b94db6bc19425f28deb2ae2629">hotRestartEndHelper</a>();</div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160; </div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;<span class="comment">    /// Helper for constructor</span></div>
+<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_step.html#aa086f1f88f839e4aa2f38d9c2f3eb7e7">init</a>();</div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160; </div>
+<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;    <span class="comment">// Default callbacks. They do nothing.</span></div>
+<div class="line"><a name="l00378"></a><span class="lineno"><a class="line" href="class_step.html#abb132ccb8544d4eb30f76cae8f5f66d6">  378</a></span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="class_step.html#abb132ccb8544d4eb30f76cae8f5f66d6">defaultStepEnd</a>(<span class="keyword">const</span> <a class="code" href="class_step.html">Step</a>&amp; step  __attribute__((unused)), <span class="keywordtype">bool</span> &amp;stop) { stop = <span class="keyword">false</span>; }</div>
+<div class="line"><a name="l00379"></a><span class="lineno"><a class="line" href="class_step.html#ad22f039be1662d8b52893652c8f4d804">  379</a></span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="class_step.html#ad22f039be1662d8b52893652c8f4d804">defaultHotRestart</a>(std::vector&lt;std::string&gt;&amp; paramLines  __attribute__((unused))) {};</div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;<span class="comment">    /**</span></div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;<span class="comment">     Default task always executed when start() is called</span></div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_step.html#a5254d288c436553dc25810097b3979dc">defaultStart</a>();</div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;<span class="comment">    /**</span></div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;<span class="comment">     Default task always executed when end() is called</span></div>
+<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_step.html#a5646d627324bed960998d2e39fc04e23">defaultEnd</a>();</div>
+<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160; </div>
+<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;};</div>
+<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160; </div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160; </div>
+<div class="line"><a name="l00394"></a><span class="lineno"><a class="line" href="class_step_exception.html">  394</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_step_exception.html">StepException</a> : <span class="keyword">public</span> <a class="code" href="class_exception.html">Exception</a></div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;{</div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;<span class="keyword">public</span>:<span class="comment"></span></div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;<span class="comment">    /// Constructor</span></div>
+<div class="line"><a name="l00398"></a><span class="lineno"><a class="line" href="class_step_exception.html#a40693a2c24bff529b484a6ab3189b1d4">  398</a></span>&#160;<span class="comment"></span>    <a class="code" href="class_step_exception.html#a40693a2c24bff529b484a6ab3189b1d4">StepException</a>(<span class="keyword">const</span> std::string&amp; file, <span class="keyword">const</span> <span class="keywordtype">size_t</span> line, <span class="keyword">const</span> std::string &amp; msg, <span class="keyword">const</span> <a class="code" href="class_step.html">Step</a>* step)</div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;      : <a class="code" href="class_exception.html">Exception</a>(file, line, msg)</div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;    {</div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;        <span class="keywordflow">if</span> (<span class="keyword">nullptr</span> != step)</div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;        {</div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;            step-&gt;<a class="code" href="class_step.html#ab413d7fd3cb216eddebb1b824aa38b0c">debugShowCallStack</a>();</div>
+<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;        }</div>
+<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;    }</div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;};</div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160; </div>
+<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;<span class="preprocessor">#include &quot;../nomad_nsend.hpp&quot;</span></div>
+<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160; </div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;<span class="preprocessor">#endif // __NOMAD400_STEP__</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="a_output_info_8hpp_html_a6bcb6b3fe3d480eff62b980e53515a37"><div class="ttname"><a href="_output_info_8hpp.html#a6bcb6b3fe3d480eff62b980e53515a37">OutputLevel</a></div><div class="ttdeci">OutputLevel</div><div class="ttdoc">Level of output AKA Display degree.</div><div class="ttdef"><b>Definition:</b> <a href="_output_info_8hpp_source.html#l00055">OutputInfo.hpp:55</a></div></div>
 <div class="ttc" id="aclass_step_html_ab413d7fd3cb216eddebb1b824aa38b0c"><div class="ttname"><a href="class_step.html#ab413d7fd3cb216eddebb1b824aa38b0c">Step::debugShowCallStack</a></div><div class="ttdeci">void debugShowCallStack() const</div><div class="ttdoc">For debugging purposes. Show the stack of Steps for this step.</div></div>
 <div class="ttc" id="aclass_step_html_ac5402399bf9025de2a5f351e513e0107"><div class="ttname"><a href="class_step.html#ac5402399bf9025de2a5f351e513e0107">Step::getPbParams</a></div><div class="ttdeci">const std::shared_ptr&lt; PbParameters &gt; &amp; getPbParams() const</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00201">Step.hpp:201</a></div></div>
 <div class="ttc" id="aclass_step_html_acfbc628c549845bc826eb77ef2b800a7"><div class="ttname"><a href="class_step.html#acfbc628c549845bc826eb77ef2b800a7">Step::_showWarnings</a></div><div class="ttdeci">static bool _showWarnings</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00091">Step.hpp:91</a></div></div>
-<div class="ttc" id="aclass_step_exception_html"><div class="ttname"><a href="class_step_exception.html">StepException</a></div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00386">Step.hpp:386</a></div></div>
+<div class="ttc" id="aclass_step_exception_html"><div class="ttname"><a href="class_step_exception.html">StepException</a></div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00394">Step.hpp:394</a></div></div>
 <div class="ttc" id="aclass_step_html_ac9dc2e9cc7a05190766830d9366866a4"><div class="ttname"><a href="class_step.html#ac9dc2e9cc7a05190766830d9366866a4">Step::getName</a></div><div class="ttdeci">virtual const std::string &amp; getName() const</div><div class="ttdoc">Get the name of this step.</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00190">Step.hpp:190</a></div></div>
 <div class="ttc" id="aclass_step_html_ad56d929ee95cdf1f0b63a45440675c87"><div class="ttname"><a href="class_step.html#ad56d929ee95cdf1f0b63a45440675c87">Step::~Step</a></div><div class="ttdeci">virtual ~Step()</div><div class="ttdoc">Destructor.</div></div>
 <div class="ttc" id="aclass_step_html_a5254d288c436553dc25810097b3979dc"><div class="ttname"><a href="class_step.html#a5254d288c436553dc25810097b3979dc">Step::defaultStart</a></div><div class="ttdeci">void defaultStart()</div></div>
@@ -506,7 +514,7 @@ $(document).ready(function(){initNavTree('_step_8hpp_source.html',''); initResiz
 <div class="ttc" id="aclass_step_html_a3c3aa281e9f27e113d656794d1c3cef7"><div class="ttname"><a href="class_step.html#a3c3aa281e9f27e113d656794d1c3cef7">Step::userInterrupt</a></div><div class="ttdeci">static void userInterrupt(int signalValue)</div><div class="ttdoc">Interruption call by user.</div></div>
 <div class="ttc" id="aclass_step_html_a3f66a321aa9c417352a75c85cff5aca5"><div class="ttname"><a href="class_step.html#a3f66a321aa9c417352a75c85cff5aca5">Step::Step</a></div><div class="ttdeci">Step()</div><div class="ttdoc">Constructor #1 for MainStep (no parent)</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00098">Step.hpp:98</a></div></div>
 <div class="ttc" id="aclass_algorithm_html"><div class="ttname"><a href="class_algorithm.html">Algorithm</a></div><div class="ttdoc">Generic class for any direct search optimizer algorithm.</div><div class="ttdef"><b>Definition:</b> <a href="_algorithm_8hpp_source.html#l00068">Algorithm.hpp:68</a></div></div>
-<div class="ttc" id="aclass_step_exception_html_a40693a2c24bff529b484a6ab3189b1d4"><div class="ttname"><a href="class_step_exception.html#a40693a2c24bff529b484a6ab3189b1d4">StepException::StepException</a></div><div class="ttdeci">StepException(const std::string &amp;file, const size_t line, const std::string &amp;msg, const Step *step)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00390">Step.hpp:390</a></div></div>
+<div class="ttc" id="aclass_step_exception_html_a40693a2c24bff529b484a6ab3189b1d4"><div class="ttname"><a href="class_step_exception.html#a40693a2c24bff529b484a6ab3189b1d4">StepException::StepException</a></div><div class="ttdeci">StepException(const std::string &amp;file, const size_t line, const std::string &amp;msg, const Step *step)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00398">Step.hpp:398</a></div></div>
 <div class="ttc" id="aclass_step_html_ada865ce33909a58b9688e06649454f68"><div class="ttname"><a href="class_step.html#ada865ce33909a58b9688e06649454f68">Step::setUserTerminate</a></div><div class="ttdeci">static void setUserTerminate()</div><div class="ttdoc">Interruption requested.</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00176">Step.hpp:176</a></div></div>
 <div class="ttc" id="aclass_step_html_a91baaaa6cc55bfbbeda0dd96f3280e80"><div class="ttname"><a href="class_step.html#a91baaaa6cc55bfbbeda0dd96f3280e80">Step::_parentStep</a></div><div class="ttdeci">const Step * _parentStep</div><div class="ttdoc">The parent of this step.</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00075">Step.hpp:75</a></div></div>
 <div class="ttc" id="aclass_step_html"><div class="ttname"><a href="class_step.html">Step</a></div><div class="ttdoc">Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,...</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00068">Step.hpp:68</a></div></div>
@@ -519,11 +527,11 @@ $(document).ready(function(){initNavTree('_step_8hpp_source.html',''); initResiz
 <div class="ttc" id="aclass_step_html_ad592cf9786e80b60c06d902dc13b1869"><div class="ttname"><a href="class_step.html#ad592cf9786e80b60c06d902dc13b1869">Step::AddOutputWarning</a></div><div class="ttdeci">void AddOutputWarning(const std::string &amp;s) const</div></div>
 <div class="ttc" id="aclass_step_html_a46439d01e8a7aef7ab74d51d77195e9e"><div class="ttname"><a href="class_step.html#a46439d01e8a7aef7ab74d51d77195e9e">Step::run</a></div><div class="ttdeci">bool run()</div></div>
 <div class="ttc" id="a_callback_type_8hpp_html_a2c334c87d8c60bc99ecdf9d297943318"><div class="ttname"><a href="_callback_type_8hpp.html#a2c334c87d8c60bc99ecdf9d297943318">CallbackType</a></div><div class="ttdeci">CallbackType</div><div class="ttdef"><b>Definition:</b> <a href="_callback_type_8hpp_source.html#l00060">CallbackType.hpp:60</a></div></div>
-<div class="ttc" id="aclass_step_html_a02192f582e180ac892f95551bd092503"><div class="ttname"><a href="class_step.html#a02192f582e180ac892f95551bd092503">Step::verifyGenerateAllPointsBeforeEval</a></div><div class="ttdeci">void verifyGenerateAllPointsBeforeEval(const std::string &amp;method, const bool expected) const</div><div class="ttdoc">Helper for validating steps depending on parameter GENERATE_ALL_POINTS_BEFORE_EVAL.</div></div>
+<div class="ttc" id="aclass_step_html_a02192f582e180ac892f95551bd092503"><div class="ttname"><a href="class_step.html#a02192f582e180ac892f95551bd092503">Step::verifyGenerateAllPointsBeforeEval</a></div><div class="ttdeci">void verifyGenerateAllPointsBeforeEval(const std::string &amp;method, const bool expected) const</div><div class="ttdoc">Helper for validating steps depending on parameter MEGA_SEARCH_POLL.</div></div>
 <div class="ttc" id="aclass_step_html_a11d339c82dbaf1b23c8c4c77dfc1c4cb"><div class="ttname"><a href="class_step.html#a11d339c82dbaf1b23c8c4c77dfc1c4cb">Step::Step</a></div><div class="ttdeci">Step(const Step *parentStep, std::shared_ptr&lt; AllStopReasons &gt; stopReasons, const std::shared_ptr&lt; RunParameters &gt; &amp;runParams=nullptr, const std::shared_ptr&lt; PbParameters &gt; &amp;pbParams=nullptr)</div><div class="ttdoc">Constructor #3: for a child Step with a provided stopReason (such as an algorithm)</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00142">Step.hpp:142</a></div></div>
 <div class="ttc" id="aclass_step_html_a28dab2659e362590e27cd9c342441f68"><div class="ttname"><a href="class_step.html#a28dab2659e362590e27cd9c342441f68">Step::isAnAlgorithm</a></div><div class="ttdeci">bool isAnAlgorithm() const</div></div>
 <div class="ttc" id="aclass_step_html_a1b8bf9ded4986610e0207b6a64151269"><div class="ttname"><a href="class_step.html#a1b8bf9ded4986610e0207b6a64151269">Step::endImp</a></div><div class="ttdeci">virtual void endImp()=0</div></div>
-<div class="ttc" id="aclass_exception_html"><div class="ttname"><a href="class_exception.html">Exception</a></div><div class="ttdoc">Exception utility.</div><div class="ttdef"><b>Definition:</b> <a href="_write_attribute_definition_file_8cpp_source.html#l00086">WriteAttributeDefinitionFile.cpp:86</a></div></div>
+<div class="ttc" id="aclass_exception_html"><div class="ttname"><a href="class_exception.html">Exception</a></div><div class="ttdoc">Exception utility.</div><div class="ttdef"><b>Definition:</b> <a href="_write_attribute_definition_file_8cpp_source.html#l00093">WriteAttributeDefinitionFile.cpp:93</a></div></div>
 <div class="ttc" id="aclass_step_html_aa086f1f88f839e4aa2f38d9c2f3eb7e7"><div class="ttname"><a href="class_step.html#aa086f1f88f839e4aa2f38d9c2f3eb7e7">Step::init</a></div><div class="ttdeci">void init()</div><div class="ttdoc">Helper for constructor.</div></div>
 <div class="ttc" id="aclass_step_html_af32a5ea1063d98080bb1e258a4c9c5b2"><div class="ttname"><a href="class_step.html#af32a5ea1063d98080bb1e258a4c9c5b2">Step::getParentOfType</a></div><div class="ttdeci">T getParentOfType(const bool stopAtAlgo=true) const</div><div class="ttdoc">Template function to get the parent of given type.</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00247">Step.hpp:247</a></div></div>
 <div class="ttc" id="aclass_step_html_ad50196a963b217bb3c901a48f2eced29"><div class="ttname"><a href="class_step.html#ad50196a963b217bb3c901a48f2eced29">Step::start</a></div><div class="ttdeci">void start()</div></div>
@@ -540,10 +548,9 @@ $(document).ready(function(){initNavTree('_step_8hpp_source.html',''); initResiz
 <div class="ttc" id="aclass_step_html_ab12ad9f5bc052d7c12605f0b27d7a975"><div class="ttname"><a href="class_step.html#ab12ad9f5bc052d7c12605f0b27d7a975">Step::verifyParentNotNull</a></div><div class="ttdeci">void verifyParentNotNull()</div><div class="ttdoc">Helper for constructors.</div></div>
 <div class="ttc" id="aclass_step_html_a7db167384c65fcf7fa8bf9f7287b105a"><div class="ttname"><a href="class_step.html#a7db167384c65fcf7fa8bf9f7287b105a">Step::setName</a></div><div class="ttdeci">void setName(const std::string &amp;name)</div><div class="ttdoc">Set the name of this step.</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00196">Step.hpp:196</a></div></div>
 <div class="ttc" id="a_step_8hpp_html_a9b17142d748d033b792bc96283c3f37d"><div class="ttname"><a href="_step_8hpp.html#a9b17142d748d033b792bc96283c3f37d">StepEndCbFunc</a></div><div class="ttdeci">std::function&lt; void(const Step &amp;step, bool &amp;stop)&gt; StepEndCbFunc</div><div class="ttdoc">Type definitions for callback functions at the end of a step.</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00062">Step.hpp:62</a></div></div>
-<div class="ttc" id="aclass_step_html_abb132ccb8544d4eb30f76cae8f5f66d6"><div class="ttname"><a href="class_step.html#abb132ccb8544d4eb30f76cae8f5f66d6">Step::defaultStepEnd</a></div><div class="ttdeci">static void defaultStepEnd(const Step &amp;step __attribute__((unused)), bool &amp;stop)</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00370">Step.hpp:370</a></div></div>
+<div class="ttc" id="aclass_step_html_abb132ccb8544d4eb30f76cae8f5f66d6"><div class="ttname"><a href="class_step.html#abb132ccb8544d4eb30f76cae8f5f66d6">Step::defaultStepEnd</a></div><div class="ttdeci">static void defaultStepEnd(const Step &amp;step __attribute__((unused)), bool &amp;stop)</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00378">Step.hpp:378</a></div></div>
 <div class="ttc" id="aclass_step_html_ad024bb2f20b353d60f3485d1454da301"><div class="ttname"><a href="class_step.html#ad024bb2f20b353d60f3485d1454da301">Step::getUserTerminate</a></div><div class="ttdeci">static bool getUserTerminate()</div><div class="ttdoc">Interruption call by user.</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00173">Step.hpp:173</a></div></div>
 <div class="ttc" id="aclass_step_html_a49d781138c2d1cd1bce8ffbd61e6a918"><div class="ttname"><a href="class_step.html#a49d781138c2d1cd1bce8ffbd61e6a918">Step::AddOutputHigh</a></div><div class="ttdeci">void AddOutputHigh(const std::string &amp;s) const</div></div>
-<div class="ttc" id="aclass_step_html_a142d525ba5ad9f655d7ac1da9fb794b4"><div class="ttname"><a href="class_step.html#a142d525ba5ad9f655d7ac1da9fb794b4">Step::getIterationFrameCenter</a></div><div class="ttdeci">const std::shared_ptr&lt; EvalPoint &gt; getIterationFrameCenter() const</div></div>
 <div class="ttc" id="a_step_8hpp_html_a97aa6ac66e60521c72dd3a26e6d31f48"><div class="ttname"><a href="_step_8hpp.html#a97aa6ac66e60521c72dd3a26e6d31f48">HotRestartCbFunc</a></div><div class="ttdeci">std::function&lt; void(std::vector&lt; std::string &gt; &amp;paramLines)&gt; HotRestartCbFunc</div><div class="ttdoc">Type definitions for callback functions for hot restart.</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00065">Step.hpp:65</a></div></div>
 <div class="ttc" id="aclass_output_info_html"><div class="ttname"><a href="class_output_info.html">OutputInfo</a></div><div class="ttdef"><b>Definition:</b> <a href="_output_info_8hpp_source.html#l00075">OutputInfo.hpp:75</a></div></div>
 <div class="ttc" id="aclass_step_html_ad03f8fb51e2134cd4d89dead0fe25bcb"><div class="ttname"><a href="class_step.html#ad03f8fb51e2134cd4d89dead0fe25bcb">Step::getIterationMesh</a></div><div class="ttdeci">const std::shared_ptr&lt; MeshBase &gt; getIterationMesh() const</div></div>
@@ -559,15 +566,17 @@ $(document).ready(function(){initNavTree('_step_8hpp_source.html',''); initResiz
 <div class="ttc" id="aclass_step_html_acc4bfc2a1d11708ab05d63b0e13cbdd6"><div class="ttname"><a href="class_step.html#acc4bfc2a1d11708ab05d63b0e13cbdd6">Step::debugSegFault</a></div><div class="ttdeci">static void debugSegFault(int signalValue)</div></div>
 <div class="ttc" id="aclass_step_html_af498d511af5dc040a5d5a6eb3e0c1c00"><div class="ttname"><a href="class_step.html#af498d511af5dc040a5d5a6eb3e0c1c00">Step::_cbIterationEnd</a></div><div class="ttdeci">static StepEndCbFunc _cbIterationEnd</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00085">Step.hpp:85</a></div></div>
 <div class="ttc" id="aclass_step_html_a42b7a9b94db6bc19425f28deb2ae2629"><div class="ttname"><a href="class_step.html#a42b7a9b94db6bc19425f28deb2ae2629">Step::hotRestartEndHelper</a></div><div class="ttdeci">void hotRestartEndHelper()</div><div class="ttdoc">Helpers for hot restart, to be called at the start and end of any override.</div></div>
-<div class="ttc" id="aclass_step_html_ad22f039be1662d8b52893652c8f4d804"><div class="ttname"><a href="class_step.html#ad22f039be1662d8b52893652c8f4d804">Step::defaultHotRestart</a></div><div class="ttdeci">static void defaultHotRestart(std::vector&lt; std::string &gt; &amp;paramLines __attribute__((unused)))</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00371">Step.hpp:371</a></div></div>
+<div class="ttc" id="aclass_step_html_a808cf03b44c1d048fd18f4549453a34f"><div class="ttname"><a href="class_step.html#a808cf03b44c1d048fd18f4549453a34f">Step::solHasFeas</a></div><div class="ttdeci">bool solHasFeas() const</div></div>
+<div class="ttc" id="aclass_step_html_ad22f039be1662d8b52893652c8f4d804"><div class="ttname"><a href="class_step.html#ad22f039be1662d8b52893652c8f4d804">Step::defaultHotRestart</a></div><div class="ttdeci">static void defaultHotRestart(std::vector&lt; std::string &gt; &amp;paramLines __attribute__((unused)))</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00379">Step.hpp:379</a></div></div>
 <div class="ttc" id="aclass_step_html_aa0ecdadc872a863d3c9facb0b73d9c52"><div class="ttname"><a href="class_step.html#aa0ecdadc872a863d3c9facb0b73d9c52">Step::_cbHotRestart</a></div><div class="ttdeci">static HotRestartCbFunc _cbHotRestart</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00087">Step.hpp:87</a></div></div>
+<div class="ttc" id="aclass_step_html_a27407440876f0f05a6866d6ed54f03be"><div class="ttname"><a href="class_step.html#a27407440876f0f05a6866d6ed54f03be">Step::hasPhaseOneSolution</a></div><div class="ttdeci">bool hasPhaseOneSolution() const</div></div>
 <div class="ttc" id="aclass_step_html_a74b22a9058b66397d317d77493577ed2"><div class="ttname"><a href="class_step.html#a74b22a9058b66397d317d77493577ed2">Step::getMegaIterationBarrier</a></div><div class="ttdeci">const std::shared_ptr&lt; Barrier &gt; getMegaIterationBarrier() const</div></div>
 <div class="ttc" id="aclass_step_html_a5269e61ecd447dd0a04c06588d7007f8"><div class="ttname"><a href="class_step.html#a5269e61ecd447dd0a04c06588d7007f8">Step::startImp</a></div><div class="ttdeci">virtual void startImp()=0</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_411efccbd5e576f82c71dd79c3c5caa4.html">Algos</a></li><li class="navelem"><a class="el" href="_step_8hpp.html">Step.hpp</a></li>
-    <li class="footer">Generated on Tue Dec 1 2020 17:08:18 for NOMAD Source by
+    <li class="footer">Generated on Fri Apr 9 2021 13:32:04 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

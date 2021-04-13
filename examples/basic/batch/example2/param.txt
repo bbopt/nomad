@@ -22,14 +22,14 @@ GRANULARITY ( 1 1 0.5 1 1 1 1 0.5 1 1 )
 # The algorithm terminates after that number black-box evaluations
 MAX_BB_EVAL 1000
 
-GENERATE_ALL_POINTS_BEFORE_EVAL true
+MEGA_SEARCH_POLL true
 
 # The algorithm terminates after that total number of evaluations,
 # including cache hits
 MAX_EVAL 200
 
 # Stop Search and Poll as soon as a success is found
-OPPORTUNISTIC_EVAL true
+EVAL_OPPORTUNISTIC true
 
 # DISPLAY PARAMETERS
 ####################

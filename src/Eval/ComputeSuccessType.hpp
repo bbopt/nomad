@@ -60,7 +60,7 @@
 #include "../nomad_nsbegin.hpp"
 /// Definition for compute success type function.
 /**
- A function of this type compares two EvalPoints, and returns the SuccessType resulting from the comparison. The function is a member of ComputeSuccessType class and set using ComputeSuccessType::setComputeSuccessTypeFunction. \n For example, computing success type is changed when doing PhaseOne, or optimizing a surrogate instead of blackbox.
+ A function of this type compares two EvalPoints, and returns the SuccessType resulting from the comparison. The function is a member of ComputeSuccessType class and set using ComputeSuccessType::setComputeSuccessTypeFunction. \n For example, computing success type is changed when optimizing a model instead of blackbox.
 */
 typedef std::function<SuccessType(const EvalPointPtr &p1,
                                   const EvalPointPtr &p2,
@@ -75,25 +75,11 @@ private:
 
 public:
 
-    /// Constructor 1
-    //ComputeSuccessType(ComputeSuccessFunction computeSuccessFunction defaultComputeSuccessType)
-    explicit ComputeSuccessType(const ComputeSuccessFunction& computeSuccessFunction)
-      : _computeSuccessType(computeSuccessFunction)
-    {}
-
-    /// Constructor 2
-    explicit ComputeSuccessType(const EvalType& evalType)
+    /// Constructor
+    explicit ComputeSuccessType(const EvalType& evalType, const ComputeType& computeType)
     {
-        setDefaultComputeSuccessTypeFunction(evalType);
+        setComputeSuccessTypeFunction(evalType, computeType);
     }
-
-    void setComputeSuccessTypeFunction(const ComputeSuccessFunction &computeSuccessFunction)
-    {
-        _computeSuccessType = computeSuccessFunction;
-    }
-
-    /// Set default function for comparing EvalPoints, depending if the evaluation is surrogate or blackbox
-    void setDefaultComputeSuccessTypeFunction(const EvalType& evalType);
 
     /// Function call operator
     /**
@@ -118,27 +104,32 @@ public:
                                                  const EvalPointPtr& evalPoint2,
                                                  const Double& hMax = INF);
 
-    /// Function to compute success type when in PhaseOne.
-    /**
-     \param evalPoint   First eval queue point -- \b IN.
-     \param xInf        Second eval queue point -- \b IN.
-     \param hMax        Max acceptable infeasibility to keep point in barrier -- \b IN.
-     \return            Success type.
-     */
-    static SuccessType computeSuccessTypePhaseOne(const EvalPointPtr& evalPoint,
-                                                  const EvalPointPtr& xInf,
-                                                  const Double& hMax __attribute__((unused)));
-
-    /// Function to compute success type for a surrogate evaluation.
+    /// Function to compute success type for a model evaluation.
     /**
      \param evalPoint1  First eval queue point -- \b IN.
      \param evalPoint2  Second eval queue point -- \b IN.
-     \param hMax                Max acceptable infeasibility to keep point in barrier   -- \b IN.
-     \return             Success type.
+     \param hMax        Max acceptable infeasibility to keep point in barrier   -- \b IN.
+     \return            Success type.
      */
-    static SuccessType computeSuccessTypeSgte(const EvalPointPtr& evalPoint1,
+    static SuccessType computeSuccessTypeModel(const EvalPointPtr& evalPoint1,
                                               const EvalPointPtr& evalPoint2,
                                               const Double& hMax = INF);
+
+    /// Function to compute success type in phase one.
+    /**
+     \param evalPoint1  First eval queue point -- \b IN.
+     \param evalPoint2  Second eval queue point -- \b IN.
+     \param hMax        Unused
+     \return            Success type.
+     */
+    static SuccessType computeSuccessTypePhaseOne(const EvalPointPtr& evalPoint1,
+                                              const EvalPointPtr& evalPoint2,
+                                              const Double& hMax __attribute__((unused)));
+
+private:
+    /// Helper for Constructor.
+    /// Set default function for comparing EvalPoints, depending if the evaluation is model or blackbox
+    void setComputeSuccessTypeFunction(const EvalType& evalType, const ComputeType& computeType);
 
 };
 #include "../nomad_nsend.hpp"

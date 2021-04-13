@@ -127,14 +127,14 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
     subProblemPbParams->doNotShowWarnings();
     if (isPollster)
     {
-        subProblemPbParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::SINGLE);
+        subProblemRunParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::SINGLE);
         subProblemPbParams->setAttributeValue("INITIAL_FRAME_SIZE", mainFrameSize);
 
         // Disable all searches
         subProblemRunParams->setAttributeValue("LH_SEARCH", NOMAD::LHSearchType("0 0"));
         subProblemRunParams->setAttributeValue("NM_SEARCH", false);
         subProblemRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
-        subProblemRunParams->setAttributeValue("SGTELIB_SEARCH", false);
+        subProblemRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
         subProblemRunParams->setAttributeValue("SPECULATIVE_SEARCH", false);
     }
     else

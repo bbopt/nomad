@@ -57,7 +57,7 @@
  * Use the start, run and end tasks. Iterate on the following sequence:
  *
  * 1- Points provided as X0s and points in cache are put in a training set.
- * 2- These points are used to build a surrogate model.
+ * 2- These points are used to build a dynamic model.
  * 3- The model is optimized. This gives oracle points.
  * 4- The oracle points are evaluated by the blackbox.
  * 5- As long as new oracle points are found, the process is repeated.

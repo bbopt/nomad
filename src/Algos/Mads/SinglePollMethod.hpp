@@ -57,8 +57,9 @@ public:
     /**
      /param parentStep      The parent of this search step -- \b IN.
      */
-    explicit SinglePollMethod(const Step* parentStep)
-      : PollMethodBase(parentStep)
+    explicit SinglePollMethod(const Step* parentStep,
+                              const EvalPoint& frameCenter)
+      : PollMethodBase(parentStep, frameCenter)
     {
         init();
     }

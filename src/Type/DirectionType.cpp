@@ -45,7 +45,7 @@
 /*---------------------------------------------------------------------------------*/
 /**
  \file   DirectionType.cpp
- \brief  types for Eval (implementation)
+ \brief  types for Direction (implementation)
  \author Christophe Tribes
  \date   May 2020
  \see    DirectionType.hpp
