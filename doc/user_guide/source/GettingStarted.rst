@@ -87,7 +87,7 @@ The blackbox ``C++`` program of the previous example to evaluate the objective a
     }
     cout << f << " " << c1 << " " << c2 << endl;
     return 0;
-}
+    }
 
 With **GNU compiler** ``g++``, the blackbox compilation and test are as follows:
 
