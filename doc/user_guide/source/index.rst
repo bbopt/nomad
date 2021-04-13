@@ -2,11 +2,11 @@ Nomad 4 User Guide
 ==================
 
 .. warning::
-   NOMAD is a blackbox optimization software.
+   NOMAD is a blackbox optimization software `<https://www.gerad.ca/nomad/>`_.
 
    NOMAD 3 software is still currently available but will be replaced by NOMAD 4 in the future.
 
-   This user guide is specific to NOMAD 4 `<https://www.gerad.ca/nomad/>`_.
+   This user guide is specific to NOMAD 4.
 
 
 * A general presentation of NOMAD is given in Section :ref:`introduction`.
