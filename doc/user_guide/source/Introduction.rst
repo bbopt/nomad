@@ -19,7 +19,7 @@ Such functions are typically the result of expensive computer simulations which
 * may be contaminated by noise,
 * may fail to give a result even for feasible points.
 
-NOMAD  is a ``C++`` implementation of the  **Mesh Adaptive Direct Search (MADS)** algorithm (see Refs [AbAuDeLe09]_, [AuDe2006]_, [AuDe09a]_ for details) designed for constrained optimization of blackbox functions in the form
+NOMAD  is a ``C++`` implementation of the  **Mesh Adaptive Direct Search (MADS)** algorithm (see references [AbAuDeLe09]_, [AuDe2006]_, [AuDe09a]_ for details) designed for constrained optimization of blackbox functions in the form
 
 .. math::
 
