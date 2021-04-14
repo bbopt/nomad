@@ -1,10 +1,8 @@
 #!/bin/bash
 
-egrep -v "^#|^ALGO_COMPATIBILITY_CHECK|^RESTART_ATTRIBUTE" $1 | \
+egrep -v "^#|^ALGO_COMPATIBILITY_CHECK|^RESTART_ATTRIBUTE|UNIQUE_ENTRY" $1 | \
     awk 'BEGIN{ biginfopassed = 0;}
     {
-        curline = $0;
-        lastline = 0;
         if ("" == $0) {
             # do nothing
         }
@@ -35,9 +33,12 @@ egrep -v "^#|^ALGO_COMPATIBILITY_CHECK|^RESTART_ATTRIBUTE" $1 | \
             biginfopassed = 0;
         } else if ("\\)" == $0) {
             biginfopassed = 1;
-        } else if (1 == biginfopassed && "" == argument) {
-            lastline = 1;
-            keywords = $0;
+        } else if (1 == biginfopassed && 0 == lastline) {
+            keywords = keywords" "$0;
+            lastline = ($keywords ~ "\\\\)" );  # It took me a while to figure this one out!
+        }
+        if (1 == lastline) {
+            # Compute argument (basic / advanced / developer)
             if ($keywords ~ "developer" || $keywords ~ "developper")
             {
                 argument = "developer";
@@ -50,8 +51,7 @@ egrep -v "^#|^ALGO_COMPATIBILITY_CHECK|^RESTART_ATTRIBUTE" $1 | \
             {
                 argument = "basic";
             }
-        }
-        if (1 == lastline) {
+
             # Here we print the found fields, with commas for CSV format.
             print name","type","argument",\""info"\","defval;
 
@@ -61,6 +61,7 @@ egrep -v "^#|^ALGO_COMPATIBILITY_CHECK|^RESTART_ATTRIBUTE" $1 | \
             type = "";
             defval = "";
             info = "";
-            argument = "";
+            keywords = "";
+            lastline = 0;
         }
     }'
