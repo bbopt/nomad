@@ -43,7 +43,7 @@ where the feasible set :math:`\Omega = \{ x \in X : c_j(x) \leq 0, j \in J\} \su
 Basics of the Mads algorithm
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-At the core of NOMAD resides the Mesh Adaptive Direct Search (MADS) algorithm. As the name implies, this method generates iterates on a series of meshes with varying size. A mesh is a discretization of the space of variables. However, also as the name implies, the algorithm performs an adaptive search on the meshes including controlling the refinement of the meshes. The reader interested in the rather technical details should read Reference [AuDe2006]_.
+At the core of NOMAD resides the *Mesh Adaptive Direct Search (MADS)* algorithm. As the name implies, this method generates iterates on a series of meshes with varying size. A mesh is a discretization of the space of variables. However, also as the name implies, the algorithm performs an adaptive search on the meshes including controlling the refinement of the meshes. The reader interested in the rather technical details should read Reference [AuDe2006]_.
 
 The objective of each iteration of the MADS algorithm, is to generate a trial point on the mesh that improves the current best solution. When an iteration fails to achieve this, the next iteration is initiated on a finer mesh.
 

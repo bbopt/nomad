@@ -57,7 +57,7 @@ to see all parameters, or::
 
 for a particular parameter.
 
-The remaining content of a line is ignored after the character ``#``. Except for the file names, all strings and parameter names are case insensitive: ``DIMENSION 2`` is the same as ``Dimension 2``. File names refer to files in the problem directory. To indicate a file name containing spaces, use quotes ``"name"`` or ``'name'``. These names may include directory information relatively to the problem directory. The problem directory will be added to the names, unless the ``$`` character is used in front of the names. For example, if a blackbox executable is run by the command ``python script.py``, define parameter ``BB_EXE $python script.py``.
+The remaining content of a line is ignored after the character ``#``. Except for the file names, all strings and parameter names are case insensitive: ``DIMENSION 2`` is the same as ``Dimension 2``. File names refer to files in the problem directory. To indicate a file name containing spaces, use quotes ``"name"`` or ``'name'``. These names may include directory information relatively to the problem directory. The problem directory will be added to the names, unless the ``$`` character is used in front of the names. For example, if a blackbox executable is run by the command ``python script.py``, define parameter ``BB_EXE "$python script.py"``.
 
 Some parameters consists of a list of variable indices taken from 0 to :math:`n-1`  (where :math:`n` is the number of variables). Variable indices may be entered individually or as a range  with format ``i-j``. Character ``*`` may be used to replace 0 to :math:`n-1`. Other parameters require arguments of type boolean: these values  may be entered with the strings ``yes``, ``no``, ``y``, ``n``,  ``0``, or ``1``. Finally, some parameters need vectors as arguments,  use ``(v1 v2 ... vn)`` for those. The strings ``-``, ``inf``, ``-inf`` or ``+inf``  are accepted to enter undefined real values  (NOMAD considers :math:`\pm \infty` as an undefined value).
 
@@ -68,7 +68,7 @@ Parameters are classified into problem, algorithmic and output parameters, and p
 Problem parameters
 ^^^^^^^^^^^^^^^^^^
 
-.. csv-table:: Problem parameters
+.. csv-table:: Basic problem parameters
    :header: "Name", "Argument", "Short description", "Default"
    :widths: 20,7,20,7
 
@@ -76,8 +76,8 @@ Problem parameters
    :ref:`BB_INPUT_TYPE <bb_input_type>`, list of types, blackbox input types ,  ``* R`` (all real)
    :ref:`BB_OUTPUT_TYPE <bb_output_type>`, list of types , blackbox output types (required) , ``OBJ``
    DIMENSION, integer, :math:`n` the number of variables (required), 0
-   :ref:`LOWER_BOUND <bounds>`, array of double  , lower bounds , none
-   :ref:`UPPER_BOUND <bounds>`, array of double, upper bounds, none
+   :ref:`LOWER_BOUND <bounds>`, array of doubles  , lower bounds , none
+   :ref:`UPPER_BOUND <bounds>`, array of doubles, upper bounds, none
 
 
 .. _bb_exe:
@@ -228,12 +228,128 @@ Each of these two sequences define the following bounds
 Algorithmic parameters
 ^^^^^^^^^^^^^^^^^^^^^^
 
+.. csv-table:: Basic algorithmic parameters
+   :header: "Name", "Argument", "Short description", "Default"
+   :widths: 20,7,20,7
 
+   :ref:`DIRECTION_TYPE <direction_type>` , direction type, type of directions for the poll , ``ORTHO 2N``
+   F_TARGET , real :math:`t` , NOMAD terminates if :math:`f(x_k) \leq t` for the objective function, none
+   :ref:`INITIAL_MESH_SIZE <initial_mesh_size>` , array of doubles, :math:`\delta_0` [AuDe2006]_ , none
+   :ref:`INITIAL_FRAME_SIZE <initial_mesh_size>` , array of doubles, :math:`\Delta_0` [AuDe2006]_ , ``r0.1`` or based on ``X0``
+   LH_SEARCH , 2 integers: ``p0`` and ``pi`` , **LH (Latin-Hypercube) search** (``p0``: initial and ``pi``: iterative) , none
+   MAX_BB_EVAL , integer, maximum number of blackbox evaluations, none
+   MAX_TIME , integer , maximum wall-clock time (in seconds) , none
+   :ref:`TMP_DIR <tmp_dir>` , string, temporary directory for blackbox i/o files , problem directory
+   :ref:`X0 <x0>` , array of points , starting point(s) , best point from a cache file or from an initial **LH search**
+
+
+.. _direction_type:
+
+``DIRECTION_TYPE``
+""""""""""""""""""
+
+The type of direction ``DIRECTION_TYPE`` for *Mads* *Poll* step must be selected in the set ``{ORTHO 2N, N+1 UNI, SINGLE, DOUBLE}``. The option ``ORTHO 2N`` corresponds to the original *Ortho Mads* algorithm [AbAuDeLe09]_ with :math:`2n` directions.
+With option ``N+1 UNI`` *Mads* *Poll* step uses :math:`n+1` uniformly distributed directions. Options ``SINGLE`` and ``DOUBLE`` produces one or two directions for *Mads* *Poll* step respectively.
+
+
+
+.. _initial_mesh_size:
+
+``INITIAL_MESH_SIZE`` and ``INITIAL_FRAME_SIZE``
+""""""""""""""""""""""""""""""""""""""""""""""""
+
+The *Poll* step initial frame size :math:`\Delta_0` is decided by ``INITIAL_FRAME_SIZE``. In order to achieve the scaling between variables, NOMAD considers the frame size parameter for each variable independently. The initial mesh size parameter ``\delta_0`` is decided based on ``\Delta_0``. ``INITIAL_FRAME_SIZE`` may be entered with the following formats::
+
+  INITIAL_FRAME_SIZE     d0 (same initial mesh size for all variables)
+  INITIAL_FRAME_SIZE     (d0 d1 ... dn-1) (for all variables ``-`` may be used,  and defaults will be considered)
+  INITIAL_FRAME_SIZE i   d0 (initial mesh size provided for variable ``i`` only)
+  INITIAL_FRAME_SIZE i-j d0 (initial mesh size provided for variables ``i`` to ``j``)
+
+The same logic and format apply for providing the ``INITIAL_MESH_SIZE``, ``MIN_MESH_SIZE`` and ``MIN_FRAME_SIZE``.
+
+
+.. _tmp_dir:
+
+``TMP_DIR``
+"""""""""""
+
+If NOMAD is installed on a network file system, with the batch mode use,  the cost of read/write files  will be high if no local temporary directory is defined.  On \linux/\unix/\osx\ systems, the directory ``/tmp`` is  local and we advise the user to define ``TMP_DIR /tmp``.
+
+
+.. _x0:
+
+``X0``
+""""""
+
+Parameter ``X0`` indicates the starting point of the algorithm. Several starting points may be proposed by entering this parameter several times. If no starting point is indicated, NOMAD considers the best evaluated point from an existing cache file (parameter ``CACHE_FILE``)  or from an initial *Latin-Hypercube search* (argument ``p0`` of ``LH_SEARCH``).
+
+The ``X0`` parameter may take several types of arguments:
+
+* A string indicating an existing cache file, containing several points (they can be already evaluated or not). This file may be the same as the one indicated with ``CACHE_FILE``. If so, this file will be updated during the program execution, otherwise the file will not be modified.
+
+* A string indicating a text file containing the coordinates of one or several points (values are separated by spaces or line breaks).
+
+* :math:`n` real values with format ``(v0 v1 ... vn-1)``.
+
+* ``X0`` keyword plus integer(s) and one real::
+  X0 i v: (i+1)th coordinate set to v.
+  X0 i-j v: coordinates i to j set to v.
+  X0 * v: all coordinates set to v.
+
+* One integer, another integer (or index range) and one real: the same as above except that the first integer k refers to the (k+1)th starting point.
+
+The following example with :math:`n=3` corresponds to the two starting points :math:`( 5~0~0)` and :math:`(-5~1~1)`::
+
+  X0 * 0.0
+  X0 0 5.0
+  X0 1 * 1.0
+  X0 1 0 -5.0
 
 .. _output_parameters:
 
 Output parameters
 ^^^^^^^^^^^^^^^^^
+
+.. csv-table:: Basic output parameters
+   :header: "Name", "Argument", "Short description", "Default"
+   :widths: 20,7,20,7
+
+   CACHE_FILE , string ,  "cache file; if the file does not exist, it will be created", none
+   DISPLAY_ALL_EVAL , bool , if ``yes`` all points are displayed with ``DISPLAY_STATS`` and ``STATS_FILE`` , ``no``
+   DISPLAY_DEGREE , integer in [0 ; 3] or a string with four digits (see online help) , 0 no display and 3 full display ,  ``2``
+   :ref:`DISPLAY_STATS <display_stats>` , list of strings ,  what information is displayed at each success , ``BBE OBJ``
+   HISTORY_FILE , string ,  file containing all trial points with format ``x1 x2 ... xn bbo1 bbo2 ... bbom`` on each line ,  none
+   SOLUTION_FILE, string , file to save the best feasible incumbent point in a simple format (SOL BBO) , none
+   :ref:`STATS_FILE <display_stats>`  , string ``file_name`` + list of strings , the same as ``DISPLAY_STATS`` but for a display into file ,  none
+
+
+.. _display_degree:
+
+``DISPLAY_DEGREE``
+""""""""""""""""""
+
+Four different levels of display can be set via the parameter ``DISPLAY_DEGREE``. The ``DISPLAY_MAX_STEP_LEVEL`` can be used to control the number of steps displayed. To control the display of the **Models**, a ``QUAD_MODEL_DISPLAY`` and a ``SGTELIB_MODEL_DISPLAY`` are available. More information on these parameters can be obtained with online documentation: ``$NOMAD_HOME/bin/nomad -h display``
+
+
+.. _display_stats:
+
+``DISPLAY_STATS`` and ``STATS_FILE``
+""""""""""""""""""""""""""""""""""""
+
+These parameters display information each time a new feasible incumbent (i.e. a new best solution) is found.  ``DISPLAY_STATS`` is used to display at the standard output and ``STATS_FILE`` is used to write into a file.  These parameters need a list of strings as argument, **without any quotes**.  These strings may include the following keywords:
+
++----------+-------------------------------------+
+| ``BBE``  |  The number of blackbox evaluations |
++----------+-------------------------------------+
+| ``BBO``  |  The blackbox outputs               |
++----------+-------------------------------------+
+| ``OBJ``  |  The objective function value       |
++----------+-------------------------------------+
+| ``SOL``  |  The current feasible iterate       |
++----------+-------------------------------------+
+
+.. note::
+  More display options are available. Check the online help: ``$NOMAD_HOME/bin/nomad -h display_stats``
 
 
 .. topic:: References
