@@ -1,3 +1,4 @@
+Name , Type , Argument , Short description , Default
 ADD_SEED_TO_FILE_NAMES,bool,advanced,"The flag to add seed to the file names",true
 ANISOTROPIC_MESH,bool,advanced,"MADS uses anisotropic mesh for generating directions",true
 ANISOTROPY_FACTOR,NOMAD::Double,advanced,"MADS anisotropy factor for mesh size change",0.1
