@@ -49,13 +49,20 @@ egrep -v "^#|^ALGO_COMPATIBILITY_CHECK|^RESTART_ATTRIBUTE|UNIQUE_ENTRY" $1 | \
             {
                 argument = "advanced";
             }
+            else if ($keywords ~ "internal")
+            {
+                argument = "internal";
+            }
             else
             {
                 argument = "basic";
             }
 
             # Here we print the found fields, with commas for CSV format.
-            print name","type","argument",\""info"\","defval;
+            if ("internal" != argument)
+            {
+                print name","type","argument",\""info"\","defval;
+            }
 
             # Reset values.
             biginfopassed = 0;
