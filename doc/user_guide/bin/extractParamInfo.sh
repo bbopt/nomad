@@ -21,6 +21,8 @@ egrep -v "^#|^ALGO_COMPATIBILITY_CHECK|^RESTART_ATTRIBUTE|UNIQUE_ENTRY" $1 | \
             {
                 defval = "No default";
             }
+            sub(/\*/,"\\*",defval);
+            #sub(/*/,"toto",defval);
         }
         else if ("" == info)
         {

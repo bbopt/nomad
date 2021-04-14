@@ -4,7 +4,7 @@ ANISOTROPIC_MESH,bool,advanced,"MADS uses anisotropic mesh for generating direct
 ANISOTROPY_FACTOR,NOMAD::Double,advanced,"MADS anisotropy factor for mesh size change",0.1
 BB_EVAL_FORMAT,NOMAD::ArrayOfDouble,basic,"Format of the doubles sent to the blackbox evaluator",No default
 BB_EXE,std::string,basic,"Blackbox executable",No default
-BB_INPUT_TYPE,NOMAD::BBInputTypeList,basic,"The variable blackbox input types",* R
+BB_INPUT_TYPE,NOMAD::BBInputTypeList,basic,"The variable blackbox input types",\* R
 BB_MAX_BLOCK_SIZE,size_t,advanced,"Size of blocks of points, to be used for parallel evaluations",1
 BB_OUTPUT_TYPE,NOMAD::BBOutputTypeList,basic,"Type of outputs provided by the blackboxes",OBJ
 CACHE_FILE,std::string,basic,"Cache file name",No default
