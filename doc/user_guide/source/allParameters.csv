@@ -1,4 +1,3 @@
-Name , Type , Argument , Short description , Default
 ADD_SEED_TO_FILE_NAMES,bool,advanced,"The flag to add seed to the file names",true
 ANISOTROPIC_MESH,bool,advanced,"MADS uses anisotropic mesh for generating directions",true
 ANISOTROPY_FACTOR,NOMAD::Double,advanced,"MADS anisotropy factor for mesh size change",0.1
@@ -9,7 +8,7 @@ BB_MAX_BLOCK_SIZE,size_t,advanced,"Size of blocks of points, to be used for para
 BB_OUTPUT_TYPE,NOMAD::BBOutputTypeList,basic,"Type of outputs provided by the blackboxes",OBJ
 CACHE_FILE,std::string,basic,"Cache file name",No default
 CACHE_SIZE_MAX,size_t,advanced,"Maximum number of evaluation points to be stored in the cache",INF
-categorical \),DIMENSION,basic,"0",size_t
+DIMENSION,size_t,basic,"Dimension of the optimization problem (required)",0
 DIRECTION_TYPE,NOMAD::DirectionType,advanced,"Type of direction for Mads poll",ORTHO 2N
 DIRECTION_TYPE_SECONDARY_POLL,NOMAD::DirectionType,advanced,"Direction type for Mads secondary poll",DOUBLE
 DISPLAY_ALL_EVAL,bool,basic,"Flag to display all evaluations",false
@@ -35,9 +34,9 @@ HOT_RESTART_READ_FILES,bool,advanced,"Flag to read hot restart files",false
 HOT_RESTART_WRITE_FILES,bool,advanced,"Flag to write hot restart files",false
 INITIAL_FRAME_SIZE,NOMAD::ArrayOfDouble,advanced,"The initial frame size of MADS",No default
 INITIAL_MESH_SIZE,NOMAD::ArrayOfDouble,advanced,"The initial mesh size of MADS",No default
+LH_EVAL,size_t,basic,"Latin Hypercube Sampling of points (no optimization)",0
 LH_SEARCH,NOMAD::LHSearchType,basic,"Latin Hypercube Sampling Search method",No default
 LOWER_BOUND,NOMAD::ArrayOfDouble,basic,"The optimization problem lower bounds for each variable",No default
-mads \),UPPER_BOUND,basic,"-",NOMAD::ArrayOfDouble
 MAX_BB_EVAL,size_t,basic,"Stopping criterion on the number of blackbox evaluations",INF
 MAX_BLOCK_EVAL,size_t,basic,"Stopping criterion on the number of blocks evaluations",INF
 MAX_EVAL,size_t,advanced,"Stopping criterion on the number of evaluations (blackbox and cache)",INF
@@ -45,7 +44,8 @@ MAX_ITERATION_PER_MEGAITERATION,size_t,advanced,"Maximum number of Iterations to
 MAX_ITERATIONS,size_t,advanced,"The maximum number of iterations of the MADS algorithm",INF
 MAX_TIME,size_t,basic,"Maximum wall-clock time in seconds",INF
 MEGA_SEARCH_POLL,bool,advanced,"Evaluate points generated from Search and Poll steps all at once",false
-MIN_FRAME_SIZE,NOMAD::ArrayOfDouble,advanced,"Termination criterion on minimal frame size of MADS",No default
+MIN_FRAME_SIZE,NOMAD::ArrayOfDouble,basic,"Termination criterion on minimal frame size of MADS",No default
+MIN_MESH_SIZE,NOMAD::ArrayOfDouble,basic,"Termination criterion on minimal mesh size of MADS",No default
 MODEL_MAX_BLOCK_SIZE,size_t,basic,"Internal parameter for QUAD_MODEL_MAX_BLOCK_SIZE and SGTELIB_MODEL_MAX_BLOCK_SIZE",INF
 MODEL_MAX_EVAL,size_t,basic,"Internal parameter for QUAD_MODEL_MAX_EVAL and SGTELIB_MODEL_MAX_EVAL",1000
 NB_THREADS_OPENMP,int,advanced,"The number of threads when OpenMP parallel evaluations",-1
@@ -109,9 +109,8 @@ STATS_FILE,NOMAD::ArrayOfString,basic,"The name of the stats file",No default
 STOP_IF_FEASIBLE,bool,advanced,"Stop algorithm once a feasible point is obtained",false
 STOP_IF_PHASE_ONE_SOLUTION,bool,advanced,"Stop algorithm once a phase one solution is obtained",false
 SUBPROBLEM_MAX_BB_EVAL,size_t,basic,"Internal parameter for PSD_MADS_SUBPROBLEM_MAX_BB_EVAL and SSD_MADS_SUBPROBLEM_MAX_BB_EVAL",INF
-termination(s) mads \),MIN_MESH_SIZE,advanced,"-",NOMAD::ArrayOfDouble
 TMP_DIR,std::string,advanced,"Directory where to put temporary files",/tmp/
-UNIQUE_ENTRY false,LH_EVAL,basic,"0",size_t
-UNIQUE_ENTRY false,X0,basic,"-",NOMAD::ArrayOfPoint
+UPPER_BOUND,NOMAD::ArrayOfDouble,basic,"The optimization problem upper bounds for each variable",No default
 USER_CALLS_ENABLED,bool,advanced,"Controls the automatic calls to user function",true
 VARIABLE_GROUP,NOMAD::ListOfVariableGroup,advanced,"The groups of variables)",No default
+X0,NOMAD::ArrayOfPoint,basic,"The initial point(s)",No default
