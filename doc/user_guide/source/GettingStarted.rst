@@ -195,7 +195,7 @@ To illustrate the execution, the example provided in ``$NOMAD_HOME/examples/basi
   > cd $NOMAD_HOME/examples/basic/batch/single_obj
   > ls
   bb.cpp bb.exe CMakeLists.txt makefile param.txt x.txt
-  >$NOMAD_HOME/build/release/bin/nomad param.txt
+  >$NOMAD_HOME/bin/nomad param.txt
   BBE ( SOL ) OBJ
     1   (   0          0          0          0          0        )    0        (Phase One)
     8   (   0          4          0          0          0        )    0        (Phase One)
