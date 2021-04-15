@@ -240,7 +240,7 @@ Algorithmic parameters
    MAX_BB_EVAL , integer, maximum number of blackbox evaluations, none
    MAX_TIME , integer , maximum wall-clock time (in seconds) , none
    :ref:`TMP_DIR <tmp_dir>` , string, temporary directory for blackbox i/o files , problem directory
-   :ref:`X0 <x0>` , array of points , starting point(s) , best point from a cache file or from an initial **LH search**
+   :ref:`X0 <x0>` , point , starting point(s) , best point from a cache file or from an initial **LH search**
 
 
 .. _direction_type:
@@ -291,7 +291,10 @@ The ``X0`` parameter may take several types of arguments:
 
 * :math:`n` real values with format ``(v0 v1 ... vn-1)``.
 
-* ``X0`` keyword plus integer(s) and one real::
+* ``X0`` keyword plus integer(s) and one real
+
+::
+
   X0 i v: (i+1)th coordinate set to v.
   X0 i-j v: coordinates i to j set to v.
   X0 * v: all coordinates set to v.

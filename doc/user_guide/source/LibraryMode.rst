@@ -10,9 +10,9 @@ The library mode requires additional coding and compilation before conducting op
 Compilation of the source code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-NOMAD source code provided during installation are located in ``$NOMAD_HOME/src``.  Examples are provided in ``$NOMAD_HOME/examples/basic/library`` and ``$NOMAD_HOME/examples/advanced/library``.
+NOMAD source code files are located in ``$NOMAD_HOME/src``.  Examples are provided in ``$NOMAD_HOME/examples/basic/library`` and ``$NOMAD_HOME/examples/advanced/library``.
 
-The compilation procedure uses the provided ``CMake`` files along with the sources.
+The compilation procedure uses the provided ``CMake`` files along with the source code.
 
 In what follows it is supposed that you have a write access to the source codes directory. If it is not the case, please consider making a copy in a more convenient location.
 
@@ -75,7 +75,10 @@ Let us first test the basic example to check that libraries are working fine and
 Modify ``CMake`` files
 """"""""""""""""""""""
 
-As a first task, you can create a ``CMakeLists.txt`` for your source code(s) based on the one for the basic example.
+As a first task, you can create a ``CMakeLists.txt`` for your source code(s) based on the one for the basic example 1.
+
+
+.. TODO add the CMake procedure for an example out of Nomad subdirectories.
 
 .. code-block:: cmake
 
@@ -262,7 +265,7 @@ A parameter ``PNAME`` is set with the method ``AllParameters::setAttributeValue(
 
 .. warning:: If the ``PNameValue`` has not the type associated to the ``PName`` parameters, the compilation will succeed but execution will be stopped when setting or getting the value.
 
-All parameters are defined in text files located in ``$NOMAD_HOME/src/Attribute``.
+.. note:: A brief description (including the ``NOMAD::`` type) of all parameters is given :ref:`appendix_parameters`. More information on parameters can be obtained by running ``$NOMAD_HOME/bin/nomad -h KEYWORD``.
 
 For the example, the parameters are set in
 
@@ -304,6 +307,19 @@ For the example, the parameters are set in
   }
 
 The ``checkAndComply`` function must be called to ensure that parameters are compatible. Otherwise an exception is triggered.
+
+Access to solution and optimization data
+""""""""""""""""""""""""""""""""""""""""
+
+**TODO**
+
+.. In the basic example 1, final information is displayed at the end of an algorithm. More specialized access to solution and optimization data is allowed.
+
+.. To access the best feasible and infeasible points, use the methods \sComp{NOMAD::Mads::get\_best}\-\sComp{\_feasible()} and \sComp{NOMAD::Mads::get\_best\_infeasible()}. To access optimization data or statistics, call the method \sComp{NOMAD::Mads::get\_stats()} which returns access to  a \sComp{NOMAD::Stats} object. Then, use the access methods defined in \sComp{Stats.hpp}. For example, to display the number of blackbox evaluations, write:
+
+.. NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD, nullptr);
+.. NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD,nullptr);
+
 
 Python interface
 ----------------
