@@ -130,10 +130,10 @@ Here are some of the most important parameters defining an optimization problem 
 * The number of variables (``DIMENSION n``).
 * The name of the blackbox executable that outputs the objective and the constraints (``BB_EXE bb_name``).
 * Bounds on variables are defined with the ``LOWER_BOUND lb`` and ``UPPER_BOUND ub`` parameters.
-* The _`output types` of the blackbox executable: objective and constraints (``BB_OUTPUT_TYPE obj cons1 ... consM``).
+* The output types of the blackbox executable: objective and constraints (``BB_OUTPUT_TYPE obj cons1 ... consM``).
 * A starting point (``X0 x0``).
 * An optional stopping criterion (``MAX_BB_EVAL max_bb_eval``, for example). If no stopping criterion is specified, the algorithm will stop as soon as the mesh size reaches a given tolerance.
-* Any entry on a line is ignored after the character ‘#’.
+* Any entry on a line is ignored after the character ``#``.
 
 
 .. note::
