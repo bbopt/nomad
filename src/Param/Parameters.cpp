@@ -1124,7 +1124,7 @@ void NOMAD::Parameters::displayHelp(const std::string & helpSubject , bool devHe
 {
     // Search is performed on touppered strings
 
-    // Display help as Basic, Advanced or Developper
+    // Display help as Basic, Advanced or Developer
     // Separate Basic and Advanced into sections
     std::ostringstream oss;
     for(const auto &att: _attributes)
@@ -1143,16 +1143,16 @@ void NOMAD::Parameters::displayHelp(const std::string & helpSubject , bool devHe
             || keywords.find(helpSubject)  != std::string::npos
             || helpInfo.find(helpSubject)  != std::string::npos )
         {
-            if ( !devHelp || (keywords.find("DEVELOPPER") != std::string::npos) )
+            if ( !devHelp || (keywords.find("DEVELOPER") != std::string::npos) )
             {
-                std::string typeOfHelp = (devHelp) ? "(Developper)":"(Basic)";
+                std::string typeOfHelp = (devHelp) ? "(Developer)":"(Basic)";
                 typeOfHelp = ( keywords.find("ADVANCED")!= std::string::npos )? "(Advanced)":typeOfHelp;
 
                 oss << att->getName() << " {" ;
                 oss << att->getHelpInfo() << std::endl;
                 oss << "}" << std::endl;
 
-                if ( typeOfHelp == "(Basic)" || typeOfHelp == "(Developper)" )
+                if ( typeOfHelp == "(Basic)" || typeOfHelp == "(Developer)" )
                 {
                     ossBasic << oss.str() << std::endl;
                 }
@@ -1188,8 +1188,8 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
 {
 
 
-    // Developpers can provide new attributes type -> add "else if" below.
-    // Developpers MUST ALSO ADD the corresponding type in isAlgoCompatible
+    // Developers can provide new attributes type -> add "else if" below.
+    // Developers MUST ALSO ADD the corresponding type in isAlgoCompatible
 
     for ( auto &att : attributeDef )
     {

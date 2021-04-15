@@ -78,7 +78,7 @@ class AllParameters
 private:
 
 
-    // Developper: When adding a new type of NOMAD parameters update the code
+    // Developer: When adding a new type of NOMAD parameters update the code
     std::shared_ptr<DeprecatedParameters>        _deprecatedParams;
     std::shared_ptr<RunParameters>               _runParams;
     std::shared_ptr<PbParameters>                _pbParams;
