@@ -1,7 +1,8 @@
 Release notes and future developments
 =====================================
 
-NOMAD 4 is a complete redesign compared with NOMAD, with a new architecture providing more flexible code, some added functionalities and reusable code.
+NOMAD 4 is a complete redesign compared with NOMAD 3, with a new architecture providing more flexible code, some added functionalities and reusable code.
+
 
 Some functionalities available in NOMAD 3 will be included in NOMAD 4 in future releases:
 
