@@ -3,7 +3,13 @@
 Advanced functionalities
 ========================
 
-...
+Advanced parameters
+-------------------
+
+
+
+
+.. _bloc_evaluations
 
 Blackbox evaluation of a block of trial points
 ----------------------------------------------
@@ -68,6 +74,8 @@ When evaluations are performed by blocks (EVAL_LIST_MAX_BLOCK_SIZE greater than 
 opportunistic strategy applies after evaluating a block of trial points.
 
 
+
+.. _parallel_evaluations
 
 Parallel evaluations
 --------------------
