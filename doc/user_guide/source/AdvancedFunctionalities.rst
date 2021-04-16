@@ -31,13 +31,15 @@ In batch mode, NOMAD creates input files which can contain at most
 BB_MAX_BLOCK_SIZE trial points separated by a linebreak. Each point is given as a row of values.
 The user must provide a blackbox program that can read the input file, evaluate them and
 output the objective and constraints functions (in the order provided by the BB_OUTPUT_TYPE
-parameter) for each trial point in the same order as provided in the input file (see Fig. 71).
-A blackbox program may fail to evaluate some of the trial points. When BB_MAX_BLOCK_SIZE=1,
-an empty line in the output file or a line that cannot be interpreted by NOMAD corresponds to
+parameter) for each trial point in the same order as provided in the input file.
+A blackbox program may fail to evaluate some of the trial points. 
+
 a failed evaluation. However, when a block of trial points is submitted the content of the output
-file must specify which points have failed by using the keyword FAIL at the corresponding posi-
-tion in the output file. The keyword FAIL should be put only once per trial point independently
-of the number of outputs given by BB_OUTPUT_TYPE. If one value provided in the output file
+file must specify which points have failed by using the keyword FAIL at the corresponding position
+in the output file. The keyword FAIL should be put only once per trial point independently
+of the number of outputs given by BB_OUTPUT_TYPE.
+
+If one value provided in the output file
 cannot be read by NOMAD then the corresponding trial point is also considered as having failed.
 The trial points that have failed will not be evaluated again.
 A blackbox program can stop prematurely the evaluation of a block of trial points, for example
