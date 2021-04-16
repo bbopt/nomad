@@ -38,40 +38,62 @@ BB_MAX_BLOCK_SIZE trial points separated by a linebreak. Each point is given as 
 The user must provide a blackbox program that can read the input file, evaluate them and
 output the objective and constraints functions (in the order provided by the BB_OUTPUT_TYPE
 parameter) for each trial point in the same order as provided in the input file.
-A blackbox program may fail to evaluate some of the trial points. 
-
-a failed evaluation. However, when a block of trial points is submitted the content of the output
-file must specify which points have failed by using the keyword FAIL at the corresponding position
-in the output file. The keyword FAIL should be put only once per trial point independently
-of the number of outputs given by BB_OUTPUT_TYPE.
-
+A blackbox program may fail to evaluate some of the trial points. When block of trial points is
+submitted the content of the output file must reflect the outputs for each point.
 If one value provided in the output file
-cannot be read by NOMAD then the corresponding trial point is also considered as having failed.
+cannot be read by NOMAD, then the corresponding trial point is considered as having failed.
 The trial points that have failed will not be evaluated again.
-A blackbox program can stop prematurely the evaluation of a block of trial points, for example
-when a best incumbent trial point has been identified within the blackbox. However, to prevent
-that the remaining trial points of the block be considered as having failed, it is required to
-explicitly reject them by putting the keyword REJECT instead of their corresponding objective
-and constraint functions. Contrary to trial points that have failed, the rejected ones could be
-resubmitted later on.
-An example of blackbox program written in Perl scripting language is provided in the example
-directory (see Fig. 71). This script calls up to 4 instances of the executable bb.exe to evaluate
-4 trial points in parallel.
+An example of blackbox program written in Perl scripting language is provided in the
+directory ``$NOMAD_HOME/examples/basic/batch/single_obj_parallel``. The script ``parallel_BBWrapper.pl``
+calls up to 4 instances of the executable bb.exe to evaluate 4 trial points in parallel.
 
-Figure 71: Example of a blackbox program evaluating a block of 4 trial points in $NOMAD_HOME/examples/basic/batch/single_obj_parallel.
-The parameter file that specifies this blackbox program with blocks of 4 trial points is given in
-Fig. 72.
+::
 
-Figure 72: Example of parameter file with BB_MAX_BLOCK_SIZE
-$NOMAD_HOME/examples/basic/batch/single_obj_parallel.
+  > cd $NOMAD_HOME/examples/basic/batch/single_obj_parallel
+  > more x.txt
+  1 2 3 4 5
+  0 0 0 0 0
+  2 2 2 2 2
+  5 4 3 2 1
+  > perl parallel_BBWrapper.pl x.txt
+  5 5 -65
+   0 -20 20
+   2 -20 -20
+   1 5 -65
+
+The same directory holds the parameter file that specifies this blackbox program with blocks of 4 trial points:
+
+::
+
+    DIMENSION      5              # number of variables
+
+    BB_EXE "$perl parallel_BBWrapper.pl"
+    BB_MAX_BLOCK_SIZE 4
+
+    BB_OUTPUT_TYPE OBJ PB EB
+
+    X0             ( 0 0 0 0 0 )  # starting point
+
+    LOWER_BOUND    * -6.0         # all variables are >= -6
+    UPPER_BOUND    ( 5 6 7 - - )  # x_1 <= 5, x_2 <= 6, x_3 <= 7
+                                  # x_4 and x_5 have no bounds
+
+    MAX_BLOCK_EVAL     20         # the algorithm terminates when
+                                  # 20 blocks have been evaluated
+
+    TMP_DIR /tmp
+    DISPLAY_DEGREE 2
+    DISPLAY_STATS BLK_EVA BLK_SIZE OBJ
+    DISPLAY_ALL_EVAL true
+
 
 Library mode
 ^^^^^^^^^^^^
-Please refer to $NOMAD_HOME/examples/basic/library/single_obj_parallel for an ex-
-ample on how to manage a block of evaluations in parallel using pThreads and Semaphore.
+Please refer to ``$NOMAD_HOME/examples/basic/library/single_obj_parallel`` for an example
+on how to manage a block of evaluations in parallel using pThreads and Semaphore.
 
-When evaluations are performed by blocks (EVAL_LIST_MAX_BLOCK_SIZE greater than one) the
-opportunistic strategy applies after evaluating a block of trial points.
+When evaluations are performed by blocks, i.e., when ``BB_MAX_BLOCK_SIZE`` is greater
+than one, the opportunistic strategy applies after evaluating a block of trial points.
 
 
 
