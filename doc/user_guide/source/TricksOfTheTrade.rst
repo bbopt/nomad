@@ -17,23 +17,23 @@ Here are a few suggestions for tuning NOMAD when facing different symptoms. The 
    No initial point		,	 	Add a LH search , :ref:`LH Search and X0 <x0>`
    Variables of widely , 	Change blackbox input scaling	, :ref:`create_blackbox_program`
    Different magnitudes	, Change :math:`\Delta_0` per variable , :ref:`initial_mesh_size`
-   " "                    ,	Tighten bounds , :ref:`bounds`
+   " ",	Tighten bounds , :ref:`bounds`
    Many variables ,	Fix some variables  , :ref:`fixed_variable`
-	 " "						  ,	Use *PSD-MADS*  , :ref:`psd-mads`
+   " ",	Use *PSD-MADS*  , :ref:`psd_mads`
    Unsatisfactory solution ,	Change direction type to ``N+1 UNI`` , :ref:`direction_type`
-	 " "					           , 	Change initial point , :ref:`LH Search and X0 <x0>`
-   " "					           , 	Add a LH search , :ref:`LH Search and X0 <x0>`
-	 " "					           , 	Tighten bounds , :ref:`bounds`
-   " "					           ,	Change :math:``\Delta_0` , :ref:`initial_mesh_size`
-   " "					           , 	Modify seeds that affect algorithms , :ref:`seed`
-   " "					           ,	Disable quadratic models , set ``QUAD_MODEL_SEARCH no``
-   " "					           ,	Unable *SGTELIB* models , set ``SGTELIB_MODEL_SEARCH yes ``
-   " "                     ,  Disable opportunistic evaluations, set ``EVAL_OPPORTUNISTIC no``
-   " "                     ,  Disable anisotropic mesh , set ``ANISOTROPIC_MESH no``
-   " "                     ,  Change anisotropy factor , set ``ANISOTROPY_FACTOR 0.05``
+   " ", 	Change initial point , :ref:`LH Search and X0 <x0>`
+   " ", 	Add a LH search , :ref:`LH Search and X0 <x0>`
+   " ", 	Tighten bounds , :ref:`bounds`
+   " ", 	Change :math:`\Delta_0` , :ref:`initial_mesh_size`
+   " ", 	Modify seeds that affect algorithms , :ref:`seed`
+   " ", 	Disable quadratic models , set ``QUAD_MODEL_SEARCH no``
+   " ", 	Unable *SGTELIB* models , set ``SGTELIB_MODEL_SEARCH yes``
+   " ",   Disable opportunistic evaluations, set ``EVAL_OPPORTUNISTIC no``
+   " ",  Disable anisotropic mesh , set ``ANISOTROPIC_MESH no``
+   " ",  Change anisotropy factor , set ``ANISOTROPY_FACTOR 0.05``
    Improvements get negligible ,	Change stopping criteria	, Type ``nomad -h stop``
-	 " "					           ,	Disable quadratic models  , set ``QUAD_MODEL_SEARCH no``
+   " ",	Disable quadratic models  , set ``QUAD_MODEL_SEARCH no``
    It takes long to improve :math:`f` ,	Decrease :math:`\Delta_0` , :ref:`initial_mesh_size`
    Optimization is time consuming	, 	Perform parallel blackbox evaluations , :ref:`block_evaluations` and :ref:`parallel_evaluations`
    Blackbox is not that expensive		, Setup maximum wall-clock time , remove ``MAX_BB_EVAL`` and set ``MAX_TIME``
-	 " "	                            , 	Add a LH search , :ref:`LH Search and X0 <x0>`
+   " ", 	Add a LH search , :ref:`LH Search and X0 <x0>`
