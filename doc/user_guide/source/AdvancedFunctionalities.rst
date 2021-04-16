@@ -168,7 +168,9 @@ than one, the opportunistic strategy applies after evaluating a block of trial p
 Parallel evaluations
 --------------------
 
-...
+When OpenMP is available, the user may provide the number of threads ``NB_THREADS_OPENMP``
+to efficiently access the computer cores. If this parameter is not set, OpenMP computes
+the number of available threads. The evaluations of trial points are dispatched to these threads.
 
 .. _psd_mads:
 
