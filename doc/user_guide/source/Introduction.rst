@@ -40,18 +40,18 @@ where the feasible set :math:`\Omega = \{ x \in X : c_j(x) \leq 0, j \in J\} \su
 .. This guide describes how to use NOMAD to solve your blackbox optimization problem.
 
 
-Basics of the Mads algorithm
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Basics of the *MADS* algorithm
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 At the core of NOMAD resides the *Mesh Adaptive Direct Search (MADS)* algorithm. As the name implies, this method generates iterates on a series of meshes with varying size. A mesh is a discretization of the space of variables. However, also as the name implies, the algorithm performs an adaptive search on the meshes including controlling the refinement of the meshes. The reader interested in the rather technical details should read Reference [AuDe2006]_.
 
-The objective of each iteration of the MADS algorithm, is to generate a trial point on the mesh that improves the current best solution. When an iteration fails to achieve this, the next iteration is initiated on a finer mesh.
+The objective of each iteration of the *MADS* algorithm, is to generate a trial point on the mesh that improves the current best solution. When an iteration fails to achieve this, the next iteration is initiated on a finer mesh.
 
 Each iteration is composed of two principal steps called the *Search* and the *Poll* steps [AuDe2006]_. The *Search* step is crucial in practice because it is so flexible, but it is a difficulty for the theory for the same reason. The *Search* can return any point on the underlying mesh, but of course, it is trying to identify a point that improves the current best solution.
 
 The *Poll* step is more rigidly defined, though there is still some flexibility in how this is implemented. The *Poll* step generates trial mesh points in the vicinity of the best current solution. Since the *Poll* step is the basis of the convergence analysis, it is the part of the algorithm where most research has been concentrated.
 
-A high-level presentation of MADS is shown in the pseudo-code below.
+A high-level presentation of *MADS* is shown in the pseudo-code below.
 
 .. figure:: ../figs/mads-algo.png
    :align: center
