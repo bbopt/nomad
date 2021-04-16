@@ -152,14 +152,14 @@ The same directory holds the parameter file that specifies this blackbox program
     DISPLAY_STATS BLK_EVA BLK_SIZE OBJ
     DISPLAY_ALL_EVAL true
 
+When evaluations are performed by blocks, i.e., when ``BB_MAX_BLOCK_SIZE`` is greater
+than one, the opportunistic strategy applies after evaluating a block of trial points.
+
 
 Library mode
 ^^^^^^^^^^^^
 Please refer to ``$NOMAD_HOME/examples/basic/library/single_obj_parallel`` for an example
 on how to manage a block of evaluations in parallel using pThreads and Semaphore.
-
-When evaluations are performed by blocks, i.e., when ``BB_MAX_BLOCK_SIZE`` is greater
-than one, the opportunistic strategy applies after evaluating a block of trial points.
 
 
 
@@ -191,4 +191,14 @@ works on all the variables, but with a reduced number of directions. The pollste
 convergence of the algorithm.
 Concerning other aspects, the algorithm given here is similar to the program PSD-MADS given
 with NOMAD 3.
+
+The management of parallel processes is done using OpenMP.
+To use PSD-MADS, set parameter ``PSD_MADS_OPTIMIZATION`` to ``true``.
+Thread 0 is used for the pollster.
+The next ``PSD_MADS_NB_SUBPROBLEM`` threads are used for subproblems. If this parameter is not
+set, it is computed using ``PSD_MADS_NB_VAR_IN_SUBPROBLEM``.
+Remaining available threads are not used for algorithmic management or point generation,
+only for point evaluation.
+An example of usage of PSD-MADS in library mode is in
+``$NOMAD_HOME/examples/advanced/library/PSDMads``.
 
