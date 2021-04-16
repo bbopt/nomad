@@ -174,7 +174,21 @@ the number of available threads. The evaluations of trial points are dispatched 
 
 .. _psd_mads:
 
-PSD Mads
+PSD-Mads
 --------
 
-...
+The PSD-MADS method implements a parallel space decomposition of MADS and is
+described in [AuDeLe07]_. The method aims at solving larger problems than the scalar version of
+NOMAD.
+NOMAD is in general efficient for problems with up to about 20 variables, PSD-MADS has
+solved problems with up to 500 variables.
+In PSD-MADS, each worker process has the responsibility for a small number of variables on
+which a MADS algorithm is performed. These subproblems are decided by the PSD-MADS algorithm.
+These groups of variables
+are chosen randomly, without any specific strategy.
+A special worker, called the pollster,
+works on all the variables, but with a reduced number of directions. The pollster ensures the
+convergence of the algorithm.
+Concerning other aspects, the algorithm given here is similar to the program PSD-MADS given
+with NOMAD 3.
+
