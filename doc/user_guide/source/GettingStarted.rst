@@ -9,9 +9,12 @@ NOMAD is an efficient tool for simulation-based design optimizations provided in
 
    \min_{x \in \Omega} f(x)
 
-where the feasible set :math:`\Omega = \{ x \in X : c_j(x) \leq 0, j \in J\} \subset \mathbb{R}^n`, :math:`f, c_j : X \rightarrow \mathbb{R} \cup \{ \infty \}` for  all :math:`j \in J= \{ 1,2,\ldots,m \}`, and where :math:`X` is a subset of :math:`\mathbb{R}^n`. The functions :math:`f` and :math:`c_j`, :math:`j ∈ J`, are typically blackbox functions whose evaluations require computer simulation.
+where the feasible set :math:`\Omega = \{ x \in X : c_j(x) \leq 0, j \in J\} \subset \mathbb{R}^n`, :math:`f, c_j : X \rightarrow \mathbb{R} \cup \{ \infty \}`
+for  all :math:`j \in J= \{ 1,2,\ldots,m \}`, and where :math:`X` is a subset of :math:`\mathbb{R}^n`.
+The functions :math:`f` and :math:`c_j`, :math:`j ∈ J`, are typically blackbox functions whose evaluations require computer simulation.
 
-NOMAD can be used in two different modes: batch mode and library mode. The batch mode is intended for a basic usage and is briefly presented below (more details will be provided in :ref:`basic_nomad_usage`).
+NOMAD can be used in two different modes: batch mode and library mode.
+The batch mode is intended for a basic usage and is briefly presented below (more details will be provided in :ref:`basic_nomad_usage`).
 This chapter explains how to get started with NOMAD in batch mode. The following topics will be covered:
 
 * :ref:`create_blackbox_program`
@@ -31,7 +34,8 @@ This chapter explains how to get started with NOMAD in batch mode. The following
 Create blackbox programs
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-To conduct optimization in batch mode the users must define their separate blackbox program coded as a standalone program. Blackbox program executions are managed by NOMAD with system calls.
+To conduct optimization in batch mode the users must define their separate blackbox program coded as a standalone program.
+Blackbox program executions are managed by NOMAD with system calls.
 
 A valid blackbox program:
     - takes an input vector file as single argument,
@@ -39,7 +43,8 @@ A valid blackbox program:
     - returns evaluation values on standard output or file,
     - returns an evaluation status.
 
-In what follows we use the example in the ``$NOMAD_HOME/examples/basic/batch/single_obj``. This example optimization problem has a single objective, 5 variables, 2 nonlinear constraints and 8 bound constraints:
+In what follows we use the example in the ``$NOMAD_HOME/examples/basic/batch/single_obj``.
+This example optimization problem has a single objective, 5 variables, 2 nonlinear constraints and 8 bound constraints:
 
 
 .. image:: ../figs/example1.png
@@ -49,13 +54,16 @@ In what follows we use the example in the ``$NOMAD_HOME/examples/basic/batch/sin
 
 .. note:: The blackbox programs may be coded in any language (even scripts) but must respect **NOMAD format**:
 
-    1. The blackbox program must be callable in a terminal window at the command prompt and take the input vector file name as a single argument. For the example above, the blackbox executable is ``bb.exe``, one can execute it with the command  ``./bb.exe x.txt``. Here ``x.txt`` is a text file containing a total of 5 values.
+    1. The blackbox program must be callable in a terminal window at the command prompt and take the input vector file name as a single argument.
+    For the example above, the blackbox executable is ``bb.exe``, one can execute it with the command  ``./bb.exe x.txt``. Here ``x.txt`` is a text file containing a total of 5 values.
 
     2. NOMAD will manage the creation of the **input file consisting of one value for each variable separated by space** and the execution of the blackbox program.
 
-    3. The blackbox program must return the evaluation values by displaying them in the **standard output** (default) or by writing them in an output file (see :ref:`advanced_functionalities` about advanced output options). It must also **return an evaluation status of 0** to indicate that the evaluation went well. Otherwise NOMAD considers that the evaluation has failed.
+    3. The blackbox program must return the evaluation values by displaying them in the **standard output** (default) or by writing them in an output file (see :ref:`advanced_functionalities` about advanced output options).
+    It must also **return an evaluation status of 0** to indicate that the evaluation went well. Otherwise NOMAD considers that the evaluation has failed.
 
-    4. The minimum number of values displayed by the blackbox program corresponds to the number of constraints plus one (or two for bi-objective problems) representing the objective function(s) that one seeks to minimize. The constraints values correspond to left-hand side of constraints of the form :math:`c_j \leq 0` (for example, the constraint :math:`0 \leq x_1 + x_2 \leq 10` must be displayed with the two quantities :math:`c_1(x)=-x_1-x_2` and :math:`c_2(x)=x_1+x_2-10`).
+    4. The minimum number of values displayed by the blackbox program corresponds to the number of constraints plus one (or two for bi-objective problems) representing the objective function(s) that one seeks to minimize.
+    The constraints values correspond to left-hand side of constraints of the form :math:`c_j \leq 0` (for example, the constraint :math:`0 \leq x_1 + x_2 \leq 10` must be displayed with the two quantities :math:`c_1(x)=-x_1-x_2` and :math:`c_2(x)=x_1+x_2-10`).
 
 The blackbox ``C++`` program of the previous example to evaluate the objective and the two constraints for a given design vector is given as:
 
@@ -102,8 +110,8 @@ With **GNU compiler** ``g++``, the blackbox compilation and test are as follows:
 
 3. Test the executable with the text file ``x.txt`` containing ``0 0 0 0 0`` by entering the command ``bb.exe x.txt``.
 
-4. This test  should display ``0 -20 20``, which means that the point :math:`x = (0~0~0~0~0)^T` has an objective value of :math:`f(x)=0`, but is not feasible, since the second constraint is not
-satisfied (:math:`c_2(x) = 20 > 0`).
+4. This test  should display ``0 -20 20``, which means that the point :math:`x = (0~0~0~0~0)^T` has an objective value of :math:`f(x)=0`,
+but is not feasible, since the second constraint is not satisfied (:math:`c_2(x) = 20 > 0`).
 
 ::
 
@@ -139,7 +147,8 @@ Here are some of the most important parameters defining an optimization problem 
 * Bounds on variables are defined with the ``LOWER_BOUND lb`` and ``UPPER_BOUND ub`` parameters.
 * The output types of the blackbox executable: objective and constraints (``BB_OUTPUT_TYPE obj cons1 ... consM``).
 * A starting point (``X0 x0``).
-* An optional stopping criterion (``MAX_BB_EVAL max_bb_eval``, for example). If no stopping criterion is specified, the algorithm will stop as soon as the mesh size reaches a given tolerance.
+* An optional stopping criterion (``MAX_BB_EVAL max_bb_eval``, for example).
+  If no stopping criterion is specified, the algorithm will stop as soon as the mesh size reaches a given tolerance.
 * Any entry on a line is ignored after the character ``#``.
 
 
@@ -147,8 +156,8 @@ Here are some of the most important parameters defining an optimization problem 
 
   The order in which the parameters appear in the file or their case is unimportant.
 
-Example of a basic parameters file extracted from ``$NOMAD_HOME/examples/basic/batch/single_obj/param.txt``. The comments in the file
-describes some of the syntactic rules to provide parameters:
+Example of a basic parameters file extracted from ``$NOMAD_HOME/examples/basic/batch/single_obj/param.txt``.
+The comments in the file describes some of the syntactic rules to provide parameters:
 
 ::
 
@@ -182,7 +191,10 @@ describes some of the syntactic rules to provide parameters:
 
 
 
-The constraints defined in the parameters file are of different types. The first constraint :math:`c_1(x) \leq 0` is treated by the *Progressive Barrier* approach (*PB*), which allows constraint violations.  The second constraint, :math:`c_3(x) \leq 0`, is treated by the  *Extreme Barrier* approach (*EB*) that forbids violations. Hence, evaluations not satisfying extreme barrier constraints are simply not considered when trying to improve the solution.
+The constraints defined in the parameters file are of different types.
+The first constraint :math:`c_1(x) \leq 0` is treated by the *Progressive Barrier* approach (*PB*), which allows constraint violations.
+The second constraint, :math:`c_3(x) \leq 0`, is treated by the  *Extreme Barrier* approach (*EB*) that forbids violations.
+Hence, evaluations not satisfying extreme barrier constraints are simply not considered when trying to improve the solution.
 
 In the example above, the algorithmic parameters of NOMAD need not to be set because default
 values are considered. This will provide the best results in most situations.

@@ -118,9 +118,11 @@ The contributions of  Miguel Anjos, Romain Couderc, Miguel Diago Martinez, Solè
 License
 =======
 
-NOMAD is a free software application released under the GNU Lesser General Public License v 3.0. As a free software application you can redistribute and/or modify NOMAD source codes under the terms of the GNU Lesser General Public License.
+NOMAD is a free software application released under the GNU Lesser General Public License v 3.0.
+As a free software application you can redistribute and/or modify NOMAD source codes under the terms of the GNU Lesser General Public License.
 
-For more information, please refer to the local copy of the license obtained during installation. For additional information you can contact us or visit the Free Software Foundation website.
+For more information, please refer to the local copy of the license obtained during installation.
+For additional information you can contact us or visit the Free Software Foundation website.
 
 
 Contact us
@@ -131,15 +133,22 @@ All queries can be submitted by email at
 .. note::
    nomad@gerad.ca.
 
-In particular, feel free to ask technical support for problem specification (creating parameter files or integration with various types of simulations) and system support (installation and plateform-dependent problems).
+In particular, feel free to ask technical support for problem specification
+(creating parameter files or integration with various types of simulations) and system support (installation and plateform-dependent problems).
 
 Bug reports and suggestions are valuable to us! We are committed to answer to posted requests as quickly as possible.
 
 
 .. topic:: References
 
-    .. [AbAuDeLe09] M.A. Abramson, C. Audet, J.E. Dennis, Jr., and S. Le Digabel. OrthoMADS: A Deterministic MADS Instance with Orthogonal Directions. SIAM Journal on Optimization, 20(2):948–966, 2009.
+    .. [AbAuDeLe09] M.A. Abramson, C. Audet, J.E. Dennis, Jr., and S. Le Digabel.
+       OrthoMADS: A Deterministic MADS Instance with Orthogonal Directions.
+       *SIAM Journal on Optimization*, 20(2):948–966, 2009.
 
-    .. [AuDe2006] C. Audet and J.E. Dennis, Jr. Mesh adaptive direct search algorithms for constrained optimization. SIAM Journal on Optimization, 17(1):188–217, 2006.
+    .. [AuDe2006] C. Audet and J.E. Dennis, Jr.
+       Mesh adaptive direct search algorithms for constrained optimization.
+       *SIAM Journal on Optimization*, 17(1):188–217, 2006.
 
-    .. [AuDe09a] C. Audet and J.E. Dennis, Jr. A Progressive Barrier for Derivative-Free Nonlinear Programming. SIAM Journal on Optimization, 20(1):445–472, 2009.
+    .. [AuDe09a] C. Audet and J.E. Dennis, Jr.
+       A Progressive Barrier for Derivative-Free Nonlinear Programming.
+       *SIAM Journal on Optimization*, 20(1):445–472, 2009.

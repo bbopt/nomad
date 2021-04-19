@@ -3,32 +3,50 @@
 Optimization in library mode
 ----------------------------
 
-The library mode allows to tailor the evaluation of the objectives and constraints within a  specialized executable that contains NOMAD shared object library. For example, it is possible to link your own code with the NOMAD library (provided during installation) in a single executable that can define and run optimization for your problem. Contrary to the batch mode, this has the disadvantage that a crash within the executable (for example during the evaluation of a point) will end the optimization unless a special treatment of exception is provided by the user. But, as a counterpart, it offers more options and flexibility for blackbox integration and optimization management (display, pre- and post-processing, multiple optimizations, user search, etc.).
+The library mode allows to tailor the evaluation of the objectives and constraints within a
+specialized executable that contains NOMAD shared object library.
 
-The library mode requires additional coding and compilation before conducting optimization. First, we will briefly review the compilation of source code to obtain NOMAD binaries (executable and shared object libraries) and how to use library.  Then, details on how to interface your own code are presented.
+For example, it is possible to link your own code with the NOMAD library (provided during installation)
+in a single executable that can define and run optimization for your problem. Contrary to the batch
+mode, this has the disadvantage that a crash within the executable (for example during the evaluation of a point)
+will end the optimization unless a special treatment of exception is provided by the user.
+But, as a counterpart, it offers more options and flexibility for blackbox integration and
+optimization management (display, pre- and post-processing, multiple optimizations, user search, etc.).
+
+The library mode requires additional coding and compilation before conducting optimization.
+First, we will briefly review the compilation of source code to obtain NOMAD binaries
+(executable and shared object libraries) and how to use library.
+Then, details on how to interface your own code are presented.
 
 Compilation of the source code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-NOMAD source code files are located in ``$NOMAD_HOME/src``.  Examples are provided in ``$NOMAD_HOME/examples/basic/library`` and ``$NOMAD_HOME/examples/advanced/library``.
+NOMAD source code files are located in ``$NOMAD_HOME/src``.
+Examples are provided in ``$NOMAD_HOME/examples/basic/library`` and ``$NOMAD_HOME/examples/advanced/library``.
 
 The compilation procedure uses the provided ``CMake`` files along with the source code.
 
-In what follows it is supposed that you have a write access to the source codes directory. If it is not the case, please consider making a copy in a more convenient location.
+In what follows it is supposed that you have a write access to the source codes directory.
+If it is not the case, please consider making a copy in a more convenient location.
 
 Using NOMAD libraries
 ^^^^^^^^^^^^^^^^^^^^^
 
-Using the routines that are in the pre-compiled NOMAD shared object libraries (so) or dll (not yet available for Windows) with a ``C++`` program requires building an executable (:ref:`installation` describes how to build the libraries and the examples). This is illustrated on the example located in the directory::
+Using the routines that are in the pre-compiled NOMAD shared object libraries (so) or dll
+(not yet available for Windows) with a ``C++`` program requires building an executable
+(:ref:`installation` describes how to build the libraries and the examples). This is illustrated on the example located in the directory::
 
   $NOMAD_HOME/examples/basic/library/example1
 
-It is supposed that the environment variable ``NOMAD_HOME`` is defined and NOMAD shared object libraries are built. A basic knowledge of object oriented programming with ``C++`` is assumed. For this example, just one ``C++`` source file is used, but there could be a lot more.
+It is supposed that the environment variable ``NOMAD_HOME`` is defined and NOMAD shared
+object libraries are built. A basic knowledge of object oriented programming with ``C++`` is assumed.
+For this example, just one ``C++`` source file is used, but there could be a lot more.
 
 Test the basic example 1
 """"""""""""""""""""""""
 
-Let us first test the basic example to check that libraries are working fine and accessible. Library mode examples are built during the installation procedure (unless the flag ``BUILD_LIBMODE_EXAMPLES`` is set to ``OFF``)::
+Let us first test the basic example to check that libraries are working fine and accessible.
+Library mode examples are built during the installation procedure (unless the flag ``BUILD_LIBMODE_EXAMPLES`` is set to ``OFF``)::
 
   > cd $NOMAD_HOME/examples/basic/library/example1
   > ls
@@ -103,7 +121,9 @@ As a first task, you can create a ``CMakeLists.txt`` for your source code(s) bas
      add_test(NAME Example1BasicLib COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./example1_lib.exe WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
   endif()
 
-If you include your problem into the ``$NOMAD_HOME/examples`` directories, you just need to copy the example ``CMakeLists.txt`` into your own problem directory (for example ``$NOMAD_HOME/examples/basic/library/myPb``), change the name ``example1_lib`` with your choice and add the subdirectory into ``$NOMAD_HOME/examples/CMakeLists.txt``::
+If you include your problem into the ``$NOMAD_HOME/examples`` directories, you just need to copy
+the example ``CMakeLists.txt`` into your own problem directory (for example ``$NOMAD_HOME/examples/basic/library/myPb``),
+change the name ``example1_lib`` with your choice and add the subdirectory into ``$NOMAD_HOME/examples/CMakeLists.txt``::
 
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/myPb)
 
@@ -111,13 +131,21 @@ If you include your problem into the ``$NOMAD_HOME/examples`` directories, you j
 Modify ``C++`` files
 """"""""""""""""""""
 
-We now describe the other steps required for the creation of the source file (let us use ``example1.cpp``) which is divided into two parts: a class for the description of the problem, and the main function.
+We now describe the other steps required for the creation of the source file (let us use ``example1.cpp``)
+which is divided into two parts: a class for the description of the problem, and the main function.
 
-The use of standard ``C++`` types for reals and vectors is of course allowed within your code, but it is suggested that you use the NOMAD types as much as  possible. For reals, NOMAD uses the class ``NOMAD::Double``, and for vectors, the classes ``NOMAD::Point`` or ``NOMAD::ArrayOfDouble``. A lot of functionalities have been coded for theses classes, which are visible  in files ``$NOMAD_HOME/src/Math/*.hpp``.
+The use of standard ``C++`` types for reals and vectors is of course allowed within your code, but it
+is suggested that you use the NOMAD types as much as  possible. For reals, NOMAD uses the class ``NOMAD::Double``,
+and for vectors, the classes ``NOMAD::Point`` or ``NOMAD::ArrayOfDouble``.
+A lot of functionalities have been coded for theses classes, which are visible  in files ``$NOMAD_HOME/src/Math/*.hpp``.
 
-The namespace \sComp{NOMAD} is used for all NOMAD types, and you must type ``NOMAD::`` in front of all types  unless you type ``using namespace NOMAD;``  at the beginning of your program.
+The namespace \sComp{NOMAD} is used for all NOMAD types, and you must type ``NOMAD::``
+in front of all types  unless you type ``using namespace NOMAD;``  at the beginning of your program.
 
-Providing the blackbox evaluation of objective and constraints directly in the code avoids the use of temporary files and system calls by the algorithm. This is achieved by defining a derived class (let us call it ``My_Evaluator``) that inherits from the class ``NOMAD::Evaluator``. The blackbox evaluation is programmed in a user-defined class that will  be automatically called by the algorithm.}
+Providing the blackbox evaluation of objective and constraints directly in the code avoids
+the use of temporary files and system calls by the algorithm. This is achieved by defining a derived
+class (let us call it ``My_Evaluator``) that inherits from the class ``NOMAD::Evaluator``.
+The blackbox evaluation is programmed in a user-defined class that will  be automatically called by the algorithm.}
 
 .. code-block:: c++
 
@@ -209,19 +237,32 @@ Providing the blackbox evaluation of objective and constraints directly in the c
     };
 
 
-The argument ``x`` (in/out in ``eval_x()``) corresponds to an evaluation point, i.e. a vector containing the coordinates of the point to be evaluated, and also the result of the evaluation. The coordinates are accessed with the operator ``[]`` (``x[0]`` for the first coordinate) and outputs are set with ``x.setBBO(bbo);``.  The outputs are returned as a string that will be interpreted by NOMAD based on the ``BB_OUTPUT_TYPE`` defined by the user. We recall that constraints must be represented by values :math:`c_j` for a constraint :math:`c_j \leq 0`.
+The argument ``x`` (in/out in ``eval_x()``) corresponds to an evaluation point, i.e. a vector containing the
+coordinates of the point to be evaluated, and also the result of the evaluation.
+The coordinates are accessed with the operator ``[]`` (``x[0]`` for the first coordinate) and outputs are set with ``x.setBBO(bbo);``.
+The outputs are returned as a string that will be interpreted by NOMAD based on the ``BB_OUTPUT_TYPE`` defined by the user.
+We recall that constraints must be represented by values :math:`c_j` for a constraint :math:`c_j \leq 0`.
 
-The second argument, the real ``h_max`` (in), corresponds to the current value of the barrier :math:`h_{max}` parameter. It is not used in this example but it may be used to interrupt an expensive evaluation if the constraint violation value :math:`h` grows larger than :math:`h_{max}`. See [AuDe09a]_ for the definition of :math:`h` and :math:`h_{max}` and of the *Progressive Barrier* method for handling constraints.
+The second argument, the real ``h_max`` (in), corresponds to the current value of the barrier :math:`h_{max}` parameter.
+It is not used in this example but it may be used to interrupt an expensive evaluation if the constraint violation value :math:`h` grows larger than :math:`h_{max}`.
+See [AuDe09a]_ for the definition of :math:`h` and :math:`h_{max}` and of the *Progressive Barrier* method for handling constraints.
 
-The third argument, ``countEval`` (out), needs to be set to ``true`` if the evaluation counts as a blackbox evaluation, and ``false`` otherwise (for example, if the user interrupts an evaluation with the :math:`h_{max}` criterion before it costs some expensive computations, then set ``countEval`` to ``false``).
+The third argument, ``countEval`` (out), needs to be set to ``true`` if the evaluation counts as a blackbox
+evaluation, and ``false`` otherwise (for example, if the user interrupts an evaluation with the :math:`h_{max}`
+criterion before it costs some expensive computations, then set ``countEval`` to ``false``).
 
-Finally, note that the call to ``eval_x()`` inside the NOMAD code  is inserted into a ``try`` block. This means that if an error is detected inside the ``eval_x()`` function,  an exception should be thrown. The choice for the type of this exception is left to the user, but  ``NOMAD::Exception`` is available. If an exception is thrown by the user-defined function, then the associated evaluation  is tagged as a failure and not counted unless the user explicitely set the flag ``countEval`` to ``true``.
+Finally, note that the call to ``eval_x()`` inside the NOMAD code  is inserted into a ``try`` block.
+This means that if an error is detected inside the ``eval_x()`` function,  an exception should be thrown.
+The choice for the type of this exception is left to the user, but  ``NOMAD::Exception`` is available.
+If an exception is thrown by the user-defined function, then the associated evaluation  is tagged as a failure
+and not counted unless the user explicitely set the flag ``countEval`` to ``true``.
 
 
 Setting parameters
 """"""""""""""""""
 
-Once your problem has been defined, the main function can be written. NOMAD routines may throw ``C++`` exceptions, so it is recommended that you put your code into a ``try`` block.
+Once your problem has been defined, the main function can be written. NOMAD routines may throw ``C++`` exceptions,
+so it is recommended that you put your code into a ``try`` block.
 
 .. code-block:: c++
 
@@ -255,17 +296,23 @@ Once your problem has been defined, the main function can be written. NOMAD rout
       return 0;
   }
 
-The execution of NOMAD is controlled by the ``NOMAD::MainStep`` class using the ``start``, ``run`` and ``end`` functions. The user defined ``NOMAD::Evaluator`` is set into the ``NOMAD::MainStep``.
+The execution of NOMAD is controlled by the ``NOMAD::MainStep`` class using the ``start``, ``run`` and ``end`` functions.
+The user defined ``NOMAD::Evaluator`` is set into the ``NOMAD::MainStep``.
 
-The base evaluator constructor takes an ``NOMAD::EvalParameters`` as input. The evaluation parameters are included into a ``NOMAD::AllParameters``.
+The base evaluator constructor takes an ``NOMAD::EvalParameters`` as input.
+The evaluation parameters are included into a ``NOMAD::AllParameters``.
 
-Hence, in library mode, the main function must declare a ``NOMAD::AllParameters`` object to set all types of parameters. Parameter names are the same as in batch mode but may be defined programmatically.
+Hence, in library mode, the main function must declare a ``NOMAD::AllParameters`` object to set all types of parameters.
+Parameter names are the same as in batch mode but may be defined programmatically.
 
-A parameter ``PNAME`` is set with the method ``AllParameters::setAttributeValue( "PNAME", PNameValue)``. The ``PNameValue`` must be of a type registered for the ``PNAME`` parameter.
+A parameter ``PNAME`` is set with the method ``AllParameters::setAttributeValue( "PNAME", PNameValue)``.
+The ``PNameValue`` must be of a type registered for the ``PNAME`` parameter.
 
-.. warning:: If the ``PNameValue`` has not the type associated to the ``PName`` parameters, the compilation will succeed but execution will be stopped when setting or getting the value.
+.. warning:: If the ``PNameValue`` has not the type associated to the ``PName`` parameters, the compilation
+   will succeed but execution will be stopped when setting or getting the value.
 
-.. note:: A brief description (including the ``NOMAD::`` type) of all parameters is given :ref:`appendix_parameters`. More information on parameters can be obtained by running ``$NOMAD_HOME/bin/nomad -h KEYWORD``.
+.. note:: A brief description (including the ``NOMAD::`` type) of all parameters is given :ref:`appendix_parameters`.
+   More information on parameters can be obtained by running ``$NOMAD_HOME/bin/nomad -h KEYWORD``.
 
 For the example, the parameters are set in
 
@@ -306,7 +353,8 @@ For the example, the parameters are set in
 
   }
 
-The ``checkAndComply`` function must be called to ensure that parameters are compatible. Otherwise an exception is triggered.
+The ``checkAndComply`` function must be called to ensure that parameters are compatible.
+Otherwise an exception is triggered.
 
 Access to solution and optimization data
 """"""""""""""""""""""""""""""""""""""""
@@ -323,5 +371,8 @@ Access to solution and optimization data
 
 Python interface
 ----------------
+
+Before using *Python* interface, the interface source code must be built using ``cython``.
+To enable the interface building use the option ``-DBUILD_INTERFACES=ON`` when configuring the project with *CMake* (see :ref:`Configuration <cmake_configuration>`).
 
 ...
