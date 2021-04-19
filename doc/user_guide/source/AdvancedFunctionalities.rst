@@ -6,7 +6,7 @@ Advanced functionalities
 Advanced parameters
 -------------------
 
-Advanced parameters are intended to setup optimization problems, algorithmic and output parameters when specific needs are present. Only a few advanced parameters are presented below; all advanced parameters can be obtained with ``$NOMAD_HOME -h advanced``. Also a complete list of parameters and a short description is available in :ref:``appendix_parameters``.
+Advanced parameters are intended to setup optimization problems, algorithmic and output parameters when specific needs are present. Only a few advanced parameters are presented below; all advanced parameters can be obtained with ``$NOMAD_HOME -h advanced``. Also a complete list of parameters and a short description is available in :ref:`appendix_parameters`.
 
 .. _fixed_variable:
 
@@ -15,7 +15,7 @@ Advanced parameters are intended to setup optimization problems, algorithmic and
 
 This parameter is used to fix some variables to a value. This value is optional if at least one starting point is defined. The parameter may be entered with several types of arguments:
 
-* A vector of :math:`n values with format ``(v0 v1 ... vn-1)``. Character ```-`` is used for free variables.
+* A vector of :math:`n` values with format ``(v0 v1 ... vn-1)``. Character ``-`` is used for free variables.
 
 * An index range if at least one starting point has been defined. ``FIXED_VARIABLE i-j``: variables ``i`` to ``j`` are fixed to their initial (``i-j`` may be replaced by ``i`` only). See :ref`x0` for practical examples of index ranges.
 
@@ -37,7 +37,7 @@ The opportunistic strategy consists in terminating the evaluations of a list of 
 
 This strategy is decided with the parameter ``EVAL_OPPORTUNISTIC`` and applies to both the *Poll* and *Search* steps. Search with NOMAD help ``$NOMAD_HOME/bin/nomad -h OPPORTUNISTIC`` for more options.
 
-When evaluations are performed by blocks (see :ref:`bloc_evaluations`) the opportunistic strategy applies after evaluating a block of trial points.
+When evaluations are performed by blocks (see :ref:`block_evaluations`) the opportunistic strategy applies after evaluating a block of trial points.
 
 .. _variable_group:
 
@@ -99,6 +99,7 @@ in what follows.
 
 Batch mode
 """"""""""
+
 In batch mode, NOMAD creates input files which can contain at most
 BB_MAX_BLOCK_SIZE trial points separated by a linebreak. Each point is given as a row of values.
 The user must provide a blackbox program that can read the input file, evaluate them and
@@ -203,3 +204,7 @@ only for point evaluation.
 An example of usage of PSD-MADS in library mode is in
 ``$NOMAD_HOME/examples/advanced/library/PSDMads``.
 
+
+.. topic:: References
+
+  .. [AuDeLe07] C. Audet, J.E. Dennis, Jr., and S. Le Digabel. Parallel space decomposition of the mesh adaptive direct search algorithm. *SIAM Journal on Optimization*, 19(3):1150–1170, 2008.
