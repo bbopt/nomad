@@ -377,7 +377,7 @@ PyNomad interface compilation
 A Python interface for NOMAD is provided for Mac OS X and Linux.
 Some examples and source codes are provided in ``$NOMAD_HOME/interfaces/PyNomad``.
 To enable the building of the Python interface, option ``-DBUILD_INTERFACES=ON`` must be
-set when building NOMAD, as such: ``cmake -DBUILD_TESTS=ON -S . -B build/release``.
+set when configuring for building NOMAD, as such: ``cmake -DBUILD_INTERFACES=ON -S . -B build/release``.
 The build procedure relies on Python 3.6 and Cython 0.24 or higher.
 A simple way to make it work is to first install the `Anaconda <http://www.anaconda.org/>`_ package.
 The command ``cmake --install build/release`` must be run before using the PyNomad module.
