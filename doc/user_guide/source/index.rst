@@ -5,7 +5,7 @@ Nomad 4 User Guide
 
    This user guide is specific to NOMAD 4.
 
-   NOMAD 3 is still available. It will be completely replaced by NOMAD 4 in the future.
+   NOMAD 3 is still available. It will be replaced by NOMAD 4 in the future.
 
    Get NOMAD 3 and 4 at `<https://www.gerad.ca/nomad/>`_.
 
