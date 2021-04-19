@@ -98,7 +98,7 @@ strategy of parallelization must be setup by the user within the blackbox. Examp
 in what follows.
 
 Batch mode
-^^^^^^^^^^
+""""""""""
 In batch mode, NOMAD creates input files which can contain at most
 BB_MAX_BLOCK_SIZE trial points separated by a linebreak. Each point is given as a row of values.
 The user must provide a blackbox program that can read the input file, evaluate them and
@@ -157,7 +157,8 @@ than one, the opportunistic strategy applies after evaluating a block of trial p
 
 
 Library mode
-^^^^^^^^^^^^
+""""""""""""
+
 Please refer to ``$NOMAD_HOME/examples/basic/library/single_obj_parallel`` for an example
 on how to manage a block of evaluations in parallel using pThreads and Semaphore.
 
