@@ -321,7 +321,26 @@ Access to solution and optimization data
 .. NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD,nullptr);
 
 
-Python interface
-----------------
+PyNomad interface compilation
+-----------------------------
 
-...
+.. note:: The Python interface requires Python 3.6 and Cython 0.24.
+
+A Python interface for NOMAD is provided for Mac OS X and Linux.
+Some examples and source codes are provided in ``$NOMAD_HOME/interfaces/PyNomad``.
+To enable the building of the Python interface, option ``-DBUILD_INTERFACES=ON`` must be
+set when building NOMAD, as such: ``cmake -DBUILD_TESTS=ON -S . -B build/release``.
+The build procedure relies on Python 3.6 and Cython 0.24 or higher.
+A simple way to make it work is to first install the `Anaconda <http://www.anaconda.org/>`_ package.
+The command ``cmake --install build/release`` must be run before using the PyNomad module.
+
+All functionalities of NOMAD are available in PyNomad.
+NOMAD parameters are provided in a list of strings using the same syntax as used in the NOMAD parameter
+files.
+Several tests and examples are proposed in the ``PyNomad`` directory to check that everything is up and
+running.
+
+C interface
+-----------
+
+**TODO**
