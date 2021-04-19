@@ -343,4 +343,21 @@ running.
 C interface
 -----------
 
-**TODO**
+A C interface for NOMAD is provided for Mac OS X and Linux.
+The source codes are provided in ``$NOMAD_HOME/interfaces/CInterface/``.
+To enable the building of the C interface, option ``-DBUILD_INTERFACES=ON`` must be
+set when building NOMAD, as such: ``cmake -DBUILD_TESTS=ON -S . -B build/release``.
+The command ``cmake --install build/release`` must be run before using the PyNomad module.
+
+All functionalities of NOMAD are available in the C interface.
+NOMAD parameters are provided via these functions:
+
+.. code-block:: c
+
+    bool addNomadParam(NomadProblem nomad_problem, char *keyword_value_pair);
+    bool addNomadValParam(NomadProblem nomad_problem, char *keyword, int value);
+    bool addNomadBoolParam(NomadProblem nomad_problem, char *keyword, bool value);
+    bool addNomadStringParam(NomadProblem nomad_problem, char *keyword, char *param_str);
+    bool addNomadArrayOfDoubleParam(NomadProblem nomad_problem, char *keyword, double *array_param);
+
+See examples that are proposed in the ``$NOMAD_HOME/examples/advanced/library/c_api`` directory.
