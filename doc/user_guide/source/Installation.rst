@@ -105,4 +105,11 @@ The environment variables ``CC`` and ``CXX`` can be used to select the compiler.
 Testing installation
 ^^^^^^^^^^^^^^^^^^^^
 
-Once building and installation have been performed.
+Once building and installation have been performed some tests can be performed.
+By default the examples are built and can be tested::
+
+  cd build/release
+  ctest
+
+Option ``--parallel xx`` can be added for faster execution.
+The log of the tests can be found in ``$NOMAD_HOME/build/release/Testing/Temporary``.
