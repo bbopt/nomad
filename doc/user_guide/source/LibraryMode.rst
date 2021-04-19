@@ -369,8 +369,8 @@ Access to solution and optimization data
 .. NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD,nullptr);
 
 
-PyNomad interface compilation
------------------------------
+PyNomad interface
+-----------------
 
 .. note:: The Python interface requires Python 3.6 and Cython 0.24.
 
