@@ -12,7 +12,8 @@ The minimum version of *CMake* is 3.14. Older versions should trigger an error.
 
 A recent C++ compiler is also required. *CMake* will detect which compiler is available.
 
-.. warning:: Some older version of *CMake* do not trigger an error. If the ``cmake`` commands fail, check the version manually on the command line
+.. warning:: Some older version of *CMake* do not trigger an explicit error on the version number.
+   If the ``cmake`` commands fail, check the version manually on the command line
 
   ::
 
@@ -23,9 +24,10 @@ A recent C++ compiler is also required. *CMake* will detect which compiler is av
 
 
 .. note:: If the version of *CMake* is older than 3.14 or if you do not have *CMake* installed, you
-   can follow the procedure given at `cmake.org <https://cmake.org/install/>`_.
+   can follow the procedure given at `cmake.org <https://cmake.org/install/>`_ to obtain binaries.
+   For Mac OSX and Linux we recommend to install *CMake* using a **package manager**.
 
-   Alternatively, for Mac OSX, *CMake* can be installed on the command line using package manager `MacPorts <https://www.macports.org/>`_ or `Homebrew <http://brew.sh/>`_.
+   For Mac OSX, we recommend that *CMake* be installed on the command line using package manager `MacPorts <https://www.macports.org/>`_ or `Homebrew <http://brew.sh/>`_.
 
    For Linux, several package managers exist to automate the procedure.
 
@@ -35,33 +37,40 @@ The procedure has the three following steps: **configuration, building and insta
 
 .. _cmake_configuration:
 
-Configuration using provided ``CMakeLists.txt`` files
-"""""""""""""""""""""""""""""""""""""""""""""""""""""
+1- Configuration using provided ``CMakeLists.txt`` files
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-On the command line in the ``$NOMAD_HOME`` directory::
+On the command line, in the ``$NOMAD_HOME`` directory::
 
   cmake -S . -B build/release
 
-This command creates the ``CMake files`` and directories for building (``-B``) in ``build/release``. The source (``-S``) ``CMakeLists.txt`` file is in the ``$NOMAD_HOME`` directory.
 
-The command can be modified to enable/disable some options. For example, to enable time stats build::
+.. sidebar:: Building options
 
-  cmake -DTIME_STATS=ON -S . -B build/release
+     To enable time stats build::
 
+        cmake -DTIME_STATS=ON -S . -B build/release
 
-To enable interfaces (C and Python) building::
+     To enable interfaces (C and Python) building::
 
-  cmake -DBUILD_INTERFACES=ON -S . -B build/release
+        cmake -DBUILD_INTERFACES=ON -S . -B build/release
 
+     To disable *OpenMP* compilation::
 
-*OpenMP* is used for parallelization of evaluations. *CMake* will detect if *OpenMP* is available by default. To forcefully deactivate compilation with OpenMP::
-
-  cmake -DTEST_OPENMP=OFF -S . -B build/release
-
+       cmake -DTEST_OPENMP=OFF -S . -B build/release
 
 
-Build
-"""""
+This command creates the files and directories for building (``-B``) in ``build/release``. The source (``-S``) ``CMakeLists.txt`` file is in the ``$NOMAD_HOME`` directory.
+
+The command can be modified to enable/disable some options (see side bar).
+
+*OpenMP* is used for parallelization of evaluations. *CMake* will detect if *OpenMP* is available by default. To forcefully deactivate compilation with *OpenMP*, see option in side bar.
+
+
+
+
+2- Build
+""""""""
 
 Build the libraries and applications::
 
@@ -69,8 +78,8 @@ Build the libraries and applications::
 
 Option ``--parallel xx`` can be added for faster build
 
-Install
-"""""""
+3- Install
+""""""""""
 
 Copy binaries and headers in build/release/[bin, include, lib] and in the examples/tests directories::
 
@@ -97,7 +106,7 @@ The procedure to configure, build and install the ``debug`` version is the follo
 Use another compiler
 """"""""""""""""""""
 
-The environment variables ``CC`` and ``CXX`` can be used to select the compiler.
+The environment variables ``CC`` and ``CXX`` can be used to select the ``C`` and ``C++`` compilers.
 
 .. note:: ``Clang`` is the default compiler for Mac OSX using XCode. Users of Mac OSX can install ``GCC`` compilers using `MacPorts <https://www.macports.org/>`_ or `Homebrew <http://brew.sh/>`_.
 
