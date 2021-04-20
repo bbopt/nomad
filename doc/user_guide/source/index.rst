@@ -12,7 +12,7 @@ Nomad 4 User Guide
 
 NOMAD is a blackbox optimization software. A general presentation of NOMAD is given in :ref:`introduction`.
 
-**New users** of NOMAD should refer to
+**New users of NOMAD should refer to**
 
 * :ref:`installation`
 * :ref:`getting_started`
@@ -27,7 +27,7 @@ Please cite NOMAD 4 with reference:
 
 .. [AuLeRoTr2021] C. Audet, S. Le Digabel, V. Rochon Montplaisir, and C. Tribes.
    NOMAD version 4: Nonlinear optimization with the MADS algorithm.
-   *ACM Transactions on Mathematical Software*, Submitted.
+   Submitted.
 
 .. sidebar:: Reference book
 

@@ -137,9 +137,12 @@ Or::
 ``BB_INPUT_TYPE``
 """""""""""""""""
 
-This parameter indicates the types of each variable. It may be defined once with a list of :math:`n` input types with format  ``(t1 t2 ... tn)`` or `` * t``. Input types ``t`` are values in ``R, B, I``. ``R`` is for real/continuous variables, ``B`` for binary variables, and ``I`` for integer variables. The default type is ``R``.
+This parameter indicates the types of each variable.
+It may be defined once with a list of :math:`n` input types with format  ``(t1 t2 ... tn)`` or `` * t``.
+Input types ``t`` are values in ``R, B, I``. ``R`` is for real/continuous variables, ``B`` for binary variables, and ``I`` for integer variables.
+The default type is ``R``. See also :doc:`ListOfParameters`.
 
-Please note that categorical variables (mixed integer variable) are not yet supported in NOMAD 4 but are available in NOMAD 3.
+.. note:: Categorical variables are not yet supported in NOMAD 4 but are available in NOMAD 3.
 
 
 
