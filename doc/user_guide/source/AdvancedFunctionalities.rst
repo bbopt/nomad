@@ -126,9 +126,9 @@ submitted the content of the output file must reflect the outputs for each point
 If one value provided in the output file
 cannot be read by NOMAD, then the corresponding trial point is considered as having failed.
 The trial points that have failed will not be evaluated again.
-An example of blackbox program written in Perl scripting language is provided in the
-directory ``$NOMAD_HOME/examples/basic/batch/single_obj_parallel``. The script ``parallel_BBWrapper.pl``
-calls up to 4 instances of the executable bb.exe to evaluate 4 trial points in parallel.
+An example of blackbox program written is provided in the
+directory ``$NOMAD_HOME/examples/basic/batch/single_obj_parallel``.
+The executable ``bb3.exe`` evaluates up to 4 trial points in parallel.
 
 ::
 
@@ -138,11 +138,11 @@ calls up to 4 instances of the executable bb.exe to evaluate 4 trial points in p
   0 0 0 0 0
   2 2 2 2 2
   5 4 3 2 1
-  > perl parallel_BBWrapper.pl x.txt
+  > bb3.exe x.txt
   5 5 -65
-   0 -20 20
-   2 -20 -20
-   1 5 -65
+  0 -20 20
+  2 -20 -20
+  1 5 -65
 
 The same directory holds the parameter file that specifies this blackbox program with blocks of 4 trial points:
 
@@ -150,7 +150,7 @@ The same directory holds the parameter file that specifies this blackbox program
 
     DIMENSION      5              # number of variables
 
-    BB_EXE "$perl parallel_BBWrapper.pl"
+    BB_EXE bb3.exe
     BB_MAX_BLOCK_SIZE 4
 
     BB_OUTPUT_TYPE OBJ PB EB
@@ -177,7 +177,7 @@ Library mode
 """"""""""""
 
 Please refer to ``$NOMAD_HOME/examples/basic/library/single_obj_parallel`` for an example
-on how to manage a block of evaluations in parallel using pThreads and Semaphore.
+on how to manage a block of evaluations in parallel using OpenMP.
 
 
 
