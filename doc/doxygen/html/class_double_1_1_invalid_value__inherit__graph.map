@@ -1,0 +1,5 @@
+<map id="Double::InvalidValue" name="Double::InvalidValue">
+<area shape="rect" id="node1" title="Exception for divisions by zero with double objects." alt="" coords="5,155,161,181"/>
+<area shape="rect" id="node2" href="$class_exception.html" title="Exception utility." alt="" coords="40,80,127,107"/>
+<area shape="rect" id="node3" title="STL class." alt="" coords="26,5,141,32"/>
+</map>

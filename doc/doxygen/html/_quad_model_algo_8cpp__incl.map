@@ -1,0 +1,52 @@
+<map id="/home/nomad/Git/nomad/src/Algos/QuadModel/QuadModelAlgo.cpp" name="/home/nomad/Git/nomad/src/Algos/QuadModel/QuadModelAlgo.cpp">
+<area shape="rect" id="node1" title=" " alt="" coords="3100,5,3284,61"/>
+<area shape="rect" id="node2" href="$_quad_model_algo_8hpp.html" title=" " alt="" coords="113,117,273,158"/>
+<area shape="rect" id="node6" href="$_quad_model_mega_iteration_8hpp.html" title=" " alt="" coords="297,117,516,158"/>
+<area shape="rect" id="node7" title=" " alt="" coords="540,117,732,158"/>
+<area shape="rect" id="node8" title=" " alt="" coords="756,124,799,151"/>
+<area shape="rect" id="node9" title=" " alt="" coords="823,124,897,151"/>
+<area shape="rect" id="node10" title=" " alt="" coords="4725,213,4787,240"/>
+<area shape="rect" id="node11" title=" " alt="" coords="1193,124,1236,151"/>
+<area shape="rect" id="node12" title=" " alt="" coords="1260,124,1327,151"/>
+<area shape="rect" id="node13" title=" " alt="" coords="1351,124,1436,151"/>
+<area shape="rect" id="node14" title=" " alt="" coords="1461,109,1646,165"/>
+<area shape="rect" id="node15" title=" " alt="" coords="1670,117,1869,158"/>
+<area shape="rect" id="node16" title=" " alt="" coords="1892,124,1972,151"/>
+<area shape="rect" id="node17" title=" " alt="" coords="1996,124,2071,151"/>
+<area shape="rect" id="node18" title=" " alt="" coords="2095,124,2158,151"/>
+<area shape="rect" id="node19" title=" " alt="" coords="2183,124,2257,151"/>
+<area shape="rect" id="node20" title=" " alt="" coords="2282,124,2353,151"/>
+<area shape="rect" id="node21" title=" " alt="" coords="2377,124,2436,151"/>
+<area shape="rect" id="node22" title=" " alt="" coords="2461,124,2531,151"/>
+<area shape="rect" id="node23" title=" " alt="" coords="2555,117,2770,158"/>
+<area shape="rect" id="node24" title=" " alt="" coords="2794,124,2859,151"/>
+<area shape="rect" id="node25" title=" " alt="" coords="2884,124,2969,151"/>
+<area shape="rect" id="node26" title=" " alt="" coords="2993,124,3084,151"/>
+<area shape="rect" id="node27" title=" " alt="" coords="3108,124,3183,151"/>
+<area shape="rect" id="node28" title=" " alt="" coords="3207,124,3273,151"/>
+<area shape="rect" id="node29" title=" " alt="" coords="3298,124,3363,151"/>
+<area shape="rect" id="node30" title=" " alt="" coords="3387,117,3610,158"/>
+<area shape="rect" id="node31" title=" " alt="" coords="3634,117,3825,158"/>
+<area shape="rect" id="node32" title=" " alt="" coords="3849,109,4034,165"/>
+<area shape="rect" id="node33" title=" " alt="" coords="4058,117,4257,158"/>
+<area shape="rect" id="node34" title=" " alt="" coords="4280,124,4339,151"/>
+<area shape="rect" id="node35" title=" " alt="" coords="4363,124,4413,151"/>
+<area shape="rect" id="node36" href="$_quad_model_initialization_8hpp.html" title=" " alt="" coords="4438,117,4647,158"/>
+<area shape="rect" id="node37" href="$_subproblem_manager_8hpp.html" title=" " alt="" coords="921,124,1169,151"/>
+<area shape="rect" id="node38" href="$_output_queue_8hpp.html" title=" " alt="" coords="4723,124,4931,151"/>
+<area shape="rect" id="node39" title=" " alt="" coords="4955,117,5147,158"/>
+<area shape="rect" id="node40" title=" " alt="" coords="5171,117,5384,158"/>
+<area shape="rect" id="node41" title=" " alt="" coords="5409,109,5594,165"/>
+<area shape="rect" id="node42" title=" " alt="" coords="5618,109,5803,165"/>
+<area shape="rect" id="node43" title=" " alt="" coords="5827,109,6013,165"/>
+<area shape="rect" id="node44" title=" " alt="" coords="6037,109,6222,165"/>
+<area shape="rect" id="node45" title=" " alt="" coords="6246,109,6431,165"/>
+<area shape="rect" id="node46" title=" " alt="" coords="6455,109,6641,165"/>
+<area shape="rect" id="node47" title=" " alt="" coords="6665,109,6850,165"/>
+<area shape="rect" id="node48" title=" " alt="" coords="6874,109,7059,165"/>
+<area shape="rect" id="node49" title=" " alt="" coords="7083,109,7269,165"/>
+<area shape="rect" id="node50" title=" " alt="" coords="7293,109,7478,165"/>
+<area shape="rect" id="node3" href="$_algo_stop_reasons_8hpp.html" title=" " alt="" coords="5,213,232,240"/>
+<area shape="rect" id="node4" href="$_evc_interface_8hpp.html" title=" " alt="" coords="102,288,285,315"/>
+<area shape="rect" id="node5" href="$_algorithm_8hpp.html" title=" " alt="" coords="632,213,811,240"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="QuadModelAlgo" name="QuadModelAlgo">
+<area shape="rect" id="node1" title="Class for implementation of quadratic model optimization algorithm using Bastien Talgorn&#39;s sgtelib." alt="" coords="5,155,131,181"/>
+<area shape="rect" id="node2" href="$class_algorithm.html" title="Generic class for any direct search optimizer algorithm." alt="" coords="25,80,111,107"/>
+<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="43,5,93,32"/>
+</map>

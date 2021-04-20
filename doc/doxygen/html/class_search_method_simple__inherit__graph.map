@@ -1,0 +1,10 @@
+<map id="SearchMethodSimple" name="SearchMethodSimple">
+<area shape="rect" id="node1" title="Class for generic search method of MADS. Run by Search." alt="" coords="254,155,414,181"/>
+<area shape="rect" id="node5" href="$class_l_h_search_method.html" title="Class for the search method using Latin Hypercube." alt="" coords="5,229,137,256"/>
+<area shape="rect" id="node6" href="$class_quad_search_method.html" title="Class to perform a Search method using the quadratic model optimization algorithm." alt="" coords="162,229,311,256"/>
+<area shape="rect" id="node7" href="$class_speculative_search_method.html" title="Speculative search." alt="" coords="336,229,527,256"/>
+<area shape="rect" id="node8" href="$class_user_search_method.html" title="Class UserSearchMethod: Search method defined by user." alt="" coords="551,229,696,256"/>
+<area shape="rect" id="node2" href="$class_search_method_base.html" title="Class for generic search method of MADS. Run by Search." alt="" coords="261,80,407,107"/>
+<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="258,5,309,32"/>
+<area shape="rect" id="node4" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="333,5,439,32"/>
+</map>

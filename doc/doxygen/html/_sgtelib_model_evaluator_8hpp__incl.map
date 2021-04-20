@@ -1,0 +1,52 @@
+<map id="/home/nomad/Git/nomad/src/Algos/SgtelibModel/SgtelibModelEvaluator.hpp" name="/home/nomad/Git/nomad/src/Algos/SgtelibModel/SgtelibModelEvaluator.hpp">
+<area shape="rect" id="node1" title=" " alt="" coords="4152,5,4352,61"/>
+<area shape="rect" id="node2" href="$_sgtelib_model_8hpp.html" title=" " alt="" coords="4228,109,4399,151"/>
+<area shape="rect" id="node12" href="$nomad__nsbegin_8hpp.html" title=" " alt="" coords="3839,1363,4004,1389"/>
+<area shape="rect" id="node14" href="$nomad__nsend_8hpp.html" title=" " alt="" coords="891,1363,1045,1389"/>
+<area shape="rect" id="node33" href="$_output_info_8hpp.html" title=" " alt="" coords="3705,975,3884,1001"/>
+<area shape="rect" id="node40" href="$_evaluator_8hpp.html" title="Evaluation of blackbox functions." alt="" coords="1272,512,1427,539"/>
+<area shape="rect" id="node47" href="$_sgtelib_model_feasibility_type_8hpp.html" title="types for parameter SGTELIB_MODEL_FEASIBILITY" alt="" coords="2261,1273,2493,1315"/>
+<area shape="rect" id="node3" href="$_algo_stop_reasons_8hpp.html" title=" " alt="" coords="2695,206,2921,233"/>
+<area shape="rect" id="node5" href="$_evc_interface_8hpp.html" title=" " alt="" coords="1011,288,1194,315"/>
+<area shape="rect" id="node42" href="$_algorithm_8hpp.html" title=" " alt="" coords="2945,206,3124,233"/>
+<area shape="rect" id="node48" href="$_sgtelib_model_formulation_type_8hpp.html" title="types for parameter SGTELIB_MODEL_FORMULATION" alt="" coords="2517,1273,2760,1315"/>
+<area shape="rect" id="node49" title=" " alt="" coords="4229,199,4369,240"/>
+<area shape="rect" id="node50" title=" " alt="" coords="4393,199,4543,240"/>
+<area shape="rect" id="node4" title=" " alt="" coords="3604,1124,3681,1151"/>
+<area shape="rect" id="node19" href="$_all_stop_reasons_8hpp.html" title=" " alt="" coords="2705,975,2895,1001"/>
+<area shape="rect" id="node21" href="$_exception_8hpp.html" title="Custom class for exceptions (headers)" alt="" coords="1825,1281,1978,1307"/>
+<area shape="rect" id="node6" href="$_step_8hpp.html" title=" " alt="" coords="2716,437,2847,464"/>
+<area shape="rect" id="node36" href="$_evaluator_control_8hpp.html" title="Management for evaluation." alt="" coords="600,363,803,389"/>
+<area shape="rect" id="node7" href="$_mesh_base_8hpp.html" title="Base class for mesh." alt="" coords="3261,893,3430,919"/>
+<area shape="rect" id="node16" href="$_pb_parameters_8hpp.html" title=" " alt="" coords="2240,975,2437,1001"/>
+<area shape="rect" id="node23" href="$_barrier_8hpp.html" title=" " alt="" coords="2150,512,2287,539"/>
+<area shape="rect" id="node29" href="$_run_parameters_8hpp.html" title=" " alt="" coords="2103,811,2310,837"/>
+<area shape="rect" id="node32" href="$_eval_type_8hpp.html" title="Types for Evaluation: Blackbox, Model." alt="" coords="904,736,1059,763"/>
+<area shape="rect" id="node35" href="$_callback_type_8hpp.html" title="Types for Callback." alt="" coords="2054,1281,2237,1307"/>
+<area shape="rect" id="node8" href="$_array_of_double_8hpp.html" title="Base class to be used for an array of n Double values, as base class for Point and Direction." alt="" coords="2879,1199,3073,1225"/>
+<area shape="rect" id="node15" href="$_point_8hpp.html" title="Point." alt="" coords="2839,1124,2971,1151"/>
+<area shape="rect" id="node9" href="$_array_of_string_8hpp.html" title="Class to be used for an array of n strings." alt="" coords="2997,1281,3174,1307"/>
+<area shape="rect" id="node10" title=" " alt="" coords="2729,1363,2788,1389"/>
+<area shape="rect" id="node11" title=" " alt="" coords="3142,1363,3205,1389"/>
+<area shape="rect" id="node13" href="$nomad__version_8hpp.html" title=" " alt="" coords="3846,1437,3997,1464"/>
+<area shape="rect" id="node17" href="$_parameters_8hpp.html" title=" " alt="" coords="1415,1049,1596,1076"/>
+<area shape="rect" id="node18" title=" " alt="" coords="1360,1124,1403,1151"/>
+<area shape="rect" id="node20" href="$_stop_reason_8hpp.html" title=" " alt="" coords="2518,1199,2685,1225"/>
+<area shape="rect" id="node22" title=" " alt="" coords="2101,1363,2176,1389"/>
+<area shape="rect" id="node24" href="$_eval_point_8hpp.html" title="Evaluation point." alt="" coords="1169,587,1324,613"/>
+<area shape="rect" id="node25" href="$_eval_8hpp.html" title="Evaluation at a point." alt="" coords="1272,661,1395,688"/>
+<area shape="rect" id="node31" href="$_compute_type_8hpp.html" title="Types for Computation of f and h: Blackbox, PhaseOne." alt="" coords="1310,1281,1495,1307"/>
+<area shape="rect" id="node26" href="$_b_b_output_8hpp.html" title="Output of a Blackbox evaluation." alt="" coords="2425,1124,2581,1151"/>
+<area shape="rect" id="node28" href="$_eval_parameters_8hpp.html" title=" " alt="" coords="1361,736,1570,763"/>
+<area shape="rect" id="node27" href="$_b_b_output_type_8hpp.html" title="types for BBOutput" alt="" coords="2785,1281,2973,1307"/>
+<area shape="rect" id="node30" href="$_evaluator_control_global_parameters_8hpp.html" title=" " alt="" coords="2113,885,2301,927"/>
+<area shape="rect" id="node34" href="$_stats_info_8hpp.html" title="Class for Stats info and display." alt="" coords="3351,1049,3519,1076"/>
+<area shape="rect" id="node37" href="$_compare_priority_8hpp.html" title="Compare EvalQueuePoints for sorting." alt="" coords="397,437,595,464"/>
+<area shape="rect" id="node38" href="$_eval_queue_point_8hpp.html" title="Point specificly designed for EvalQueue." alt="" coords="499,512,696,539"/>
+<area shape="rect" id="node39" href="$_evc_main_thread_info_8hpp.html" title="Information about main threads." alt="" coords="1675,437,1893,464"/>
+<area shape="rect" id="node41" title=" " alt="" coords="669,437,733,464"/>
+<area shape="rect" id="node43" href="$_initialization_8hpp.html" title=" " alt="" coords="2819,363,3002,389"/>
+<area shape="rect" id="node44" href="$_mega_iteration_8hpp.html" title=" " alt="" coords="2685,288,2878,315"/>
+<area shape="rect" id="node46" href="$_termination_8hpp.html" title=" " alt="" coords="3027,363,3205,389"/>
+<area shape="rect" id="node45" href="$_iteration_8hpp.html" title=" " alt="" coords="2587,363,2744,389"/>
+</map>
