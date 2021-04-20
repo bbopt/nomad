@@ -1,0 +1,4 @@
+<map id="Direction" name="Direction">
+<area shape="rect" id="node1" title="Class for the representation of a direction." alt="" coords="24,80,105,107"/>
+<area shape="rect" id="node2" href="$class_array_of_double.html" title="Class for the representation of an array of n values." alt="" coords="5,5,124,32"/>
+</map>

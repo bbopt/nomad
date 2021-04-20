@@ -206,7 +206,7 @@ bool NOMAD::BBOutput::checkSizeMatch(const NOMAD::BBOutputTypeList &bbOutputType
         }
         err += ":\n";
         err += _rawBBO;
-        std::cerr << err << std::endl;
+        //std::cerr << err << std::endl;
         ret = false;
     }
 

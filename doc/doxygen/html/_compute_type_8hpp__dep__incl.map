@@ -1,0 +1,52 @@
+<map id="/home/nomad/Git/nomad/src/Type/ComputeType.hpp" name="/home/nomad/Git/nomad/src/Type/ComputeType.hpp">
+<area shape="rect" id="node1" title="Types for Computation of f and h: Blackbox, PhaseOne." alt="" coords="3305,5,3505,47"/>
+<area shape="rect" id="node2" href="$_eval_8hpp.html" title="Evaluation at a point." alt="" coords="3313,95,3497,136"/>
+<area shape="rect" id="node3" href="$_eval_point_8hpp.html" title="Evaluation point." alt="" coords="3183,184,3367,225"/>
+<area shape="rect" id="node50" href="$_compute_type_8cpp.html" title="Types for Computation of f and h (implementation)" alt="" coords="3521,95,3720,136"/>
+<area shape="rect" id="node49" href="$_eval_8cpp.html" title="Evaluation at a point (implementation)" alt="" coords="3391,184,3575,225"/>
+<area shape="rect" id="node4" href="$_barrier_8hpp.html" title=" " alt="" coords="1370,281,1554,322"/>
+<area shape="rect" id="node6" href="$_n_m_reflective_8hpp.html" title=" " alt="" coords="73,481,257,537"/>
+<area shape="rect" id="node11" href="$_eval_queue_point_8hpp.html" title="Point specificly designed for EvalQueue." alt="" coords="244,281,456,322"/>
+<area shape="rect" id="node14" href="$_compute_success_type_8hpp.html" title="Comparison methods for EvalPoints." alt="" coords="1763,281,2014,322"/>
+<area shape="rect" id="node22" href="$_evaluator_8hpp.html" title="Evaluation of blackbox functions." alt="" coords="2817,281,3001,322"/>
+<area shape="rect" id="node30" href="$_cache_base_8hpp.html" title="Base class for cache." alt="" coords="4609,281,4803,322"/>
+<area shape="rect" id="node36" href="$_cache_set_8hpp.html" title="Simple implementation of Cache derived from CacheBase, using set or unordered_set." alt="" coords="6911,385,7095,426"/>
+<area shape="rect" id="node44" href="$_phase_one_8hpp.html" title=" " alt="" coords="3518,281,3769,322"/>
+<area shape="rect" id="node45" href="$_mads_iteration_8hpp.html" title=" " alt="" coords="4827,281,5073,322"/>
+<area shape="rect" id="node46" href="$_n_m_simplex_eval_point_8hpp.html" title=" " alt="" coords="2392,273,2583,329"/>
+<area shape="rect" id="node47" href="$_quad_model_iteration_8hpp.html" title=" " alt="" coords="3999,273,4183,329"/>
+<area shape="rect" id="node48" href="$_eval_point_8cpp.html" title="Evaluation point (implementation)" alt="" coords="5147,281,5331,322"/>
+<area shape="rect" id="node5" href="$_step_8hpp.html" title=" " alt="" coords="601,385,785,426"/>
+<area shape="rect" id="node8" href="$_evaluator_control_8hpp.html" title="Management for evaluation." alt="" coords="311,489,530,530"/>
+<area shape="rect" id="node9" href="$_evc_main_thread_info_8hpp.html" title="Information about main threads." alt="" coords="1345,385,1579,426"/>
+<area shape="rect" id="node10" href="$_barrier_8cpp.html" title=" " alt="" coords="1977,385,2161,426"/>
+<area shape="rect" id="node7" href="$_step_8cpp.html" title=" " alt="" coords="1714,489,1898,530"/>
+<area shape="rect" id="node12" href="$_compare_priority_8hpp.html" title="Compare EvalQueuePoints for sorting." alt="" coords="27,385,241,426"/>
+<area shape="rect" id="node13" href="$_eval_queue_point_8cpp.html" title=" " alt="" coords="315,385,526,426"/>
+<area shape="rect" id="node15" href="$_mads_update_8cpp.html" title=" " alt="" coords="809,385,1046,426"/>
+<area shape="rect" id="node16" href="$_n_m_simplex_eval_point_8cpp.html" title=" " alt="" coords="2185,377,2374,433"/>
+<area shape="rect" id="node17" href="$_phase_one_8cpp.html" title=" " alt="" coords="3518,385,3769,426"/>
+<area shape="rect" id="node18" href="$_quad_model_optimize_8cpp.html" title=" " alt="" coords="3589,481,3775,537"/>
+<area shape="rect" id="node19" href="$_sgtelib_model_8cpp.html" title=" " alt="" coords="3035,481,3219,537"/>
+<area shape="rect" id="node20" href="$_s_s_d_mads_mega_iteration_8cpp.html" title=" " alt="" coords="1070,377,1321,433"/>
+<area shape="rect" id="node21" href="$_compute_success_type_8cpp.html" title="Comparison methods for EvalPoints (implementation)" alt="" coords="1603,385,1852,426"/>
+<area shape="rect" id="node23" href="$_main_step_8hpp.html" title="Main Step to hold MADS, or other Algorithms." alt="" coords="2606,385,2790,426"/>
+<area shape="rect" id="node24" href="$_p_s_d_mads_8hpp.html" title=" " alt="" coords="3251,385,3494,426"/>
+<area shape="rect" id="node26" href="$_quad_model_evaluator_8hpp.html" title=" " alt="" coords="2814,377,3003,433"/>
+<area shape="rect" id="node27" href="$_sgtelib_model_evaluator_8hpp.html" title=" " alt="" coords="3027,377,3227,433"/>
+<area shape="rect" id="node29" href="$_evaluator_8cpp.html" title=" " alt="" coords="2398,385,2582,426"/>
+<area shape="rect" id="node25" href="$_p_s_d_mads_8cpp.html" title=" " alt="" coords="4459,489,4702,530"/>
+<area shape="rect" id="node28" href="$_sgtelib_model_update_8cpp.html" title=" " alt="" coords="4100,481,4285,537"/>
+<area shape="rect" id="node31" href="$_algorithm_8cpp.html" title=" " alt="" coords="4769,385,4953,426"/>
+<area shape="rect" id="node32" href="$_cache_interface_8cpp.html" title=" " alt="" coords="4977,385,5192,426"/>
+<area shape="rect" id="node33" href="$_evc_interface_8cpp.html" title=" " alt="" coords="3793,385,3990,426"/>
+<area shape="rect" id="node34" href="$_mads_initialization_8cpp.html" title=" " alt="" coords="5216,385,5487,426"/>
+<area shape="rect" id="node35" href="$_sgtelib_search_method_8cpp.html" title=" " alt="" coords="6669,377,6887,433"/>
+<area shape="rect" id="node37" href="$_n_m_initialization_8hpp.html" title=" " alt="" coords="5511,377,5695,433"/>
+<area shape="rect" id="node38" href="$_quad_model_initialization_8cpp.html" title=" " alt="" coords="5719,377,5927,433"/>
+<area shape="rect" id="node39" href="$_quad_model_mega_iteration_8cpp.html" title=" " alt="" coords="4273,377,4491,433"/>
+<area shape="rect" id="node40" href="$_quad_model_single_pass_8cpp.html" title=" " alt="" coords="5952,377,6148,433"/>
+<area shape="rect" id="node41" href="$_quad_model_update_8cpp.html" title=" " alt="" coords="4065,377,4249,433"/>
+<area shape="rect" id="node42" href="$_sgtelib_model_initialization_8cpp.html" title=" " alt="" coords="6173,377,6391,433"/>
+<area shape="rect" id="node43" href="$_sgtelib_model_mega_iteration_8cpp.html" title=" " alt="" coords="6415,377,6645,433"/>
+</map>

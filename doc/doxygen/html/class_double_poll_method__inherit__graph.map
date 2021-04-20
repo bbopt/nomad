@@ -1,0 +1,6 @@
+<map id="DoublePollMethod" name="DoublePollMethod">
+<area shape="rect" id="node1" title="Class to perform two poll directions (a single direction and its opposite)." alt="" coords="11,155,152,181"/>
+<area shape="rect" id="node2" href="$class_poll_method_base.html" title="Class for generic poll method of MADS. Run by Poll." alt="" coords="18,80,145,107"/>
+<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="5,5,56,32"/>
+<area shape="rect" id="node4" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="80,5,187,32"/>
+</map>

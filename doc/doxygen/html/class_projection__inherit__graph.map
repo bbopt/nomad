@@ -1,0 +1,5 @@
+<map id="Projection" name="Projection">
+<area shape="rect" id="node1" title="Manage projection of points to mesh." alt="" coords="38,80,125,107"/>
+<area shape="rect" id="node2" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="5,5,56,32"/>
+<area shape="rect" id="node3" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="80,5,187,32"/>
+</map>

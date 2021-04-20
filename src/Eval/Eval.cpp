@@ -201,11 +201,11 @@ NOMAD::Double NOMAD::Eval::getH(const NOMAD::ComputeType& computeType) const
 NOMAD::Double NOMAD::Eval::computeHStandard() const
 {
     NOMAD::Double h = 0.0;
-    const NOMAD::ArrayOfDouble bboArray = _bbOutput.getBBOAsArrayOfDouble();
     bool hPos = false;
 
-    if (_bbOutput.getEvalOk())
+    if (NOMAD::EvalStatusType::EVAL_OK == _evalStatus)
     {
+        const NOMAD::ArrayOfDouble bboArray = _bbOutput.getBBOAsArrayOfDouble();
         size_t bboIndex = 0;
         for (auto bbOutputType : _bbOutputTypeList)
         {
@@ -264,7 +264,7 @@ NOMAD::Double NOMAD::Eval::computeFPhaseOne() const
     const NOMAD::ArrayOfDouble bboArray = _bbOutput.getBBOAsArrayOfDouble();
     bool fPos = false;
 
-    if (_bbOutput.getEvalOk())
+    if (NOMAD::EvalStatusType::EVAL_OK == _evalStatus)
     {
         size_t bboIndex = 0;
         for (auto bbOutputType : _bbOutputTypeList)
@@ -561,27 +561,37 @@ std::string NOMAD::Eval::display(const NOMAD::ComputeType& computeType, const in
 
     s += NOMAD::enumStr(_evalStatus);
     s += "\t ";
-    NOMAD::Double f = getF(computeType);
-    NOMAD::Double h = getH(computeType);
-    if (f.isDefined())
+
+    try
     {
-        s += "f = ";
-        s += f.display(prec);
+        NOMAD::Double f = getF(computeType);
+        NOMAD::Double h = getH(computeType);
+        if (f.isDefined())
+        {
+            s += "f = ";
+            s += f.display(prec);
+        }
+        else
+        {
+            s += "Undefined f";
+        }
+        s += "\t ";
+        if (h.isDefined())
+        {
+            s += "h = ";
+            s += h.display(prec);
+        }
+        else
+        {
+            s += "Undefined h";
+        }
     }
-    else
+    catch(NOMAD::Exception& e)
     {
-        s += "Undefined f";
+        // Could not compute f and h. Show raw bbo instead.
+        s += getBBO();
     }
-    s += "\t ";
-    if (h.isDefined())
-    {
-        s += "h = ";
-        s += h.display(prec);
-    }
-    else
-    {
-        s += "Undefined h";
-    }
+
     return s;
 }
 

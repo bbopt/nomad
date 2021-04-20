@@ -206,7 +206,7 @@ void NOMAD::AllParameters::displayHelp(const std::string &helpSubject , bool dev
         else
         {
             os << "-------------------------------------------------------------------------------" << std::endl;
-            os << "----------------------------- DEVELOPPER PARAMETERS ---------------------------" << std::endl;
+            os << "----------------------------- DEVELOPER PARAMETERS ----------------------------" << std::endl;
             os << "-------------------------------------------------------------------------------" << std::endl;
             os << ossBasic.str() << std::endl << std::endl;
         }

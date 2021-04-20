@@ -1,0 +1,6 @@
+<map id="NMIteration" name="NMIteration">
+<area shape="rect" id="node1" title="Class for Nelder Mead (NM) iterations." alt="" coords="19,155,118,181"/>
+<area shape="rect" id="node4" href="$class_n_m_all_reflective.html" title=" " alt="" coords="5,229,132,256"/>
+<area shape="rect" id="node2" href="$class_iteration.html" title="Class for iteration of an Algorithm." alt="" coords="30,80,107,107"/>
+<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="43,5,94,32"/>
+</map>

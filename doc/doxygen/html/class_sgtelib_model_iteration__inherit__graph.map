@@ -1,0 +1,5 @@
+<map id="SgtelibModelIteration" name="SgtelibModelIteration">
+<area shape="rect" id="node1" title="Iteration for Sgtelib model deriving from Step." alt="" coords="5,155,168,181"/>
+<area shape="rect" id="node2" href="$class_iteration.html" title="Class for iteration of an Algorithm." alt="" coords="48,80,125,107"/>
+<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="61,5,112,32"/>
+</map>

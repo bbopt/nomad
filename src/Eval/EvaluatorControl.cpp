@@ -1668,12 +1668,12 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
         NOMAD::ComputeType computeType = getComputeType(mainThreadNum);
         auto eval = evalPoint->getEval(evalType);
 
+        auto bbOutputTypeList = evaluator.getEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
         // Adjust bbOutputType if needed
         if (   evalOk[index]
             && nullptr != eval
             && eval->getBBOutputTypeList().empty())
         {
-            auto bbOutputTypeList = evaluator.getEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
             if (!bbOutputTypeList.empty())
             {
                 eval->setBBOutputTypeList(bbOutputTypeList);
@@ -1683,14 +1683,24 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
         // Set EvalOk to false if f or h is not defined
         if (evalOk[index]
             && (nullptr != eval)
-            && (   !evalPoint->getF(evalType, computeType).isDefined()
+            && (   !eval->getBBOutput().checkSizeMatch(bbOutputTypeList)
+                || !evalPoint->getF(evalType, computeType).isDefined()
                 || !evalPoint->getH(evalType, computeType).isDefined()))
         {
             std::string modifMsg = "Warning: EvaluatorControl: Point ";
-            auto evalFormat = getEvalParams()->getAttributeValue<NOMAD::ArrayOfDouble>("BB_EVAL_FORMAT");
+            auto evalFormat = evaluator.getEvalParams()->getAttributeValue<NOMAD::ArrayOfDouble>("BB_EVAL_FORMAT");
             modifMsg += evalPoint->display(evalFormat) + ": Eval ok but ";
-            modifMsg += (!evalPoint->getF(evalType, computeType).isDefined()) ? "f not defined" : "h not defined";
-            modifMsg += ". Setting evalOk to false.";
+            if (!eval->getBBOutput().checkSizeMatch(bbOutputTypeList))
+            {
+                modifMsg += "output \"" + eval->getBBO() + "\" does not match ";
+                modifMsg += "parameter BB_OUTPUT_TYPE: \"";
+                modifMsg += NOMAD::BBOutputTypeListToString(bbOutputTypeList) + "\"";
+            }
+            else
+            {
+                modifMsg += (!evalPoint->getF(evalType, computeType).isDefined()) ? "f not defined" : "h not defined";
+            }
+            modifMsg += ". Setting eval status to EVAL_FAILED.";
             OUTPUT_INFO_START
             evalInfo.addMsg(modifMsg);
             OUTPUT_INFO_END
@@ -1719,8 +1729,14 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
             getMainThreadInfo(mainThreadNum).incBbEvalInSubproblem(1);
             getMainThreadInfo(mainThreadNum).incLapBbEval(1);
             _bbEval += (countEval[index]);
-            _bbEvalNotOk += (!evalOk[index]);
-            (evalPoint->isFeasible(evalType, NOMAD::ComputeType::STANDARD)) ?  _feasBBEval++ : _infBBEval++;
+            if (evalOk[index])
+            {
+                (evalPoint->isFeasible(evalType, NOMAD::ComputeType::STANDARD)) ?  _feasBBEval++ : _infBBEval++;
+            }
+            else
+            {
+                _bbEvalNotOk++;
+            }
             // All bb evals count for _nbEvalSentToEvaluator.
             _nbEvalSentToEvaluator++;
             evalPoint->incNumberEval();

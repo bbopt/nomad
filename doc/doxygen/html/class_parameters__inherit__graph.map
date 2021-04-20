@@ -1,0 +1,11 @@
+<map id="Parameters" name="Parameters">
+<area shape="rect" id="node1" title="Abstract class for the NOMAD parameters." alt="" coords="5,183,101,209"/>
+<area shape="rect" id="node2" href="$class_cache_parameters.html" title="The class for all Cache parameters." alt="" coords="205,5,341,32"/>
+<area shape="rect" id="node3" href="$class_deprecated_parameters.html" title="The class for deprecated parameters." alt="" coords="187,56,358,83"/>
+<area shape="rect" id="node4" href="$class_display_parameters.html" title="The class for Display parameters." alt="" coords="200,107,345,133"/>
+<area shape="rect" id="node5" href="$class_eval_parameters.html" title="Class for Evaluator parameters." alt="" coords="211,157,335,184"/>
+<area shape="rect" id="node6" href="$class_evaluator_control_global_parameters.html" title="The class for global EvaluatorControl parameters." alt="" coords="149,208,396,235"/>
+<area shape="rect" id="node7" href="$class_evaluator_control_parameters.html" title="The class for EvaluatorControl parameters that may be different between main threads." alt="" coords="170,259,375,285"/>
+<area shape="rect" id="node8" href="$class_pb_parameters.html" title="The class for the parameters defining the optimization problem." alt="" coords="217,309,329,336"/>
+<area shape="rect" id="node9" href="$class_run_parameters.html" title="The class for the parameters defining the type of optimization/task to perform." alt="" coords="212,360,333,387"/>
+</map>

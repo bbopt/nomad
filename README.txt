@@ -89,6 +89,10 @@ cmake -S . -B build/release     ---> Create the CMake files and directories for
                                        the $NOMAD_HOME directory.
                                      To enable time stats build:
                                        cmake -DTIME_STATS=ON -S . -B build/release
+                                     To enable interfaces (C and Python) building:
+                                       cmake -DBUILD_INTERFACES=ON -S . -B build/release
+                                     To deactivate compilation with OpenMP:
+                                       cmake -DTEST_OPENMP=OFF -S . -B build/release
 
 
 cmake --build build/release     ---> Build the libraries and applications 
@@ -97,7 +101,7 @@ cmake --build build/release     ---> Build the libraries and applications
 
 cmake --install build/release   ---> Copy binaries and headers in 
                                      build/release/[bin, include, lib]
-				     and in the examples/tests directories
+                                     and in the examples/tests directories
 
 The executable "nomad" will installed into the directory:
 build/release/bin/  (build/debug/bin/ when in debug mode).
@@ -116,7 +120,7 @@ cmake --build build/debug     ---> Build the libraries and applications
 
 cmake --install build/debug   ---> Copy binaries and headers in 
                                      build/debug/[bin, include, lib]
-				     and in the examples/tests directories
+                                     and in the examples/tests directories
 
 
 EXAMPLES OF OPTIMIZATION:

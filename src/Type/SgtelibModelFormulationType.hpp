@@ -97,7 +97,7 @@ inline std::ostream& operator<<(std::ostream& os, const SgtelibModelFormulationT
             os << "EIS";
             break;
         case SgtelibModelFormulationType::EFI:
-            os << "EIS";
+            os << "EFI";
             break;
         case SgtelibModelFormulationType::EFIS:
             os << "EFIS";
