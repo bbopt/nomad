@@ -51,11 +51,18 @@
  */
 
 // Generic
-#include "../Cache/CacheSet.hpp"
 #include "../Algos/AlgoStopReasons.hpp"
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/MainStep.hpp"
 #include "../Algos/SubproblemManager.hpp"
+#include "../Cache/CacheSet.hpp"
+#include "../Math/LHS.hpp"
+#include "../Math/RNG.hpp"
+#include "../Output/OutputQueue.hpp"
+#include "../Output/OutputDirectToFile.hpp"
+#include "../Type/LHSearchType.hpp"
+#include "../Util/Clock.hpp"
+#include "../Util/fileutils.hpp"
 
 // Specific algos
 #include "../Algos/LatinHypercubeSampling/LH.hpp"
@@ -72,12 +79,6 @@
 #include "../Algos/SgtelibModel/SgtelibModel.hpp"
 #endif
 #include "../Algos/SSDMads/SSDMads.hpp"
-
-#include "../Output/OutputQueue.hpp"
-#include "../Output/OutputDirectToFile.hpp"
-#include "../Util/Clock.hpp"
-#include "../Util/fileutils.hpp"
-
 
 
 void NOMAD::MainStep::setAllParameters(const std::shared_ptr<NOMAD::AllParameters> &allParams)
@@ -125,7 +126,7 @@ void NOMAD::MainStep::startImp()
 
     // Clear Subproblem map before a new run.
     // This is especially useful in the case of the Runner.
-    NOMAD::SubproblemManager::reset();
+    NOMAD::SubproblemManager::getInstance()->reset();
 
     // reset PROBLEM_DIR attribute
     // (not obtained by reading paramFile):
@@ -212,10 +213,10 @@ void NOMAD::MainStep::startImp()
         auto lhStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::LHStopType>>();
 
         // All the LH sample points must be evaluated. No opportunism.
-        if ( _allParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL") )
+        if ( _allParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC") )
             AddOutputInfo("Opportunistic evaluation is disabled for LH when ran as a single algorithm.");
 
-        _allParams->setAttributeValue("OPPORTUNISTIC_EVAL",false);
+        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC",false);
         _allParams->checkAndComply( );
 
         auto lh = std::make_shared<NOMAD::LH>(this,
@@ -229,10 +230,10 @@ void NOMAD::MainStep::startImp()
         auto nmStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::NMStopType>>();
 
         // All the NM points must be evaluated. No opportunism.
-        if ( _allParams->getAttributeValue<bool>("OPPORTUNISTIC_EVAL") )
+        if ( _allParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC") )
             AddOutputInfo("Opportunistic evaluation is disabled for NM when ran as a single algorithm.");
 
-        _allParams->setAttributeValue("OPPORTUNISTIC_EVAL",false);
+        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC",false);
         _allParams->checkAndComply( );
 
         auto nm = std::make_shared<NOMAD::NM>(this,
@@ -260,8 +261,8 @@ void NOMAD::MainStep::startImp()
         auto quadModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
 
         // All the Sgtelib Model sample points are evaluated sequentially. No opportunism.
-        _allParams->setAttributeValue("OPPORTUNISTIC_EVAL", false);
-        _allParams->setAttributeValue("GENERATE_ALL_POINTS_BEFORE_EVAL", false);
+        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC", false);
+        _allParams->setAttributeValue("MEGA_SEARCH_POLL", false);
         _allParams->checkAndComply();
 
         auto quadModelAlgo = std::make_shared<NOMAD::QuadModelAlgo>(this,
@@ -275,7 +276,7 @@ void NOMAD::MainStep::startImp()
         auto sgtelibModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
 
         // All the Sgtelib Model sample points are evaluated. No opportunism.
-        _allParams->setAttributeValue("OPPORTUNISTIC_EVAL", false);
+        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC", false);
         _allParams->checkAndComply();
 
         std::shared_ptr<NOMAD::Barrier> barrier = nullptr;
@@ -311,15 +312,14 @@ void NOMAD::MainStep::startImp()
             // First, run PhaseOne, which has its own Mads.
             // Then, run regular Mads.
 
-            auto PhaseOneStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::PhaseOneStopType>>();
+            auto phaseOneStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::PhaseOneStopType>>();
             auto phaseOne = std::make_shared<NOMAD::PhaseOne>(this,
-                                                              PhaseOneStopReasons,
+                                                              phaseOneStopReasons,
                                                               _allParams->getRunParams(),
                                                               _allParams->getPbParams());
             // Ensure PhaseOne does not show found solutions
             phaseOne->setEndDisplay(false);
 
-            NOMAD::PhaseOne::setBBOutputTypes(_allParams->getEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
             _algos.push_back(phaseOne);
 
             auto mads = std::make_shared<NOMAD::Mads>(this,
@@ -484,33 +484,53 @@ void NOMAD::MainStep::updateX0sFromCache() const
 {
     // Update X0s, if needed.
     auto x0s = _allParams->getPbParams()->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
-    if ((x0s.empty() || x0s[0].toBeDefined())
-        && NOMAD::CacheBase::getInstance()->size() > 0)
+    if (x0s.empty() || x0s[0].toBeDefined())
     {
+        // X0 not provided directly by user. Find them in cache, or generate them using LHS.
         x0s.clear();
-        // Use best points in cache for x0.
-        std::vector<NOMAD::EvalPoint> evalPointList;
-        // Note: We are working in full dimension here, not in subproblem.
-        // For this reason, use cache instance directly, not CacheInterface.
-        auto fixedVariable = _allParams->getPbParams()->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE");
-        auto evalType = NOMAD::EvalType::BB;
-        NOMAD::CacheBase::getInstance()->findBestFeas(evalPointList,
+
+        bool canUseCache = (NOMAD::CacheBase::getInstance()->size() > 0);
+        auto lhSearchType = _runParams->getAttributeValue<NOMAD::LHSearchType>("LH_SEARCH");
+        bool canUseLH = (lhSearchType.isEnabled() && lhSearchType.getNbInitial() > 0);
+
+        if (canUseCache)
+        {
+            // Use best points in cache for x0.
+            std::vector<NOMAD::EvalPoint> evalPointList;
+            // Note: We are working in full dimension here, not in subproblem.
+            // For this reason, use cache instance directly, not CacheInterface.
+            auto fixedVariable = _allParams->getPbParams()->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE");
+            auto evalType = NOMAD::EvalType::BB;
+            auto computeType = NOMAD::ComputeType::STANDARD;
+            NOMAD::CacheBase::getInstance()->findBestFeas(evalPointList,
                                                 fixedVariable, evalType,
-                                                nullptr);
-        if (0 == evalPointList.size())
-        {
-            auto hMax = _allParams->getRunParams()->getAttributeValue<NOMAD::Double>("H_MAX_0");
-            NOMAD::CacheBase::getInstance()->findBestInf(evalPointList,
-                                                hMax, fixedVariable,
-                                                evalType, nullptr);
+                                                computeType, nullptr);
+            if (0 == evalPointList.size())
+            {
+                auto hMax = _allParams->getRunParams()->getAttributeValue<NOMAD::Double>("H_MAX_0");
+                NOMAD::CacheBase::getInstance()->findBestInf(evalPointList,
+                                                    hMax, fixedVariable,
+                                                    evalType, computeType, nullptr);
+            }
+            if (0 == evalPointList.size())
+            {
+                throw NOMAD::Exception(__FILE__, __LINE__, "Cache did not find a best point to initialize X0");
+            }
+            for (size_t i = 0; i < evalPointList.size(); i++)
+            {
+                x0s.push_back(evalPointList[i]);
+            }
         }
-        if (0 == evalPointList.size())
+        else if (canUseLH)
         {
-            throw NOMAD::Exception(__FILE__, __LINE__, "Cache did not find a best point to initialize X0");
-        }
-        for (size_t i = 0; i < evalPointList.size(); i++)
-        {
-            x0s.push_back(evalPointList[i]);
+            size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
+            size_t p = lhSearchType.getNbInitial();
+            auto lowerBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
+            auto upperBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
+            NOMAD::ArrayOfDouble deltaFrameSize = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_FRAME_SIZE");
+            NOMAD::Double scaleFactor = sqrt(-log(NOMAD::DEFAULT_EPSILON));
+            NOMAD::LHS lhs(n, p, lowerBound, upperBound, NOMAD::Point(n, 0.0), deltaFrameSize, scaleFactor);
+            x0s = lhs.Sample();
         }
 
         _allParams->getPbParams()->setAttributeValue("X0", x0s);
@@ -558,7 +578,7 @@ void NOMAD::MainStep::displayVersion()
     std::string version = "Version ";
     version += NOMAD_VERSION_NUMBER;
     // Note: The "Beta" information is not part of the NOMAD_VERSION_NUMBER.
-    version += " Beta 2";
+    //version += " Beta 2";
 #ifdef DEBUG
     version += " Debug.";
 #else
@@ -681,15 +701,19 @@ void NOMAD::MainStep::resetComponentsBetweenOptimization()
     // Reset static tag counter
     NOMAD::EvalPoint::resetCurrentTag();
     // Reset SubproblemManager map
-    NOMAD::SubproblemManager::reset();
+    NOMAD::SubproblemManager::getInstance()->reset();
+    // Reset evaluator control
+    NOMAD::EvcInterface::resetEvaluatorControl();
+    // Reset seed
+    NOMAD::RNG::resetPrivateSeedToDefault();
 }
 
 void NOMAD::MainStep::displayDetailedStats() const
 {
     // Display detailed stats
-    std::string mainStatsFile = _allParams->getAttributeValue<std::string>("MAIN_STATS_FILE");
+    std::string evalStatsFile = _allParams->getAttributeValue<std::string>("EVAL_STATS_FILE");
 
-    if (mainStatsFile.empty() || mainStatsFile.compare("-") == 0)
+    if (evalStatsFile.empty() || evalStatsFile.compare("-") == 0)
     {
         return;
     }
@@ -733,9 +757,9 @@ void NOMAD::MainStep::displayDetailedStats() const
     size_t blkEval = NOMAD::EvcInterface::getEvaluatorControl()->getBlockEval();
     s2.add(NOMAD::itos(blkEval));
 
-    s1.add("Total surrogate evaluations:");
-    size_t totalSgteEval = NOMAD::EvcInterface::getEvaluatorControl()->getTotalSgteEval();
-    s2.add(NOMAD::itos(totalSgteEval));
+    s1.add("Total model evaluations:");
+    size_t totalModelEval = NOMAD::EvcInterface::getEvaluatorControl()->getTotalModelEval();
+    s2.add(NOMAD::itos(totalModelEval));
 
     s1.add("PhaseOne success evaluations:");
     size_t nbPhaseOneSucc = NOMAD::EvcInterface::getEvaluatorControl()->getNbPhaseOneSuccess();
@@ -819,14 +843,14 @@ void NOMAD::MainStep::displayDetailedStats() const
 #endif // TIME_STATS
 
     NOMAD::ArrayOfString paddedStats = NOMAD::ArrayOfString::combineAndAddPadding(s1,s2);
-    std::ofstream mainStatsStream;
-    // Open main stats file and clear it (trunc)
-    mainStatsStream.open(mainStatsFile.c_str(), std::ofstream::out | std::ios::trunc);
-    if (mainStatsStream.fail())
+    std::ofstream evalStatsStream;
+    // Open eval stats file and clear it (trunc)
+    evalStatsStream.open(evalStatsFile.c_str(), std::ofstream::out | std::ios::trunc);
+    if (evalStatsStream.fail())
     {
-        std::cerr << "Warning: could not open main stats file " << mainStatsFile << std::endl;
+        std::cerr << "Warning: could not open evaluation stats file " << evalStatsFile << std::endl;
     }
-    mainStatsStream << paddedStats << std::endl;
-    mainStatsStream.close();
+    evalStatsStream << paddedStats << std::endl;
+    evalStatsStream.close();
 }
 

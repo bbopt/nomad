@@ -59,7 +59,7 @@ bool NOMAD::OutputDirectToFile::_hasBeenInitialized = false;
 
 // Private constructor
 NOMAD::OutputDirectToFile::OutputDirectToFile()
-  : _params(nullptr),
+  : _outputSize(0),
     _outputFileFormat(DisplayStatsTypeList("SOL BBO")),
     _solutionFile(""),
     _historyFile(""),
@@ -108,21 +108,23 @@ std::unique_ptr<NOMAD::OutputDirectToFile>& NOMAD::OutputDirectToFile::getInstan
 // Initialize output parameters.
 void NOMAD::OutputDirectToFile::init(const std::shared_ptr<NOMAD::DisplayParameters>& params)
 {
-    std::string historyFileTmp ;
-    if (nullptr != _params)
-        historyFileTmp= _params->getAttributeValue<std::string>("HISTORY_FILE");
+
+    if (nullptr == params)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "OutputDirectToFile::init: Display Parameters are NULL");
+    }
+
+    // Read from the current DisplayParameters
+    std::string historyFileTmp = params->getAttributeValue<std::string>("HISTORY_FILE");
+
+    // Check conflict with previous history file if this has already been initialized
     if(_hasBeenInitialized && ! _historyFile.empty() && ! historyFileTmp.empty() && historyFileTmp == _historyFile )
     {
        throw NOMAD::Exception(__FILE__, __LINE__, "OutputQueue::initParameters: Initialization cannot be performed more than once with the same history_file. The history file will be overwritten! Call OutputDirectToFile::getInstance()->reset() to allow this.");
     }
-    _params = params;
-    if (nullptr == _params)
-    {
-        throw NOMAD::Exception(__FILE__, __LINE__, "OutputDirectToFile::initParameters: Display Parameters are NULL");
-    }
-
     _historyFile = historyFileTmp;
-    _solutionFile = _params->getAttributeValue<std::string>("SOLUTION_FILE");
+    _solutionFile = params->getAttributeValue<std::string>("SOLUTION_FILE");
+    _outputSize = params->getAttributeValue<NOMAD::ArrayOfDouble>("SOL_FORMAT").size();
 
     initHistoryFile();
 
@@ -161,9 +163,9 @@ void NOMAD::OutputDirectToFile::write(const NOMAD::StatsInfo &info, bool writeIn
         return;
     }
 
-    if (nullptr == _params)
+    if (0==_outputSize)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "OutputDirectToFile: Display Parameters are NULL");
+        throw NOMAD::Exception(__FILE__, __LINE__, "OutputDirectToFile: output size is null");
     }
 
 #ifdef _OPENMP
@@ -171,8 +173,7 @@ void NOMAD::OutputDirectToFile::write(const NOMAD::StatsInfo &info, bool writeIn
     omp_set_lock(&_s_output_lock);
 #endif
 
-    auto n = _params->getAttributeValue<NOMAD::ArrayOfDouble>("SOL_FORMAT").size();
-    NOMAD::ArrayOfDouble solFormatStats(n, NOMAD::DISPLAY_PRECISION_FULL);
+    NOMAD::ArrayOfDouble solFormatStats(_outputSize, NOMAD::DISPLAY_PRECISION_FULL);
 
     // Add information in history file.
     if (writeInHistoryFile)

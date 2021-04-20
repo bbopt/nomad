@@ -17,56 +17,43 @@ extern "C"
     // To pass other informations required in the blackbox (can be useful for other interfaces)
     typedef void *NomadUserDataPtr;
 
-    // Blackbox functions types (TODO add for blackbox block evaluation functions functions ?)
-    typedef bool (*Callback_BB_single)(int, double *, int, double *, NomadUserDataPtr);
-    
-    // TODO add blackbox output types ?
-
-    // TODO find a way to have stop reason
+    // Blackbox functions types (TODO add for blackbox block evaluation functions ?)
+    typedef bool (*Callback_BB_single)(int, double *, int, double *, bool *, NomadUserDataPtr);
 
     NomadProblem createNomadProblem(
         Callback_BB_single bb_single, // black box function
         int nb_inputs,                // number of inputs
-        int nb_outputs,               // number of outputs
-        double *x_lb,                 // lower bounds (can be null)
-        double *x_ub,                 // upper bounds (can be null)
-        char *type_bb_outputs,        // follow the conventions of Nomad.
-        int max_bb_eval               // maximum number of evaluations allowed
+        int nb_outputs                // number of outputs
     );
 
     void freeNomadProblem(NomadProblem nomad_problem);
 
-    // Display parameters
-    bool addNomadBoolDispParam(NomadProblem nomad_problem,
-                               char *keyword,
-                               bool flag);
 
-    bool addNomadValDispParam(NomadProblem nomad_problem,
-                              char *keyword,
-                              int flag);
 
-    bool addNomadStringDispParam(NomadProblem nomad_problem,
-                                 char *keyword,
-                                 char *param_str);
+    // parameters settings
+    bool addNomadParam(NomadProblem nomad_problem, char *keyword_value_pair);
 
-    // Run parameters
-    bool addNomadBoolRunParam(NomadProblem nomad_problem,
-                              char *keyword,
-                              bool flag);
+    bool addNomadValParam(NomadProblem nomad_problem, char *keyword, int value);
 
-    // Add other methods according to preferences (to discuss with Christophe and Viviane)
+    bool addNomadBoolParam(NomadProblem nomad_problem, char *keyword, bool value);
 
-    // TODO precise a return status; allow the evaluations of several points
+    bool addNomadStringParam(NomadProblem nomad_problem, char *keyword, char *param_str);
+
+    bool addNomadArrayOfDoubleParam(NomadProblem nomad_problem, char *keyword, double *array_param);
+
+    // TODO precise a return status, i.e. a stop reason
+
     // For the moment, do not allow the warm start
     bool solveNomadProblem(NomadProblem nomad_problem,
-                          double *x0,                      // starting point
-                          bool *exists_feas_sol,            // indicates if the algorithm finds a feasible solution
-                          double *bb_best_x_feas,          // At the end, contains feas solution if this last one exists
-                          double *bb_best_feas_outputs,    // At the end, contains feas output solution if this last one exists
-                          bool *exists_inf_sol,             // Indicates if the algorithm finds an infeasible solution
-                          double *bb_best_x_inf,           // At the end, contains infeas input solution if this last one exists
-                          double *bb_best_inf_outputs,     // At the end, contains infeas output solution if this last one exists
-                          NomadUserDataPtr user_data_ptr); // Anything, responsability is on you
+                           int nb_starting_points,          // number of starting points
+                           double *x0s,                     // starting points
+                           bool *exists_feas_sol,           // indicates if the algorithm finds a feasible solution
+                           double *bb_best_x_feas,          // At the end, contains feas solution if this last one exists
+                           double *bb_best_feas_outputs,    // At the end, contains feas output solution if this last one exists
+                           bool *exists_inf_sol,            // Indicates if the algorithm finds an infeasible solution
+                           double *bb_best_x_inf,           // At the end, contains infeas input solution if this last one exists
+                           double *bb_best_inf_outputs,     // At the end, contains infeas output solution if this last one exists
+                           NomadUserDataPtr user_data_ptr); // Anything, responsability is on you
 
 #ifdef __cplusplus
 }

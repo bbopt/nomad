@@ -90,6 +90,7 @@ bool NOMAD::NMInitializeSimplex::runImp()
 bool NOMAD::NMInitializeSimplex::createSimplex()
 {
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
 
     auto iter = dynamic_cast<const NOMAD::NMIteration*>( NOMAD::Step::_parentStep );
     if (nullptr == iter)
@@ -97,8 +98,14 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
         throw NOMAD::Exception(__FILE__, __LINE__, "The simplex initialization must have a NMIteration Step as parent");
     }
 
-    const std::shared_ptr<NOMAD::EvalPoint> centerPt = iter->getFrameCenter();
-    // Use center point of iteration, otherwise
+    std::vector<NOMAD::EvalPoint> evalPointList;
+    std::shared_ptr<NOMAD::EvalPoint> centerPt = nullptr;
+    auto barrier = getMegaIterationBarrier();
+    if (nullptr != barrier)
+    {
+        evalPointList = barrier->getAllPoints();
+        centerPt = std::make_shared<NOMAD::EvalPoint>(evalPointList[0]);
+    }
     if (nullptr == centerPt)
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "A center point must be defined.");
@@ -147,26 +154,24 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
     // The set of points initially included
     NOMAD::NMSimplexEvalPointSet T;
 
-    std::vector<NOMAD::EvalPoint> evalpointlist;
     if (NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
     {
         // browse the cache:
         NOMAD::CacheInterface cacheInterface(this);
-        cacheInterface.getAllPoints(evalpointlist);
+        cacheInterface.getAllPoints(evalPointList);
     }
     else
     {
-        auto barrier = getMegaIterationBarrier();
         if (nullptr != barrier)
         {
-            evalpointlist = barrier->getAllPoints();
+            evalPointList = barrier->getAllPoints();
         }
     }
 
     // variables used to limit display
     const size_t maxPointsToDisplay = 4;
     size_t nbPoints = 0;
-    for ( const auto & cur : evalpointlist )
+    for ( const auto & cur : evalPointList )
     {
         if ( cur.getEvalStatus(evalType) == NOMAD::EvalStatusType::EVAL_OK &&
             cur.getX()->size() == n             )
@@ -202,7 +207,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
                     if ( include )
                     {
 
-                        // Issue #382: make sure to evaluate f or h for points in cache (important if cache is loaded from file) see 
+                        // Issue #382: make sure to evaluate f or h for points in cache (important if cache is loaded from file) see
                         NOMAD::EvalPoint Y ( cur );
                         std::pair<NMSimplexEvalPointSetIterator,bool> ret = T.insert ( Y );
 
@@ -267,8 +272,8 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
 
     int count_feasible = 0;
 
-    if ( (*itT).getH(evalType).isDefined()
-        && (*itT).isFeasible(evalType) )
+    if ( (*itT).getH(evalType, computeType).isDefined()
+        && (*itT).isFeasible(evalType, computeType) )
         count_feasible = 1 ;
 
     itT++;
@@ -319,7 +324,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
             OUTPUT_DEBUG_START
             dbgInfo2.addMsg( " ---> zk KEPT in Y " );
             OUTPUT_DEBUG_END
-            if ( (*itT).isFeasible(evalType) )
+            if ( (*itT).isFeasible(evalType, computeType) )
                 count_feasible++;
             k++;
             itT++;

@@ -1,0 +1,6 @@
+<map id="SgtelibModelMegaIteration" name="SgtelibModelMegaIteration">
+<area shape="rect" id="node1" title="class SgtelibModelMegaIteration (Step)" alt="" coords="29,155,228,181"/>
+<area shape="rect" id="node2" href="$class_mega_iteration.html" title="Class to manage the iterations." alt="" coords="5,80,119,107"/>
+<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="37,5,87,32"/>
+<area shape="rect" id="node4" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="143,80,250,107"/>
+</map>

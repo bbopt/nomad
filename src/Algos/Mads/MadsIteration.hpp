@@ -59,7 +59,6 @@
 class MadsIteration: public Iteration
 {
 private:
-    const std::shared_ptr<EvalPoint> _frameCenter; ///< Center around which the points are generated
     const std::shared_ptr<MeshBase>  _mesh;        ///< Mesh on which the points are
     SuccessType                      _success;     ///< Success type of this iteration
 
@@ -77,16 +76,13 @@ public:
     /// Constructor
     /**
      \param parentStep         The parent of this step -- \b IN.
-     \param frameCenter        Frame center of this iteration -- \b IN.
      \param k                  The iteration number -- \b IN.
      \param mesh               The mesh of the iteration -- \b IN.
      */
     explicit MadsIteration(const Step *parentStep,
-                           const std::shared_ptr<EvalPoint>& frameCenter,
                            const size_t k,
                            const std::shared_ptr<MeshBase> mesh)
       : Iteration(parentStep, k),
-        _frameCenter(frameCenter),
         _mesh(mesh),
         _success(SuccessType::NOT_EVALUATED)
 #ifdef TIME_STATS
@@ -98,12 +94,6 @@ public:
 
 
     // Gets/Sets
-
-    /**
-     The Mads algorithm iteration possesses a frame center, unlike the base iteration that has none.
-     \remark Used by Step::getIterationFrameCenter() to pass the frame center whenever needed
-     */
-    const std::shared_ptr<EvalPoint> getFrameCenter() const override { return _frameCenter; }
 
     /**
      The Mads algorithm iteration possesses a mesh, unlike the base iteration that has none.
@@ -129,9 +119,6 @@ public:
     /*---------------------*/
     /* Other class methods */
     /*---------------------*/
-
-    /// Is this the main iteration of the current MegaIteration?
-    bool isMainIteration() const override;
 
 
 private:

@@ -1,0 +1,7 @@
+<map id="SpeculativeSearchMethod" name="SpeculativeSearchMethod">
+<area shape="rect" id="node1" title="Speculative search." alt="" coords="5,229,196,256"/>
+<area shape="rect" id="node2" href="$class_search_method_simple.html" title="Class for generic search method of MADS. Run by Search." alt="" coords="21,155,181,181"/>
+<area shape="rect" id="node3" href="$class_search_method_base.html" title="Class for generic search method of MADS. Run by Search." alt="" coords="27,80,174,107"/>
+<area shape="rect" id="node4" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="25,5,75,32"/>
+<area shape="rect" id="node5" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="99,5,206,32"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="AllStopReasons" name="AllStopReasons">
+<area shape="rect" id="node1" title="Class combining all stop reasons that are not algorithmic stop reasons." alt="" coords="432,71,555,98"/>
+<area shape="rect" id="node2" href="$class_stop_reason.html" title=" " alt="" coords="9,5,222,47"/>
+<area shape="rect" id="node3" href="$class_stop_reason.html" title=" " alt="" coords="10,71,221,98"/>
+<area shape="rect" id="node4" href="$class_stop_reason.html" title=" " alt="" coords="5,122,225,149"/>
+</map>

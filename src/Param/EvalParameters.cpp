@@ -45,6 +45,7 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../Param/EvalParameters.hpp"
+#include "../Type/BBInputType.hpp"
 #include "../Type/BBOutputType.hpp"
 #include "../Util/fileutils.hpp"
 
@@ -72,7 +73,8 @@ void NOMAD::EvalParameters::init()
 /*----------------------------------------*/
 /*            check the parameters        */
 /*----------------------------------------*/
-void NOMAD::EvalParameters::checkAndComply( const std::shared_ptr<NOMAD::RunParameters> & runParams )
+void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParameters>& runParams,
+                                           const std::shared_ptr<NOMAD::PbParameters>& pbParams)
 {
     checkInfo();
 
@@ -89,35 +91,60 @@ void NOMAD::EvalParameters::checkAndComply( const std::shared_ptr<NOMAD::RunPara
     if (isSetByUser("BB_EXE"))
     {
         auto bbExe = getAttributeValueProtected<std::string>("BB_EXE", false);
+        /*
+        // Ignore; the isSetByUser() is somehow sticky, so this causes issues in unit tests.
         if (bbExe.empty())
         {
             throw NOMAD::Exception(__FILE__, __LINE__, "BB_EXE is not defined");
         }
+        */
 
         bool localExe = true;
+        auto problemDir = runParams->getAttributeValue<std::string>("PROBLEM_DIR");
+
         if ('$' == bbExe[0])
         {
             // When the '$' character is put in first
             // position of a string, it is considered
             // as global and no path will be added.
-            bbExe = bbExe.substr(1, bbExe.size());
-            setAttributeValue("BB_EXE", bbExe);
             localExe = false;
         }
-        else
+
+        // Convert arguments; add path as needed.
+        auto bbExeAsArray = NOMAD::ArrayOfString(bbExe);
+        bbExe.clear();
+        for (size_t i = 0; i < bbExeAsArray.size(); i++)
         {
-            auto problemDir = runParams->getAttributeValue<std::string>("PROBLEM_DIR");
-            // bbExe is relative to problem directory.
-            completeFileName(bbExe, problemDir);
-            setAttributeValue("BB_EXE", bbExe);
+            std::string word = bbExeAsArray[i];
+            if (i > 0)
+            {
+                bbExe += " ";
+            }
+
+            if ('$' == word[0])
+            {
+                bbExe += word.substr(1, word.size());
+            }
+            else
+            {
+                // word is relative to problem directory.
+                completeFileName(word, problemDir);
+                bbExe += word;
+            }
         }
 
-        if (localExe && !checkExeFile(bbExe))
+        setAttributeValue("BB_EXE", bbExe);
+        bbExeAsArray = NOMAD::ArrayOfString(bbExe);
+
+        if (localExe && !bbExe.empty() && !checkExeFile(bbExeAsArray[0]))
         {
-            throw NOMAD::Exception(__FILE__, __LINE__, "BB_EXE needs to be an executable file: " + bbExe);
+            throw NOMAD::Exception(__FILE__, __LINE__, "BB_EXE needs to be an executable file: " + bbExeAsArray[0]);
         }
     }
 
+    /*----------------*/
+    /* BB_OUTPUT_TYPE */
+    /*----------------*/
     // The default value is empty: set a single OBJ
     auto bbOType = getAttributeValueProtected<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE", false);
     if ( bbOType.size() == 0 )
@@ -126,6 +153,31 @@ void NOMAD::EvalParameters::checkAndComply( const std::shared_ptr<NOMAD::RunPara
         setAttributeValue("BB_OUTPUT_TYPE", bbOType );
     }
 
+    /*---------------------------*/
+    /* BB_EVAL_FORMAT (internal) */
+    /*---------------------------*/
+    size_t n = pbParams->getAttributeValue<size_t>("DIMENSION");
+    auto evalFormat = getAttributeValueProtected<NOMAD::ArrayOfDouble>("BB_EVAL_FORMAT",false);
+    if (!evalFormat.isDefined())
+    {
+        // Default precision is computed based on Epsilon.
+        int defaultPrec = static_cast<int>(-log10(NOMAD::Double::getEpsilon())) + 1;
+        evalFormat.reset(n, defaultPrec);
+        setAttributeValue("BB_EVAL_FORMAT", evalFormat);
+    }
+
+    auto bbInputType = pbParams->getAttributeValue<NOMAD::BBInputTypeList>("BB_INPUT_TYPE");
+    // CONTINUOUS variables will be written with full precision.
+    // INTEGER, BOOLEAN, and eventually CATEGORICAL variables will be written
+    // as integers.
+    for (size_t i = 0; i < n; i++)
+    {
+        if (NOMAD::BBInputType::CONTINUOUS != bbInputType[i])
+        {
+            evalFormat[i] = -1;
+        }
+    }
+    setAttributeValue("BB_EVAL_FORMAT", evalFormat);
 
     _toBeChecked = false;
 

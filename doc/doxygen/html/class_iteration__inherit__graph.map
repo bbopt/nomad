@@ -1,0 +1,10 @@
+<map id="Iteration" name="Iteration">
+<area shape="rect" id="node1" title="Class for iteration of an Algorithm." alt="" coords="227,80,304,107"/>
+<area shape="rect" id="node3" href="$class_mads_iteration.html" title="Class for MADS iteration." alt="" coords="5,155,117,181"/>
+<area shape="rect" id="node4" href="$class_n_m_iteration.html" title="Class for Nelder Mead (NM) iterations." alt="" coords="141,155,240,181"/>
+<area shape="rect" id="node6" href="$class_quad_model_iteration.html" title=" " alt="" coords="265,155,415,181"/>
+<area shape="rect" id="node8" href="$class_sgtelib_model_iteration.html" title="Iteration for Sgtelib model deriving from Step." alt="" coords="440,155,603,181"/>
+<area shape="rect" id="node2" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="240,5,291,32"/>
+<area shape="rect" id="node5" href="$class_n_m_all_reflective.html" title=" " alt="" coords="117,229,243,256"/>
+<area shape="rect" id="node7" href="$class_quad_model_single_pass.html" title=" " alt="" coords="268,229,433,256"/>
+</map>

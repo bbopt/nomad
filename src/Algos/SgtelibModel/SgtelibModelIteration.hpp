@@ -55,7 +55,7 @@
 class SgtelibModelIteration: public Iteration
 {
 private:
-    // Optimizer for model on sgte function
+    // Optimizer for model on sgtelib model function
     std::shared_ptr<SgtelibModelOptimize> _optimize;
 
 public:

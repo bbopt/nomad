@@ -50,6 +50,7 @@
 #include "../Algos/Iteration.hpp"
 #include "../Algos/MegaIteration.hpp"
 #include "../Algos/Step.hpp"
+#include "../Cache/CacheBase.hpp"
 #include "../Output/OutputQueue.hpp"
 
 /*-----------------------------------*/
@@ -293,12 +294,12 @@ void NOMAD::Step::verifyParentNotNull()
 
 void NOMAD::Step::verifyGenerateAllPointsBeforeEval(const std::string& method, const bool expected) const
 {
-    bool actual = _runParams->getAttributeValue<bool>("GENERATE_ALL_POINTS_BEFORE_EVAL");
+    bool actual = _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL");
 
     if (expected != actual)
     {
         std::string err = "Error: " + method + " should only be called if ";
-        err += " parameter GENERATE_ALL_POINTS_BEFORE_EVAL is ";
+        err += " parameter MEGA_SEARCH_POLL is ";
         err += (expected ? "true" : "false");
         throw NOMAD::StepException(__FILE__,__LINE__,err, this);
     }
@@ -401,20 +402,6 @@ const std::shared_ptr<NOMAD::MeshBase> NOMAD::Step::getIterationMesh() const
 }
 
 
-// Get the frame center from the iteration ancestor.
-const std::shared_ptr<NOMAD::EvalPoint> NOMAD::Step::getIterationFrameCenter() const
-{
-    std::shared_ptr<NOMAD::EvalPoint> frameCenter = nullptr;
-    const NOMAD::Iteration* iteration = getParentOfType<NOMAD::Iteration*>();
-
-    if (nullptr != iteration)
-    {
-        frameCenter = iteration->getFrameCenter();
-    }
-    return frameCenter;
-}
-
-
 // Get Barrier from the MegaIteration ancestor.
 const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() const
 {
@@ -448,8 +435,76 @@ const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() con
 }
 
 
+bool NOMAD::Step::solHasFeas() const
+{
+    bool hasFeas = NOMAD::CacheBase::getInstance()->hasFeas(NOMAD::EvalType::BB);
+
+    if (!hasFeas)
+    {
+        // No feasible point in cache, but possibly in MegaIteration ancestor's barrier.
+        auto barrier = getMegaIterationBarrier();
+        if (nullptr != barrier)
+        {
+            for (auto xFeas : barrier->getAllXFeas())
+            {
+                if (xFeas.isEvalOk(NOMAD::EvalType::BB) && xFeas.isFeasible(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD))
+                {
+                    hasFeas = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    return hasFeas;
+}
+
+
+bool NOMAD::Step::hasPhaseOneSolution() const
+{
+    bool hasPhaseOneSol = false;
+
+    // A phase one solution has a PHASE_ONE Eval with f = 0.
+    std::vector<NOMAD::EvalPoint> evalPointList;
+    NOMAD::CacheBase::getInstance()->find(NOMAD::EvalPoint::isPhaseOneSolution, evalPointList);
+
+    // Points have to verify hMax.
+    auto barrier = getMegaIterationBarrier();
+    NOMAD::Double hMax = (nullptr != barrier) ? barrier->getHMax() : _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+    for (auto evalPoint : evalPointList)
+    {
+        NOMAD::Double h = evalPoint.getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+        if (h.isDefined() && h <= hMax)
+        {
+            hasPhaseOneSol = true;
+            break;
+        }
+    }
+
+    if (!hasPhaseOneSol)
+    {
+        // No feasible point in cache, but possibly in MegaIteration ancestor's barrier.
+        if (nullptr != barrier)
+        {
+            auto xFeas = barrier->getFirstXFeas();
+            if (nullptr != xFeas)
+            {
+                NOMAD::Double h = xFeas->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+                hasPhaseOneSol = NOMAD::EvalPoint::isPhaseOneSolution(*xFeas) && (h <= hMax);
+            }
+        }
+    }
+
+    return hasPhaseOneSol;
+}
+
+
 void NOMAD::Step::hotRestartOnUserInterrupt()
 {
+    if (_stopReasons->checkTerminate())
+    {
+        return;
+    }
     hotRestartBeginHelper();
 
     hotRestartEndHelper();
@@ -462,7 +517,7 @@ void NOMAD::Step::hotRestartBeginHelper()
         && !_runParams->getAttributeValue<bool>("HOT_RESTART_ON_USER_INTERRUPT"))
     {
         setUserTerminate();
-        _stopReasons->set( NOMAD::BaseStopType::CTRL_C);
+        _stopReasons->set(NOMAD::BaseStopType::CTRL_C);
     }
 }
 
@@ -494,15 +549,15 @@ void NOMAD::Step::debugShowCallStack() const
         stepNameStack.push_back(step->getName());
         step = const_cast<NOMAD::Step*>(step->getParentStep());
     }
-    
+
     if (stepNameStack.empty())
     {
         return;
     }
-    
+
     // Show the steps in order, this is why we created the stack.
     std::cout << "Call stack:" << std::endl;
-    // NOTE: Using "i < stepNameStack.size()" as condition for loop, 
+    // NOTE: Using "i < stepNameStack.size()" as condition for loop,
     // since i is a size_t (it is always >= 0).
     for (size_t i = stepNameStack.size()-1; i < stepNameStack.size(); i--)
     {

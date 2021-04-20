@@ -44,10 +44,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/Mads/MadsIteration.hpp"
-#include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/NP1UniPollMethod.hpp"
-#include "../../Algos/Mads/Ortho2NPollMethod.hpp"
+#include "../../Math/Direction.hpp"
 
 void NOMAD::NP1UniPollMethod::init()
 {

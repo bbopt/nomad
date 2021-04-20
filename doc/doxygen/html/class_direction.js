@@ -4,6 +4,7 @@ var class_direction =
     [ "Direction", "class_direction.html#a33689e71f4e7936d49620f9d478a24c5", null ],
     [ "Direction", "class_direction.html#a2a17c6ee34045ef136bcfc99e8154810", null ],
     [ "~Direction", "class_direction.html#a9dc10040126d32d44f5e683ec940e3cd", null ],
+    [ "angle", "class_direction.html#ab31dca0fb374106d12441cf00b38b0bd", null ],
     [ "computeDirOnUnitSphere", "class_direction.html#ad87539d895824de9bce2a65cf6bd6c15", null ],
     [ "cos", "class_direction.html#a436b875118bdd81d60dd127eda9d983b", null ],
     [ "dotProduct", "class_direction.html#ad1900c54d59bf67127f1d86286ac4c1d", null ],

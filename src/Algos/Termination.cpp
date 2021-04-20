@@ -47,7 +47,6 @@
 #include "../Algos/Algorithm.hpp"
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Termination.hpp"
-#include "../Cache/CacheBase.hpp"
 #include "../Util/Clock.hpp"
 
 void NOMAD::Termination::init()
@@ -91,7 +90,7 @@ bool NOMAD::Termination::terminate(size_t iteration)
         // Force quit (by pressing CTRL-C):
         _stopReasons->set(NOMAD::BaseStopType::CTRL_C);
     }
-    else if (maxIterations < NOMAD::INF_SIZE_T && iteration >= maxIterations)
+    else if (maxIterations < NOMAD::INF_SIZE_T && iteration > maxIterations)
     {
         // Max iterations reached
         _stopReasons->set(NOMAD::IterStopType::MAX_ITER_REACHED);
@@ -101,9 +100,13 @@ bool NOMAD::Termination::terminate(size_t iteration)
         // Max time reached
         _stopReasons->set(NOMAD::BaseStopType::MAX_TIME_REACHED);
     }
-    else if (_pbParams->getAttributeValue<bool>("STOP_IF_FEASIBLE") && solHasFeas())
+    else if (_runParams->getAttributeValue<bool>("STOP_IF_FEASIBLE") && solHasFeas())
     {
         _stopReasons->set(NOMAD::IterStopType::STOP_ON_FEAS);
+    }
+    else if (_runParams->getAttributeValue<bool>("STOP_IF_PHASE_ONE_SOLUTION") && hasPhaseOneSolution())
+    {
+        _stopReasons->set(NOMAD::IterStopType::PHASE_ONE_COMPLETED);
     }
     else
     {
@@ -114,23 +117,6 @@ bool NOMAD::Termination::terminate(size_t iteration)
 
     stop = stop || _stopReasons->checkTerminate() ;
     return stop;
-}
-
-
-bool NOMAD::Termination::solHasFeas() const
-{
-    bool hasFeas = NOMAD::CacheBase::getInstance()->hasFeas();
-    if (!hasFeas)
-    {
-        // No feasible point in cache, but possibly in parent step's barrier.
-        if (nullptr != _parentStep)
-        {
-            auto barrier = _parentStep->getMegaIterationBarrier();
-            hasFeas = (nullptr != barrier && nullptr != barrier->getFirstXFeas());
-        }
-    }
-
-    return hasFeas;
 }
 
 
@@ -157,9 +143,9 @@ void NOMAD::Termination::endImp()
         {
             terminationInfo += " " + NOMAD::itos(evc->getBlockEval());
         }
-        else if (evc->testIf(NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED))
+        else if (evc->testIf(NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED))
         {
-            terminationInfo += " " + NOMAD::itos(evc->getTotalSgteEval());
+            terminationInfo += " " + NOMAD::itos(evc->getTotalModelEval());
         }
         else if (evc->testIf(NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED))
         {

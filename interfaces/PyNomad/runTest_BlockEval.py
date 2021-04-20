@@ -14,7 +14,7 @@ def bb_block(block):
             x = block.get_x(k)
             dim = x.size()
             f = sum([x.get_coord(i)**2 for i in range(dim)])
-            x.setBBO(str(f).encode("UTF-8"), B"OBJ")
+            x.setBBO(str(f).encode("UTF-8"))
             evalOk[k] = True
     except Exception as e:
         print("Unexpected error in bb_block()", str(e))

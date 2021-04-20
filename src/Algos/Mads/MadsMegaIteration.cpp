@@ -46,9 +46,9 @@
 
 //#include "../../Algos/Mads/GMesh.hpp" // Code using GMesh is commented out
 #include "../../Algos/Mads/Mads.hpp"
+#include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/MadsUpdate.hpp"
-#include "../../Algos/Mads/MegaSearchPoll.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 
@@ -60,11 +60,6 @@ void NOMAD::MadsMegaIteration::init()
 
 void NOMAD::MadsMegaIteration::startImp()
 {
-    // Create a NOMAD::MadsIteration for each frame center and each desired mesh size.
-    // Use all xFeas and xInf available.
-    // For now, not using other frame centers.
-    size_t k = _k;  // Main iteration counter
-
     // Update main mesh and barrier.
     NOMAD::MadsUpdate update( this );
     update.start();
@@ -80,124 +75,7 @@ void NOMAD::MadsMegaIteration::startImp()
     OUTPUT_DEBUG_START
     AddOutputDebug("Mesh Stop Reason: " + _stopReasons->getStopReasonAsString());
     OUTPUT_DEBUG_END
-    if ( ! _stopReasons->checkTerminate() )
-    {
-        // MegaIteration's barrier member is already in sub dimension.
-        auto allXFeas = _barrier->getAllXFeas();
-        auto allXInf  = _barrier->getAllXInf();
-
-        // Compute the number of xFeas and xInf points we want to use, to get at
-        // most MAX_ITERATION_PER_MEGAITERATION iterations.
-        auto maxXFeas = allXFeas.size();
-        auto maxXInf = allXInf.size();
-        computeMaxXFeasXInf(maxXFeas, maxXInf);
-
-        size_t nbPoints = 0;
-        std::vector<NOMAD::EvalPoint>::const_iterator it;
-        for (it = allXFeas.begin(), nbPoints = 0; it != allXFeas.end() && nbPoints < maxXFeas; ++it, nbPoints++)
-        {
-            std::shared_ptr<NOMAD::MadsIteration> madsIteration = std::make_shared<NOMAD::MadsIteration>(this , std::make_shared<NOMAD::EvalPoint>(*it), k, _mainMesh);
-            _iterList.push_back(madsIteration);
-            k++;
-        }
-        for (it = allXInf.begin(), nbPoints = 0; it != allXInf.end() && nbPoints < maxXInf; ++it, nbPoints++)
-        {
-            std::shared_ptr<NOMAD::MadsIteration> madsIteration = std::make_shared<NOMAD::MadsIteration>(this, std::make_shared<NOMAD::EvalPoint>(*it), k, _mainMesh);
-            _iterList.push_back(madsIteration);
-            k++;
-        }
-
-        // Add iteration for larger meshes (see issue (feature) #386)
-        /*
-        if (xFeasDefined)
-        {
-            addIterationsForLargerMeshes(xFeas, k);
-        }
-        if (xInfDefined)
-        {
-            addIterationsForLargerMeshes(xInf, k);
-        }
-        */
-
-        size_t nbIter = _iterList.size();
-
-        OUTPUT_INFO_START
-        AddOutputInfo(_name + " has " + NOMAD::itos(nbIter) + " iteration" + ((nbIter > 1)? "s" : "") + ".");
-        OUTPUT_INFO_END
-
-        OUTPUT_DEBUG_START
-        AddOutputDebug("Iterations generated:");
-        for (size_t i = 0; i < nbIter; i++)
-        {
-            // downcast from Iteration to MadsIteration
-            std::shared_ptr<NOMAD::MadsIteration> madsIteration = std::dynamic_pointer_cast<NOMAD::MadsIteration>( _iterList[i] );
-
-            if ( madsIteration == nullptr )
-            {
-                throw NOMAD::Exception(__FILE__, __LINE__, "Invalid shared pointer cast");
-            }
-
-            AddOutputDebug( _iterList[i]->getName());
-            NOMAD::ArrayOfDouble meshSize  = madsIteration->getMesh()->getdeltaMeshSize();
-            NOMAD::ArrayOfDouble frameSize = madsIteration->getMesh()->getDeltaFrameSize();
-            auto frameCenter = madsIteration->getFrameCenter();
-            AddOutputDebug("Frame center: " + frameCenter->display());
-            auto previousFrameCenter = frameCenter->getPointFrom();
-            AddOutputDebug("Previous frame center: " + (previousFrameCenter ? previousFrameCenter->display() : "NULL"));
-            AddOutputDebug("Mesh size:  " + meshSize.display());
-            AddOutputDebug("Frame size: " + frameSize.display());
-        }
-        OUTPUT_DEBUG_END
-    }
 }
-
-
-// Add iteration for larger meshes (see issue (feature) #386)
-/*
-bool NOMAD::MadsMegaIteration::addIterationsForLargerMeshes(const NOMAD::EvalPoint& x0, size_t &k)
-{
-    bool newMesh = false;
-
-    // Compute new directions for x0, to enlarge mesh.
-    size_t dim = _mainMesh->getSize();
-    for (size_t i = 0; i < 2 * dim; i++)
-    {
-        // i = 0..dim-1 : going up
-        // i = dim.. 2*dim-1 : going down
-        size_t ii = (i < dim) ? i : i - dim;
-        NOMAD::EvalPoint dirPoint(x0);
-        NOMAD::Double delta = _mainMesh->getDeltaFrameSize(ii);
-        dirPoint[ii] += delta;
-        NOMAD::Direction dir = NOMAD::Point::vectorize(x0, dirPoint);
-
-        // Create larger mesh.
-        const auto largeMeshRef = std::shared_ptr<NOMAD::MeshBase>
-            (new NOMAD::GMesh(*(dynamic_cast<NOMAD::GMesh*>(_mainMesh.get()))));
-        auto largeMesh = std::shared_ptr<NOMAD::MeshBase>
-            (new NOMAD::GMesh(*(dynamic_cast<NOMAD::GMesh*>(largeMeshRef.get()))));
-        auto anisotropyFactor = _runParams->getAttributeValue<NOMAD::Double>("ANISOTROPY_FACTOR");
-        bool anisotropicMesh = _runParams->getAttributeValue<bool>("ANISOTROPIC_MESH");
-
-        if (largeMesh->enlargeDeltaFrameSize(dir, anisotropyFactor, anisotropicMesh))
-        {
-            // At least one new mesh was generated.
-            newMesh = true;
-            //std::string dirStr = "New direction " + dir.display();
-            //AddOutputInfo(dirStr);
-            std::shared_ptr<NOMAD::MadsIteration> madsIteration = std::make_shared<NOMAD::MadsIteration>(this, std::make_shared<NOMAD::EvalPoint>(dirPoint), k, largeMesh);
-            _iterList.push_back(madsIteration);
-            k++;
-
-            // Reset largeMesh - Actually create a new one.
-            largeMesh = std::shared_ptr<NOMAD::MeshBase>
-                (new NOMAD::GMesh(*(dynamic_cast<NOMAD::GMesh*>(largeMeshRef.get()))));
-        }
-
-    }
-
-    return newMesh;
-}
-*/
 
 
 bool NOMAD::MadsMegaIteration::runImp()
@@ -215,100 +93,61 @@ bool NOMAD::MadsMegaIteration::runImp()
         return false;
     }
 
-    if (_iterList.empty())
+    bool iterSuccessful = false;    // Is the iteration successful.
+    // Get Mads ancestor to call terminate(k)
+    NOMAD::Mads* mads = getParentOfType<NOMAD::Mads*>();
+    if (nullptr == mads)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "No iterations to run");
+        throw NOMAD::Exception(__FILE__, __LINE__, "Mads MegaIteration without Mads ancestor");
     }
-
-    if (_runParams->getAttributeValue<bool>("GENERATE_ALL_POINTS_BEFORE_EVAL"))
+    if (!mads->terminate(_k))
     {
-        MegaSearchPoll megaStep( this );
-        megaStep.start();
+        // Create a single MadsIteration
+        std::shared_ptr<NOMAD::MadsIteration> madsIteration = std::make_shared<NOMAD::MadsIteration>(this, _k, _mainMesh);
 
-        bool successful = megaStep.run();
+        OUTPUT_DEBUG_START
+        AddOutputDebug("Iteration generated:");
+        AddOutputDebug(madsIteration->getName());
+        NOMAD::ArrayOfDouble meshSize  = madsIteration->getMesh()->getdeltaMeshSize();
+        NOMAD::ArrayOfDouble frameSize = madsIteration->getMesh()->getDeltaFrameSize();
+        AddOutputDebug("Mesh size:  " + meshSize.display());
+        AddOutputDebug("Frame size: " + frameSize.display());
+        OUTPUT_DEBUG_END
 
-        megaStep.end();
+        madsIteration->start();
 
-        if (successful)
+        iterSuccessful = madsIteration->run();
+        // Compute MegaIteration success
+        NOMAD::SuccessType iterSuccess = madsIteration->getSuccessType();
+        if (iterSuccess > bestSuccessYet)
         {
-            bestSuccessYet = _megaIterationSuccess;
+            bestSuccessYet = iterSuccess;
+        }
+
+        madsIteration->end();
+
+        if (iterSuccessful)
+        {
             OUTPUT_DEBUG_START
-            s = _name + ": new success " + NOMAD::enumStr(bestSuccessYet);
-            s += " stopReason = " + _stopReasons->getStopReasonAsString() ;
+            s = _name + ": new success " + NOMAD::enumStr(iterSuccess);
+            AddOutputDebug(s);
+            OUTPUT_DEBUG_END
+        }
+
+        // Update MegaIteration's stop reason
+        if (_stopReasons->checkTerminate())
+        {
+            OUTPUT_DEBUG_START
+            s = _name + " stop reason set to: " + _stopReasons->getStopReasonAsString();
             AddOutputDebug(s);
             OUTPUT_DEBUG_END
         }
 
         // Note: Delta (frame size) will be updated in the Update step next time it is called.
 
-        // End of running all the iterations
-        // Update number of iterations - note: _k is atomic
-        _k += _iterList.size();
-
-    }
-    else
-    {
-        bool iterSuccessful = false;    // Is the iteration successful.
-        // Break as soon as an iteration is successful (full success only).
-        for (size_t i = 0; i < _iterList.size(); i++)
+        if (_userInterrupt)
         {
-            // Get Mads ancestor to call terminate(k)
-            NOMAD::Mads* mads = getParentOfType<NOMAD::Mads*>();
-            if (nullptr == mads)
-            {
-                throw NOMAD::Exception(__FILE__, __LINE__, "Mads MegaIteration without Mads ancestor");
-            }
-            if (_stopReasons->checkTerminate()
-                || iterSuccessful
-                || mads->terminate(_iterList[i]->getK()))
-            {
-                break;
-            }
-
-            // downcast from Iteration to MadsIteration
-            std::shared_ptr<NOMAD::MadsIteration> madsIteration = std::dynamic_pointer_cast<NOMAD::MadsIteration>(_iterList[i]);
-
-            if (madsIteration == nullptr)
-            {
-                throw NOMAD::Exception(__FILE__, __LINE__, "Invalid shared pointer cast");
-            }
-
-            madsIteration->start();
-
-            iterSuccessful = madsIteration->run();
-            // Compute MegaIteration success
-            NOMAD::SuccessType iterSuccess = madsIteration->getSuccessType();
-            if (iterSuccess > bestSuccessYet)
-            {
-                bestSuccessYet = iterSuccess;
-            }
-
-            madsIteration->end();
-
-            if (iterSuccessful)
-            {
-                OUTPUT_DEBUG_START
-                s = _name + ": new success " + NOMAD::enumStr(iterSuccess);
-                AddOutputDebug(s);
-                OUTPUT_DEBUG_END
-            }
-
-            // Update MegaIteration's stop reason
-            if (_stopReasons->checkTerminate())
-            {
-                OUTPUT_DEBUG_START
-                s = _name + " stop reason set to: " + _stopReasons->getStopReasonAsString();
-                AddOutputDebug(s);
-                OUTPUT_DEBUG_END
-            }
-
-            _nbIterRun++; // Count one more iteration.
-
-            if (_userInterrupt)
-            {
-                hotRestartOnUserInterrupt();
-            }
-
+            hotRestartOnUserInterrupt();
         }
     }
 

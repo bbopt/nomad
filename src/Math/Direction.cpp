@@ -157,6 +157,35 @@ const NOMAD::Double NOMAD::Direction::cos(const NOMAD::Direction& dir1,
     return cos;
 }
 
+/*-----------------------------------------------------------*/
+/*      computation of the angle with another direction      */
+/*-----------------------------------------------------------*/
+const NOMAD::Double NOMAD::Direction::angle(const NOMAD::Direction& dir1,
+                                            const NOMAD::Direction& dir2)
+{
+    if (dir1.size() != dir2.size())
+    {
+        return NOMAD::Double();
+    }
+
+    NOMAD::Double innerProduct = 0.0, norm1 = 0.0, norm2 = 0.0;
+
+    for (size_t i = 0; i < dir1.size(); i++)
+    {
+        norm1        += dir1[i] * dir1[i];
+        norm2        += dir2[i] * dir2[i];
+        innerProduct += dir1[i] * dir2[i];
+    }
+
+    if (norm1 == 0.0 || norm2 == 0.0)
+    {
+        return NOMAD::Double();
+    }
+
+    return std::acos((innerProduct / (norm1.sqrt() * norm2.sqrt())).todouble());
+}
+
+
 /*--------------------------------------------------*/
 /*  Compute a random direction on a unit N-Sphere   */
 /*  See http://en.wikipedia.org/wiki/N-sphere       */

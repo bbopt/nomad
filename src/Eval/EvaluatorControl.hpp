@@ -135,8 +135,8 @@ private:
      */
     std::atomic<size_t> _infBBEval;
 
-    /// The total number of sgte evaluations. Used for stats exclusively.
-    std::atomic<size_t> _totalSgteEval;
+    /// The total number of quad or modellib model evaluations. Used for stats exclusively.
+    std::atomic<size_t> _totalModelEval;
 
     /// The number of block evaluations performed
     /**
@@ -207,7 +207,7 @@ public:
         _bbEvalNotOk(0),
         _feasBBEval(0),
         _infBBEval(0),
-        _totalSgteEval(0),
+        _totalModelEval(0),
         _blockEval(0),
         _indexSuccBlockEval(0),
         _indexBestFeasEval(0),
@@ -255,9 +255,9 @@ public:
     /// Get the number of feasible blackbox evaluations.
     size_t getFeasBbEval() const { return _feasBBEval; }
 
-    size_t getSgteEval(const int mainThreadNum = -1) const;
-    void resetSgteEval(const int mainThreadNum = -1);
-    size_t getTotalSgteEval() const { return _totalSgteEval; }
+    size_t getModelEval(const int mainThreadNum = -1) const;
+    void resetModelEval(const int mainThreadNum = -1);
+    size_t getTotalModelEval() const { return _totalModelEval; }
 
     size_t getBbEvalInSubproblem(const int mainThreadNum = -1) const;
     void resetBbEvalInSubproblem(const int mainThreadNum = -1);
@@ -273,7 +273,7 @@ public:
         - blackbox evaluations (EvaluatorControl::_bbEval),
         - blackbox evaluations for which countEval returned \c false
         - cache hits.
-       Not including sgte evaluations (EvaluatorControl::_sgteEval).
+       Not including quad and sgtelib model evaluations (EvaluatorControl::_modelEval).
 
      \note Member EvaluatorControl:: holds only the first two values.
      Cache hits are added in this method.
@@ -313,10 +313,15 @@ public:
     void setBestIncumbent(const int mainThreadNum, const std::shared_ptr<EvalPoint>& bestIncumbent);
     const std::shared_ptr<EvalPoint>& getBestIncumbent(const int mainThreadNum) const;
 
-    void setComputeSuccessTypeFunction(const ComputeSuccessFunction& computeSuccessFunction);
     void setUserCompMethod(const std::shared_ptr<ComparePriorityMethod>& compMethod) { _userCompMethod = compMethod; }
 
-    void setLastSuccessfulDir(const std::shared_ptr<Direction>& dir);
+    void setComputeType(const ComputeType& computeType);
+    const ComputeType& getComputeType(const int mainThreadNum = -1) const;
+
+    void setLastSuccessfulFeasDir(const std::shared_ptr<Direction>& feasDir);
+    void setLastSuccessfulInfDir(const std::shared_ptr<Direction>& infDir);
+    const std::shared_ptr<Direction>& getLastSuccessfulFeasDir() const;
+    const std::shared_ptr<Direction>& getLastSuccessfulInfDir() const;
 
     void setStopReason(const int mainThreadNum, const EvalMainThreadStopType& s);
     const StopReason<EvalMainThreadStopType>& getStopReason(const int mainThreadNum) const;
@@ -406,7 +411,7 @@ public:
 
     /// Continuous evaluation - running on all threads simultaneously.
     /**
-     * Stop reasons may be controled by parameters MAX_BB_EVAL, MAX_EVAL, OPPORTUNISTIC_EVAL. \n
+     * Stop reasons may be controled by parameters MAX_BB_EVAL, MAX_EVAL, EVAL_OPPORTUNISTIC. \n
      * If strategy is opportunistic, stop as soon as a successful point is found. \n
      \return    The success type of the evaluations.
      */
@@ -475,7 +480,7 @@ public:
     /// Did we reach one of the evaluation parameters: MAX_EVAL, MAX_BB_EVAL, MAX_BLOCK_EVAL ?
     bool reachedMaxEval() const;
 
-    /// Did we reach Max LAP, MAX_SGTE_EVAL (temporary max evals)?
+    /// Did we reach Max LAP, MODEL_MAX_EVAL (temporary max evals)?
     /**
      * \param mainThreadNum Number of the main thread to update if a stop condition is reached. -1 means use current thread.
      */
@@ -525,10 +530,10 @@ private:
     void displayDebugWaitingInfo(time_t &lastDisplayed) const;
 
     /// Stats Output
-    void AddStatsInfo(const BlockForEval& block) const;
+    void addStatsInfo(const BlockForEval& block) const;
 
     /// History and Solution file output
-    void AddDirectToFileInfo(EvalQueuePointPtr evalQueuePoint) const;
+    void addDirectToFileInfo(EvalQueuePointPtr evalQueuePoint) const;
 
 };
 

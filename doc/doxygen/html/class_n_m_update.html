@@ -222,10 +222,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a2d64508f4cf413431379505787b3fa35 inherit pub_methods_class_step"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad03f8fb51e2134cd4d89dead0fe25bcb inherit pub_methods_class_step"><td class="memItemLeft" align="right" valign="top">const std::shared_ptr&lt; <a class="el" href="class_mesh_base.html">MeshBase</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_step.html#ad03f8fb51e2134cd4d89dead0fe25bcb">getIterationMesh</a> () const</td></tr>
 <tr class="separator:ad03f8fb51e2134cd4d89dead0fe25bcb inherit pub_methods_class_step"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a142d525ba5ad9f655d7ac1da9fb794b4 inherit pub_methods_class_step"><td class="memItemLeft" align="right" valign="top">const std::shared_ptr&lt; <a class="el" href="class_eval_point.html">EvalPoint</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_step.html#a142d525ba5ad9f655d7ac1da9fb794b4">getIterationFrameCenter</a> () const</td></tr>
-<tr class="separator:a142d525ba5ad9f655d7ac1da9fb794b4 inherit pub_methods_class_step"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a74b22a9058b66397d317d77493577ed2 inherit pub_methods_class_step"><td class="memItemLeft" align="right" valign="top">const std::shared_ptr&lt; <a class="el" href="class_barrier.html">Barrier</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_step.html#a74b22a9058b66397d317d77493577ed2">getMegaIterationBarrier</a> () const</td></tr>
 <tr class="separator:a74b22a9058b66397d317d77493577ed2 inherit pub_methods_class_step"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a808cf03b44c1d048fd18f4549453a34f inherit pub_methods_class_step"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_step.html#a808cf03b44c1d048fd18f4549453a34f">solHasFeas</a> () const</td></tr>
+<tr class="separator:a808cf03b44c1d048fd18f4549453a34f inherit pub_methods_class_step"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27407440876f0f05a6866d6ed54f03be inherit pub_methods_class_step"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_step.html#a27407440876f0f05a6866d6ed54f03be">hasPhaseOneSolution</a> () const</td></tr>
+<tr class="separator:a27407440876f0f05a6866d6ed54f03be inherit pub_methods_class_step"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad50196a963b217bb3c901a48f2eced29 inherit pub_methods_class_step"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_step.html#ad50196a963b217bb3c901a48f2eced29">start</a> ()</td></tr>
 <tr class="separator:ad50196a963b217bb3c901a48f2eced29 inherit pub_methods_class_step"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a46439d01e8a7aef7ab74d51d77195e9e inherit pub_methods_class_step"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_step.html#a46439d01e8a7aef7ab74d51d77195e9e">run</a> ()</td></tr>
@@ -273,7 +275,7 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memdesc:ab12ad9f5bc052d7c12605f0b27d7a975 inherit pro_methods_class_step"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper for constructors.  <a href="class_step.html#ab12ad9f5bc052d7c12605f0b27d7a975">More...</a><br /></td></tr>
 <tr class="separator:ab12ad9f5bc052d7c12605f0b27d7a975 inherit pro_methods_class_step"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02192f582e180ac892f95551bd092503 inherit pro_methods_class_step"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_step.html#a02192f582e180ac892f95551bd092503">verifyGenerateAllPointsBeforeEval</a> (const std::string &amp;method, const bool expected) const</td></tr>
-<tr class="memdesc:a02192f582e180ac892f95551bd092503 inherit pro_methods_class_step"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper for validating steps depending on parameter GENERATE_ALL_POINTS_BEFORE_EVAL.  <a href="class_step.html#a02192f582e180ac892f95551bd092503">More...</a><br /></td></tr>
+<tr class="memdesc:a02192f582e180ac892f95551bd092503 inherit pro_methods_class_step"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper for validating steps depending on parameter MEGA_SEARCH_POLL.  <a href="class_step.html#a02192f582e180ac892f95551bd092503">More...</a><br /></td></tr>
 <tr class="separator:a02192f582e180ac892f95551bd092503 inherit pro_methods_class_step"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a039318d62a4272dea10dee12289d8b7f inherit pro_methods_class_step"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_step.html#a039318d62a4272dea10dee12289d8b7f">hotRestartBeginHelper</a> ()</td></tr>
 <tr class="memdesc:a039318d62a4272dea10dee12289d8b7f inherit pro_methods_class_step"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helpers for hot restart, to be called at the start and end of any override.  <a href="class_step.html#a039318d62a4272dea10dee12289d8b7f">More...</a><br /></td></tr>
@@ -484,7 +486,7 @@ Additional Inherited Members</h2></td></tr>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="class_n_m_update.html">NMUpdate</a></li>
-    <li class="footer">Generated on Tue Dec 1 2020 17:08:20 for NOMAD Source by
+    <li class="footer">Generated on Tue Apr 20 2021 16:16:54 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

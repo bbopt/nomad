@@ -67,7 +67,8 @@ public:
     }
 
     /// Check the sanity of parameters.
-    void checkAndComply( const std::shared_ptr<RunParameters> & runParams );
+    void checkAndComply(const std::shared_ptr<RunParameters>& runParams,
+                        const std::shared_ptr<PbParameters>& pbParams);
 
 private:
     /// Helper for constructor

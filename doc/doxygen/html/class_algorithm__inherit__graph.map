@@ -1,0 +1,12 @@
+<map id="Algorithm" name="Algorithm">
+<area shape="rect" id="node1" title="Generic class for any direct search optimizer algorithm." alt="" coords="272,80,359,107"/>
+<area shape="rect" id="node3" href="$class_l_h.html" title="Class for Latin Hypercube algorithm sampling." alt="" coords="5,155,44,181"/>
+<area shape="rect" id="node4" href="$class_mads.html" title="The (M)esh (A)daptive (D)irect (S)earch algorithm." alt="" coords="68,155,125,181"/>
+<area shape="rect" id="node5" href="$class_n_m.html" title="Class implementing Nelder Mead non&#45;linear simplex algorithm for constrained problems." alt="" coords="149,155,193,181"/>
+<area shape="rect" id="node6" href="$class_phase_one.html" title="Class for phase one search of MADS to satisfy Extreme Barrier (EB) constraints." alt="" coords="217,155,304,181"/>
+<area shape="rect" id="node7" href="$class_p_s_d_mads.html" title="Class for PSD&#45;Mads." alt="" coords="329,155,411,181"/>
+<area shape="rect" id="node8" href="$class_quad_model_algo.html" title="Class for implementation of quadratic model optimization algorithm using Bastien Talgorn&#39;s sgtelib." alt="" coords="435,155,561,181"/>
+<area shape="rect" id="node9" href="$class_sgtelib_model.html" title="Class for implementation algorithms using Bastien Talgorn&#39;s sgtelib." alt="" coords="585,155,691,181"/>
+<area shape="rect" id="node10" href="$class_s_s_d_mads.html" title="Class for SSD&#45;Mads." alt="" coords="715,155,798,181"/>
+<area shape="rect" id="node2" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="290,5,341,32"/>
+</map>

@@ -148,8 +148,8 @@ template<> bool NOMAD::StopReason<NOMAD::PhaseOneStopType>::checkTerminate() con
 {
     switch ( _stopReason )
     {
-        case NOMAD::PhaseOneStopType::NO_FEAS_PT:   //
-        case NOMAD::PhaseOneStopType::MADS_FAIL:   //
+        case NOMAD::PhaseOneStopType::NO_FEAS_PT:
+        case NOMAD::PhaseOneStopType::MADS_FAIL:
             return true;
             break;
         case NOMAD::PhaseOneStopType::STARTED:
@@ -215,8 +215,8 @@ template<> std::map<NOMAD::NMStopType,std::string> & NOMAD::StopReason<NOMAD::NM
 {
     static std::map<NOMAD::NMStopType,std::string> dictionary = {
         {NOMAD::NMStopType::STARTED,"Started"},   // Set a the begining of an EvaluatorControl Run
-        {NOMAD::NMStopType::TOO_SMALL_SIMPLEX, "Simplex Y is too small"},
-        {NOMAD::NMStopType::SIMPLEX_RANK_INSUFFICIENT, "Rank of the matrix DZ is too small"},
+        {NOMAD::NMStopType::TOO_SMALL_SIMPLEX, "Simplex Y is too small"}, ///< Not used
+        {NOMAD::NMStopType::SIMPLEX_RANK_INSUFFICIENT, "Rank of the matrix DZ is too small"}, ///< Not used
         {NOMAD::NMStopType::INITIAL_FAILED,"Initialization has failed"},
         {NOMAD::NMStopType::REFLECT_FAILED,"Reflect step has failed"}              ,
         {NOMAD::NMStopType::EXPANSION_FAILED,"Expansion step has failed"}            ,
@@ -227,7 +227,8 @@ template<> std::map<NOMAD::NMStopType,std::string> & NOMAD::StopReason<NOMAD::NM
         {NOMAD::NMStopType::INSERTION_FAILED,"Insertion of points has failed"}            ,
         {NOMAD::NMStopType::X0_FAILED,"No X0 provided or cannot evaluate X0"},
         {NOMAD::NMStopType::NM_SINGLE_COMPLETED,"NM with a single iteration is completed"},
-        {NOMAD::NMStopType::NM_STOP_ON_SUCCESS,"NM iterations stopped on eval success"}
+        {NOMAD::NMStopType::NM_STOP_ON_SUCCESS,"NM iterations stopped on eval success"},
+        {NOMAD::NMStopType::NM_STOP_NO_SHRINK,"NM iterations stopped without shrink"}
     };
     return dictionary;
 }
@@ -249,6 +250,7 @@ template<> bool NOMAD::StopReason<NOMAD::NMStopType>::checkTerminate() const
         case NOMAD::NMStopType::INSERTION_FAILED:
         case NOMAD::NMStopType::NM_SINGLE_COMPLETED:
         case NOMAD::NMStopType::NM_STOP_ON_SUCCESS:
+        case NOMAD::NMStopType::NM_STOP_NO_SHRINK:
         case NOMAD::NMStopType::UNDEFINED_STEP:
             return true;
             break;
@@ -268,7 +270,8 @@ template<> std::map<NOMAD::IterStopType,std::string> & NOMAD::StopReason<NOMAD::
     static std::map<NOMAD::IterStopType,std::string> dictionary = {
         {NOMAD::IterStopType::STARTED,"Started"},   // Set a the begining of a Step task
         {NOMAD::IterStopType::MAX_ITER_REACHED,"Maximum number of iterations reached"},
-        {NOMAD::IterStopType::STOP_ON_FEAS,"A feasible point is reached"}
+        {NOMAD::IterStopType::STOP_ON_FEAS,"A feasible point is reached"},
+        {NOMAD::IterStopType::PHASE_ONE_COMPLETED,"PhaseOne completed"}
     };
     return dictionary;
 }
@@ -281,6 +284,7 @@ template<> bool NOMAD::StopReason<NOMAD::IterStopType>::checkTerminate() const
     {
         case NOMAD::IterStopType::MAX_ITER_REACHED:
         case NOMAD::IterStopType::STOP_ON_FEAS:
+        case NOMAD::IterStopType::PHASE_ONE_COMPLETED:
             return true;
             break;
         case NOMAD::IterStopType::STARTED:
@@ -317,7 +321,7 @@ template<> std::map<NOMAD::EvalMainThreadStopType,std::string> & NOMAD::StopReas
         {NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS,    "Success found and opportunistic strategy is used"},
         {NOMAD::EvalMainThreadStopType::EMPTY_LIST_OF_POINTS,     "Tried to eval an empty list"},
         {NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED,     "No more points to evaluate"},
-        {NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED,    "Max number of surrogate evaluations reached"}
+        {NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED,   "Max number of model evaluations reached"}
     };
     return dictionary;
 }
@@ -349,7 +353,7 @@ template<> bool NOMAD::StopReason<NOMAD::EvalMainThreadStopType>::checkTerminate
     {
         case NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED:
         case NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED:
-        case NOMAD::EvalMainThreadStopType::MAX_SGTE_EVAL_REACHED:
+        case NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED:
             return true;
             break;
         case NOMAD::EvalMainThreadStopType::STARTED:

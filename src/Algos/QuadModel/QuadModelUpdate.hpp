@@ -94,6 +94,7 @@ private:
     bool isValidForUpdate(const EvalPoint& evalPoint) const; ///< Helper function for cache find.
 
     bool isValidForIncludeInModel(const EvalPoint& evalPoint) const; ///< Helper function for cache find.
+
 };
 
 #include "../../nomad_nsend.hpp"

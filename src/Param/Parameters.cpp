@@ -47,11 +47,12 @@
 #include "../Param/Parameters.hpp"
 #include "../Type/BBInputType.hpp"
 #include "../Type/BBOutputType.hpp"
+#include "../Type/DirectionType.hpp"
+#include "../Type/EvalSortType.hpp"
+#include "../Type/EvalType.hpp"
 #include "../Type/LHSearchType.hpp"
 #include "../Type/SgtelibModelFeasibilityType.hpp"
 #include "../Type/SgtelibModelFormulationType.hpp"
-#include "../Type/EvalType.hpp"
-#include "../Type/DirectionType.hpp"
 #include "../Util/fileutils.hpp"
 
 
@@ -131,6 +132,12 @@ void NOMAD::Parameters::copyParameters(const Parameters& params)
             auto value = params.getAttributeValue<NOMAD::EvalType>(paramName);
             setAttributeValue(paramName, value );
         }
+        // EvalSortType
+        else if (paramType == typeid(NOMAD::EvalSortType).name())
+        {
+            auto value = params.getAttributeValue<NOMAD::EvalSortType>(paramName);
+            setAttributeValue(paramName, value );
+        }
         // DirectionType
         else if (paramType == typeid(NOMAD::DirectionType).name())
         {
@@ -189,6 +196,18 @@ const NOMAD::AttributeSet NOMAD::Parameters::getAttributes() const
 bool NOMAD::Parameters::toBeChecked() const
 {
     return _toBeChecked;
+}
+
+
+std::vector<std::string> NOMAD::Parameters::getAttributeNames() const
+{
+    std::vector<std::string> names;
+    for (auto att : _attributes)
+    {
+        names.push_back(att->getName());
+    }
+
+    return names;
 }
 
 
@@ -371,6 +390,16 @@ bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
                 {
                     sdebug += NOMAD::evalTypeToString(getAttributeValueProtected<NOMAD::EvalType>(paramName,false)) + "\n";
                     sdebug += NOMAD::evalTypeToString(p->getAttributeValueProtected<NOMAD::EvalType>(paramName,false));
+                    isCompatible = false;
+                }
+            }
+            // EvalSortType
+            else if ( paramType == typeid(NOMAD::EvalSortType).name() )
+            {
+                if ( getAttributeValueProtected<NOMAD::EvalSortType>(paramName,false) != p->getAttributeValueProtected<NOMAD::EvalSortType>(paramName,false) )
+                {
+                    sdebug += NOMAD::evalSortTypeToString(getAttributeValueProtected<NOMAD::EvalSortType>(paramName,false)) + "\n";
+                    sdebug += NOMAD::evalSortTypeToString(p->getAttributeValueProtected<NOMAD::EvalSortType>(paramName,false));
                     isCompatible = false;
                 }
             }
@@ -622,6 +651,7 @@ void NOMAD::Parameters::readEntries(const bool overwrite)
         paramName = att->getName();
         auto paramType = getAttributeType(paramName);
         bool paramFromUniqueEntry = att->getParamFromUniqueEntry();
+        bool internal = att->isInternal();
 
         // Dimension already set
         if (paramName == "DIMENSION")
@@ -632,6 +662,13 @@ void NOMAD::Parameters::readEntries(const bool overwrite)
         pe = _paramEntries.find(paramName);
         while (pe)
         {
+            // Test if internal
+            if (internal)
+            {
+                err = "Internal parameter: " + paramName + " at line #" + std::to_string(pe->getLine()) + " cannot be set in a parameter file! ";
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
+            }
+
             // Test if multiple entries
             if (paramFromUniqueEntry && !pe->isUnique() && !overwrite)
             {
@@ -709,6 +746,12 @@ void NOMAD::Parameters::readEntries(const bool overwrite)
             {
                 checkFormat1(pe);
                 setAttributeValue(paramName, NOMAD::stringToEvalType(pe->getAllValues()));
+            }
+            // EvalSortType
+            else if (paramType == typeid(NOMAD::EvalSortType).name())
+            {
+                checkFormat1(pe);
+                setAttributeValue(paramName, NOMAD::stringToEvalSortType(pe->getAllValues()));
             }
             // DirectionType
             else if (paramType == typeid(NOMAD::DirectionType).name())
@@ -1081,7 +1124,7 @@ void NOMAD::Parameters::displayHelp(const std::string & helpSubject , bool devHe
 {
     // Search is performed on touppered strings
 
-    // Display help as Basic, Advanced or Developper
+    // Display help as Basic, Advanced or Developer
     // Separate Basic and Advanced into sections
     std::ostringstream oss;
     for(const auto &att: _attributes)
@@ -1100,16 +1143,16 @@ void NOMAD::Parameters::displayHelp(const std::string & helpSubject , bool devHe
             || keywords.find(helpSubject)  != std::string::npos
             || helpInfo.find(helpSubject)  != std::string::npos )
         {
-            if ( !devHelp || (keywords.find("DEVELOPPER") != std::string::npos) )
+            if ( !devHelp || (keywords.find("DEVELOPER") != std::string::npos) )
             {
-                std::string typeOfHelp = (devHelp) ? "(Developper)":"(Basic)";
+                std::string typeOfHelp = (devHelp) ? "(Developer)":"(Basic)";
                 typeOfHelp = ( keywords.find("ADVANCED")!= std::string::npos )? "(Advanced)":typeOfHelp;
 
                 oss << att->getName() << " {" ;
                 oss << att->getHelpInfo() << std::endl;
                 oss << "}" << std::endl;
 
-                if ( typeOfHelp == "(Basic)" || typeOfHelp == "(Developper)" )
+                if ( typeOfHelp == "(Basic)" || typeOfHelp == "(Developer)" )
                 {
                     ossBasic << oss.str() << std::endl;
                 }
@@ -1145,8 +1188,8 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
 {
 
 
-    // Developpers can provide new attributes type -> add "else if" below.
-    // Developpers MUST ALSO ADD the corresponding type in isAlgoCompatible
+    // Developers can provide new attributes type -> add "else if" below.
+    // Developers MUST ALSO ADD the corresponding type in isAlgoCompatible
 
     for ( auto &att : attributeDef )
     {
@@ -1331,6 +1374,15 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
         {
             registerAttribute( att._name,
                               NOMAD::stringToEvalType(att._defaultValue),
+                              algoCompatibilityCheck, restartAttribute, uniqueEntry,
+                              att._shortInfo , att._helpInfo, att._keywords );
+        }
+        // EvalSortType
+        else if (   att._type== "NOMAD::EvalSortType"
+                 || att._type== "EvalSortType")
+        {
+            registerAttribute( att._name,
+                              NOMAD::stringToEvalSortType(att._defaultValue),
                               algoCompatibilityCheck, restartAttribute, uniqueEntry,
                               att._shortInfo , att._helpInfo, att._keywords );
         }

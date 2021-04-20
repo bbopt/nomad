@@ -114,8 +114,7 @@ public:
             bbo += " " + f.tostring();
             bbo += " " + c2000.tostring();
 
-            const NOMAD::EvalType& evalType = getEvalType();
-            x.setBBO(bbo, bbOutputType, evalType);
+            x.setBBO(bbo);
 
             eval_ok = true;
         }

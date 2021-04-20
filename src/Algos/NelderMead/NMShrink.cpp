@@ -100,7 +100,7 @@ bool NOMAD::NMShrink::runImp()
 void NOMAD::NMShrink::endImp()
 {
     // From IterationUtils
-    postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
+    postProcessing();
 
 }
 

@@ -1,0 +1,227 @@
+###############################################################################
+#######         Definition of Run Parameters attributes (NM)       ############
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+NM_OPTIMIZATION
+bool
+false
+\( Nelder Mead stand alone optimization for constrained and unconstrained pbs \)
+\(
+
+. Nelder Mead optimization for constrained and unconstrained optimization
+
+. Argument: bool
+
+. Stand alone Nelder Mead optimization will deactivate any optimization strategy.
+
+. Example: NM_OPTIMIZATION true
+
+\)
+\( advanced nelder mead simplex \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+NM_SEARCH
+bool
+true
+\( Nelder Mead optimization used as a search step for Mads \)
+\(
+
+. Nelder Mead optimization as a search step for Mads
+
+. Argument: bool
+
+. If NM_OPTIMIZATION is true, no optimization algorithm will be performed.
+
+. Example: NM_SEARCH fase
+
+\)
+\( advanced nelder mead simplex mads search\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_SIMPLEX_INCLUDE_LENGTH
+NOMAD::Double
+INF
+\( Construct NM simplex using points in cache.\)
+\(
+
+. Construct NM simplex using points in cache within a given distance of poll
+  center in absolute value. See also NM_SIMPLEX_INCLUDE_FACTOR.
+
+. Argument: Positive double. INF means all points are considered.
+
+. Example: NM_SIMPLEX_INCLUDE_LENGTH 0.2
+
+\)
+\( advanced nelder mead simplex length\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_SIMPLEX_INCLUDE_FACTOR
+size_t
+8
+\( Construct NM simplex using points in cache.\)
+\(
+
+. Construct NM simplex using points in cache within a given length of frame center
+  relative. The length equals the include factor multiplied by the frame size.
+  Used only if the mesh is defined. See also NM_SIMPLEX_INCLUDE_LENGTH.
+
+. Argument: Positive integer. INF means all points are considered.
+
+. Example: NM_SIMPLEX_INCLUDE_FACTOR 10
+
+\)
+\( advanced nelder mead simplex include factor length poll \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_DELTA_E
+NOMAD::Double
+2
+\( NM expansion parameter delta_e.\)
+\(
+
+. Nelder Mead expansion parameter
+
+. Argument: Positive NOMAD::Double > 1
+
+. Example: NM_DELTA_E 2.5
+
+\)
+\( advanced nelder mead simplex expansion \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_DELTA_IC
+NOMAD::Double
+-0.5
+\( NM inside contraction parameter delta_ic.\)
+\(
+
+. Nelder Mead inside contraction parameter
+
+. Argument: Negative NOMAD::Double
+
+. Example: NM_DELTA_IC -1
+
+\)
+\( advanced nelder mead simplex inside contraction \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_DELTA_OC
+NOMAD::Double
+0.5
+\( NM outside contraction parameter delta_oc.\)
+\(
+
+. Nelder Mead outside contraction parameter
+
+. Argument: Positive NOMAD::Double <= 1
+
+. Example: NM_DELTA_OC 0.8
+
+\)
+\( advanced nelder mead simplex outside contraction \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_GAMMA
+NOMAD::Double
+0.5
+\( NM shrink parameter gamma.\)
+\(
+
+. Nelder Mead shrink parameter
+
+. Argument: Positive NOMAD::Double <= 1
+
+. Example: NM_GAMMA 0.8
+
+\)
+\( advanced nelder mead simplex shrink \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_SEARCH_MAX_TRIAL_PTS_NFACTOR
+size_t
+80
+\( NM-Mads search stopping criterion.\)
+\(
+
+. NM-Mads stopping criterion. Max number of trial pts < dimension * NFactor
+
+. Argument: Positive integer. INF disables this criterion.
+
+. Example: NM_SEARCH_MAX_TRIAL_PTS_NFACTOR 100
+
+\)
+\( advanced nelder mead mads search stop trial \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_SEARCH_RANK_EPS
+NOMAD::Double
+0.01
+\( NM-Mads epsilon for the rank of DZ.\)
+\(
+
+. Precision to detect when a vector increases the rank or not.
+
+. Argument: Positive double.
+
+. Example: NM_SEARCH_RANK_EPS 1E-4
+
+\)
+\( advanced nelder mead mads search rank DZ \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+NM_SEARCH_STOP_ON_SUCCESS
+bool
+false
+\( NM-Mads search stops on success.\)
+\(
+
+. NM-Mads search opportunistically stops on success.
+
+. Argument: boolean.
+
+. Example: NM_SEARCH_STOP_ON_SUCCESS false
+
+\)
+\( advanced nelder mead mads search opportunistic success \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################

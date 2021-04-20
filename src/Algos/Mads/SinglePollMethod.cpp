@@ -44,9 +44,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/Mads/MadsIteration.hpp"
-#include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/SinglePollMethod.hpp"
+#include "../../Math/Direction.hpp"
 
 void NOMAD::SinglePollMethod::init()
 {

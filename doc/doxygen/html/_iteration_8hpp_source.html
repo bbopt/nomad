@@ -186,41 +186,30 @@ $(document).ready(function(){initNavTree('_iteration_8hpp_source.html',''); init
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;<span class="comment">     \return \c nullptr for algorithms that do not use a mesh. Otherwise, this function must be reimplemented in algorithm specific iteration (for example, MadsIteration, NMIteration).</span></div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="comment">     */</span></div>
 <div class="line"><a name="l00100"></a><span class="lineno"><a class="line" href="class_iteration.html#afdd2b386f56b3776bd5bc146a041b03b">  100</a></span>&#160;    <span class="keyword">virtual</span> <span class="keyword">const</span> std::shared_ptr&lt;MeshBase&gt; <a class="code" href="class_iteration.html#afdd2b386f56b3776bd5bc146a041b03b">getMesh</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <span class="keyword">nullptr</span>; }</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;<span class="comment">     \return \c nullptr for algorithms that do not use a frame center. Otherwise, this function must be reimplemented in algorithm specific iteration (for example, MadsIteration, NMIteration, ...).</span></div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00105"></a><span class="lineno"><a class="line" href="class_iteration.html#a7ba5a37296d34c4647ad64a44344fc24">  105</a></span>&#160;    <span class="keyword">virtual</span> <span class="keyword">const</span> std::shared_ptr&lt;EvalPoint&gt; <a class="code" href="class_iteration.html#a7ba5a37296d34c4647ad64a44344fc24">getFrameCenter</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <span class="keyword">nullptr</span>; }</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; </div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="comment">    /**</span></div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;<span class="comment">     This must be implemented when an algorithm has its own iteration.</span></div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_iteration.html#a5e903b78bcb4cb328f3622916c7bcc42">startImp</a>()    <span class="keyword">override</span> = 0;</div>
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;<span class="comment"></span> </div>
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;<span class="comment">    /**</span></div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;<span class="comment">     This must be implemented when an algorithm has its own iteration.</span></div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_iteration.html#a5e903b78bcb4cb328f3622916c7bcc42">startImp</a>()    <span class="keyword">override</span> = 0;</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="class_iteration.html#af0d70292ef14cf9a5ca91a87b4836985">runImp</a>()      <span class="keyword">override</span> = 0;</div>
 <div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;<span class="comment"></span> </div>
 <div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;<span class="comment">     This must be implemented when an algorithm has its own iteration.</span></div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="class_iteration.html#af0d70292ef14cf9a5ca91a87b4836985">runImp</a>()      <span class="keyword">override</span> = 0;</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;<span class="comment">     The default implement for end function displays the stop reason and calls the customized end function if provided by the user. \n</span></div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;<span class="comment">     If an end implementation function specific to an algorithm is required, it is convenient to call this function for default task.</span></div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_iteration.html#aa56d770f03ea50932d3ef4ea66920e1c">endImp</a>()      <span class="keyword">override</span>;</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;<span class="comment">    /**</span></div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;<span class="comment">     \return \c true if this Iteration is considered the principal iteration of its parent MegaIteration.</span></div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;<span class="comment">    By default, return true.</span></div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;<span class="comment">    */</span></div>
-<div class="line"><a name="l00129"></a><span class="lineno"><a class="line" href="class_iteration.html#a1d361262f96d1f340982a9aaba6058fb">  129</a></span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="class_iteration.html#a1d361262f96d1f340982a9aaba6058fb">isMainIteration</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <span class="keyword">true</span>; }</div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160; </div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;};</div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160; </div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;<span class="preprocessor">#include &quot;../nomad_nsend.hpp&quot;</span></div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160; </div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;<span class="preprocessor">#endif // __NOMAD400_ITERATION__</span></div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;<span class="comment">     The default implement for end function displays the stop reason and calls the customized end function if provided by the user. \n</span></div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;<span class="comment">     If an end implementation function specific to an algorithm is required, it is convenient to call this function for default task.</span></div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_iteration.html#aa56d770f03ea50932d3ef4ea66920e1c">endImp</a>()      <span class="keyword">override</span>;</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160; </div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;};</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160; </div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;<span class="preprocessor">#include &quot;../nomad_nsend.hpp&quot;</span></div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160; </div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;<span class="preprocessor">#endif // __NOMAD400_ITERATION__</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="aclass_iteration_html_a6ce6a6289832a53e8d94949d0dcc456c"><div class="ttname"><a href="class_iteration.html#a6ce6a6289832a53e8d94949d0dcc456c">Iteration::_k</a></div><div class="ttdeci">size_t _k</div><div class="ttdoc">Iteration number.</div><div class="ttdef"><b>Definition:</b> <a href="_iteration_8hpp_source.html#l00061">Iteration.hpp:61</a></div></div>
@@ -230,18 +219,16 @@ $(document).ready(function(){initNavTree('_iteration_8hpp_source.html',''); init
 <div class="ttc" id="aclass_step_html"><div class="ttname"><a href="class_step.html">Step</a></div><div class="ttdoc">Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,...</div><div class="ttdef"><b>Definition:</b> <a href="_step_8hpp_source.html#l00068">Step.hpp:68</a></div></div>
 <div class="ttc" id="aclass_iteration_html_ae9207d6fed7bcd085e4879e25c6563de"><div class="ttname"><a href="class_iteration.html#ae9207d6fed7bcd085e4879e25c6563de">Iteration::incK</a></div><div class="ttdeci">void incK()</div><div class="ttdef"><b>Definition:</b> <a href="_iteration_8hpp_source.html#l00095">Iteration.hpp:95</a></div></div>
 <div class="ttc" id="aclass_iteration_html_afdd2b386f56b3776bd5bc146a041b03b"><div class="ttname"><a href="class_iteration.html#afdd2b386f56b3776bd5bc146a041b03b">Iteration::getMesh</a></div><div class="ttdeci">virtual const std::shared_ptr&lt; MeshBase &gt; getMesh() const</div><div class="ttdef"><b>Definition:</b> <a href="_iteration_8hpp_source.html#l00100">Iteration.hpp:100</a></div></div>
-<div class="ttc" id="aclass_iteration_html_a1d361262f96d1f340982a9aaba6058fb"><div class="ttname"><a href="class_iteration.html#a1d361262f96d1f340982a9aaba6058fb">Iteration::isMainIteration</a></div><div class="ttdeci">virtual bool isMainIteration() const</div><div class="ttdef"><b>Definition:</b> <a href="_iteration_8hpp_source.html#l00129">Iteration.hpp:129</a></div></div>
 <div class="ttc" id="aclass_iteration_html_aec74b3402abac78a62b61814d9dacd42"><div class="ttname"><a href="class_iteration.html#aec74b3402abac78a62b61814d9dacd42">Iteration::Iteration</a></div><div class="ttdeci">Iteration(const Step *parentStep, const size_t k)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition:</b> <a href="_iteration_8hpp_source.html#l00071">Iteration.hpp:71</a></div></div>
 <div class="ttc" id="aclass_iteration_html_a4dd9c8ff4de68fb58d3d1f12e2b79cc0"><div class="ttname"><a href="class_iteration.html#a4dd9c8ff4de68fb58d3d1f12e2b79cc0">Iteration::getK</a></div><div class="ttdeci">size_t getK() const</div><div class="ttdoc">Get iteration number.</div><div class="ttdef"><b>Definition:</b> <a href="_iteration_8hpp_source.html#l00091">Iteration.hpp:91</a></div></div>
 <div class="ttc" id="aclass_iteration_html_aa56d770f03ea50932d3ef4ea66920e1c"><div class="ttname"><a href="class_iteration.html#aa56d770f03ea50932d3ef4ea66920e1c">Iteration::endImp</a></div><div class="ttdeci">virtual void endImp() override</div></div>
 <div class="ttc" id="aclass_iteration_html_af0d70292ef14cf9a5ca91a87b4836985"><div class="ttname"><a href="class_iteration.html#af0d70292ef14cf9a5ca91a87b4836985">Iteration::runImp</a></div><div class="ttdeci">virtual bool runImp() override=0</div></div>
-<div class="ttc" id="aclass_iteration_html_a7ba5a37296d34c4647ad64a44344fc24"><div class="ttname"><a href="class_iteration.html#a7ba5a37296d34c4647ad64a44344fc24">Iteration::getFrameCenter</a></div><div class="ttdeci">virtual const std::shared_ptr&lt; EvalPoint &gt; getFrameCenter() const</div><div class="ttdef"><b>Definition:</b> <a href="_iteration_8hpp_source.html#l00105">Iteration.hpp:105</a></div></div>
 <div class="ttc" id="aclass_iteration_html_a5e903b78bcb4cb328f3622916c7bcc42"><div class="ttname"><a href="class_iteration.html#a5e903b78bcb4cb328f3622916c7bcc42">Iteration::startImp</a></div><div class="ttdeci">virtual void startImp() override=0</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_411efccbd5e576f82c71dd79c3c5caa4.html">Algos</a></li><li class="navelem"><a class="el" href="_iteration_8hpp.html">Iteration.hpp</a></li>
-    <li class="footer">Generated on Tue Dec 1 2020 17:08:18 for NOMAD Source by
+    <li class="footer">Generated on Tue Apr 20 2021 16:16:52 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

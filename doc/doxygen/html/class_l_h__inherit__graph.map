@@ -1,0 +1,6 @@
+<map id="LH" name="LH">
+<area shape="rect" id="node1" title="Class for Latin Hypercube algorithm sampling." alt="" coords="89,155,128,181"/>
+<area shape="rect" id="node2" href="$class_algorithm.html" title="Generic class for any direct search optimizer algorithm." alt="" coords="5,80,92,107"/>
+<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="23,5,74,32"/>
+<area shape="rect" id="node4" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="117,80,223,107"/>
+</map>

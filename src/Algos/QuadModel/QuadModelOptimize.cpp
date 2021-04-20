@@ -46,14 +46,15 @@
 
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/Mads.hpp"
-#include "../../Algos/QuadModel/QuadModelEvaluator.hpp"
-#include "../../Algos/QuadModel/QuadModelOptimize.hpp"
 #include "../../Algos/QuadModel/QuadModelAlgo.hpp"
+#include "../../Algos/QuadModel/QuadModelEvaluator.hpp"
+#include "../../Algos/QuadModel/QuadModelIteration.hpp"
+#include "../../Algos/QuadModel/QuadModelOptimize.hpp"
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Eval/ComputeSuccessType.hpp"
 #include "../../Output/OutputQueue.hpp"
-
+#include "../../Type/DirectionType.hpp"
 
 void NOMAD::QuadModelOptimize::init()
 {
@@ -70,7 +71,7 @@ void NOMAD::QuadModelOptimize::init()
 
 void NOMAD::QuadModelOptimize::startImp()
 {
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
+    auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
     _displayLevel = (std::string::npos != modelDisplay.find("O"))
         ? NOMAD::OutputLevel::LEVEL_INFO
         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
@@ -78,7 +79,7 @@ void NOMAD::QuadModelOptimize::startImp()
     OUTPUT_INFO_START
     std::string s;
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
-    s = "MAX_SGTE_EVAL: " + std::to_string(evcParams->getAttributeValue<size_t>("MAX_SGTE_EVAL"));
+    s = "QUAD_MODEL_MAX_EVAL: " + std::to_string(evcParams->getAttributeValue<size_t>("QUAD_MODEL_MAX_EVAL"));
     AddOutputInfo(s, _displayLevel);
     s = "BBOT: " + NOMAD::BBOutputTypeListToString(NOMAD::QuadModelAlgo::getBBOutputType());
     AddOutputInfo(s, _displayLevel);
@@ -107,7 +108,7 @@ bool NOMAD::QuadModelOptimize::runImp()
             _trialPoints = evalPointSet;
         }
         // Update barrier
-        postProcessing(NOMAD::EvcInterface::getEvaluatorControl()->getEvalType());
+        postProcessing();
 
         // If the oracle point cannot be evaluated the optimization has failed.
         if (_success==NOMAD::SuccessType::NOT_EVALUATED)
@@ -126,7 +127,7 @@ bool NOMAD::QuadModelOptimize::runImp()
 void NOMAD::QuadModelOptimize::endImp()
 {
     // Clean up the cache of points having only EvalType::SGTE
-    NOMAD::CacheBase::getInstance()->deleteSgteOnly(NOMAD::getThreadNum());
+    NOMAD::CacheBase::getInstance()->deleteModelEvalOnly(NOMAD::getThreadNum());
 }
 
 
@@ -138,8 +139,11 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
 
     // Ensure there is no model used in model optimization.
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
-    _optRunParams->setAttributeValue("SGTELIB_SEARCH", false);
+    _optRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("NM_SEARCH", false);
+
+    // Set direction type to Ortho 2n
+    _optRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
 
     // No hMax in the context of QuadModel
     _optRunParams->setAttributeValue("H_MAX_0", NOMAD::Double(NOMAD::INF));
@@ -149,7 +153,7 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
 
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
 
-    _optRunParams->checkAndComply(evcParams, _pbParams);
+    _optRunParams->checkAndComply(evcParams, _optPbParams);
 }
 
 
@@ -160,17 +164,24 @@ void NOMAD::QuadModelOptimize::setupPbParameters()
     _optPbParams->setAttributeValue("UPPER_BOUND", _modelUpperBound);
     _optPbParams->setAttributeValue("FIXED_VARIABLE",_modelFixedVar);
 
-    NOMAD::ArrayOfPoint x0s;
-    auto frameCenter = _iterAncestor->getFrameCenter();
-    if (frameCenter->inBounds(_modelLowerBound, _modelUpperBound))
-    {
-        x0s.push_back(*(frameCenter->getX()));
-    }
-    else
-    {
-        throw NOMAD::Exception(__FILE__,__LINE__,"A frameCenter must be available and within bounds to set X0 for quad optimization.");
-    }
+    // Reset initial mesh and frame sizes
+    // The initial mesh and frame sizes will be calculated from bounds and X0
+    _optPbParams->resetToDefaultValue("INITIAL_MESH_SIZE");
+    _optPbParams->resetToDefaultValue("INITIAL_FRAME_SIZE");
+    // Use default min mesh and frame sizes
+    _optPbParams->resetToDefaultValue("MIN_MESH_SIZE");
+    _optPbParams->resetToDefaultValue("MIN_FRAME_SIZE");
+
+    // Granularity is set to 0 and bb_input_type is set to all continuous variables. Candidate points are projected on the mesh before evaluation.
+    _optPbParams->resetToDefaultValue("GRANULARITY");
+    _optPbParams->resetToDefaultValue("BB_INPUT_TYPE");
+
+    // No variable groups are considered for suboptimization
+    _optPbParams->resetToDefaultValue("VARIABLE_GROUP");
+
+    NOMAD::ArrayOfPoint x0s{_modelCenter};
     _optPbParams->setAttributeValue("X0", x0s);
+
 
     // We do not want certain warnings appearing in sub-optimization.
     _optPbParams->doNotShowWarnings();
@@ -209,9 +220,9 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     evc->setOpportunisticEval(false);
     evc->setUseCache(false);
 
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("MODEL_DISPLAY");
+    auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
 
-    auto fullFixedVar = NOMAD::SubproblemManager::getSubFixedVariable(this);
+    auto fullFixedVar = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
     OUTPUT_INFO_START
     std::string s = "Create QuadModelEvaluator with fixed variable = ";
     s += fullFixedVar.display();
@@ -228,21 +239,18 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     auto previousEvaluator = evc->setEvaluator(ev);
     if (nullptr == previousEvaluator)
     {
-        std::cerr << "Warning: QuadModelOptimize: Could not set SGTE Evaluator" << std::endl;
+        std::cerr << "Warning: QuadModelOptimize: Could not set MODEL Evaluator" << std::endl;
         return;
     }
-
-    // Setup EvalPoint success computation to be based on sgte rather than bb.
-    evc->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::computeSuccessTypeSgte);
 
     auto madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
 
 
-    // Set and verify run parameter values
-    setupRunParameters();
-
     // Setup Pb parameters just before optimization.
     setupPbParameters();
+
+    // Set and verify run parameter values
+    setupRunParameters();
 
     OUTPUT_INFO_START
     std::ostringstream oss;
@@ -258,12 +266,12 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     // Parameters for mads (_optRunParams and _optPbParams) are already updated.
     auto mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams);
     mads->setName(mads->getName() + " (QuadModelOptimize)");
-    evc->resetSgteEval();
+    evc->resetModelEval();
     mads->start();
     runOk = mads->run();
     mads->end();
 
-    evc->resetSgteEval();
+    evc->resetModelEval();
     evc->setEvaluator(previousEvaluator);
 
     // Note: No need to check the Mads stop reason: It is not a stop reason
@@ -272,9 +280,6 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     // Reset opportunism to previous values.
     evc->setOpportunisticEval(previousOpportunism);
     evc->setUseCache(previousUseCache);
-
-    // Reset success computation function --> use the default
-    evc->setComputeSuccessTypeFunction(NOMAD::ComputeSuccessType::defaultComputeSuccessType);
 
     if (!runOk)
     {
@@ -289,7 +294,7 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
         {
             // New EvalPoint to be evaluated.
             // Add it to the list (local or in Search method).
-            bool inserted = insertTrialPoint(NOMAD::EvalPoint(*bestXFeas));
+            bool inserted = insertTrialPoint(*bestXFeas);
 
             OUTPUT_INFO_START
             std::string s = "xt:";
@@ -302,7 +307,7 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
         {
             // New EvalPoint to be evaluated.
             // Add it to the lists (local or in Search method).
-            insertTrialPoint(NOMAD::EvalPoint(*bestXInf));
+            insertTrialPoint(*bestXInf);
 
         }
     }
@@ -380,10 +385,48 @@ void NOMAD::QuadModelOptimize::setModelBoundsAndFixedVar()
         _modelUpperBound[j] = ub;
 
     }
+
+    // Detect the model center of the bounds
+    // Scale the bounds around the model center
+    auto reduction_factor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR");
+    for (int j = 0; j < nbDim; j++)
+    {
+        lb = _modelLowerBound[j];
+        ub = _modelUpperBound[j];
+        if (lb.isDefined() && ub.isDefined())
+        {
+            // The model center is the bounds middle point
+            _modelCenter[j] = (lb + ub)/2.0;
+
+            // Scale the bounds with respect to the bounds
+            lb = _modelCenter[j] + (lb-_modelCenter[j])/reduction_factor;
+            ub = _modelCenter[j] + (ub-_modelCenter[j])/reduction_factor;
+
+            // Comparison of Double at epsilon
+            if (lb == ub)
+            {
+                _modelFixedVar[j] = ub;
+                _modelCenter[j] = ub;
+                lb = NOMAD::Double(); // undefined
+                ub = NOMAD::Double();
+
+            }
+        }
+        else
+        {
+            _modelCenter[j] = _modelFixedVar[j];
+        }
+
+        _modelLowerBound[j] = lb;
+        _modelUpperBound[j] = ub;
+    }
+
     OUTPUT_INFO_START
     std::string s = "model lower bound: " + _modelLowerBound.display();
     AddOutputInfo(s);
     s = "model upper bound: " + _modelUpperBound.display();
+    AddOutputInfo(s);
+    s = "model center: " + _modelCenter.display();
     AddOutputInfo(s);
     OUTPUT_INFO_END
 

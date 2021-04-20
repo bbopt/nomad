@@ -91,10 +91,12 @@ bool NOMAD::BBOutput::getCountEval(const BBOutputTypeList &bbOutputType) const
     return countEval;
 }
 
+
 bool NOMAD::BBOutput::isComplete(const NOMAD::BBOutputTypeList &bbOutputType) const
 {
     NOMAD::ArrayOfString array(_rawBBO);
-    if (checkSizeMatch(bbOutputType))
+    bool itIsComplete = true;
+    if (!bbOutputType.empty() && checkSizeMatch(bbOutputType))
     {
         for (size_t i = 0; i < array.size(); i++)
         {
@@ -106,27 +108,28 @@ bool NOMAD::BBOutput::isComplete(const NOMAD::BBOutputTypeList &bbOutputType) co
                 outValue.atof(array[i]);
                 if (!outValue.isDefined())
                 {
-                    return false;
+                    itIsComplete = false;
+                    break;
                 }
             }
         }
     }
     else
     {
-        return false;
+        itIsComplete = false;
     }
 
-    return true;
+    return itIsComplete;
 }
 
 
 NOMAD::Double NOMAD::BBOutput::getObjective(const NOMAD::BBOutputTypeList &bbOutputType) const
 {
-    NOMAD::ArrayOfString array(_rawBBO);
     NOMAD::Double obj;
 
-    if (checkSizeMatch(bbOutputType))
+    if (_evalOk && !bbOutputType.empty() && checkSizeMatch(bbOutputType))
     {
+        NOMAD::ArrayOfString array(_rawBBO);
         for (size_t i = 0; i < array.size(); i++)
         {
             if (NOMAD::BBOutputType::OBJ == bbOutputType[i])
@@ -142,11 +145,11 @@ NOMAD::Double NOMAD::BBOutput::getObjective(const NOMAD::BBOutputTypeList &bbOut
 
 NOMAD::ArrayOfDouble NOMAD::BBOutput::getConstraints(const NOMAD::BBOutputTypeList &bbOutputType) const
 {
-    NOMAD::ArrayOfString array(_rawBBO);
     NOMAD::ArrayOfDouble constraints;
 
-    if (checkSizeMatch(bbOutputType))
+    if (_evalOk && !bbOutputType.empty() && checkSizeMatch(bbOutputType))
     {
+        NOMAD::ArrayOfString array(_rawBBO);
         for (size_t i = 0; i < array.size(); i++)
         {
             if ( NOMAD::BBOutputTypeIsConstraint(bbOutputType[i]) )
@@ -203,7 +206,7 @@ bool NOMAD::BBOutput::checkSizeMatch(const NOMAD::BBOutputTypeList &bbOutputType
         }
         err += ":\n";
         err += _rawBBO;
-        std::cerr << err << std::endl;
+        //std::cerr << err << std::endl;
         ret = false;
     }
 

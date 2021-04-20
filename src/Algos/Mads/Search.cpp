@@ -222,9 +222,6 @@ void NOMAD::Search::generateTrialPoints()
             }
         }
     }
-
-    // Sanity check
-    verifyPointsAreOnMesh(getName());
 }
 
 

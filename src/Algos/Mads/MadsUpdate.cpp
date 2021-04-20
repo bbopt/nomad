@@ -101,7 +101,7 @@ bool NOMAD::MadsUpdate::runImp()
         // Compute success
         // Get which of newBestFeas and newBestInf is improving
         // the solution. Check newBestFeas first.
-        NOMAD::ComputeSuccessType computeSuccess(evalType);
+        NOMAD::ComputeSuccessType computeSuccess(evalType, evc->getComputeType());
         std::shared_ptr<NOMAD::EvalPoint> newBest;
         NOMAD::SuccessType success = computeSuccess(newBestFeas, refBestFeas);
         if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
@@ -158,7 +158,7 @@ bool NOMAD::MadsUpdate::runImp()
         // This is the value from the previous MegaIteration. If it
         // was not evaluated, ignore the test.
         // If queue is not cleared between runs, also ignore the test.
-        const bool clearEvalQueue = evc->getEvaluatorControlGlobalParams()->getAttributeValue<bool>("CLEAR_EVAL_QUEUE");
+        const bool clearEvalQueue = evc->getEvaluatorControlGlobalParams()->getAttributeValue<bool>("EVAL_QUEUE_CLEAR");
         const bool megaIterEvaluated = (NOMAD::SuccessType::NOT_EVALUATED != megaIter->getSuccessType());
         if (!clearEvalQueue && megaIterEvaluated && (success != megaIter->getSuccessType()))
         {
@@ -184,28 +184,37 @@ bool NOMAD::MadsUpdate::runImp()
             AddOutputWarning(s);
         }
 
+        if (NOMAD::EvalType::BB == evalType)
+        {
+            // The directions of last successes may be used to sort points. Update values.
+            // These dimensions are always in full space.
+            auto dirFeas = (newBestFeas) ? newBestFeas->getDirection() : nullptr;
+            auto dirInf  = (newBestInf)  ? newBestInf->getDirection() : nullptr;
+
+            if (nullptr != dirFeas)
+            {
+                OUTPUT_INFO_START
+                std::string dirStr = "New direction (feasible) ";
+                dirStr += dirFeas->display();
+                AddOutputInfo(dirStr);
+                OUTPUT_INFO_END
+            }
+            if (nullptr != dirInf)
+            {
+                OUTPUT_INFO_START
+                std::string dirStr = "New direction (infeasible) ";
+                dirStr += dirInf->display();
+                AddOutputInfo(dirStr);
+                OUTPUT_INFO_END
+            }
+
+            NOMAD::EvcInterface::getEvaluatorControl()->setLastSuccessfulFeasDir(dirFeas);
+            NOMAD::EvcInterface::getEvaluatorControl()->setLastSuccessfulInfDir(dirInf);
+        }
+
         if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
         {
-            // Compute new direction for main mesh.
-            // The direction is related to the frame center which generated
-            // newBest.
-            auto pointFromPtr = newBest->getPointFrom();
-            auto pointNewPtr = newBest->getX();
-            if (nullptr == pointFromPtr)
-            {
-                s = "Error: Update cannot compute new direction for successful point: pointFromPtr is NULL ";
-                s += newBest->display();
-                throw NOMAD::StepException(__FILE__,__LINE__, s, this);
-            }
-            // PointFrom is in full dimension. Convert it to subproblem
-            // to compute direction.
-            auto fixedVariable = NOMAD::SubproblemManager::getSubFixedVariable(this);
-            auto pointFromSub = std::make_shared<NOMAD::Point>(pointFromPtr->makeSubSpacePointFromFixed(fixedVariable));
-
-            NOMAD::Direction dir = NOMAD::Point::vectorize(*pointFromSub, *pointNewPtr);
             OUTPUT_INFO_START
-            std::string dirStr = "New direction " + dir.display();
-            AddOutputInfo(dirStr);
             if (success == NOMAD::SuccessType::PARTIAL_SUCCESS)
             {
                 AddOutputInfo("Last Iteration Improving. Delta remains the same.");
@@ -216,19 +225,13 @@ bool NOMAD::MadsUpdate::runImp()
             }
             OUTPUT_INFO_END
 
-            // This computed direction may be used to sort points. Update values.
-            // Use full space.
-            auto pointNewFull = std::make_shared<NOMAD::Point>(pointNewPtr->makeFullSpacePointFromFixed(fixedVariable));
-            auto dirFull = std::make_shared<NOMAD::Direction>(NOMAD::Point::vectorize(*pointFromPtr, *pointNewFull));
-            NOMAD::EvcInterface::getEvaluatorControl()->setLastSuccessfulDir(dirFull);
-
             if (success >= NOMAD::SuccessType::FULL_SUCCESS)
             {
                 // Update frame size for main mesh
                 auto anisotropyFactor = _runParams->getAttributeValue<NOMAD::Double>("ANISOTROPY_FACTOR");
                 bool anistropicMesh = _runParams->getAttributeValue<bool>("ANISOTROPIC_MESH");
 
-                if (mesh->enlargeDeltaFrameSize(dir, anisotropyFactor, anistropicMesh))
+                if (mesh->enlargeDeltaFrameSize(*newBest->getDirection(), anisotropyFactor, anistropicMesh))
                 {
                     OUTPUT_INFO_START
                     AddOutputInfo("Delta is enlarged.");

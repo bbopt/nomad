@@ -56,7 +56,7 @@
  - Start, run and end tasks are performed.
  - Start: the quadratic model optimization problem is setup and solved by calling startImp. Call ::generateTrialPoints.
  - Run: trial (oracle) points are evaluated with EvalType::BB. Set the stop reason.
- - End: Remove from cache EvalType::SGTE only cache points.
+ - End: Remove from cache EvalType::MODEL only cache points.
  */
 class QuadModelOptimize : public Step, public QuadModelIterationUtils
 {
@@ -68,6 +68,7 @@ private:
     ArrayOfDouble _modelUpperBound; ///> Upper bound: max of trainingSet points
     Point         _modelFixedVar;   ///> Fixed variables: fixed variables detected from trainingSet
 
+    Point _modelCenter;
 
     const std::shared_ptr<PbParameters> _refPbParams; ///< Reference to the original problem parameters.
 
@@ -88,6 +89,7 @@ public:
         _modelLowerBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _modelUpperBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _modelFixedVar(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
+        _modelCenter(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _refPbParams(refPbParams),
         _optRunParams(nullptr),
         _optPbParams(nullptr)
@@ -99,7 +101,7 @@ public:
     /**
      - Setup the evaluator control parameters.
      - Manage display of sub-optimization.
-     - Setup evaluator (EvalType::SGTE) and success type identification function.
+     - Setup evaluator (EvalType::MODEL) and success type identification function.
      - Setup the bounds and fixed variables from the trainingSet of the quadratic model.
      - Setup run and pb parameters for Mads
      - Perform start, run and end tasks on Mads.
@@ -113,7 +115,7 @@ private:
 
     virtual void startImp() override; ///< The quadratic model optimization problem is setup and solved by calling startImp. Calls ::generateTrialPoints.
     virtual bool runImp() override; ///< Trial (oracle) points are evaluated with EvalType::BB. Set the stop reason.
-    virtual void endImp() override; ///< Remove from cache EvalType::SGTE only cache points.
+    virtual void endImp() override; ///< Remove from cache EvalType::MODEL only cache points.
 
     // Helpers
     void setupRunParameters();

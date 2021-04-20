@@ -48,6 +48,7 @@
 
 
 #include "../Param/CacheParameters.hpp"
+#include "../Param/DeprecatedParameters.hpp"
 #include "../Param/DisplayParameters.hpp"
 #include "../Param/EvalParameters.hpp"
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
@@ -77,7 +78,8 @@ class AllParameters
 private:
 
 
-    // Developper: When adding a new type of NOMAD parameters update the code
+    // Developer: When adding a new type of NOMAD parameters update the code
+    std::shared_ptr<DeprecatedParameters>        _deprecatedParams;
     std::shared_ptr<RunParameters>               _runParams;
     std::shared_ptr<PbParameters>                _pbParams;
     std::shared_ptr<CacheParameters>             _cacheParams;
@@ -90,7 +92,8 @@ private:
 public:
     /// Constructor
     explicit AllParameters()
-      : _runParams(std::make_shared<RunParameters>()),
+      : _deprecatedParams(std::make_shared<DeprecatedParameters>()),
+        _runParams(std::make_shared<RunParameters>()),
         _pbParams(std::make_shared<PbParameters>()),
         _cacheParams(std::make_shared<CacheParameters>()),
         _dispParams(std::make_shared<DisplayParameters>()),
@@ -160,6 +163,11 @@ public:
         {
             _cacheParams->setAttributeValue<T>(name, value);
         }
+        else if (_deprecatedParams->isRegisteredAttribute(name))
+        {
+            std::string err = "setAttributeValue: attribute " + name + " is  deprecated";
+            throw Exception(__FILE__, __LINE__, err);
+        }
         else
         {
             // At this point, Verify att is non-null.
@@ -217,6 +225,7 @@ public:
     }
 
     const std::shared_ptr<CacheParameters>&             getCacheParams() const { return _cacheParams; }
+    const std::shared_ptr<DeprecatedParameters>&        getDeprecatedParams() const { return _deprecatedParams; }
     const std::shared_ptr<DisplayParameters>&           getDispParams() const { return _dispParams; }
     const std::shared_ptr<EvalParameters>&              getEvalParams() const { return _evalParams; }
     const std::shared_ptr<EvaluatorControlParameters>&  getEvaluatorControlParams() const { return _evaluatorControlParams; }

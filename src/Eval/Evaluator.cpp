@@ -258,6 +258,7 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
         return evalOk;
     }
 
+    auto evalFormat = _evalParams->getAttributeValue<NOMAD::ArrayOfDouble>("BB_EVAL_FORMAT");
     for (auto it = block.begin(); it != block.end(); it++)
     {
         std::shared_ptr<NOMAD::EvalPoint> x = (*it);
@@ -267,10 +268,11 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
             {
                 xfile << " ";
             }
-            xfile << (*x)[i].tostring();
+            xfile << (*x)[i].display(static_cast<int>(evalFormat[i].todouble()));
         }
         xfile << std::endl;
     }
+    xfile.close();
 
     std::string cmd = bbExe + " " + tmpfile;
     std::string s;
@@ -303,36 +305,59 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
             std::shared_ptr<NOMAD::EvalPoint> x = block[index];
 
             char buffer[1024];
-            char *outputLine = fgets(buffer, sizeof(buffer), fresult);
-            if (NULL == outputLine)
+            char *outputLine = nullptr;
+
+            size_t nbTries=0;
+            while (nbTries < 5)
+            {
+                nbTries++;
+
+                outputLine = fgets(buffer, sizeof(buffer), fresult);
+
+                if( feof(fresult) )
+                { // c-stream eof detected. Output is empty, break the loop
+                    x->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
+#ifdef _OPENMP
+#pragma omp critical(warningEvalX)
+#endif
+                    {
+                        std::cerr << "Warning: Evaluation error with point " << x->display() << ": output is empty" << std::endl;
+                    }
+                    break;
+                }
+
+                if (NULL != outputLine)
+                {
+                    // Evaluation succeeded. Get and process blackbox output.
+                    std::string bbo(outputLine);
+                    // delete trailing '\n'
+                    bbo.erase(bbo.size() - 1);
+
+                    // Process blackbox output
+                    auto bbOutputTypeList = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
+                    x->setBBO(bbo, bbOutputTypeList, _evalType);
+                    auto bbOutput = x->getEval(_evalType)->getBBOutput();
+
+                    evalOk[index] = bbOutput.getEvalOk();
+                    countEval[index] = bbOutput.getCountEval(bbOutputTypeList);
+
+                    break;
+                }
+            }
+            // The number of tries has been reached (not eof) and still cannot read output file.
+            if( ! feof(fresult) && NULL == outputLine )
             {
                 // Something went wrong with the evaluation.
                 // Point could be re-submitted.
                 x->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
 #ifdef _OPENMP
-                #pragma omp critical(warningEvalX)
+#pragma omp critical(warningEvalX)
 #endif
                 {
                     std::cerr << "Warning: Evaluation error with point " << x->display() << ": output is empty" << std::endl;
                 }
             }
-            else
-            {
-                // Evaluation succeeded. Get and process blackbox output.
-                std::string bbo(outputLine);
-                // delete trailing '\n'
-                bbo.erase(bbo.size() - 1);
-
-                // Process blackbox output
-                NOMAD::BBOutput bbOutput(bbo);
-
-                auto bbOutputType = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
-                x->getEval(_evalType)->setBBOutputAndRecompute(bbOutput, bbOutputType);
-                evalOk[index] = bbOutput.getEvalOk();
-                countEval[index] = bbOutput.getCountEval(bbOutputType);
-            }
         }
-
         // Get exit status of the bb.exe. If it is not 0, there was an error.
         int exitStatus = pclose(fresult);
 
@@ -354,10 +379,6 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
                 {
                     std::cerr << s << std::endl;
                 }
-            }
-            else if (x->getH(_evalType) > hMax)
-            {
-                x->setEvalStatus(NOMAD::EvalStatusType::EVAL_CONS_H_OVER, _evalType);
             }
             else if (!evalOk[index])
             {

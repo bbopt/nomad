@@ -157,6 +157,8 @@ public:
     void initStatsFile();
     const std::string& getStatsFileName() const { return _statsFile; }
 
+    void setTotalEval(const size_t totalEval) { if (totalEval > _totalEval) { _totalEval = totalEval; } }
+
     void setStatsFileFormat(const DisplayStatsTypeList& statsFileFormat)
     {
         _statsFileFormat = statsFileFormat;
@@ -190,6 +192,8 @@ private:
 
     std::string _statsFile;
     std::ofstream _statsStream;
+    bool _statsWritten;
+    size_t _totalEval;
 
     /**
      Format for stats in a file (parameter STATS_FILE).

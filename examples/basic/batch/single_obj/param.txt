@@ -1,0 +1,40 @@
+DIMENSION      5              # number of variables
+
+BB_EXE         bb.exe         # 'bb.exe' is a program that
+BB_OUTPUT_TYPE OBJ PB EB     # takes in argument the name of
+                              # a text file containing 5
+                              # values, and that displays 3
+                              # values that correspond to the
+                              # objective function value (OBJ),
+                              # and two constraints values g1
+                              # and g2 with g1 <= 0 and
+                              # g2 <= 0; 'PB' and 'EB'
+                              # correspond to constraints that
+                              # are treated by the Progressive
+                              # and Extreme Barrier approaches
+                              # (all constraint-handling
+                              #  options are described in the
+                              #  detailed parameters list)
+
+X0             ( 0 0 0 0 0 )  # starting point
+
+LOWER_BOUND    * -6           # all variables are >= -6
+UPPER_BOUND    ( 5 6 7 - - )  # x_1 <= 5, x_2 <= 6, x_3 <= 7
+                              # x_4 and x_5 have no bounds
+
+MAX_BB_EVAL    100            # the algorithm terminates when
+                              # 100 black-box evaluations have
+                              # been made
+
+# TMP_DIR        /tmp         # indicates a directory where
+                              # temporary files are put
+                              # (increases performance by ~100%
+                              # if you're working on a network
+                              # account and if TMP_DIR is on a
+                              # local disk)
+
+
+DISPLAY_UNSUCCESSFUL false    # Display only successful evaluations
+
+DISPLAY_STATS BBE ( SOL ) OBJ # Display the number of evaluation (BBE),
+							  # the current solution ( SOL ) and the objective

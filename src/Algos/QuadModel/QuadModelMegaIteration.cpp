@@ -58,9 +58,9 @@ void NOMAD::QuadModelMegaIteration::init()
 
 NOMAD::QuadModelMegaIteration::~QuadModelMegaIteration()
 {
-    // Clear sgte info from cache.
+    // Clear model info from cache.
     // Very important so we don't have false info in a later MegaIteration.
-    NOMAD::CacheBase::getInstance()->clearSgte(NOMAD::getThreadNum());
+    NOMAD::CacheBase::getInstance()->clearModelEval(NOMAD::getThreadNum());
 }
 
 
@@ -112,6 +112,7 @@ void NOMAD::QuadModelMegaIteration::startImp()
             }
 
             AddOutputDebug( _iterList[i]->getName());
+            // Ensure we get frame center from a QuadModelIteration.
             auto frameCenter = sqmIteration->getFrameCenter();
             AddOutputDebug("Frame center: " + frameCenter->display());
             auto previousFrameCenter = frameCenter->getPointFrom();
@@ -186,9 +187,9 @@ bool NOMAD::QuadModelMegaIteration::runImp()
 
 void NOMAD::QuadModelMegaIteration::endImp()
 {
-    // Clear sgte info from cache.
+    // Clear model info from cache.
     // Very important so we don't have false info in a later MegaIteration.
-    NOMAD::CacheBase::getInstance()->clearSgte(NOMAD::getThreadNum());
+    NOMAD::CacheBase::getInstance()->clearModelEval(NOMAD::getThreadNum());
     NOMAD::MegaIteration::endImp();
 }
 

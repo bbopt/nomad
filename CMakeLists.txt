@@ -38,6 +38,9 @@ endif()
 #options
 
 
+# choose to build with benchmarks
+# option(BUILD_BENCHMARKS "Build benchmark tests" OFF)
+
 # Load some modules
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -87,16 +90,43 @@ if(TIME_STATS MATCHES ON)
 endif()
 
 #
-# Choose to build the examples/tests using library mode or not
+# Test openMP package
 #
-option(BUILD_LIBMODE_EXAMPLES "Option to build library mode examples" ON)
-if(BUILD_LIBMODE_EXAMPLES MATCHES ON)
-   message(CHECK_START "  Configuring build for library mode examples and tests")
+option(TEST_OPENMP "Option to compile Nomad with OpenMP" ON)
+if(TEST_OPENMP MATCHES ON)
+   find_package(OpenMP QUIET)
+   if(OpenMP_FOUND)
+      message(STATUS "  Test OpenMP for parallel functionalities  -- found ")
+   else()
+      message(STATUS "  OpenMP not found. Parallel functionalities NOT available")
+   endif()
+else()
+    message(STATUS "  Compiling Nomad without OpenMP")
+endif()
+
+#
+# Choose to build the examples/tests using batch and library mode 
+#
+option(BUILD_EXAMPLES "Option to build library mode examples" ON)
+if(BUILD_EXAMPLES MATCHES ON)
+   message(CHECK_START "  Configuring build for library and batch mode examples")
+
+   enable_testing()
 
    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/examples)
    message(CHECK_PASS " done")
 else()
-   message(STATUS "  Examples/tests NOT built")
+   message(STATUS "  Examples NOT built")
+endif()
+
+option(BUILD_INTEGRATION_TESTS "Option to build integration tests" OFF)
+if(BUILD_INTEGRATION_TESTS MATCHES ON)
+   message(CHECK_START "  Configuring build for integration tests")
+
+   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/integration_tests)
+   message(CHECK_PASS " done")
+else()
+   message(STATUS "  Integration tests NOT built")
 endif()
 
 #
@@ -112,15 +142,6 @@ else()
    message(STATUS "  Interfaces to Nomad NOT built")
 endif()
 
-#
-# Test openMP package
-#
-find_package(OpenMP QUIET)
-if(OpenMP_FOUND)
-   message(STATUS "  Test OpenMP for parallel functionalities  -- found ")
-else()
-   message(STATUS "  OpenMP not found. Parallel functionalities NOT available")
-endif()
 
 #
 # Custom options final message
@@ -132,4 +153,3 @@ message(CHECK_PASS " done")
 # Add nomad app directory for building 
 #
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
-

@@ -111,7 +111,7 @@ namespace SGTELIB {
     void compute_Ds              (void);
     void compute_scaled_matrices (void);
     void compute_f_min           (void);
-    void check_singular_data     (void);
+    bool check_singular_data     (void);
 
     // FORBIDEN copy constructor:
     TrainingSet ( const TrainingSet & );

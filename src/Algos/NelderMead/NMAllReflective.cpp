@@ -46,7 +46,7 @@
 
 #include "../../Algos/NelderMead/NMAllReflective.hpp"
 #include "../../Algos/NelderMead/NMReflective.hpp"
-
+#include "../../Algos/SubproblemManager.hpp"
 
 
 void NOMAD::NMAllReflective::startImp()
@@ -62,10 +62,9 @@ void NOMAD::NMAllReflective::startImp()
 
         generateTrialPoints();
         verifyPointsAreOnMesh(getName());
-        updatePointsWithFrameCenter();
-
     }
 }
+
 
 void NOMAD::NMAllReflective::generateTrialPoints ()
 {
@@ -78,8 +77,11 @@ void NOMAD::NMAllReflective::generateTrialPoints ()
     reflect.start();
     reflect.end();
     auto trialPts = reflect.getTrialPoints();
-    for ( const auto & pt : trialPts )
-        insertTrialPoint( pt );
+    for (auto evalPoint : trialPts)
+    {
+        evalPoint.setGenStep(getName());
+        insertTrialPoint(evalPoint);
+    }
 
     // Expand simplex
     if ( ! _stopReasons->checkTerminate() )
@@ -88,8 +90,11 @@ void NOMAD::NMAllReflective::generateTrialPoints ()
         reflect.start();
         reflect.end();
         trialPts = reflect.getTrialPoints();
-        for ( const auto & pt : trialPts )
-            insertTrialPoint( pt );
+        for (auto evalPoint : trialPts)
+        {
+            evalPoint.setGenStep(getName());
+            insertTrialPoint(evalPoint);
+        }
 
     }
 
@@ -100,8 +105,11 @@ void NOMAD::NMAllReflective::generateTrialPoints ()
         reflect.start();
         reflect.end();
         trialPts = reflect.getTrialPoints();
-        for ( const auto & pt : trialPts )
-            insertTrialPoint( pt );
+        for (auto evalPoint : trialPts)
+        {
+            evalPoint.setGenStep(getName());
+            insertTrialPoint(evalPoint);
+        }
 
     }
 
@@ -112,8 +120,11 @@ void NOMAD::NMAllReflective::generateTrialPoints ()
         reflect.start();
         reflect.end();
         trialPts = reflect.getTrialPoints();
-        for ( const auto & pt : trialPts )
-            insertTrialPoint( pt );
+        for (auto evalPoint : trialPts)
+        {
+            evalPoint.setGenStep(getName());
+            insertTrialPoint(evalPoint);
+        }
 
     }
 
@@ -123,5 +134,4 @@ void NOMAD::NMAllReflective::generateTrialPoints ()
         auto nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get ( getAllStopReasons() );
         nmStopReason->set(NOMAD::NMStopType::NM_SINGLE_COMPLETED);
     }
-
 }

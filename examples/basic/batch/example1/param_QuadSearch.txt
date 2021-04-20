@@ -19,7 +19,7 @@ GRANULARITY ( 1 1 0.5 1 1 1 1 0.5 1 1 )
 # ALGORITHM PARAMETERS
 ######################
 QUAD_MODEL_SEARCH yes
-MAX_SGTE_EVAL 1000
+QUAD_MODEL_MAX_EVAL 1000
 NM_SEARCH no
 
 
@@ -31,7 +31,7 @@ MAX_BB_EVAL 1000
 MAX_EVAL 200
 
 # Search and Poll steps end as soon as a success is found
-OPPORTUNISTIC_EVAL true
+EVAL_OPPORTUNISTIC true
 
 # Parameters for display
 DISPLAY_DEGREE 2

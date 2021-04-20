@@ -155,33 +155,34 @@ $(document).ready(function(){initNavTree('_eval_parameters_8hpp_source.html','')
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    }</div>
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;<span class="comment"></span> </div>
 <div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;<span class="comment">    /// Check the sanity of parameters.</span></div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_eval_parameters.html#adbe09e04535c94a93011fe58e0a37a3c">checkAndComply</a>( <span class="keyword">const</span> std::shared_ptr&lt;RunParameters&gt; &amp; runParams );</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160; </div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;<span class="keyword">private</span>:<span class="comment"></span></div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="comment">    /// Helper for constructor</span></div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="comment"></span><span class="comment">    /**</span></div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="comment">     Register and set default values for all evaluation attributes. The information to register all the attributes is contained in evalAttributesDefinition.hpp as a set of strings to be interpreted. This file is created by the writeAttributeDefinition executable, called automatically by makefile when the evalAttributeDefinition.txt file is modified.</span></div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;<span class="comment">     */</span></div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_eval_parameters.html#a1ea83e6e9e067dc73c0d69e401d06847">init</a>() <span class="keyword">override</span> ;</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;};</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;<span class="preprocessor">#include &quot;../nomad_nsend.hpp&quot;</span></div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;<span class="preprocessor">#endif // __NOMAD400_EVALPARAMETERS__</span></div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> <a class="code" href="class_eval_parameters.html#a5225cd127e37861ac687dd3be0db6cec">checkAndComply</a>(<span class="keyword">const</span> std::shared_ptr&lt;RunParameters&gt;&amp; runParams,</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;                        <span class="keyword">const</span> std::shared_ptr&lt;PbParameters&gt;&amp; pbParams);</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160; </div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="keyword">private</span>:<span class="comment"></span></div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="comment">    /// Helper for constructor</span></div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="comment"></span><span class="comment">    /**</span></div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;<span class="comment">     Register and set default values for all evaluation attributes. The information to register all the attributes is contained in evalAttributesDefinition.hpp as a set of strings to be interpreted. This file is created by the writeAttributeDefinition executable, called automatically by makefile when the evalAttributeDefinition.txt file is modified.</span></div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;<span class="comment">     */</span></div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_eval_parameters.html#a1ea83e6e9e067dc73c0d69e401d06847">init</a>() <span class="keyword">override</span> ;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;};</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;<span class="preprocessor">#include &quot;../nomad_nsend.hpp&quot;</span></div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;<span class="preprocessor">#endif // __NOMAD400_EVALPARAMETERS__</span></div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160; </div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
+<div class="ttc" id="aclass_eval_parameters_html_a5225cd127e37861ac687dd3be0db6cec"><div class="ttname"><a href="class_eval_parameters.html#a5225cd127e37861ac687dd3be0db6cec">EvalParameters::checkAndComply</a></div><div class="ttdeci">void checkAndComply(const std::shared_ptr&lt; RunParameters &gt; &amp;runParams, const std::shared_ptr&lt; PbParameters &gt; &amp;pbParams)</div><div class="ttdoc">Check the sanity of parameters.</div></div>
 <div class="ttc" id="aclass_eval_parameters_html"><div class="ttname"><a href="class_eval_parameters.html">EvalParameters</a></div><div class="ttdoc">Class for Evaluator parameters.</div><div class="ttdef"><b>Definition:</b> <a href="_eval_parameters_8hpp_source.html#l00059">EvalParameters.hpp:59</a></div></div>
 <div class="ttc" id="aclass_parameters_html"><div class="ttname"><a href="class_parameters.html">Parameters</a></div><div class="ttdoc">Abstract class for the NOMAD parameters.</div><div class="ttdef"><b>Definition:</b> <a href="_parameters_8hpp_source.html#l00137">Parameters.hpp:137</a></div></div>
-<div class="ttc" id="aclass_eval_parameters_html_adbe09e04535c94a93011fe58e0a37a3c"><div class="ttname"><a href="class_eval_parameters.html#adbe09e04535c94a93011fe58e0a37a3c">EvalParameters::checkAndComply</a></div><div class="ttdeci">void checkAndComply(const std::shared_ptr&lt; RunParameters &gt; &amp;runParams)</div><div class="ttdoc">Check the sanity of parameters.</div></div>
 <div class="ttc" id="aclass_eval_parameters_html_a39aa0b90003241948ceb55b01dbd9f99"><div class="ttname"><a href="class_eval_parameters.html#a39aa0b90003241948ceb55b01dbd9f99">EvalParameters::EvalParameters</a></div><div class="ttdeci">EvalParameters()</div><div class="ttdef"><b>Definition:</b> <a href="_eval_parameters_8hpp_source.html#l00063">EvalParameters.hpp:63</a></div></div>
 <div class="ttc" id="aclass_eval_parameters_html_a1ea83e6e9e067dc73c0d69e401d06847"><div class="ttname"><a href="class_eval_parameters.html#a1ea83e6e9e067dc73c0d69e401d06847">EvalParameters::init</a></div><div class="ttdeci">void init() override</div><div class="ttdoc">Helper for constructor.</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_3079b9de3b0ed59bcc1744ceff5423be.html">Param</a></li><li class="navelem"><a class="el" href="_eval_parameters_8hpp.html">EvalParameters.hpp</a></li>
-    <li class="footer">Generated on Tue Dec 1 2020 17:08:19 for NOMAD Source by
+    <li class="footer">Generated on Tue Apr 20 2021 16:16:53 for NOMAD Source by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

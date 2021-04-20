@@ -81,8 +81,8 @@ enum class DisplayStatsType
     DS_BLK_EVA    ,    ///< Number of block evaluation calls
     DS_BLK_SIZE   ,    ///< Number of EvalPoints in the block
     DS_LAP        ,    ///< Number of evaluations since this lap started
-    DS_SGTE       ,    ///< Number of surrogate evaluations since this surrogate started
-    DS_TOTAL_SGTE ,    ///< Total number of surrogate evaluations
+    DS_MODEL_EVAL ,    ///< Number of model evaluations since this model started
+    DS_TOTAL_MODEL_EVAL, ///< Total number of model evaluations
     DS_BBO        ,    ///< All blackbox outputs
     DS_EVAL       ,    ///< Number of evaluations
     DS_REL_SUCC   ,    ///< Number of relative success evaluations
@@ -96,6 +96,8 @@ enum class DisplayStatsType
     DS_DELTA_M    ,    ///< Same as \c DS_MESH_SIZE
     DS_FRAME_SIZE ,    ///< Frame size parameter Delta^f_k
     DS_DELTA_F    ,    ///< Same as \c DS_FRAME_SIZE
+    DS_FRAME_CENTER ,  ///< Frame center: Point that was used as center to generate this point
+    DS_DIRECTION  ,    ///< Direction that generated this point
     DS_SOL        ,    ///< Solution vector
     DS_THREAD_ALGO,    ///< Thread number for the algorithm
     DS_THREAD_NUM ,    ///< Thread number in which this evaluation was done
@@ -140,9 +142,11 @@ private:
     ArrayOfDouble   _meshIndex;
     ArrayOfDouble   _meshSize;
     ArrayOfDouble   _frameSize;
+    Point           _frameCenter;
+    Direction       _direction;
     size_t          _lap;
-    size_t          _sgte;
-    size_t          _totalSgte;
+    size_t          _modelEval;
+    size_t          _totalModelEval;
     Point           _sol;
     int             _threadAlgoNum;
     int             _threadNum;
@@ -186,9 +190,11 @@ public:
     void setMeshIndex(const ArrayOfDouble meshIndex) { _meshIndex = meshIndex; }
     void setMeshSize(const ArrayOfDouble meshSize)   { _meshSize = meshSize; }
     void setFrameSize(const ArrayOfDouble frameSize) { _frameSize = frameSize; }
+    void setFrameCenter(const Point frameCenter)    { _frameCenter = frameCenter; }
+    void setDirection(const Direction direction)    { _direction = direction; }
     void setLap(const size_t lap)                   { _lap = lap; }
-    void setSgte(const size_t sgte)                 { _sgte = sgte; }
-    void setTotalSgte(const size_t totalSgte)       { _totalSgte = totalSgte; }
+    void setModelEval(const size_t modelEval)       { _modelEval = modelEval; }
+    void setTotalModelEval(const size_t totalModelEval) { _totalModelEval = totalModelEval; }
     void setSol(const Point sol)                    { _sol = sol; }
     void setThreadAlgo(const int threadAlgoNum)     { _threadAlgoNum = threadAlgoNum; }
     void setThreadNum(const int threadNum)          { _threadNum = threadNum; }
@@ -198,7 +204,9 @@ public:
     void setSuccessType(const SuccessType& success) { _success = success; }
 
     // Should this stats be printed even if DISPLAY_ALL_EVAL is false
-    bool alwaysDisplay(const bool displayInfeasible, const bool displayUnsuccessful) const;
+    bool alwaysDisplay(const bool displayInfeasible,
+                       const bool displayUnsuccessful,
+                       const bool forStatsFile) const;
 
     /// Display header
     std::string displayHeader(const DisplayStatsTypeList& format,

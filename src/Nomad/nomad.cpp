@@ -111,7 +111,7 @@ int main (int argc, char ** argv)
                 }
                 TheMainStep->displayHelp ( helpSubject );
             }
-            // Display developper help if option '-d' has been specified
+            // Display developer help if option '-d' has been specified
             else if (option == "-D" || option == "-DEVHELP" || option == "--DEVHELP")
             {
                 std::string helpSubject ="";
