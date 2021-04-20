@@ -48,12 +48,6 @@
 #  You can find information on the NOMAD software at www.gerad.ca/nomad           #
 #---------------------------------------------------------------------------------#
 
-DISCLAIMER:
-
-This is a Beta version of NOMAD 4.0.0. It represents work in progress and
-subject to change without notice.
-
-
 DESCRIPTION:
 
 NOMAD is a C++ implementation of the Mesh Adaptive Direct Search (MADS)
