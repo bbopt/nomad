@@ -1,0 +1,7 @@
+<map id="UserSearchMethod" name="UserSearchMethod">
+<area shape="rect" id="node1" title="Class UserSearchMethod: Search method defined by user." alt="" coords="13,229,158,256"/>
+<area shape="rect" id="node2" href="$class_search_method_simple.html" title="Class for generic search method of MADS. Run by Search." alt="" coords="5,155,165,181"/>
+<area shape="rect" id="node3" href="$class_search_method_base.html" title="Class for generic search method of MADS. Run by Search." alt="" coords="12,80,159,107"/>
+<area shape="rect" id="node4" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="9,5,60,32"/>
+<area shape="rect" id="node5" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="84,5,191,32"/>
+</map>

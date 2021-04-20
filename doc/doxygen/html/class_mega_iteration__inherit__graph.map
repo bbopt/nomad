@@ -1,0 +1,10 @@
+<map id="MegaIteration" name="MegaIteration">
+<area shape="rect" id="node1" title="Class to manage the iterations." alt="" coords="392,80,505,107"/>
+<area shape="rect" id="node3" href="$class_mads_mega_iteration.html" title="Class for the mega iterations of MADS." alt="" coords="117,155,265,181"/>
+<area shape="rect" id="node6" href="$class_n_m_mega_iteration.html" title="Class for Nelder Mead mega iteration." alt="" coords="289,155,424,181"/>
+<area shape="rect" id="node7" href="$class_quad_model_mega_iteration.html" title="Manager class for QuadModelAlgo iterations." alt="" coords="449,155,635,181"/>
+<area shape="rect" id="node8" href="$class_sgtelib_model_mega_iteration.html" title="class SgtelibModelMegaIteration (Step)" alt="" coords="660,155,859,181"/>
+<area shape="rect" id="node2" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="423,5,474,32"/>
+<area shape="rect" id="node4" href="$class_p_s_d_mads_mega_iteration.html" title="Class for the iterations of PSD MADS." alt="" coords="5,229,180,256"/>
+<area shape="rect" id="node5" href="$class_s_s_d_mads_mega_iteration.html" title="Class for the iterations of SSD MADS." alt="" coords="204,229,379,256"/>
+</map>
