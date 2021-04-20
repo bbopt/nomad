@@ -138,7 +138,7 @@ BBE OBJ
 
 . Arguments: list of strings possibly including the following keywords:
     BBE        : blackbox evaluations
-    BBO        : blackbox outputs
+    BBO        : blackbox output
     BLK_EVA    : block evaluation calls
     BLK_SIZE   : number of points in the block
     CACHE_HITS : cache hits

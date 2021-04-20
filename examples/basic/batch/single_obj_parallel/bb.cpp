@@ -47,30 +47,74 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <vector>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include <unistd.h>
+
+
 using namespace std;
 
-int main ( int argc , char ** argv ) {
+int main ( int argc , char ** argv )
+{
 
-  double f = 1e20, c1 = 1e20 , c2 = 1e20;
-  double x[5];
 
-  if ( argc >= 2 ) {
-    c1 = 0.0 , c2 = 0.0;
-    ifstream in ( argv[1] );
-    for ( int i = 0 ; i < 5 ; i++ ) {
-      in >> x[i];
-      c1 += pow ( x[i]-1 , 2 );
-      c2 += pow ( x[i]+1 , 2 );
-    }
-    f = x[4];
-    if ( in.fail() )
-      f = c1 = c2 = 1e20;
-    else {
-      c1 = c1 - 25;
-      c2 = 25 - c2;
-    }
-    in.close();
-  }
-  cout << f << " " << c1 << " " << c2 << endl;
-  return 0;
-}
+	double f = 1e20, c1 = 1e20 , c2 = 1e20;
+	std::vector< double * > X;
+
+	if ( argc >= 2 )
+	{
+
+		ifstream in ( argv[1] );
+
+		// Get the input vectors
+		while( ! in.eof() )
+		{
+			double *x = new double [8];
+			for ( int i = 0 ; i < 5 ; i++ ) 
+				in >> x[i];
+
+			X.push_back(x);  
+		}
+
+		in.close();
+		X.pop_back();
+
+		int nb_pts= X.size();
+
+		// Evaluate the points in parallel
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+		for (int i=0;i<nb_pts;++i)
+		{
+			// printf("Hello from thread %d, nthreads %d\n", omp_get_thread_num(), omp_get_num_threads());
+			double *x_t=X[i];
+			double c1 = 0.0 , c2 = 0.0;
+			for ( int j = 0 ; j < 5 ; j++ ) 
+			{
+				//cout << x_t[j] << " ";
+				c1 += pow(x_t[j]-1,2);
+				c2 += pow(x_t[j]+1,2);
+			}
+			x_t[5] =  x_t[4];
+			x_t[6] =  c1 - 25;
+			x_t[7] =  25 - c2;
+			// cout << x_t[6] << " " << x_t[7] << " " << endl;
+			// usleep(300000);
+		}
+
+		// Output the points in the same order as in the input file
+		for (int i=0 ; i < nb_pts ; ++i)
+		{
+			cout << X[i][5]  << " " << X[i][6]  << " " << X[i][7]  <<  endl;
+			delete [](X[i]);
+		}
+
+	}
+	return 0;
+
+}	

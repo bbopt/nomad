@@ -14,7 +14,7 @@ endif()
 add_custom_command(
 	OUTPUT PyNomad.so
  	COMMAND python setup_PyNomad.py ${USE_OPENMP} ${CMAKE_BINARY_DIR} build_ext --inplace
-	COMMAND python setup_PyNomad.py install --user
+	COMMAND python setup_PyNomad.py ${USE_OPENMP} ${CMAKE_BINARY_DIR} install --user
   	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	DEPENDS ${PYNOMAD_SOURCE} 
 )
