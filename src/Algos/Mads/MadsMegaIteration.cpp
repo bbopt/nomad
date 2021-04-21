@@ -93,7 +93,6 @@ bool NOMAD::MadsMegaIteration::runImp()
         return false;
     }
 
-    bool iterSuccessful = false;    // Is the iteration successful.
     // Get Mads ancestor to call terminate(k)
     NOMAD::Mads* mads = getParentOfType<NOMAD::Mads*>();
     if (nullptr == mads)
@@ -116,7 +115,7 @@ bool NOMAD::MadsMegaIteration::runImp()
 
         madsIteration->start();
 
-        iterSuccessful = madsIteration->run();
+        bool iterSuccessful = madsIteration->run();
         // Compute MegaIteration success
         NOMAD::SuccessType iterSuccess = madsIteration->getSuccessType();
         if (iterSuccess > bestSuccessYet)

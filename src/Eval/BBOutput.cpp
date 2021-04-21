@@ -192,6 +192,7 @@ bool NOMAD::BBOutput::checkSizeMatch(const NOMAD::BBOutputTypeList &bbOutputType
 
     if (bbOutputType.size() != array.size())
     {
+        /*
         std::string err = "Error: Parameter BB_OUTPUT_TYPE has " + NOMAD::itos(bbOutputType.size());
         err += " type";
         if (bbOutputType.size() > 1)
@@ -206,7 +207,8 @@ bool NOMAD::BBOutput::checkSizeMatch(const NOMAD::BBOutputTypeList &bbOutputType
         }
         err += ":\n";
         err += _rawBBO;
-        //std::cerr << err << std::endl;
+        std::cerr << err << std::endl;
+        */
         ret = false;
     }
 
