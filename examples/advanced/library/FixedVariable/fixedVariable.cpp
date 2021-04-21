@@ -57,7 +57,7 @@ void initParams1(NOMAD::AllParameters &p)
     // parameters creation
     size_t n = 5;   // Number of variables
     p.getPbParams()->setAttributeValue("DIMENSION", n);
-    p.getEvalParams()->setAttributeValue("BB_EXE", std::string("./u.exe"));
+    p.getEvalParams()->setAttributeValue("BB_EXE", std::string("./ufl.exe"));
 
     NOMAD::Point x0(n, 6.0);
     x0[0] = 4;

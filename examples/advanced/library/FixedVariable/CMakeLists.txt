@@ -1,4 +1,5 @@
 add_executable(fixedVariable.exe fixedVariable.cpp )
+add_executable(ufl.exe u.cpp )
 
 target_include_directories(fixedVariable.exe PRIVATE
     ${CMAKE_SOURCE_DIR}/src)
@@ -13,7 +14,7 @@ else()
 endif()
 
 # installing executables and libraries
-install(TARGETS fixedVariable.exe
+install(TARGETS fixedVariable.exe ufl.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example
