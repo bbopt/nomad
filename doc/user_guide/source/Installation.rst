@@ -23,16 +23,16 @@ A recent C++ compiler is also required. *CMake* will detect which compiler is av
 
 
 
-.. note:: If the version of *CMake* is older than 3.14 or if you do not have *CMake* installed, you
-   can follow the procedure given at `cmake.org <https://cmake.org/install/>`_ to obtain binaries.
-   For Mac OSX and Linux we recommend to install *CMake* using a **package manager**.
+.. note:: If the version of *CMake* is older than 3.14 or if you do not have *CMake* installed,
+   we recommend to install *CMake* using a **package manager**. The other option is to
+   follow the procedure given at `cmake.org <https://cmake.org/install/>`_ to obtain binaries.
 
-   For Mac OSX, we recommend that *CMake* be installed on the command line using package manager `MacPorts <https://www.macports.org/>`_ or `Homebrew <http://brew.sh/>`_.
+   For Mac OSX, *CMake* can be installed on the command line using package manager `MacPorts <https://www.macports.org/>`_ or `Homebrew <http://brew.sh/>`_.
 
    For Linux, several package managers exist to automate the procedure.
 
 
-The procedure has the three following steps: **configuration, building and installation**.
+The NOMAD installation procedure has the three following steps: **configuration, building and installation**.
 
 .. warning:: Before starting the procedure we recommend to set the environment variable ``$NOMAD_HOME`` with the path where NOMAD has been copied.
 
