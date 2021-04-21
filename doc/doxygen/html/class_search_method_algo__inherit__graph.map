@@ -1,0 +1,8 @@
+<map id="SearchMethodAlgo" name="SearchMethodAlgo">
+<area shape="rect" id="node1" title="Class for generic search method of MADS. Run by Search." alt="" coords="89,155,233,181"/>
+<area shape="rect" id="node5" href="$class_n_m_search_method.html" title="Class to perform a Search method using Nelder Mead simplex algorithm." alt="" coords="5,229,143,256"/>
+<area shape="rect" id="node6" href="$class_sgtelib_search_method.html" title="Implementation of search method using library Sgtelib." alt="" coords="167,229,327,256"/>
+<area shape="rect" id="node2" href="$class_search_method_base.html" title="Class for generic search method of MADS. Run by Search." alt="" coords="87,80,234,107"/>
+<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="85,5,135,32"/>
+<area shape="rect" id="node4" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="159,5,266,32"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="PollMethodBase" name="PollMethodBase">
+<area shape="rect" id="node1" title="Class for generic poll method of MADS. Run by Poll." alt="" coords="265,80,391,107"/>
+<area shape="rect" id="node4" href="$class_double_poll_method.html" title="Class to perform two poll directions (a single direction and its opposite)." alt="" coords="5,155,147,181"/>
+<area shape="rect" id="node5" href="$class_n_p1_uni_poll_method.html" title="Class to perform N+1 Uniform Poll ." alt="" coords="171,155,314,181"/>
+<area shape="rect" id="node6" href="$class_ortho2_n_poll_method.html" title="Class to perform Orth 2N Poll ." alt="" coords="339,155,488,181"/>
+<area shape="rect" id="node7" href="$class_single_poll_method.html" title="Class to perform single poll directions." alt="" coords="513,155,647,181"/>
+<area shape="rect" id="node2" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="252,5,303,32"/>
+<area shape="rect" id="node3" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="327,5,433,32"/>
+</map>

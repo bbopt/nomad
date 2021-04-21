@@ -170,6 +170,7 @@ std::string NOMAD::ParameterEntry::getAllValues( void ) const
 
     std::for_each ( _values.begin() , _values.end() ,[&](const std::string & s){ all+=s+" ";} );
 
+    all.pop_back(); // Remove trailing white space
     return all;
 
 }

@@ -1,0 +1,5 @@
+<map id="PSDMads" name="PSDMads">
+<area shape="rect" id="node1" title="Class for PSD&#45;Mads." alt="" coords="7,155,90,181"/>
+<area shape="rect" id="node2" href="$class_algorithm.html" title="Generic class for any direct search optimizer algorithm." alt="" coords="5,80,92,107"/>
+<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="23,5,74,32"/>
+</map>

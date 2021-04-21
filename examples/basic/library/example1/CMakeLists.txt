@@ -17,12 +17,9 @@ install(TARGETS example1_lib.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example
-if(BUILD_TESTS MATCHES ON)
-    message(STATUS "    Add example library test 1") 
+message(STATUS "    Add example library test 1") 
 
-    # Can run this test after install
-    add_test(NAME Example1BasicLib
+# Can run this test after install
+add_test(NAME Example1BasicLib
 	COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./example1_lib.exe
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-    )
-endif()
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )

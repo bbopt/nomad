@@ -1,0 +1,5 @@
+<map id="Evaluator" name="Evaluator">
+<area shape="rect" id="node1" title="Class for the evaluator." alt="" coords="136,5,220,32"/>
+<area shape="rect" id="node2" href="$class_quad_model_evaluator.html" title="Class for evaluating trial points as EvalType::MODEL." alt="" coords="5,80,164,107"/>
+<area shape="rect" id="node3" href="$class_sgtelib_model_evaluator.html" title=" " alt="" coords="188,80,357,107"/>
+</map>

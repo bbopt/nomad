@@ -1,0 +1,8 @@
+<map id="Initialization" name="Initialization">
+<area shape="rect" id="node1" title="Class for initialization (step 0) of an Algorithm." alt="" coords="104,81,207,108"/>
+<area shape="rect" id="node3" href="$class_mads_initialization.html" title="Class for Mads initialization (step 0)" alt="" coords="279,5,418,32"/>
+<area shape="rect" id="node4" href="$class_n_m_initialization.html" title="Class for Nelder Mead initialization." alt="" coords="286,56,411,83"/>
+<area shape="rect" id="node5" href="$class_quad_model_initialization.html" title=" " alt="" coords="260,107,437,133"/>
+<area shape="rect" id="node6" href="$class_sgtelib_model_initialization.html" title=" " alt="" coords="255,157,443,184"/>
+<area shape="rect" id="node2" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="5,81,56,108"/>
+</map>

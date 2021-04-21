@@ -1,0 +1,10 @@
+<map id="Exception" name="Exception">
+<area shape="rect" id="node1" title="Exception utility." alt="" coords="168,132,255,159"/>
+<area shape="rect" id="node3" href="$class_double_1_1_invalid_value.html" title="Exception for divisions by zero with double objects." alt="" coords="315,5,471,32"/>
+<area shape="rect" id="node4" href="$class_double_1_1_not_defined.html" title="Exception for undefined Double objects." alt="" coords="319,56,468,83"/>
+<area shape="rect" id="node5" href="$class_invalid_parameter.html" title="Exception class for an invalid parameter." alt="" coords="327,107,460,133"/>
+<area shape="rect" id="node6" href="$class_parameter_to_be_checked.html" title="Exception class for a parameter that has not been checked." alt="" coords="306,157,481,184"/>
+<area shape="rect" id="node7" href="$class_step_exception.html" title=" " alt="" coords="336,208,451,235"/>
+<area shape="rect" id="node8" href="$class_user_terminate_exception.html" title=" " alt="" coords="303,259,484,285"/>
+<area shape="rect" id="node2" title="STL class." alt="" coords="5,132,120,159"/>
+</map>

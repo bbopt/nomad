@@ -48,13 +48,65 @@
 #include "Algos/EvcInterface.hpp"
 #include "Cache/CacheBase.hpp"
 
+/*----------------------------------------*/
+/*               The problem              */
+/*----------------------------------------*/
+class My_Evaluator : public NOMAD::Evaluator
+{
+public:
+    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
+    : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
+    {}
+
+    ~My_Evaluator() {}
+
+    bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override
+    {
+        bool eval_ok = false;
+        // Based on G2.
+        NOMAD::Double f, c1 = 0, c2 = 0;
+        size_t n = x.size();
+
+        try
+        {
+            for (size_t i = 0; i < 5 ; i++)
+            {
+                c1 += pow ( x[i].todouble() -1 , 2 );
+                    c2 += pow ( x[i].todouble()+1 , 2 );
+            }
+            f = x[4];
+            c1 = c1 - 25.0;
+            c2 = 25.0 - c2;
+
+            std::string bbo = f.tostring();
+            bbo += " " + c1.tostring();
+            bbo += " " + c2.tostring();
+            
+            x.setBBO(bbo);
+
+            eval_ok = true;
+        }
+        catch (std::exception &e)
+        {
+            std::string err("Exception: ");
+            err += e.what();
+            throw std::logic_error(err);
+        }
+
+        countEval = true;
+        return eval_ok;
+    }
+};
+
 
 void initParams1(NOMAD::AllParameters &p)
 {
     // parameters creation
     size_t n = 5;   // Number of variables
     p.getPbParams()->setAttributeValue("DIMENSION", n);
-    p.getEvalParams()->setAttributeValue("BB_EXE", std::string("./u.exe"));
+    
+    // When using batch mode decomment this and remove My_Evaluator
+    // p.getEvalParams()->setAttributeValue("BB_EXE", std::string("./u.exe"));
 
     NOMAD::Point x0(n, 0.0);
     p.getPbParams()->setAttributeValue("X0", x0);  // starting point * 0
@@ -75,15 +127,11 @@ void initParams1(NOMAD::AllParameters &p)
     p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL", false);
     p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("BBE ( SOL ) OBJ"));
 
-    p.getEvaluatorControlGlobalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
+
     p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ PB PB"));
 
     p.getEvaluatorControlParams()->setAttributeValue("EVAL_OPPORTUNISTIC", false);
     p.getRunParams()->setAttributeValue("NM_OPTIMIZATION",true);
-
-    p.getRunParams()->setAttributeValue("HOT_RESTART_ON_USER_INTERRUPT", false);
-    p.getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
-    p.getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
 
 
     // parameters validation
@@ -99,11 +147,15 @@ int main (int argc, char **argv)
     auto TheMainStep = std::make_unique<NOMAD::MainStep>();
 
     // Initialize parameters
-    // Part 1: FIXED_VARIABLE 0-2
     auto params = std::make_shared<NOMAD::AllParameters>();
     initParams1(*params);
+    
     TheMainStep->setAllParameters(params);
 
+    std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
+    
+    TheMainStep->setEvaluator(std::move(ev));
+    
     try
     {
         // Algorithm creation and execution
