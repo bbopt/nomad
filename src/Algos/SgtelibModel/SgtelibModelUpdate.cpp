@@ -369,9 +369,7 @@ bool NOMAD::SgtelibModelUpdate::validForUpdate(const NOMAD::EvalPoint& evalPoint
     // - All outputs defined
     // - Blackbox OBJ available (Not MODEL)
     bool validPoint = true;
-    NOMAD::ArrayOfDouble bbo;
 
-    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
     auto eval = evalPoint.getEval(NOMAD::EvalType::BB);
     if (nullptr == eval)
     {
@@ -380,7 +378,7 @@ bool NOMAD::SgtelibModelUpdate::validForUpdate(const NOMAD::EvalPoint& evalPoint
     }
     else
     {
-        bbo = eval->getBBOutput().getBBOAsArrayOfDouble();
+        auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
 
         // Note: it could be discussed if points that have h > hMax should still be used
         // to build the model. We validate them to comply with Nomad 3.

@@ -332,13 +332,12 @@ NOMAD::SuccessType NOMAD::EvcInterface::startEvaluation()
     _step->AddOutputInfo("Evaluate points for " + _step->getName(), true, false);
     OUTPUT_INFO_END
 
-    NOMAD::SuccessType success = NOMAD::SuccessType::UNSUCCESSFUL;
     std::shared_ptr<NOMAD::AllStopReasons> stopReasons = _step->getAllStopReasons();
 
     // Evaluate points
     // Note: do not use checkTerminate() here. If it is time to terminate, EvaluatorControl will take
     // care of clearing the queue.
-    success = _evaluatorControl->run();
+    NOMAD::SuccessType success = _evaluatorControl->run();
 
     OUTPUT_DEBUG_START
     std::string s = _step->getName() + ": " + NOMAD::enumStr(success);

@@ -73,10 +73,8 @@ NOMAD::Eval::Eval(std::shared_ptr<NOMAD::EvalParameters> params,
                   const NOMAD::BBOutput &bbOutput)
   : _evalStatus(NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED),
     _bbOutput(bbOutput),
-    _bbOutputTypeList()
+    _bbOutputTypeList(params->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"))
 {
-    _bbOutputTypeList = params->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
-
     _bbOutputComplete = _bbOutput.isComplete(_bbOutputTypeList);
 
     NOMAD::Double f = getF(NOMAD::ComputeType::STANDARD);

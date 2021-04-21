@@ -191,6 +191,9 @@ int main ( int argc , char ** argv )
             // not for the first run:
             if ( i > 0 )
             {
+                // Allow for more evaluations
+                params->setAttributeValue("MAX_BB_EVAL", 100 * i);
+
                 // New starting points
                 NOMAD::ArrayOfPoint x0s;
                 if (bf.size() > 0)
