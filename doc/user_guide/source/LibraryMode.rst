@@ -359,7 +359,7 @@ Otherwise an exception is triggered.
 Access to solution and optimization data
 """"""""""""""""""""""""""""""""""""""""
 
-**TODO**
+**Not available yet**
 
 .. In the basic example 1, final information is displayed at the end of an algorithm. More specialized access to solution and optimization data is allowed.
 

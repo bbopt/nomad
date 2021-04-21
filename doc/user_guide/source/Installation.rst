@@ -34,6 +34,18 @@ A recent C++ compiler is also required. *CMake* will detect which compiler is av
 
 The procedure has the three following steps: **configuration, building and installation**.
 
+.. warning:: Before starting the procedure we recommend to set the environment variable ``$NOMAD_HOME`` with the path where NOMAD has been copied.
+
+  ::
+
+    export NOMAD_HOME=/home/myUserName/PathToNomad
+
+
+  The remaining of the documentation uses this ``$NOMAD_HOME`` environment variable.
+
+
+
+
 
 .. _cmake_configuration:
 
@@ -89,7 +101,12 @@ The executable ``nomad`` will installed into the directory::
 
   $NOMAD_HOME/build/release/bin/
 
-Additionally a symbolic link to ``nomad`` binary is available in ``$NOMAD_HOME/bin``.
+Additionally a symbolic link to ``nomad`` binary is available::
+
+  $NOMAD_HOME/bin
+
+
+
 
 Bulding for debug version
 """""""""""""""""""""""""
