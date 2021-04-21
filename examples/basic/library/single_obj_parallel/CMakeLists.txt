@@ -17,7 +17,7 @@ install(TARGETS single_obj_parallel.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example
-message(STATUS "    Add example library single_obj_parallel") 
+message(STATUS "    Add example library test single_obj_parallel") 
 
 # Can run this test after install
 add_test(NAME SingleObjParallelBasicLib

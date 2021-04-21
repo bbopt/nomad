@@ -26,6 +26,7 @@ if(OpenMP_CXX_FOUND)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/single_obj_parallel)
 endif()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/batch/LHonly)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/batch/FixedVariable)
 
 # The script for running library examples is created in a temp directory
 FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tmp/runExampleTest.sh

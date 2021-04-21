@@ -6,7 +6,7 @@
 DIMENSION 10
 
 # Black box
-BB_EXE bb.exe
+BB_EXE bb1.exe
 BB_OUTPUT_TYPE OBJ PB PB EB
 
 # Starting point

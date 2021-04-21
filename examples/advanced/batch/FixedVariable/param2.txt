@@ -6,7 +6,7 @@
 DIMENSION 5
 
 # Black box
-BB_EXE u.exe
+BB_EXE uu.exe
 
 # ALGORITHM PARAMETERS
 ######################
