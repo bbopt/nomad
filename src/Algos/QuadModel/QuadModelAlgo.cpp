@@ -126,7 +126,7 @@ bool NOMAD::QuadModelAlgo::runImp()
 
         // member _megaIteration is used for hot restart (read and write)
         // Update it here.
-        _megaIteration = std::make_shared<NOMAD::QuadModelMegaIteration>(this, k++, barrier, megaIterSuccessType);
+        _megaIteration = std::make_shared<NOMAD::QuadModelMegaIteration>(this, k, barrier, megaIterSuccessType);
 
     }
 

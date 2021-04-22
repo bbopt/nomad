@@ -1007,7 +1007,7 @@ void SGTELIB::TrainingSet::Z_unscale ( double * w ) const {
 
 double SGTELIB::TrainingSet::Z_unscale ( double w , int j ) const {
   if ( (boolean_rounding) && (_Z_nbdiff[j]==2) ){
-    double Zs_middle;
+    double Zs_middle = 0.0;
     if (boolean_rounding==1){
       // Threshold is midway between the biggest and smallest value of Z;
       Zs_middle = Z_scale ( (_Z_ub[j]+_Z_lb[j])/2.0 , j );
