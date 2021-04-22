@@ -15,8 +15,8 @@ Here are a few suggestions for tuning NOMAD when facing different symptoms. The 
    Quantifiable constraints	,	Try PB  EB or combinations , :ref:`bb_output_type`
    Difficult constraint , Try PB instead of EB , :ref:`bb_output_type`
    No initial point		,	 	Add a LH search , :ref:`LH Search and X0 <x0>`
-   Variables of widely , 	Change blackbox input scaling	, :ref:`create_blackbox_program`
-   Different magnitudes	, Change :math:`\Delta_0` per variable , :ref:`initial_mesh_size`
+   Variables of different magnitudes , 	Change blackbox input scaling	, :ref:`create_blackbox_program`
+   " ", Change :math:`\Delta_0` per variable , :ref:`initial_mesh_size`
    " ",	Tighten bounds , :ref:`bounds`
    Many variables ,	Fix some variables  , :ref:`fixed_variable`
    " ",	Use *PSD-MADS*  , :ref:`psd_mads`
