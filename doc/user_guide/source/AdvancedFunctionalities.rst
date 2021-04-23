@@ -220,6 +220,11 @@ only for point evaluation.
 An example of usage of PSD-MADS in library mode is in
 ``$NOMAD_HOME/examples/advanced/library/PSDMads``.
 
+Doxygen
+-------
+
+The local doxygen documentation can be consulted by opening ``$NOMAD_HOME/doc/doxygen/html/index.html``.
+
 
 .. topic:: References
 
