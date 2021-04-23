@@ -107,7 +107,6 @@ Additionally a symbolic link to ``nomad`` binary is available::
 
 
 
-
 Bulding for debug version
 """""""""""""""""""""""""
 
@@ -135,7 +134,15 @@ Testing installation
 ====================
 
 Once building and installation have been performed some tests can be performed.
-By default the examples are built and can be tested::
+
+The NOMAD binary can be tested::
+
+  $NOMAD_HOME/bin/nomad -v
+
+This should return the version number on the command line.
+
+
+Additionally, by default the examples are built and can be tested::
 
   cd build/release
   ctest
