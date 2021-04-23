@@ -22,7 +22,7 @@ The parameter may be entered with several types of arguments:
 * A vector of :math:`n` values with format ``(v0 v1 ... vn-1)``. Character ``-`` is used for free variables.
 
 * An index range if at least one starting point has been defined. ``FIXED_VARIABLE i-j``: variables ``i`` to ``j``
-  are fixed to their initial (``i-j`` may be replaced by ``i`` only). See :ref`x0` for practical examples of index ranges.
+  are fixed to their initial (``i-j`` may be replaced by ``i`` only). See :ref:`x0` for practical examples of index ranges.
 
 .. _seed:
 
@@ -82,7 +82,7 @@ The possible syntaxes to specify the granularity of the variables are as follows
 
 * :math:`n` real values with format ``GRANULARITY (v0 v1 ... vn-1)``.
 
-* ``GRANULARITY i-j v``: coordinates  ``i` to  ``j`` set to ``v``.
+* ``GRANULARITY i-j v``: coordinates  ``i`` to  ``j`` set to ``v``.
 
 * ``GRANULARITY * v``: all coordinates set to ``v``.
 
@@ -219,6 +219,11 @@ Remaining available threads are not used for algorithmic management or point gen
 only for point evaluation.
 An example of usage of PSD-MADS in library mode is in
 ``$NOMAD_HOME/examples/advanced/library/PSDMads``.
+
+Doxygen
+-------
+
+The local doxygen documentation can be consulted by opening ``$NOMAD_HOME/doc/doxygen/html/index.html``.
 
 
 .. topic:: References

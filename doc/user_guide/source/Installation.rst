@@ -125,7 +125,10 @@ Use another compiler
 
 The environment variables ``CC`` and ``CXX`` can be used to select the ``C`` and ``C++`` compilers.
 
-.. note:: ``Clang`` is the default compiler for Mac OSX using XCode. Users of Mac OSX can install ``GCC`` compilers using `MacPorts <https://www.macports.org/>`_ or `Homebrew <http://brew.sh/>`_.
+.. note:: ``Clang`` is the default compiler for Mac OSX using XCode. But, *OpenMP* (used for parallel evaluations)
+   support is disabled in *Clang* that come with *Xcode*.
+   Users of Mac OSX can install and use another compiler to enable *OpenMP* support.
+   For example, ``GCC`` compilers can be obtained using `MacPorts <https://www.macports.org/>`_ or `Homebrew <http://brew.sh/>`_.
 
 
 Testing installation
