@@ -508,7 +508,6 @@ std::string ** SGTELIB::get_help_data (void){
   HELP_DATA[i][0] = "SGTELIB_SERVER_STOP";
   HELP_DATA[i][1] = "Matlab server interface stop";
   HELP_DATA[i][2] = "Stop the sgtelib server from Matlab.";
-  i++;
   //================================
   return HELP_DATA;
 }//

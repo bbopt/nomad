@@ -98,8 +98,8 @@ void NOMAD::PollMethodBase::generateTrialPoints()
                     OUTPUT_DEBUG_START
                     AddOutputDebug("Unit poll direction for Variable Group " + std::to_string(vgIndex) + ": "+ fullSpaceDirection.display());
                     OUTPUT_DEBUG_END
+                    vgIndex++;
                 }
-                vgIndex++;
             }
             else
             {
