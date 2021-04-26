@@ -46,7 +46,7 @@
 /*---------------------------------------------------------------------------------*/
 #undef NOMAD
 /// Namespace alias NOMAD is hard defined to distinguish between library versions
-#define NOMAD NOMAD_4_0
+#define NOMAD NOMAD_4_0_2
 
 
 #undef NOMAD_VERSION_NUMBER
