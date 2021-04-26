@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 # name of the project
-project (Nomad VERSION 4.0.0)
+project (Nomad VERSION 4.0.2)
 
 # use standard compilers parameters for c++14
 SET(CMAKE_CXX_STANDARD 14 )

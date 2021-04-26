@@ -1552,8 +1552,8 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
   _param.set_x(xmin);
   _param.check();
 
-  fmin = eval_objective();
-
+  //fmin = eval_objective();    // fmin is not used after this
+  eval_objective();
 
   if (display){
     _param.display(std::cout);
