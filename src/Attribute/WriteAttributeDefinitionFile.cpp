@@ -1,19 +1,20 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
+/*  NOMAD - Version 4.0 has been created by                                        */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*  The copyright of NOMAD - version 4.0 is owned by                               */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
+/*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
+/*  for Data Valorization)                                                         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -252,8 +253,8 @@ int main(int argc, char *argv[])
         oss << "//////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////" << std::endl;
         oss << "//////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////" << std::endl << std::endl;
 
-        oss << "#ifndef __NOMAD400_"<< UpperAttDefName << "__" << std::endl;
-        oss << "#define __NOMAD400_"<< UpperAttDefName << "__" << std::endl << std::endl;
+        oss << "#ifndef __NOMAD_4_0_"<< UpperAttDefName << "__" << std::endl;
+        oss << "#define __NOMAD_4_0_"<< UpperAttDefName << "__" << std::endl << std::endl;
         oss << "_definition = {" ;
 
         bool flagInFile;

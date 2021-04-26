@@ -1,19 +1,20 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0.0 has been created by                                      */
+/*  NOMAD - Version 4.0 has been created by                                        */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0.0 is owned by                             */
+/*  The copyright of NOMAD - version 4.0 is owned by                               */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, NSERC (Natural            */
-/*  Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation      */
-/*  en Énergie Électrique) and IVADO (The Institute for Data Valorization)         */
+/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
+/*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
+/*  for Data Valorization)                                                         */
 /*                                                                                 */
 /*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
 /*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
@@ -51,8 +52,8 @@
  \see    EvcMainThreadInfo.cpp
  */
 
-#ifndef __NOMAD400_EVCMAINTHREADINFO__
-#define __NOMAD400_EVCMAINTHREADINFO__
+#ifndef __NOMAD_4_0_EVCMAINTHREADINFO__
+#define __NOMAD_4_0_EVCMAINTHREADINFO__
 
 #include <atomic>   // for atomic
 
@@ -197,4 +198,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_EVCMAINTHREADINFO__
+#endif // __NOMAD_4_0_EVCMAINTHREADINFO__
