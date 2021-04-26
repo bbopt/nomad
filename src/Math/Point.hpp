@@ -52,8 +52,8 @@
  \see    Point.cpp
  */
 
-#ifndef __NOMAD400_POINT__
-#define __NOMAD400_POINT__
+#ifndef __NOMAD_4_0_POINT__
+#define __NOMAD_4_0_POINT__
 
 #include <numeric>
 #include "../Math/ArrayOfDouble.hpp"
@@ -243,4 +243,4 @@ std::istream& operator>>(std::istream& in, Point& pt);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD400_POINT__
+#endif // __NOMAD_4_0_POINT__

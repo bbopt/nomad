@@ -51,8 +51,8 @@
  \date   March 2017
  \see    utils.cpp
  */
-#ifndef __NOMAD400_UTILS__
-#define __NOMAD400_UTILS__
+#ifndef __NOMAD_4_0_UTILS__
+#define __NOMAD_4_0_UTILS__
 
 #include <list>
 
@@ -173,4 +173,4 @@ int getThreadNum();
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_UTILS__
+#endif // __NOMAD_4_0_UTILS__

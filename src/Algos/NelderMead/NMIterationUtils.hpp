@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD400_NMITERATIONUTILS__
-#define __NOMAD400_NMITERATIONUTILS__
+#ifndef __NOMAD_4_0_NMITERATIONUTILS__
+#define __NOMAD_4_0_NMITERATIONUTILS__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/NelderMead/NMIteration.hpp"
@@ -158,4 +158,4 @@ public:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD400_NMITERATIONUTILS__
+#endif // __NOMAD_4_0_NMITERATIONUTILS__

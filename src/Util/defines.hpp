@@ -50,8 +50,8 @@
  \author Sebastien Le Digabel, modified by Viviane Rochon Montplaisir
  \date   March 2017
  */
-#ifndef __NOMAD400_DEFINES__
-#define __NOMAD400_DEFINES__
+#ifndef __NOMAD_4_0_DEFINES__
+#define __NOMAD_4_0_DEFINES__
 
 #include <string>
 #include <iostream>
@@ -161,4 +161,4 @@ enum class SuccessType
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_DEFINES__
+#endif // __NOMAD_4_0_DEFINES__

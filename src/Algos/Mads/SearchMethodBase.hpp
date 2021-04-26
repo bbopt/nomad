@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD400_SEARCHMETHODBASE__
-#define __NOMAD400_SEARCHMETHODBASE__
+#ifndef __NOMAD_4_0_SEARCHMETHODBASE__
+#define __NOMAD_4_0_SEARCHMETHODBASE__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/Step.hpp"
@@ -125,5 +125,5 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD400_SEARCHMETHODBASE__
+#endif // __NOMAD_4_0_SEARCHMETHODBASE__
 

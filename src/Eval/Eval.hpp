@@ -52,8 +52,8 @@
  \see    Eval.cpp
  */
 
-#ifndef __NOMAD400_EVAL__
-#define __NOMAD400_EVAL__
+#ifndef __NOMAD_4_0_EVAL__
+#define __NOMAD_4_0_EVAL__
 
 #include <functional>   // For std::function
 
@@ -302,4 +302,4 @@ std::istream& operator>>(std::istream& is, EvalStatusType &evalStatus);
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD400_EVAL__
+#endif  // __NOMAD_4_0_EVAL__

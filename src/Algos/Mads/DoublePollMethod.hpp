@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD400_DOUBLEPOLLMETHOD__
-#define __NOMAD400_DOUBLEPOLLMETHOD__
+#ifndef __NOMAD_4_0_DOUBLEPOLLMETHOD__
+#define __NOMAD_4_0_DOUBLEPOLLMETHOD__
 
 #include "../../Algos/Mads/PollMethodBase.hpp"
 #include "../../nomad_nsbegin.hpp"
@@ -83,4 +83,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD400_DOUBLEPOLLMETHOD__
+#endif // __NOMAD_4_0_DOUBLEPOLLMETHOD__

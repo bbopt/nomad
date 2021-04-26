@@ -51,8 +51,8 @@
  * \date   November 2017
  */
 
-#ifndef __NOMAD400_MESHBASE__
-#define __NOMAD400_MESHBASE__
+#ifndef __NOMAD_4_0_MESHBASE__
+#define __NOMAD_4_0_MESHBASE__
 
 #include <memory>   // for shared_ptr
 
@@ -264,4 +264,4 @@ std::istream& operator>>(std::istream& is, MeshBase& mesh);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_MESHBASE__
+#endif // __NOMAD_4_0_MESHBASE__

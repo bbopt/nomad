@@ -52,8 +52,8 @@
  \see    ComputeSuccessType.cpp
  */
 
-#ifndef __NOMAD400_COMPUTESUCCESSTYPE__
-#define __NOMAD400_COMPUTESUCCESSTYPE__
+#ifndef __NOMAD_4_0_COMPUTESUCCESSTYPE__
+#define __NOMAD_4_0_COMPUTESUCCESSTYPE__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -135,4 +135,4 @@ private:
 };
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_COMPUTESUCCESSTYPE__
+#endif // __NOMAD_4_0_COMPUTESUCCESSTYPE__

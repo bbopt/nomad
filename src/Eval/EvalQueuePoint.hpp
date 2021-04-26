@@ -52,8 +52,8 @@
  \see    EvalQueuePoint.cpp
  */
 
-#ifndef __NOMAD400_EVALQUEUEPOINT__
-#define __NOMAD400_EVALQUEUEPOINT__
+#ifndef __NOMAD_4_0_EVALQUEUEPOINT__
+#define __NOMAD_4_0_EVALQUEUEPOINT__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -136,6 +136,6 @@ typedef std::vector<EvalQueuePointPtr> BlockForEval;
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_EVALQUEUEPOINT__
+#endif // __NOMAD_4_0_EVALQUEUEPOINT__
 
 

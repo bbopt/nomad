@@ -52,8 +52,8 @@
  \see    EvaluatorControl.cpp
  */
 
-#ifndef __NOMAD400_EVALUATORCONTROL__
-#define __NOMAD400_EVALUATORCONTROL__
+#ifndef __NOMAD_4_0_EVALUATORCONTROL__
+#define __NOMAD_4_0_EVALUATORCONTROL__
 
 #include "../Eval/Barrier.hpp"
 #include "../Eval/ComparePriority.hpp"
@@ -540,4 +540,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_EVALUATORCONTROL__
+#endif // __NOMAD_4_0_EVALUATORCONTROL__

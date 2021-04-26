@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD400_SGTELIB_MODEL_EVALUATION__
-#define __NOMAD400_SGTELIB_MODEL_EVALUATION__
+#ifndef __NOMAD_4_0_SGTELIB_MODEL_EVALUATION__
+#define __NOMAD_4_0_SGTELIB_MODEL_EVALUATION__
 
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #include "../../Eval/Evaluator.hpp"
@@ -89,4 +89,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD400_SGTELIB_MODEL_EVALUATION__
+#endif // __NOMAD_4_0_SGTELIB_MODEL_EVALUATION__

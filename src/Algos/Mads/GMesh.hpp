@@ -51,8 +51,8 @@
  * \date   November 2017
  */
 
-#ifndef __NOMAD400_GMESH__
-#define __NOMAD400_GMESH__
+#ifndef __NOMAD_4_0_GMESH__
+#define __NOMAD_4_0_GMESH__
 
 #include "../../Algos/MeshBase.hpp"
 
@@ -241,4 +241,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD400_GMESH__
+#endif // __NOMAD_4_0_GMESH__

@@ -52,8 +52,8 @@
  \date   2010-04-02
  \see    Double.cpp
  */
-#ifndef __NOMAD400_DOUBLE__
-#define __NOMAD400_DOUBLE__
+#ifndef __NOMAD_4_0_DOUBLE__
+#define __NOMAD_4_0_DOUBLE__
 
 #include <cmath>
 
@@ -623,4 +623,4 @@
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD400_DOUBLE__
+#endif // __NOMAD_4_0_DOUBLE__

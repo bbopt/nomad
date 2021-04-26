@@ -52,8 +52,8 @@
 //  Copyright (c) 2017 GERAD. All rights reserved.
 //
 
-#ifndef __NOMAD400_TYPEATTRIBUTE__
-#define __NOMAD400_TYPEATTRIBUTE__
+#ifndef __NOMAD_4_0_TYPEATTRIBUTE__
+#define __NOMAD_4_0_TYPEATTRIBUTE__
 
 #include "../Param/Attribute.hpp"
 #include "../Util/defines.hpp"
@@ -118,4 +118,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_TYPEATTRIBUTE__
+#endif // __NOMAD_4_0_TYPEATTRIBUTE__

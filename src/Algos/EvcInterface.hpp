@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD400_EVCINTERFACE__
-#define __NOMAD400_EVCINTERFACE__
+#ifndef __NOMAD_4_0_EVCINTERFACE__
+#define __NOMAD_4_0_EVCINTERFACE__
 
 #include "../Algos/Step.hpp"
 #include "../Eval/EvaluatorControl.hpp"
@@ -175,4 +175,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_EVCINTERFACE__
+#endif // __NOMAD_4_0_EVCINTERFACE__

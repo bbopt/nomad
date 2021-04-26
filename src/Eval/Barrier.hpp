@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD400_BARRIER__
-#define __NOMAD400_BARRIER__
+#ifndef __NOMAD_4_0_BARRIER__
+#define __NOMAD_4_0_BARRIER__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -284,4 +284,4 @@ std::istream& operator>>(std::istream& is, Barrier& barrier);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_BARRIER__
+#endif // __NOMAD_4_0_BARRIER__

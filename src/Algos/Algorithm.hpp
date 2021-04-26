@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD400_ALGORITHM__
-#define __NOMAD400_ALGORITHM__
+#ifndef __NOMAD_4_0_ALGORITHM__
+#define __NOMAD_4_0_ALGORITHM__
 
 #include "../Algos/Initialization.hpp"
 #include "../Algos/MegaIteration.hpp"
@@ -207,4 +207,4 @@ std::istream& operator>>(std::istream& is, Algorithm& algo);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_ALGORITHM__
+#endif // __NOMAD_4_0_ALGORITHM__

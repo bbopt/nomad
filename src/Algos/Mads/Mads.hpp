@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD400_MADS__
-#define __NOMAD400_MADS__
+#ifndef __NOMAD_4_0_MADS__
+#define __NOMAD_4_0_MADS__
 
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
@@ -99,4 +99,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD400_MADS__
+#endif // __NOMAD_4_0_MADS__

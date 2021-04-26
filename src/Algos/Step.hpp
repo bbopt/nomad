@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD400_STEP__
-#define __NOMAD400_STEP__
+#ifndef __NOMAD_4_0_STEP__
+#define __NOMAD_4_0_STEP__
 
 #include "../Algos/MeshBase.hpp"
 #include "../Eval/Barrier.hpp"
@@ -408,4 +408,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_STEP__
+#endif // __NOMAD_4_0_STEP__

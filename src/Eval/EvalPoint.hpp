@@ -52,8 +52,8 @@
  \see    EvalPoint.cpp
  */
 
-#ifndef __NOMAD400_EVALPOINT__
-#define __NOMAD400_EVALPOINT__
+#ifndef __NOMAD_4_0_EVALPOINT__
+#define __NOMAD_4_0_EVALPOINT__
 
 #ifdef USE_UNORDEREDSET
 #include <unordered_set>
@@ -412,4 +412,4 @@ namespace std {
 #endif // USE_UNORDEREDSET
 
 
-#endif // __NOMAD400_EVALPOINT__
+#endif // __NOMAD_4_0_EVALPOINT__

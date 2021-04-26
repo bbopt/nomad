@@ -52,8 +52,8 @@
  \see    Evaluator.cpp
  */
 
-#ifndef __NOMAD400_EVALUATOR__
-#define __NOMAD400_EVALUATOR__
+#ifndef __NOMAD_4_0_EVALUATOR__
+#define __NOMAD_4_0_EVALUATOR__
 
 #include "../Eval/BBOutput.hpp"
 #include "../Eval/EvalPoint.hpp"
@@ -167,4 +167,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_EVALUATOR__
+#endif // __NOMAD_4_0_EVALUATOR__

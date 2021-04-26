@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD400_NMINITIALIZESIMPLEX__
-#define __NOMAD400_NMINITIALIZESIMPLEX__
+#ifndef __NOMAD_4_0_NMINITIALIZESIMPLEX__
+#define __NOMAD_4_0_NMINITIALIZESIMPLEX__
 
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
 
@@ -102,4 +102,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD400_NMINITIALIZESIMPLEX__
+#endif // __NOMAD_4_0_NMINITIALIZESIMPLEX__

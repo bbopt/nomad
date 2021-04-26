@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD400_MADSINITIALIZATION__
-#define __NOMAD400_MADSINITIALIZATION__
+#ifndef __NOMAD_4_0_MADSINITIALIZATION__
+#define __NOMAD_4_0_MADSINITIALIZATION__
 
 #include "../../Algos/Initialization.hpp"
 
@@ -88,4 +88,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD400_MADSINITIALIZATION__
+#endif // __NOMAD_4_0_MADSINITIALIZATION__

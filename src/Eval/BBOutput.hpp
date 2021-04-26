@@ -53,8 +53,8 @@
  */
 
 
-#ifndef __NOMAD400_BB_OUTPUT__
-#define __NOMAD400_BB_OUTPUT__
+#ifndef __NOMAD_4_0_BB_OUTPUT__
+#define __NOMAD_4_0_BB_OUTPUT__
 
 #include "../Type/BBOutputType.hpp"
 #include "../Math/ArrayOfDouble.hpp"
@@ -171,4 +171,4 @@ std::istream& operator>>(std::istream& is, BBOutput &bbo);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD400_BB_OUTPUT__
+#endif // __NOMAD_4_0_BB_OUTPUT__

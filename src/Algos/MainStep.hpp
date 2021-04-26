@@ -50,8 +50,8 @@
   \author Viviane Rochon Montplaisir
   \date   June 2018
 */
-#ifndef __NOMAD400_MAINSTEP__
-#define __NOMAD400_MAINSTEP__
+#ifndef __NOMAD_4_0_MAINSTEP__
+#define __NOMAD_4_0_MAINSTEP__
 
 #include "../Algos/Algorithm.hpp"
 #include "../Eval/Evaluator.hpp"
@@ -206,4 +206,4 @@ private:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD400_MAINSTEP__
+#endif // __NOMAD_4_0_MAINSTEP__

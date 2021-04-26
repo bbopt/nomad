@@ -52,8 +52,8 @@
  \see    EvcMainThreadInfo.cpp
  */
 
-#ifndef __NOMAD400_EVCMAINTHREADINFO__
-#define __NOMAD400_EVCMAINTHREADINFO__
+#ifndef __NOMAD_4_0_EVCMAINTHREADINFO__
+#define __NOMAD_4_0_EVCMAINTHREADINFO__
 
 #include <atomic>   // for atomic
 
@@ -198,4 +198,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_EVCMAINTHREADINFO__
+#endif // __NOMAD_4_0_EVCMAINTHREADINFO__

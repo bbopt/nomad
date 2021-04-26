@@ -51,8 +51,8 @@
  * \date   February 2018
  */
 
-#ifndef __NOMAD400_STATSINFO__
-#define __NOMAD400_STATSINFO__
+#ifndef __NOMAD_4_0_STATSINFO__
+#define __NOMAD_4_0_STATSINFO__
 
 #include <memory>   // For unique_ptr
 #include <vector>
@@ -242,4 +242,4 @@ inline std::ostream& operator<< (std::ostream& os, const DisplayStatsType& displ
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_STATSINFO__
+#endif // __NOMAD_4_0_STATSINFO__

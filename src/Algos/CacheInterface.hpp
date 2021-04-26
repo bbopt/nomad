@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD400_CACHEINTERFACE__
-#define __NOMAD400_CACHEINTERFACE__
+#ifndef __NOMAD_4_0_CACHEINTERFACE__
+#define __NOMAD_4_0_CACHEINTERFACE__
 
 #include "Step.hpp"
 
@@ -154,4 +154,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_CACHEINTERFACE__
+#endif // __NOMAD_4_0_CACHEINTERFACE__

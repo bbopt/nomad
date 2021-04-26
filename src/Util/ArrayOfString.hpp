@@ -52,8 +52,8 @@
  \see    ArrayOfString.cpp
  */
 
-#ifndef __NOMAD400_ARRAYOFSTRING__
-#define __NOMAD400_ARRAYOFSTRING__
+#ifndef __NOMAD_4_0_ARRAYOFSTRING__
+#define __NOMAD_4_0_ARRAYOFSTRING__
 
 #include <string>
 #include <vector>
@@ -183,4 +183,4 @@ std::ostream& operator<< (std::ostream& out,
                           const ArrayOfString& arrayOfString);
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD400_ARRAYOFSTRING__
+#endif // __NOMAD_4_0_ARRAYOFSTRING__

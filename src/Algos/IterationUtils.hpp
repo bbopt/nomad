@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD400_ITERATIONUTILS__
-#define __NOMAD400_ITERATIONUTILS__
+#ifndef __NOMAD_4_0_ITERATIONUTILS__
+#define __NOMAD_4_0_ITERATIONUTILS__
 
 #include <stdexcept>
 
@@ -196,4 +196,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD400_ITERATIONUTILS__
+#endif // __NOMAD_4_0_ITERATIONUTILS__
