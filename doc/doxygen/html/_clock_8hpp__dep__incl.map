@@ -1,7 +1,0 @@
-<map id="/home/nomad/Git/nomad/src/Util/Clock.hpp" name="/home/nomad/Git/nomad/src/Util/Clock.hpp">
-<area shape="rect" id="node1" title="Clock class (headers)" alt="" coords="333,5,517,47"/>
-<area shape="rect" id="node2" href="$_main_step_8cpp.html" title="Main Step to hold MADS." alt="" coords="5,95,189,136"/>
-<area shape="rect" id="node3" href="$_termination_8cpp.html" title=" " alt="" coords="214,95,407,136"/>
-<area shape="rect" id="node4" href="$_evaluator_control_8cpp.html" title=" " alt="" coords="431,95,649,136"/>
-<area shape="rect" id="node5" href="$_clock_8cpp.html" title="Clock class (implementation)" alt="" coords="673,95,857,136"/>
-</map>

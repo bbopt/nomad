@@ -1,5 +1,0 @@
-<map id="QuadModelMegaIteration" name="QuadModelMegaIteration">
-<area shape="rect" id="node1" title="Manager class for QuadModelAlgo iterations." alt="" coords="5,155,192,181"/>
-<area shape="rect" id="node2" href="$class_mega_iteration.html" title="Class to manage the iterations." alt="" coords="42,80,155,107"/>
-<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="73,5,124,32"/>
-</map>

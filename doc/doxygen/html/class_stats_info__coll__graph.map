@@ -1,9 +1,0 @@
-<map id="StatsInfo" name="StatsInfo">
-<area shape="rect" id="node1" title="Information for stats format (parameters DISPLAY_STATS and STATS_FILE)." alt="" coords="140,549,220,576"/>
-<area shape="rect" id="node2" href="$class_double.html" title="Custom class for double&#45;precision reals." alt="" coords="95,201,163,228"/>
-<area shape="rect" id="node5" href="$class_array_of_double.html" title="Class for the representation of an array of n values." alt="" coords="166,301,285,327"/>
-<area shape="rect" id="node3" title="STL class." alt="" coords="86,96,173,123"/>
-<area shape="rect" id="node4" title="STL class." alt="" coords="60,5,199,47"/>
-<area shape="rect" id="node6" href="$class_direction.html" title="Class for the representation of a direction." alt="" coords="289,437,370,463"/>
-<area shape="rect" id="node7" href="$class_point.html" title="Class for the representation of a point." alt="" coords="394,437,449,463"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="SgtelibModelInitialization" name="SgtelibModelInitialization">
-<area shape="rect" id="node1" title=" " alt="" coords="5,155,193,181"/>
-<area shape="rect" id="node2" href="$class_initialization.html" title="Class for initialization (step 0) of an Algorithm." alt="" coords="48,80,151,107"/>
-<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="74,5,125,32"/>
-</map>

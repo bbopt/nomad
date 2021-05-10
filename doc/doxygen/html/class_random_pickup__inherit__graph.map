@@ -1,4 +1,0 @@
-<map id="RandomPickup" name="RandomPickup">
-<area shape="rect" id="node1" title="Class for randomly picking up integers." alt="" coords="5,80,124,107"/>
-<area shape="rect" id="node2" href="$class_uncopyable.html" title="Base class for uncopyable classes." alt="" coords="15,5,114,32"/>
-</map>
