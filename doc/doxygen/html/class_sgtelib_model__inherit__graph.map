@@ -1,5 +1,0 @@
-<map id="SgtelibModel" name="SgtelibModel">
-<area shape="rect" id="node1" title="Class for implementation algorithms using Bastien Talgorn&#39;s sgtelib." alt="" coords="5,155,112,181"/>
-<area shape="rect" id="node2" href="$class_algorithm.html" title="Generic class for any direct search optimizer algorithm." alt="" coords="15,80,102,107"/>
-<area shape="rect" id="node3" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="33,5,84,32"/>
-</map>

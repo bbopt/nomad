@@ -1,4 +1,0 @@
-<map id="RunParameters" name="RunParameters">
-<area shape="rect" id="node1" title="The class for the parameters defining the type of optimization/task to perform." alt="" coords="5,80,127,107"/>
-<area shape="rect" id="node2" href="$class_parameters.html" title="Abstract class for the NOMAD parameters." alt="" coords="18,5,114,32"/>
-</map>

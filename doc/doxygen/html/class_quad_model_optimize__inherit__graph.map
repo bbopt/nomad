@@ -1,6 +1,0 @@
-<map id="QuadModelOptimize" name="QuadModelOptimize">
-<area shape="rect" id="node1" title="Class to create trial points by performing quadratic model optimization using Mads." alt="" coords="23,155,177,181"/>
-<area shape="rect" id="node2" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="5,80,56,107"/>
-<area shape="rect" id="node3" href="$class_quad_model_iteration_utils.html" title="Class of utils for QuadModel iterations." alt="" coords="80,80,261,107"/>
-<area shape="rect" id="node4" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="117,5,224,32"/>
-</map>
