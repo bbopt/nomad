@@ -63,7 +63,7 @@ message(STATUS "  Installation prefix set to ${CMAKE_INSTALL_PREFIX}")
 #
 # Use sgtelib
 #
-set(USE_SGTELIB ON)
+option(USE_SGTELIB "Option to build with the Sgtelib library" ON)
 if(USE_SGTELIB MATCHES ON)
   message(CHECK_START "  Configuring for use of Sgtelib library")
 
