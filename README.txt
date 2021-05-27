@@ -102,6 +102,7 @@ The executable "nomad" will installed into the directory:
 build/release/bin/  (build/debug/bin/ when in debug mode).
 
 It is possible to build only a single application in its working directory:
+(with NOMAD_HOME environment variable properly set)
 
 cd $NOMAD_HOME/examples/basic/library/example1
 cmake --build $NOMAD_HOME/build/release --target example1_lib.exe
