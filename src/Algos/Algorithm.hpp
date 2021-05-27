@@ -136,8 +136,7 @@ public:
     void resetPreviousAlgoComment(const bool force = false) override;
     std::string getAlgoComment() const override;
 
-    void setEndDisplay( bool endDisplay ) {_endDisplay = endDisplay; }
-
+    void setEndDisplay( bool endDisplay ) { _endDisplay = endDisplay; }
 
 protected:
 

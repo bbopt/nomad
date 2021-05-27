@@ -69,9 +69,9 @@
 class Point : public ArrayOfDouble
 {
 public:
-    /*-------------*/
-    /* Constructor */
-    /*-------------*/
+    /*--------------*/
+    /* Constructors */
+    /*--------------*/
     /**
      \param n   Dimension of the point -- \b IN.
      \param val Initial value for all coordinates -- \b IN.
@@ -80,6 +80,13 @@ public:
       : ArrayOfDouble(n, val)
     {}
 
+    /**
+     \param v Initial value for all coordinates given as a vector of double - \b IN.
+     */
+    explicit Point(const std::vector<double> & v)
+      : ArrayOfDouble(v)
+    {}
+    
     /// Copy constructors.
     /**
      \param pt The point to copy -- \b IN.

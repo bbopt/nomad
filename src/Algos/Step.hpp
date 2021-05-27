@@ -349,6 +349,10 @@ public:
     */
     virtual void endImp() = 0 ;
 
+    virtual NOMAD::ArrayOfPoint suggest() { return NOMAD::ArrayOfPoint(); }
+
+    virtual void observe(const std::vector<NOMAD::EvalPoint>& evalPointList);
+
     /// Helper for hot restart functionalities
     virtual void hotRestartOnUserInterrupt();
 

@@ -137,8 +137,14 @@ bool NOMAD::MadsInitialization::eval_x0s()
     NOMAD::CacheInterface cacheInterface(this);
     NOMAD::EvcInterface evcInterface(this);
     auto evc = evcInterface.getEvaluatorControl();
-    auto evalType = evc->getEvalType();
-    evc->lockQueue();
+    NOMAD::EvalType evalType = NOMAD::EvalType::BB;
+    NOMAD::ComputeType computeType = NOMAD::ComputeType::STANDARD;
+    if (nullptr != evc)
+    {
+        evalType = evc->getEvalType();
+        computeType = evc->getComputeType();
+        evc->lockQueue();
+    }
 
     NOMAD::EvalPointSet evalPointSet;
     for (size_t x0index = 0; x0index < x0s.size(); x0index++)
@@ -153,17 +159,20 @@ bool NOMAD::MadsInitialization::eval_x0s()
     // Note: Queue is already locked - it needs to be locked to add points.
     evcInterface.keepPointsThatNeedEval(evalPointSet, false);   // false: no mesh
 
-    // Enforce no opportunism.
-    auto previousOpportunism = evc->getOpportunisticEval();
-    evc->setOpportunisticEval(false);
-    evc->unlockQueue(false); // false: do not sort eval queue
+    if (nullptr != evc)
+    {
+        // Enforce no opportunism.
+        auto previousOpportunism = evc->getOpportunisticEval();
+        evc->setOpportunisticEval(false);
+        evc->unlockQueue(false); // false: do not sort eval queue
 
-    // Evaluate all x0s. Ignore returned success type.
-    // Note: EvaluatorControl would not be able to compare/compute success since there is no barrier.
-    evcInterface.startEvaluation();
+        // Evaluate all x0s. Ignore returned success type.
+        // Note: EvaluatorControl would not be able to compare/compute success since there is no barrier.
+        evcInterface.startEvaluation();
 
-    // Reset opportunism to previous values.
-    evc->setOpportunisticEval(previousOpportunism);
+        // Reset opportunism to previous values.
+        evc->setOpportunisticEval(previousOpportunism);
+    }
 
     bool x0Failed = true;
 
@@ -193,7 +202,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
                 // Look for x0 in cache
                 // Note: Even if we are not currently using cache in this sub-algorithm,
                 // we may have interesting points in the global cache.
-                if (evc->getUseCache())
+                if (nullptr != evc && evc->getUseCache())
                 {
                     // If status of point in cache is IN_PROGRESS, wait for evaluation to be completed.
                     x0Found = (cacheInterface.find(x0, evalPointX0, evalType) > 0);
@@ -244,7 +253,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
         _barrier = std::make_shared<NOMAD::Barrier>(hMax,
                                                     NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
-                                                    evalType, evc->getComputeType(), evalPointX0s);
+                                                    evalType, computeType, evalPointX0s);
     }
 
     NOMAD::OutputQueue::Flush();

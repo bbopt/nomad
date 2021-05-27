@@ -73,7 +73,7 @@ std::istream& NOMAD::operator>>(std::istream& in, NOMAD::ArrayOfDouble& coords)
     {
         in >> coords[k];
     }
-    if (in.fail())
+    if (in.fail() && !in.eof())
     {
         std::string err = "ArrayOfDouble: bad input for operator>>";
         throw NOMAD::Exception(__FILE__, __LINE__, err);
@@ -96,6 +96,21 @@ NOMAD::ArrayOfDouble::ArrayOfDouble(size_t n, const NOMAD::Double& d)
         {
             std::fill (_array, _array + _n, d);
         }
+    }
+    else
+    {
+        _n = 0;
+    }
+}
+
+NOMAD::ArrayOfDouble::ArrayOfDouble(const std::vector<double> & v)
+: _n(v.size()),
+    _array(nullptr)
+{
+    if (_n > 0)
+    {
+        _array = new NOMAD::Double [_n];
+        std::copy (v.begin(), v.end(), _array);
     }
     else
     {

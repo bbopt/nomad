@@ -93,6 +93,8 @@ public:
         init();
     }
 
+    
+    NOMAD::ArrayOfPoint suggest() override;
 
     // Gets/Sets
 

@@ -220,14 +220,17 @@ void NOMAD::RunParameters::checkAndComply(
     /* Parallelism related parameters */
     /*--------------------------------*/
     // Ensure we can get value for BB_MAX_BLOCK_SIZE without throwing an exception.
-    if (evaluatorControlGlobalParams->toBeChecked())
+    if (nullptr != evaluatorControlGlobalParams)
     {
-        evaluatorControlGlobalParams->checkAndComply();
-    }
-    auto bbBlockSize = evaluatorControlGlobalParams->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE");
-    if (0 == bbBlockSize)
-    {
-        throw NOMAD::Exception(__FILE__, __LINE__, "Parameter BB_MAX_BLOCK_SIZE must be positive");
+        if (evaluatorControlGlobalParams->toBeChecked())
+        {
+            evaluatorControlGlobalParams->checkAndComply();
+        }
+        auto bbBlockSize = evaluatorControlGlobalParams->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE");
+        if (0 == bbBlockSize)
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__, "Parameter BB_MAX_BLOCK_SIZE must be positive");
+        }
     }
 
 #ifndef USE_SGTELIB

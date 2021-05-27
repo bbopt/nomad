@@ -129,7 +129,7 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
             else
             {
                 // word is relative to problem directory.
-                completeFileName(word, problemDir);
+                NOMAD::completeFileName(word, problemDir);
                 bbExe += word;
             }
         }

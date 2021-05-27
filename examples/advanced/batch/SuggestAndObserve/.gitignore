@@ -1,0 +1,7 @@
+cache*.txt
+!cache0.txt
+x*.txt
+f*.txt
+param*.txt
+!param0.txt
+*.o

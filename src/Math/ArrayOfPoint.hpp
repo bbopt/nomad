@@ -64,8 +64,8 @@
 typedef std::vector<Point> ArrayOfPoint;
 
 std::ostream& operator<<(std::ostream& out, const ArrayOfPoint& aop);
-// Not implemented:
-//std::istream& operator>>(std::istream& in, ArrayOfPoint& aop);
+
+std::istream& operator>>(std::istream& in, ArrayOfPoint& aop);
 
 
 

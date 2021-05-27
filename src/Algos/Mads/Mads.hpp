@@ -81,6 +81,10 @@ public:
 
     /// Helper for hot restart
     void hotRestartOnUserInterrupt() override;
+    
+    NOMAD::ArrayOfPoint suggest() override;
+    
+    void observe(const std::vector<NOMAD::EvalPoint>& evalPointList) override;
 
 private:
     ///  Initialization of class, to be used by Constructor.

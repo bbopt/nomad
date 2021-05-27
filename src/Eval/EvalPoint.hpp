@@ -303,6 +303,8 @@ public:
     std::string display(const ArrayOfDouble &pointFormat = ArrayOfDouble(),
                         const int &solFormat = NOMAD::DISPLAY_PRECISION_FULL) const;
 
+    std::string displayForCache(const ArrayOfDouble &pointFormat);
+
     /// Display both true and model evaluations. Useful for debugging
     std::string displayAll(const ComputeType& computeType = ComputeType::STANDARD) const;
 
