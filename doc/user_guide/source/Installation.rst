@@ -94,7 +94,7 @@ It is possible to build only a single application in its working directory (with
 
   cd $NOMAD_HOME/examples/basic/library/example1
   cmake --build $NOMAD_HOME/build/release --target example1_lib.exe
-  cmake --install $NOMAD_HOME/build/release
+v++
 
 3- Install
 """"""""""
