@@ -10,7 +10,9 @@ matrix:
       compiler: clang
 
 script:
-  - mkdir -p build/debug
-  - cmake -DBUILD_TESTS=ON -DUSE_SGTELIB=OFF -DTEST_OPENMP=OFF -DCMAKE_BUILD_TYPE=Debug -S . -B build/debug
-  - cmake --build build/debug --parallel 4
-  - cmake --install build/debug
+  - mkdir -p build/release
+  - cmake -DBUILD_TESTS=ON -DUSE_SGTELIB=OFF -DTEST_OPENMP=OFF -S . -B build/release
+  - cd build/release
+  - make -j 4
+  - cd ../..
+  - cmake --install build/release
