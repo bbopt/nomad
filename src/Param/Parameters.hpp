@@ -230,7 +230,7 @@ public:
     /**
      Helper for Parameters::readParamLine OR called by AllParameters::read for each specific type of Parameters such as RunParameters, PbParameters, ....
      */
-    void readEntries(const bool overwrite = false);
+    void readEntries(const bool overwrite = false, std::string problemDir="");
 
     /**
      Read a single parameter given in a single line.
@@ -299,6 +299,9 @@ private:
 
     /// Helper for read
     size_t readValuesForArrayOfPoint(const ParameterEntry &pe, Point &point);
+
+    /// Helper for read
+    NOMAD::ArrayOfPoint readPointValuesFromFile(const std::string& pointFile);
 
     /// Helper for read
     size_t readValuesForVariableGroup(const ParameterEntry &pe, VariableGroup &vg);

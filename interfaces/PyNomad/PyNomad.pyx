@@ -4,7 +4,7 @@
 #cython: language_level=3
 
 from libcpp cimport bool
-from libcpp.memory cimport shared_ptr
+from libcpp.memory cimport shared_ptr, make_shared
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
@@ -23,7 +23,7 @@ def info():
     printPyNomadInfo()
 
 # Define the interface function to get nomad help
-def help(about=''):
+def help(about):
     about = about.encode(u"ascii")
     printNomadHelp(about)
 
@@ -32,8 +32,87 @@ def __doc__():
     printPyNomadUsage()
     help(about)
 
+# Define the interface function to perform optimization (blackbox evaluation defined in parameter file)
+def optimizeWithMainStep(params):
+  cdef shared_ptr[AllParameters] allParameters_ptr = make_shared[AllParameters]()
+  cdef MainStep mainStep
 
-# Define the interface function to perform optimization          
+  cdef size_t nbParams = len(params)
+  for i in range(nbParams):
+       params[i] = params[i].encode(u"ascii")
+       # print(params[i])
+       deref(allParameters_ptr).readParamLine(params[i])
+
+  deref(allParameters_ptr).checkAndComply()
+  mainStep.setAllParameters(allParameters_ptr)
+  mainStep.start()
+  mainStep.run()
+  mainStep.end()
+
+def suggest(params):
+  cdef shared_ptr[AllParameters] allParameters_ptr = make_shared[AllParameters]()
+  cdef MainStep mainStep
+
+  cdef size_t nbParams = len(params)
+  for i in range(nbParams):
+    if type(params[i]) is str:
+     params[i]= params[i].encode(u"ascii")
+     # print(params[i])
+     deref(allParameters_ptr).readParamLine(params[i])
+
+  deref(allParameters_ptr).checkAndComply()
+  mainStep.setAllParameters(allParameters_ptr)
+  cdef vector[Point] xs = mainStep.suggest()
+
+  candidates = []
+  for i in range(xs.size()):
+    candidates.append([xs[i][j].todouble() for j in range(xs[i].size())])
+
+  mainStep.resetComponentsBetweenOptimization()
+  return candidates
+
+def observe(params,points,evals,udpatedCacheFileName):
+    cdef shared_ptr[AllParameters] allParameters_ptr = make_shared[AllParameters]()
+    cdef MainStep mainStep
+
+    cdef size_t nbParams = len(params)
+    for i in range(nbParams):
+       if type(params[i]) is str:
+          params[i]= params[i].encode(u"ascii")
+       # print(params[i])
+       deref(allParameters_ptr).readParamLine(params[i])
+
+    deref(allParameters_ptr).checkAndComply()
+    mainStep.setAllParameters(allParameters_ptr)
+
+
+    if len(points) != len(evals):
+      print("Observe: Incompatible dimension of points and evaluations")
+      return
+
+    cdef vector[Point] vpoints
+    cdef vector[ArrayOfDouble] vevals
+
+    cdef PyNomadPoint nomadPoint
+    cdef PyNomadArrayOfDouble nomadEval
+
+    cdef vector[double] p
+    cdef vector[double] v
+    for i in range(len(points)):
+      p = points[i][:]
+      nomadPoint = PyNomadPoint(p)
+      vpoints.push_back(nomadPoint.c_p)
+
+      v = evals[i][:]
+      nomadEval = PyNomadArrayOfDouble(v)
+      vevals.push_back(nomadEval.c_aod)
+
+    updatedParams = mainStep.observe(vpoints,vevals,udpatedCacheFileName.encode(u"ascii"))
+
+    mainStep.resetComponentsBetweenOptimization()
+    return updatedParams
+
+# Define the interface function to perform optimization
 # TODO: Show multiple best solutions, and show both feas and infeas solutions.
 # For now, we only show one best solution.
 def optimize(f, pX0, pLB, pUB, params):
@@ -45,7 +124,7 @@ def optimize(f, pX0, pLB, pUB, params):
     cdef double fReturn = float("inf")
     cdef double hReturn = float("inf")
     xReturn = []
-    
+
     cdef size_t nbParams = len(params)
     for i in range(nbParams):
          params[i] = params[i].encode(u"ascii")
@@ -70,14 +149,101 @@ def optimize(f, pX0, pLB, pUB, params):
 
     return [ xReturn, fReturn, hReturn, nbEvals, nbIters, runStatus ]
 
+cdef extern from "Algos/MainStep.hpp" namespace "NOMAD":
+    cdef cppclass MainStep:
+        MainStep() except +
+        void start()
+        bool run()
+        void end()
+        void setAllParameters(const shared_ptr[AllParameters] & allParams )
+        void setParamFileName(const string & paramfile)
+        vector[Point] suggest()
+        vector[string] observe(const vector[Point] & points, const vector[ArrayOfDouble] & evals, const string & updatedCacheFileName)
+        @staticmethod
+        void resetComponentsBetweenOptimization()
+
+cdef extern from "Math/Point.hpp" namespace "NOMAD":
+    cdef cppclass Point:
+      Point() except+
+      Point(const vector[double] &) except+
+      const Double& operator[](size_t i) const
+      size_t size()
+
+cdef extern from "Math/ArrayOfDouble.hpp" namespace "NOMAD":
+    cdef cppclass ArrayOfDouble:
+      ArrayOfDouble() except+
+      ArrayOfDouble(const vector[double] &) except+
+      const Double& operator[](size_t i) const
+      size_t size()
+
+cdef class PyNomadPoint:
+    #cdef shared_ptr[Point] c_p_ptr
+    cdef Point c_p
+
+    def __cinit__(self):
+        self.c_p = Point()
+
+    def __cinit__(self, vector[double] & v):
+        self.c_p = Point(v)
+
+    def get_coord(self, size_t i):
+      cdef PyNomadDouble coord = PyNomadDouble()
+      # coord.c_d = deref(self.c_p_ptr)[i]
+      coord.c_d = self.c_p[i]
+      cdef double coord_d
+      if (coord.isDefined()):
+        coord_d = coord.todouble()
+      else:
+        coord_d = float("inf")
+      return coord_d
+
+    def size(self):
+      cdef size_t n
+      #n = deref(self.c_p_ptr).size()
+      n = self.c_p.size()
+      return n
+
+cdef class PyNomadArrayOfDouble:
+    cdef ArrayOfDouble c_aod
+
+    def __cinit__(self):
+      self.c_aod = ArrayOfDouble()
+
+    def __cinit__(self, vector[double] & v):
+      self.c_aod = ArrayOfDouble(v)
+
+    def get_coord(self, size_t i):
+      cdef PyNomadDouble coord = PyNomadDouble()
+      coord.c_d = self.c_aod[i]
+      cdef double coord_d
+      if (coord.isDefined()):
+        coord_d = coord.todouble()
+      else:
+        coord_d = float("inf")
+      return coord_d
+
+    def size(self):
+      cdef size_t n
+      n = self.c_aod.size()
+      return n
+
+cdef extern from "Param/AllParameters.hpp" namespace "NOMAD":
+  cdef cppclass AllParameters:
+        void read(const string & paramfile, bool overwrite , bool resetAllEntries )
+        void readParamLine(const string & paramline)
+        void checkAndComply()
 
 cdef extern from "Math/Double.hpp" namespace "NOMAD":
     cdef cppclass Double:
+        Double() except+
+        Double(const double &) except+
         const double & todouble()
         bool isDefined()
 
 cdef class PyNomadDouble:
     cdef Double c_d
+    def __cinit__(self, double v):
+        self.c_d = Double(v)
     def todouble(self):
         return self.c_d.todouble()
     def isDefined(self):
@@ -170,7 +336,7 @@ cdef extern from "nomadCySimpleInterface.cpp":
                  size_t &nbEvals, size_t &nbIters) except+
 
 
-# Define callback function for a single EvalPoint ---> link with Python     
+# Define callback function for a single EvalPoint ---> link with Python
 cdef int cb(void *f, shared_ptr[EvalPoint] x, bool hasSgte, bool sgteEval):
     cdef PyNomadEvalPoint u = PyNomadEvalPoint()
 
@@ -185,4 +351,3 @@ cdef vector[int] cbL(void *f, shared_ptr[Block] block, bool hasSgte, bool sgteEv
 
     u.c_block_ptr = block
     return (<object>f)(u)
-

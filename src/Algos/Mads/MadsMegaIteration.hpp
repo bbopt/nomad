@@ -101,6 +101,11 @@ public:
     }
     // No Destructor needed - keep defaults.
 
+    
+    NOMAD::ArrayOfPoint suggest() override;
+    
+    void observe(const std::vector<NOMAD::EvalPoint>& evalPointList) override;
+    
     /// Implementation of the start tasks for MADS mega iteration.
     /**
      Creates a MadsIteration for each frame center and each desired mesh size.

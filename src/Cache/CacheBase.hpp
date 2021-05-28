@@ -124,7 +124,7 @@ protected:
      * If the whole optimization is done, stop waitings for points
      * that will never be evaluated.
      */
-    bool _stopWaiting;
+    std::atomic<bool> _stopWaiting;
 
     /*---------*/
     /* Methods */
@@ -166,6 +166,11 @@ public:
         return _single;
     }
 
+    static void resetInstance()
+    {
+        _single.release(); // REM : it works even if the pointer is NULL (does nothing then)
+    }
+    
     /// Destructor
     virtual ~CacheBase(void) = default;
 

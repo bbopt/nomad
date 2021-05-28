@@ -47,6 +47,7 @@
 
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/LatinHypercubeSampling/LH.hpp"
+#include "../../Algos/Mads/GMesh.hpp"
 #include "../../Math/LHS.hpp"
 #include "../../Output/OutputQueue.hpp"
 
@@ -55,6 +56,18 @@ void NOMAD::LH::init()
     _name = "Latin Hypercube Sampling";
     verifyParentNotNull();
 
+}
+
+NOMAD::ArrayOfPoint NOMAD::LH::suggest ()
+{
+    generateTrialPoints();
+    
+    NOMAD::ArrayOfPoint xs;
+    for (auto trialPoint : _trialPoints)
+    {
+        xs.push_back(*trialPoint.getX());
+    }
+    return xs;
 }
 
 
@@ -94,17 +107,34 @@ void NOMAD::LH::generateTrialPoints()
     NOMAD::LHS lhs(n, lhEvals, lowerBound, upperBound);
     auto pointVector = lhs.Sample();
 
+    // Create a mesh and project points on this mesh. It will ensure that parameters
+    // BB_INPUT_TYPE and GRANULARITY are satisfied.
+    auto mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+    mesh->setEnforceSanityChecks(false);
+    // Modify mesh so it is the finest possible.
+    // Note: GRANULARITY is already adjusted with regards to BB_INPUT_TYPE.
+    NOMAD::ArrayOfDouble newMeshSize = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("GRANULARITY");
+    auto eps = NOMAD::Double::getEpsilon();
+    for (size_t i = 0; i < newMeshSize.size(); i++)
+    {
+        if (0 == newMeshSize[i])
+        {
+            // No granularity: Set mesh size to Epsilon.
+            newMeshSize[i] = eps;
+        }
+    }
+
+    mesh->setDeltas(newMeshSize, newMeshSize);
+    auto center = NOMAD::Point(n, 0);
+
     for (auto point : pointVector)
     {
-        // Make an EvalPoint from the Point.
-        // We do not need the Eval part of EvalPoint right now,
-        // but it will be used soon. Could be refactored, but
-        // not high priority. Note that an EvalPointSet compares
-        // the Point part of the EvalPoints only.
+        // First, project on mesh.
+        point = mesh->projectOnMesh(point, center);
+        // Second, snap to bounds.
+        point.snapToBounds(lowerBound, upperBound);
 
-        // Projection without scale
         NOMAD::EvalPoint evalPoint(point);
-
         // Test if the point is inserted correctly
         bool inserted = insertTrialPoint(evalPoint);
         OUTPUT_INFO_START

@@ -654,6 +654,29 @@ std::string NOMAD::EvalPoint::display(const NOMAD::ArrayOfDouble &pointFormat,
 }
 
 
+std::string NOMAD::EvalPoint::displayForCache(const NOMAD::ArrayOfDouble &pointFormat)
+{
+    // Example:
+    // ( 1.7 2.99 -2.42 2.09 -36 2.33 ) EVAL_FAILED ( NaN 0 -20 )
+    std::string s;
+
+    NOMAD::Point p = *(getX());
+    s = p.display(pointFormat);
+
+    const NOMAD::Eval* eval = getEval(NOMAD::EvalType::BB);
+    std::ostringstream oss;
+    if (nullptr != eval)
+    {
+        oss << " " << eval->getEvalStatus();     // Raw, ex. "EVAL_OK"
+        oss << " " << NOMAD::BBOutput::bboStart << " " << eval->getBBO();
+        oss << " " << NOMAD::BBOutput::bboEnd;
+    }
+    s += oss.str();
+
+    return s;
+}
+
+
 // Show all evals. For debugging purposes.
 std::string NOMAD::EvalPoint::displayAll(const NOMAD::ComputeType& computeType) const
 {

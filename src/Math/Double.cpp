@@ -1003,7 +1003,9 @@ const NOMAD::Double NOMAD::Double::nextMult(const NOMAD::Double &granularity) co
         {
             granMult++;
         }
-        d = granMult * granularity;
+        double bigGranExp = pow(10, granularity.nbDecimals());
+        int bigGran = (int)(granularity.todouble() * bigGranExp);
+        d = granMult * bigGran / bigGranExp;
     }
 
     return d;
@@ -1027,7 +1029,9 @@ const NOMAD::Double NOMAD::Double::previousMult(const NOMAD::Double &granularity
         {
             granMult--;
         }
-        d = granMult * granularity;
+        double bigGranExp = pow(10, granularity.nbDecimals());
+        int bigGran = (int)(granularity.todouble() * bigGranExp);
+        d = granMult * bigGran / bigGranExp;
     }
 
     return d;

@@ -505,6 +505,7 @@ void NOMAD::PbParameters::setVariableGroups()
     }
 }
 
+
 void NOMAD::PbParameters::checkX0AgainstBounds() const
 {
     const size_t n = getAttributeValueProtected<size_t>("DIMENSION",false);

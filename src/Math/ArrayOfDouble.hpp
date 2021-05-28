@@ -91,6 +91,13 @@ public:
      \param val Initial value for all elements of the array -- \b IN (Opt) (default = undefined real).
      */
     explicit ArrayOfDouble(const size_t n = 0, const Double &val = Double());
+    
+    /// Constructor #2 -- used by PyNomad interface
+    /**
+     \param v vector of double -- \b IN .
+     */
+    explicit ArrayOfDouble(const std::vector<double> & v);
+    
 
     /// Copy constructor.
     /**

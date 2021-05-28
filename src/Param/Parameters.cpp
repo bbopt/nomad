@@ -602,9 +602,12 @@ void NOMAD::Parameters::readParamLine(const std::string &line,
 /*----------------------------------------*/
 /*          read parameter entries        */
 /*----------------------------------------*/
-void NOMAD::Parameters::readEntries(const bool overwrite)
+void NOMAD::Parameters::readEntries(const bool overwrite, std::string problemDir)
 {
-
+    if (problemDir.empty())
+        problemDir = '.' + NOMAD::DIR_SEP;
+    
+    
     // parameters will have to be checked:
     _toBeChecked = true;
 
@@ -809,26 +812,40 @@ void NOMAD::Parameters::readEntries(const bool overwrite)
                 auto aopRef = getAttributeValueProtected<NOMAD::ArrayOfPoint>(paramName, false);
                 NOMAD::ArrayOfPoint aop = aopRef;
 
-                NOMAD::Point updatePoint(n);
-                size_t pointIndex = readValuesForArrayOfPoint(*pe, updatePoint);
-                // If the aop at this index is already set, update it.
-                // Else, create it.
-                if (pointIndex < aop.size())
+                if (1 == pe->getValues().size())
                 {
-                    auto pointToUpdate = aop[pointIndex];
-                    for (size_t index = 0; index < n; index++)
+                    // Consider we have a file and read points in this file.
+                    std::string pointFile = *pe->getValues().begin();
+                    NOMAD::completeFileName(pointFile, problemDir);
+                    auto aopNew = readPointValuesFromFile(pointFile);
+                    for (auto newPoint: aopNew)
                     {
-                        if (updatePoint[index].isDefined())
-                        {
-                            pointToUpdate[index] = updatePoint[index];
-                        }
+                        aop.push_back(newPoint);
                     }
-                    aop[pointIndex] = pointToUpdate;
                 }
                 else
                 {
-                    aop.resize(pointIndex+1);
-                    aop[pointIndex] = updatePoint;
+                    NOMAD::Point updatePoint(n);
+                    size_t pointIndex = readValuesForArrayOfPoint(*pe, updatePoint);
+                    // If the aop at this index is already set, update it.
+                    // Else, create it.
+                    if (pointIndex < aop.size())
+                    {
+                        auto pointToUpdate = aop[pointIndex];
+                        for (size_t index = 0; index < n; index++)
+                        {
+                            if (updatePoint[index].isDefined())
+                            {
+                                pointToUpdate[index] = updatePoint[index];
+                            }
+                        }
+                        aop[pointIndex] = pointToUpdate;
+                    }
+                    else
+                    {
+                        aop.resize(pointIndex+1);
+                        aop[pointIndex] = updatePoint;
+                    }
                 }
 
                 setAttributeValue(paramName, aop);
@@ -1036,6 +1053,25 @@ size_t NOMAD::Parameters::readValuesForArrayOfPoint(const NOMAD::ParameterEntry 
 
     return index;
 }
+
+
+NOMAD::ArrayOfPoint NOMAD::Parameters::readPointValuesFromFile(const std::string& pointFile)
+{
+    if (!NOMAD::checkReadFile(pointFile))
+    {
+        std::string err = "File does not exist or is not readable: " + pointFile;
+        throw NOMAD::Exception(__FILE__, __LINE__, err);
+    }
+
+    const size_t n = getAttributeValueProtected<size_t>("DIMENSION", false);
+    NOMAD::ArrayOfPoint aop;
+    NOMAD::Point point(n);  // Empty point used to pass the dimension
+    aop.push_back(point);
+    NOMAD::read<NOMAD::ArrayOfPoint>(aop, pointFile);  // Calls ArrayOfPoint::operator>>
+
+    return aop;
+}
+
 
 size_t NOMAD::Parameters::readValuesForVariableGroup(const NOMAD::ParameterEntry &pe,
                                                      NOMAD::VariableGroup &vg )
