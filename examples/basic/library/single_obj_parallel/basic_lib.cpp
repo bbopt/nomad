@@ -103,7 +103,6 @@ public:
                 std::vector<bool> &listCountEval) const override
 
     {
-        int rc;
         std::vector<bool> evalOk(block.size(), false);
         listCountEval.resize(block.size(), false);  //  Evaluations are not counted until eval_x is called and sets countEval
 

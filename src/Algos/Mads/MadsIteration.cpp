@@ -53,6 +53,7 @@
 #include "../../Algos/Mads/MegaSearchPoll.hpp"
 #include "../../Algos/Mads/Search.hpp"
 #include "../../Algos/Mads/Poll.hpp"
+#include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 #ifdef TIME_STATS
@@ -79,6 +80,42 @@ void NOMAD::MadsIteration::startImp()
 #ifdef TIME_STATS
     _iterStartTime = NOMAD::Clock::getCPUTime();
 #endif // TIME_STATS
+}
+
+
+NOMAD::ArrayOfPoint NOMAD::MadsIteration::suggest()
+{
+    NOMAD::ArrayOfPoint xs;
+    
+    if (_runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
+    {
+        OUTPUT_INFO_START
+        AddOutputInfo("Mads Iteration Suggest. Mega Search Poll.");
+        OUTPUT_INFO_END
+        
+        // suggest uses MegaSearchPoll for now
+        MegaSearchPoll megaStep( this );
+        megaStep.start();
+        
+        auto trialPoints = megaStep.getTrialPoints();
+        
+        NOMAD::EvalPoint evalPointFound;
+        for (auto trialPoint : trialPoints)
+        {
+            // Do not suggest points that are already in cache.
+            if (0 == NOMAD::CacheBase::getInstance()->find(trialPoint, evalPointFound))
+            {
+                xs.push_back(*trialPoint.getX());
+            }
+        }
+        megaStep.end();
+    }
+    else
+    {
+       throw NOMAD::Exception(__FILE__, __LINE__, "MadsIteration suggest only performs with MEGA_SEARCH_POLL enabled");
+    }
+    
+    return xs;
 }
 
 

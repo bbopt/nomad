@@ -1,0 +1,8 @@
+BB_OUTPUT_TYPE OBJ
+( 0.4 0.1 ) EVAL_OK ( 0.72 )
+( 0.4 0.2 ) EVAL_OK ( 0.52 )
+( 0.4 0.3 ) EVAL_OK ( 2.32 )
+( 0.4 0.4 ) EVAL_OK ( 6.12 )
+( 0.4 0.6 ) EVAL_OK ( 19.72 )
+( 0.5 0.3 ) EVAL_OK ( 0.5 )
+( 0.5 0.5 ) EVAL_OK ( 6.5 )

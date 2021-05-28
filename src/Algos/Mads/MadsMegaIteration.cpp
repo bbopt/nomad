@@ -50,12 +50,71 @@
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/MadsUpdate.hpp"
+#include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 
 void NOMAD::MadsMegaIteration::init()
 {
     _name = NOMAD::MegaIteration::getName();
+}
+
+
+NOMAD::ArrayOfPoint NOMAD::MadsMegaIteration::suggest()
+{
+    
+    // Create a single MadsIteration
+    NOMAD::MadsIteration madsIteration (this, _k, _mainMesh);
+
+    OUTPUT_DEBUG_START
+    AddOutputDebug("Iteration generated:");
+    AddOutputDebug(madsIteration.getName());
+    NOMAD::ArrayOfDouble meshSize  = madsIteration.getMesh()->getdeltaMeshSize();
+    NOMAD::ArrayOfDouble frameSize = madsIteration.getMesh()->getDeltaFrameSize();
+    AddOutputDebug("Mesh size:  " + meshSize.display());
+    AddOutputDebug("Frame size: " + frameSize.display());
+    OUTPUT_DEBUG_END
+
+    return madsIteration.suggest();
+    
+}
+
+
+void NOMAD::MadsMegaIteration::observe(const std::vector<NOMAD::EvalPoint>& evalPointList)
+{
+    // Update cache with new points.
+    NOMAD::EvalPoint evalPointFound;
+    for (auto evalPoint : evalPointList)
+    {
+        if (NOMAD::CacheBase::getInstance()->find(evalPoint, evalPointFound))
+        {
+            // New eval for point already in cache
+            NOMAD::CacheBase::getInstance()->update(evalPoint, NOMAD::EvalType::BB);
+        }
+        else
+        {
+            // Point is not in cache yet
+            NOMAD::CacheBase::getInstance()->smartInsert(evalPoint);
+        }
+    }
+
+    // Update barrier with new points.
+    _barrier->updateRefBests();
+    _barrier->updateWithPoints(evalPointList, NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
+
+    // Update main mesh
+    NOMAD::MadsUpdate update(this);
+    update.start();
+    update.run();
+    update.end();
+    
+    OUTPUT_DEBUG_START
+    AddOutputDebug("MegaIteration generated: " + getName());
+    NOMAD::ArrayOfDouble meshSize  = _mainMesh->getdeltaMeshSize();
+    NOMAD::ArrayOfDouble frameSize = _mainMesh->getDeltaFrameSize();
+    AddOutputDebug("Mesh size:  " + meshSize.display());
+    AddOutputDebug("Frame size: " + frameSize.display());
+    OUTPUT_DEBUG_END
 }
 
 

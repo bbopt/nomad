@@ -85,7 +85,7 @@ private:
      */
     virtual bool    runImp()   override;
 
-    /// No implementation is required for start.
+    /// No implementation is required for end.
     virtual void    endImp()   override {}
 
 };

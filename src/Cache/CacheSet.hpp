@@ -78,6 +78,7 @@ private:
 #endif // _OPENMP
 
     static BBOutputTypeList _bbOutputType; ///< Corresponds to parameter BB_OUTPUT_TYPE used for this cache
+    static ArrayOfDouble    _bbEvalFormat;  ///< Used to write cache correctly
 
     EvalPointSet _cache;  ///< The set of points that constitutes the cache.
 
@@ -111,7 +112,8 @@ public:
      \param bbOutputType    List of the blackbox output type -- \b IN.
      */
     static void setInstance(const std::shared_ptr<CacheParameters>& cacheParams,
-                            const BBOutputTypeList& bbOutputType);
+                            const BBOutputTypeList& bbOutputType,
+                            const ArrayOfDouble& bbEvalFormat = ArrayOfDouble());
 
     /// Get the list of blackbox output types
     static BBOutputTypeList getBbOutputType() { return _bbOutputType; }

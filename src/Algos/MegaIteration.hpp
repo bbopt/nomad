@@ -143,7 +143,7 @@ public:
 
     virtual void read(std::istream& is);
     virtual void display(std::ostream& os) const ;
-
+    
 private:
     /// Helper for constructor
     void init();

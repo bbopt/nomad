@@ -263,6 +263,13 @@ bool NOMAD::Step::run()
 }
 
 
+void NOMAD::Step::observe(const std::vector<NOMAD::EvalPoint>& evalPointList)
+{
+    // Should not be called if it is not reimplemented.
+    throw NOMAD::StepException(__FILE__,__LINE__,"Observe is not implemented in step " + getName(), this);
+}
+
+
 void NOMAD::Step::defaultStart()
 {
     // Test shared_ptr here because MainStep has no stopReason

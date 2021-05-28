@@ -56,6 +56,7 @@
 #include "../Algos/Algorithm.hpp"
 #include "../Eval/Evaluator.hpp"
 #include "../Param/AllParameters.hpp"
+#include "../Type/LHSearchType.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -150,6 +151,18 @@ public:
     /// Helper to reset some components (used by the runner when running multiple optimization)
     static void resetComponentsBetweenOptimization();
 
+    NOMAD::ArrayOfPoint suggest() override;
+
+    /**
+      Observe method updates cache, computes new mesh size and new hMax.
+      */
+    void observe(const std::vector<NOMAD::EvalPoint>& evalPointList) override;
+    /**
+      Observe version to be called by the Python interface.
+      \return new values of key parameters.
+      */
+    std::vector<std::string> observe(const NOMAD::ArrayOfPoint & xs, const std::vector<NOMAD::ArrayOfDouble> & fxs, const std::string & destinationCacheFileName="");
+
 protected:
     /// Specific implementation to start NOMAD
     /**
@@ -192,6 +205,8 @@ protected:
     /// Helper for start
     void updateX0sFromCache() const;
 
+    /// Helper for start
+    ArrayOfPoint suggestFromLH(const size_t nbPoints) const;
 
 private:
     /// Helper for constructor

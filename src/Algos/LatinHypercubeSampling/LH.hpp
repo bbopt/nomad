@@ -78,6 +78,8 @@ public:
 
 
     virtual void readInformationForHotRestart() override {}
+    
+    virtual NOMAD::ArrayOfPoint suggest() override;
 
 private:
     /// Helper for constructor

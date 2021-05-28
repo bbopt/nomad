@@ -46,6 +46,7 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../Param/AllParameters.hpp"
+#include "../Util/fileutils.hpp"
 
 // Do we need to call checkAndComply() ?
 bool NOMAD::AllParameters::toBeChecked() const
@@ -87,7 +88,7 @@ void NOMAD::AllParameters::read(const std::string &paramFile, bool overwrite , b
 
     // Read entries and set attribute values for each type of parameters
     _runParams->readEntries();
-    _pbParams->readEntries();
+    _pbParams->readEntries(false, NOMAD::dirname(paramFile));
     _evalParams->readEntries();
     _evaluatorControlGlobalParams->readEntries();
     _evaluatorControlParams->readEntries();

@@ -93,12 +93,22 @@ public:
      \return The number of points for initial LH search.
      */
     size_t getNbInitial() const { return _lhsearch0; }
+    void setNbInitial(const size_t lhsearch0)
+    {
+        _lhsearch0 = lhsearch0; 
+        _enable = (_lhsearch0 != 0 || _lhsearch1 != 0);
+    }
 
     /// Number of secondary LH search points at each iteration
     /**
      \return The number of points for secondary LH searches.
      */
     size_t getNbIteration() const { return _lhsearch1; }
+    void setNbIteration(const size_t lhsearch1)
+    {
+        _lhsearch1 = lhsearch1;
+        _enable = (_lhsearch0 != 0 || _lhsearch1 != 0);
+    }
 
     /// Comparison operator \c ==.
     /**
