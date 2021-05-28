@@ -73,14 +73,14 @@ COMPILATION (Release):
 
 On Linux, Unix, and Mac OS X, NOMAD can be compiled using CMake.
 The minimum version of CMake is 3.14. Older versions will trigger
-an error. A recent C++ compiler is also required.  
+an error. A recent C++ compiler is also required.
 
 The procedure is the following. On the command line in the
  $NOMAD_HOME directory:
 
-cmake -S . -B build/release     ---> Create the CMake files and directories for 
+cmake -S . -B build/release     ---> Create the CMake files and directories for
                                      building (-B) in build/release.
-                                     The source (-S) CMakeLists.txt file is in 
+                                     The source (-S) CMakeLists.txt file is in
                                        the $NOMAD_HOME directory.
                                      To enable time stats build:
                                        cmake -DTIME_STATS=ON -S . -B build/release
@@ -90,11 +90,11 @@ cmake -S . -B build/release     ---> Create the CMake files and directories for
                                        cmake -DTEST_OPENMP=OFF -S . -B build/release
 
 
-cmake --build build/release     ---> Build the libraries and applications 
+cmake --build build/release     ---> Build the libraries and applications
                                      Option --parallel xx can be added for faster
                                      build
 
-cmake --install build/release   ---> Copy binaries and headers in 
+cmake --install build/release   ---> Copy binaries and headers in
                                      build/release/[bin, include, lib]
                                      and in the examples/tests directories
 
@@ -110,16 +110,16 @@ cmake --install $NOMAD_HOME/build/release
 
 COMPILATION (Debug):
 
-The procedure to build the debug version is the following. 
+The procedure to build the debug version is the following.
 On the command line in the $NOMAD_HOME directory:
 
 cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
 
-cmake --build build/debug     ---> Build the libraries and applications 
+cmake --build build/debug     ---> Build the libraries and applications
                                      Option --parallel xx can be added for faster
                                      build
 
-cmake --install build/debug   ---> Copy binaries and headers in 
+cmake --install build/debug   ---> Copy binaries and headers in
                                      build/debug/[bin, include, lib]
                                      and in the examples/tests directories
 
@@ -134,7 +134,7 @@ nomad param.txt
 
 Library Mode:
 There are examples in library mode in examples/basic/library/.
-In each directory, the executable may be compiled when building 
-Nomad application. The problems may be resolved by execution, 
+In each directory, the executable may be compiled when building
+Nomad application. The problems may be resolved by execution,
 for instance:
 example_lib.exe
