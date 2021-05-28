@@ -11,8 +11,6 @@ matrix:
 
 script:
   - mkdir -p build/release
-  - cd build/release
-  - cmake -DBUILD_TESTS=ON -DUSE_SGTELIB=OFF -DTEST_OPENMP=OFF
-  - make -j 4
-  - cd ../..
+  - cmake -DBUILD_TESTS=ON -S . -B build/release
+  - cmake --build build/release --parallel 4
   - cmake --install build/release
