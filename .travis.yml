@@ -14,3 +14,4 @@ script:
   - cmake -DBUILD_TESTS=ON -S . -B build/release
   - cmake --build build/release --parallel 4
   - cmake --install build/release
+
