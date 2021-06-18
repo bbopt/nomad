@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -54,7 +54,7 @@
 
 void NOMAD::NMInitializeSimplex::init()
 {
-    _name = getAlgoName() + "Initialize Simplex";
+    setStepType(NOMAD::StepType::NM_INITIALIZE_SIMPLEX);
 
     verifyParentNotNull();
 
@@ -128,7 +128,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
     auto includeLength = _runParams->getAttributeValue<NOMAD::Double>("NM_SIMPLEX_INCLUDE_LENGTH");
     NOMAD::ArrayOfDouble includeRectangle(n, includeLength ) ;
 
-    NOMAD::OutputInfo dbgInfo(_name,"Insertion of potential points to include in initial Y: ", NOMAD::OutputLevel::LEVEL_DEBUG);
+    NOMAD::OutputInfo dbgInfo(getName(),"Insertion of potential points to include in initial Y: ", NOMAD::OutputLevel::LEVEL_DEBUG);
 
     // If a mesh and include factor are supplied: the max distance is include factor times Delta
     // Else we use include length
@@ -261,7 +261,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
     NOMAD::NMSimplexEvalPointSetIterator itT = T.begin();
 
     // For debugging
-    NOMAD::OutputInfo dbgInfo2(_name,"Proceed to simplex creation", NOMAD::OutputLevel::LEVEL_DEBUG);
+    NOMAD::OutputInfo dbgInfo2(getName(),"Proceed to simplex creation", NOMAD::OutputLevel::LEVEL_DEBUG);
 
     // First point is always added
     _nmY->insert ( *itT );

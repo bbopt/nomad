@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -60,13 +60,9 @@
 #include "../Util/Clock.hpp"
 #endif // TIME_STATS
 
-#ifdef _OPENMP
-omp_lock_t NOMAD::Algorithm::_algoCommentLock;
-#endif // _OPENMP
-
 void NOMAD::Algorithm::init()
 {
-    _name = "AGenericAlgorithmHasNoName";
+    //_name = "AGenericAlgorithmHasNoName";
 
     // Verifications that throw Exceptions to the Constructor if not validated.
     verifyParentNotNull();
@@ -86,10 +82,6 @@ void NOMAD::Algorithm::init()
     if ( nullptr == _stopReasons )
         throw NOMAD::StepException(__FILE__, __LINE__,
                                "Valid stop reasons must be provided to the Algorithm constructor.", this);
-
-#ifdef _OPENMP
-    omp_init_lock(&_algoCommentLock);
-#endif // _OPENMP
 
     // Check pbParams if needed, ex. if a copy of PbParameters was given to the Algorithm constructor.
     _pbParams->checkAndComply();
@@ -119,97 +111,6 @@ void NOMAD::Algorithm::init()
 NOMAD::Algorithm::~Algorithm()
 {
     NOMAD::SubproblemManager::getInstance()->removeSubproblem(this);
-#ifdef _OPENMP
-    omp_destroy_lock(&_algoCommentLock);
-#endif // _OPENMP
-}
-
-
-// Set _algoComment, and push the current algo comment to _prevAlgoComment pile.
-// Do not push an empty string on an empty pile, it is irrelevant.
-// If force = true, do not set a new algo comment until this comment is reset.
-void NOMAD::Algorithm::setAlgoComment(const std::string& algoComment, const bool force)
-{
-    if (isSubAlgo())
-    {
-        auto rootAlgo = const_cast<NOMAD::Algorithm*>(getRootAlgorithm());
-        rootAlgo->setAlgoComment(algoComment, force);
-    }
-    else
-    {
-#ifdef _OPENMP
-        omp_set_lock(&_algoCommentLock);
-#endif // _OPENMP
-        if (!_forceAlgoComment)
-        {
-            // Push algo comment to _prevAlgoComment
-            if (!_prevAlgoComment.empty() || !_algoComment.empty())
-            {
-                _prevAlgoComment.push_back(_algoComment);
-            }
-            _algoComment = algoComment;
-        }
-        if (force)
-        {
-            _forceAlgoComment = true;
-        }
-#ifdef _OPENMP
-        omp_unset_lock(&_algoCommentLock);
-#endif // _OPENMP
-    }
-}
-
-
-// Pop the previous algo comment from the _prevAlgoComment pile.
-void NOMAD::Algorithm::resetPreviousAlgoComment(const bool force)
-{
-    if (isSubAlgo())
-    {
-        auto rootAlgo = const_cast<NOMAD::Algorithm*>(getRootAlgorithm());
-        rootAlgo->resetPreviousAlgoComment(force);
-    }
-    else
-    {
-#ifdef _OPENMP
-        omp_set_lock(&_algoCommentLock);
-#endif // _OPENMP
-        if (!_forceAlgoComment || force)
-        {
-            if (_prevAlgoComment.empty())
-            {
-                _algoComment = "";
-            }
-            else
-            {
-                // Remove last element, simulate a "pop".
-                _algoComment = std::move(_prevAlgoComment[_prevAlgoComment.size()-1]);
-                _prevAlgoComment.erase(_prevAlgoComment.end()-1);
-            }
-            if (_forceAlgoComment)
-            {
-                _forceAlgoComment = false;
-            }
-        }
-#ifdef _OPENMP
-        omp_unset_lock(&_algoCommentLock);
-#endif // _OPENMP
-    }
-}
-
-
-std::string NOMAD::Algorithm::getAlgoComment() const
-{
-    std::string algoComment;
-    if (isSubAlgo())
-    {
-        algoComment = getRootAlgorithm()->getAlgoComment();
-    }
-    else
-    {
-        algoComment = _algoComment;
-    }
-
-    return algoComment;
 }
 
 
@@ -221,9 +122,6 @@ void NOMAD::Algorithm::startImp()
         _startTime = NOMAD::Clock::getCPUTime();
     }
 #endif // TIME_STATS
-    // Comment to appear at the end of stats lines
-    // By default, nothing is added
-    setAlgoComment("");
 
     // All stop reasons are reset.
     _stopReasons->setStarted();
@@ -328,9 +226,6 @@ void NOMAD::Algorithm::endImp()
         saveInformationForHotRestart();
         NOMAD::CacheBase::getInstance()->setStopWaiting(true);
     }
-
-    // Reset stats comment
-    resetPreviousAlgoComment();
 }
 
 
@@ -391,11 +286,12 @@ void NOMAD::Algorithm::displayBestSolutions() const
                                                  : NOMAD::OutputLevel::LEVEL_VERY_HIGH;
     auto solFormat = NOMAD::OutputQueue::getInstance()->getSolFormat();
     auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+    auto surrogateAsBB = NOMAD::EvcInterface::getEvaluatorControl()->getSurrogateOptimization();
     if (isRootAlgo())
     {
         solFormat.set(-1);
     }
-    NOMAD::OutputInfo displaySolFeas(_name, sFeas, outputLevel);
+    NOMAD::OutputInfo displaySolFeas(getName(), sFeas, outputLevel);
     auto fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
 
     sFeas = "Best feasible solution";
@@ -415,12 +311,18 @@ void NOMAD::Algorithm::displayBestSolutions() const
     else if (1 == nbBestFeas)
     {
         sFeas += ":     ";
-        displaySolFeas.addMsg(sFeas + evalPointList[0].display(computeType, solFormat, NOMAD::DISPLAY_PRECISION_FULL));
+        displaySolFeas.addMsg(sFeas + evalPointList[0].display(computeType,
+                                                        solFormat,
+                                                        NOMAD::DISPLAY_PRECISION_FULL,
+                                                        surrogateAsBB));
     }
     else
     {
         sFeas += "s:    ";
-        displaySolFeas.addMsg(sFeas + evalPointList[0].display(computeType, solFormat, NOMAD::DISPLAY_PRECISION_FULL));
+        displaySolFeas.addMsg(sFeas + evalPointList[0].display(computeType,
+                                                        solFormat,
+                                                        NOMAD::DISPLAY_PRECISION_FULL,
+                                                        surrogateAsBB));
     }
 
 
@@ -437,7 +339,9 @@ void NOMAD::Algorithm::displayBestSolutions() const
                 continue;   // First element already added
             }
             sFeas = "                            ";
-            displaySolFeas.addMsg(sFeas + it->display(computeType, solFormat, NOMAD::DISPLAY_PRECISION_FULL));
+            displaySolFeas.addMsg(sFeas + it->display(computeType, solFormat,
+                                                      NOMAD::DISPLAY_PRECISION_FULL,
+                                                      surrogateAsBB));
             if (solCount >= maxSolCount)
             {
                 // We printed enough solutions already.
@@ -454,7 +358,7 @@ void NOMAD::Algorithm::displayBestSolutions() const
 
     // Display best infeasible solutions.
     std::string sInf;
-    NOMAD::OutputInfo displaySolInf(_name, sInf, outputLevel);
+    NOMAD::OutputInfo displaySolInf(getName(), sInf, outputLevel);
     sInf = "Best infeasible solution";
     if (nullptr != barrier)
     {
@@ -471,12 +375,18 @@ void NOMAD::Algorithm::displayBestSolutions() const
     else if (1 == nbBestInf)
     {
         sInf += ":   ";
-        displaySolInf.addMsg(sInf + evalPointList[0].display(computeType, solFormat, NOMAD::DISPLAY_PRECISION_FULL));
+        displaySolInf.addMsg(sInf + evalPointList[0].display(computeType,
+                                                        solFormat,
+                                                        NOMAD::DISPLAY_PRECISION_FULL,
+                                                        surrogateAsBB));
     }
     else
     {
         sInf += "s:  ";
-        displaySolInf.addMsg(sInf + evalPointList[0].display(computeType, solFormat, NOMAD::DISPLAY_PRECISION_FULL));
+        displaySolInf.addMsg(sInf + evalPointList[0].display(computeType,
+                                                        solFormat,
+                                                        NOMAD::DISPLAY_PRECISION_FULL,
+                                                        surrogateAsBB));
     }
 
     if (nbBestInf > 1)
@@ -490,7 +400,10 @@ void NOMAD::Algorithm::displayBestSolutions() const
             {
                 continue;   // First element already added
             }
-            displaySolInf.addMsg("                            " + it->display(computeType, solFormat, NOMAD::DISPLAY_PRECISION_FULL));
+            displaySolInf.addMsg("                            " + it->display(computeType,
+                                                                        solFormat,
+                                                                        NOMAD::DISPLAY_PRECISION_FULL,
+                                                                        surrogateAsBB));
             if (solCount >= maxSolCount)
             {
                 // We printed enough solutions already.

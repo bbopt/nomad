@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -515,6 +515,20 @@ const NOMAD::ArrayOfDouble & NOMAD::ArrayOfDouble::operator *= ( const NOMAD::Do
 
 
 /*----------------------------------------------------------*/
+/*                    scalar division                       */
+/*----------------------------------------------------------*/
+const NOMAD::ArrayOfDouble & NOMAD::ArrayOfDouble::operator /= ( const NOMAD::Double & d )
+{
+    NOMAD::Double * p = _array;
+    for (size_t k = 0 ; k < _n ; ++k , ++p)
+    {
+        *p /= d;
+    }
+
+    return *this;
+}
+
+/*----------------------------------------------------------*/
 /*                   addition of two arrays                 */
 /*----------------------------------------------------------*/
 const NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator+(const NOMAD::ArrayOfDouble& p) const
@@ -557,6 +571,21 @@ const NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator-(const NOMAD::ArrayOfD
     }
 
     return tmp;
+}
+
+bool NOMAD::ArrayOfDouble::roundToPrecision(const NOMAD::ArrayOfDouble & precision)
+{
+    bool modif = false;
+    
+    for (size_t i = 0; i < _n; i++)
+    {
+        if (_array[i].roundToPrecision(precision[i]))
+        {
+            modif = true;
+        }
+    }
+    return modif;
+    
 }
 
 

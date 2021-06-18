@@ -112,7 +112,7 @@ NOMAD::Double
 HAS_SGTE
 bool
 false
-\( Deprecated from Nomad 3: use of static surrogate not implemented \)
+\( Deprecated from Nomad 3: Not implemented \)
 \(
 \)
 \( internal \)
@@ -158,7 +158,7 @@ POLL
 \( internal \)
 ################################################################################
 INT_POLL_DIR_TYPES
-NOMAD::DirectionType
+NOMAD::DirectionTypeList
 ORTHO 1
 \( Deprecated from Nomad 3: Intensification not implemented \)
 \(
@@ -585,7 +585,7 @@ INF
 OPT_ONLY_SGTE
 bool
 false
-\( Deprecated from Nomad 3: Not implemented \)
+\( Deprecated from Nomad 3: replaced by EVAL_SURROGATE_OPTIMIZATION \)
 \(
 \)
 \( internal \)
@@ -647,7 +647,7 @@ NOMAD::ArrayOfDouble
 \( internal \)
 ################################################################################
 SEC_POLL_DIR_TYPE
-NOMAD::DirectionType
+NOMAD::DirectionTypeList
 DOUBLE
 \( Deprecated from Nomad 3: replaced by DIRECTION_TYPE_SECONDARY_POLL \)
 \(
@@ -657,7 +657,7 @@ DOUBLE
 SGTE_CACHE_FILE
 std::string
 -
-\( Deprecated from Nomad 3: use of static surrogate not implemented \)
+\( Deprecated from Nomad 3: Cache for static surrogate not implemented \)
 \(
 \)
 \( internal \)
@@ -665,7 +665,7 @@ std::string
 SGTE_COST
 size_t
 INF
-\( Deprecated from Nomad 3: use of static surrogate not implemented \)
+\( Deprecated from Nomad 3: replaced by EVAL_SURROGATE_COST \)
 \(
 \)
 \( internal \)
@@ -673,7 +673,7 @@ INF
 SGTE_EVAL_SORT
 bool
 true
-\( Deprecated from Nomad 3: use of static surrogate not implemented \)
+\( Deprecated from Nomad 3: replaced by EVAL_QUEUE_SORT SURROGATE \)
 \(
 \)
 \( internal \)
@@ -681,7 +681,7 @@ true
 SGTE_EXE
 std::string
 sgte.exe
-\( Deprecated from Nomad 3: use of static surrogate not implemented \)
+\( Deprecated from Nomad 3: replaced by SURROGATE_EXE \)
 \(
 \)
 \( internal \)

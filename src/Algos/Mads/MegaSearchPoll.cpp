@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -54,7 +54,7 @@
 
 void NOMAD::MegaSearchPoll::init()
 {
-    _name = "MegaSearchPoll";
+    setStepType(NOMAD::StepType::MEGA_SEARCH_POLL);
     verifyParentNotNull();
 
     auto megaIter = dynamic_cast<const NOMAD::MadsMegaIteration*>( _megaIterAncestor );
@@ -103,7 +103,7 @@ void NOMAD::MegaSearchPoll::generateTrialPoints()
 {
     verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, true);
     OUTPUT_INFO_START
-    AddOutputInfo("Generate points for " + _name, true, false);
+    AddOutputInfo("Generate points for " + getName(), true, false);
     OUTPUT_INFO_END
 
     NOMAD::EvalPointSet trialPoints;
@@ -135,7 +135,7 @@ void NOMAD::MegaSearchPoll::generateTrialPoints()
 
     OUTPUT_INFO_START
     AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");
-    AddOutputInfo("Generate points for " + _name, false, true);
+    AddOutputInfo("Generate points for " + getName(), false, true);
     OUTPUT_INFO_END
 
 }

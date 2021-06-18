@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -99,6 +99,7 @@ enum class DisplayStatsType
     DS_DELTA_F    ,    ///< Same as \c DS_FRAME_SIZE
     DS_FRAME_CENTER ,  ///< Frame center: Point that was used as center to generate this point
     DS_DIRECTION  ,    ///< Direction that generated this point
+    DS_SURROGATE_EVAL , ///< Number of static surrogate evaluations
     DS_SOL        ,    ///< Solution vector
     DS_THREAD_ALGO,    ///< Thread number for the algorithm
     DS_THREAD_NUM ,    ///< Thread number in which this evaluation was done
@@ -149,6 +150,7 @@ private:
     size_t          _modelEval;
     size_t          _totalModelEval;
     Point           _sol;
+    size_t          _surrogateEval;
     int             _threadAlgoNum;
     int             _threadNum;
     bool            _relativeSuccess;   ///> Used for priting star, or when DISPLAY_ALL_EVAL is false.
@@ -197,6 +199,7 @@ public:
     void setModelEval(const size_t modelEval)       { _modelEval = modelEval; }
     void setTotalModelEval(const size_t totalModelEval) { _totalModelEval = totalModelEval; }
     void setSol(const Point sol)                    { _sol = sol; }
+    void setSurrogateEval(const size_t surrogateEval) { _surrogateEval = surrogateEval; }
     void setThreadAlgo(const int threadAlgoNum)     { _threadAlgoNum = threadAlgoNum; }
     void setThreadNum(const int threadNum)          { _threadNum = threadNum; }
     void setRelativeSuccess(bool relativeSuccess)   { _relativeSuccess = relativeSuccess; }

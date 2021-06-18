@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -52,6 +52,13 @@
 #include "../../Type/LHSearchType.hpp"
 
 
+void NOMAD::PSDMadsMegaIteration::destroy()
+{
+    _madsOnSubPb.reset();
+    setStepType(NOMAD::StepType::MEGA_ITERATION);
+}
+
+
 void NOMAD::PSDMadsMegaIteration::startImp()
 {
     auto madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
@@ -64,6 +71,7 @@ void NOMAD::PSDMadsMegaIteration::startImp()
 
     // Create Mads for this subproblem
     _madsOnSubPb = std::make_shared<NOMAD::Mads>(this, madsStopReasons, subProblemRunParams, subProblemPbParams);
+    /*
     std::string madsName = "Mads ";
     if (isPollster)
     {
@@ -84,6 +92,8 @@ void NOMAD::PSDMadsMegaIteration::startImp()
         }
     }
     _madsOnSubPb->setName(madsName);
+    */
+    _madsOnSubPb->setStepType(NOMAD::StepType::ALGORITHM_PSD_MADS_SUBPROBLEM);
 }
 
 

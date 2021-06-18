@@ -35,13 +35,15 @@ def __doc__():
 # Define the interface function to perform optimization (blackbox evaluation defined in parameter file)
 def optimizeWithMainStep(params):
   cdef shared_ptr[AllParameters] allParameters_ptr = make_shared[AllParameters]()
+  deref(allParameters_ptr).eraseAllEntries()
+
   cdef MainStep mainStep
 
   cdef size_t nbParams = len(params)
   for i in range(nbParams):
-       params[i] = params[i].encode(u"ascii")
-       # print(params[i])
-       deref(allParameters_ptr).readParamLine(params[i])
+       encoded_parami = params[i].encode(u"ascii")
+       # print(encoded_parami)
+       deref(allParameters_ptr).readParamLine(encoded_parami)
 
   deref(allParameters_ptr).checkAndComply()
   mainStep.setAllParameters(allParameters_ptr)
@@ -49,42 +51,102 @@ def optimizeWithMainStep(params):
   mainStep.run()
   mainStep.end()
 
+  # Make sure to reset static components for the next optimization
+  mainStep.resetComponentsBetweenOptimization()
+
 def suggest(params):
   cdef shared_ptr[AllParameters] allParameters_ptr = make_shared[AllParameters]()
+
+ # The function eraseAllEntries must be called to reset a static variables
+  deref(allParameters_ptr).resetToDefaultValues()
+  deref(allParameters_ptr).eraseAllEntries()
+
+  # The PyNomad::mainStep
   cdef MainStep mainStep
 
   cdef size_t nbParams = len(params)
   for i in range(nbParams):
     if type(params[i]) is str:
-     params[i]= params[i].encode(u"ascii")
-     # print(params[i])
-     deref(allParameters_ptr).readParamLine(params[i])
+      encoded_parami= params[i].encode(u"ascii")
+      # print(encoded_parami)
+      deref(allParameters_ptr).readParamLine(encoded_parami)
+      #allParameters.readParamLine(encoded_parami)
+
+  # Get the rng state before checkAndComply
+  rng_state = getRNGState()
 
   deref(allParameters_ptr).checkAndComply()
   mainStep.setAllParameters(allParameters_ptr)
+
+  # Reset the cache (important for static members reinitialization) before calling suggest
+  mainStep.resetCache()
+
+
+  # Because the seed is not set as a Nomad parameters, the parameter has a 0 default value.
+  # The check and comply will set the RNG state accordingly to a wrong state.
+  # Reset to the rng state after checkAndComply
+  setRNGState(rng_state)
+
   cdef vector[Point] xs = mainStep.suggest()
 
   candidates = []
   for i in range(xs.size()):
     candidates.append([xs[i][j].todouble() for j in range(xs[i].size())])
 
-  mainStep.resetComponentsBetweenOptimization()
   return candidates
+
+def setSeed(seed):
+    cdef RNG rng
+    rng.setSeed(seed)
+
+def getRNGState():
+    cdef RNG rng
+    state = rng.getPrivateSeedAsString()
+    if type(state) is bytes:
+       encoded_state= state.decode('utf-8')
+    else:
+       encoded_state = state
+    return encoded_state
+
+def setRNGState(state):
+    cdef RNG rng
+    if type(state) is str:
+       encoded_state= state.encode(u"ascii")
+    else:
+       encoded_state= state
+    rng.setPrivateSeedAsString(encoded_state)
+
+
+def resetRandomNumberGenerator():
+    cdef RNG rng
+    current_seed = rng.getSeed()
+    rng.setSeed(current_seed) # Set seed performs a reset of the private seed
+
 
 def observe(params,points,evals,udpatedCacheFileName):
     cdef shared_ptr[AllParameters] allParameters_ptr = make_shared[AllParameters]()
+    # cdef shared_ptr[AllParameters] allParameters_ptr
+
+    # allParameters_ptr.reset(new AllParameters())
+
+    # The function eraseAllEntries must be called to reset a static variables
+    deref(allParameters_ptr).resetToDefaultValues()
+    deref(allParameters_ptr).eraseAllEntries()
+
     cdef MainStep mainStep
 
     cdef size_t nbParams = len(params)
     for i in range(nbParams):
        if type(params[i]) is str:
-          params[i]= params[i].encode(u"ascii")
-       # print(params[i])
-       deref(allParameters_ptr).readParamLine(params[i])
+          encoded_parami= params[i].encode(u"ascii")
+          # print(encoded_parami)
+          deref(allParameters_ptr).readParamLine(encoded_parami)
 
     deref(allParameters_ptr).checkAndComply()
     mainStep.setAllParameters(allParameters_ptr)
 
+    # Reset the cache (important for static members reinitialization) before calling observe
+    mainStep.resetCache() 
 
     if len(points) != len(evals):
       print("Observe: Incompatible dimension of points and evaluations")
@@ -109,7 +171,6 @@ def observe(params,points,evals,udpatedCacheFileName):
 
     updatedParams = mainStep.observe(vpoints,vevals,udpatedCacheFileName.encode(u"ascii"))
 
-    mainStep.resetComponentsBetweenOptimization()
     return updatedParams
 
 # Define the interface function to perform optimization
@@ -161,6 +222,8 @@ cdef extern from "Algos/MainStep.hpp" namespace "NOMAD":
         vector[string] observe(const vector[Point] & points, const vector[ArrayOfDouble] & evals, const string & updatedCacheFileName)
         @staticmethod
         void resetComponentsBetweenOptimization()
+        @staticmethod
+        void resetCache()
 
 cdef extern from "Math/Point.hpp" namespace "NOMAD":
     cdef cppclass Point:
@@ -175,6 +238,47 @@ cdef extern from "Math/ArrayOfDouble.hpp" namespace "NOMAD":
       ArrayOfDouble(const vector[double] &) except+
       const Double& operator[](size_t i) const
       size_t size()
+
+cdef extern from "Math/RNG.hpp" namespace "NOMAD":
+    cdef cppclass RNG:
+      void setSeed(int s)
+      int getSeed()
+      @staticmethod
+      void resetPrivateSeedToDefault()
+      @staticmethod
+      string getPrivateSeedAsString()
+      @staticmethod
+      void setPrivateSeedAsString(const string & s)
+
+cdef class PyNomadMainStep:
+    cdef MainStep ms
+
+    def __cinit__(self,params):
+        self.ms = MainStep()
+
+        cdef shared_ptr[AllParameters] allParameters_ptr = make_shared[AllParameters]()
+        deref(allParameters_ptr).eraseAllEntries()
+
+        cdef size_t nbParams = len(params)
+        for i in range(nbParams):
+          if type(params[i]) is str:
+           encoded_parami= params[i].encode(u"ascii")
+           # print(encoded_parami)
+           deref(allParameters_ptr).readParamLine(encoded_parami)
+
+        deref(allParameters_ptr).checkAndComply()
+        self.ms.setAllParameters(allParameters_ptr)
+
+    def suggest(self):
+        cdef vector[Point] xs = self.ms.suggest()
+
+        candidates = []
+        for i in range(xs.size()):
+            candidates.append([xs[i][j].todouble() for j in range(xs[i].size())])
+
+        return candidates
+
+
 
 cdef class PyNomadPoint:
     #cdef shared_ptr[Point] c_p_ptr
@@ -231,7 +335,10 @@ cdef extern from "Param/AllParameters.hpp" namespace "NOMAD":
   cdef cppclass AllParameters:
         void read(const string & paramfile, bool overwrite , bool resetAllEntries )
         void readParamLine(const string & paramline)
+        @staticmethod
+        void eraseAllEntries()
         void checkAndComply()
+        void resetToDefaultValues()
 
 cdef extern from "Math/Double.hpp" namespace "NOMAD":
     cdef cppclass Double:

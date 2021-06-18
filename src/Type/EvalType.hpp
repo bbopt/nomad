@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -65,6 +65,9 @@ enum class EvalType
     BB,                 ///< The evaluator is a blackbox.
     MODEL,              ///< The evaluator is a model function,
                         /// potentially much faster to run than a blackbox.
+    SURROGATE,          ///< The evaluator is a static surrogate,
+                        /// potentially much faster to run than a blackbox.
+    LAST,               ///< For iterations; Note: UNDEFINED evals are ignored.
     UNDEFINED           ///< Undefined: This value may be used when the
                         ///< EvalType is not mandatory
 };
@@ -75,7 +78,7 @@ enum class EvalType
 EvalType stringToEvalType(const std::string &s);
 
 // Convert an EvalType to a string
-std::string evalTypeToString (const EvalType& evalType);
+std::string evalTypeToString(const EvalType& evalType);
 
 
 inline std::ostream& operator<<(std::ostream& out, const EvalType &evalType)

@@ -31,49 +31,6 @@
 #####         values may be assigned to this parameter.
 #####
 ###############################################################################
-MAX_BB_EVAL
-size_t
-INF
-\( Stopping criterion on the number of blackbox evaluations \)
-\(
-
-. Maximum number of blackbox evaluations
-
-. Argument: one positive integer
-
-. An INF value serves to disable the stopping criterion.
-
-. Does not consider evaluations taken in the cache (cache hits)
-
-. In bi-objective mode: max number of blackbox evaluations for each MADS run
-
-. Example: MAX_BB_EVAL 1000
-
-\)
-\( basic stop(s) stopping max maximum criterion(s) blackbox(es) bb \)
-ALGO_COMPATIBILITY_CHECK no
-RESTART_ATTRIBUTE yes
-################################################################################
-MAX_EVAL
-size_t
-INF
-\( Stopping criterion on the number of evaluations (blackbox and cache) \)
-\(
-
-. Maximum number of evaluations, including evaluations taken in the cache
-  (cache hits)
-
-. Argument: one positive integer
-
-. An INF value serves to disable the stopping criterion.
-
-. Example: MAX_EVAL 1000
-
-\)
-\( advanced stop(s) stopping max maximum criterion(s) blackbox(es) bb eval(s) evaluation(s) cache \)
-ALGO_COMPATIBILITY_CHECK no
-RESTART_ATTRIBUTE yes
-################################################################################
 BB_MAX_BLOCK_SIZE
 size_t
 1
@@ -101,6 +58,178 @@ size_t
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
+EVAL_QUEUE_CLEAR
+bool
+true
+\( Opportunistic strategy: Flag to clear EvaluatorControl queue between each run \)
+\(
+
+. Opportunistic strategy: If a success is found, clear evaluation queue of
+  other points.
+
+. If this flag is false, the points in the evaluation queue that are not yet
+  evaluated might be evaluated later.
+
+. If this flag is true, the points in the evaluation queue that are not yet
+  evaluated will be flushed.
+
+. Outside of opportunistic strategy, this flag has no effect.
+
+\)
+\( advanced opportunistic oppor eval(s) evaluation(s) clear flush \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+#################################################################################
+EVAL_QUEUE_SORT
+NOMAD::EvalSortType
+DIR_LAST_SUCCESS
+\( How to sort points before evaluation \)
+\(
+. Argument: One of DIR_LAST_SUCCESS, LEXICOGRAPHICAL, RANDOM, SURROGATE
+
+. DIR_LAST_SUCCESS: Points that are generated in a direction similar to the
+  last direction that provided a successful point are evaluated first.
+
+. LEXICOGRAPHICAL: Points are sorted in lexicographical order before evaluation.
+
+. RANDOM: Mix points randomly before evaluation, instead of sorting them.
+
+. SURROGATE: Sort points using values given by static surrogate. See parameter SURROGATE_EXE.
+
+. Example: EVAL_QUEUE_SORT LEXICOGRAPHICAL
+
+\)
+\( advanced \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+EVAL_SURROGATE_COST
+size_t
+INF
+\( Cost of the surrogate function versus the true function \)
+\(
+  . Cost of the surrogate function relative to the true function
+
+  . Argument: one nonnegative integer.
+
+  . INF means there is no cost
+
+  . Examples:
+        EVAL_SURROGATE_COST 3    # three surrogate evaluations count as one blackbox
+                                 # evaluation: the surrogate is three times faster
+        EVAL_SURROGATE_COST INF  # set to infinity: A surrogate evaluation does
+                                 # not count at all
+
+  . See also: SURROGATE_EXE, EVAL_SURROGATE_OPTIMIZATION
+\)
+\( advanced static surrogate \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+MAX_BB_EVAL
+size_t
+INF
+\( Stopping criterion on the number of blackbox evaluations \)
+\(
+
+. Maximum number of blackbox evaluations
+
+. Argument: one positive integer
+
+. An INF value serves to disable the stopping criterion.
+
+. Does not consider evaluations taken in the cache (cache hits)
+
+. Example: MAX_BB_EVAL 1000
+
+\)
+\( basic stop(s) stopping max maximum criterion(s) blackbox(es) bb \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+################################################################################
+MAX_BLOCK_EVAL
+size_t
+INF
+\( Stopping criterion on the number of blocks evaluations \)
+\(
+
+. Maximum number of blocks evaluations
+
+. Argument: one positive integer
+
+. An INF value serves to disable the stopping criterion.
+
+. Example: MAX_BLOCK_EVAL 100
+
+\)
+\( advances block stop parallel \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MAX_EVAL
+size_t
+INF
+\( Stopping criterion on the number of evaluations (blackbox and cache) \)
+\(
+
+. Maximum number of evaluations, including evaluations taken in the cache
+  (cache hits)
+
+. Argument: one positive integer
+
+. An INF value serves to disable the stopping criterion.
+
+. Example: MAX_EVAL 1000
+
+\)
+\( advanced stop(s) stopping max maximum criterion(s) blackbox(es) bb eval(s) evaluation(s) cache \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+################################################################################
+MAX_SURROGATE_EVAL_OPTIMIZATION
+size_t
+INF
+\( Stopping criterion on the number of static surrogate evaluations \)
+\(
+
+. Maximum number of static surrogate evaluations
+
+. Argument: one positive integer
+
+. An INF value serves to disable the stopping criterion.
+
+. Does not consider evaluations taken in the cache (cache hits)
+
+. Only used when EVAL_SURROGATE_OPTIMIZATION is true.
+
+. Example: MAX_SURROGATE_EVAL_OPTIMIZATION 1000
+
+\)
+\( basic stop max maximum surrogate \)
+ALGO_COMPATIBILITY_CHECK no
+################################################################################
+MODEL_MAX_BLOCK_SIZE
+size_t
+INF
+\( Internal parameter for QUAD_MODEL_MAX_BLOCK_SIZE and SGTELIB_MODEL_MAX_BLOCK_SIZE \)
+\(
+. CANNOT BE MODIFIED BY USER. Internal parameter.
+\)
+\( internal \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MODEL_MAX_EVAL
+size_t
+1000
+\( Internal parameter for QUAD_MODEL_MAX_EVAL and SGTELIB_MODEL_MAX_EVAL \)
+\(
+. CANNOT BE MODIFIED BY USER. Internal parameter.
+\)
+\( internal \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################
 QUAD_MODEL_MAX_BLOCK_SIZE
 size_t
 INF
@@ -123,6 +252,24 @@ INF
 
 \)
 \( advanced block parallel \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QUAD_MODEL_MAX_EVAL
+size_t
+1000
+\( Max number of model evaluations for each optimization of the quad model problem \)
+\(
+. Max number of model evaluations for each optimization of the quad model problem.
+
+. Argument: one integer > 0
+
+. The number of evaluations may exceed this parameter when parameter QUAD_MODEL_MAX_BLOCK_SIZE
+  is greater than one.
+
+. Example: QUAD_MODEL_MAX_EVAL 5000
+\)
+\( advanced quad search model model_search \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
@@ -151,116 +298,6 @@ INF
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
-MODEL_MAX_BLOCK_SIZE
-size_t
-INF
-\( Internal parameter for QUAD_MODEL_MAX_BLOCK_SIZE and SGTELIB_MODEL_MAX_BLOCK_SIZE \)
-\(
-. CANNOT BE MODIFIED BY USER. Internal parameter.
-\)
-\( internal \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-MAX_BLOCK_EVAL
-size_t
-INF
-\( Stopping criterion on the number of blocks evaluations \)
-\(
-
-. Maximum number of blocks evaluations
-
-. Argument: one positive integer
-
-. An INF value serves to disable the stopping criterion.
-
-. Example: MAX_BLOCK_EVAL 100
-
-\)
-\( advances block stop parallel \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-EVAL_QUEUE_CLEAR
-bool
-true
-\( Opportunistic strategy: Flag to clear EvaluatorControl queue between each run \)
-\(
-
-. Opportunistic strategy: If a success is found, clear evaluation queue of
-  other points.
-
-. If this flag is false, the points in the evaluation queue that are not yet
-  evaluated might be evaluated later.
-
-. If this flag is true, the points in the evaluation queue that are not yet
-  evaluated will be flushed.
-
-. Outside of opportunistic strategy, this flag has no effect.
-
-\)
-\( advanced opportunistic oppor eval(s) evaluation(s) clear flush \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-#################################################################################
-TMP_DIR
-std::string
-/tmp/
-\( Directory where to put temporary files \)
-\(
-
-. Temporary directory for blackbox input/output files
-
-. Argument: one string indicating a directory
-
-. Improved performance with a local temporary directory
-
-. Example: TMP_DIR /tmp
-
-\)
-\( advanced \)
-ALGO_COMPATIBILITY_CHECK no
-RESTART_ATTRIBUTE no
-################################################################################
-EVAL_QUEUE_SORT
-NOMAD::EvalSortType
-DIR_LAST_SUCCESS
-\( How to sort points before evaluation \)
-\(
-. Argument: One of RANDOM, LEXICOGRAPHICAL, DIR_LAST_SUCCESS
-
-. DIR_LAST_SUCCESS: Points that are generated in a direction similar to the
-  last direction that provided a successful point are evaluated first.
-
-. LEXICOGRAPHICAL: Points are sorted in lexicographical order before evaluation.
-
-. RANDOM: Mix points randomly before evaluation, instead of sorting them.
-
-. Example: EVAL_QUEUE_SORT LEXICOGRAPHICAL
-
-\)
-\( advanced \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-QUAD_MODEL_MAX_EVAL
-size_t
-1000
-\( Max number of model evaluations for each optimization of the quad model problem \)
-\(
-. Max number of model evaluations for each optimization of the quad model problem.
-
-. Argument: one integer > 0
-
-. The number of evaluations may exceed this parameter when parameter QUAD_MODEL_MAX_BLOCK_SIZE
-  is greater than one.
-
-. Example: QUAD_MODEL_MAX_EVAL 5000
-\)
-\( advanced quad search model model_search \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
 SGTELIB_MODEL_MAX_EVAL
 size_t
 1000
@@ -279,14 +316,22 @@ size_t
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
-MODEL_MAX_EVAL
-size_t
-1000
-\( Internal parameter for QUAD_MODEL_MAX_EVAL and SGTELIB_MODEL_MAX_EVAL \)
+TMP_DIR
+std::string
+/tmp/
+\( Directory where to put temporary files \)
 \(
-. CANNOT BE MODIFIED BY USER. Internal parameter.
+
+. Temporary directory for blackbox input/output files
+
+. Argument: one string indicating a directory
+
+. Improved performance with a local temporary directory
+
+. Example: TMP_DIR /tmp
+
 \)
-\( internal \)
+\( advanced \)
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ################################################################################

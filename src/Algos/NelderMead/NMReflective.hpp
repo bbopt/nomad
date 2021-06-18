@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -66,9 +66,7 @@
 class NMReflective: public Step, public NMIterationUtils
 {
 private:
-
-
-    NMStepType _nextStepType;
+    StepType _nextStepType;
     Double _delta, _deltaE, _deltaOC, _deltaIC;
 
     EvalPoint _xr, _xe, _xoc, _xic;
@@ -104,10 +102,10 @@ public:
     /**
      The name of the step and the value of delta are changed according to stepType.
      */
-    void setCurrentNMStepType(NMStepType stepType);
+    void setCurrentNMStepType(StepType stepType);
 
 
-    NMStepType getNextNMStepType() const { return _nextStepType ; }
+    StepType getNextNMStepType() const { return _nextStepType ; }
 
 private:
 

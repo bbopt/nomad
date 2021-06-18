@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -57,7 +57,7 @@
 #include "../Util/utils.hpp"
 
 
-// Convert a string ("LEXICOGRAPHICAL", "DIR_LAST_SUCCESS", "RANDOM")
+// Convert a string ("LEXICOGRAPHICAL", "DIR_LAST_SUCCESS", "RANDOM", "SURROGATE")
 // to a NOMAD::EvalSortType.
 NOMAD::EvalSortType NOMAD::stringToEvalSortType(const std::string &sConst)
 {
@@ -72,6 +72,14 @@ NOMAD::EvalSortType NOMAD::stringToEvalSortType(const std::string &sConst)
     else if (s == "LEXICOGRAPHICAL")
     {
         ret = NOMAD::EvalSortType::LEXICOGRAPHICAL;
+    }
+    else if (s == "RANDOM")
+    {
+        ret = NOMAD::EvalSortType::RANDOM;
+    }
+    else if (s == "SURROGATE")
+    {
+        ret = NOMAD::EvalSortType::SURROGATE;
     }
     else
     {
@@ -98,6 +106,9 @@ std::string NOMAD::evalSortTypeToString(const NOMAD::EvalSortType& evalSortType)
             break;
         case NOMAD::EvalSortType::RANDOM:
             s = "RANDOM";
+            break;
+        case NOMAD::EvalSortType::SURROGATE:
+            s = "SURROGATE";
             break;
         default:
             throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized NOMAD::EvalSortType " + std::to_string((int)evalSortType));

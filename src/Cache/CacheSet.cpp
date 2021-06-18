@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -243,7 +243,6 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
     }
 
     bool inserted = false;
-    bool doEval;
     std::pair<NOMAD::EvalPointSet::iterator,bool> ret;   // Return of the insert()
 #ifdef _OPENMP
     omp_set_lock(&_cacheLock);
@@ -254,6 +253,7 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
 #endif // _OPENMP
     inserted = ret.second;
     bool canEval = (*ret.first).toEval(maxNumberEval, evalType);
+    bool doEval = canEval;
     if (inserted && -1 == evalPoint.getTag())
     {
         ret.first->updateTag();
@@ -286,10 +286,14 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
             // TODO This will have to be re-assessed.
             doEval = canEval;
         }
-        else
+        else if (NOMAD::EvalType::MODEL == evalType)
         {
             // It is ok to re-evaluate MODEL points.
             doEval = true;
+        }
+        else if (NOMAD::EvalType::SURROGATE == evalType)
+        {
+            doEval = canEval;
         }
     }
     else
@@ -611,9 +615,6 @@ bool NOMAD::CacheSet::update(const NOMAD::EvalPoint& evalPoint, const NOMAD::Eva
     omp_set_lock(&_cacheLock);
 #endif // _OPENMP
     it = _cache.find(evalPoint);
-#ifdef _OPENMP
-    omp_unset_lock(&_cacheLock);
-#endif // _OPENMP
     if (it == _cache.end())
     {
         std::string err = "Warning: CacheSet: Update: Did not find EvalPoint to update in cache: " + evalPoint.displayAll();
@@ -630,6 +631,9 @@ bool NOMAD::CacheSet::update(const NOMAD::EvalPoint& evalPoint, const NOMAD::Eva
         cacheEvalPoint->setNumberEval(evalPoint.getNumberEval());
         updateOk = true;
     }
+#ifdef _OPENMP
+    omp_unset_lock(&_cacheLock);
+#endif // _OPENMP
 
     return updateOk;
 }
@@ -678,6 +682,7 @@ void NOMAD::CacheSet::clearModelEval(const int mainThreadNum)
 // We also want to keep points that are good enough to be interesting to the
 // user.
 //
+// Note June 2021: We are now ignoring points for which eval status is not EVAL_OK.
 void NOMAD::CacheSet::purge()
 {
     std::cerr << "Warning: Calling Cache purge. Size is " << _cache.size() << " max is " << _maxSize << ". Some points will be removed from the cache." << std::endl;
@@ -707,6 +712,10 @@ void NOMAD::CacheSet::purge()
             NOMAD::EvalPointSet::const_iterator it;
             for (it = _cache.begin(); it != _cache.end(); ++it)
             {
+                if (NOMAD::EvalStatusType::EVAL_OK != it->getEvalStatus(NOMAD::EvalType::BB))
+                {
+                    continue;
+                }
                 if (!it->getF(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD).isDefined())
                 {
                     continue;
@@ -764,6 +773,10 @@ size_t NOMAD::CacheSet::computeMeanF(NOMAD::Double &mean) const
     NOMAD::EvalPointSet::const_iterator it;
     for (it = _cache.begin(); it != _cache.end(); ++it)
     {
+        if (NOMAD::EvalStatusType::EVAL_OK != it->getEvalStatus(NOMAD::EvalType::BB))
+        {
+            continue;
+        }
         NOMAD::Double f = it->getF(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
         if (f.isDefined())
         {
@@ -828,13 +841,26 @@ void NOMAD::CacheSet::deleteModelEvalOnly(const int mainThreadNum)
         {
             it++;
         }
-        else if (nullptr != it->getEval(NOMAD::EvalType::BB))
-        {
-            it++;
-        }
         else
         {
-            it = _cache.erase(it);
+            bool foundOtherEval = false;
+            for (size_t i = 0; (i < (size_t)NOMAD::EvalType::LAST && !foundOtherEval); i++)
+            {
+                auto evalType = NOMAD::EvalType(i);
+                if (NOMAD::EvalType::MODEL != evalType && nullptr != it->getEval(evalType))
+                {
+                    foundOtherEval = true;
+                }
+            }
+            if (foundOtherEval)
+            {
+                it++;
+            }
+            else
+            {
+                // Only MODEL evaluation, or no evaluation, for this point.
+                it = _cache.erase(it);
+            }
         }
     }
 #ifdef _OPENMP

@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -304,8 +304,9 @@ template<> std::map<NOMAD::EvalGlobalStopType,std::string> & NOMAD::StopReason<N
 {
     static std::map<NOMAD::EvalGlobalStopType,std::string> dictionary = {
         {NOMAD::EvalGlobalStopType::STARTED,                  "Started"},   // Set a the begining of an EvaluatorControl Run
-        {NOMAD::EvalGlobalStopType::MAX_BB_EVAL_REACHED,      "Max number of blackbox evaluations"},
-        {NOMAD::EvalGlobalStopType::MAX_EVAL_REACHED,         "Max number of total evaluations"},
+        {NOMAD::EvalGlobalStopType::MAX_BB_EVAL_REACHED,      "Maximum number of blackbox evaluations"},
+        {NOMAD::EvalGlobalStopType::MAX_SURROGATE_EVAL_OPTIMIZATION_REACHED, "Maximum number of surrogate evaluations"},
+        {NOMAD::EvalGlobalStopType::MAX_EVAL_REACHED,         "Maximum number of total evaluations"},
         {NOMAD::EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED,   "Maximum number of block eval reached"}
     };
     return dictionary;
@@ -317,12 +318,12 @@ template<> std::map<NOMAD::EvalMainThreadStopType,std::string> & NOMAD::StopReas
 {
     static std::map<NOMAD::EvalMainThreadStopType,std::string> dictionary = {
         {NOMAD::EvalMainThreadStopType::STARTED,                  "Started"},   // Set a the begining of an EvaluatorControl Run
-        {NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED,  "Max number of blackbox evaluations for a sub algorithm run (lap run)"},
-        {NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED,  "Max number of blackbox evaluations for a subproblem run"},
+        {NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED,  "Maximum number of blackbox evaluations for a sub algorithm run (lap run)"},
+        {NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED,  "Maximum number of blackbox evaluations for a subproblem run"},
         {NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS,    "Success found and opportunistic strategy is used"},
         {NOMAD::EvalMainThreadStopType::EMPTY_LIST_OF_POINTS,     "Tried to eval an empty list"},
         {NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED,     "No more points to evaluate"},
-        {NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED,   "Max number of model evaluations reached"}
+        {NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED,   "Maximum number of model evaluations reached"}
     };
     return dictionary;
 }
@@ -334,6 +335,7 @@ template<> bool NOMAD::StopReason<NOMAD::EvalGlobalStopType>::checkTerminate() c
     switch ( _stopReason )
     {
         case NOMAD::EvalGlobalStopType::MAX_BB_EVAL_REACHED:
+        case NOMAD::EvalGlobalStopType::MAX_SURROGATE_EVAL_OPTIMIZATION_REACHED:
         case NOMAD::EvalGlobalStopType::MAX_EVAL_REACHED:
         case NOMAD::EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED:
             return true;

@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -66,7 +66,7 @@ std::vector<double> NOMAD::Search::_searchEvalTime(5, 0.0);
 
 void NOMAD::Search::init()
 {
-    _name = "Search";
+    setStepType(NOMAD::StepType::SEARCH);
     verifyParentNotNull();
 
     auto speculativeSearch      = std::make_shared<NOMAD::SpeculativeSearchMethod>(this);
@@ -116,9 +116,9 @@ bool NOMAD::Search::runImp()
 
     if (!isEnabled())
     {
-        // Early out --> no found better!
+        // Early out - Return false: No new success found.
         OUTPUT_DEBUG_START
-        AddOutputDebug("Search method is disabled. Early out.");
+        AddOutputDebug("Search methods are all disabled.");
         OUTPUT_DEBUG_END
         return false;
     }

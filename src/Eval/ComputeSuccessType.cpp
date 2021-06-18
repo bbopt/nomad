@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -123,6 +123,32 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypePhaseOne(
 }
 
 
+NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypePhaseOneSurrogate(
+                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
+                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
+                                const NOMAD::Double& hMax)
+{
+    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
+
+    if (nullptr != evalPoint1)
+    {
+        if (nullptr == evalPoint2)
+        {
+            success = NOMAD::SuccessType::FULL_SUCCESS;
+        }
+        else
+        {
+            success = NOMAD::Eval::computeSuccessType(evalPoint1->getEval(NOMAD::EvalType::SURROGATE),
+                                                      evalPoint2->getEval(NOMAD::EvalType::SURROGATE),
+                                                      NOMAD::ComputeType::PHASE_ONE,
+                                                      hMax);
+        }
+    }
+
+    return success;
+}
+
+
 NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeModel(
                                 const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
                                 const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
@@ -154,6 +180,47 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeModel(
 }
 
 
+NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeSurrogate(
+                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
+                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
+                                const NOMAD::Double& hMax)
+{
+    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
+
+    if (nullptr != evalPoint1)
+    {
+        if (nullptr == evalPoint2)
+        {
+            if (evalPoint1->getH(NOMAD::EvalType::SURROGATE, NOMAD::ComputeType::STANDARD) > hMax)
+            {
+                // Even if evalPoint2 is NULL, this case is still
+                // not a success.
+                success = NOMAD::SuccessType::UNSUCCESSFUL;
+            }
+            else if (evalPoint1->isFeasible(NOMAD::EvalType::SURROGATE))
+            {
+                // New feasible point: full success
+                success = NOMAD::SuccessType::FULL_SUCCESS;
+            }
+            else
+            {
+                // New infeasible makes for partial success, not full success
+                success = NOMAD::SuccessType::PARTIAL_SUCCESS;
+            }
+        }
+        else
+        {
+            success = NOMAD::Eval::computeSuccessType(evalPoint1->getEval(NOMAD::EvalType::SURROGATE),
+                                                      evalPoint2->getEval(NOMAD::EvalType::SURROGATE),
+                                                      NOMAD::ComputeType::STANDARD,
+                                                      hMax);
+        }
+    }
+
+    return success;
+}
+
+
 void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(const NOMAD::EvalType& evalType,
                                                               const NOMAD::ComputeType& computeType)
 {
@@ -172,9 +239,29 @@ void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(const NOMAD::EvalT
             // TODO USER: Issue #491
         }
     }
+    else if (NOMAD::EvalType::SURROGATE == evalType)
+    {
+        if (NOMAD::ComputeType::STANDARD == computeType)
+        {
+            _computeSuccessType = NOMAD::ComputeSuccessType::computeSuccessTypeSurrogate;
+        }
+        else if (NOMAD::ComputeType::PHASE_ONE == computeType)
+        {
+            _computeSuccessType = NOMAD::ComputeSuccessType::computeSuccessTypePhaseOneSurrogate;
+        }
+        else
+        {
+            // TODO USER: Issue #491
+        }
+    }
     else if (NOMAD::EvalType::MODEL == evalType)
     {
         _computeSuccessType = NOMAD::ComputeSuccessType::computeSuccessTypeModel;
+    }
+    else
+    {
+        std::string err = "No compute success type function available for " + NOMAD::evalTypeToString(evalType);
+        throw NOMAD::Exception(__FILE__,__LINE__,err);
     }
 }
 

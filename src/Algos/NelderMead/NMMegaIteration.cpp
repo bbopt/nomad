@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -52,7 +52,7 @@
 
 void NOMAD::NMMegaIteration::init()
 {
-    _name = NOMAD::MegaIteration::getName();
+    setStepType(NOMAD::StepType::MEGA_ITERATION);
 
     // Get barrier from upper MadsMegaIteration, if available.
     auto madsMegaIter = getParentOfType<NOMAD::MadsMegaIteration*>(false);
@@ -121,7 +121,7 @@ bool NOMAD::NMMegaIteration::runImp()
     if ( _stopReasons->checkTerminate() )
     {
         OUTPUT_DEBUG_START
-        s = _name + ": stopReason = " + _stopReasons->getStopReasonAsString() ;
+        s = getName() + ": stopReason = " + _stopReasons->getStopReasonAsString() ;
         AddOutputDebug(s);
         OUTPUT_DEBUG_END
         return false;
@@ -146,7 +146,7 @@ bool NOMAD::NMMegaIteration::runImp()
         if (iterSuccessful)
         {
             OUTPUT_DEBUG_START
-            s = _name + ": new success " + NOMAD::enumStr(getSuccessType());
+            s = getName() + ": new success " + NOMAD::enumStr(getSuccessType());
             AddOutputDebug(s);
             OUTPUT_DEBUG_END
         }
@@ -160,7 +160,7 @@ bool NOMAD::NMMegaIteration::runImp()
     }
     OUTPUT_DEBUG_START
     // Display MegaIteration's stop reason
-    AddOutputDebug(_name + " stop reason set to: " + _stopReasons->getStopReasonAsString());
+    AddOutputDebug(getName() + " stop reason set to: " + _stopReasons->getStopReasonAsString());
     OUTPUT_DEBUG_END
 
     // MegaIteration is a success if either a better xFeas or
