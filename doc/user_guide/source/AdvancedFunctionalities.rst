@@ -222,10 +222,22 @@ An example of usage of PSD-MADS in library mode is in
 
 .. _hot_restart:
 
-Hot restart
+Hot and Warm Restart
 --------
 
-Information to be added shortly
+This new feature of NOMAD 4 makes it possible to continue the solving process after it has started, without having to restart it
+ from the beginning.
+In the case of hot restart, the user interrupts the solver to change the value of a parameter. 
+With warm restart, the user changes a parameter from a resolution that has already reached a termination condition. 
+In both cases, the solving process is then continued from its current state.
+
+To enable hot restart, set parameter ``HOT_RESTART_ON_USER_INTERRUPT`` to ``true``.
+While NOMAD is running, interrupt the run with the command ``CTRL-C``.
+New values for parameters may be entered, for example ``LH_SEARCH 0 20``.
+The syntax is the same as the syntax of a parameter file, when in batch mode.
+When all new parameter values are entered, continue optimization by entering
+the command ``CTRL-D``. The new parameter values will be taken into account.
+
 
 Doxygen
 -------
