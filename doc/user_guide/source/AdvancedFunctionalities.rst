@@ -231,6 +231,9 @@ In the case of hot restart, the user interrupts the solver to change the value o
 With warm restart, the user changes a parameter from a resolution that has already reached a termination condition. 
 In both cases, the solving process is then continued from its current state.
 
+Hot restart
+"""""""""""
+
 To enable hot restart, set parameter ``HOT_RESTART_ON_USER_INTERRUPT`` to ``true``.
 While NOMAD is running, interrupt the run with the command ``CTRL-C``.
 New values for parameters may be entered, for example ``LH_SEARCH 0 20``.
@@ -238,6 +241,10 @@ The syntax is the same as the syntax of a parameter file, when in batch mode.
 When all new parameter values are entered, continue optimization by entering
 the command ``CTRL-D``. The new parameter values will be taken into account.
 
+Warm restart
+""""""""""""
+
+(Info to be added shortly).
 
 Doxygen
 -------
