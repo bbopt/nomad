@@ -245,8 +245,8 @@ the command ``CTRL-D``. The new parameter values will be taken into account.
 Warm restart
 """"""""""""
 
-To enable warm restart, set parameters ``HOT_RESTART_READ_FILES`` and ``HOT_RESTART_WRITE_FILES`` to ``true``.
-When NOMAD has run, files ``hotrestart.txt`` and ``cache.txt`` are written to the problem directory.
+To enable warm restart, parameters ``HOT_RESTART_READ_FILES`` and ``HOT_RESTART_WRITE_FILES`` need to be set to ``true``.
+When NOMAD runs a first time, files ``hotrestart.txt`` and ``cache.txt`` are written to the problem directory.
 This information is used if NOMAD is run a second time.
 Instead of redoing the same optimization, NOMAD will continue where it was when the first run was ended.
 For example, suppose the first NOMAD run stopped at evaluation 100 because the value of parameter ``MAX_BB_EVAL`` was 100.
