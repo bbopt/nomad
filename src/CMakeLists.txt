@@ -18,6 +18,8 @@ Algos/Projection.hpp
 Algos/Step.hpp
 Algos/Subproblem.hpp
 Algos/SubproblemManager.hpp
+Algos/SurrogateEvaluation.hpp
+Algos/SurrogateEvaluator.hpp
 Algos/Termination.hpp
 )
 
@@ -36,6 +38,7 @@ Algos/Projection.cpp
 Algos/Step.cpp
 Algos/Subproblem.cpp
 Algos/SubproblemManager.cpp
+Algos/SurrogateEvaluation.cpp
 Algos/Termination.cpp)
 
 #
@@ -225,7 +228,9 @@ Type/EvalType.hpp
 Type/LHSearchType.hpp
 Type/ListOfVariableGroup.hpp
 Type/SgtelibModelFeasibilityType.hpp
-Type/SgtelibModelFormulationType.hpp)
+Type/SgtelibModelFormulationType.hpp
+Type/StepType.hpp
+)
 
 set(TYPE_SOURCES
 Type/BBInputType.cpp
@@ -239,6 +244,7 @@ Type/LHSearchType.cpp
 Type/ListOfVariableGroup.cpp
 Type/SgtelibModelFeasibilityType.cpp
 Type/SgtelibModelFormulationType.cpp
+Type/StepType.cpp
 )
 
 #
@@ -248,7 +254,6 @@ set(UTIL_HEADERS
 Util/AllStopReasons.hpp
 Util/ArrayOfString.hpp
 Util/Clock.hpp
-Util/Copyright.hpp
 Util/defines.hpp
 Util/Exception.hpp
 Util/fileutils.hpp
@@ -261,7 +266,6 @@ set(UTIL_SOURCES
 Util/AllStopReasons.cpp
 Util/ArrayOfString.cpp
 Util/Clock.cpp
-Util/Copyright.cpp
 Util/defines.cpp
 Util/Exception.cpp
 Util/fileutils.cpp
@@ -296,6 +300,7 @@ Algos/Mads/MegaSearchPoll.hpp
 Algos/Mads/NMSearchMethod.hpp
 Algos/Mads/NP1UniPollMethod.hpp
 Algos/Mads/Ortho2NPollMethod.hpp
+Algos/Mads/OrthoNPlus1NegPollMethod.hpp
 Algos/Mads/Poll.hpp
 Algos/Mads/PollMethodBase.hpp
 Algos/Mads/QuadSearchMethod.hpp
@@ -322,6 +327,7 @@ Algos/Mads/MegaSearchPoll.cpp
 Algos/Mads/NMSearchMethod.cpp
 Algos/Mads/NP1UniPollMethod.cpp
 Algos/Mads/Ortho2NPollMethod.cpp
+Algos/Mads/OrthoNPlus1NegPollMethod.cpp
 Algos/Mads/Poll.cpp
 Algos/Mads/PollMethodBase.cpp
 Algos/Mads/QuadSearchMethod.cpp

@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -46,7 +46,6 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
-#include "../Type/EvalSortType.hpp"
 
 
 /*----------------------------------------*/
@@ -77,7 +76,7 @@ void NOMAD::EvaluatorControlGlobalParameters::init()
 /*----------------------------------------*/
 /*            check the parameters        */
 /*----------------------------------------*/
-void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_ptr<PbParameters> pbParams )
+void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_ptr<PbParameters> pbParams)
 {
     checkInfo();
 
@@ -87,18 +86,23 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
         return;
     }
 
-    if (getAttributeValueProtected<size_t>("MAX_BB_EVAL",false) <= 0)
+    if (0 == getAttributeValueProtected<size_t>("MAX_BB_EVAL",false))
     {
-        setAttributeValue("MAX_BB_EVAL", NOMAD::INF_SIZE_T);
+        throw NOMAD::Exception(__FILE__, __LINE__, "Parameter MAX_BB_EVAL must be positive");
     }
 
-    if (getAttributeValueProtected<size_t>("MAX_EVAL",false) <= 0)
+    if (0 == getAttributeValueProtected<size_t>("MAX_EVAL",false))
     {
-        setAttributeValue("MAX_EVAL", NOMAD::INF_SIZE_T);
+        throw NOMAD::Exception(__FILE__, __LINE__, "Parameter MAX_EVAL must be positive");
+    }
+
+    if (0 == getAttributeValueProtected<size_t>("MAX_SURROGATE_EVAL_OPTIMIZATION",false))
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Parameter MAX_SURROGATE_EVAL_OPTIMIZATION must be positive");
     }
 
     // Safety net using MAX_EVAL when variables are all granular -> setting a value for MAX_EVAL prevent Nomad from circling around the solution forever when all neighbors have been visited.
-    if (pbParams != nullptr && getAttributeValueProtected<size_t>("MAX_EVAL",false) == NOMAD::INF_SIZE_T )
+    if (pbParams != nullptr && getAttributeValueProtected<size_t>("MAX_EVAL",false) == NOMAD::INF_SIZE_T)
     {
         auto granularity = pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("GRANULARITY");
         bool allGranular = true;
@@ -180,7 +184,7 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
 
     if (0 == quadModelBlockSize)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "Parameter QUAD_MODEL_MAX_BLOCK_SIZE must be positive");
+        throw NOMAD::InvalidParameter(__FILE__, __LINE__, "Parameter QUAD_MODEL_MAX_BLOCK_SIZE must be positive");
     }
     else if (quadModelBlockSize > modelMaxEval)
     {
@@ -191,7 +195,7 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
 
     if (0 == sgtelibModelBlockSize)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "Parameter SGTELIB_MODEL_MAX_BLOCK_SIZE must be positive");
+        throw NOMAD::InvalidParameter(__FILE__, __LINE__, "Parameter SGTELIB_MODEL_MAX_BLOCK_SIZE must be positive");
     }
     else if (sgtelibModelBlockSize > modelMaxEval)
     {
@@ -215,6 +219,11 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
     else
     {
         setAttributeValue("MODEL_MAX_BLOCK_SIZE", sgtelibModelBlockSize);
+    }
+
+    if (0 == getAttributeValueProtected<size_t>("EVAL_SURROGATE_COST", false))
+    {
+        throw NOMAD::InvalidParameter(__FILE__, __LINE__, "Parameter EVAL_SURROGATE_COST must be positive");
     }
 
     _toBeChecked = false;

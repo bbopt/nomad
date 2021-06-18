@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -70,11 +70,9 @@
 class EvalQueuePoint : public EvalPoint
 {
 private:
-    const EvalType  _evalType;          ///< Must this point be evaluated by BB or by MODEL evaluator
+    const EvalType  _evalType;          ///< EvalType of the evaluator that must evaluate this point (BB, MODEL, SURROGATE)
     SuccessType     _success;           ///< Result of the comparison of evalPoint's eval with barrier
     bool            _relativeSuccess;   ///< Did better than the previous evaluation
-
-    std::string     _comment;           ///< Algo comment to be printed out in DISPLAY_STATS
 
     ArrayOfDouble   _meshSize; ///< Remenbers size of mesh that created point.
     ArrayOfDouble   _frameSize; ///< Remenbers size of frame that created point.
@@ -82,8 +80,6 @@ private:
     // Support Mesh Index (issue (feature) #381)
 
     size_t          _k; ///< The number of the iteration that generated this point. For sorting purposes.
-
-    bool           _genByPhaseOne; ///< Generating step is PhaseOne or not
 
 public:
 
@@ -97,11 +93,9 @@ public:
         _evalType(evalType),
         _success(SuccessType::NOT_EVALUATED),
         _relativeSuccess(false),
-        _comment(""),
         _meshSize(),
         _frameSize(),
-        _k(0),
-        _genByPhaseOne(false)
+        _k(0)
     {}
 
     const EvalType& getEvalType() const { return _evalType; }
@@ -112,9 +106,6 @@ public:
     void setRelativeSuccess(const bool relativeSuccess) { _relativeSuccess = relativeSuccess; }
     bool getRelativeSuccess() const { return _relativeSuccess; }
 
-    void setComment(const std::string& comment) { _comment = comment; }
-    const std::string& getComment() const { return _comment; }
-
     void setMeshSize(const ArrayOfDouble& meshSize) { _meshSize = meshSize; };
     const ArrayOfDouble& getMeshSize() const { return _meshSize; }
     void setFrameSize(const ArrayOfDouble& frameSize) { _frameSize = frameSize; };
@@ -122,9 +113,6 @@ public:
 
     void setK(const size_t k) { _k = k; };
     size_t getK() const { return _k; }
-
-    void setGenByPhaseOne(bool genByPhaseOne) { _genByPhaseOne = genByPhaseOne;}
-    bool getGenByPhaseOne() const { return _genByPhaseOne;}
 };
 
 /// Smart pointer to EvalQueuePoint

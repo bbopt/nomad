@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -53,9 +53,8 @@
 
 void NOMAD::NMShrink::init()
 {
-    _name = getAlgoName() + "Shrink";
-
-    _currentStepType = NOMAD::NMStepType::SHRINK;
+    setStepType(NOMAD::StepType::NM_SHRINK);
+    _currentStepType = NOMAD::StepType::NM_SHRINK;   // TODO: Remove this redundancy
 
     _gamma = _runParams->getAttributeValue<NOMAD::Double>("NM_GAMMA");
 
@@ -112,7 +111,7 @@ void NOMAD::NMShrink::generateTrialPoints ()
     auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
 
     OUTPUT_INFO_START
-    AddOutputInfo("Shrink simplex with " + _name +" (gamma=" + _gamma.tostring() +") with " + std::to_string(_nmY->size()) + " points.");
+    AddOutputInfo("Shrink simplex with " + getName() +" (gamma=" + _gamma.tostring() +") with " + std::to_string(_nmY->size()) + " points.");
     OUTPUT_INFO_END
 
 

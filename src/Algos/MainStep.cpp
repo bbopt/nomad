@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -100,7 +100,7 @@ void NOMAD::MainStep::init()
     _runParams = _allParams->getRunParams();
     _pbParams  = _allParams->getPbParams();
 
-    _name = "Main";
+    setStepType(NOMAD::StepType::MAIN);
 
     // Start the clock
     NOMAD::Clock::reset();
@@ -137,6 +137,7 @@ NOMAD::ArrayOfPoint NOMAD::MainStep::suggest()
     createCache();
 
     size_t nbLHEval = _allParams->getAttributeValue<size_t>("LH_EVAL");
+
     if (0 != nbLHEval)
     {
         suggestedPoints = suggestFromLH(nbLHEval);
@@ -144,14 +145,9 @@ NOMAD::ArrayOfPoint NOMAD::MainStep::suggest()
     else if (_allParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
     {
         auto cacheFile = _allParams->getCacheParams()->getAttributeValue<std::string>("CACHE_FILE");
-        if (cacheFile.empty())
+        if (cacheFile.empty() && 0 == NOMAD::CacheBase::getInstance()->size())
         {
-            std::string err = "Cache file name " + cacheFile + " is not provided. A cache file is required to obtain Suggest points from a Mads MegaSearchPoll. To create a cache file, use suggest with LH_EVAL.";
-            throw NOMAD::StepException(__FILE__,__LINE__, err, this);
-        }
-        if (0 == NOMAD::CacheBase::getInstance()->size())
-        {
-            std::string err = "Cache file " + cacheFile + " is empty. A cache file is required to obtain Suggest points from a Mads MegaSearchPoll. To create a cache file, use suggest with LH_EVAL.";
+            std::string err = "Cache file is not provided or is empty. A cache is required to obtain Suggest points from a Mads MegaSearchPoll. To create a cache file, use suggest with LH_EVAL.";
             throw NOMAD::StepException(__FILE__,__LINE__, err, this);
         }
         auto lhSearchType = _runParams->getAttributeValue<NOMAD::LHSearchType>("LH_SEARCH");
@@ -273,7 +269,9 @@ std::vector<std::string> NOMAD::MainStep::observe(const NOMAD::ArrayOfPoint& xs,
     // Since mads->end() is not called, we have to call it here.
     if(destinationCacheFileName.size() != 0)
         NOMAD::CacheBase::getInstance()->setFileName(destinationCacheFileName);
-    NOMAD::CacheBase::getInstance()->write();
+    
+    if(NOMAD::CacheBase::getInstance()->getFileName().size() != 0)
+        NOMAD::CacheBase::getInstance()->write();
 
     return updatedParams;
 }
@@ -334,9 +332,11 @@ void NOMAD::MainStep::startImp()
     if (nullptr == _evaluator)
     {
         // Batch mode. Create Evaluator on the go.
+        bool surrogateAsBB = _allParams->getAttributeValue<bool>("EVAL_SURROGATE_OPTIMIZATION");
+        auto evalType = (surrogateAsBB) ? NOMAD::EvalType::SURROGATE : NOMAD::EvalType::BB;
         _evaluator = std::shared_ptr<NOMAD::Evaluator>(
                         new NOMAD::Evaluator(_allParams->getEvalParams(),
-                                             NOMAD::EvalType::BB,
+                                             evalType,
                                              NOMAD::EvalXDefined::USE_BB_EVAL));
     }
 
@@ -872,8 +872,7 @@ void NOMAD::MainStep::hotRestartOnUserInterrupt()
 void NOMAD::MainStep::resetComponentsBetweenOptimization()
 {
     // Make sure to clear the cache before the next run
-    NOMAD::CacheBase::getInstance()->clear();
-    NOMAD::CacheBase::resetInstance(); // Need to reset the singleton. When calling createCache there is no instance and we are sure to call NOMAD::CacheSet::setInstance from scratch. The cache file is read and the cache is set with is content.
+    resetCache();
 
     // Reset static tag counter
     NOMAD::EvalPoint::resetCurrentTag();
@@ -883,6 +882,15 @@ void NOMAD::MainStep::resetComponentsBetweenOptimization()
     NOMAD::EvcInterface::resetEvaluatorControl();
     // Reset seed
     NOMAD::RNG::resetPrivateSeedToDefault();
+    // Reset parameter entries
+    NOMAD::Parameters::eraseAllEntries();
+}
+
+void NOMAD::MainStep::resetCache()
+{
+    // Get a new cache 
+    NOMAD::CacheBase::resetInstance(); // Need to reset the singleton. When calling createCache there is no instance and we are sure to call NOMAD::CacheSet::setInstance from scratch. The cache file is read and the cache is set with is content.
+
 }
 
 

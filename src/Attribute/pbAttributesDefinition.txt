@@ -298,3 +298,22 @@ NOMAD::ArrayOfPoint
 UNIQUE_ENTRY false
 RESTART_ATTRIBUTE no
 ################################################################################
+POINT_FORMAT
+NOMAD::ArrayOfDouble
+-
+\( Format of the doubles for trial points\)
+\(
+
+. POINT_FORMAT and BB_EVAL_FORMAT have the same values
+
+. POINT_FORMAT and BB_EVAL_FORMAT are computed from the BB_INPUT_TYPE parameter.
+
+. Gives the format precision for doubles of trial points.
+
+. CANNOT BE MODIFIED BY USER. Internal parameter.
+
+\)
+\( internal \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+################################################################################

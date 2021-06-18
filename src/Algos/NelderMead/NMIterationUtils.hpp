@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -56,25 +56,11 @@
 #include "../../nomad_nsbegin.hpp"
 
 
-/// Type for the different phases of Nelder Mead algorithm
-enum class NMStepType
-{
-    UNSET               ,
-    INITIAL             ,
-    REFLECT             ,
-    EXPAND              ,
-    OUTSIDE_CONTRACTION ,
-    INSIDE_CONTRACTION  ,
-    SHRINK              ,
-    INSERT_IN_Y         ,
-    CONTINUE
-};
-
 /// Class of utils for NM iterations.
 /**
  - Manage the simplex: update the characteristics (diameter, volume and normalized volume). The diameter is max(distance(y_i,y_j)). The volume is det(y_k-y_0)/!n (k=1,..n). The normalized volume is volume/diameter^n. \n
 
- - Hold a variable NMIterationUtils::_currentStepType for ::NMStepType (phase of Nelder Mead algorithm).
+ - Hold a variable NMIterationUtils::_currentStepType of type ::StepType for the phase of Nelder Mead algorithm.
  - Calculate the rank of DZ=[y_i-y_0] using NMIterationUtils::_rankEps as trigger (see ::getRank function)
 
  */
@@ -93,12 +79,11 @@ private:
     void updateYDiameter ( void );
 
 protected:
-
     /// The precision for the rank calculation. Default is ::DEFAULT_EPSILON.
     Double _rankEps;
 
     /// The step type (REFLECT, EXPAND, INSIDE_CONTRACTION, OUTSIDE_CONTRACTION)
-    NMStepType _currentStepType;
+    StepType _currentStepType;
 
     std::shared_ptr<NMSimplexEvalPointSet> _nmY;  ///< The Nelder Mead simplex.
 
@@ -135,7 +120,7 @@ public:
         _simplexDiamPt2(nullptr),
         _Delta(ArrayOfDouble()),
         _rankEps(DEFAULT_EPSILON),
-        _currentStepType(NMStepType::UNSET),
+        _currentStepType(StepType::NM_UNSET),
         _nmY(nullptr)
     {
         auto iter = dynamic_cast<const NMIteration*>(_iterAncestor);

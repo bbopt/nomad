@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -191,20 +191,9 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
                 }
             }
 
-            // Set a flag in evalQueuePoint according to algo -> this is for stats
-            const Algorithm * algo = _step->getRootAlgorithm();
-            auto algoConstPhaseOne = dynamic_cast<const PhaseOne*>(algo);
-            if(nullptr != algoConstPhaseOne)
-            {
-                evalQueuePoint->setGenByPhaseOne(true);
-            }
-            else
-            {
-                evalQueuePoint->setGenByPhaseOne(false);
-            }
-
-            evalQueuePoint->setComment(_step->getAlgoComment());
-            evalQueuePoint->setGenStep(_step->getName());
+            evalQueuePoint->addGenStep(_step->getStepType());
+            // Additional info
+            evalQueuePoint->addGenStep(_step->getRootAlgorithm()->getStepType());
 
             if (_evaluatorControl->addToQueue(evalQueuePoint))
             {

@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -139,10 +139,10 @@ void NOMAD::Parameters::copyParameters(const Parameters& params)
             auto value = params.getAttributeValue<NOMAD::EvalSortType>(paramName);
             setAttributeValue(paramName, value );
         }
-        // DirectionType
-        else if (paramType == typeid(NOMAD::DirectionType).name())
+        // DirectionTypeList
+        else if (paramType == typeid(NOMAD::DirectionTypeList).name())
         {
-            auto value = params.getAttributeValue<NOMAD::DirectionType>(paramName);
+            auto value = params.getAttributeValue<NOMAD::DirectionTypeList>(paramName);
             setAttributeValue(paramName, value );
         }
         // DOUBLE
@@ -404,13 +404,13 @@ bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
                     isCompatible = false;
                 }
             }
-            // DirectionType
-            else if ( paramType == typeid(NOMAD::DirectionType).name() )
+            // DirectionTypeList
+            else if ( paramType == typeid(NOMAD::DirectionTypeList).name() )
             {
-                if ( getAttributeValueProtected<NOMAD::DirectionType>(paramName,false) != p->getAttributeValueProtected<NOMAD::DirectionType>(paramName,false) )
+                if ( getAttributeValueProtected<NOMAD::DirectionTypeList>(paramName,false) != p->getAttributeValueProtected<NOMAD::DirectionTypeList>(paramName,false) )
                 {
-                    sdebug += NOMAD::directionTypeToString(getAttributeValueProtected<NOMAD::DirectionType>(paramName,false)) + "\n";
-                    sdebug += NOMAD::directionTypeToString(p->getAttributeValueProtected<NOMAD::DirectionType>(paramName,false));
+                    sdebug += NOMAD::directionTypeListToString(getAttributeValueProtected<NOMAD::DirectionTypeList>(paramName,false)) + "\n";
+                    sdebug += NOMAD::directionTypeListToString(p->getAttributeValueProtected<NOMAD::DirectionTypeList>(paramName,false));
                     isCompatible = false;
                 }
             }
@@ -606,8 +606,7 @@ void NOMAD::Parameters::readEntries(const bool overwrite, std::string problemDir
 {
     if (problemDir.empty())
         problemDir = '.' + NOMAD::DIR_SEP;
-    
-    
+
     // parameters will have to be checked:
     _toBeChecked = true;
 
@@ -757,11 +756,23 @@ void NOMAD::Parameters::readEntries(const bool overwrite, std::string problemDir
                 checkFormat1(pe);
                 setAttributeValue(paramName, NOMAD::stringToEvalSortType(pe->getAllValues()));
             }
-            // DirectionType
-            else if (paramType == typeid(NOMAD::DirectionType).name())
+            // DirectionTypeList
+            else if (paramType == typeid(NOMAD::DirectionTypeList).name())
             {
                 checkFormat1(pe);
-                setAttributeValue(paramName, NOMAD::stringToDirectionType(pe->getAllValues()));
+
+                auto dirTypeList = getAttributeValueProtected<NOMAD::DirectionTypeList>(paramName, false);
+                if (isAttributeDefaultValue<NOMAD::DirectionTypeList>(paramName))
+                {
+                    dirTypeList.clear();
+                }
+                auto newDirType = NOMAD::stringToDirectionType(pe->getAllValues());
+                if (dirTypeList.end() == std::find(dirTypeList.begin(), dirTypeList.end(), newDirType))
+                {
+                    dirTypeList.push_back(newDirType);
+                }
+
+                setAttributeValue(paramName, dirTypeList);
             }
             // DOUBLE
             else if (paramType == typeid(NOMAD::Double).name())
@@ -1423,12 +1434,13 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                               algoCompatibilityCheck, restartAttribute, uniqueEntry,
                               att._shortInfo , att._helpInfo, att._keywords );
         }
-        // DirectionType
-        else if (   att._type== "NOMAD::DirectionType"
-                 || att._type== "DirectionType")
+        // DirectionTypeList
+        else if (   att._type== "NOMAD::DirectionTypeList"
+                 || att._type== "DirectionTypeList")
         {
+            NOMAD::DirectionTypeList dirTypeList { NOMAD::stringToDirectionType(att._defaultValue) };
             registerAttribute( att._name,
-                              NOMAD::stringToDirectionType(att._defaultValue),
+                              dirTypeList,
                               algoCompatibilityCheck, restartAttribute, uniqueEntry,
                               att._shortInfo , att._helpInfo, att._keywords );
         }

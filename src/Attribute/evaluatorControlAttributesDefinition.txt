@@ -57,6 +57,28 @@ true
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
+EVAL_SURROGATE_OPTIMIZATION
+bool
+false
+\( Use static surrogate as blackbox for optimization \)
+\(
+ . Use solely static surrogate instead of the blackbox for optimization.
+
+ . In batch mode, SURROGATE_EXE needs to be defined.
+
+ . In library mode, an Evaluator for SURROGATE eval type needs to be defined.
+
+ . Argument: bool
+
+ . Example: EVAL_SURROGATE_OPTIMIZATION true
+
+ . See also: SURROGATE_EXE, MAX_SURROGATE_EVAL_OPTIMIZATION
+
+\)
+\( advanced static surrogate \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
 EVAL_USE_CACHE
 bool
 true

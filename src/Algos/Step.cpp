@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -188,7 +188,7 @@ void NOMAD::Step::AddOutputInfo(const std::string& s, bool isBlockStart, bool is
 {
     // NB. Set the output level as LEVEL_INFO by default.
     OUTPUT_INFO_START
-    NOMAD::OutputInfo outputInfo(_name, s, NOMAD::OutputLevel::LEVEL_INFO, isBlockStart, isBlockEnd);
+    NOMAD::OutputInfo outputInfo(getName(), s, NOMAD::OutputLevel::LEVEL_INFO, isBlockStart, isBlockEnd);
     NOMAD::OutputQueue::Add(std::move(outputInfo));
     OUTPUT_INFO_END
 }
@@ -198,7 +198,7 @@ void NOMAD::Step::AddOutputInfo(const std::string& s, NOMAD::OutputLevel outputL
 {
     if (NOMAD::OutputQueue::GoodLevel(outputLevel))
     {
-        NOMAD::OutputInfo outputInfo(_name, s, outputLevel);
+        NOMAD::OutputInfo outputInfo(getName(), s, outputLevel);
         NOMAD::OutputQueue::Add(std::move(outputInfo));
     }
 }
@@ -294,7 +294,7 @@ void NOMAD::Step::verifyParentNotNull()
 {
     if (nullptr == _parentStep)
     {
-        std::string err = "Parent step for \"" + _name + "\" should not be NULL";
+        std::string err = "Parent step for \"" + getName() + "\" should not be NULL";
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 }
@@ -337,20 +337,22 @@ const NOMAD::Algorithm* NOMAD::Step::getRootAlgorithm() const
 }
 
 
+const NOMAD::Algorithm* NOMAD::Step::getFirstAlgorithm() const
+{
+    auto algo = isAnAlgorithm() ? dynamic_cast<const NOMAD::Algorithm*>(this)
+                                : getParentOfType<NOMAD::Algorithm*>();
+
+    return algo;
+}
+
+
 std::string NOMAD::Step::getAlgoName() const
 {
     std::string s = "";
-    if (isAnAlgorithm())
+    auto algo = getFirstAlgorithm();
+    if (nullptr != algo)
     {
-        s = getName();
-    }
-    else
-    {
-        auto algo = getParentOfType<NOMAD::Algorithm*>();
-        if (nullptr != algo)
-        {
-            s = algo->getName();
-        }
+        s = algo->getName();
     }
 
     // Append a space for easiness of use
@@ -360,39 +362,6 @@ std::string NOMAD::Step::getAlgoName() const
     }
 
     return s;
-}
-
-
-std::string NOMAD::Step::getAlgoComment() const
-{
-    std::string algoComment;
-    auto rootAlgo = getRootAlgorithm();
-    if (nullptr != rootAlgo)
-    {
-        algoComment = rootAlgo->getAlgoComment();
-    }
-
-    return algoComment;
-}
-
-
-void NOMAD::Step::setAlgoComment(const std::string& algoComment, const bool force)
-{
-    auto rootAlgo = const_cast<NOMAD::Algorithm*>(getRootAlgorithm());
-    if (nullptr != rootAlgo)
-    {
-        rootAlgo->setAlgoComment(algoComment, force);
-    }
-}
-
-
-void NOMAD::Step::resetPreviousAlgoComment(const bool force)
-{
-    auto rootAlgo = const_cast<NOMAD::Algorithm*>(getRootAlgorithm());
-    if (nullptr != rootAlgo)
-    {
-        rootAlgo->resetPreviousAlgoComment(force);
-    }
 }
 
 
@@ -481,7 +450,11 @@ bool NOMAD::Step::hasPhaseOneSolution() const
     NOMAD::Double hMax = (nullptr != barrier) ? barrier->getHMax() : _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
     for (auto evalPoint : evalPointList)
     {
-        NOMAD::Double h = evalPoint.getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+        NOMAD::Double h;
+        if (NOMAD::EvalStatusType::EVAL_OK == evalPoint.getEvalStatus(NOMAD::EvalType::BB))
+        {
+            h = evalPoint.getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+        }
         if (h.isDefined() && h <= hMax)
         {
             hasPhaseOneSol = true;
@@ -495,7 +468,7 @@ bool NOMAD::Step::hasPhaseOneSolution() const
         if (nullptr != barrier)
         {
             auto xFeas = barrier->getFirstXFeas();
-            if (nullptr != xFeas)
+            if (nullptr != xFeas && NOMAD::EvalStatusType::EVAL_OK == xFeas->getEvalStatus(NOMAD::EvalType::BB))
             {
                 NOMAD::Double h = xFeas->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
                 hasPhaseOneSol = NOMAD::EvalPoint::isPhaseOneSolution(*xFeas) && (h <= hMax);

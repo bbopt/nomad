@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -57,9 +57,9 @@
 #include "../Util/utils.hpp"
 
 
-// Convert a string ("BB", "MODEL")
+// Convert a string ("BB", "MODEL", "SURROGATE")
 // to a NOMAD::EvalType.
-// "UNDEFINED" throws an exception, as well as any value other than "BB", "MODEL".
+// "UNDEFINED" or "LAST" throws an exception, as well as any value other than "BB", "MODEL".
 NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst)
 {
     NOMAD::EvalType ret;
@@ -74,6 +74,10 @@ NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst)
     {
         ret = NOMAD::EvalType::MODEL;
     }
+    else if (s == "SURROGATE")
+    {
+        ret = NOMAD::EvalType::SURROGATE;
+    }
     else
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized string for NOMAD::EvalType: " + s);
@@ -85,7 +89,8 @@ NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst)
 
 // Convert a NOMAD::EvalType to a string.
 // NOMAD::EvalType::UNDEFINED returns "UNDEFINED".
-// An unrecognized eval type returns an exception.
+// NOMAD::EvalType::LAST throws an exception.
+// An unrecognized eval type throws an exception.
 std::string NOMAD::evalTypeToString(const NOMAD::EvalType& evalType)
 {
     std::string s;
@@ -98,9 +103,13 @@ std::string NOMAD::evalTypeToString(const NOMAD::EvalType& evalType)
         case NOMAD::EvalType::MODEL:
             s = "MODEL";
             break;
+        case NOMAD::EvalType::SURROGATE:
+            s = "SURROGATE";
+            break;
         case NOMAD::EvalType::UNDEFINED:
             s = "UNDEFINED";
             break;
+        case NOMAD::EvalType::LAST:
         default:
             throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized NOMAD::EvalType " + std::to_string((int)evalType));
             break;

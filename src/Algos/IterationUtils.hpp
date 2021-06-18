@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -174,9 +174,10 @@ public:
     /**
      * Called by run.
      \param step    Current step.
+     \param keepN   Number of points to keep (by default keep all)
      \return true if a success was found, false otherwise.
      */
-    bool evalTrialPoints(Step* step);
+    bool evalTrialPoints(const Step* step, const size_t keepN = INF_SIZE_T, const StepType& removeStepType = StepType::UNDEFINED);
 
     /// Get the number of evaluation points in the queue for evaluation
     size_t getNbEvalPointsThatNeededEval() const { return _nbEvalPointsThatNeedEval; }
@@ -190,8 +191,6 @@ private:
 
     /// Helper for constructor
     void init();
-
-
 };
 
 #include "../nomad_nsend.hpp"

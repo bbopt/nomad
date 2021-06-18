@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -55,13 +55,11 @@ const NOMAD::Double deltaR = 1;
 
 void NOMAD::NMReflective::init()
 {
-    _name = "NM Step";
+    _currentStepType = _nextStepType = NOMAD::StepType::NM_UNSET;
 
-    _currentStepType = _nextStepType = NMStepType::UNSET;
-
-     _deltaE = _runParams->getAttributeValue<NOMAD::Double>("NM_DELTA_E");
-     _deltaIC = _runParams->getAttributeValue<NOMAD::Double>("NM_DELTA_IC");
-     _deltaOC = _runParams->getAttributeValue<NOMAD::Double>("NM_DELTA_OC");
+    _deltaE = _runParams->getAttributeValue<NOMAD::Double>("NM_DELTA_E");
+    _deltaIC = _runParams->getAttributeValue<NOMAD::Double>("NM_DELTA_IC");
+    _deltaOC = _runParams->getAttributeValue<NOMAD::Double>("NM_DELTA_OC");
 
 
     if ( _deltaE <= 1 )
@@ -81,25 +79,25 @@ void NOMAD::NMReflective::init()
 }
 
 
-void NOMAD::NMReflective::setCurrentNMStepType ( NMStepType stepType )
+void NOMAD::NMReflective::setCurrentNMStepType ( NOMAD::StepType stepType )
 {
     _currentStepType = stepType;
 
     switch ( _currentStepType ) {
-        case NMStepType::REFLECT:
-            _name = "NM Reflect";
+        case NOMAD::StepType::NM_REFLECT:
+            setStepType(NOMAD::StepType::NM_REFLECT);
             _delta = deltaR;
             break;
-        case NMStepType::EXPAND:
-            _name = "NM Expansion";
+        case NOMAD::StepType::NM_EXPAND:
+            setStepType(NOMAD::StepType::NM_EXPAND);
             _delta = _deltaE;
             break;
-        case NMStepType::OUTSIDE_CONTRACTION:
-            _name = "NM Outside Contraction";
+        case NOMAD::StepType::NM_OUTSIDE_CONTRACTION:
+            setStepType(NOMAD::StepType::NM_OUTSIDE_CONTRACTION);
             _delta = _deltaOC;
             break;
-        case NMStepType::INSIDE_CONTRACTION:
-            _name = "NM Inside Contraction";
+        case NOMAD::StepType::NM_INSIDE_CONTRACTION:
+            setStepType(NOMAD::StepType::NM_INSIDE_CONTRACTION);
             _delta = _deltaIC;
             break;
         default:
@@ -112,7 +110,7 @@ void NOMAD::NMReflective::setCurrentNMStepType ( NMStepType stepType )
 void NOMAD::NMReflective::startImp()
 {
     // Specific
-    if ( _currentStepType == NMStepType::UNSET )
+    if ( _currentStepType == NOMAD::StepType::NM_UNSET )
         throw NOMAD::Exception(__FILE__,__LINE__,"The NM step type must be set");
 
     // Create EvalPoints
@@ -140,16 +138,16 @@ bool NOMAD::NMReflective::runImp()
         // Update the eval points by step type
         switch ( _currentStepType )
         {
-            case NMStepType::REFLECT:
+            case NOMAD::StepType::NM_REFLECT:
                 _xr = *(getTrialPoints().begin());
                 break;
-            case NMStepType::EXPAND:
+            case NOMAD::StepType::NM_EXPAND:
                 _xe = *(getTrialPoints().begin());
                 break;
-            case NMStepType::OUTSIDE_CONTRACTION:
+            case NOMAD::StepType::NM_OUTSIDE_CONTRACTION:
                 _xoc = *(getTrialPoints().begin());
                 break;
-            case NMStepType::INSIDE_CONTRACTION:
+            case NOMAD::StepType::NM_INSIDE_CONTRACTION:
                 _xic = *(getTrialPoints().begin());
                 break;
             default:
@@ -180,13 +178,13 @@ void NOMAD::NMReflective::generateTrialPoints()
     if ( YSize < minYSize )
     {
         OUTPUT_INFO_START
-        AddOutputInfo("Not enough points in the simplex to generate points for " + _name +" (delta=" + _delta.tostring() +")");
+        AddOutputInfo("Not enough points in the simplex to generate points for " + getName() +" (delta=" + _delta.tostring() +")");
         OUTPUT_INFO_END
         return;
     }
 
     OUTPUT_INFO_START
-    AddOutputInfo("Generate point for " + _name +" (delta=" + _delta.tostring()+")");
+    AddOutputInfo("Generate point for " + getName() +" (delta=" + _delta.tostring()+")");
     OUTPUT_INFO_END
 
     // Clear the trial points.
@@ -242,7 +240,7 @@ void NOMAD::NMReflective::generateTrialPoints()
 
     if (snapPointToBoundsAndProjectOnMesh(xt, lb, ub))
     {
-        xt.setGenStep(getName());
+        xt.addGenStep(getStepType());
         bool inserted = insertTrialPoint(xt);
 
         OUTPUT_INFO_START
@@ -276,16 +274,16 @@ void NOMAD::NMReflective::setNextNMStepType()
 
     switch ( _currentStepType )
     {
-        case NMStepType::REFLECT:
+        case NOMAD::StepType::NM_REFLECT:
             setAfterReflect();
             break;
-        case NMStepType::EXPAND:
+        case NOMAD::StepType::NM_EXPAND:
             setAfterExpand();
             break;
-        case NMStepType::OUTSIDE_CONTRACTION:
+        case NOMAD::StepType::NM_OUTSIDE_CONTRACTION:
             setAfterOutsideContract();
             break;
-        case NMStepType::INSIDE_CONTRACTION:
+        case NOMAD::StepType::NM_INSIDE_CONTRACTION:
             setAfterInsideContract();
             break;
         default:
@@ -295,7 +293,7 @@ void NOMAD::NMReflective::setNextNMStepType()
 
     // Unset the currectStepType.
     // The currentStepType must be set explicitely before each sequence Start, Run, End
-    _currentStepType = NMStepType::UNSET;
+    _currentStepType = NOMAD::StepType::NM_UNSET;
 }
 
 void NOMAD::NMReflective::setAfterReflect( void )
@@ -303,7 +301,7 @@ void NOMAD::NMReflective::setAfterReflect( void )
     // Reflect is always the first step of NM iteration.
     // Depending on which zone x_r belongs, we perform an other step
 
-    if ( _currentStepType != NMStepType::REFLECT )
+    if ( _currentStepType != NOMAD::StepType::NM_REFLECT )
         throw NOMAD::Exception(__FILE__,__LINE__,"The current step type should be REFLECT.");
 
     if ( getNbEvalPointsThatNeededEval() == 0 )
@@ -311,7 +309,7 @@ void NOMAD::NMReflective::setAfterReflect( void )
         OUTPUT_DEBUG_START
         AddOutputDebug("Cannot create a proper reflect point xr. Next perform Inside Contraction.");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::INSIDE_CONTRACTION;
+        _nextStepType = NOMAD::StepType::NM_INSIDE_CONTRACTION;
         return;
     }
 
@@ -320,7 +318,7 @@ void NOMAD::NMReflective::setAfterReflect( void )
         OUTPUT_DEBUG_START
         AddOutputDebug("The reflect point xr is not defined. Stop NM (no shrink).");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::CONTINUE;
+        _nextStepType = NOMAD::StepType::NM_CONTINUE;
         setStopReason( );
         return;
     }
@@ -331,7 +329,7 @@ void NOMAD::NMReflective::setAfterReflect( void )
         OUTPUT_DEBUG_START
         AddOutputDebug("The reflect point xr: " + _xr.display() +" dominates Y0. Next perform expansion.");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::EXPAND;
+        _nextStepType = NOMAD::StepType::NM_EXPAND;
     }
     else if ( YnDominatesPoint( _xr ) )
     {
@@ -339,7 +337,7 @@ void NOMAD::NMReflective::setAfterReflect( void )
         OUTPUT_DEBUG_START
         AddOutputDebug("The reflect point xr: " + _xr.display() + " is dominated by Yn. Next perform Inside Contraction.");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::INSIDE_CONTRACTION;
+        _nextStepType = NOMAD::StepType::NM_INSIDE_CONTRACTION;
     }
     else if ( pointDominatesPtsInY( _xr , 2 ) )
     {
@@ -348,20 +346,20 @@ void NOMAD::NMReflective::setAfterReflect( void )
         AddOutputDebug("The reflect point xr: "  + _xr.display() + " dominates at least 2 points of Y.");
         OUTPUT_DEBUG_END
 
-        _currentStepType = NMStepType::INSERT_IN_Y;
+        _currentStepType = NOMAD::StepType::NM_INSERT_IN_Y;
         if ( insertInY ( _xr ) )
         {
             OUTPUT_DEBUG_START
             AddOutputDebug("Insertion in Y is successful. NM iteration completed (no shrink).");
             OUTPUT_DEBUG_END
-            _nextStepType = NMStepType::CONTINUE;
+            _nextStepType = NOMAD::StepType::NM_CONTINUE;
         }
         else
         {
             OUTPUT_DEBUG_START
             AddOutputDebug(" Cannot insert xr in Y. Next perform shrink (if available).");
             OUTPUT_DEBUG_END
-            _nextStepType = NMStepType::SHRINK;
+            _nextStepType = NOMAD::StepType::NM_SHRINK;
         }
     }
     else if ( pointDominatesPtsInY( _xr , 1 ) || pointDominatesPtsInY( _xr , 0 ) )
@@ -370,7 +368,7 @@ void NOMAD::NMReflective::setAfterReflect( void )
         OUTPUT_DEBUG_START
         AddOutputDebug("The reflect point xr: " + _xr.display() + " dominates 1 or 0 point of Y. Next perform Outside Contraction.");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::OUTSIDE_CONTRACTION;
+        _nextStepType = NOMAD::StepType::NM_OUTSIDE_CONTRACTION;
     }
     else
     {
@@ -384,7 +382,7 @@ void NOMAD::NMReflective::setAfterExpand( void )
     // Expand follows Reflect.
     // In NM-Mads paper: x_r belongs to the expansion zone. x_e has been evaluated. The best point between x_r and x_e is inserted in Y. NM iteration is completed.
 
-    if ( _currentStepType != NMStepType::EXPAND )
+    if ( _currentStepType != NOMAD::StepType::NM_EXPAND )
         throw NOMAD::Exception(__FILE__,__LINE__,"The current step type should be EXPAND.");
 
     if (!_xe.NOMAD::Point::isDefined())
@@ -392,7 +390,7 @@ void NOMAD::NMReflective::setAfterExpand( void )
         OUTPUT_DEBUG_START
         AddOutputDebug("The expansion point xe is not defined. Stop NM (no shrink).");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::CONTINUE;
+        _nextStepType = NOMAD::StepType::NM_CONTINUE;
         setStopReason( );
         return;
     }
@@ -402,18 +400,18 @@ void NOMAD::NMReflective::setAfterExpand( void )
         OUTPUT_DEBUG_START
         AddOutputDebug("The reflect point xr is not defined. Stop NM (no shrink).");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::CONTINUE;
+        _nextStepType = NOMAD::StepType::NM_CONTINUE;
         setStopReason( );
         return;
     }
 
-    _currentStepType = NMStepType::INSERT_IN_Y;
+    _currentStepType = NOMAD::StepType::NM_INSERT_IN_Y;
     if ( insertInYBest( _xr , _xe ) )
     {
         OUTPUT_DEBUG_START
         AddOutputDebug("Insert in Y the best of xr and xe. NM iteration completed (no shrink). ");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::CONTINUE;
+        _nextStepType = NOMAD::StepType::NM_CONTINUE;
     }
     else
     {
@@ -421,7 +419,7 @@ void NOMAD::NMReflective::setAfterExpand( void )
         OUTPUT_DEBUG_START
         AddOutputDebug("The insertion in Y of the best of xr and xe did not maintain a proper Y. Perform shrink (if available).");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::SHRINK;
+        _nextStepType = NOMAD::StepType::NM_SHRINK;
     }
 }
 
@@ -431,7 +429,7 @@ void NOMAD::NMReflective::setAfterOutsideContract ( void )
 
     // Outside contraction follows Reflect.
     // In NM-Mads paper: x_r belongs to the outside contraction zone. x_oc has been evaluated. The best point between x_r and x_oc is inserted in Y. NM iteration is completed.
-    if ( _currentStepType != NMStepType::OUTSIDE_CONTRACTION )
+    if ( _currentStepType != NOMAD::StepType::NM_OUTSIDE_CONTRACTION )
         throw NOMAD::Exception(__FILE__,__LINE__,"The current step type should be OUTSIDE_CONTRACTION.");
 
     if (!_xr.NOMAD::Point::isDefined())
@@ -439,7 +437,7 @@ void NOMAD::NMReflective::setAfterOutsideContract ( void )
         OUTPUT_DEBUG_START
         AddOutputDebug("The reflect point xr is not defined. Stop NM (no shrink).");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::CONTINUE;
+        _nextStepType = NOMAD::StepType::NM_CONTINUE;
         setStopReason( );
         return;
     }
@@ -452,7 +450,7 @@ void NOMAD::NMReflective::setAfterOutsideContract ( void )
             AddOutputDebug("Reflect point xr is successfully inserted in Y. Next perform Reflect.");
             OUTPUT_DEBUG_END
 
-            _nextStepType = NMStepType::REFLECT;
+            _nextStepType = NOMAD::StepType::NM_REFLECT;
         }
         else
             setStopReason();
@@ -466,18 +464,18 @@ void NOMAD::NMReflective::setAfterOutsideContract ( void )
         OUTPUT_DEBUG_START
         AddOutputDebug("The outside contraction point xoc is not defined. Stop NM (no shrink).");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::CONTINUE;
+        _nextStepType = NOMAD::StepType::NM_CONTINUE;
         setStopReason( );
         return;
     }
 
-    _currentStepType = NMStepType::INSERT_IN_Y;
+    _currentStepType = NOMAD::StepType::NM_INSERT_IN_Y;
     if ( insertInYBest( _xr , _xoc ) )
     {
         OUTPUT_DEBUG_START
         AddOutputDebug("The insertion of the best of xr and xoc in Y is valid. NM iteration completed." );
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::CONTINUE;
+        _nextStepType = NOMAD::StepType::NM_CONTINUE;
         return;
     }
     else
@@ -485,7 +483,7 @@ void NOMAD::NMReflective::setAfterOutsideContract ( void )
         OUTPUT_DEBUG_START
         AddOutputDebug( "The insertion of the best of xr and xoc in Y did not maintain a proper Y. Perform shrink (if available).");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::SHRINK;
+        _nextStepType = NOMAD::StepType::NM_SHRINK;
     }
 
 }
@@ -497,7 +495,7 @@ void NOMAD::NMReflective::setAfterInsideContract ( void )
     // Inside contraction follows Reflect.
     // In NM-Mads paper: x_r belongs to the inside contraction zone. x_ic has been evaluated. If x_ic belongs to the inside contraction zone, stop NM. Otherwise insert x_ic in Y. NM iteration is completed.
 
-    if ( _currentStepType != NMStepType::INSIDE_CONTRACTION )
+    if ( _currentStepType != NOMAD::StepType::NM_INSIDE_CONTRACTION )
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Cannot set step after inside contraction if x_ic is not defined.");
     }
@@ -507,14 +505,14 @@ void NOMAD::NMReflective::setAfterInsideContract ( void )
         OUTPUT_DEBUG_START
         AddOutputDebug("The inside contraction point xic is not defined. Stop NM (no shrink).");
         OUTPUT_DEBUG_END
-        _nextStepType = NMStepType::CONTINUE;
+        _nextStepType = NOMAD::StepType::NM_CONTINUE;
         setStopReason( );
         return;
     }
 
     if ( YnDominatesPoint( _xic ) )
     {
-        _nextStepType = NMStepType::SHRINK;
+        _nextStepType = NOMAD::StepType::NM_SHRINK;
         OUTPUT_DEBUG_START
         AddOutputDebug("Yn dominates xic: " + _xic.display() + " Next perform Shrink.");
         OUTPUT_DEBUG_END
@@ -527,13 +525,13 @@ void NOMAD::NMReflective::setAfterInsideContract ( void )
         AddOutputDebug("The inside contraction point xic:" + _xic.display() + " is not dominated by Yn. Insert x_ic in Y." );
         OUTPUT_DEBUG_END
 
-        _currentStepType = NMStepType::INSERT_IN_Y;
+        _currentStepType = NOMAD::StepType::NM_INSERT_IN_Y;
         if ( insertInY( _xic ) )
         {
             OUTPUT_DEBUG_START
             AddOutputDebug("Insertion in Y is successful. NM iteration completed (no shrink).");
             OUTPUT_DEBUG_END
-            _nextStepType = NMStepType::CONTINUE;
+            _nextStepType = NOMAD::StepType::NM_CONTINUE;
         }
         else
         {
@@ -541,7 +539,7 @@ void NOMAD::NMReflective::setAfterInsideContract ( void )
             OUTPUT_DEBUG_START
             AddOutputDebug("Cannot insert xic in Y. Next perform Shrink (if available)." );
             OUTPUT_DEBUG_END
-            _nextStepType = NMStepType::SHRINK;
+            _nextStepType = NOMAD::StepType::NM_SHRINK;
         }
     }
 }

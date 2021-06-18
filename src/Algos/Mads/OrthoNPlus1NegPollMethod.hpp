@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -44,3 +44,56 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+#ifndef __NOMAD_4_0_ORTHO_N_PLUS_1_POLLMETHOD__
+#define __NOMAD_4_0_ORTHO_N_PLUS_1_POLLMETHOD__
+
+#include "../../Algos/Mads/PollMethodBase.hpp"
+#include "../../nomad_nsbegin.hpp"
+
+/// Class to perform Ortho N+1 Neg Poll.
+// Ortho MADS N+1 NEG:
+// 1- Generate 2N points
+// 2- Sort points and keep only the first N
+// 3- Evaluate N points
+// 4- If no success found, compute N+1 NEG direction and generate N+1th point
+// 5- Evaluate 1 point
+class OrthoNPlus1NegPollMethod final : public PollMethodBase
+{
+public:
+    /// Constructor
+    /**
+     /param parentStep      The parent of this search step -- \b IN.
+     */
+    explicit OrthoNPlus1NegPollMethod(const Step* parentStep,
+                               const EvalPoint& frameCenter)
+      : PollMethodBase(parentStep, frameCenter, true)   // true: hasSecondPass
+    {
+        init();
+    }
+
+private:
+
+    /// Helper for constructor.
+    /**
+     Test if the OrthoNPlus1 Poll is enabled or not.
+     */
+    void init();
+
+    ///Generate N+1 polls direction on a unit N-Sphere (no evaluation)
+    /**
+     \param directions  The n+1 directions obtained for this poll -- \b OUT.
+     \param n           The dimension of the variable space  -- \b IN.
+      */
+    void generateUnitPollDirections(std::list<Direction> &directions, const size_t n) const override final;
+
+    /// Compute n+1th direction and add it to the vector of directions.
+    /**
+     \param directions  The n / n+1 directions obtained for this poll -- \b IN / OUT.
+      */
+    void generateNPlus1Direction(std::list<Direction> &directions) const override final;
+
+};
+
+#include "../../nomad_nsend.hpp"
+
+#endif // __NOMAD_4_0_ORTHO_N_PLUS_1_POLLMETHOD__

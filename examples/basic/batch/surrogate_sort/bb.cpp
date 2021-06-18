@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -44,3 +44,57 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+#include <fstream>      // For ifstream
+#include <iostream>
+#include <cmath>        // For pow
+#include <stdexcept>    // For logic_error
+
+const int n = 2;
+
+int main(int argc, char **argv)
+{
+    bool x0read = false;
+    double f = 1e+20;
+    double x[n];
+
+    if (argc >= 2)
+    {
+        std::string x0file = argv[1];
+        std::ifstream in (argv[1]);
+        for (int i = 0; i < n; i++)
+        {
+            if (in.fail())
+            {
+                std::cerr << "Error reading file " << x0file << " for x0." << std::endl;
+                x0read = false;
+                break;
+            }
+            in >> x[i];
+            x0read = true;
+        }
+        in.close();
+    }
+
+    if (x0read)
+    {
+        f = 0;
+        try
+        {
+            for (int i = 0; i < n ; i++)
+            {
+                f  += pow(x[i], 4);
+            }
+        }
+        catch (std::exception &e)
+        {
+            std::string err("Exception: ");
+            err += e.what();
+            throw std::logic_error(err);
+        }
+    }
+
+    std::cout << f << std::endl;
+
+    // Return 0 if eval ok.
+    return 0;
+}

@@ -63,7 +63,7 @@ message(STATUS "  Installation prefix set to ${CMAKE_INSTALL_PREFIX}")
 #
 # Use sgtelib
 #
-set(USE_SGTELIB ON)
+option(USE_SGTELIB "Option to use the Sgtelib library" ON)
 if(USE_SGTELIB MATCHES ON)
   message(CHECK_START "  Configuring for use of Sgtelib library")
 
@@ -117,16 +117,6 @@ if(BUILD_EXAMPLES MATCHES ON)
    message(CHECK_PASS " done")
 else()
    message(STATUS "  Examples NOT built")
-endif()
-
-option(BUILD_INTEGRATION_TESTS "Option to build integration tests" OFF)
-if(BUILD_INTEGRATION_TESTS MATCHES ON)
-   message(CHECK_START "  Configuring build for integration tests")
-
-   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/integration_tests)
-   message(CHECK_PASS " done")
-else()
-   message(STATUS "  Integration tests NOT built")
 endif()
 
 #

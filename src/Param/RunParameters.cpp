@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -258,13 +258,50 @@ void NOMAD::RunParameters::checkAndComply(
 #endif
 
     // Update secondary poll direction based on primary poll direction
-    // If DIRECTION_TYPE is ORTHO 2N, do nothing.
-    // If DIRECTION_TYPE is not ORTHO 2N, set DIRECTION_TYPE_SECONDARY_POLL to SINGLE.
+    // If DIRECTION_TYPE contains ORTHO, do nothing.
+    // Else, set DIRECTION_TYPE_SECONDARY_POLL to SINGLE.
     // This is not exactly the behavior of NOMAD 3, but it is close enough.
-    auto primaryDirType = getAttributeValueProtected<NOMAD::DirectionType>("DIRECTION_TYPE", false);
-    if (NOMAD::DirectionType::ORTHO_2N != primaryDirType)
+    bool orthoInDirTypes = false;
+    auto primaryDirTypes = getAttributeValueProtected<NOMAD::DirectionTypeList>("DIRECTION_TYPE", false);
+    for (auto primaryDirType : primaryDirTypes)
     {
-        setAttributeValue("DIRECTION_TYPE_SECONDARY_POLL", NOMAD::DirectionType::SINGLE);
+        if (   NOMAD::DirectionType::ORTHO_2N == primaryDirType
+            || NOMAD::DirectionType::ORTHO_NP1_NEG == primaryDirType
+            || NOMAD::DirectionType::ORTHO_NP1_QUAD == primaryDirType)
+        {
+            orthoInDirTypes = true;
+            break;
+        }
+    }
+    if (!orthoInDirTypes)
+    {
+        std::vector<NOMAD::DirectionType> dirTypes;
+        dirTypes.push_back(NOMAD::DirectionType::SINGLE);
+        setAttributeValue("DIRECTION_TYPE_SECONDARY_POLL", dirTypes);
+    }
+
+    // Precisions on MEGA_SEARCH_POLL
+    if (getAttributeValueProtected<bool>("MEGA_SEARCH_POLL", false))
+    {
+        // MEGA_SEARCH_POLL does not support ORTHO_NP1_NEG and ORTHO_NP1_QUAD.
+        for (auto dirType : primaryDirTypes)
+        {
+            if (   NOMAD::DirectionType::ORTHO_NP1_NEG == dirType
+                || NOMAD::DirectionType::ORTHO_NP1_QUAD == dirType)
+            {
+                err = "Parameters check: Direction type " + NOMAD::directionTypeToString(dirType) + " is not supported with MEGA_SEARCH_POLL";
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
+            }
+        }
+        for (auto dirType : getAttributeValueProtected<NOMAD::DirectionTypeList>("DIRECTION_TYPE_SECONDARY_POLL", false))
+        {
+            if (   NOMAD::DirectionType::ORTHO_NP1_NEG == dirType
+                || NOMAD::DirectionType::ORTHO_NP1_QUAD == dirType)
+            {
+                err = "Parameters check: Direction type " + NOMAD::directionTypeToString(dirType) + " is not supported with MEGA_SEARCH_POLL";
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
+            }
+        }
     }
 
     // PSD-Mads and SSD-Mads parameters

@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -53,7 +53,7 @@
 
 void NOMAD::QuadModelMegaIteration::init()
 {
-    _name = getAlgoName() + NOMAD::MegaIteration::getName();
+    setStepType(NOMAD::StepType::MEGA_ITERATION);
 }
 
 
@@ -101,7 +101,7 @@ void NOMAD::QuadModelMegaIteration::startImp()
 
         size_t nbIter = _iterList.size();
 
-        AddOutputInfo(_name + " has " + NOMAD::itos(nbIter) + " iteration" + ((nbIter > 1)? "s" : "") + ".");
+        AddOutputInfo(getName() + " has " + NOMAD::itos(nbIter) + " iteration" + ((nbIter > 1)? "s" : "") + ".");
 
         AddOutputDebug("Iterations generated:");
         for (size_t i = 0; i < nbIter; i++)
@@ -165,7 +165,7 @@ bool NOMAD::QuadModelMegaIteration::runImp()
 
             if (iterSuccessful)
             {
-                s = _name + ": new success " + NOMAD::enumStr(getSuccessType());
+                s = getName() + ": new success " + NOMAD::enumStr(getSuccessType());
                 AddOutputDebug(s);
             }
 
@@ -176,7 +176,7 @@ bool NOMAD::QuadModelMegaIteration::runImp()
         }
     }
     // Display MegaIteration's stop reason
-    AddOutputDebug(_name + " stop reason set to: " + _stopReasons->getStopReasonAsString());
+    AddOutputDebug(getName() + " stop reason set to: " + _stopReasons->getStopReasonAsString());
 
 
     // MegaIteration is a success if either a better xFeas or

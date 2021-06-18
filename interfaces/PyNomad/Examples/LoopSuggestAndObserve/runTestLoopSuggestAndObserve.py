@@ -6,6 +6,7 @@ def bb(x):
     for i in range(len(x)):
         f =[]
         f.append(sum( [ x[i][j] for j in range(len(x[i])) ] ))
+        # print(f)
         out.append(f)
     return out
 
@@ -61,7 +62,8 @@ for iteration in range(MAX_ITERATIONS):
     for i in range(len(updatedParams)):
         updatedParams[i] = updatedParams[i].decode('utf-8')
     for i in range(len(params)):
-        params[i] = params[i].decode('utf-8')
+        if type(params[i]) is bytes:
+           params[i] = params[i].decode('utf-8')
 
     print("Updated parameters by observe:\n",updatedParams)
     print("---------------------")

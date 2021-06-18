@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -56,13 +56,12 @@
 
 void NOMAD::MadsMegaIteration::init()
 {
-    _name = NOMAD::MegaIteration::getName();
+    setStepType(NOMAD::StepType::MEGA_ITERATION);
 }
 
 
 NOMAD::ArrayOfPoint NOMAD::MadsMegaIteration::suggest()
 {
-    
     // Create a single MadsIteration
     NOMAD::MadsIteration madsIteration (this, _k, _mainMesh);
 
@@ -76,7 +75,6 @@ NOMAD::ArrayOfPoint NOMAD::MadsMegaIteration::suggest()
     OUTPUT_DEBUG_END
 
     return madsIteration.suggest();
-    
 }
 
 
@@ -107,7 +105,7 @@ void NOMAD::MadsMegaIteration::observe(const std::vector<NOMAD::EvalPoint>& eval
     update.start();
     update.run();
     update.end();
-    
+
     OUTPUT_DEBUG_START
     AddOutputDebug("MegaIteration generated: " + getName());
     NOMAD::ArrayOfDouble meshSize  = _mainMesh->getdeltaMeshSize();
@@ -188,7 +186,7 @@ bool NOMAD::MadsMegaIteration::runImp()
         if (iterSuccessful)
         {
             OUTPUT_DEBUG_START
-            s = _name + ": new success " + NOMAD::enumStr(iterSuccess);
+            s = getName() + ": new success " + NOMAD::enumStr(iterSuccess);
             AddOutputDebug(s);
             OUTPUT_DEBUG_END
         }
@@ -197,7 +195,7 @@ bool NOMAD::MadsMegaIteration::runImp()
         if (_stopReasons->checkTerminate())
         {
             OUTPUT_DEBUG_START
-            s = _name + " stop reason set to: " + _stopReasons->getStopReasonAsString();
+            s = getName() + " stop reason set to: " + _stopReasons->getStopReasonAsString();
             AddOutputDebug(s);
             OUTPUT_DEBUG_END
         }

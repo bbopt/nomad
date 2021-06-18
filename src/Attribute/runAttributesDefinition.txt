@@ -84,45 +84,57 @@ ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
 DIRECTION_TYPE
-NOMAD::DirectionType
+NOMAD::DirectionTypeList
 ORTHO 2N
-\( Type of direction for Mads poll \)
+\( Direction types for Mads Poll step \)
 \(
-. Type of direction used by Mads poll to generate trial points. In NOMAD 4, this
-  is can be set only once (UNIQUE_ENTRY true) but in Nomad 3 several direction
-  types can be combined. See issue #397.
+. Direction types used by Mads Poll step to generate trial points.
 
-. Arguments: one direction type in {ORTHO 2N, N+1 UNI, SINGLE, DOUBLE}
+. Several direction types can be defined (one direction type per line).
 
+. Arguments: direction type in:
+    ORTHO 2N      : OrthoMADS, 2n
+    ORTHO N+1 NEG : OrthoMADS, n+1, with ((n+1)th dir = negative sum of the first n dirs)
+    N+1 UNI       : OrthoMADS, n+1, uniform distribution of dirs
+    SINGLE        : Single direction
+    DOUBLE        : Two opposite directions
 
-. Example:
+. Examples:
     . DIRECTION_TYPE N+1 UNI
+    . DIRECTION_TYPE ORTHO 2N
+    . DIRECTION_TYPE DOUBLE
 
 \)
 \( advanced poll direction ortho \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
+UNIQUE_ENTRY no
 ################################################################################
 DIRECTION_TYPE_SECONDARY_POLL
-NOMAD::DirectionType
+NOMAD::DirectionTypeList
 DOUBLE
-\( Direction type for Mads secondary poll \)
+\( Direction types for Mads secondary poll \)
 \(
-. Direction type for the secondary poll
+. Direction types for the secondary poll
+
+. Several direction types can be defined (one direction type per line).
 
 . Arguments: same as DIRECTION_TYPE
 
-. If DIRECTION_TYPE is ORTHO 2N, then default DIRECTION_TYPE_SECONDARY_POLL is DOUBLE.
+. If DIRECTION_TYPE is ORTHO 2N or ORTHO N+1 NEG is defined, then the default
+  value for DIRECTION_TYPE_SECONDARY_POLL is DOUBLE. Otherwise, it is SINGLE.
 
-. If DIRECTION_TYPE is not ORTHO 2N, then default DIRECTION_TYPE_SECONDARY_POLL is SINGLE.
+. Examples:
+    . DIRECTION_TYPE_SECONDARY_POLL ORTHO 2N
+    . DIRECTION_TYPE_SECONDARY_POLL SINGLE
 
-. Example: DIRECTION_TYPE_SECONDARY_POLL ORTHO 2N
+. See also: DIRECTION_TYPE RHO
 
-. See also: RHO
 \)
 \( advanced poll direction primary secondary \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
+UNIQUE_ENTRY no
 ################################################################################
 FRAME_CENTER_USE_CACHE
 bool
@@ -368,11 +380,9 @@ int
 
 . Random seed
 
-. Argument: one nonnegative integer (max UINT32_MAX), or -1, or the string 'DIFF'
+. Argument: one nonnegative integer (max UINT32_MAX)
 
 . The default value is used for each run if the parameter is not provided.
-
-. If '-1' or 'DIFF' is entered the seed is different for each run (PID is used).
 
 . The seed is used in the output file names
 

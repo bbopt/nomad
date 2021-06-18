@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -86,7 +86,7 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
     }
     if ( ls.size() > 4 )
     {
-        std::string err = "List of string cannot be converted to NOMAD::DirectionType ";
+        std::string err = "List of strings cannot be converted to NOMAD::DirectionType: ";
         err += std::accumulate(ls.begin(), ls.end(), std::string(" "));
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
@@ -123,7 +123,6 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
         if ( it == end )
         {
             ret = NOMAD::DirectionType::ORTHO_NP1_QUAD;  // Default for ORTHO
-
         }
         if ( *it == "1" )
         {
@@ -156,8 +155,7 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
             }
             if ( s=="NEG" )
             {
-                throw NOMAD::Exception(__FILE__, __LINE__, "ORTHO N+1 NEG direction type not yet supported");
-                //ret=NOMAD::DirectionType::ORTHO_NP1_NEG;
+                ret=NOMAD::DirectionType::ORTHO_NP1_NEG;
             }
             if ( s=="UNI" )
             {
@@ -343,3 +341,21 @@ std::string NOMAD::directionTypeToString(const NOMAD::DirectionType& dt)
     return s;
 }
 
+
+std::string NOMAD::directionTypeListToString(const DirectionTypeList& dirTypeList)
+{
+    std::string s;
+
+    bool first = true;
+    for (auto dirType : dirTypeList)
+    {
+        if (!first)
+        {
+            s += " ; ";
+        }
+        s += NOMAD::directionTypeToString(dirType);
+        first = false;
+    }
+
+    return s;
+}

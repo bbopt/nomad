@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -78,7 +78,7 @@ NOMAD::Eval::Eval(std::shared_ptr<NOMAD::EvalParameters> params,
 {
     _bbOutputComplete = _bbOutput.isComplete(_bbOutputTypeList);
 
-    NOMAD::Double f = getF(NOMAD::ComputeType::STANDARD);
+    NOMAD::Double f = _bbOutput.getObjective(_bbOutputTypeList);
     if (_bbOutput.getEvalOk() && f.isDefined())
     {
         _evalStatus = NOMAD::EvalStatusType::EVAL_OK;
@@ -107,6 +107,10 @@ NOMAD::Eval::Eval(const NOMAD::Eval &eval)
 /*-----------------------*/
 bool NOMAD::Eval::isFeasible(const NOMAD::ComputeType& computeType) const
 {
+    if (NOMAD::EvalStatusType::EVAL_OK != _evalStatus)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"Eval::isFeasible: Needs status type EVAL_OK");
+    }
     NOMAD::Double h = getH(computeType);
     return (h.isDefined() && h.todouble() < NOMAD::Double::getEpsilon());
 }
@@ -152,6 +156,10 @@ NOMAD::Double NOMAD::Eval::getF(const NOMAD::ComputeType& computeType) const
 {
     NOMAD::Double f;
 
+    if (NOMAD::EvalStatusType::EVAL_OK != _evalStatus)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"getF(): EvalStatusType not EVAL_OK");
+    }
     switch (computeType)
     {
         case NOMAD::ComputeType::STANDARD:
@@ -176,8 +184,12 @@ NOMAD::Double NOMAD::Eval::getF(const NOMAD::ComputeType& computeType) const
 /*-------------------------------------*/
 NOMAD::Double NOMAD::Eval::getH(const NOMAD::ComputeType& computeType) const
 {
-    NOMAD::Double h = 0.0;
+    NOMAD::Double h;
 
+    if (NOMAD::EvalStatusType::EVAL_OK != _evalStatus)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"getH(): EvalStatusType not EVAL_OK: " + NOMAD::enumStr(_evalStatus));
+    }
     switch (computeType)
     {
         case NOMAD::ComputeType::STANDARD:
@@ -202,45 +214,42 @@ NOMAD::Double NOMAD::Eval::computeHStandard() const
     NOMAD::Double h = 0.0;
     bool hPos = false;
 
-    if (NOMAD::EvalStatusType::EVAL_OK == _evalStatus)
+    const NOMAD::ArrayOfDouble bboArray = _bbOutput.getBBOAsArrayOfDouble();
+    size_t bboIndex = 0;
+    for (auto bbOutputType : _bbOutputTypeList)
     {
-        const NOMAD::ArrayOfDouble bboArray = _bbOutput.getBBOAsArrayOfDouble();
-        size_t bboIndex = 0;
-        for (auto bbOutputType : _bbOutputTypeList)
+        NOMAD::Double bboI = bboArray[bboIndex];
+        bboIndex++;
+        if (!NOMAD::BBOutputTypeIsConstraint(bbOutputType))
         {
-            NOMAD::Double bboI = bboArray[bboIndex];
-            bboIndex++;
-            if (!NOMAD::BBOutputTypeIsConstraint(bbOutputType))
+            continue;
+        }
+        else if (!bboI.isDefined())
+        {
+            h = NOMAD::Double();    // h is undefined
+            break;
+        }
+        else if (bboI > 0.0)
+        {
+            hPos = true;
+            NOMAD::Double hTemp = 0.0;
+            if (NOMAD::BBOutputType::EB == bbOutputType)
             {
-                continue;
+                hTemp = NOMAD::INF;
             }
-            else if (!bboI.isDefined())
+            else if (NOMAD::BBOutputType::PB == bbOutputType)
             {
-                h = NOMAD::Double();    // h is undefined
+                hTemp = bboI * bboI;
+            }
+
+            // Violated Extreme Barrier constraint:
+            // Set h to infinity and break.
+            if (NOMAD::INF == hTemp)
+            {
+                h = NOMAD::INF;
                 break;
             }
-            else if (bboI > 0.0)
-            {
-                hPos = true;
-                NOMAD::Double hTemp = 0.0;
-                if (NOMAD::BBOutputType::EB == bbOutputType)
-                {
-                    hTemp = NOMAD::INF;
-                }
-                else if (NOMAD::BBOutputType::PB == bbOutputType)
-                {
-                    hTemp = bboI * bboI;
-                }
-
-                // Violated Extreme Barrier constraint:
-                // Set h to infinity and break.
-                if (NOMAD::INF == hTemp)
-                {
-                    h = NOMAD::INF;
-                    break;
-                }
-                h += hTemp;
-            }
+            h += hTemp;
         }
     }
 
@@ -259,12 +268,13 @@ NOMAD::Double NOMAD::Eval::computeHStandard() const
 
 NOMAD::Double NOMAD::Eval::computeFPhaseOne() const
 {
-    NOMAD::Double f = 0.0;
+    NOMAD::Double f ;
     const NOMAD::ArrayOfDouble bboArray = _bbOutput.getBBOAsArrayOfDouble();
     bool fPos = false;
 
     if (NOMAD::EvalStatusType::EVAL_OK == _evalStatus)
     {
+        f=0.0;
         size_t bboIndex = 0;
         for (auto bbOutputType : _bbOutputTypeList)
         {
@@ -284,6 +294,10 @@ NOMAD::Double NOMAD::Eval::computeFPhaseOne() const
                 f += bboI * bboI;
             }
         }
+    }
+    else
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"computeFPhaseOne(): EvalStatusType not EVAL_OK");
     }
 
     // Failsafe: If at least one EB constraint is positive, f is set
@@ -319,7 +333,7 @@ void NOMAD::Eval::setBBO(const std::string &bbo,
     else
     {
         _bbOutputComplete = _bbOutput.isComplete(_bbOutputTypeList);
-        _evalStatus = getF(NOMAD::ComputeType::STANDARD).isDefined() ? NOMAD::EvalStatusType::EVAL_OK : NOMAD::EvalStatusType::EVAL_FAILED;
+        _evalStatus = _bbOutput.getObjective(_bbOutputTypeList).isDefined() ? NOMAD::EvalStatusType::EVAL_OK : NOMAD::EvalStatusType::EVAL_FAILED;
     }
 
 }
@@ -334,8 +348,16 @@ bool NOMAD::Eval::operator==(const NOMAD::Eval &e) const
     // Compare f and h.
 
     bool equal = false;
-    NOMAD::Double f1 = getF(NOMAD::ComputeType::STANDARD);
-    NOMAD::Double f2 = e.getF(NOMAD::ComputeType::STANDARD);
+    NOMAD::Double f1;
+    NOMAD::Double f2;
+    if (NOMAD::EvalStatusType::EVAL_OK == _evalStatus)
+    {
+        f1 = getF(NOMAD::ComputeType::STANDARD);
+    }
+    if (NOMAD::EvalStatusType::EVAL_OK == e._evalStatus)
+    {
+        f2 = e.getF(NOMAD::ComputeType::STANDARD);
+    }
 
     if (this == &e)
     {

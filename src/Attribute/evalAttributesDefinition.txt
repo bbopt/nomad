@@ -30,6 +30,23 @@
 #####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
 #####         values may be assigned to this parameter.
 #####
+################################################################################
+BB_EVAL_FORMAT
+NOMAD::ArrayOfDouble
+-
+\( Format of the doubles sent to the blackbox evaluator \)
+\(
+
+. BB_EVAL_FORMAT is computed from the BB_INPUT_TYPE parameter.
+
+. Gives the format precision for doubles sent to blackbox evaluator.
+
+. CANNOT BE MODIFIED BY USER. Internal parameter.
+
+\)
+\( internal \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
 ###############################################################################
 BB_EXE
 std::string
@@ -95,20 +112,23 @@ OBJ
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ################################################################################
-BB_EVAL_FORMAT
-NOMAD::ArrayOfDouble
+SURROGATE_EXE
+std::string
 -
-\( Format of the doubles sent to the blackbox evaluator \)
+\( Static surrogate executable \)
 \(
+. To indicate a static surrogate executable
 
-. BB_EVAL_FORMAT is computed from the BB_INPUT_TYPE parameter.
+. List of strings
 
-. Gives the format precision for doubles sent to blackbox evaluator.
+. Surrogate executable must have the same number of outputs as blackbox 
+    executable, defined by BB_OUTPUT_TYPE.
 
-. CANNOT BE MODIFIED BY USER. Internal parameter.
-
+. Example
+    SURROGATE_EXE surrogate.exe     # surrogate.exe is a static surrogate executable
+                                    # for BB_EXE
 \)
-\( internal \)
-ALGO_COMPATIBILITY_CHECK no
+\( advanced static surrogate executable \)
+ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################

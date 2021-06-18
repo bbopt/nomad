@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -153,10 +153,16 @@ public:
         y = _y;
         z = _z;
     }
+    
+    /// Get private values. Used by PyNomad to obtain RNG state.
+    static string getPrivateSeedAsString()
+    {
+        return std::to_string(_x)+ " " + std::to_string(_y)+ " " + std::to_string(_z);
+    }
 
     /// Reset seed to given values.
     /**
-     Used to set back RNG in a known state.
+     Used by PyNomad to set back RNG in a known state.
      */
     static void setPrivateSeed(uint32_t x, uint32_t y, uint32_t z)
     {
@@ -164,6 +170,27 @@ public:
         _y = y;
         _z = z;
     }
+    
+    /// Reset seed to given values provided as a single string.
+    /**
+     Used to set back RNG in a known state.
+     */
+    static void setPrivateSeedAsString(const std::string & private_seeds)
+    {
+        istringstream ss(private_seeds);
+        uint32_t ps;
+        ss >> ps;
+        if (ps <= UINT32_MAX && ps >=0 )
+            _x = ps;
+        ss >> ps;
+        if (ps <= UINT32_MAX && ps >=0 )
+            _y = ps;
+        ss >> ps;
+        if (ps <= UINT32_MAX && ps >=0 )
+            _z = ps;
+
+    }
+    
 
 private:
 

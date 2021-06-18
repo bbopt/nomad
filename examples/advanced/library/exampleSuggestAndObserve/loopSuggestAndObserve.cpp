@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -49,6 +49,7 @@
 /*--------------------------------------------------------*/
 #include "Nomad/nomad.hpp"
 
+#include "Cache/CacheBase.hpp"
 
 bool eval_xs(const NOMAD::ArrayOfPoint &xs, std::vector<NOMAD::ArrayOfDouble>& fxs)
 {
@@ -148,8 +149,8 @@ int main(int argc, char ** argv)
         for (iterationCount = 0 ; iterationCount < maxIteration ; iterationCount ++)
         {
             std::string cacheFileName="cache"+std::to_string(iterationCount)+".txt";
-            SuggestMainStep->setName("Suggest " + NOMAD::itos(iterationCount));
-            ObserveMainStep->setName("Observe " + NOMAD::itos(iterationCount));
+            SuggestMainStep->setStepType(NOMAD::StepType::MAIN_SUGGEST);
+            ObserveMainStep->setStepType(NOMAD::StepType::MAIN_OBSERVE);
 
             // Use separate Parameters for Suggest and Observe
             auto paramsForSuggestPtr = std::make_shared<NOMAD::AllParameters>();
@@ -180,9 +181,8 @@ int main(int argc, char ** argv)
             std::vector<NOMAD::ArrayOfDouble> fxs;
             eval_xs(xs,fxs);
 
-            //THIS IS IMPORTANT
-            // Need to reset cache, evaluator control, subproblem manager, seed
-            NOMAD::MainStep::resetComponentsBetweenOptimization();
+            //THIS IS IMPORTANT (see comments in function)
+            NOMAD::MainStep::resetCache();
 
 
             // Parameters creation (important to create a fresh one because Suggest modifies its params (X0 from cache))
@@ -234,9 +234,8 @@ int main(int argc, char ** argv)
 
             std::cout << "==============================================" <<std::endl;
 
-            //THIS IS IMPORTANT
-            // Need to reset cache, evaluator control, subproblem manager, seed
-            NOMAD::MainStep::resetComponentsBetweenOptimization();
+            //THIS IS IMPORTANT. (see comments in function)
+            NOMAD::MainStep::resetCache();
 
         }
         
