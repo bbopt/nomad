@@ -225,8 +225,8 @@ An example of usage of PSD-MADS in library mode is in
 Hot and Warm Restart
 --------------------
 
-This new feature of NOMAD 4 makes it possible to continue the solving process after it has started, without having to restart it
- from the beginning.
+This new feature of NOMAD 4 makes it possible to continue the solving process after it has started, 
+without having to restart it from the beginning.
 In the case of hot restart, the user interrupts the solver to change the value of a parameter. 
 With warm restart, the user changes a parameter from a resolution that has already reached a termination condition. 
 In both cases, the solving process is then continued from its current state.
