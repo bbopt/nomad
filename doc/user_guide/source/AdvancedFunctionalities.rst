@@ -220,6 +220,13 @@ only for point evaluation.
 An example of usage of PSD-MADS in library mode is in
 ``$NOMAD_HOME/examples/advanced/library/PSDMads``.
 
+.. _hot_restart:
+
+Hot restart
+--------
+
+Information to be added shortly
+
 Doxygen
 -------
 
