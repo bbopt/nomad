@@ -236,7 +236,8 @@ Hot restart
 
 To enable hot restart, set parameter ``HOT_RESTART_ON_USER_INTERRUPT`` to ``true``.
 While NOMAD is running, interrupt the run with the command ``CTRL-C``.
-New values for parameters may be entered, for example ``LH_SEARCH 0 20``.
+New values for parameters may be entered.
+For example, entering ``LH_SEARCH 0 20`` will make LH search be used for the rest of the optimization.
 The syntax is the same as the syntax of a parameter file, when in batch mode.
 When all new parameter values are entered, continue optimization by entering
 the command ``CTRL-D``. The new parameter values will be taken into account.
@@ -244,7 +245,14 @@ the command ``CTRL-D``. The new parameter values will be taken into account.
 Warm restart
 """"""""""""
 
-(Info to be added shortly).
+To enable warm restart, set parameters ``HOT_RESTART_READ_FILES`` and ``HOT_RESTART_WRITE_FILES`` to ``true``.
+When NOMAD has run, files ``hotrestart.txt`` and ``cache.txt`` are written to the problem directory.
+This information is used if NOMAD is run a second time.
+Instead of redoing the same optimization, NOMAD will continue where it was when the first run was ended.
+For example, suppose the first NOMAD run stopped at evaluation 100 because the value of parameter ``MAX_BB_EVAL`` was 100.
+The user still has room for 50 more evaluations.
+The parameter file may be changed with value ``MAX_BB_EVAL 150``, and the second run of
+NOMAD will start where it was, with evaluation 101.
 
 Doxygen
 -------
