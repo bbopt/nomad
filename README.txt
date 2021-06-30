@@ -123,10 +123,14 @@ The procedure to build the debug version is the following.
 On the command line in the $NOMAD_HOME directory:
 
 cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
+                              ---> On Windows, all 4 configurations are always build
+                                   Debug, RelWithDebugInfo, MinSizeRel, Release);
+                                   flag CMAKE_BUILD_TYPE is ignored.
 
 cmake --build build/debug     ---> Build the libraries and applications 
                                      Option --parallel xx can be added for faster
-                                     build
+                                     build.
+                                   On Windows, the default configuration is Debug.
 
 cmake --install build/debug   ---> Copy binaries and headers in 
                                      build/debug/[bin, include, lib]
@@ -137,8 +141,7 @@ EXAMPLES OF OPTIMIZATION:
 
 Batch Mode:
 There are examples in batch mode in examples/basic/batch/.
-In each directory, the blackbox (usually named bb) may be compiled using
-the provided makef.
+In each directory, the blackbox (usually named bb) are compiled by default.
 The problem may be resolved using NOMAD and the parameter file:
 nomad param.txt
 
