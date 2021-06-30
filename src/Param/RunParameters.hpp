@@ -63,7 +63,7 @@ The RunParameter are used by other parameters to update their value during sanit
 class RunParameters final : public Parameters
 {
 private:
-    static bool _warningUnknownParamShown;
+    DLL_UTIL_API static bool _warningUnknownParamShown;
 
 public:
     // Constructor: init() will be called.

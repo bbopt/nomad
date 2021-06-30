@@ -1,9 +1,10 @@
-add_executable(bb3.exe bb.cpp )
+set(CMAKE_EXECUTABLE_SUFFIX .exe)
+add_executable(bb3 bb.cpp )
 
-target_link_libraries(bb3.exe PUBLIC OpenMP::OpenMP_CXX)
+target_link_libraries(bb3 PUBLIC OpenMP::OpenMP_CXX)
 
 # installing executables and libraries
-install(TARGETS bb3.exe
+install(TARGETS bb3
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example

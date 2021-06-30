@@ -1,0 +1,109 @@
+###############################################################################
+#######         Definition of Run Parameters attributes (VNS)      ############
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+VNS_MADS_OPTIMIZATION
+bool
+false
+\( VNS MADS stand alone optimization for constrained and unconstrained pbs \)
+\(
+
+. Shaking + optimization for constrained and unconstrained optimization
+
+. Argument: bool
+
+. Stand alone VNS Mads optimization will deactivate any optimization strategy.
+
+. Example: VNS_MADS_OPTIMIZATION true
+
+\)
+\( advanced global optimization vns neighborhood \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+VNS_MADS_SEARCH
+bool
+false
+\( VNS Mads optimization used as a search step for Mads \)
+\(
+
+. Variable Neighborhood Search + Mads optimization as a search step for Mads
+
+. Argument: bool
+
+. Example: VNS_MADS_SEARCH false
+
+\)
+\( advanced global mads search vns neighborhood\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+VNS_MADS_SEARCH_TRIGGER
+NOMAD::Double
+0.75
+\( VNS Mads search trigger\)
+\(
+
+. The VNS trigger is the maximum desired ratio of VNS blackbox evaluations
+  over the total number of blackbox evaluations.
+  
+. The VNS search is never executed with a null trigger while a value of 1
+  allows the search at every iteration
+  
+. If \"VNS_MADS_SEARCH yes\", the default value of 0.75 is taken for the trigger
+
+. Argument: Double
+
+. Example: VNS_MADS_SEARCH_TRIGGER 0.9
+
+\)
+\( advanced global mads search vns neighborhood ratio \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+VNS_MADS_SEARCH_MAX_TRIAL_PTS_NFACTOR
+size_t
+100
+\( VNS-Mads search stopping criterion.\)
+\(
+
+. VNS Mads stopping criterion. Max number of trial pts < dimension * NFactor
+
+. Argument: Positive integer. INF disables this criterion.
+
+. Example: VNS_MADS_SEARCH_MAX_TRIAL_PTS_NFACTOR 10
+
+\)
+\( advanced global vns neighborhood mads search stop trial \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################

@@ -68,10 +68,10 @@ private:
     std::map<const Algorithm*, const Subproblem> _map;
 
 #ifdef _OPENMP
-    static omp_lock_t _mapLock;
+    DLL_ALGO_API static omp_lock_t _mapLock;
 #endif // _OPENMP
 
-    static std::unique_ptr<SubproblemManager> _single; ///< The singleton
+    DLL_ALGO_API static std::unique_ptr<SubproblemManager> _single; ///< The singleton
 
     /// Constructor
     explicit SubproblemManager()

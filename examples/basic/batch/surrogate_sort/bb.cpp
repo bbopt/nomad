@@ -44,10 +44,11 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+#include <cmath>        // For pow
 #include <fstream>      // For ifstream
 #include <iostream>
-#include <cmath>        // For pow
 #include <stdexcept>    // For logic_error
+#include <string>
 
 const int n = 2;
 

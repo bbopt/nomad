@@ -300,7 +300,7 @@ NOMAD::Eval* NOMAD::EvalPoint::getEval(const NOMAD::EvalType& evalType) const
         {
             return _eval.at(evalType).get();
         }
-        catch (std::out_of_range &e)
+        catch (std::out_of_range&)
         {
             // Retry
         }

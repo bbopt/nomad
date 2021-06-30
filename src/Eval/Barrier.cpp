@@ -47,12 +47,14 @@
 
 #include "../Cache/CacheBase.hpp"
 #include "../Eval/Barrier.hpp"
+#include "../Eval/ComputeSuccessType.hpp"
 #include "../Output/OutputQueue.hpp"
 
 void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
                           const NOMAD::EvalType& evalType,
                           const std::vector<NOMAD::EvalPoint>& evalPointList,
-                          const NOMAD::ComputeType& computeType)
+                          const NOMAD::ComputeType& computeType,
+                          bool barrierInitializedFromCache)
 {
     std::vector<NOMAD::EvalPoint> cachePoints;
 
@@ -62,28 +64,31 @@ void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
         throw NOMAD::Exception(__FILE__,__LINE__,s);
     }
 
-    checkCache();
+    if (barrierInitializedFromCache)
+    {
+        checkCache();
 
-    // Get best feasible and infeasible solutions from cache.
-    // Points from cache are in full dimension. Convert them
-    // to subproblem dimension.
-    if (NOMAD::CacheBase::getInstance()->findBestFeas(cachePoints, fixedVariable, evalType, computeType, nullptr) > 0)
-    {
-        for (auto evalPoint : cachePoints)
+        // Get best feasible and infeasible solutions from cache.
+        // Points from cache are in full dimension. Convert them
+        // to subproblem dimension.
+        if (NOMAD::CacheBase::getInstance()->findBestFeas(cachePoints, fixedVariable, evalType, computeType, nullptr) > 0)
         {
-            NOMAD::EvalPoint evalPointSub = evalPoint.makeSubSpacePointFromFixed(fixedVariable);
-            _xFeas.push_back(evalPointSub);
+            for (auto evalPoint : cachePoints)
+            {
+                NOMAD::EvalPoint evalPointSub = evalPoint.makeSubSpacePointFromFixed(fixedVariable);
+                _xFeas.push_back(evalPointSub);
+            }
+            cachePoints.clear();
         }
-        cachePoints.clear();
-    }
-    if (NOMAD::CacheBase::getInstance()->findBestInf(cachePoints, _hMax, fixedVariable, evalType, computeType, nullptr) > 0)
-    {
-        for (auto evalPoint : cachePoints)
+        if (NOMAD::CacheBase::getInstance()->findBestInf(cachePoints, _hMax, fixedVariable, evalType, computeType, nullptr) > 0)
         {
-            NOMAD::EvalPoint evalPointSub = evalPoint.makeSubSpacePointFromFixed(fixedVariable);
-            _xInf.push_back(evalPointSub);
+            for (auto evalPoint : cachePoints)
+            {
+                NOMAD::EvalPoint evalPointSub = evalPoint.makeSubSpacePointFromFixed(fixedVariable);
+                _xInf.push_back(evalPointSub);
+            }
+            cachePoints.clear();
         }
-        cachePoints.clear();
     }
 
     // Constructor's call to update should not update ref best points.
@@ -156,7 +161,7 @@ void NOMAD::Barrier::checkCache()
     {
         NOMAD::CacheBase::getInstance();
     }
-    catch (NOMAD::Exception &e)
+    catch (NOMAD::Exception&)
     {
         throw NOMAD::Exception(__FILE__, __LINE__,
                                "Cache must be instantiated before initializing Barrier.");
@@ -284,6 +289,44 @@ void NOMAD::Barrier::addXInf(const NOMAD::EvalPoint &xInf,
     _xInf.push_back(xInf);
 }
 
+NOMAD::SuccessType NOMAD::Barrier::getSuccessTypeOfPoints(const std::shared_ptr<EvalPoint> & xFeas,
+                                                          const std::shared_ptr<EvalPoint> & xInf,
+                                                          const NOMAD::EvalType & evalType,
+                                                          const NOMAD::ComputeType & computeType)
+{
+    NOMAD::SuccessType successType = SuccessType::UNSUCCESSFUL;
+    NOMAD::SuccessType successType2 = SuccessType::UNSUCCESSFUL;
+
+    NOMAD::EvalPointPtr newBestFeas,newBestInf;
+
+    // Get the reference best points (should work for opportunistic or not)
+    auto refBestFeas = getFirstXFeas();
+    auto refBestInf = getFirstXInf();
+
+    // Set the iter success based on best feasible and best infeasible points found compared to initial point.
+    if (nullptr != refBestFeas || nullptr != refBestInf)
+    {
+        // Compute success
+        // Get which of newBestFeas and newBestInf is improving
+        // the solution. Check newBestFeas first.
+        NOMAD::ComputeSuccessType computeSuccess(evalType, computeType);
+
+        if (nullptr != refBestFeas)
+        {
+            successType = computeSuccess(xFeas, refBestFeas);
+        }
+        if (nullptr != refBestInf)
+        {
+            successType2 = computeSuccess(xInf, refBestInf);
+        }
+        if (successType2 > successType)
+        {
+            successType = successType2;
+        }
+    }
+    return successType;
+}
+
 
 // Points from evalPointList are already in subproblem dimension.
 // Parameter keepAllPoints:
@@ -345,7 +388,7 @@ bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalP
             else if (NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
             {
                 s = "Eval status is " + NOMAD::enumStr(eval->getEvalStatus());
-                s + ", continue";
+                s += ", continue";
             }
             NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
             NOMAD::OutputQueue::Flush();

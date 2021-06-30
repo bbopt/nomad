@@ -60,7 +60,7 @@ void NOMAD::CacheParameters::init()
         #include "../Attribute/cacheAttributesDefinition.hpp"
         registerAttributes( _definition );
     }
-    catch ( NOMAD::Exception & e)
+    catch (NOMAD::Exception& e)
     {
         std::string errorMsg = "Attribute registration failed: ";
         errorMsg += e.what();

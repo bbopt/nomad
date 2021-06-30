@@ -50,16 +50,17 @@
 // to be modified.
 
 #include <algorithm>    // for for_each
+#include <cctype>       // for toupper, isdigit
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
-#include <map>
 
 // Registered attribute definition names
-const std::string attributeDefinitionNames[13] = { "deprecatedAttributesDefinition",
+const std::string attributeDefinitionNames[14] = { "deprecatedAttributesDefinition",
     "displayAttributesDefinition",
     "evalAttributesDefinition",
     "cacheAttributesDefinition",
@@ -71,7 +72,8 @@ const std::string attributeDefinitionNames[13] = { "deprecatedAttributesDefiniti
     "runAttributesDefinitionNM",
     "runAttributesDefinitionPSDSSD",
     "runAttributesDefinitionQuadModel",
-    "runAttributesDefinitionSgtelibModel"
+    "runAttributesDefinitionSgtelibModel",
+    "runAttributesDefinitionVNS"
 };
 
 /// \brief Registered attribute flags and default value
@@ -508,7 +510,7 @@ int main(int argc, char *argv[])
             flagInFile = false;
 
         }
-        catch ( Exception & e)
+        catch (Exception& e)
         {
             fin.close();
             std::cerr << "ERROR: Problem handling file for attribute definition: " << ((flagInFile) ? attDefFile:attDefHeader) << " at line " <<  e.getLineNumber() << ". \n" << e.what() << std::endl << std::endl;

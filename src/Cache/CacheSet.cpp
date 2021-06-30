@@ -54,6 +54,7 @@
 #include "../Cache/CacheSet.hpp"
 #include "../Output/OutputQueue.hpp"
 #include "../Util/fileutils.hpp"
+#include "../Util/MicroSleep.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -78,9 +79,6 @@ void NOMAD::CacheSet::init()
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "CacheParameters::checkAndComply() needs to be called before constructing a CacheSet.");
     }
-#ifdef _OPENMP
-    omp_init_lock(&_cacheLock);
-#endif // _OPENMP
 }
 
 
@@ -103,22 +101,23 @@ void NOMAD::CacheSet::setInstance(const std::shared_ptr<NOMAD::CacheParameters>&
                                   const NOMAD::ArrayOfDouble& bbEvalFormat)
 {
 #ifdef _OPENMP
-    // Lock cache set before creating instance
-    omp_set_lock(&_cacheLock);
-#endif
-
-    if ( _single == nullptr )
+    #pragma omp critical(initCacheLock)
     {
-        _single = std::unique_ptr<NOMAD::CacheSet>(new CacheSet(cacheParams)) ;
-    }
-    else
-    {
-        std::string err = "Cannot get instance. NOMAD::CacheSet::setInstance must be called only ONCE before calling NOMAD::CacheBase::getInstance()" ;
-        throw NOMAD::Exception(__FILE__, __LINE__, err);
-    }
-
+#endif // _OPENMP
+        if (nullptr == _single)
+        {
 #ifdef _OPENMP
-    omp_unset_lock(& _cacheLock);
+            omp_init_lock(&_cacheLock);
+#endif // _OPENMP
+            _single = std::unique_ptr<NOMAD::CacheSet>(new CacheSet(cacheParams)) ;
+        }
+        else
+        {
+            std::string err = "Cannot get instance. NOMAD::CacheSet::setInstance must be called only ONCE before calling NOMAD::CacheBase::getInstance()" ;
+            throw NOMAD::Exception(__FILE__, __LINE__, err);
+        }
+#ifdef _OPENMP
+    }   // end of critical section
 #endif // _OPENMP
 
     _bbOutputType = bbOutputType;
@@ -282,8 +281,6 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
             OUTPUT_INFO_END
 
             // Avoid re-evaluating BB.
-            //doEval = false;
-            // TODO This will have to be re-assessed.
             doEval = canEval;
         }
         else if (NOMAD::EvalType::MODEL == evalType)
@@ -518,9 +515,9 @@ size_t NOMAD::CacheSet::find(const NOMAD::Point & X,
             if (!errSizeDisplayed)
             {
                 std::string err = "CacheSet: find: Looking for a point of size ";
-                err += X.size();
+                err += NOMAD::itos(X.size());
                 err += " but the cache points are of size ";
-                err += it->size();
+                err += NOMAD::itos(it->size());
                 std::cerr << "Warning: CacheSet: find: Looking for a point of size " << X.size() << " but found cache point of size " << it->size() << std::endl;
                 errSizeDisplayed = true;
             }
@@ -786,27 +783,10 @@ size_t NOMAD::CacheSet::computeMeanF(NOMAD::Double &mean) const
     }
     if (nbElem > 0)
     {
-        mean = total / nbElem;
+        mean = total / (double)nbElem;
     }
 
     return nbElem;
-}
-
-
-// Call function func on all points in cache.
-void NOMAD::CacheSet::processOnAllPoints(void (*func)(NOMAD::EvalPoint&))
-{
-#ifdef _OPENMP
-    omp_set_lock(&_cacheLock);
-#endif // _OPENMP
-    for (auto it = _cache.begin(); it != _cache.end(); ++it)
-    {
-        auto evalPoint = const_cast<NOMAD::EvalPoint*>(&*it);
-        func(*evalPoint);
-    }
-#ifdef _OPENMP
-    omp_unset_lock(&_cacheLock);
-#endif // _OPENMP
 }
 
 
@@ -819,7 +799,8 @@ void NOMAD::CacheSet::processOnAllPoints(void (*func)(NOMAD::EvalPoint&), const 
     for (auto it = _cache.begin(); it != _cache.end(); ++it)
     {
         auto evalPoint = const_cast<NOMAD::EvalPoint*>(&*it);
-        if (mainThreadNum == evalPoint->getThreadAlgo())
+        if (   -1 == mainThreadNum 
+            || evalPoint->getThreadAlgo() == mainThreadNum)
         {
             func(*evalPoint);
         }

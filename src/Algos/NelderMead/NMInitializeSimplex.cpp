@@ -143,7 +143,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
         if ( ! includeRectangle.isDefined() )
             throw NOMAD::Exception(__FILE__, __LINE__, "The frame size is not defined.");
 
-        includeRectangle *= includeFactor ;
+        includeRectangle *= (double)includeFactor ;
 
         OUTPUT_DEBUG_START
         dbgInfo.addMsg("The include rectangle: " + includeRectangle.display() );

@@ -50,7 +50,7 @@
 #include "../Algos/IterationUtils.hpp"
 #include "../Algos/Step.hpp"
 
-#include "../../nomad_nsbegin.hpp"
+#include "../nomad_nsbegin.hpp"
 
 /// Class to evaluate trial points using static surrogate
 class SurrogateEvaluation : public Step
@@ -72,6 +72,6 @@ private:
 
 };
 
-#include "../../nomad_nsend.hpp"
+#include "../nomad_nsend.hpp"
 
 #endif // __NOMAD_4_0_SURROGATE_EVALUATION__

@@ -65,12 +65,12 @@ private:
 
 #ifdef TIME_STATS
     /// Time counters
-    static double       _iterTime;          ///< Total time spent running this class
-    static double       _searchTime;        ///< Total time spent running searches
-    static double       _searchEvalTime;    ///< Total time spent evaluating search points
-    static double       _pollTime;          ///< Total time spent running polls
-    static double       _pollEvalTime;      ///< Total time spent evaluating poll points
-    double              _iterStartTime;     ///< Time at which the start method was called
+    DLL_ALGO_API static double  _iterTime;          ///< Total time spent running this class
+    DLL_ALGO_API static double  _searchTime;        ///< Total time spent running searches
+    DLL_ALGO_API static double  _searchEvalTime;    ///< Total time spent evaluating search points
+    DLL_ALGO_API static double  _pollTime;          ///< Total time spent running polls
+    DLL_ALGO_API static double  _pollEvalTime;      ///< Total time spent evaluating poll points
+    double                      _iterStartTime;     ///< Time at which the start method was called
 #endif // TIME_STATS
 
 public:

@@ -56,12 +56,10 @@ void NOMAD::PollMethodBase::init()
     verifyParentNotNull();
 }
 
-
 void NOMAD::PollMethodBase::generateTrialPoints()
 {
     generateTrialPointsInternal(false);
 }
-
 
 void NOMAD::PollMethodBase::generate2NDirections(std::list<NOMAD::Direction> &directions, size_t n) const
 {
@@ -105,12 +103,103 @@ void NOMAD::PollMethodBase::generateTrialPointsNPlus1(const NOMAD::EvalPointSet&
 // and the N+1th point needs to be generated.
 void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isNPlus1)
 {
+
+    std::list<NOMAD::Direction> directionsFullSpace = generateFullSpaceScaledDirections(isNPlus1);
+    
+    OUTPUT_INFO_START
+    std::string s = "Generate ";
+    s+= (isNPlus1) ? "n+1th point" : "n points";
+    s += " for " + getName();
+    AddOutputInfo(s, true, false);
+    OUTPUT_INFO_END
+
+    OUTPUT_DEBUG_START
+    for (auto dir : directionsFullSpace)
+    {
+        AddOutputDebug("Scaled and mesh projected poll direction: " + dir.display());
+    }
+    OUTPUT_DEBUG_END
+
+    auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
+    // We need a frame center to start with.
+    if (!_frameCenter.ArrayOfDouble::isDefined() || _frameCenter.size() != n)
+    {
+        std::string err = "Invalid frame center: " + _frameCenter.display();
+        throw NOMAD::Exception(__FILE__, __LINE__, err);
+    }
+
+    OUTPUT_DEBUG_START
+    AddOutputDebug("Frame center: " + _frameCenter.display());
+    OUTPUT_DEBUG_END
+
+    if (isNPlus1)
+    {
+        // Clear trial points so that they are not re-evaluated (or tried to be).
+        // If not N+1 pass, we keep all points from all PollMethods, for instance,
+        // Ortho 2N for primary poll center and Double for secondary poll center.
+        clearTrialPoints();
+    }
+    for (std::list<NOMAD::Direction>::iterator it = directionsFullSpace.begin(); it != directionsFullSpace.end() ; ++it)
+    {
+        NOMAD::Point pt(n);
+
+        // pt = frame center + direction
+        for (size_t i = 0 ; i < n ; ++i )
+        {
+            pt[i] = _frameCenter[i] + (*it)[i];
+        }
+
+        auto evalPoint = NOMAD::EvalPoint(pt);
+        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(_frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+        // Snap the points and the corresponding direction to the bounds
+        if (snapPointToBoundsAndProjectOnMesh(evalPoint,
+                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND"),
+                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND")))
+        {
+            if (*evalPoint.getX() != *_frameCenter.getX())
+            {
+                // New EvalPoint to be evaluated.
+                // Add it to the list.
+                evalPoint.addGenStep(getStepType());
+                bool inserted = insertTrialPoint(evalPoint);
+
+                OUTPUT_INFO_START
+                std::string s = "Generated point";
+                s += (inserted) ? ": " : " not inserted: ";
+                s += evalPoint.display();
+                AddOutputInfo(s);
+                OUTPUT_INFO_END
+            }
+            else
+            {
+                OUTPUT_INFO_START
+                std::string s = "Generated point not inserted (equal to frame center): ";
+                s += evalPoint.display();
+                AddOutputInfo(s);
+                OUTPUT_INFO_END
+            }
+        }
+    }
+
+    OUTPUT_INFO_START
+    AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");
+    std::string s = "Generate ";
+    s+= (isNPlus1) ? "n+1th point" : "n points";
+    s += " for " + getName();
+    AddOutputInfo(s, false, true);
+    OUTPUT_INFO_END
+}
+
+
+std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirections(bool isNPlus1, std::shared_ptr<NOMAD::MeshBase> mesh)
+{
     // Groups of variables.
     auto varGroups = _pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP");;
+    
     auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
-
+    
     std::list<NOMAD::Direction> directionsSubSpace, directionsFullSpace;
-
+    
     if (varGroups.size() == 0)
     {
         if (!isNPlus1)
@@ -184,99 +273,22 @@ void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isNPlus1)
             }
         }
     }
-
+    
     // Scale and project directions on the mesh
-    scaleAndProjectOnMesh(directionsFullSpace);
-
-    OUTPUT_INFO_START
-    std::string s = "Generate ";
-    s+= (isNPlus1) ? "n+1th point" : "n points";
-    s += " for " + getName();
-    AddOutputInfo(s, true, false);
-    OUTPUT_INFO_END
-
-    OUTPUT_DEBUG_START
-    for (auto dir : directionsFullSpace)
-    {
-        AddOutputDebug("Scaled and mesh projected poll direction: " + dir.display());
-    }
-    OUTPUT_DEBUG_END
-
-    // We need a frame center to start with.
-    if (!_frameCenter.ArrayOfDouble::isDefined() || _frameCenter.size() != n)
-    {
-        std::string err = "Invalid frame center: " + _frameCenter.display();
-        throw NOMAD::Exception(__FILE__, __LINE__, err);
-    }
-
-    OUTPUT_DEBUG_START
-    AddOutputDebug("Frame center: " + _frameCenter.display());
-    OUTPUT_DEBUG_END
-
-    if (isNPlus1)
-    {
-        // Clear trial points so that they are not re-evaluated (or tried to be).
-        // If not N+1 pass, we keep all points from all PollMethods, for instance,
-        // Ortho 2N for primary poll center and Double for secondary poll center.
-        clearTrialPoints();
-    }
-    for (std::list<NOMAD::Direction>::iterator it = directionsFullSpace.begin(); it != directionsFullSpace.end() ; ++it)
-    {
-        NOMAD::Point pt(n);
-
-        // pt = frame center + direction
-        for (size_t i = 0 ; i < n ; ++i )
-        {
-            pt[i] = _frameCenter[i] + (*it)[i];
-        }
-
-        auto evalPoint = NOMAD::EvalPoint(pt);
-        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(_frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
-        // Snap the points and the corresponding direction to the bounds
-        if (snapPointToBoundsAndProjectOnMesh(evalPoint,
-                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND"),
-                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND")))
-        {
-            if (*evalPoint.getX() != *_frameCenter.getX())
-            {
-                // New EvalPoint to be evaluated.
-                // Add it to the list.
-                evalPoint.addGenStep(getStepType());
-                bool inserted = insertTrialPoint(evalPoint);
-
-                OUTPUT_INFO_START
-                std::string s = "Generated point";
-                s += (inserted) ? ": " : " not inserted: ";
-                s += evalPoint.display();
-                AddOutputInfo(s);
-                OUTPUT_INFO_END
-            }
-            else
-            {
-                OUTPUT_INFO_START
-                std::string s = "Generated point not inserted (equal to frame center): ";
-                s += evalPoint.display();
-                AddOutputInfo(s);
-                OUTPUT_INFO_END
-            }
-        }
-    }
-
-    OUTPUT_INFO_START
-    AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");
-    std::string s = "Generate ";
-    s+= (isNPlus1) ? "n+1th point" : "n points";
-    s += " for " + getName();
-    AddOutputInfo(s, false, true);
-    OUTPUT_INFO_END
+    scaleAndProjectOnMesh(directionsFullSpace, mesh);
+    
+    return directionsFullSpace;
+    
 }
 
 
-void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs)
+void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs, std::shared_ptr<NOMAD::MeshBase> mesh)
 {
     // Scale the directions and project on the mesh
-
-    std::shared_ptr<NOMAD::MeshBase> mesh = getIterationMesh();
+    if (nullptr == mesh)
+    {
+        mesh = getIterationMesh();
+    }
     if (nullptr == mesh)
     {
         std::string err("Iteration or Mesh not found.");

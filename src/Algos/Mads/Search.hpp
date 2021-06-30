@@ -57,8 +57,8 @@ class Search final : public Step , public IterationUtils
 private:
     std::vector<std::shared_ptr<SearchMethodBase>> _searchMethods;
 #ifdef TIME_STATS
-    static std::vector<double>  _searchTime;        ///< Total time spent running each search
-    static std::vector<double>  _searchEvalTime;    ///< Total time spent evaluating search points
+    DLL_ALGO_API static std::vector<double> _searchTime;        ///< Total time spent running each search
+    DLL_ALGO_API static std::vector<double> _searchEvalTime;    ///< Total time spent evaluating search points
 #endif // TIME_STATS
 
 public:

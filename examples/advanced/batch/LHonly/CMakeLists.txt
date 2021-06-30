@@ -1,7 +1,8 @@
-add_executable(u.exe u.cpp )
+set(CMAKE_EXECUTABLE_SUFFIX .exe)
+add_executable(u u.cpp )
 
 # installing executables and libraries
-install(TARGETS u.exe
+install(TARGETS u
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example

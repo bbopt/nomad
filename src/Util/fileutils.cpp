@@ -51,8 +51,15 @@
  \date   June 2017
  \see    fileutils.hpp
  */
+#include "../Util/Exception.hpp"
 #include "../Util/fileutils.hpp"
 #include "../Util/utils.hpp"
+
+#ifdef _WIN32
+#include <direct.h>     // for getcwd
+#include <cctype>       // for isalpha
+#define getcwd _getcwd
+#endif
 
 /*-----------------------------------------------------------------*/
 /*              check if a file exists and is executable           */
@@ -96,15 +103,10 @@ bool NOMAD::checkWriteFile(const std::string &filename)
 std::string NOMAD::curdir()
 {
     char dirbuff[1024];
-#ifdef WINDOWS
-#include <direct.h>
-    _getcwd(dirbuff, 1024);
-#else
     if (nullptr == getcwd(dirbuff, 1024))
     {
         std::cerr << "Warning: Could not get current directory" << std::endl;
     }
-#endif
     std::string dir(dirbuff);
 
     return dir;
@@ -212,11 +214,26 @@ std::string NOMAD::fullpath(const std::string &filename)
 }
 
 
-// Return true if a filename is absolute, i.e., starts with '/'.
+// Return true if a filename is absolute.
+// On Linux/MacOS, check if the filename start with '/'.
+// On Windows, naively check if the filename starts with a letter
+// followed by a colon.
 // Return false otherwise (filename is relative, or filename is file only).
 bool NOMAD::isAbsolute(const std::string &filename)
 {
+#ifdef WINDOWS
+    if (filename.size() < 2)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"isAbsolute: File name is too small");
+    }
+    return (std::isalpha(filename[0]) && ':' == filename[1]);
+#else
+    if (filename.size() < 1)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"isAbsolute: Empty file name");
+    }
     return (filename[0] == NOMAD::DIR_SEP);
+#endif
 }
 
 

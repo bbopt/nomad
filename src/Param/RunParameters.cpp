@@ -82,6 +82,9 @@ void NOMAD::RunParameters::init()
 
         #include "../Attribute/runAttributesDefinitionSgtelibModel.hpp"
         registerAttributes( _definition );
+        
+        #include "../Attribute/runAttributesDefinitionVNS.hpp"
+        registerAttributes( _definition );
 
         // Registered attributes using defined keywords (not in preprocessed special header file)
         registerAttribute<NOMAD::Double>("EPSILON", NOMAD::DEFAULT_EPSILON, false,
@@ -102,7 +105,7 @@ void NOMAD::RunParameters::init()
         // Note: we cannot call checkAndComply() here, the default values
         // are not valid.
     }
-    catch (NOMAD::Exception & e)
+    catch (NOMAD::Exception& e)
     {
         std::string errorMsg = "Attribute registration failed: ";
         errorMsg += e.what();
@@ -332,7 +335,7 @@ void NOMAD::RunParameters::checkAndComply(
         bool nbMadsSubproblemSetByUser = true;
         if (nbMadsSubproblem == INF_SIZE_T)
         {
-            nbMadsSubproblem = std::round(n/nbVariablesInSubproblem)+1; // Add an additional mads for the pollster
+            nbMadsSubproblem = (size_t)std::round(n/nbVariablesInSubproblem)+1; // Add an additional mads for the pollster
             nbMadsSubproblemSetByUser = false;
         }
         if (useAlgoPSDMads)

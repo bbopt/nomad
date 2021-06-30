@@ -58,12 +58,12 @@
 #include "../../Util/Clock.hpp"
 #endif
 
-void NOMAD::Mads::init()
+void NOMAD::Mads::init(bool barrierInitializedFromCache)
 {
     setStepType(NOMAD::StepType::ALGORITHM_MADS);
 
     // Instantiate Mads initialization class
-    _initialization = std::make_unique<NOMAD::MadsInitialization>( this );
+    _initialization = std::make_unique<NOMAD::MadsInitialization>( this , barrierInitializedFromCache);
 
 }
 
@@ -226,13 +226,14 @@ void NOMAD::Mads::hotRestartOnUserInterrupt()
 
     // Reset mesh because parameters have changed.
     std::stringstream ss;
-    auto mesh = getIterationMesh();
-    if (nullptr != mesh)
+    const NOMAD::Iteration* iteration = getParentOfType<NOMAD::Iteration*>();
+    if (nullptr != iteration)
     {
+        auto mesh = getIterationMesh();
         ss << *mesh;
         // Reset pointer
         mesh.reset();
-        mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+        mesh = std::make_shared<NOMAD::GMesh>(iteration->getPbParams());
         // Get old mesh values
         ss >> *mesh;
     }

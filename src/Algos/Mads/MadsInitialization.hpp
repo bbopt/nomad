@@ -59,15 +59,19 @@ class MadsInitialization final: public Initialization
 {
 private:
     std::shared_ptr<MeshBase> _initialMesh;
+    
+    bool _barrierInitializedFromCache;
 
 public:
     /// Constructor
     /*
-     \param parentStep      The parent of this step -- \b IN.
+     \param parentStep                   The parent of this step -- \b IN.
+     \param barrierInitializedFromCache  Flag to initialize barrier from cache or not -- \b IN.
      */
-    explicit MadsInitialization(const Step* parentStep)
+    explicit MadsInitialization(const Step* parentStep, bool barrierInitializedFromCache=true)
       : Initialization(parentStep),
-        _initialMesh(nullptr)
+        _initialMesh(nullptr),
+        _barrierInitializedFromCache(barrierInitializedFromCache)
     {
         init();
     }

@@ -53,8 +53,7 @@
 #include "../../Algos/PSDMads/PSDMadsMegaIteration.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
-
-#include <unistd.h> // For usleep
+#include "../../Util/MicroSleep.hpp"
 
 // Initialize static lock variable
 omp_lock_t NOMAD::PSDMads::_psdMadsLock;
@@ -74,7 +73,7 @@ void NOMAD::PSDMads::init(const std::shared_ptr<NOMAD::Evaluator>& evaluator,
     // Main thread 0 is already added to EvaluatorControl at its creation.
     size_t nbMainThreads = _runParams->getAttributeValue<size_t>("PSD_MADS_NB_SUBPROBLEM");
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    for (size_t mainThreadNum = 1; mainThreadNum < nbMainThreads; mainThreadNum++)
+    for (int mainThreadNum = 1; mainThreadNum < (int)nbMainThreads; mainThreadNum++)
     {
         auto evalStopReason = std::make_shared<NOMAD::StopReason<NOMAD::EvalMainThreadStopType>>();
         auto subProblemEvalContParams = std::unique_ptr<NOMAD::EvaluatorControlParameters>(new NOMAD::EvaluatorControlParameters(*evalContParams));
@@ -261,7 +260,7 @@ bool NOMAD::PSDMads::doUpdateMesh() const
 
     int nbRemaining = 0;
     omp_set_lock(&_psdMadsLock);
-    nbRemaining = _randomPickup.getN();
+    nbRemaining = (int)_randomPickup.getN();
 
     if (_lastMadsSuccessful && _runParams->getAttributeValue<bool>("PSD_MADS_ITER_OPPORTUNISTIC"))
     {

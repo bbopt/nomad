@@ -761,7 +761,7 @@ false
 VNS_SEARCH
 bool
 false
-\( Deprecated from Nomad 3: Not implemented \)
+\( Replaced by VNS_MADS_SEARCH \)
 \(
 \)
 \( internal \)

@@ -49,6 +49,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #define DIMENSION 2

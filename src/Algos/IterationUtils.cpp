@@ -112,7 +112,7 @@ bool NOMAD::IterationUtils::snapPointToBoundsAndProjectOnMesh(
     {
         fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(_parentStep);
     }
-    catch (NOMAD::Exception &e)
+    catch (NOMAD::Exception&)
     {
         if (nullptr != evalPoint.getPointFrom())
         {
@@ -336,6 +336,11 @@ bool NOMAD::IterationUtils::postProcessing()
             // We are looking for improving, non-dominating trial points.
             // I.e. h is better, but f is less good.
 
+            if (!trialPoint.isEvalOk(evalType))
+            {
+                continue;
+            }
+
             // Note: Searching for updated trial points in the cache.
             if (trialPoint.isFeasible(evalType, computeType))
             {
@@ -346,10 +351,7 @@ bool NOMAD::IterationUtils::postProcessing()
             NOMAD::Double ftrialPoint = trialPoint.getF(evalType, computeType);
             NOMAD::Double htrialPoint = trialPoint.getH(evalType, computeType);
 
-            bool evalOk = (NOMAD::EvalStatusType::EVAL_OK == trialPoint.getEvalStatus(evalType));
-
-            if (evalOk && (htrialPoint < hxInf)
-                && (ftrialPoint > fxInf))
+            if ((htrialPoint < hxInf) && (ftrialPoint > fxInf))
             {
                 // improving
                 if (!tempHMax.isDefined() || tempHMax < htrialPoint)

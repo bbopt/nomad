@@ -53,7 +53,7 @@
 #include "../Type/EvalSortType.hpp"
 #include "../Util/AllStopReasons.hpp"
 #include "../Util/Clock.hpp"
-#include <unistd.h> // For usleep
+#include "../Util/MicroSleep.hpp"
 
 /*------------------------*/
 /* Class EvaluatorControl */
@@ -118,9 +118,6 @@ void NOMAD::EvaluatorControl::destroy()
             }
         }
     }
-
-    // Remove tmp files, clean up after ourselves
-    NOMAD::Evaluator::removeTmpFiles();
 
 #ifdef _OPENMP
     omp_destroy_lock(&_evalQueueLock);
@@ -729,7 +726,7 @@ bool NOMAD::EvaluatorControl::popBlock(NOMAD::BlockForEval &block)
             modelBlockSize = _evalContGlobalParams->getAttributeValue<size_t>("MODEL_MAX_BLOCK_SIZE");
             gotBlockSize = true;
         }
-        catch (NOMAD::ParameterToBeChecked &e)
+        catch (NOMAD::ParameterToBeChecked&)
         {
             // While will loop - Retry
         }
@@ -1289,7 +1286,7 @@ bool NOMAD::EvaluatorControl::reachedMaxEval() const
         maxEval      = _evalContGlobalParams->getAttributeValue<size_t>("MAX_EVAL");
         maxBlockEval = _evalContGlobalParams->getAttributeValue<size_t>("MAX_BLOCK_EVAL");
     }
-    catch (NOMAD::ParameterToBeChecked &e)
+    catch (NOMAD::ParameterToBeChecked&)
     {
         // Early out. Ignore the test: return false.
         return false;

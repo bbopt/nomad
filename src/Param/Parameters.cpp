@@ -55,7 +55,11 @@
 #include "../Type/SgtelibModelFeasibilityType.hpp"
 #include "../Type/SgtelibModelFormulationType.hpp"
 #include "../Util/fileutils.hpp"
-
+#ifdef _WIN32
+#include <io.h>    // For _access
+#define access _access
+#define R_OK 04
+#endif
 
 // The deep copy of parameters. Used only by derived object that implemented the copy constructor and copy assignment
 void NOMAD::Parameters::copyParameters(const Parameters& params)
@@ -605,7 +609,9 @@ void NOMAD::Parameters::readParamLine(const std::string &line,
 void NOMAD::Parameters::readEntries(const bool overwrite, std::string problemDir)
 {
     if (problemDir.empty())
-        problemDir = '.' + NOMAD::DIR_SEP;
+    {
+        problemDir = std::string(".") + NOMAD::DIR_SEP;
+    }
 
     // parameters will have to be checked:
     _toBeChecked = true;
@@ -1087,14 +1093,14 @@ NOMAD::ArrayOfPoint NOMAD::Parameters::readPointValuesFromFile(const std::string
 size_t NOMAD::Parameters::readValuesForVariableGroup(const NOMAD::ParameterEntry &pe,
                                                      NOMAD::VariableGroup &vg )
 {
-    size_t i;
+    int i;
 
     std::list<std::string>::const_iterator it , end;
     std::pair<NOMAD::VariableGroup::iterator,bool> ret;
     // just one variable index (can be '*' or a range of indices 'i-j'):
     if ( pe.getNbValues() == 1 )
     {
-        size_t j, k;
+        int j, k;
         it = pe.getValues().begin();
         if ( !NOMAD::stringToIndexRange ( *it , i , j ) )
         {
@@ -1121,12 +1127,14 @@ size_t NOMAD::Parameters::readValuesForVariableGroup(const NOMAD::ParameterEntry
         end = pe.getValues().end();
         for ( it = pe.getValues().begin() ; it != end ; ++it )
         {
-            if ( !NOMAD::atost ( *it , i ) )
+            size_t ist = (size_t)i;
+            if ( !NOMAD::atost ( *it , ist ) )
             {
                     std::string err = "Invalid format for index list: ";
                     err += pe.getName() + " at line " + std::to_string(pe.getLine());
                     throw NOMAD::Exception(__FILE__,__LINE__, err);
             }
+            i = (int)ist;
             ret = vg.insert(i);
             if (!ret.second)
             {

@@ -89,7 +89,7 @@ void NOMAD::OrthoNPlus1NegPollMethod::generateNPlus1Direction(std::list<Directio
     }
     if (dirNPlus1.size() > 0 && dirNPlus1.norm() > 0 && _trialPoints.size() > 0)
     {
-        dirNPlus1 /= _trialPoints.size();
+        dirNPlus1 /= (double)_trialPoints.size();
         directions.push_back(dirNPlus1);
     }
 }

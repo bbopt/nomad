@@ -59,7 +59,7 @@ void NOMAD::NMAllReflective::startImp()
 
         // Generate REFLECT, EXPANSION, INSIDE_CONTRACTION, OUTSIDE_CONTRACTION (no SHRINK)
         // All points are generated before evaluation
-        verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, true);
+        verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, true);
 
         generateTrialPoints();
         verifyPointsAreOnMesh(getName());

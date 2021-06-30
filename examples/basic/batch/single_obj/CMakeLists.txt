@@ -1,7 +1,8 @@
-add_executable(bb.exe bb.cpp )
+set(CMAKE_EXECUTABLE_SUFFIX .exe)
+add_executable(bb bb.cpp )
 
 # installing executables and libraries
-install(TARGETS bb.exe
+install(TARGETS bb
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example

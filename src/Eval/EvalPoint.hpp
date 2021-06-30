@@ -79,7 +79,7 @@ class EvalPoint : public Point
 {
 private:
 
-    static int                  _currentTag;  ///< Value of the current tag
+    DLL_EVAL_API static int     _currentTag;  ///< Value of the current tag
 
     std::map<EvalType,EvalUPtr> _eval;  ///< Value of the evaluation for each eval type
 

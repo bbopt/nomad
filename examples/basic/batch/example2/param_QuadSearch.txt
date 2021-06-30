@@ -38,6 +38,3 @@ DISPLAY_ALL_EVAL 1
 DISPLAY_STATS BBE ( SOL ) OBJ GEN_STEP
 #STATS_FILE stats.txt BBE SOL OBJ
 
-# Using a local temporary directory makes resolution faster
-TMP_DIR /tmp
-

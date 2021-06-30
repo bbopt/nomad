@@ -50,6 +50,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <string>
 
 #define DIMENSION 2
 

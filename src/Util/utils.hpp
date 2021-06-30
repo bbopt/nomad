@@ -125,8 +125,8 @@ bool atost(const std::string &s, size_t &st);
  \return A boolean equal to \c true if the conversion was possible.
  */
 bool stringToIndexRange ( const std::string & s                  ,
-                          size_t            & i                  ,
-                          size_t            & j                  ,
+                          int               & i                  ,
+                          int               & j                  ,
                           bool                check_order = true   );
 
 

@@ -229,7 +229,7 @@ public:
 
 
     std::vector<bool> eval_block(NOMAD::Block &block,
-                        __attribute__((unused)) const NOMAD::Double& hMax,
+                        const NOMAD::Double& NOMAD_UNUSED(hMax),
                         std::vector<bool> &countEval) const override
     {
         size_t nbPoints = block.size();
@@ -469,6 +469,8 @@ static int runNomad(Callback cb,
             bestInfeasSol = nullptr;
         }
 
+        NOMAD::MainStep::resetComponentsBetweenOptimization();
+        
         Py_END_ALLOW_THREADS
         return stopflag;
     }

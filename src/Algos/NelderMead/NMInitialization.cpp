@@ -131,7 +131,7 @@ void NOMAD::NMInitialization::generateTrialPoints()
     {
         std::string err = "Initialization: evalY0: Invalid X0 " + x0.display();
         size_t cacheSize = NOMAD::CacheBase::getInstance()->size();
-        if (cacheSize > 0)
+        if (cacheSize > (size_t)0)
         {
             err += ". Hint: Try not setting X0 so that the cache is used (";
             err += std::to_string(cacheSize) + " points)";

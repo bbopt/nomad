@@ -69,8 +69,8 @@ class ArrayOfDouble {
 
 public:
 
-    static const std::string pStart; ///< Static variable used for array delimitation.
-    static const std::string pEnd; ///< Static variable used for array delimitation.
+    DLL_UTIL_API static const std::string pStart; ///< Static variable used for array delimitation.
+    DLL_UTIL_API static const std::string pEnd; ///< Static variable used for array delimitation.
 
 protected:
     /*---------*/

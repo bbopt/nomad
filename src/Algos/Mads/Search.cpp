@@ -53,6 +53,7 @@
 #include "../../Algos/Mads/LHSearchMethod.hpp"
 #include "../../Algos/Mads/NMSearchMethod.hpp"
 #include "../../Algos/Mads/UserSearchMethod.hpp"
+#include "../../Algos/Mads/VNSSearchMethod.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 #ifdef TIME_STATS
@@ -75,6 +76,7 @@ void NOMAD::Search::init()
     auto sgtelibSearch          = std::make_shared<NOMAD::SgtelibSearchMethod>(this);
     auto lhSearch               = std::make_shared<NOMAD::LHSearchMethod>(this);
     auto nmSearch               = std::make_shared<NOMAD::NMSearchMethod>(this);
+    auto vnsSearch              = std::make_shared<NOMAD::VNSSearchMethod>(this);
 
 
     // The search methods will be executed in the same order
@@ -93,6 +95,7 @@ void NOMAD::Search::init()
     _searchMethods.push_back(userSearch);           // 2. user search
     _searchMethods.push_back(quadSearch);           // 5a. Quad Model Searches
     _searchMethods.push_back(sgtelibSearch);        // 5b. Model Searches
+    _searchMethods.push_back(vnsSearch);
     _searchMethods.push_back(lhSearch);             // 7. Latin-Hypercube (LH) search
     _searchMethods.push_back(nmSearch);             // 8. NelderMead (NM) search
 }
@@ -101,7 +104,7 @@ void NOMAD::Search::init()
 void NOMAD::Search::startImp()
 {
    // Sanity check.
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 
 }
 
@@ -112,7 +115,7 @@ bool NOMAD::Search::runImp()
     std::string s;
 
     // Sanity check. The runImp function should be called only when trial points are generated and evaluated for each search method separately.
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 
     if (!isEnabled())
     {
@@ -184,7 +187,7 @@ bool NOMAD::Search::runImp()
 void NOMAD::Search::endImp()
 {
     // Sanity check. The endImp function should be called only when trial points are generated and evaluated for each search method separately.
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 
     if (!isEnabled())
     {
@@ -205,7 +208,7 @@ void NOMAD::Search::endImp()
 void NOMAD::Search::generateTrialPoints()
 {
     // Sanity check. The generateTrialPoints function should be called only when trial points are generated for all each search method. After that all trials points evaluated at once.
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, true);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, true);
 
     for (auto searchMethod : _searchMethods)
     {

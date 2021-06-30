@@ -75,9 +75,6 @@ NOMAD::OutputQueue::OutputQueue()
     _blockStart("{"),
     _blockEnd("}")
 {
-#ifdef _OPENMP
-    omp_init_lock(&_s_queue_lock);
-#endif // _OPENMP
 }
 
 
@@ -129,17 +126,20 @@ void NOMAD::OutputQueue::reset()
 std::unique_ptr<NOMAD::OutputQueue>& NOMAD::OutputQueue::getInstance()
 {
 #ifdef _OPENMP
-    // Lock queue before creating singleton
-    omp_set_lock(&_s_queue_lock);
-#endif
-    if (nullptr == _single)
+    #pragma omp critical(initOutputQueueLock)
     {
-        _single = std::unique_ptr<OutputQueue> (new OutputQueue()) ;
-    }
-
-#ifdef _OPENMP
-    omp_unset_lock(&_s_queue_lock);
 #endif // _OPENMP
+        if (nullptr == _single)
+        {
+#ifdef _OPENMP
+            omp_init_lock(&_s_queue_lock);
+#endif // _OPENMP
+            _single = std::unique_ptr<OutputQueue> (new OutputQueue());
+        }
+#ifdef _OPENMP
+    } // end of critical section
+#endif // _OPENMP
+
     return _single;
 }
 

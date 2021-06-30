@@ -36,9 +36,6 @@ LH_SEARCH 100 10
 # Search and Poll stop as soon as a success is found
 EVAL_OPPORTUNISTIC true
 
-# Using /tmp as temporary directory will make resolution faster
-TMP_DIR /tmp
-
 
 # DISPLAY PARAMETERS
 ####################

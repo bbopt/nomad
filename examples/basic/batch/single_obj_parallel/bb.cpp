@@ -45,16 +45,15 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 #include <cmath>
-#include <iostream>
-#include <fstream>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <string>
 #include <vector>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#include <unistd.h>
 
 
 using namespace std;
@@ -84,7 +83,7 @@ int main ( int argc , char ** argv )
 		in.close();
 		X.pop_back();
 
-		int nb_pts= X.size();
+		int nb_pts= (int)X.size();
 
 		// Evaluate the points in parallel
 #ifdef _OPENMP
@@ -105,7 +104,6 @@ int main ( int argc , char ** argv )
 			x_t[6] =  c1 - 25;
 			x_t[7] =  25 - c2;
 			// cout << x_t[6] << " " << x_t[7] << " " << endl;
-			// usleep(300000);
 		}
 
 		// Output the points in the same order as in the input file

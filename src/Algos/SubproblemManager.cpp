@@ -159,7 +159,7 @@ const NOMAD::Subproblem& NOMAD::SubproblemManager::getSubproblem(const NOMAD::St
 #endif // _OPENMP
         return sub;
     }
-    catch (const std::out_of_range& oor)
+    catch (const std::out_of_range&)
     {
         std::cerr << "Error: Subproblem not found for Algorithm " << algo->getName() << std::endl;
     }

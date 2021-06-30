@@ -51,6 +51,7 @@
  \date   2010-04-02
  \see    Double.hpp
  */
+#include <cctype>   // for toupper
 #include <iomanip>  // For std::setprecision
 #include "../Math/Double.hpp"
 #include "../Util/defines.hpp"
@@ -350,6 +351,9 @@ bool NOMAD::Double::isBinary ( void ) const
 const NOMAD::Double NOMAD::operator / ( const NOMAD::Double & d1 ,
                                        const NOMAD::Double & d2   )
 {
+    if ( !d1.isDefined() || !d2.isDefined() )
+        throw NOMAD::Double::NotDefined ( "Double.cpp" , __LINE__ ,
+                           "NOMAD::Double: d1 / d2: d1 or d2 not defined" );
     if ( d2.todouble() == 0.0 )
         throw NOMAD::Double::InvalidValue ( "Double.cpp" , __LINE__ ,
                                             "NOMAD::Double: d1 / d2: division by zero" );
@@ -806,7 +810,7 @@ int NOMAD::Double::round ( void ) const
 // Ex. 123.4567 -> 4
 //     123 -> 0
 //     0.000 -> 3
-std::size_t NOMAD::Double::nbDecimals( ) const
+std::size_t NOMAD::Double::nbDecimals() const
 {
     std::size_t nbDec;
 
@@ -817,11 +821,11 @@ std::size_t NOMAD::Double::nbDecimals( ) const
     }
 
     NOMAD::Double rem( _value );
-    int dec = std::floor(log10(rem.todouble()));
+    int dec = (int)std::floor(log10(rem.todouble()));
     rem -= pow(10, dec);
     while (rem._value >= _epsilon)
     {
-        dec = std::floor(log10(rem.todouble()));
+        dec = (int)std::floor(log10(rem.todouble()));
         rem -= pow(10, dec);
     }
     if (dec > 0)
