@@ -257,7 +257,7 @@ NOMAD will start where it was, with evaluation 101.
 Doxygen
 -------
 
-The local doxygen documentation can be consulted by opening ``$NOMAD_HOME/doc/doxygen/html/index.html``.
+A local doxygen documentation can be created by running the ``doxygen`` command (if available) in ``$NOMAD_HOME/doc/doxygen``. The documentation can be opened by a browser at ``$NOMAD_HOME/doc/doxygen/html/index.html``.
 
 
 .. topic:: References

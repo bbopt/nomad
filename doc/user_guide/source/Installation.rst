@@ -88,7 +88,9 @@ Build all the libraries and applications::
 
   cmake --build build/release
 
-Option ``--parallel xx`` can be added for faster build
+Option ``--parallel xx`` can be added for faster build.
+
+Option ``--config Release`` should be used on *Windows* to compile in Release configuration. The default configuration is Debug.
 
 It is possible to build only a single application in its working directory::
 
