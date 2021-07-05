@@ -383,8 +383,7 @@ void NOMAD::MainStep::startImp()
         if ( _allParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC") )
             AddOutputInfo("Opportunistic evaluation is disabled for LH when ran as a single algorithm.");
 
-        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC",false);
-        _allParams->checkAndComply( );
+        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
 
         auto lh = std::make_shared<NOMAD::LH>(this,
                                               lhStopReasons ,
@@ -402,8 +401,7 @@ void NOMAD::MainStep::startImp()
             AddOutputInfo("Opportunistic evaluation is disabled for NM when ran as a single algorithm.");
         }
 
-        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC",false);
-        _allParams->checkAndComply( );
+        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
 
         auto nm = std::make_shared<NOMAD::NM>(this,
                                               nmStopReasons ,
@@ -430,7 +428,7 @@ void NOMAD::MainStep::startImp()
         auto quadModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
 
         // All the Sgtelib Model sample points are evaluated sequentially. No opportunism.
-        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC", false);
+        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
         _allParams->setAttributeValue("MEGA_SEARCH_POLL", false);
         _allParams->checkAndComply();
 
