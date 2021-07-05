@@ -4,7 +4,7 @@ target_include_directories(example2_c_api.exe PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/interfaces/CInterface)
 
-set_target_properties(example2_c_api.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set_target_properties(example2_c_api.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
 
 
 if(OpenMP_CXX_FOUND)
@@ -21,10 +21,17 @@ install(TARGETS example2_c_api.exe
 # Add a test for this example
 if(BUILD_TESTS MATCHES ON)
     message(STATUS "    Add example test for c-api 2") 
-
     # Can run this test after install
-    add_test(NAME ExampleAdvancedC-API2
-	COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./example2_c_api.exe
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-    )
+
+    if (WIN32)
+        add_test(NAME ExampleAdvancedC-API2
+	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./example2_c_api.exe
+	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+        )
+    else()
+        add_test(NAME ExampleAdvancedC-API2
+	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./example2_c_api.exe
+	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+        )
+    endif()
 endif()

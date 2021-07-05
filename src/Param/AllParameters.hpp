@@ -253,6 +253,7 @@ public:
      */
     void readParamLine(const std::string &line);
 
+    static void eraseAllEntries();
 
     /**
      Compare the compatibility of the current set of parameters with a given set of parameters. The compatibility concerns only parameters influencing the execution of the algorithms (that is those with Attribute::_algoCompatibilityCheck == true). This function is used by the Runner.

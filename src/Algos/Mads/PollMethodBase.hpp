@@ -80,7 +80,8 @@ public:
     }
 
     bool hasNPlus1() const { return _hasNPlus1; }
-
+    
+    
     /// Implementation of startImp.
     /**
       Do nothing.
@@ -102,6 +103,9 @@ public:
     */
     void endImp() override {}
 
+    /// Intermediate function used by generateTrialPoints
+    std::list<NOMAD::Direction> generateFullSpaceScaledDirections(bool isNPlus1, std::shared_ptr<NOMAD::MeshBase> mesh = nullptr);
+    
     /// Intermediate function (not yet the implementation that generates the trial points)
     /**
      - Display before and after generation comments.
@@ -109,7 +113,7 @@ public:
      - Snap the points to bounds and mesh.
      */
     void generateTrialPoints() override;
-
+    
     /// Intermediate function to compute N+1th point, to be used when _hasNPlus1 is true.
     /*
        \param inputTrialPoints  Trial points generated from the "N" part, evaluated, and
@@ -122,7 +126,7 @@ public:
 
 protected:
     void init();
-
+    
     /// Compute 2n directions (from which n directions will be chosen).
     /// Used in Ortho 2N and in Ortho N+1.
     /**
@@ -130,19 +134,20 @@ protected:
      \param n           The dimension of the variable space  -- \b IN.
       */
     void generate2NDirections(std::list<NOMAD::Direction> &directions, size_t n) const;
-
+    
     /// Generate n+1th direction. Optionally reimplemented (in Ortho N+1).
     virtual void generateNPlus1Direction(std::list<Direction> &directions) const {};
 
 private:
+    
     /// Private method to handle general case and also N+1 case
     void generateTrialPointsInternal(const bool isNPlus1 = false);
-
+    
     /// Scale and project on mesh poll directions.
     /**
      /param dirs      The unit directions to be scaled and projected on mesh -- \b IN/OUT.
      */
-    void scaleAndProjectOnMesh(std::list<Direction> & dirs);
+    void scaleAndProjectOnMesh(std::list<Direction> & dirs, std::shared_ptr<NOMAD::MeshBase> mesh = nullptr );
 
 
 };

@@ -53,8 +53,7 @@
 #include "../../Algos/Mads/MadsInitialization.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
-
-#include <unistd.h> // For usleep
+#include "../../Util/MicroSleep.hpp"
 
 void NOMAD::MadsInitialization::init()
 {
@@ -253,7 +252,10 @@ bool NOMAD::MadsInitialization::eval_x0s()
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
         _barrier = std::make_shared<NOMAD::Barrier>(hMax,
                                                     NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
-                                                    evalType, computeType, evalPointX0s);
+                                                    evalType,
+                                                    computeType,
+                                                    evalPointX0s,
+                                                    _barrierInitializedFromCache);
     }
 
     NOMAD::OutputQueue::Flush();

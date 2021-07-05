@@ -79,7 +79,7 @@ public:
     virtual ~SgtelibModelEvaluator();
 
     bool eval_x(EvalPoint &x,
-                const Double &hMax __attribute__((unused)),
+                const Double &NOMAD_UNUSED(hMax),
                 bool &countEval) const override;
 
 private:

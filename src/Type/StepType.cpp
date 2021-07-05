@@ -70,6 +70,7 @@ bool NOMAD::isAlgorithm(const StepType& stepType)
         case NOMAD::StepType::ALGORITHM_SGTELIB_MODEL:
         case NOMAD::StepType::ALGORITHM_SSD_MADS:
         case NOMAD::StepType::ALGORITHM_QUAD_MODEL:
+        case NOMAD::StepType::ALGORITHM_VNS_MADS:
             return true;
         default:
             return false;
@@ -90,6 +91,7 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::ALGORITHM_SGTELIB_MODEL, "Sgtelib Model"},
         {NOMAD::StepType::ALGORITHM_SSD_MADS, "SSD-Mads"},
         {NOMAD::StepType::ALGORITHM_QUAD_MODEL, "Quad Model"},
+        {NOMAD::StepType::ALGORITHM_VNS_MADS, "VNS Mads"},
         {NOMAD::StepType::INITIALIZATION, "Initialization"},
         {NOMAD::StepType::ITERATION, "Iteration"},
         {NOMAD::StepType::MAIN, "Main"},
@@ -123,6 +125,7 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::SEARCH_METHOD_SGTELIB_MODEL, "Sgtelib Model Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_SPECULATIVE, "Speculative Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_USER, "User-Defined Search Method"},
+        {NOMAD::StepType::SEARCH_METHOD_VNS_MADS, "VNS Mads Search Method"},
         {NOMAD::StepType::SURROGATE_EVALUATION, "Points evaluated using static surrogate"},
         {NOMAD::StepType::TERMINATION, "Termination"},
         {NOMAD::StepType::UNDEFINED, "Undefined"},
@@ -167,4 +170,3 @@ std::string NOMAD::StepTypeListToString(const StepTypeList& stepTypeList)
     }
     return s;
 }
-

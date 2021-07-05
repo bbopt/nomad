@@ -104,13 +104,16 @@ NOMAD::ArrayOfDouble::ArrayOfDouble(size_t n, const NOMAD::Double& d)
 }
 
 NOMAD::ArrayOfDouble::ArrayOfDouble(const std::vector<double> & v)
-: _n(v.size()),
+  : _n(v.size()),
     _array(nullptr)
 {
     if (_n > 0)
     {
-        _array = new NOMAD::Double [_n];
-        std::copy (v.begin(), v.end(), _array);
+        _array = new NOMAD::Double[_n];
+        for (size_t k = 0; k < _n; k++)
+        {
+            _array[k] = v[k];
+        }
     }
     else
     {
@@ -397,7 +400,7 @@ void NOMAD::ArrayOfDouble::readValuesAsArray(const NOMAD::ArrayOfString& strDoub
         // Ex. 2-4 -> { 2, 3, 4 }
         std::vector<int> indexRange;
         bool firstValueProcessed = false;
-        if (d.atof(strDouble[0]) && d.isInteger() && d < _n)
+        if (d.atof(strDouble[0]) && d.isInteger() && d < (double)_n)
         {
             // First value is a valid index.
             indexRange.push_back(d.round());
@@ -411,10 +414,10 @@ void NOMAD::ArrayOfDouble::readValuesAsArray(const NOMAD::ArrayOfString& strDoub
                 // First value is an index range.
                 std::string firstIndexStr = strDouble[0].substr(0, hyphenIndex);
                 std::string lastIndexStr  = strDouble[0].substr(hyphenIndex+1, strDouble[0].size());
-                if (d.atof(firstIndexStr) && d.isInteger() && d < _n)
+                if (d.atof(firstIndexStr) && d.isInteger() && d < (double)_n)
                 {
                     NOMAD::Double dLast;
-                    if (dLast.atof(lastIndexStr) && dLast.isInteger() && dLast < _n)
+                    if (dLast.atof(lastIndexStr) && dLast.isInteger() && dLast < (double)_n)
                     {
                         // Push indices until dLast is reached.
                         for (int index = d.round(); index <= dLast; index++)
@@ -576,7 +579,7 @@ const NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator-(const NOMAD::ArrayOfD
 bool NOMAD::ArrayOfDouble::roundToPrecision(const NOMAD::ArrayOfDouble & precision)
 {
     bool modif = false;
-    
+
     for (size_t i = 0; i < _n; i++)
     {
         if (_array[i].roundToPrecision(precision[i]))
@@ -585,7 +588,7 @@ bool NOMAD::ArrayOfDouble::roundToPrecision(const NOMAD::ArrayOfDouble & precisi
         }
     }
     return modif;
-    
+
 }
 
 

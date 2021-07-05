@@ -82,10 +82,10 @@ enum class EvalXDefined
 class Evaluator
 {
 protected:
-    std::shared_ptr<EvalParameters> _evalParams; ///< The parameters controlling the behavior of the evaluator
+    std::shared_ptr<EvalParameters>                 _evalParams;    ///< The parameters controlling the behavior of the evaluator
 
 private:
-    static std::vector<std::string> _tmpFiles; ///< One file per thread.
+    DLL_EVAL_API static std::vector<std::string>    _tmpFiles;      ///< One file per thread.
 
     /// Did the user redefine eval_x() for single point, or should we use BB_EXE ?
     mutable EvalXDefined _evalXDefined;

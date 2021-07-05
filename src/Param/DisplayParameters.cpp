@@ -64,7 +64,7 @@ void NOMAD::DisplayParameters::init()
         // are not valid, for instance DIMENSION, X0, etc.
 
     }
-    catch ( NOMAD::Exception & e)
+    catch (NOMAD::Exception& e)
     {
         std::string errorMsg = "Attribute registration failed: ";
         errorMsg += e.what();
@@ -206,7 +206,7 @@ NOMAD::ArrayOfDouble NOMAD::DisplayParameters::setFormatFromGranularity( const N
         if ( aod[i] > 0 )
         {
             nbDecimals = aod[i].nbDecimals( );
-            solFormat.set(i, nbDecimals);
+            solFormat.set(i, (double)nbDecimals);
         }
     }
     return solFormat;

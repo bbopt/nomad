@@ -70,8 +70,8 @@ class Step
 {
 
 protected:
-    static bool _userInterrupt; ///< Interrupt NOMAD if Ctrl-C is pressed.
-    static bool _userTerminate; ///< Terminate NOMAD if Ctrl-C is pressed again.
+    DLL_ALGO_API static bool _userInterrupt; ///< Interrupt NOMAD if Ctrl-C is pressed.
+    DLL_ALGO_API static bool _userTerminate; ///< Terminate NOMAD if Ctrl-C is pressed again.
 
     const Step* _parentStep;    ///< The parent of this step.
     //std::string         _name;  ///< The name of this step.
@@ -84,13 +84,13 @@ protected:
     std::shared_ptr<PbParameters>        _pbParams;  ///< The problem parameters that control a step.
 
     // Callbacks that may be re-implemented by the user
-    static StepEndCbFunc    _cbIterationEnd;
-    static StepEndCbFunc    _cbMegaIterationEnd;
-    static HotRestartCbFunc _cbHotRestart;
+    DLL_ALGO_API static StepEndCbFunc    _cbIterationEnd;
+    DLL_ALGO_API static StepEndCbFunc    _cbMegaIterationEnd;
+    DLL_ALGO_API static HotRestartCbFunc _cbHotRestart;
 
     // By default, always show warnings.
     // Some warnings do not need to be shown in some cases, ex. unit tests.
-    static bool _showWarnings;
+    DLL_ALGO_API static bool _showWarnings;
 
 public:
 
@@ -373,8 +373,8 @@ private:
     void init();
 
     // Default callbacks. They do nothing.
-    static void defaultStepEnd(const Step& step  __attribute__((unused)), bool &stop) { stop = false; }
-    static void defaultHotRestart(std::vector<std::string>& paramLines  __attribute__((unused))) {};
+    static void defaultStepEnd(const Step& NOMAD_UNUSED(step), bool &stop) { stop = false; }
+    static void defaultHotRestart(std::vector<std::string>& NOMAD_UNUSED(paramLines)) {};
 
     /**
      Default task always executed when start() is called

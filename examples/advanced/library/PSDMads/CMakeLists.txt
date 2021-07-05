@@ -3,7 +3,7 @@ add_executable(rosenbrock.exe rosenbrock.cpp )
 target_include_directories(rosenbrock.exe PRIVATE
     ${CMAKE_SOURCE_DIR}/src)
 
-set_target_properties(rosenbrock.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set_target_properties(rosenbrock.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
 
 
 if(OpenMP_CXX_FOUND)
@@ -20,10 +20,17 @@ install(TARGETS rosenbrock.exe
 # Add a test for this example
 if(BUILD_TESTS MATCHES ON)
     message(STATUS "    Add example test for PSDMads") 
-
     # Can run this test after install
-    add_test(NAME ExampleAdvancedPSDMads
-	COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./rosenbrock.exe
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-    )
+
+    if (WIN32)
+        add_test(NAME ExampleAdvancedPSDMads
+	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./rosenbrock.exe
+	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+        )
+    else()
+        add_test(NAME ExampleAdvancedPSDMads
+	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./rosenbrock.exe
+	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+        )
+    endif()
 endif()

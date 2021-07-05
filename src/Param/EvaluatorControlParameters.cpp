@@ -65,7 +65,7 @@ void NOMAD::EvaluatorControlParameters::init()
         // are not valid, for instance DIMENSION, X0, etc.
 
     }
-    catch (NOMAD::Exception & e)
+    catch (NOMAD::Exception& e)
     {
         std::string errorMsg = "Attribute registration failed: ";
         errorMsg += e.what();
@@ -130,7 +130,7 @@ void NOMAD::EvaluatorControlParameters::checkAndComply(
             if (evaluatorControlGlobalParams->getAttributeValue<size_t>("MAX_BB_EVAL") < NOMAD::INF_SIZE_T)
             {
                 throw NOMAD::Exception(__FILE__, __LINE__,
-                    "Parameter MAX_BB_EVAL should not be set when EVAL_SURROGATE_OPTIMIZATION is used.");
+                    "Parameter MAX_BB_EVAL should not be set when EVAL_SURROGATE_OPTIMIZATION is used. Use MAX_SURROGATE_EVAL_OPTIMIZATION instead.");
             }
             if (NOMAD::EvalSortType::SURROGATE == evaluatorControlGlobalParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT"))
             {

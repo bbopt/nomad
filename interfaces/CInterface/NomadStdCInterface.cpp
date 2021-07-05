@@ -156,7 +156,7 @@ bool addNomadStringParam(NomadProblem nomad_problem, char *keyword, char *param_
 bool addNomadArrayOfDoubleParam(NomadProblem nomad_problem, char *keyword, double *array_param) 
 {
     NOMAD::ArrayOfDouble param(nomad_problem->nb_inputs);
-    for (size_t i = 0; i < nomad_problem->nb_inputs; ++i) 
+    for (size_t i = 0; i < (size_t)nomad_problem->nb_inputs; ++i) 
     {
         param[i] = array_param[i];
     }
@@ -211,7 +211,7 @@ public:
         double *bb_outputs = new double[_nbOutputs];
 
         // collect the inputs parameters
-        for (size_t i = 0; i < _nbInputs; ++i)
+        for (size_t i = 0; i < (size_t)_nbInputs; ++i)
         {
             bb_inputs[i] = x[i].todouble();
         }
@@ -224,7 +224,7 @@ public:
             // collect outputs parameters
             auto bbOutputType = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
             std::string bbo("");
-            for (size_t i = 0; i < _nbOutputs; ++i)
+            for (size_t i = 0; i < (size_t)_nbOutputs; ++i)
             {
                 bbo += std::to_string(bb_outputs[i]) + " ";
             }
@@ -269,10 +269,10 @@ bool solveNomadProblem(NomadProblem nomad_problem,
     // starting points
     if (x0s != nullptr) {
         NOMAD::ArrayOfPoint start_x0s;
-        for (size_t pt_index = 0; pt_index < nb_starting_points; ++pt_index)
+        for (size_t pt_index = 0; pt_index < (size_t)nb_starting_points; ++pt_index)
         {
             NOMAD::Point start_x0(nomad_problem->nb_inputs);
-            for (size_t i = 0; i < nomad_problem->nb_inputs; ++i)
+            for (size_t i = 0; i < (size_t)nomad_problem->nb_inputs; ++i)
             {
                 start_x0[i] = x0s[i + pt_index * nomad_problem->nb_inputs];
             }
@@ -351,11 +351,11 @@ bool solveNomadProblem(NomadProblem nomad_problem,
         if (bestInfEvalPoint != nullptr)
         {
             *exists_inf_sol = true;
-            for (size_t i = 0; i < nomad_problem->nb_inputs; ++i)
+            for (size_t i = 0; i < (size_t)nomad_problem->nb_inputs; ++i)
             {
                 bb_best_x_inf[i] = (*bestInfEvalPoint->getX())[i].todouble();
             }
-            for (size_t i = 0; i < nomad_problem->nb_outputs; ++i)
+            for (size_t i = 0; i < (size_t)nomad_problem->nb_outputs; ++i)
             {
                 bb_best_inf_outputs[i] = bestInfEvalPoint->getEval(evalType)->getBBOutput().getBBOAsArrayOfDouble()[i].todouble();
             }
@@ -364,11 +364,11 @@ bool solveNomadProblem(NomadProblem nomad_problem,
         if (bestFeasEvalPoint != nullptr)
         {
             *exists_feas_sol = true;
-            for (size_t i = 0; i < nomad_problem->nb_inputs; ++i)
+            for (size_t i = 0; i < (size_t)nomad_problem->nb_inputs; ++i)
             {
                 bb_best_x_feas[i] = (*bestFeasEvalPoint->getX())[i].todouble();
             }
-            for (size_t i = 0; i < nomad_problem->nb_outputs; ++i)
+            for (size_t i = 0; i < (size_t)nomad_problem->nb_outputs; ++i)
             {
                 bb_best_feas_outputs[i] = bestFeasEvalPoint->getEval(evalType)->getBBOutput().getBBOAsArrayOfDouble()[i].todouble();
             }
@@ -391,5 +391,5 @@ bool solveNomadProblem(NomadProblem nomad_problem,
     NOMAD::OutputQueue::Flush();
     NOMAD::CacheBase::getInstance()->clear();
 
-    return -1;
+    return true;
 }

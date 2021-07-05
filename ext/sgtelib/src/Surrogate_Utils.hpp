@@ -32,7 +32,9 @@
 #include <sys/stat.h>
 
 // Helpful for compilaton on some platforms
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
 
 // CASE Visual Studio C++ compiler
 #ifdef _MSC_VER

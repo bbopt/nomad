@@ -91,7 +91,7 @@ std::istream& NOMAD::operator>>(std::istream& in, ArrayOfPoint& aop)
     }
     if (!in.eof() || !point.isComplete())
     {
-        throw NOMAD::Exception(__FILE__,__LINE__,"Error while reading point file");
+        throw NOMAD::Exception(__FILE__,__LINE__,"Error while reading point file. A carriage return maybe be required at the end of a line.");
     }
 
     return in;

@@ -118,7 +118,7 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsImp()
                 auto diri = dir;
                 for(size_t j = 0 ; j < dir.size(); j++)
                 {
-                    diri[j] *= baseFactor * i;
+                    diri[j] *= baseFactor * (double)i;
                 }
 
                 OUTPUT_INFO_START

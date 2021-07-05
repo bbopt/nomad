@@ -138,10 +138,14 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
 
     _optRunParams->setAttributeValue("MAX_ITERATIONS", INF_SIZE_T);
 
-    // Ensure there is no model used in model optimization.
+    // Ensure there is no model, no NM and no VNS used in model optimization.
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("NM_SEARCH", false);
+    
+    // IMPORTANT: if VNS_MADS_SEARCH is changed to yes, the static members of VNSSearchMethod must be managed correctly
+    // See issue #601.
+    _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
 
     // Set direction type to Ortho 2n
     _optRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);

@@ -64,6 +64,7 @@ enum class BaseStopType : int
     ERROR                   ,  ///< Error
     UNKNOWN_STOP_REASON     ,  ///< Unknown
     CTRL_C                  ,  ///< Ctrl-C
+    HOT_RESTART             ,  ///< Hot restart interruption
     USER_STOPPED            ,  ///< User-stopped in a callback function
     LAST
 };
@@ -108,6 +109,7 @@ enum class LHStopType : int
     LAST
 };
 
+
 /// Stop type for all model based searches (sgtelib or quad) or optimization
 enum class ModelStopType : int
 {
@@ -146,6 +148,18 @@ enum class NMStopType : int
     NM_SINGLE_COMPLETED         ,
     NM_STOP_ON_SUCCESS          ,
     NM_STOP_NO_SHRINK           ,
+    LAST
+};
+
+/// Stop type for VNS
+enum class VNSStopType : int
+{
+    STARTED                 ,  ///< Started (no stop)
+    X0_FAILED               ,  ///< Problem with starting point evaluation
+    INITIAL_FAILED          ,  ///<  Pb during initialization
+    SUBPB_MADS_FAILED       ,  ///< Subproblem Mads failed
+    SHAKING_FAILED          ,  ///< Shaking incumbents failed
+    SINGLE_PASS_COMPLETED   ,  ///< A single pass has been completed
     LAST
 };
 

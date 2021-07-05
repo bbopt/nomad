@@ -45,10 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include <unistd.h> // For usleep
-
 #include "../Eval/EvcMainThreadInfo.hpp"
 #include "../Output/OutputQueue.hpp"
+#include "../Util/MicroSleep.hpp"
 
 /*-------------------------*/
 /* Class EvcMainThreadInfo */
@@ -104,7 +103,7 @@ bool NOMAD::EvcMainThreadInfo::getOpportunisticEval() const
         {
             return _evalContParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC");
         }
-        catch (NOMAD::ParameterToBeChecked &e)
+        catch (NOMAD::ParameterToBeChecked&)
         {
             // Exception due to parameters being in process of checkAndComply().
             // While will loop - Retry
@@ -128,7 +127,7 @@ bool NOMAD::EvcMainThreadInfo::getUseCache() const
         {
             return _evalContParams->getAttributeValue<bool>("EVAL_USE_CACHE");
         }
-        catch (NOMAD::ParameterToBeChecked &e)
+        catch (NOMAD::ParameterToBeChecked&)
         {
             // Exception due to parameters being in process of checkAndComply().
             // While will loop - Retry
@@ -152,7 +151,7 @@ size_t NOMAD::EvcMainThreadInfo::getMaxBbEvalInSubproblem() const
         {
             return _evalContParams->getAttributeValue<size_t>("SUBPROBLEM_MAX_BB_EVAL");
         }
-        catch (NOMAD::ParameterToBeChecked &e)
+        catch (NOMAD::ParameterToBeChecked&)
         {
             // Exception due to parameters being in process of checkAndComply().
             // While will loop - Retry
@@ -176,7 +175,7 @@ bool NOMAD::EvcMainThreadInfo::getSurrogateOptimization() const
         {
             return _evalContParams->getAttributeValue<bool>("EVAL_SURROGATE_OPTIMIZATION");
         }
-        catch (NOMAD::ParameterToBeChecked &e)
+        catch (NOMAD::ParameterToBeChecked&)
         {
             // Exception due to parameters being in process of checkAndComply().
             // While will loop - Retry

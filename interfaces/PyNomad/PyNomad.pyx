@@ -351,6 +351,8 @@ cdef class PyNomadDouble:
     cdef Double c_d
     def __cinit__(self, double v):
         self.c_d = Double(v)
+    def __cinit__(self):
+        pass
     def todouble(self):
         return self.c_d.todouble()
     def isDefined(self):

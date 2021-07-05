@@ -101,7 +101,7 @@ void NOMAD::MegaSearchPoll::endImp()
 // Generate new points to evaluate from Poll and Search
 void NOMAD::MegaSearchPoll::generateTrialPoints()
 {
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, true);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, true);
     OUTPUT_INFO_START
     AddOutputInfo("Generate points for " + getName(), true, false);
     OUTPUT_INFO_END

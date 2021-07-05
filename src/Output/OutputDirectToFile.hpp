@@ -122,33 +122,33 @@ private:
     // NOTE It does not seem relevant for the lock to be static,
     // because OutputDirectToFile is a singleton anyway. If staticity causes problems,
     // we could remove the static keyword.
-    static omp_lock_t _s_output_lock;
+    DLL_UTIL_API static omp_lock_t  _s_output_lock;
 #endif // _OPENMP
 
     /// Helper for init
     void initHistoryFile();
 
-    static bool _hasBeenInitialized; ///< Flag for initialization (initialization cannot be performed more than once).
+    DLL_UTIL_API static bool        _hasBeenInitialized;    ///< Flag for initialization (initialization cannot be performed more than once).
 
 
-    static std::unique_ptr<OutputDirectToFile> _single; ///< The singleton
+    DLL_UTIL_API static std::unique_ptr<OutputDirectToFile> _single;    ///< The singleton
 
-    size_t _outputSize;
+    size_t                          _outputSize;
 
     /**
      Format for output in a file.
      Might include some raw strings, do not convert to DisplayStatsType.
      */
-    DisplayStatsTypeList _outputFileFormat;
+    DisplayStatsTypeList            _outputFileFormat;
 
-    std::string _solutionFile;
-    std::ofstream _solutionStream;
+    std::string                     _solutionFile;
+    std::ofstream                   _solutionStream;
 
-    std::string _historyFile;
-    std::ofstream _historyStream;
+    std::string                     _historyFile;
+    std::ofstream                   _historyStream;
 
     /// Even if solution file is provided we can temporarily disable solution file (PhaseOne)
-    bool _enabledSolutionFile;
+    bool                            _enabledSolutionFile;
 
 };
 

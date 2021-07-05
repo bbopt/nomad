@@ -56,7 +56,8 @@ Attribute/runAttributesDefinition.txt
 Attribute/runAttributesDefinitionNM.txt
 Attribute/runAttributesDefinitionPSDSSD.txt
 Attribute/runAttributesDefinitionQuadModel.txt
-Attribute/runAttributesDefinitionSgtelibModel.txt)
+Attribute/runAttributesDefinitionSgtelibModel.txt
+Attribute/runAttributesDefinitionVNS.txt)
 
 set(ATTRIBUTE_HEADERS
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/cacheAttributesDefinition.hpp
@@ -70,7 +71,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionNM.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionPSDSSD.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionQuadModel.hpp
-${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionSgtelibModel.hpp)
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionSgtelibModel.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionVNS.hpp)
 
 set(ATTRIBUTE_HEADERS_GENERATOR
 Attribute/WriteAttributeDefinitionFile.cpp
@@ -257,6 +259,7 @@ Util/Clock.hpp
 Util/defines.hpp
 Util/Exception.hpp
 Util/fileutils.hpp
+Util/MicroSleep.hpp
 Util/StopReason.hpp
 Util/Uncopyable.hpp
 Util/utils.hpp
@@ -312,6 +315,7 @@ Algos/Mads/SgtelibSearchMethod.hpp
 Algos/Mads/SinglePollMethod.hpp
 Algos/Mads/SpeculativeSearchMethod.hpp
 Algos/Mads/UserSearchMethod.hpp
+Algos/Mads/VNSSearchMethod.hpp
 )
 
 set(MADS_SOURCES
@@ -339,6 +343,7 @@ Algos/Mads/SgtelibSearchMethod.cpp
 Algos/Mads/SinglePollMethod.cpp
 Algos/Mads/SpeculativeSearchMethod.cpp
 Algos/Mads/UserSearchMethod.cpp
+Algos/Mads/VNSSearchMethod.cpp
 )
 
 #
@@ -463,6 +468,19 @@ Algos/SSDMads/SSDMadsMegaIteration.cpp
 )
 
 #
+# VNS
+#
+set(VNSMADS_HEADERS
+Algos/VNSMads/VNS.hpp
+#Algos/VNSMads/VNSMegaIteration.cpp
+)
+
+set(VNSMADS_SOURCES
+Algos/VNSMads/VNS.cpp
+)
+
+
+#
 # Generate Attribute headers
 #
 
@@ -484,6 +502,11 @@ add_custom_command(
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+# export all symbols on Windows
+if (WIN32)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 # Utils
 add_library (nomadUtils SHARED ${MATH_SOURCES} ${OUTPUT_SOURCES} ${PARAM_SOURCES} ${TYPE_SOURCES} ${UTIL_SOURCES} ${ATTRIBUTE_HEADERS})
 target_include_directories(nomadUtils PUBLIC
@@ -493,6 +516,9 @@ target_include_directories(nomadUtils PUBLIC
 )
 if(OpenMP_CXX_FOUND)
     target_link_libraries(nomadUtils PUBLIC OpenMP::OpenMP_CXX)
+endif()
+if (WIN32)
+    target_compile_definitions(nomadUtils PRIVATE -DDLL_UTIL_EXPORTS)
 endif()
 
 # Evals
@@ -505,10 +531,13 @@ target_link_libraries(nomadEval PUBLIC nomadUtils)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(nomadEval PUBLIC OpenMP::OpenMP_CXX)
 endif()
+if (WIN32)
+    target_compile_definitions(nomadEval PRIVATE -DDLL_EVAL_EXPORTS)
+endif()
 
 # Algos
 if(USE_SGTELIB MATCHES ON)
-    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${QUADMODEL_SOURCES} ${SGTELIBMODEL_SOURCES} ${SSDMADS_SOURCES})
+    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${QUADMODEL_SOURCES} ${SGTELIBMODEL_SOURCES} ${SSDMADS_SOURCES} ${VNSMADS_SOURCES})
    target_include_directories(nomadAlgos PUBLIC
       $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Algos
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
@@ -518,10 +547,11 @@ if(USE_SGTELIB MATCHES ON)
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModel
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SgtelibModel
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads>
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads>
       $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}>)
 else()
-    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${SSDMADS_SOURCES})
+    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${SSDMADS_SOURCES} ${VNSMADS_SOURCES})
     target_include_directories(nomadAlgos PUBLIC
         $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Algos
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
@@ -529,8 +559,12 @@ else()
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/NelderMead
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PhaseOne
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads>
+        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
+        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+endif()
+if (WIN32)
+    target_compile_definitions(nomadAlgos PRIVATE -DDLL_ALGO_EXPORTS)
 endif()
 
 #
@@ -589,7 +623,6 @@ install(FILES ${EVAL_HEADERS}
        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Eval
 )
 
-
 install(FILES ${MATH_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Math
 )
@@ -640,6 +673,10 @@ install(FILES ${SGTELIB_HEADERS}
 
 install(FILES ${SSDMADS_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SSDMads
+)
+
+install(FILES ${VNSMADS_HEADERS}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/VNSMads
 )
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/nomad_nsbegin.hpp

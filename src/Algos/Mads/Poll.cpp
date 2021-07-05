@@ -94,7 +94,7 @@ void NOMAD::Poll::init()
 void NOMAD::Poll::startImp()
 {
     // Sanity check.
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 }
 
 
@@ -104,7 +104,7 @@ bool NOMAD::Poll::runImp()
     std::string s;
 
     // Sanity check. The runImp function should be called only when trial points are generated and evaluated for each search method separately.
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 
     // Go through all poll methods to generate points.
     OUTPUT_DEBUG_START
@@ -196,7 +196,7 @@ bool NOMAD::Poll::runImp()
 void NOMAD::Poll::endImp()
 {
     // Sanity check. The endImp function should be called only when trial points are generated and evaluated for each search method separately.
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 
     // Compute hMax and update Barrier.
     postProcessing();

@@ -47,6 +47,7 @@
 
 #include <algorithm>    // For std::merge and std::unique
 
+#include "../../nomad_platform.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/NelderMead/NMIteration.hpp"
 #include "../../Algos/NelderMead/NMUpdate.hpp"
@@ -92,7 +93,7 @@ bool NOMAD::NMIteration::runImp()
     // Sequential run of NM steps among INITIAL, ( REFLECT, EXPANSION, INSIDE_CONTRACTION, OUTSIDE_CONTRACTION ), SHRINK
 
     // NMIteration cannot generate all points before evaluation
-    verifyGenerateAllPointsBeforeEval(__PRETTY_FUNCTION__, false);
+    verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 
     bool iterationSuccess = false;
 

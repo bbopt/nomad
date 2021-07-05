@@ -57,6 +57,7 @@
 
 #include <cmath>
 
+#include "../nomad_platform.hpp"
 #include "../Util/defines.hpp"
 #include "../Util/Exception.hpp"
 #include "../Util/utils.hpp"
@@ -76,9 +77,9 @@
         bool          _defined; ///< \c true if the number has a defined value.
 
         // \todo Make these local static objects
-        static double      _epsilon;    ///< Desired precision on comparisons.
-        static std::string _infStr;     ///< Infinity string.
-        static std::string _undefStr;   ///< Undefined value string.
+        DLL_UTIL_API static double      _epsilon;    ///< Desired precision on comparisons.
+        DLL_UTIL_API static std::string _infStr;     ///< Infinity string.
+        DLL_UTIL_API static std::string _undefStr;   ///< Undefined value string.
 
     public:
 

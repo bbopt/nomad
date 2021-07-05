@@ -89,7 +89,7 @@ void NOMAD::Step::userInterrupt(int signalValue)
     }
 
     // Set this stop reason to be tested by EvaluatorControl
-    NOMAD::AllStopReasons::set( NOMAD::BaseStopType::CTRL_C );
+    NOMAD::AllStopReasons::set(NOMAD::BaseStopType::HOT_RESTART);
 
     NOMAD::Step::_userInterrupt = true;
 }
@@ -482,7 +482,8 @@ bool NOMAD::Step::hasPhaseOneSolution() const
 
 void NOMAD::Step::hotRestartOnUserInterrupt()
 {
-    if (_stopReasons->checkTerminate())
+    if (   !_stopReasons->testIf(NOMAD::BaseStopType::HOT_RESTART)
+        && _stopReasons->checkTerminate())
     {
         return;
     }

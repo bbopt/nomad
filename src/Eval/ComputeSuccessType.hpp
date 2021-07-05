@@ -56,6 +56,7 @@
 #define __NOMAD_4_0_COMPUTESUCCESSTYPE__
 
 #include "../Eval/EvalPoint.hpp"
+#include "../nomad_platform.hpp"
 
 
 #include "../nomad_nsbegin.hpp"
@@ -130,12 +131,12 @@ public:
      */
     static SuccessType computeSuccessTypePhaseOne(const EvalPointPtr& evalPoint1,
                                               const EvalPointPtr& evalPoint2,
-                                              const Double& hMax __attribute__((unused)));
+                                              const Double& NOMAD_UNUSED(hMax));
 
     /// Similar to computeSuccessTypePhaseOne, but using SURROGATE for EvalType
     static SuccessType computeSuccessTypePhaseOneSurrogate(const EvalPointPtr& evalPoint1,
                                               const EvalPointPtr& evalPoint2,
-                                              const Double& hMax __attribute__((unused)));
+                                              const Double& NOMAD_UNUSED(hMax));
 
 private:
     /// Helper for Constructor.

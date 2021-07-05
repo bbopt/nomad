@@ -126,8 +126,8 @@ std::vector<NOMAD::Point> NOMAD::LHS::Sample() const
         {
             NOMAD::Double r_ij = RNG::rand(0,1);
             NOMAD::Double l_i = _lowerBound[i];
-            NOMAD::Double Pi_ij( Pi[i][j] );
-            NOMAD::Double pdouble( _p );
+            NOMAD::Double Pi_ij( (double)Pi[i][j] );
+            NOMAD::Double pdouble( (double)_p );
             NOMAD::Double u_i( _upperBound[i] );
 
             NOMAD::Double x_ij = l_i + (Pi_ij - r_ij) / pdouble * (u_i - l_i);

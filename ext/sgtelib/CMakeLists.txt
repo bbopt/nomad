@@ -21,16 +21,21 @@ endif()
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # require at least gcc 4
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4)
-        message(FATAL_ERROR "GCC version < 4 has not been tested for Nomad!")
+        message(FATAL_ERROR "GCC version < 4 has not been tested for Nomad")
     endif()
 elseif (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") 
     OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
     # require at least clang 5
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5)
-        message(FATAL_ERROR "Clang version has not been tested for Nomad!")
+        message(FATAL_ERROR "Clang version has not been tested for Nomad")
+    endif()
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    # require at least 15.0 (MSVC 2017) for C++14 support
+    if (MSVC_TOOLSET_VERSION VERSION_LESS 141)
+        message(FATAL_ERROR "MSVC version ${CMAKE_CXX_COMPILER_VERSION} has not been tested for Nomad")
     endif()
 else()
-    message(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang and GCC.")
+    message(WARNING "You are using an unsupported compiler. Compilation has only been tested with Clang, GCC, and MSVC.")
 endif()
 
 # require c++14
@@ -97,6 +102,11 @@ target_include_directories(sgtelib PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>
     )
+
+# export symbols on Windows
+if (WIN32)
+    target_compile_definitions(sgtelib PRIVATE -DDLL_EXPORTS)
+endif()
 
 ## build executable sgtelib_main
 #add_executable(sgtelib_main ${SGTELIB_SOURCES})

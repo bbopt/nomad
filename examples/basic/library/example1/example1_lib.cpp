@@ -79,7 +79,7 @@ public:
             {
                 sum1  += pow(cos(x[i].todouble()), 4);
                 sum2  += x[i];
-                sum3  += (i+1)*x[i]*x[i];
+                sum3  += (double)(i+1)*x[i]*x[i];
                 prod1 *= pow(cos(x[i].todouble()), 2);
                 if (prod2 != 0.0)
                 {

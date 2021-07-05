@@ -183,6 +183,11 @@ private:
      */
     std::atomic<size_t> _nbPhaseOneSuccess;
 
+    /**
+     The VNS Mads search neighborhood parameter
+     */
+    std::atomic<size_t> _VNSMadsNeighParameter;
+
     bool _allDoneWithEval;     ///< All evaluations done. The queue can be destroyed.
 
 #ifdef TIME_STATS
@@ -220,6 +225,7 @@ public:
         _nbEvalSentToEvaluator(0),
         _nbRelativeSuccess(0),
         _nbPhaseOneSuccess(0),
+        _VNSMadsNeighParameter(0),
         _allDoneWithEval(false)
 #ifdef TIME_STATS
         ,_evalTime(0.0)
@@ -302,6 +308,10 @@ public:
     void setLapMaxBbEval(const size_t maxBbEval);
     void resetLapBbEval();
     size_t getLapBbEval(const int threadNum = -1) const;
+
+    size_t getVNSMadsNeighParameter() const { return _VNSMadsNeighParameter; }
+    void resetVNSMadsNeighParameter() { _VNSMadsNeighParameter = 0; }
+    void incrementVNSMadsNeighParameter() { _VNSMadsNeighParameter++ ; }
 
     size_t getNbPhaseOneSuccess() const {return  _nbPhaseOneSuccess; }
     size_t getNbRelativeSuccess() const {return  _nbRelativeSuccess; }

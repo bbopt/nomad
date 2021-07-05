@@ -52,6 +52,7 @@
  \see    utils.hpp
  */
 #include <algorithm>    // for for_each
+#include <cctype>       // for toupper
 #ifdef _OPENMP
 #include <omp.h>
 #endif // _OPENMP
@@ -263,8 +264,8 @@ std::string NOMAD::enumStr(NOMAD::SuccessType success)
 
 // Convert a string to index range
 bool NOMAD::stringToIndexRange(const std::string & s           ,
-                               size_t            & i           ,
-                               size_t            & j           ,
+                               int               & i           ,
+                               int               & j           ,
                                bool               check_order   )
 {
     if ( s.empty() )
@@ -313,8 +314,10 @@ bool NOMAD::stringToIndexRange(const std::string & s           ,
         for ( k = 0 ; k < n1 ; ++k )
             if (!isdigit(s1[k]))
                 return false;
-        if ( ! atost ( s1 , i ) )
+        size_t ist = (size_t)i;
+        if ( ! atost ( s1 , ist ) )
             return false;
+        i = (int)ist;
         if ( n1 == s.size() )
         {
             j = i;
@@ -334,8 +337,12 @@ bool NOMAD::stringToIndexRange(const std::string & s           ,
         if ( !isdigit(s2[k]) )
             return false;
 
-    if ( ! atost ( s1, i ) || ! atost ( s2 , j ) )
+    size_t ist = (size_t)i;
+    size_t jst = (size_t)j;
+    if ( ! atost ( s1, ist ) || ! atost ( s2 , jst ) )
         return false;
+    i = (int)ist;
+    j = (int)jst;
 
     return !check_order || i <= j;
 }

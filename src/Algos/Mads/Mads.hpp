@@ -69,14 +69,16 @@ public:
      \param stopReasons         The stop reasons for MADS -- \b IN.
      \param runParams           The run parameters that control MADS -- \b IN.
      \param pbParams            The problem parameters that control MADS -- \b IN.
+     \param barrierInitializedFromCache  Flag to initialize barrier from cache or not -- \b IN.
      */
     explicit Mads(const Step* parentStep,
                   std::shared_ptr<AlgoStopReasons<MadsStopType>> stopReasons,
                   const std::shared_ptr<RunParameters>& runParams,
-                  const std::shared_ptr<PbParameters>& pbParams)
+                  const std::shared_ptr<PbParameters>& pbParams,
+                  bool barrierInitializedFromCache = true )
       : Algorithm(parentStep, stopReasons, runParams, pbParams)
     {
-        init();
+        init(barrierInitializedFromCache);
     }
 
     /// Helper for hot restart
@@ -88,7 +90,10 @@ public:
 
 private:
     ///  Initialization of class, to be used by Constructor.
-    void init();
+    /**
+    \param barrierInitializedFromCache  Flag to initialized barrier from cache or not -- \b IN.
+    */
+    void init(bool barrierInitializedFromCache);
 
     /// Algorithm execution for single-objective.
     /**

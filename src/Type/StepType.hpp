@@ -72,6 +72,7 @@ enum class StepType
     ALGORITHM_QUAD_MODEL,       ///< Algorithm Quad Model
     ALGORITHM_SGTELIB_MODEL,    ///< Algorithm Quad Model
     ALGORITHM_SSD_MADS,         ///< Algorithm SSD-Mads
+    ALGORITHM_VNS_MADS,         ///< Algorithm VNS-Mads
     INITIALIZATION,             ///< Initialization step
     ITERATION,                  ///< Iteration step
     MAIN,                       ///< Main step
@@ -105,6 +106,7 @@ enum class StepType
     SEARCH_METHOD_SGTELIB_MODEL,///< Sgtelib model search method
     SEARCH_METHOD_SPECULATIVE,  ///< Speculative search method
     SEARCH_METHOD_USER,         ///< User-defined search method
+    SEARCH_METHOD_VNS_MADS,     ///< VNS Mads search method
     SURROGATE_EVALUATION,       ///< Evaluating trial points using static surrogate
     TERMINATION,                ///< Termination
     UNDEFINED,                  ///< Unknown value (default)

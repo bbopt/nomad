@@ -60,7 +60,7 @@ void NOMAD::DeprecatedParameters::init()
         #include "../Attribute/deprecatedAttributesDefinition.hpp"
         registerAttributes( _definition );
     }
-    catch ( NOMAD::Exception & e)
+    catch (NOMAD::Exception& e)
     {
         std::string errorMsg = "Attribute registration failed: ";
         errorMsg += e.what();

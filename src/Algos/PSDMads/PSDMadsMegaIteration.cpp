@@ -147,6 +147,8 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
         subProblemRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
         subProblemRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
         subProblemRunParams->setAttributeValue("SPECULATIVE_SEARCH", false);
+        subProblemRunParams->setAttributeValue("VNS_MADS_SEARCH", false);  // VNS has static member. Problematic with threads. See issue # 604
+        
     }
     else
     {

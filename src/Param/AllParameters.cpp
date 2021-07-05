@@ -149,6 +149,10 @@ void NOMAD::AllParameters::readParamLine(const std::string &line)
 
 }
 
+void NOMAD::AllParameters::eraseAllEntries()
+{
+    NOMAD::Parameters::eraseAllEntries();
+}
 
 
 bool NOMAD::AllParameters::isAlgoCompatible(const NOMAD::AllParameters& allP_tmp) const

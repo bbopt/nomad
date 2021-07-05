@@ -56,6 +56,7 @@ template<> std::map<NOMAD::BaseStopType,std::string> & NOMAD::StopReason<NOMAD::
         {NOMAD::BaseStopType::ERROR,"Error"},
         {NOMAD::BaseStopType::UNKNOWN_STOP_REASON,"Unknown"},
         {NOMAD::BaseStopType::CTRL_C,"Ctrl-C"},
+        {NOMAD::BaseStopType::HOT_RESTART,"Hot restart interruption"},
         {NOMAD::BaseStopType::USER_STOPPED,"User-stopped in a callback function"}
 
     };
@@ -76,6 +77,7 @@ template<> bool NOMAD::StopReason<NOMAD::BaseStopType>::checkTerminate() const
             return true;
             break;
         case NOMAD::BaseStopType::STARTED:
+        case NOMAD::BaseStopType::HOT_RESTART:
             return false;
             break;
         default:
@@ -192,6 +194,20 @@ template<> std::map<NOMAD::LHStopType,std::string> & NOMAD::StopReason<NOMAD::LH
     return dictionary;
 }
 
+// Dictionary function for VNSStopType
+template<> std::map<NOMAD::VNSStopType,std::string> & NOMAD::StopReason<NOMAD::VNSStopType>::dict() const
+{
+    static std::map<NOMAD::VNSStopType,std::string> dictionary = {
+        {NOMAD::VNSStopType::STARTED,"Started"},   // Set at the begining of a Step
+        {NOMAD::VNSStopType::X0_FAILED,"Pb with starting point evaluation"},
+        {NOMAD::VNSStopType::INITIAL_FAILED,"Pb during initialization"},
+        {NOMAD::VNSStopType::SUBPB_MADS_FAILED,"Subproblem mads failed"},
+        {NOMAD::VNSStopType::SHAKING_FAILED,"Shaking failed to generated starting points"},
+        {NOMAD::VNSStopType::SINGLE_PASS_COMPLETED,"A single mads mega search poll completed."}
+    };
+    return dictionary;
+}
+
 
 // Returns true when Latin Hypercube Sampling is complete, or no points generated
 template<> bool NOMAD::StopReason<NOMAD::LHStopType>::checkTerminate() const
@@ -260,6 +276,28 @@ template<> bool NOMAD::StopReason<NOMAD::NMStopType>::checkTerminate() const
             break;
         default:
             throw NOMAD::Exception ( __FILE__, __LINE__,"All NM stop types must be checked for algo terminate");
+    }
+    return false;
+}
+
+// Returns true only when VNS Mads algorithm is complete
+template<> bool NOMAD::StopReason<NOMAD::VNSStopType>::checkTerminate() const
+{
+
+    switch ( _stopReason )
+    {
+        case NOMAD::VNSStopType::INITIAL_FAILED:
+        case NOMAD::VNSStopType::X0_FAILED:
+        case NOMAD::VNSStopType::SUBPB_MADS_FAILED:
+        case NOMAD::VNSStopType::SHAKING_FAILED:
+        case NOMAD::VNSStopType::SINGLE_PASS_COMPLETED:
+            return true;
+            break;
+        case NOMAD::VNSStopType::STARTED:
+            return false;
+            break;
+        default:
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All VNS stop types must be checked for algo terminate");
     }
     return false;
 }

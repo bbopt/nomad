@@ -7,8 +7,8 @@ target_include_directories(loopSuggestAndObserve.exe PRIVATE
     ${CMAKE_SOURCE_DIR}/src)
 
 
-set_target_properties(suggestAndObserve.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-set_target_properties(loopSuggestAndObserve.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set_target_properties(suggestAndObserve.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
+set_target_properties(loopSuggestAndObserve.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
 
 
 if(OpenMP_CXX_FOUND)
@@ -29,10 +29,19 @@ install(TARGETS loopSuggestAndObserve.exe
 message(STATUS "    Add example library tests using Suggest And Observe") 
 
 # Can run this test after install
-add_test(NAME ExampleAdvancedSuggestAndObserve
-	COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./suggestAndObserve.exe
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-add_test(NAME ExampleAdvancedLoopSuggestAndObserve
-	COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./loopSuggestAndObserve.exe
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+if (WIN32)
+    add_test(NAME ExampleAdvancedSuggestAndObserve
+	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./suggestAndObserve.exe
+	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    add_test(NAME ExampleAdvancedLoopSuggestAndObserve
+	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./loopSuggestAndObserve.exe
+	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+else()
+    add_test(NAME ExampleAdvancedSuggestAndObserve
+	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./suggestAndObserve.exe
+	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    add_test(NAME ExampleAdvancedLoopSuggestAndObserve
+	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./loopSuggestAndObserve.exe
+	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+endif()
 

@@ -44,12 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+#include <cmath>        // For sqrt
 #include <ctime>        // For time_t
 #include <fstream>      // For ifstream
 #include <iostream>
-#include <cmath>        // For sqrt
 #include <stdexcept>    // For logic_error
-//#include <unistd.h>     // For usleep
+#include <string>
 
 const int n = 10;
 

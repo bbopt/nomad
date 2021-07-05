@@ -46,6 +46,10 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
+#ifdef WINDOWS
+#include <tchar.h>
+#include <windows.h>
+#endif
 
 
 /*----------------------------------------*/
@@ -64,7 +68,7 @@ void NOMAD::EvaluatorControlGlobalParameters::init()
         // are not valid, for instance DIMENSION, X0, etc.
 
     }
-    catch (NOMAD::Exception & e)
+    catch (NOMAD::Exception& e)
     {
         std::string errorMsg = "Attribute registration failed: ";
         errorMsg += e.what();
@@ -84,6 +88,17 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
     {
         // Early out
         return;
+    }
+
+    if (isAttributeDefaultValue<std::string>("TMP_DIR"))
+    {
+#ifdef WINDOWS
+	TCHAR tempPathBuffer[MAX_PATH];
+	GetTempPath(MAX_PATH, tempPathBuffer);
+        setAttributeValue("TMP_DIR", std::string(tempPathBuffer));
+#else
+        setAttributeValue("TMP_DIR", std::string("/tmp/"));
+#endif
     }
 
     if (0 == getAttributeValueProtected<size_t>("MAX_BB_EVAL",false))
@@ -146,7 +161,7 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
                 }
             }
 
-            std::cerr << "All variables are granular. MAX_EVAL is set to " << new_max_eval << " to prevent algorithm from circling around best solution indefinetely" << std::endl;
+            std::cerr << "All variables are granular. MAX_EVAL is set to " << new_max_eval << " to prevent algorithm from circling around best solution indefinitely" << std::endl;
 
             setAttributeValue("MAX_EVAL",new_max_eval);
         }

@@ -132,7 +132,7 @@ bool NOMAD::NMMegaIteration::runImp()
         throw NOMAD::Exception(__FILE__, __LINE__, "No iteration to run");
     }
 
-    const size_t maxIter = NOMAD::D_INT_MAX; // Could be a parameter.
+    const size_t maxIter = (size_t)NOMAD::D_INT_MAX; // Could be a parameter.
     size_t nbMegaIter = 0;
     while ( ! _stopReasons->checkTerminate() && nbMegaIter < maxIter )
     {

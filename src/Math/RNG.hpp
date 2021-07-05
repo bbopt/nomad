@@ -55,6 +55,7 @@
 #ifndef __NOMAD_4_0_RNG__
 #define __NOMAD_4_0_RNG__
 
+#include "../nomad_platform.hpp"
 #include "../Util/defines.hpp"
 #include "../Util/Exception.hpp"
 
@@ -180,13 +181,13 @@ public:
         istringstream ss(private_seeds);
         uint32_t ps;
         ss >> ps;
-        if (ps <= UINT32_MAX && ps >=0 )
+        if (ps <= UINT32_MAX )
             _x = ps;
         ss >> ps;
-        if (ps <= UINT32_MAX && ps >=0 )
+        if (ps <= UINT32_MAX )
             _y = ps;
         ss >> ps;
-        if (ps <= UINT32_MAX && ps >=0 )
+        if (ps <= UINT32_MAX )
             _z = ps;
 
     }
@@ -194,10 +195,10 @@ public:
 
 private:
 
-    static uint32_t x_def, y_def, z_def;    ///< Initial values for the random number generator
-    static uint32_t _x, _y, _z;             ///< Current values for the random number generator
+    DLL_UTIL_API static uint32_t x_def, y_def, z_def;    ///< Initial values for the random number generator
+    DLL_UTIL_API static uint32_t _x, _y, _z;             ///< Current values for the random number generator
 
-    static int _s;
+    DLL_UTIL_API static int _s;
 
 
 };

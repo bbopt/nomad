@@ -318,7 +318,7 @@ RESTART_ATTRIBUTE yes
 ################################################################################
 TMP_DIR
 std::string
-/tmp/
+-
 \( Directory where to put temporary files \)
 \(
 

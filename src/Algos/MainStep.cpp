@@ -69,6 +69,7 @@
 #include "../Algos/Mads/Mads.hpp"
 #include "../Algos/Mads/MadsIteration.hpp"
 #include "../Algos/Mads/Search.hpp"
+#include "../Algos/Mads/VNSSearchMethod.hpp"
 #include "../Algos/NelderMead/NM.hpp"
 #include "../Algos/PhaseOne/PhaseOne.hpp"
 #ifdef _OPENMP
@@ -269,7 +270,7 @@ std::vector<std::string> NOMAD::MainStep::observe(const NOMAD::ArrayOfPoint& xs,
     // Since mads->end() is not called, we have to call it here.
     if(destinationCacheFileName.size() != 0)
         NOMAD::CacheBase::getInstance()->setFileName(destinationCacheFileName);
-    
+
     if(NOMAD::CacheBase::getInstance()->getFileName().size() != 0)
         NOMAD::CacheBase::getInstance()->write();
 
@@ -753,8 +754,6 @@ void NOMAD::MainStep::displayVersion()
 {
     std::string version = "Version ";
     version += NOMAD_VERSION_NUMBER;
-    // Note: The "Beta" information is not part of the NOMAD_VERSION_NUMBER.
-    //version += " Beta 2";
 #ifdef DEBUG
     version += " Debug.";
 #else
@@ -782,12 +781,15 @@ void NOMAD::MainStep::displayVersion()
 /*------------------------------------------*/
 void NOMAD::MainStep::displayInfo()
 {
+    /*
     std::string info;
+    // This file has been removed. See Issue #618.
     std::string filename = "Util/Copyright.hpp";
     if (NOMAD::readAllFile(info, filename))
     {
         NOMAD::OutputQueue::Add(info, NOMAD::OutputLevel::LEVEL_ERROR);
     }
+    */
 }
 
 
@@ -859,10 +861,7 @@ void NOMAD::MainStep::hotRestartOnUserInterrupt()
             }
         }
 
-
         _allParams->checkAndComply();
-
-        std::cin.clear();
     }
 
     hotRestartEndHelper();
@@ -884,13 +883,14 @@ void NOMAD::MainStep::resetComponentsBetweenOptimization()
     NOMAD::RNG::resetPrivateSeedToDefault();
     // Reset parameter entries
     NOMAD::Parameters::eraseAllEntries();
+    // Reset VNS Mads search
+    NOMAD::VNSSearchMethod::reset();
 }
 
 void NOMAD::MainStep::resetCache()
 {
-    // Get a new cache 
-    NOMAD::CacheBase::resetInstance(); // Need to reset the singleton. When calling createCache there is no instance and we are sure to call NOMAD::CacheSet::setInstance from scratch. The cache file is read and the cache is set with is content.
-
+    // Get a new cache
+    NOMAD::CacheBase::resetInstance(); // Need to reset the singleton. When calling createCache there is no instance and we are sure to call NOMAD::CacheSet::setInstance from scratch. The cache file is read and the cache is set with its content.
 }
 
 

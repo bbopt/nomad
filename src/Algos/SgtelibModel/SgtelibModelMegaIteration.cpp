@@ -266,7 +266,7 @@ void NOMAD::SgtelibModelMegaIteration::filterCache()
     }
 
     // We already have a certain number of points.
-    nbCandidates -= getTrialPointsCount();
+    nbCandidates -= (int)getTrialPointsCount();
 
     if (nbCandidates > 0)
     {

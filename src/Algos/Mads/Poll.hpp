@@ -63,8 +63,8 @@ class Poll: public Step, public IterationUtils
 private:
     std::vector<std::shared_ptr<PollMethodBase>> _pollMethods;  ///< Unlike for Search, Poll methods generate all their points and only then they are evaluated.
 #ifdef TIME_STATS
-    static double  _pollTime;        ///< Total time spent running the poll
-    static double  _pollEvalTime;    ///< Total time spent evaluating poll points
+    DLL_ALGO_API static double  _pollTime;      ///< Total time spent running the poll
+    DLL_ALGO_API static double  _pollEvalTime;  ///< Total time spent evaluating poll points
 #endif // TIME_STATS
 
 
