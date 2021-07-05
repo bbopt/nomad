@@ -9,17 +9,7 @@ In that case, recompiling NOMAD with gcc 8.2 should fix the issue.
 Not all functionalities of Nomad are available in PyNomad.
 
 HOW TO BUILD
- - Make sure to have the NOMAD_HOME environment variable set correctly.
-
- - To build the PyNomad interface library:
-   - Run the following in a command line:
-         make
-   - If nomad was compiled without OpenMP, run:
-         make USE_OPENMP=0
-
- - To install the PyNomad interface library for the current user
-   - Run the following in a command line:
-         make lib
+The interface build is managed by CMake. See README.txt at NOMAD root.
 
 HOW TO USE
 Some tests are proposed in the directory to check that everything is up and running.
