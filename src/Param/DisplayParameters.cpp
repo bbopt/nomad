@@ -89,6 +89,13 @@ void NOMAD::DisplayParameters::checkAndComply(
         return;
     }
 
+    auto display_degree = getAttributeValueProtected<int>("DISPLAY_DEGREE",false);
+    // Force display all eval
+    if (display_degree>=3)
+    {
+        setAttributeValue("DISPLAY_ALL_EVAL", true);
+    }
+    
     // Pb params must be checked before accessing its value
     size_t n = pbParams->getAttributeValue<size_t>("DIMENSION");
     if (n == 0)
