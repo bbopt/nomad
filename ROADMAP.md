@@ -15,7 +15,5 @@ Last update July 2021
 
 ### v4.2
 
-#### Probably PyNomad on Windows
-
 #### TBD
 
