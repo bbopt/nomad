@@ -1,5 +1,4 @@
 # Roadmap
-Last update July 2021
 
 ## Next releases
 
