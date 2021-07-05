@@ -2,13 +2,13 @@
 
 ### v4.1 - July 2021
 
-#### Windows version of the nomad executable
+* Windows version of the nomad executable
 
-#### Static surrogate may be used for sorting or for optimizing
+* Static surrogate may be used for sorting or for optimizing
 
-#### Variable Neighborhood Search (VNS)
+* Variable Neighborhood Search (VNS)
 
-#### Poll direction ORTHO N+1 NEG added
+* Poll direction ORTHO N+1 NEG added
 
 ### v4.2
 
