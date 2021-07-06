@@ -54,7 +54,7 @@
 void NOMAD::NMShrink::init()
 {
     setStepType(NOMAD::StepType::NM_SHRINK);
-    _currentStepType = NOMAD::StepType::NM_SHRINK;   // TODO: Remove this redundancy
+    _currentStepType = NOMAD::StepType::NM_SHRINK;   
 
     _gamma = _runParams->getAttributeValue<NOMAD::Double>("NM_GAMMA");
 
