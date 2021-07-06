@@ -6,7 +6,7 @@ Installation
 .. warning:: Current version of the source code does not support compilation with Microsoft Visual Studio. Future versions will provide this option.
 
 
-On Linux and Mac OS X, NOMAD can be compiled using *CMake*, a tool to manage building of source code.
+On Linux, Windows and Mac OS X, NOMAD can be compiled using *CMake*, a tool to manage building of source code.
 
 The minimum version of *CMake* is 3.14. Older versions should trigger an error.
 
@@ -31,17 +31,21 @@ A recent C++ compiler is also required. *CMake* will detect which compiler is av
 
    For Linux, several package managers exist to automate the procedure.
 
+   For Windows, an installer tool is available at `cmake.org <https://cmake.org/download/>`_.
+
 
 The NOMAD installation procedure has the three following steps: **configuration, building and installation**.
 
-.. warning:: Before starting the procedure we recommend to set the environment variable ``$NOMAD_HOME`` with the path where NOMAD has been copied.
+.. warning:: Before starting the procedure we recommend to set the environment variable ``$NOMAD_HOME`` with the path where NOMAD has been copied. For Linux and OSX,
 
   ::
 
     export NOMAD_HOME=/home/myUserName/PathToNomad
 
+For Windows, add an environment variable ``%NOMAD_HOME%`` containing the path.
 
-  The remaining of the documentation uses this ``$NOMAD_HOME`` environment variable.
+
+  The remaining of the documentation uses the ``$NOMAD_HOME`` environment variable.
 
 
 
