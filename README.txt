@@ -73,14 +73,14 @@ COMPILATION (Release):
 
 On Linux, Unix, Windows and Mac OS X, NOMAD can be compiled using CMake.
 The minimum version of CMake is 3.14. Older versions will trigger
-an error. A recent C++ compiler is also required.  
+an error. A recent C++ compiler is also required.
 
 The procedure is the following. On the command line in the
  $NOMAD_HOME directory:
 
-cmake -S . -B build/release     ---> Create the CMake files and directories for 
+cmake -S . -B build/release     ---> Create the CMake files and directories for
                                      building (-B) in build/release.
-                                     The source (-S) CMakeLists.txt file is in 
+                                     The source (-S) CMakeLists.txt file is in
                                        the $NOMAD_HOME directory.
                                      To enable time stats build:
                                        cmake -DTIME_STATS=ON -S . -B build/release
@@ -92,14 +92,14 @@ cmake -S . -B build/release     ---> Create the CMake files and directories for
                                        cmake -DTEST_OPENMP=OFF -S . -B build/release
 
 
-cmake --build build/release     ---> Build all the libraries and applications 
+cmake --build build/release     ---> Build all the libraries and applications
                                      Option --parallel xx can be added for faster
                                        build.
-                                     Option --config Release should be used on 
+                                     Option --config Release should be used on
                                        *Windows* to compile in Release configuration.
                                      The default configuration is Debug.
 
-cmake --install build/release   ---> Copy binaries and headers in 
+cmake --install build/release   ---> Copy binaries and headers in
                                        build/release/[bin, include, lib]
                                        and in the examples/tests directories.
                                      Option --config Release should be used on
@@ -119,7 +119,7 @@ cmake --install $NOMAD_HOME/build/release
 
 COMPILATION (Debug):
 
-The procedure to build the debug version is the following. 
+The procedure to build the debug version is the following.
 On the command line in the $NOMAD_HOME directory:
 
 cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
@@ -127,12 +127,12 @@ cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
                                    Debug, RelWithDebugInfo, MinSizeRel, Release);
                                    flag CMAKE_BUILD_TYPE is ignored.
 
-cmake --build build/debug     ---> Build the libraries and applications 
+cmake --build build/debug     ---> Build the libraries and applications
                                      Option --parallel xx can be added for faster
                                      build.
                                    On Windows, the default configuration is Debug.
 
-cmake --install build/debug   ---> Copy binaries and headers in 
+cmake --install build/debug   ---> Copy binaries and headers in
                                      build/debug/[bin, include, lib]
                                      and in the examples/tests directories
 
@@ -147,7 +147,7 @@ nomad param.txt
 
 Library Mode:
 There are examples in library mode in examples/basic/library/.
-In each directory, the executable may be compiled when building 
-Nomad application. The problems may be resolved by execution, 
+In each directory, the executable may be compiled when building
+Nomad application. The problems may be resolved by execution,
 for instance:
 example_lib.exe
