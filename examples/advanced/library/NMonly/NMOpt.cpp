@@ -105,10 +105,7 @@ void initParams1(NOMAD::AllParameters &p)
     // parameters creation
     size_t n = 5;   // Number of variables
     p.getPbParams()->setAttributeValue("DIMENSION", n);
-    
-    // When using batch mode decomment this and remove My_Evaluator
-    // p.getEvalParams()->setAttributeValue("BB_EXE", std::string("./u.exe"));
-
+ 
     NOMAD::Point x0(n, 0.0);
     p.getPbParams()->setAttributeValue("X0", x0);  // starting point * 0
     NOMAD::ArrayOfDouble lowerBound(n,-6.0);

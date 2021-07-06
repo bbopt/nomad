@@ -327,6 +327,7 @@ void NOMAD::MainStep::startImp()
     createCache();
     updateX0sFromCache();
 
+    
     // Setup EvaluatorControl
     setNumThreads();
 
@@ -383,8 +384,7 @@ void NOMAD::MainStep::startImp()
         if ( _allParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC") )
             AddOutputInfo("Opportunistic evaluation is disabled for LH when ran as a single algorithm.");
 
-        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC",false);
-        _allParams->checkAndComply( );
+        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
 
         auto lh = std::make_shared<NOMAD::LH>(this,
                                               lhStopReasons ,
@@ -402,8 +402,7 @@ void NOMAD::MainStep::startImp()
             AddOutputInfo("Opportunistic evaluation is disabled for NM when ran as a single algorithm.");
         }
 
-        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC",false);
-        _allParams->checkAndComply( );
+        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
 
         auto nm = std::make_shared<NOMAD::NM>(this,
                                               nmStopReasons ,
@@ -430,7 +429,7 @@ void NOMAD::MainStep::startImp()
         auto quadModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
 
         // All the Sgtelib Model sample points are evaluated sequentially. No opportunism.
-        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC", false);
+        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
         _allParams->setAttributeValue("MEGA_SEARCH_POLL", false);
         _allParams->checkAndComply();
 
@@ -445,8 +444,8 @@ void NOMAD::MainStep::startImp()
         auto sgtelibModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
 
         // All the Sgtelib Model sample points are evaluated. No opportunism.
-        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC", false);
-        _allParams->checkAndComply();
+        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
+
 
         std::shared_ptr<NOMAD::Barrier> barrier = nullptr;
         if (NOMAD::CacheBase::getInstance()->size() > 0)
@@ -509,6 +508,8 @@ void NOMAD::MainStep::startImp()
             _algos.push_back(mads);
         }
     }
+    
+
 
 }
 
@@ -754,6 +755,8 @@ void NOMAD::MainStep::displayVersion()
 {
     std::string version = "Version ";
     version += NOMAD_VERSION_NUMBER;
+    // Note: The "Beta" information is not part of the NOMAD_VERSION_NUMBER.
+    //version += " Beta 2";
 #ifdef DEBUG
     version += " Debug.";
 #else

@@ -57,7 +57,7 @@
 // Author: Christophe Tribes
 
 
-// Initialize static members
+// Initialize static members (this is not very good, see Issue #604)
 size_t NOMAD::VNSSearchMethod::_bbEvalByVNS=0;
 size_t NOMAD::VNSSearchMethod::_nbVNSSearchRuns=0;
 NOMAD::Point NOMAD::VNSSearchMethod::_refFrameCenter= NOMAD::Point();
@@ -70,6 +70,7 @@ void NOMAD::VNSSearchMethod::init()
     const auto parentSearch = getParentStep()->getParentOfType<NOMAD::VNSSearchMethod*>(false);
     
     // Do not perform if EVAL_SURROGATE_OPTIMIZATION is true
+    // TODO improve this in the future (see Issue #584)
     bool bBEval = ( NOMAD::EvcInterface::getEvaluatorControl()->getEvalType() == EvalType::BB ) ;
     
     setEnabled((nullptr == parentSearch) && _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH") && bBEval);
@@ -87,6 +88,7 @@ bool NOMAD::VNSSearchMethod::runImp()
 {
     bool foundBetter = false;
     
+    // TODO add counter to display
     _nbVNSSearchRuns++;
     
     if (isEnabled())
@@ -94,7 +96,8 @@ bool NOMAD::VNSSearchMethod::runImp()
         // check the VNS_trigger criterion:
         size_t bbEval = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
         auto trigger = _runParams->getAttributeValue<NOMAD::Double>("VNS_MADS_SEARCH_TRIGGER");
-
+        // TODO consider when surrogate evaluations are used.
+        // TODO we can conduct vns search only with surrogate. See issue #584.
         if (bbEval == 0 || double(_bbEvalByVNS)/bbEval < trigger.todouble())
         {
             

@@ -58,7 +58,8 @@ void initParams1(NOMAD::AllParameters &p)
     // parameters creation
     size_t n = 5;   // Number of variables
     p.getPbParams()->setAttributeValue("DIMENSION", n);
-    p.getEvalParams()->setAttributeValue("BB_EXE", std::string("./ufl.exe"));
+    std::string sExe = std::string(".") + NOMAD::DIR_SEP + "ufl.exe";
+    p.getEvalParams()->setAttributeValue("BB_EXE", sExe);
 
     NOMAD::Point x0(n, 6.0);
     x0[0] = 4;
@@ -83,7 +84,6 @@ void initParams1(NOMAD::AllParameters &p)
     p.getDispParams()->setAttributeValue("DISPLAY_MAX_STEP_LEVEL", 20);
     p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("BBE THREAD_NUM ( SOL ) OBJ"));
 
-    p.getEvaluatorControlGlobalParams()->setAttributeValue("TMP_DIR", std::string("/tmp"));
     p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("PB OBJ"));
 
     p.getRunParams()->setAttributeValue("ADD_SEED_TO_FILE_NAMES", false);
