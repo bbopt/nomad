@@ -5,14 +5,10 @@ import os
 import sys
 
 
-# Todo : investigate why it is not running properly when using OpenMP.
-
-"""
 # Windows not supported
 if sys.platform.startswith("win"):
     print("The", sys.platform, "platform is not supported.")
     exit()
-"""
     
 if (len(sys.argv) != 5 and len(sys.argv) != 3):
     print("The script ", str(sys.argv[0]), " requires 4 arguments (building in place) or 2 arguments (installing). When building in place, arguments 1 and 2 are for passing Nomad options.")
@@ -45,6 +41,9 @@ if (use_openmp==1):
     if not sys.platform.startswith("win"):
         compile_args.append("-fopenmp")
         link_args.append("-fopenmp")
+    if sys.platform == "darwin":
+        print("The PyNomad interface may fail on ", sys.platform, " when building with OPENMP. If this happens, you may deactivate OPENMP for building Nomad and PyNomad.")
+    
     compile_args.append("-DUSE_OMP")
     # print(compile_args)
 

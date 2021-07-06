@@ -281,8 +281,6 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
             OUTPUT_INFO_END
 
             // Avoid re-evaluating BB.
-            //doEval = false;
-            // TODO This will have to be re-assessed.
             doEval = canEval;
         }
         else if (NOMAD::EvalType::MODEL == evalType)

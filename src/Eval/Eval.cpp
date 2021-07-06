@@ -169,7 +169,6 @@ NOMAD::Double NOMAD::Eval::getF(const NOMAD::ComputeType& computeType) const
             f = computeFPhaseOne();
             break;
         case NOMAD::ComputeType::USER:
-            // TODO USER ComputeType: Issue #491
             break;
         default:
             throw NOMAD::Exception(__FILE__,__LINE__,"getF(): ComputeType not supported");
@@ -199,7 +198,6 @@ NOMAD::Double NOMAD::Eval::getH(const NOMAD::ComputeType& computeType) const
             h = 0.0;
             break;
         case NOMAD::ComputeType::USER:
-            // TODO USER ComputeType: Issue #491
             break;
         default:
             throw NOMAD::Exception(__FILE__,__LINE__,"getH(): ComputeType not supported");

@@ -148,11 +148,7 @@ bool NOMAD::Projection::runImp()
     bool projectionOk = true;
 
     // Return value: found better - unused.
-    // TODO Ensure OPPORTUNISM is off here
     evalTrialPoints(this);
-
-    // TODO - postprocessing?
-
 
     return projectionOk;
 }
@@ -172,9 +168,6 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
 
     // STD projected point
     stdProjectedPoint(oraclePoint);
-    // TODO compute this otherwise, if needed
-    //auto f = bestEvalPoint.getF(evalType);
-    //auto h = bestEvalPoint.getH(evalType);
 
     // Try pertubation
     std::string subStepName = "Projection candidate";
@@ -237,14 +230,6 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
     keep.clear();
 
 
-    // Evaluate projection trial points
-    // in the dynamic (quad or sgtelib) model
-    // TODO Analyse from NOMAD 3 and see if we can do something similiar
-    // in NOMAD 4. It may not be worth it, it seems more like an
-    // issue of sorting the points accorting to a SgtelibModel, and
-    // that would be better done in the EvaluatorControl.
-    //evaluateProjectionTrialPoints(trySet, ev, keep, bestEvalPoint);
-
 }
 
 
@@ -272,15 +257,11 @@ void NOMAD::Projection::stdProjectedPoint(const NOMAD::EvalPoint& oraclePoint)
 
     if (nullptr != _mesh)
     {
-        // TODO: Use mesh and frame center from IterationUtils
         // Project the point on the mesh
         xTry = _mesh->projectOnMesh(xTry, *_frameCenter);
     }
     NOMAD::EvalPoint evalPoint(xTry);
 
-    // TODO This code is based on NOMAD 3's Sgtelib_Model code.
-    // The goal here is to evaluate points according to the SgtelibModel.
-    // This may not have its place in the Projection class.
     bool doInsert = true;
     if (NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
     {
