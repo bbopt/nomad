@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 # name of the project
-project (Nomad VERSION 4.0.2)
+project (Nomad VERSION 4.1.0)
 
 # use standard compilers parameters for c++14
 SET(CMAKE_CXX_STANDARD 14 )
@@ -94,6 +94,7 @@ if(TIME_STATS MATCHES ON)
    add_compile_definitions(TIME_STATS)
 endif()
 
+
 #
 # Test openMP package
 #
@@ -123,7 +124,6 @@ if(BUILD_EXAMPLES MATCHES ON)
 else()
    message(STATUS "  Examples NOT built")
 endif()
-
 
 #
 # Choose to build the interface

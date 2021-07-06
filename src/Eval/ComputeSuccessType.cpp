@@ -236,7 +236,7 @@ void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(const NOMAD::EvalT
         }
         else
         {
-
+            // TODO USER: Issue #491
         }
     }
     else if (NOMAD::EvalType::SURROGATE == evalType)
@@ -251,7 +251,7 @@ void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(const NOMAD::EvalT
         }
         else
         {
-
+            // TODO USER: Issue #491
         }
     }
     else if (NOMAD::EvalType::MODEL == evalType)

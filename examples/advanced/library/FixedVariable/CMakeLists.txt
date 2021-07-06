@@ -5,6 +5,7 @@ target_include_directories(fixedVariable.exe PRIVATE
     ${CMAKE_SOURCE_DIR}/src)
 
 set_target_properties(fixedVariable.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
+set_target_properties(ufl.exe PROPERTIES SUFFIX "")
 
 
 if(OpenMP_CXX_FOUND)

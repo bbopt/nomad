@@ -184,6 +184,9 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
     // Ensure there is no model used in model optimization.
     _optRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
+    
+    // CT maybe put this to true. Allow more exploration on complex models. Same as NM_SEARCH. The default is used but it could be forced to false. See issue #601.
+    // IMPORTANT: if VNS_MADS_SEARCH is changed to yes, the static members of VNSSearchMethod must be managed correctly
     _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
 
     // Set direction type to Ortho 2n

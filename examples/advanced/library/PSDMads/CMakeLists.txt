@@ -1,3 +1,5 @@
+# Example only for OPENMP build
+
 add_executable(rosenbrock.exe rosenbrock.cpp )
 
 target_include_directories(rosenbrock.exe PRIVATE
@@ -5,12 +7,7 @@ target_include_directories(rosenbrock.exe PRIVATE
 
 set_target_properties(rosenbrock.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
 
-
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(rosenbrock.exe PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
-else()
-    target_link_libraries(rosenbrock.exe PUBLIC nomadAlgos nomadUtils nomadEval)
-endif()
+target_link_libraries(rosenbrock.exe PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
 
 # installing executables and libraries
 install(TARGETS rosenbrock.exe
