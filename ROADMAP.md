@@ -10,7 +10,25 @@
 
 * Poll direction ORTHO N+1 NEG added
 
-### v4.2
+### v4.2 - October 2021
 
-* TBD
+These are the features we consider for 4.2:
+
+* Improvements to VNS
+
+* Poll direction ORTHO N+1 MODEL
+
+* Use models for sorting
+
+* Matlab interface
+
+* Python interface on Windows
+
+* Periodic variables
+
+* Coordinate search algorithm
+
+* Functionality to interrupt the resolution to show the current best solution, and then resume
+
+
 
