@@ -69,6 +69,10 @@ CONTACT:
 nomad@gerad.ca
 
 
+VERSION WARNING:
+
+This repository is for NOMAD 4. NOMAD 3 is not on GitHub. NOMAD 4 is similar in usage to NOMAD 3. It does not have all functionalities from NOMAD 3 yet. NOMAD 4 has a new software architecture, uses OpenMP to run evaluations in parallel, and also has some new functionalities.
+
 COMPILATION (Release):
 
 On Linux, Unix, Windows and Mac OS X, NOMAD can be compiled using CMake.
