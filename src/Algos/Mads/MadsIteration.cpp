@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -53,6 +53,7 @@
 #include "../../Algos/Mads/MegaSearchPoll.hpp"
 #include "../../Algos/Mads/Search.hpp"
 #include "../../Algos/Mads/Poll.hpp"
+#include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 #ifdef TIME_STATS
@@ -70,7 +71,7 @@ double NOMAD::MadsIteration::_pollEvalTime = 0.0;
 
 void NOMAD::MadsIteration::init()
 {
-    _name = NOMAD::Iteration::getName();
+    setStepType(NOMAD::StepType::ITERATION);
 }
 
 
@@ -79,6 +80,42 @@ void NOMAD::MadsIteration::startImp()
 #ifdef TIME_STATS
     _iterStartTime = NOMAD::Clock::getCPUTime();
 #endif // TIME_STATS
+}
+
+
+NOMAD::ArrayOfPoint NOMAD::MadsIteration::suggest()
+{
+    NOMAD::ArrayOfPoint xs;
+    
+    if (_runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
+    {
+        OUTPUT_INFO_START
+        AddOutputInfo("Mads Iteration Suggest. Mega Search Poll.");
+        OUTPUT_INFO_END
+        
+        // suggest uses MegaSearchPoll for now
+        MegaSearchPoll megaStep( this );
+        megaStep.start();
+        
+        auto trialPoints = megaStep.getTrialPoints();
+        
+        NOMAD::EvalPoint evalPointFound;
+        for (auto trialPoint : trialPoints)
+        {
+            // Do not suggest points that are already in cache.
+            if (0 == NOMAD::CacheBase::getInstance()->find(trialPoint, evalPointFound))
+            {
+                xs.push_back(*trialPoint.getX());
+            }
+        }
+        megaStep.end();
+    }
+    else
+    {
+       throw NOMAD::Exception(__FILE__, __LINE__, "MadsIteration suggest only performs with MEGA_SEARCH_POLL enabled");
+    }
+    
+    return xs;
 }
 
 
@@ -103,7 +140,7 @@ bool NOMAD::MadsIteration::runImp()
         {
             bestSuccessYet = megaStep.getSuccessType();
             OUTPUT_DEBUG_START
-            std::string s = _name + ": new success " + NOMAD::enumStr(bestSuccessYet);
+            std::string s = getName() + ": new success " + NOMAD::enumStr(bestSuccessYet);
             s += " stopReason = " + _stopReasons->getStopReasonAsString() ;
             AddOutputDebug(s);
             OUTPUT_DEBUG_END

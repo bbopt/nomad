@@ -101,8 +101,8 @@ bool SGTELIB::Surrogate_RBF::init_private ( void ) {
                                                    _param.get_distance_type());
     // select_greedy() might return a set with less than _qrbf points
     // in which case _qrbf is modified
-    if (_selected_kernel.size() < _qrbf){
-      _qrbf = _selected_kernel.size();
+    if ((int)_selected_kernel.size() < _qrbf){
+      _qrbf = (int)_selected_kernel.size();
     }     
   }
   else{

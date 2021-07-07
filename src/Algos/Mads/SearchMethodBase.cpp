@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -45,7 +45,6 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/SearchMethodBase.hpp"
 #include "../../Output/OutputQueue.hpp"
 
@@ -70,7 +69,7 @@ void NOMAD::SearchMethodBase::generateTrialPoints()
 {
 
     OUTPUT_INFO_START
-    AddOutputInfo("Generate points for " + _name, true, false);
+    AddOutputInfo("Generate points for " + getName(), true, false);
     OUTPUT_INFO_END
 
     generateTrialPointsImp();
@@ -102,6 +101,6 @@ void NOMAD::SearchMethodBase::generateTrialPoints()
 
     OUTPUT_INFO_START
     AddOutputInfo("Generated " + std::to_string(getTrialPointsCount()) + " points");
-    AddOutputInfo("Generate points for " + _name, false, true);
+    AddOutputInfo("Generate points for " + getName(), false, true);
     OUTPUT_INFO_END
 }

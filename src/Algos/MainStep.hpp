@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -56,6 +56,7 @@
 #include "../Algos/Algorithm.hpp"
 #include "../Eval/Evaluator.hpp"
 #include "../Param/AllParameters.hpp"
+#include "../Type/LHSearchType.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -150,6 +151,21 @@ public:
     /// Helper to reset some components (used by the runner when running multiple optimization)
     static void resetComponentsBetweenOptimization();
 
+    /// Helper to reset the cache
+    static void resetCache();
+
+    NOMAD::ArrayOfPoint suggest() override;
+
+    /**
+      Observe method updates cache, computes new mesh size and new hMax.
+      */
+    void observe(const std::vector<NOMAD::EvalPoint>& evalPointList) override;
+    /**
+      Observe version to be called by the Python interface.
+      \return new values of key parameters.
+      */
+    std::vector<std::string> observe(const NOMAD::ArrayOfPoint & xs, const std::vector<NOMAD::ArrayOfDouble> & fxs, const std::string & destinationCacheFileName="");
+
 protected:
     /// Specific implementation to start NOMAD
     /**
@@ -192,6 +208,8 @@ protected:
     /// Helper for start
     void updateX0sFromCache() const;
 
+    /// Helper for start
+    ArrayOfPoint suggestFromLH(const size_t nbPoints) const;
 
 private:
     /// Helper for constructor

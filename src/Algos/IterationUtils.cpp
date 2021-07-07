@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -47,7 +47,9 @@
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/IterationUtils.hpp"
 #include "../Algos/SubproblemManager.hpp"
+#include "../Algos/SurrogateEvaluation.hpp"
 #include "../Output/OutputQueue.hpp"
+#include "../Type/EvalSortType.hpp"
 
 void NOMAD::IterationUtils::init()
 {
@@ -110,7 +112,7 @@ bool NOMAD::IterationUtils::snapPointToBoundsAndProjectOnMesh(
     {
         fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(_parentStep);
     }
-    catch (NOMAD::Exception &e)
+    catch (NOMAD::Exception&)
     {
         if (nullptr != evalPoint.getPointFrom())
         {
@@ -148,13 +150,18 @@ bool NOMAD::IterationUtils::snapPointToBoundsAndProjectOnMesh(
         }
     }
 
-    if (*evalPoint0.getX() != point)
+    // Round to POINT_FORMAT number of decimals
+    auto pointPrecision = _parentStep->getPbParams()->getAttributeValue<NOMAD::ArrayOfDouble>("POINT_FORMAT");
+    bool modif = point.roundToPrecision(pointPrecision);
+    
+    
+    if (modif || *evalPoint0.getX() != point )
     {
         // Point is not the same.
         // Update evalPoint
         evalPoint = NOMAD::EvalPoint(point);
         evalPoint.setPointFrom(evalPoint0.getPointFrom(), fixedVariable);
-        evalPoint.setGenStep(evalPoint0.getGenStep());
+        evalPoint.setGenSteps(evalPoint0.getGenSteps());
         evalPoint.setTag(-1);
     }
 
@@ -201,28 +208,49 @@ void NOMAD::IterationUtils::verifyPointsAreOnMesh(const std::string& name) const
 }
 
 
-bool NOMAD::IterationUtils::evalTrialPoints(NOMAD::Step *step)
+bool NOMAD::IterationUtils::evalTrialPoints(const NOMAD::Step *step, const size_t keepN,
+                                            const NOMAD::StepType& removeStepType)
 {
     bool foundBetter = false;
 
     // Send trial EvalPoints to EvaluatorControl
     NOMAD::EvcInterface evcInterface(step);
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
 
-    NOMAD::EvcInterface::getEvaluatorControl()->lockQueue();
+    // If sort type is SURROGATE, but Evaluator type is not SURROGATE,
+    // start by evaluating points using the surrogate Evaluator.
+    if (   NOMAD::EvalSortType::SURROGATE == evc->getEvaluatorControlGlobalParams()->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT")
+        && NOMAD::EvalType::SURROGATE != evc->getEvalType()
+        && _trialPoints.size() > 1
+        && evc->getOpportunisticEval())
+    {
+        auto surrogateEvaluation = std::make_shared<NOMAD::SurrogateEvaluation>(step);
+        surrogateEvaluation->start();
+        surrogateEvaluation->run();
+        surrogateEvaluation->end();
+    }
+    else if (NOMAD::EvalType::SURROGATE != evc->getEvalType())
+    {
+        evcInterface.setBarrier(step->getMegaIterationBarrier());
+    }
+
+    evc->lockQueue();
 
     // If we have a mesh, the evc interface can add some additional information
     bool useMesh = ! _fromAlgo;
     evcInterface.keepPointsThatNeedEval(_trialPoints, useMesh);
 
-    evcInterface.setBarrier(step->getMegaIterationBarrier());
-
     // The number of points in the queue for evaluation
     // Watch out, this number must be fetched before unlocking the queue,
     // otherwise there is a risk that the evaluations already restarted
     // and the queue may be empty.
-    _nbEvalPointsThatNeedEval = NOMAD::EvcInterface::getEvaluatorControl()->getQueueSize(NOMAD::getThreadNum());
+    _nbEvalPointsThatNeedEval = evc->getQueueSize(NOMAD::getThreadNum());
 
-    NOMAD::EvcInterface::getEvaluatorControl()->unlockQueue(true);  // true: do sort
+    // Arguments to unlockQueue:
+    // true: do sort
+    // keepN: keep a maximum of N points
+    // removeStepType: only remove points of this StepType.
+    evc->unlockQueue(true, keepN, removeStepType);
 
     if (_nbEvalPointsThatNeedEval > 0)
     {
@@ -308,6 +336,11 @@ bool NOMAD::IterationUtils::postProcessing()
             // We are looking for improving, non-dominating trial points.
             // I.e. h is better, but f is less good.
 
+            if (!trialPoint.isEvalOk(evalType))
+            {
+                continue;
+            }
+
             // Note: Searching for updated trial points in the cache.
             if (trialPoint.isFeasible(evalType, computeType))
             {
@@ -318,10 +351,7 @@ bool NOMAD::IterationUtils::postProcessing()
             NOMAD::Double ftrialPoint = trialPoint.getF(evalType, computeType);
             NOMAD::Double htrialPoint = trialPoint.getH(evalType, computeType);
 
-            bool evalOk = (NOMAD::EvalStatusType::EVAL_OK == trialPoint.getEvalStatus(evalType));
-
-            if (evalOk && (htrialPoint < hxInf)
-                && (ftrialPoint > fxInf))
+            if ((htrialPoint < hxInf) && (ftrialPoint > fxInf))
             {
                 // improving
                 if (!tempHMax.isDefined() || tempHMax < htrialPoint)
@@ -391,7 +421,7 @@ bool NOMAD::IterationUtils::insertTrialPoint(const NOMAD::EvalPoint &evalPoint)
     std::pair<NOMAD::EvalPointSet::iterator,bool> ret = _trialPoints.insert(evalPoint);
 
     OUTPUT_INFO_START
-    std::string s = "xt:";
+    std::string s = "Point:";
     s += (ret.second) ? " " : " not inserted: ";
     s += evalPoint.display();
     NOMAD::OutputInfo("",s,NOMAD::OutputLevel::LEVEL_INFO);

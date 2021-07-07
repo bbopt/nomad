@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -61,7 +61,6 @@
 #include "../Math/RNG.hpp"
 #include "../Output/OutputQueue.hpp"
 #include "../Output/OutputDirectToFile.hpp"
-#include "../Type/LHSearchType.hpp"
 #include "../Util/Clock.hpp"
 #include "../Util/fileutils.hpp"
 
@@ -70,6 +69,7 @@
 #include "../Algos/Mads/Mads.hpp"
 #include "../Algos/Mads/MadsIteration.hpp"
 #include "../Algos/Mads/Search.hpp"
+#include "../Algos/Mads/VNSSearchMethod.hpp"
 #include "../Algos/NelderMead/NM.hpp"
 #include "../Algos/PhaseOne/PhaseOne.hpp"
 #ifdef _OPENMP
@@ -101,7 +101,7 @@ void NOMAD::MainStep::init()
     _runParams = _allParams->getRunParams();
     _pbParams  = _allParams->getPbParams();
 
-    _name = "Main";
+    setStepType(NOMAD::StepType::MAIN);
 
     // Start the clock
     NOMAD::Clock::reset();
@@ -111,6 +111,170 @@ void NOMAD::MainStep::init()
 NOMAD::MainStep::~MainStep()
 {
     _algos.clear();
+}
+
+NOMAD::ArrayOfPoint NOMAD::MainStep::suggest()
+{
+    NOMAD::ArrayOfPoint suggestedPoints;
+    AddOutputInfo("Start step " + getName(), true, false);
+
+    // No X0 should be provided
+    auto x0s = _allParams->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
+    if (!x0s.empty() && !x0s[0].toBeDefined())
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Using suggest with x0 provided. Use x0 instead of calling suggest.");
+    }
+
+    // Display attributes and check attribute consistency
+    if (_allParams->getAttributeValue<int>("DISPLAY_DEGREE") >= (int)NOMAD::OutputLevel::LEVEL_DEBUG)
+    {
+        _allParams->display( std::cout );
+    }
+
+    NOMAD::OutputQueue::getInstance()->initParameters( _allParams->getDispParams() );
+    NOMAD::OutputDirectToFile::getInstance()->init( _allParams->getDispParams() );
+
+    // Create internal cache
+    createCache();
+
+    size_t nbLHEval = _allParams->getAttributeValue<size_t>("LH_EVAL");
+
+    if (0 != nbLHEval)
+    {
+        suggestedPoints = suggestFromLH(nbLHEval);
+    }
+    else if (_allParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
+    {
+        auto cacheFile = _allParams->getCacheParams()->getAttributeValue<std::string>("CACHE_FILE");
+        if (cacheFile.empty() && 0 == NOMAD::CacheBase::getInstance()->size())
+        {
+            std::string err = "Cache file is not provided or is empty. A cache is required to obtain Suggest points from a Mads MegaSearchPoll. To create a cache file, use suggest with LH_EVAL.";
+            throw NOMAD::StepException(__FILE__,__LINE__, err, this);
+        }
+        auto lhSearchType = _runParams->getAttributeValue<NOMAD::LHSearchType>("LH_SEARCH");
+        if (0 != lhSearchType.getNbInitial())
+        {
+            std::string err = "LH_SEARCH's first value should be set to zero when calling Suggest with Mads MegaSearchPoll ";
+            throw NOMAD::StepException(__FILE__,__LINE__, err, this);
+        }
+
+        // Update X0 from CacheFile - to satisfy MadsInitialization().
+        updateX0sFromCache();
+
+        // Need to start evaluator control.
+        // Even though there are no BB evaluations done by suggest(),
+        // the EvaluatorControl still holds information,
+        // and is especially useful for Model searches.
+        auto evaluatorControl = NOMAD::EvcInterface::getEvaluatorControl();
+        if (nullptr == evaluatorControl)
+        {
+            if (nullptr == _evaluator)
+            {
+                // Batch mode. Create Evaluator on the go.
+                _evaluator = std::shared_ptr<NOMAD::Evaluator>(
+                                   new NOMAD::Evaluator(_allParams->getEvalParams(),
+                                                        NOMAD::EvalType::BB,
+                                                        NOMAD::EvalXDefined::USE_BB_EVAL));
+            }
+
+            std::unique_ptr<NOMAD::EvaluatorControlParameters> evalContParams(new NOMAD::EvaluatorControlParameters(*_allParams->getEvaluatorControlParams()));
+            evalContParams->checkAndComply();
+            evaluatorControl = std::make_shared<NOMAD::EvaluatorControl>(_evaluator,
+                                                     _allParams->getEvaluatorControlGlobalParams(),
+                                                     std::move(evalContParams));
+            NOMAD::EvcInterface::setEvaluatorControl(std::move(evaluatorControl));
+        }
+
+        auto stopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
+        auto mads = std::make_shared<NOMAD::Mads>(this,
+                                              stopReasons ,
+                                              _allParams->getRunParams(),
+                                              _allParams->getPbParams());
+
+        suggestedPoints = mads->suggest();
+    }
+    else
+    {
+            std::string err = "Suggest currently supports only Mads MEGA_SEARH_POLL or LH_EVAL. LH_EVAL should be used only when no cache is available. ";
+            throw NOMAD::StepException(__FILE__,__LINE__, err, this);
+    }
+
+    AddOutputInfo("End step " + getName(), false, true);
+
+    return suggestedPoints;
+}
+
+
+void NOMAD::MainStep::observe(const std::vector<NOMAD::EvalPoint>& evalPointList)
+{
+    AddOutputInfo("Start step " + getName() , true, false);
+
+    // Display attributes and check attribute consistency
+    if (_allParams->getAttributeValue<int>("DISPLAY_DEGREE") >= (int)NOMAD::OutputLevel::LEVEL_DEBUG)
+    {
+        _allParams->display(std::cout);
+    }
+
+    NOMAD::OutputQueue::getInstance()->initParameters(_allParams->getDispParams());
+    NOMAD::OutputDirectToFile::getInstance()->init(_allParams->getDispParams());
+
+    createCache();
+
+    if (evalPointList.size() > 0)
+    {
+        auto stopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
+        auto mads = std::make_shared<NOMAD::Mads>(this,
+                                              stopReasons ,
+                                              _allParams->getRunParams(),
+                                              _allParams->getPbParams());
+        mads->observe(evalPointList);
+        // Update interesting parameters
+        _allParams->setAttributeValue("INITIAL_FRAME_SIZE", mads->getPbParams()->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_FRAME_SIZE"));
+        _allParams->setAttributeValue("H_MAX_0", mads->getRunParams()->getAttributeValue<NOMAD::Double>("H_MAX_0"));
+        _allParams->getPbParams()->doNotShowWarnings();
+        _allParams->checkAndComply();
+    }
+
+    AddOutputInfo("End step " + getName(), false, true);
+}
+
+
+// This version to be used for the PyNomad interface
+std::vector<std::string> NOMAD::MainStep::observe(const NOMAD::ArrayOfPoint& xs,
+                                                  const vector<NOMAD::ArrayOfDouble>& fxs, const std::string & destinationCacheFileName )
+{
+    // Convert input xs and fxs to a vector of EvalPoints.
+    std::vector<NOMAD::EvalPoint> evalPointList;
+    if (xs.size() != fxs.size())
+    {
+        throw NOMAD::StepException(__FILE__,__LINE__,
+                    "Observe: Input points and input values should have the same size.",
+                    this);
+    }
+
+    auto bbOutputType = _allParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
+    for (size_t i = 0; i < xs.size(); i++)
+    {
+        NOMAD::EvalPoint evalPoint(xs[i]);
+        evalPoint.setBBO(fxs[i].display(), bbOutputType);
+        evalPointList.push_back(evalPoint);
+    }
+    observe(evalPointList);
+
+    std::vector<std::string> updatedParams; // Return parameters as vector of strings, more convenient for PyNomad
+    updatedParams.push_back("INITIAL_FRAME_SIZE ( " + _allParams->getPbParams()->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_FRAME_SIZE").display() + " )");
+    updatedParams.push_back("H_MAX_0 " + _allParams->getRunParams()->getAttributeValue<NOMAD::Double>("H_MAX_0").display());
+
+    // Save cache.
+    // Note: This is usually done in Algorithm::end() via setInformationForHotRestart().
+    // Since mads->end() is not called, we have to call it here.
+    if(destinationCacheFileName.size() != 0)
+        NOMAD::CacheBase::getInstance()->setFileName(destinationCacheFileName);
+
+    if(NOMAD::CacheBase::getInstance()->getFileName().size() != 0)
+        NOMAD::CacheBase::getInstance()->write();
+
+    return updatedParams;
 }
 
 
@@ -163,15 +327,18 @@ void NOMAD::MainStep::startImp()
     createCache();
     updateX0sFromCache();
 
+    
     // Setup EvaluatorControl
     setNumThreads();
 
     if (nullptr == _evaluator)
     {
         // Batch mode. Create Evaluator on the go.
+        bool surrogateAsBB = _allParams->getAttributeValue<bool>("EVAL_SURROGATE_OPTIMIZATION");
+        auto evalType = (surrogateAsBB) ? NOMAD::EvalType::SURROGATE : NOMAD::EvalType::BB;
         _evaluator = std::shared_ptr<NOMAD::Evaluator>(
                         new NOMAD::Evaluator(_allParams->getEvalParams(),
-                                             NOMAD::EvalType::BB,
+                                             evalType,
                                              NOMAD::EvalXDefined::USE_BB_EVAL));
     }
 
@@ -217,8 +384,7 @@ void NOMAD::MainStep::startImp()
         if ( _allParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC") )
             AddOutputInfo("Opportunistic evaluation is disabled for LH when ran as a single algorithm.");
 
-        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC",false);
-        _allParams->checkAndComply( );
+        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
 
         auto lh = std::make_shared<NOMAD::LH>(this,
                                               lhStopReasons ,
@@ -232,10 +398,11 @@ void NOMAD::MainStep::startImp()
 
         // All the NM points must be evaluated. No opportunism.
         if ( _allParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC") )
+        {
             AddOutputInfo("Opportunistic evaluation is disabled for NM when ran as a single algorithm.");
+        }
 
-        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC",false);
-        _allParams->checkAndComply( );
+        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
 
         auto nm = std::make_shared<NOMAD::NM>(this,
                                               nmStopReasons ,
@@ -262,7 +429,7 @@ void NOMAD::MainStep::startImp()
         auto quadModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
 
         // All the Sgtelib Model sample points are evaluated sequentially. No opportunism.
-        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC", false);
+        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
         _allParams->setAttributeValue("MEGA_SEARCH_POLL", false);
         _allParams->checkAndComply();
 
@@ -277,8 +444,8 @@ void NOMAD::MainStep::startImp()
         auto sgtelibModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
 
         // All the Sgtelib Model sample points are evaluated. No opportunism.
-        _allParams->setAttributeValue("EVAL_OPPORTUNISTIC", false);
-        _allParams->checkAndComply();
+        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
+
 
         std::shared_ptr<NOMAD::Barrier> barrier = nullptr;
         if (NOMAD::CacheBase::getInstance()->size() > 0)
@@ -341,6 +508,8 @@ void NOMAD::MainStep::startImp()
             _algos.push_back(mads);
         }
     }
+    
+
 
 }
 
@@ -476,7 +645,8 @@ void NOMAD::MainStep::createCache() const
     catch (...)
     {
         NOMAD::CacheSet::setInstance(_allParams->getCacheParams(),
-                                     _allParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"));
+                                     _allParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"),
+                                     _allParams->getAttributeValue<NOMAD::ArrayOfDouble>("BB_EVAL_FORMAT"));
     }
 }
 
@@ -524,20 +694,27 @@ void NOMAD::MainStep::updateX0sFromCache() const
         }
         else if (canUseLH)
         {
-            size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
-            size_t p = lhSearchType.getNbInitial();
-            auto lowerBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
-            auto upperBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
-            NOMAD::ArrayOfDouble deltaFrameSize = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_FRAME_SIZE");
-            NOMAD::Double scaleFactor = sqrt(-log(NOMAD::DEFAULT_EPSILON));
-            NOMAD::LHS lhs(n, p, lowerBound, upperBound, NOMAD::Point(n, 0.0), deltaFrameSize, scaleFactor);
-            x0s = lhs.Sample();
+            x0s = suggestFromLH(lhSearchType.getNbInitial());
         }
 
         _allParams->getPbParams()->setAttributeValue("X0", x0s);
         _allParams->getPbParams()->checkAndComply();
     }
 
+}
+
+
+NOMAD::ArrayOfPoint NOMAD::MainStep::suggestFromLH(const size_t nbPoints) const
+{
+    auto lhStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::LHStopType>>();
+    auto lhRunParams = std::make_shared<NOMAD::RunParameters>(*_allParams->getRunParams());
+    lhRunParams->setAttributeValue("LH_EVAL", nbPoints);
+
+    lhRunParams->checkAndComply(_allParams->getEvaluatorControlGlobalParams(), _allParams->getPbParams());
+
+    NOMAD::LH lh(this, lhStopReasons, lhRunParams, _allParams->getPbParams());
+
+    return lh.suggest();
 }
 
 
@@ -607,12 +784,15 @@ void NOMAD::MainStep::displayVersion()
 /*------------------------------------------*/
 void NOMAD::MainStep::displayInfo()
 {
+    /*
     std::string info;
+    // This file has been removed. See Issue #618.
     std::string filename = "Util/Copyright.hpp";
     if (NOMAD::readAllFile(info, filename))
     {
         NOMAD::OutputQueue::Add(info, NOMAD::OutputLevel::LEVEL_ERROR);
     }
+    */
 }
 
 
@@ -684,11 +864,7 @@ void NOMAD::MainStep::hotRestartOnUserInterrupt()
             }
         }
 
-
-
         _allParams->checkAndComply();
-
-        std::cin.clear();
     }
 
     hotRestartEndHelper();
@@ -698,7 +874,8 @@ void NOMAD::MainStep::hotRestartOnUserInterrupt()
 void NOMAD::MainStep::resetComponentsBetweenOptimization()
 {
     // Make sure to clear the cache before the next run
-    NOMAD::CacheBase::getInstance()->clear();
+    resetCache();
+
     // Reset static tag counter
     NOMAD::EvalPoint::resetCurrentTag();
     // Reset SubproblemManager map
@@ -707,7 +884,18 @@ void NOMAD::MainStep::resetComponentsBetweenOptimization()
     NOMAD::EvcInterface::resetEvaluatorControl();
     // Reset seed
     NOMAD::RNG::resetPrivateSeedToDefault();
+    // Reset parameter entries
+    NOMAD::Parameters::eraseAllEntries();
+    // Reset VNS Mads search
+    NOMAD::VNSSearchMethod::reset();
 }
+
+void NOMAD::MainStep::resetCache()
+{
+    // Get a new cache
+    NOMAD::CacheBase::resetInstance(); // Need to reset the singleton. When calling createCache there is no instance and we are sure to call NOMAD::CacheSet::setInstance from scratch. The cache file is read and the cache is set with its content.
+}
+
 
 void NOMAD::MainStep::displayDetailedStats() const
 {

@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -63,8 +63,8 @@ class Poll: public Step, public IterationUtils
 private:
     std::vector<std::shared_ptr<PollMethodBase>> _pollMethods;  ///< Unlike for Search, Poll methods generate all their points and only then they are evaluated.
 #ifdef TIME_STATS
-    static double  _pollTime;        ///< Total time spent running the poll
-    static double  _pollEvalTime;    ///< Total time spent evaluating poll points
+    DLL_ALGO_API static double  _pollTime;      ///< Total time spent running the poll
+    DLL_ALGO_API static double  _pollEvalTime;  ///< Total time spent evaluating poll points
 #endif // TIME_STATS
 
 
@@ -90,6 +90,12 @@ public:
         - projecting points on mesh.
      */
     void generateTrialPoints() override;
+
+    /// Generate N+1th point for ORTHO N+1 methods
+    /**
+      The trial point is obtained from the evaluations of the first N points.
+      */
+    void generateTrialPointsNPlus1(const NOMAD::EvalPointSet& inputTrialPoints);
 
 #ifdef TIME_STATS
     /// Time stats
@@ -125,8 +131,8 @@ private:
     /// Helper for start: get lists of Primary and Secondary Polls
     void computePrimarySecondaryPollCenters(std::vector<EvalPoint> &primaryCenters, std::vector<EvalPoint> &secondaryCenters) const;
 
-    /// Helper for start: create a poll method
-    std::shared_ptr<PollMethodBase> createPollMethod(const bool isPrimary, const EvalPoint& frameCenter) const;
+    /// Helper for start: create poll methods
+    std::vector<std::shared_ptr<PollMethodBase>> createPollMethods(const bool isPrimary, const EvalPoint& frameCenter) const;
 
 };
 

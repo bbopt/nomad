@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -82,6 +82,7 @@ NOMAD::StatsInfo::StatsInfo()
     _modelEval(0),
     _totalModelEval(0),
     _sol(),
+    _surrogateEval(0),
     _threadAlgoNum(0),
     _threadNum(0),
     _relativeSuccess(false),
@@ -235,6 +236,10 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     {
         ret = NOMAD::DisplayStatsType::DS_SOL;
     }
+    else if (s == "SURROGATE_EVAL")
+    {
+        ret = NOMAD::DisplayStatsType::DS_SURROGATE_EVAL;
+    }
     else if (s == "THREAD_ALGO")
     {
         ret = NOMAD::DisplayStatsType::DS_THREAD_ALGO;
@@ -335,6 +340,8 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "GEN_STEP";
         case NOMAD::DisplayStatsType::DS_SUCCESS_TYPE:
             return "SUCCESS_TYPE";
+        case NOMAD::DisplayStatsType::DS_SURROGATE_EVAL:
+            return "SURROGATE_EVAL";
         case NOMAD::DisplayStatsType::DS_TOTAL_MODEL_EVAL:
             return "TOTAL_MODEL_EVAL";
         case NOMAD::DisplayStatsType::DS_USER:
@@ -519,6 +526,10 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
             // Here, use displayNoPar() to have the same output as NOMAD 3
             // (no additional parenthesis).
             out += _sol.displayNoPar(solFormat);
+        }
+        else if (NOMAD::DisplayStatsType::DS_SURROGATE_EVAL == statsType)
+        {
+            out += NOMAD::itos(_surrogateEval);
         }
         else if (NOMAD::DisplayStatsType::DS_THREAD_ALGO == statsType)
         {

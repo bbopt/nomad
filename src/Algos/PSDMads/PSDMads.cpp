@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -53,8 +53,7 @@
 #include "../../Algos/PSDMads/PSDMadsMegaIteration.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
-
-#include <unistd.h> // For usleep
+#include "../../Util/MicroSleep.hpp"
 
 // Initialize static lock variable
 omp_lock_t NOMAD::PSDMads::_psdMadsLock;
@@ -63,7 +62,7 @@ omp_lock_t NOMAD::PSDMads::_psdMadsLock;
 void NOMAD::PSDMads::init(const std::shared_ptr<NOMAD::Evaluator>& evaluator,
                           const std::shared_ptr<NOMAD::EvaluatorControlParameters>& evalContParams)
 {
-    _name = "PSD-MADS";
+    setStepType(NOMAD::StepType::ALGORITHM_PSD_MADS);
     verifyParentNotNull();
 
     // Instanciate MadsInitialization member
@@ -74,7 +73,7 @@ void NOMAD::PSDMads::init(const std::shared_ptr<NOMAD::Evaluator>& evaluator,
     // Main thread 0 is already added to EvaluatorControl at its creation.
     size_t nbMainThreads = _runParams->getAttributeValue<size_t>("PSD_MADS_NB_SUBPROBLEM");
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    for (size_t mainThreadNum = 1; mainThreadNum < nbMainThreads; mainThreadNum++)
+    for (int mainThreadNum = 1; mainThreadNum < (int)nbMainThreads; mainThreadNum++)
     {
         auto evalStopReason = std::make_shared<NOMAD::StopReason<NOMAD::EvalMainThreadStopType>>();
         auto subProblemEvalContParams = std::unique_ptr<NOMAD::EvaluatorControlParameters>(new NOMAD::EvaluatorControlParameters(*evalContParams));
@@ -97,7 +96,7 @@ void NOMAD::PSDMads::destroy()
 void NOMAD::PSDMads::waitForBarrier() const
 {
     // Wait until _barrier is initialized, at the beginning of run.
-    while (nullptr == _barrier)
+    while (nullptr == _barrier || 0 == _barrier->getAllPoints().size())
     {
         usleep(10);
     }
@@ -132,45 +131,58 @@ bool NOMAD::PSDMads::runImp()
     std::string s;
 
     bool isPollster = (0 == NOMAD::getThreadNum());   // Pollster is thread 0, which is always a main thread.
-    size_t k = _megaIteration->getK();
+    size_t k;
+    omp_set_lock(&_psdMadsLock);
+    k = _megaIteration->getK();
+    omp_unset_lock(&_psdMadsLock);
 
     while (!_termination->terminate(k))
     {
         // Create a PSDMadsMegaIteration to manage the pollster worker and the regular workers.
-        auto bestEvalPoint = (_barrier->nbXFeas() > 0) ? _barrier->getFirstXFeas() : _barrier->getFirstXInf();
+        // Lock psd mads before accessing barrier.
+        omp_set_lock(&_psdMadsLock);
+        auto bestEvalPoint = _barrier->getAllPoints()[0];
+        omp_unset_lock(&_psdMadsLock);
         NOMAD::Point fixedVariable(_pbParams->getAttributeValue<size_t>("DIMENSION"));
         if (!isPollster)
         {
-            fixedVariable = *(bestEvalPoint->getX());
+            fixedVariable = *(bestEvalPoint.getX());
             generateSubproblem(fixedVariable);
         }
 
-        NOMAD::PSDMadsMegaIteration psdMegaIteration(this, k, _barrier,
-                                        _psdMainMesh, _megaIteration->getSuccessType(),
-                                        *bestEvalPoint, fixedVariable);
-        psdMegaIteration.start();
-        bool madsSuccessful = psdMegaIteration.run();    // One Mads (on pollster or subproblem) is run per PSDMadsMegaIteration.
-
-        if (madsSuccessful)
+        // Just putting this code in brackets ensures a saner execution.
+        // May be related to the destruction of psdMegaIteration when
+        // the bracket ends.
         {
-            auto madsOnSubPb = psdMegaIteration.getMads();
-            OUTPUT_INFO_START
-            s = madsOnSubPb->getName() + " was successful. Barrier is updated.";
-            AddOutputInfo(s);
-            OUTPUT_INFO_END
+            omp_set_lock(&_psdMadsLock);
+            NOMAD::PSDMadsMegaIteration psdMegaIteration(this, k, _barrier,
+                                        _psdMainMesh, _megaIteration->getSuccessType(),
+                                        bestEvalPoint, fixedVariable);
+            omp_unset_lock(&_psdMadsLock);
+            psdMegaIteration.start();
+            bool madsSuccessful = psdMegaIteration.run();    // One Mads (on pollster or subproblem) is run per PSDMadsMegaIteration.
 
             omp_set_lock(&_psdMadsLock);
-            _lastMadsSuccessful = !isPollster;  // Ignore pollster for this flag
-            auto evalPointList = madsOnSubPb->getMegaIterationBarrier()->getAllPoints();
-            NOMAD::convertPointListToFull(evalPointList, fixedVariable);
-            _barrier->updateWithPoints(evalPointList,
+            if (madsSuccessful)
+            {
+                auto madsOnSubPb = psdMegaIteration.getMads();
+                OUTPUT_INFO_START
+                s = madsOnSubPb->getName() + " was successful. Barrier is updated.";
+                AddOutputInfo(s);
+                OUTPUT_INFO_END
+
+                _lastMadsSuccessful = !isPollster;  // Ignore pollster for this flag
+                auto evalPointList = madsOnSubPb->getMegaIterationBarrier()->getAllPoints();
+                NOMAD::convertPointListToFull(evalPointList, fixedVariable);
+                _barrier->updateWithPoints(evalPointList,
                                        evalType,
                                        computeType,
                                        _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
+            }
             omp_unset_lock(&_psdMadsLock);
-        }
 
-        psdMegaIteration.end();
+            psdMegaIteration.end();
+        }
 
         if (isPollster)
         {
@@ -178,8 +190,9 @@ bool NOMAD::PSDMads::runImp()
             {
                 // Reset values
                 // Note: In the context of PSD-Mads, always reset RandomPickup variable.
-                #pragma omp critical(randomPickup)
+                omp_set_lock(&_psdMadsLock);
                 _randomPickup.reset();
+                omp_unset_lock(&_psdMadsLock);
                 _lastMadsSuccessful = false;
 
                 // MegaIteration manages the mesh and barrier
@@ -192,7 +205,9 @@ bool NOMAD::PSDMads::runImp()
                 update.run();
                 update.end();
 
+                omp_set_lock(&_psdMadsLock);
                 _psdMainMesh->checkMeshForStopping(_stopReasons);
+                omp_unset_lock(&_psdMadsLock);
             }
 
             // Update iteration number
@@ -244,8 +259,8 @@ bool NOMAD::PSDMads::doUpdateMesh() const
     coverage /= 100.0;
 
     int nbRemaining = 0;
-    #pragma omp critical(randomPickup)
-    nbRemaining = _randomPickup.getN();
+    omp_set_lock(&_psdMadsLock);
+    nbRemaining = (int)_randomPickup.getN();
 
     if (_lastMadsSuccessful && _runParams->getAttributeValue<bool>("PSD_MADS_ITER_OPPORTUNISTIC"))
     {
@@ -264,6 +279,7 @@ bool NOMAD::PSDMads::doUpdateMesh() const
         OUTPUT_INFO_END
         doUpdate = true;
     }
+    omp_unset_lock(&_psdMadsLock);
 
     return doUpdate;
 }
@@ -275,11 +291,12 @@ void NOMAD::PSDMads::generateSubproblem(NOMAD::Point &fixedVariable)
 
     // The fixed variables of the subproblem are set to the value of best point, the remaining variables are undefined.
     const auto nbVariablesInSubproblem = _runParams->getAttributeValue<size_t>("PSD_MADS_NB_VAR_IN_SUBPROBLEM");
-    #pragma omp critical(randomPickup)
+    omp_set_lock(&_psdMadsLock);
     {
         for (size_t k = 0; k < nbVariablesInSubproblem; k++)
         {
             fixedVariable[_randomPickup.pickup()] = NOMAD::Double();
         }
     }
+    omp_unset_lock(&_psdMadsLock);
 }

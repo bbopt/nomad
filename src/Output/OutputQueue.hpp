@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -178,23 +178,23 @@ private:
     // NOTE It does not seem relevant for the lock to be static,
     // because OutputQueue is a singleton anyway. If staticity causes problems,
     // we could remove the static keyword.
-    static omp_lock_t _s_queue_lock;
+    DLL_UTIL_API static omp_lock_t      _s_queue_lock;
 #endif // _OPENMP
 
-    static bool _hasBeenInitialized; ///< Flag for initialization (initialization cannot be performed more than once).
+    DLL_UTIL_API static bool            _hasBeenInitialized;    ///< Flag for initialization (initialization cannot be performed more than once).
 
-    static std::unique_ptr<OutputQueue> _single; ///< The singleton
+    DLL_UTIL_API static std::unique_ptr<OutputQueue>    _single;                ///< The singleton
 
     /// Queue of all the OutputInfo we have to print.
-    std::vector<OutputInfo> _queue;
+    std::vector<OutputInfo>             _queue;
 
     /// Display parameters
-    std::shared_ptr<DisplayParameters> _params;
+    std::shared_ptr<DisplayParameters>  _params;
 
-    std::string _statsFile;
-    std::ofstream _statsStream;
-    bool _statsWritten;
-    size_t _totalEval;
+    std::string                         _statsFile;
+    std::ofstream                       _statsStream;
+    bool                                _statsWritten;
+    size_t                              _totalEval;
 
     /**
      Format for stats in a file (parameter STATS_FILE).

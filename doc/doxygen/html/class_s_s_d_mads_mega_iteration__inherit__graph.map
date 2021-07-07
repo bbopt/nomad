@@ -1,6 +1,0 @@
-<map id="SSDMadsMegaIteration" name="SSDMadsMegaIteration">
-<area shape="rect" id="node1" title="Class for the iterations of SSD MADS." alt="" coords="5,229,180,256"/>
-<area shape="rect" id="node2" href="$class_mads_mega_iteration.html" title="Class for the mega iterations of MADS." alt="" coords="19,155,167,181"/>
-<area shape="rect" id="node3" href="$class_mega_iteration.html" title="Class to manage the iterations." alt="" coords="36,80,149,107"/>
-<area shape="rect" id="node4" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="67,5,118,32"/>
-</map>

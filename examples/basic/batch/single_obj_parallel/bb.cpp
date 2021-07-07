@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -45,16 +45,15 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 #include <cmath>
-#include <iostream>
-#include <fstream>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <string>
 #include <vector>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#include <unistd.h>
 
 
 using namespace std;
@@ -84,7 +83,7 @@ int main ( int argc , char ** argv )
 		in.close();
 		X.pop_back();
 
-		int nb_pts= X.size();
+		int nb_pts= (int)X.size();
 
 		// Evaluate the points in parallel
 #ifdef _OPENMP
@@ -105,7 +104,6 @@ int main ( int argc , char ** argv )
 			x_t[6] =  c1 - 25;
 			x_t[7] =  25 - c2;
 			// cout << x_t[6] << " " << x_t[7] << " " << endl;
-			// usleep(300000);
 		}
 
 		// Output the points in the same order as in the input file

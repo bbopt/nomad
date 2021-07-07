@@ -42,5 +42,3 @@ DISPLAY_STATS BBE ( SOL ) OBJ
 HISTORY_FILE history.txt
 SOLUTION_FILE sol.txt
 
-TMP_DIR /tmp
-

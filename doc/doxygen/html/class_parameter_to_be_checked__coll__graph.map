@@ -1,7 +1,0 @@
-<map id="ParameterToBeChecked" name="ParameterToBeChecked">
-<area shape="rect" id="node1" title="Exception class for a parameter that has not been checked." alt="" coords="5,291,180,317"/>
-<area shape="rect" id="node2" href="$class_exception.html" title="Exception utility." alt="" coords="49,215,136,241"/>
-<area shape="rect" id="node3" title="STL class." alt="" coords="14,96,129,123"/>
-<area shape="rect" id="node4" title="STL class." alt="" coords="153,96,240,123"/>
-<area shape="rect" id="node5" title="STL class." alt="" coords="127,5,266,47"/>
-</map>

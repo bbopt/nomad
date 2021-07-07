@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -60,16 +60,16 @@ int NOMAD::EvalPoint::_currentTag = -1;
 /*---------------------------------------------------------------------*/
 NOMAD::EvalPoint::EvalPoint ()
   : NOMAD::Point(),
-    _eval(nullptr),
-    _evalModel(nullptr),
+    _eval(),
     _tag(-1),
     _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
     _pointFrom(nullptr),
-    _genStep(""),
+    _genSteps(),
     _direction(nullptr),
     _angle()
 {
+    initEval();
 }
 
 
@@ -78,16 +78,16 @@ NOMAD::EvalPoint::EvalPoint ()
 /*---------------------------------------------------------------------*/
 NOMAD::EvalPoint::EvalPoint(size_t n)
   : NOMAD::Point(n),
-    _eval(nullptr),
-    _evalModel(nullptr),
+    _eval(),
     _tag(-1),
     _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
     _pointFrom(nullptr),
-    _genStep(""),
+    _genSteps(),
     _direction(nullptr),
     _angle()
 {
+    initEval();
 }
 
 
@@ -96,16 +96,28 @@ NOMAD::EvalPoint::EvalPoint(size_t n)
 /*---------------------------------------------------------------------*/
 NOMAD::EvalPoint::EvalPoint(const NOMAD::Point &x)
   : NOMAD::Point(x),
-    _eval(nullptr),
-    _evalModel(nullptr),
+    _eval(),
     _tag(-1),
     _threadAlgo(NOMAD::getThreadNum()),
     _numberEval(0),
     _pointFrom(nullptr),
-    _genStep(""),
+    _genSteps(),
     _direction(nullptr),
     _angle()
 {
+    initEval();
+}
+
+
+/*---------------------------------------------------------------------*/
+/*                          Initialization                             */
+/*---------------------------------------------------------------------*/
+void NOMAD::EvalPoint::initEval()
+{
+    for (size_t i = 0; i < (size_t)NOMAD::EvalType::LAST; i++)
+    {
+        _eval[NOMAD::EvalType(i)].reset();
+    }
 }
 
 
@@ -115,6 +127,7 @@ NOMAD::EvalPoint::EvalPoint(const NOMAD::Point &x)
 NOMAD::EvalPoint::EvalPoint(const NOMAD::EvalPoint &evalPoint)
   : NOMAD::Point(evalPoint)
 {
+    initEval();
     copyMembers(evalPoint);
 }
 
@@ -130,22 +143,21 @@ void NOMAD::EvalPoint::copyMembers(const NOMAD::EvalPoint &evalPoint)
     _threadAlgo = evalPoint._threadAlgo;
     _numberEval = evalPoint._numberEval;
 
-    _eval = nullptr;
-    _evalModel = nullptr;
-    if (nullptr != evalPoint._eval)
+    // Copy evals
+    for (size_t i = 0; i < (size_t)NOMAD::EvalType::LAST; i++)
     {
-        // deep copy.
-        _eval = NOMAD::EvalUPtr(new NOMAD::Eval(*evalPoint.getEval(NOMAD::EvalType::BB)));
-    }
-    if (nullptr != evalPoint._evalModel)
-    {
-        // deep copy.
-        _evalModel = NOMAD::EvalUPtr(new NOMAD::Eval(*evalPoint.getEval(NOMAD::EvalType::MODEL)));
+        auto evalType = NOMAD::EvalType(i);
+        NOMAD::Eval* eval = evalPoint.getEval(evalType);
+        if (nullptr != eval)
+        {
+            // deep copy.
+            _eval[evalType].reset(new NOMAD::Eval(*eval));
+        }
     }
 
     // shallow copy
     _pointFrom = evalPoint.getPointFrom();
-    _genStep = evalPoint.getGenStep();
+    _genSteps = evalPoint.getGenSteps();
     _direction = evalPoint.getDirection();
     _angle = evalPoint.getAngle();
 }
@@ -168,31 +180,25 @@ NOMAD::EvalPoint & NOMAD::EvalPoint::operator=(const NOMAD::EvalPoint &evalPoint
     _numberEval = evalPoint._numberEval;
 
     _pointFrom = evalPoint._pointFrom;
-    _genStep = evalPoint._genStep;
+    _genSteps = evalPoint._genSteps;
     _direction = evalPoint._direction;
     _angle = evalPoint._angle;
 
     // Do NOT delete _eval. Since it is a smart ptr, it will take care
     // of itself. Releasing the smart ptr here causes a memory leak.
 
-    if (nullptr == evalPoint._eval)
+    for (size_t i = 0; i < (size_t)NOMAD::EvalType::LAST; i++)
     {
-        _eval = nullptr;
-    }
-    else
-    {
-        // deep copy.
-        _eval = NOMAD::EvalUPtr(new NOMAD::Eval(*evalPoint._eval));
-    }
-
-    if (nullptr == evalPoint._evalModel)
-    {
-        _evalModel = nullptr;
-    }
-    else
-    {
-        // deep copy.
-        _evalModel = NOMAD::EvalUPtr(new NOMAD::Eval(*evalPoint._evalModel));
+        auto evalType = NOMAD::EvalType(i);
+        if (nullptr == evalPoint.getEval(evalType))
+        {
+            _eval[evalType].reset();
+        }
+        else
+        {
+            // deep copy.
+            _eval[evalType].reset(new NOMAD::Eval(*evalPoint.getEval(evalType)));
+        }
     }
 
     return *this;
@@ -204,15 +210,14 @@ NOMAD::EvalPoint & NOMAD::EvalPoint::operator=(const NOMAD::EvalPoint &evalPoint
 /*---------------------------------------------------------------------*/
 NOMAD::EvalPoint::~EvalPoint ()
 {
-    // Do NOT delete _eval. Since it is a smart ptr, it will take care
-    // of itself. Releasing the smart ptr here causes a memory leak.
+    _eval.clear();
 }
 
 
 /*-----------------------------------------------------------*/
 /*                           operator ==                     */
 /*-----------------------------------------------------------*/
-// Note: Considering both eval (bb) and evalModel.
+// Note: Considering all eval types in _eval.
 bool NOMAD::EvalPoint::operator== (const NOMAD::EvalPoint &evalPoint) const
 {
     // First compare Points.
@@ -220,49 +225,32 @@ bool NOMAD::EvalPoint::operator== (const NOMAD::EvalPoint &evalPoint) const
 
     // Ignore tag.
     // Ignore numberEval.
-    // Ignore pointFrom and genStep.
+    // Ignore pointFrom and genSteps.
 
-    if (equal)
+    // Compare Evals for evalTypes BB, MODEL, SURROGATE.
+    for (size_t i = 0; (equal && i < (size_t)NOMAD::EvalType::LAST); i++)
     {
-        auto eval = getEval(NOMAD::EvalType::BB);
-        auto eval2 = evalPoint.getEval(NOMAD::EvalType::BB);
+        auto evalType = NOMAD::EvalType(i);
+        if (equal)
+        {
+            auto eval = getEval(evalType);
+            auto eval2 = evalPoint.getEval(evalType);
 
-        // Compare Evals (bb).
-        if (nullptr == eval && nullptr == eval2)
-        {
-            // Both Evals are NULL.
-            equal = true;
-        }
-        else if (nullptr == eval || nullptr == eval2)
-        {
-            // One Eval is NULL, but not both.
-            equal = false;
-        }
-        else
-        {
-            // General case
-            equal = ( *eval == *(eval2) );
-        }
-    }
-    if (equal)
-    {
-        // Compare Evals (model).
-        auto eval = getEval(NOMAD::EvalType::MODEL);
-        auto eval2 = evalPoint.getEval(NOMAD::EvalType::MODEL);
-        if (nullptr == eval && nullptr == eval2)
-        {
-            // Both Evals are NULL.
-            equal = true;
-        }
-        else if (nullptr == eval || nullptr == eval2)
-        {
-            // One Eval is NULL, but not both.
-            equal = false;
-        }
-        else
-        {
-            // General case
-            equal = ( *eval == *(eval2) );
+            if (nullptr == eval && nullptr == eval2)
+            {
+                // Both Evals are NULL.
+                equal = true;
+            }
+            else if (nullptr == eval || nullptr == eval2)
+            {
+                // One Eval is NULL, but not both.
+                equal = false;
+            }
+            else
+            {
+                // General case
+                equal = ( *eval == *(eval2) );
+            }
         }
     }
 
@@ -306,57 +294,37 @@ bool NOMAD::EvalPoint::isEvalOk(const NOMAD::EvalType& evalType) const
 /*---------*/
 NOMAD::Eval* NOMAD::EvalPoint::getEval(const NOMAD::EvalType& evalType) const
 {
-    NOMAD::Eval* eval = nullptr;
-
-    switch (evalType)
+    while (true)
     {
-        case NOMAD::EvalType::MODEL:
-            eval = _evalModel.get();
-            break;
-        case NOMAD::EvalType::BB:
-            eval = _eval.get();
-            break;
-        case NOMAD::EvalType::UNDEFINED:
-        default:
-            break;
+        try
+        {
+            return _eval.at(evalType).get();
+        }
+        catch (std::out_of_range&)
+        {
+            // Retry
+        }
     }
-
-    return eval;
 }
 
 
 void NOMAD::EvalPoint::setEval(const NOMAD::Eval& eval,
                                const NOMAD::EvalType& evalType)
 {
-    // Do not release _eval before assigning it a new value.
-    // It is a smart ptr, it will take care of itself.
-
-    switch (evalType)
-    {
-        case NOMAD::EvalType::MODEL:
-            _evalModel = NOMAD::EvalUPtr(new NOMAD::Eval(eval));
-            break;
-        case NOMAD::EvalType::BB:
-        default:
-            _eval = NOMAD::EvalUPtr(new NOMAD::Eval(eval));
-            break;
-    }
-
+    _eval[evalType].reset(new NOMAD::Eval(eval));
 }
 
 
 NOMAD::Double NOMAD::EvalPoint::getF(const NOMAD::EvalType& evalType,
                                      const NOMAD::ComputeType& computeType) const
 {
-    NOMAD::Double f;
-
     auto eval = getEval(evalType);
-    if (nullptr != eval)
+    if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
     {
-        f = eval->getF(computeType);
+        throw NOMAD::Exception(__FILE__,__LINE__,"EvalPoint::getF() called for an EvalPoint that is not EVAL_OK");
     }
 
-    return f;
+    return eval->getF(computeType);
 }
 
 
@@ -366,12 +334,12 @@ NOMAD::Double NOMAD::EvalPoint::getH(const NOMAD::EvalType& evalType,
     NOMAD::Double h;
 
     auto eval = getEval(evalType);
-    if (nullptr != eval)
+    if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
     {
-        h = eval->getH(computeType);
+        throw NOMAD::Exception(__FILE__,__LINE__,"EvalPoint::getH() called for an EvalPoint that is not EVAL_OK");
     }
 
-    return h;
+    return eval->getH(computeType);
 }
 
 
@@ -398,17 +366,7 @@ void NOMAD::EvalPoint::setBBO(const std::string &bbo,
 
     if (nullptr == eval)
     {
-        switch (evalType)
-        {
-            // Create new Eval
-            case NOMAD::EvalType::MODEL:
-                _evalModel = NOMAD::EvalUPtr(new NOMAD::Eval());
-                break;
-            case NOMAD::EvalType::BB:
-            default:
-                _eval = NOMAD::EvalUPtr(new NOMAD::Eval());
-                break;
-        }
+        _eval[evalType].reset(new NOMAD::Eval());
         eval = getEval(evalType);
     }
 
@@ -466,16 +424,7 @@ void NOMAD::EvalPoint::setEvalStatus(const NOMAD::EvalStatusType &evalStatus,
 
     if (nullptr == eval)
     {
-        switch (evalType)
-        {
-            case NOMAD::EvalType::MODEL:
-                _evalModel = NOMAD::EvalUPtr(new NOMAD::Eval());
-                break;
-            case NOMAD::EvalType::BB:
-            default:
-                _eval = NOMAD::EvalUPtr(new NOMAD::Eval());
-                break;
-        }
+        _eval[evalType].reset(new NOMAD::Eval());
         eval = getEval(evalType);
     }
 
@@ -543,33 +492,74 @@ void NOMAD::EvalPoint::setPointFrom(const std::shared_ptr<NOMAD::EvalPoint> poin
 }
 
 
-void NOMAD::EvalPoint::setGenStep(const std::string& genStep)
+void NOMAD::EvalPoint::addGenStep(const NOMAD::StepType& genStep)
 {
-    if (!_genStep.empty() && _genStep != genStep)
+    // Do not add doublons.
+    size_t nbSteps = _genSteps.size();
+    if (nbSteps >= 1 && _genSteps[nbSteps-1] == genStep)
     {
-        // Prepend genStep for more information. For instance:
-        // MegaSearchPoll - LH Search Method
-        // instead of only MegaSearchPoll.
-        _genStep = genStep + " - " + _genStep;
+        return;
     }
-    else
+    _genSteps.push_back(genStep);
+}
+
+
+const NOMAD::StepType& NOMAD::EvalPoint::getGenStep() const
+{
+    if (_genSteps.empty())
     {
-        _genStep = genStep;
+        // Should not be called if no gen steps.
+        throw NOMAD::Exception(__FILE__,__LINE__,"EvalPoint::getGenStep: No generating Step");
     }
+    return *_genSteps.begin();
+}
+
+
+const NOMAD::StepTypeList& NOMAD::EvalPoint::getGenSteps() const
+{
+    return _genSteps;
+}
+
+
+void NOMAD::EvalPoint::setGenSteps(const NOMAD::StepTypeList& genSteps)
+{
+    _genSteps = genSteps;
+}
+
+
+bool NOMAD::EvalPoint::getGenByPhaseOne() const
+{
+    for (auto stepType : _genSteps)
+    {
+        if (NOMAD::StepType::ALGORITHM_PHASE_ONE == stepType)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+std::string NOMAD::EvalPoint::getComment() const
+{
+    if (getGenByPhaseOne())
+    {
+        return "(Phase One)";
+    }
+
+    return "";
 }
 
 
 bool NOMAD::EvalPoint::isFeasible(const NOMAD::EvalType& evalType, const NOMAD::ComputeType& computeType) const
 {
-    bool feas = false;
-
     auto eval = getEval(evalType);
-    if (nullptr != eval)
+    if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
     {
-        feas = eval->isFeasible(computeType);
+        throw NOMAD::Exception(__FILE__,__LINE__,"EvalPoint::isFeasible: Needs eval status to be EVAL_OK.");
     }
 
-    return feas;
+    return eval->isFeasible(computeType);
 }
 
 
@@ -608,9 +598,9 @@ bool NOMAD::EvalPoint::toEval(short maxPointEval, const NOMAD::EvalType& evalTyp
         // Too many evaluations, return false.
         reEval = false;
     }
-    else if (NOMAD::EvalType::MODEL == evalType)
+    else if (NOMAD::EvalType::MODEL == evalType || NOMAD::EvalType::SURROGATE == evalType)
     {
-        // If using model, never allow re-evaluation.
+        // If using model, or static surrogate, never allow re-evaluation.
         reEval = false;
     }
     else if (_numberEval >= 1 && NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
@@ -630,7 +620,8 @@ bool NOMAD::EvalPoint::toEval(short maxPointEval, const NOMAD::EvalType& evalTyp
 // Displaying only bb eval
 std::string NOMAD::EvalPoint::display(const NOMAD::ComputeType& computeType,
                                       const NOMAD::ArrayOfDouble &pointFormat,
-                                      const int &solFormat) const
+                                      const int &solFormat,
+                                      const bool surrogateAsBB) const
 {
     std::string s;
     if (_tag >= 0)
@@ -638,10 +629,12 @@ std::string NOMAD::EvalPoint::display(const NOMAD::ComputeType& computeType,
         s = "#" + std::to_string(_tag) + " ";
     }
     s += NOMAD::Point::display(pointFormat);
-    if (nullptr != _eval)
+    auto eval = (surrogateAsBB) ? getEval(NOMAD::EvalType::SURROGATE)
+                                : getEval(NOMAD::EvalType::BB);
+    if (nullptr != eval)
     {
         s += "\t";
-        s += _eval->display(computeType, solFormat);
+        s += eval->display(computeType, solFormat);
     }
     return s;
 }
@@ -654,6 +647,29 @@ std::string NOMAD::EvalPoint::display(const NOMAD::ArrayOfDouble &pointFormat,
 }
 
 
+std::string NOMAD::EvalPoint::displayForCache(const NOMAD::ArrayOfDouble &pointFormat)
+{
+    // Example:
+    // ( 1.7 2.99 -2.42 2.09 -36 2.33 ) EVAL_FAILED ( NaN 0 -20 )
+    std::string s;
+
+    NOMAD::Point p = *(getX());
+    s = p.display(pointFormat);
+
+    const NOMAD::Eval* eval = getEval(NOMAD::EvalType::BB);
+    std::ostringstream oss;
+    if (nullptr != eval)
+    {
+        oss << " " << eval->getEvalStatus();     // Raw, ex. "EVAL_OK"
+        oss << " " << NOMAD::BBOutput::bboStart << " " << eval->getBBO();
+        oss << " " << NOMAD::BBOutput::bboEnd;
+    }
+    s += oss.str();
+
+    return s;
+}
+
+
 // Show all evals. For debugging purposes.
 std::string NOMAD::EvalPoint::displayAll(const NOMAD::ComputeType& computeType) const
 {
@@ -663,28 +679,19 @@ std::string NOMAD::EvalPoint::displayAll(const NOMAD::ComputeType& computeType) 
         s = "#" + std::to_string(_tag) + " ";
     }
     s += NOMAD::Point::display();
-    if (nullptr != _eval)
+    for (size_t i = 0; i < (size_t)NOMAD::EvalType::LAST; i++)
     {
-        s += "\t";
-        s += "(BB - ";
-        s += _eval->display(computeType);
-        s += ")";
-    }
-    if (nullptr != _evalModel)
-    {
-        s += "\t";
-        s += "(MODEL - ";
-        s += _evalModel->display(computeType);
-        s += ")";
+        auto evalType = NOMAD::EvalType(i);
+        auto eval = getEval(evalType);
+        if (nullptr != eval)
+        {
+            s += "\t";
+            s += "(" + NOMAD::evalTypeToString(evalType) + " - ";
+            s += eval->display(computeType);
+            s += ")";
+        }
     }
     return s;
-}
-
-
-// Determine if an evalpoint has a model eval.
-bool NOMAD::EvalPoint::hasModelEval(const NOMAD::EvalPoint& evalPoint)
-{
-    return (nullptr != evalPoint.getEval(NOMAD::EvalType::MODEL));
 }
 
 
@@ -695,12 +702,26 @@ bool NOMAD::EvalPoint::hasBbEval(const NOMAD::EvalPoint& evalPoint)
 }
 
 
+// Determine if an evalpoint has a model eval.
+bool NOMAD::EvalPoint::hasModelEval(const NOMAD::EvalPoint& evalPoint)
+{
+    return (nullptr != evalPoint.getEval(NOMAD::EvalType::MODEL));
+}
+
+
+// Determine if an evalpoint has a static surrogate eval.
+bool NOMAD::EvalPoint::hasSurrogateEval(const NOMAD::EvalPoint& evalPoint)
+{
+    return (nullptr != evalPoint.getEval(NOMAD::EvalType::SURROGATE));
+}
+
+
 bool NOMAD::EvalPoint::isPhaseOneSolution(const NOMAD::EvalPoint& evalPoint)
 {
     bool issol = false;
 
     auto eval = evalPoint.getEval(NOMAD::EvalType::BB);
-    if (nullptr != eval)
+    if (nullptr != eval && NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
     {
         issol = (0.0 == eval->getF(NOMAD::ComputeType::PHASE_ONE).todouble());
     }

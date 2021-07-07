@@ -3,11 +3,13 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/example2)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/example3)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/single_obj_parallel)
 
+
 # Issue #491
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/exampleForCustomHComputation)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/FixedVariable)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/NMonly)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/Restart)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/exampleSuggestAndObserve)
 if(OpenMP_CXX_FOUND)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/PSDMads)
 endif()
@@ -22,11 +24,13 @@ endif()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/example1)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/example2)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/single_obj)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/surrogate_sort)
 if(OpenMP_CXX_FOUND)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/single_obj_parallel)
 endif()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/batch/LHonly)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/batch/FixedVariable)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/batch/SuggestAndObserve)
 
 # The script for running library examples is created in a temp directory
 FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tmp/runExampleTest.sh

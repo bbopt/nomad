@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -50,16 +50,17 @@
 // to be modified.
 
 #include <algorithm>    // for for_each
+#include <cctype>       // for toupper, isdigit
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
-#include <map>
 
 // Registered attribute definition names
-const std::string attributeDefinitionNames[13] = { "deprecatedAttributesDefinition",
+const std::string attributeDefinitionNames[14] = { "deprecatedAttributesDefinition",
     "displayAttributesDefinition",
     "evalAttributesDefinition",
     "cacheAttributesDefinition",
@@ -71,7 +72,8 @@ const std::string attributeDefinitionNames[13] = { "deprecatedAttributesDefiniti
     "runAttributesDefinitionNM",
     "runAttributesDefinitionPSDSSD",
     "runAttributesDefinitionQuadModel",
-    "runAttributesDefinitionSgtelibModel"
+    "runAttributesDefinitionSgtelibModel",
+    "runAttributesDefinitionVNS"
 };
 
 /// \brief Registered attribute flags and default value
@@ -508,7 +510,7 @@ int main(int argc, char *argv[])
             flagInFile = false;
 
         }
-        catch ( Exception & e)
+        catch (Exception& e)
         {
             fin.close();
             std::cerr << "ERROR: Problem handling file for attribute definition: " << ((flagInFile) ? attDefFile:attDefHeader) << " at line " <<  e.getLineNumber() << ". \n" << e.what() << std::endl << std::endl;

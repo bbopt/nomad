@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -65,12 +65,12 @@ private:
 
 #ifdef TIME_STATS
     /// Time counters
-    static double       _iterTime;          ///< Total time spent running this class
-    static double       _searchTime;        ///< Total time spent running searches
-    static double       _searchEvalTime;    ///< Total time spent evaluating search points
-    static double       _pollTime;          ///< Total time spent running polls
-    static double       _pollEvalTime;      ///< Total time spent evaluating poll points
-    double              _iterStartTime;     ///< Time at which the start method was called
+    DLL_ALGO_API static double  _iterTime;          ///< Total time spent running this class
+    DLL_ALGO_API static double  _searchTime;        ///< Total time spent running searches
+    DLL_ALGO_API static double  _searchEvalTime;    ///< Total time spent evaluating search points
+    DLL_ALGO_API static double  _pollTime;          ///< Total time spent running polls
+    DLL_ALGO_API static double  _pollEvalTime;      ///< Total time spent evaluating poll points
+    double                      _iterStartTime;     ///< Time at which the start method was called
 #endif // TIME_STATS
 
 public:
@@ -93,6 +93,8 @@ public:
         init();
     }
 
+    
+    NOMAD::ArrayOfPoint suggest() override;
 
     // Gets/Sets
 

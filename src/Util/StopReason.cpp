@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -56,6 +56,7 @@ template<> std::map<NOMAD::BaseStopType,std::string> & NOMAD::StopReason<NOMAD::
         {NOMAD::BaseStopType::ERROR,"Error"},
         {NOMAD::BaseStopType::UNKNOWN_STOP_REASON,"Unknown"},
         {NOMAD::BaseStopType::CTRL_C,"Ctrl-C"},
+        {NOMAD::BaseStopType::HOT_RESTART,"Hot restart interruption"},
         {NOMAD::BaseStopType::USER_STOPPED,"User-stopped in a callback function"}
 
     };
@@ -76,6 +77,7 @@ template<> bool NOMAD::StopReason<NOMAD::BaseStopType>::checkTerminate() const
             return true;
             break;
         case NOMAD::BaseStopType::STARTED:
+        case NOMAD::BaseStopType::HOT_RESTART:
             return false;
             break;
         default:
@@ -192,6 +194,20 @@ template<> std::map<NOMAD::LHStopType,std::string> & NOMAD::StopReason<NOMAD::LH
     return dictionary;
 }
 
+// Dictionary function for VNSStopType
+template<> std::map<NOMAD::VNSStopType,std::string> & NOMAD::StopReason<NOMAD::VNSStopType>::dict() const
+{
+    static std::map<NOMAD::VNSStopType,std::string> dictionary = {
+        {NOMAD::VNSStopType::STARTED,"Started"},   // Set at the begining of a Step
+        {NOMAD::VNSStopType::X0_FAILED,"Pb with starting point evaluation"},
+        {NOMAD::VNSStopType::INITIAL_FAILED,"Pb during initialization"},
+        {NOMAD::VNSStopType::SUBPB_MADS_FAILED,"Subproblem mads failed"},
+        {NOMAD::VNSStopType::SHAKING_FAILED,"Shaking failed to generated starting points"},
+        {NOMAD::VNSStopType::SINGLE_PASS_COMPLETED,"A single mads mega search poll completed."}
+    };
+    return dictionary;
+}
+
 
 // Returns true when Latin Hypercube Sampling is complete, or no points generated
 template<> bool NOMAD::StopReason<NOMAD::LHStopType>::checkTerminate() const
@@ -264,6 +280,28 @@ template<> bool NOMAD::StopReason<NOMAD::NMStopType>::checkTerminate() const
     return false;
 }
 
+// Returns true only when VNS Mads algorithm is complete
+template<> bool NOMAD::StopReason<NOMAD::VNSStopType>::checkTerminate() const
+{
+
+    switch ( _stopReason )
+    {
+        case NOMAD::VNSStopType::INITIAL_FAILED:
+        case NOMAD::VNSStopType::X0_FAILED:
+        case NOMAD::VNSStopType::SUBPB_MADS_FAILED:
+        case NOMAD::VNSStopType::SHAKING_FAILED:
+        case NOMAD::VNSStopType::SINGLE_PASS_COMPLETED:
+            return true;
+            break;
+        case NOMAD::VNSStopType::STARTED:
+            return false;
+            break;
+        default:
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All VNS stop types must be checked for algo terminate");
+    }
+    return false;
+}
+
 
 // Dictionary function for IterStopType
 template<> std::map<NOMAD::IterStopType,std::string> & NOMAD::StopReason<NOMAD::IterStopType>::dict() const
@@ -304,8 +342,9 @@ template<> std::map<NOMAD::EvalGlobalStopType,std::string> & NOMAD::StopReason<N
 {
     static std::map<NOMAD::EvalGlobalStopType,std::string> dictionary = {
         {NOMAD::EvalGlobalStopType::STARTED,                  "Started"},   // Set a the begining of an EvaluatorControl Run
-        {NOMAD::EvalGlobalStopType::MAX_BB_EVAL_REACHED,      "Max number of blackbox evaluations"},
-        {NOMAD::EvalGlobalStopType::MAX_EVAL_REACHED,         "Max number of total evaluations"},
+        {NOMAD::EvalGlobalStopType::MAX_BB_EVAL_REACHED,      "Maximum number of blackbox evaluations"},
+        {NOMAD::EvalGlobalStopType::MAX_SURROGATE_EVAL_OPTIMIZATION_REACHED, "Maximum number of surrogate evaluations"},
+        {NOMAD::EvalGlobalStopType::MAX_EVAL_REACHED,         "Maximum number of total evaluations"},
         {NOMAD::EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED,   "Maximum number of block eval reached"}
     };
     return dictionary;
@@ -317,12 +356,12 @@ template<> std::map<NOMAD::EvalMainThreadStopType,std::string> & NOMAD::StopReas
 {
     static std::map<NOMAD::EvalMainThreadStopType,std::string> dictionary = {
         {NOMAD::EvalMainThreadStopType::STARTED,                  "Started"},   // Set a the begining of an EvaluatorControl Run
-        {NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED,  "Max number of blackbox evaluations for a sub algorithm run (lap run)"},
-        {NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED,  "Max number of blackbox evaluations for a subproblem run"},
+        {NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED,  "Maximum number of blackbox evaluations for a sub algorithm run (lap run)"},
+        {NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED,  "Maximum number of blackbox evaluations for a subproblem run"},
         {NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS,    "Success found and opportunistic strategy is used"},
         {NOMAD::EvalMainThreadStopType::EMPTY_LIST_OF_POINTS,     "Tried to eval an empty list"},
         {NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED,     "No more points to evaluate"},
-        {NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED,   "Max number of model evaluations reached"}
+        {NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED,   "Maximum number of model evaluations reached"}
     };
     return dictionary;
 }
@@ -334,6 +373,7 @@ template<> bool NOMAD::StopReason<NOMAD::EvalGlobalStopType>::checkTerminate() c
     switch ( _stopReason )
     {
         case NOMAD::EvalGlobalStopType::MAX_BB_EVAL_REACHED:
+        case NOMAD::EvalGlobalStopType::MAX_SURROGATE_EVAL_OPTIMIZATION_REACHED:
         case NOMAD::EvalGlobalStopType::MAX_EVAL_REACHED:
         case NOMAD::EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED:
             return true;

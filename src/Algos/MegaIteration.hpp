@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -73,8 +73,6 @@
 */
 class MegaIteration: public Step
 {
-
-
 protected:
     /**
      The barrier holds xFeas, xInf and hMax.
@@ -82,7 +80,6 @@ protected:
     \note This barrier is in subspace.
      */
     std::shared_ptr<Barrier> _barrier;
-
 
     size_t _k;          ///< Main counter
 
@@ -95,8 +92,6 @@ protected:
      success type.
      */
     SuccessType _megaIterationSuccess;
-
-
 
 public:
     /// Constructor
@@ -111,12 +106,13 @@ public:
                               std::shared_ptr<Barrier> barrier,
                               SuccessType success);
 
-    // No Destructor needed - keep defaults.
-
+    virtual ~MegaIteration() {}
 
     /*---------*/
     /* Get/Set */
     /*---------*/
+    std::string getName() const override;
+
     size_t getK() const                                         { return _k; }
     void setK(const size_t k)                                   { _k = k; }
     size_t getNextK() const;
@@ -144,11 +140,9 @@ public:
     virtual void read(std::istream& is);
     virtual void display(std::ostream& os) const ;
 
-private:
+protected:
     /// Helper for constructor
     void init();
-
-protected:
 
     virtual void startImp()    override = 0;
     virtual bool runImp()      override = 0;
@@ -158,7 +152,6 @@ protected:
      Perform callback check for user termination and clear the iteration list.
      */
     virtual void endImp()      override;
-
 };
 
 
@@ -169,7 +162,6 @@ std::ostream& operator<<(std::ostream& os, const MegaIteration& megaIteration);
 
 /// Get an MegaIteration values from a stream
 std::istream& operator>>(std::istream& is, MegaIteration& megaIteration);
-
 
 
 #include "../nomad_nsend.hpp"

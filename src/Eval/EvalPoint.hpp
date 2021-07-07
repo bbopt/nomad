@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -65,6 +65,7 @@
 #include "../Math/Point.hpp"
 #include "../Type/ComputeType.hpp"
 #include "../Type/EvalType.hpp"
+#include "../Type/StepType.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -78,21 +79,19 @@ class EvalPoint : public Point
 {
 private:
 
-    static int _currentTag;  ///< Value of the current tag
+    DLL_EVAL_API static int     _currentTag;  ///< Value of the current tag
 
-    EvalUPtr _eval;       ///< Value of the evaluation (truth / blackbox)
+    std::map<EvalType,EvalUPtr> _eval;  ///< Value of the evaluation for each eval type
 
-    EvalUPtr _evalModel;   ///< Value of the model evaluation
+    mutable int                 _tag; ///< Tag: Ordinal representing the order of creation
 
-    mutable int  _tag; ///< Tag: Ordinal representing the order of creation
+    int                         _threadAlgo;    ///< Main thread that generated this point
 
-    int _threadAlgo;    ///< Main thread that generated this point
+    short                       _numberEval; ///< Number of times \c *this point has been evaluated (blackbox only)
 
-    short    _numberEval; ///< Number of times \c *this point has been evaluated (blackbox only)
+    std::shared_ptr<EvalPoint>  _pointFrom; ///< The frame center which generated \c *this point (blackbox only). Full space.
 
-    std::shared_ptr<EvalPoint> _pointFrom; ///< The frame center which generated \c *this point (blackbox only). Full space.
-
-    std::string     _genStep;           ///< Generating step, also for stats
+    StepTypeList                _genSteps;   ///< Steps and algorithms that generated this point
 
     std::shared_ptr<Direction>  _direction; ///< True direction that generated this point. Full dimension.
     Double                      _angle;     ///< Angle of that direction with last successful dir
@@ -125,6 +124,9 @@ public:
     EvalPoint(const EvalPoint& evalPoint);
 
 private:
+    /// Helper for constructors
+    void initEval();
+
     /// Helper for copy constructor and others
     void copyMembers(const EvalPoint &evalPoint);
 
@@ -147,13 +149,13 @@ public:
     const Point* getX() const { return dynamic_cast<const Point*>(this); }
 
     /// Get the Eval part of this EvalPoint, using the right EvalType (BB or MODEL)
-    Eval* getEval(const EvalType& evalType = EvalType::BB) const;
+    Eval* getEval(const EvalType& evalType) const;
 
     /// Set the Eval part of this EvalPoint, using the right EvalType (BB or MODEL)
     void setEval(const Eval& eval, const EvalType& evalType);
 
     /// Clear the model evaluation of \c *this
-    void clearModelEval() { _evalModel = nullptr; }
+    void clearModelEval() { _eval[EvalType::MODEL].reset(); }
 
     /// Clear the model evaluation of a point
     static void clearModelEval(EvalPoint& evalPoint) { evalPoint.clearModelEval(); }
@@ -215,8 +217,18 @@ public:
     /// Get the Point which was the center when this point was generated
     const std::shared_ptr<EvalPoint> getPointFrom() const { return _pointFrom; }
 
-    void setGenStep(const std::string& genStep);
-    const std::string& getGenStep() const { return _genStep; }
+    /// Push the step type
+    void addGenStep(const StepType& stepType);
+    /// Get the downmost step type
+    const StepType& getGenStep() const;
+    /// Get vector of all step types
+    const StepTypeList& getGenSteps() const;
+    /// Set vector of all step types
+    void setGenSteps(const StepTypeList& genSteps);
+    /// Check if this EvalPoint was generated by PhaseOne
+    bool getGenByPhaseOne() const;
+    /// Algo comment to be printed out in DISPLAY_STATS
+    std::string getComment() const;
 
     /// Get Direction from which the point was generated.
     /// Value is set when setPointFrom() is called.
@@ -298,10 +310,13 @@ public:
     /// Display with or without format
     std::string display(const ComputeType& computeType,
                         const ArrayOfDouble &pointFormat = ArrayOfDouble(),
-                        const int &solFormat = NOMAD::DISPLAY_PRECISION_FULL) const;
+                        const int &solFormat = NOMAD::DISPLAY_PRECISION_FULL,
+                        const bool surrogateAsBB = false) const;
 
     std::string display(const ArrayOfDouble &pointFormat = ArrayOfDouble(),
                         const int &solFormat = NOMAD::DISPLAY_PRECISION_FULL) const;
+
+    std::string displayForCache(const ArrayOfDouble &pointFormat);
 
     /// Display both true and model evaluations. Useful for debugging
     std::string displayAll(const ComputeType& computeType = ComputeType::STANDARD) const;
@@ -326,10 +341,12 @@ public:
         throw Exception(__FILE__,__LINE__,"Error: Calling EvalPoint::isDefined(). Choose ArrayOfDouble::isDefined() or Double::isDefined() instead.");
     }
 
-    // Determine if an evalpoint has a model eval.
-    static bool hasModelEval(const EvalPoint& evalPoint);
     // Determine if an evalpoint has a bb (regular) eval.
     static bool hasBbEval(const EvalPoint& evalPoint);
+    // Determine if an evalpoint has a model eval.
+    static bool hasModelEval(const EvalPoint& evalPoint);
+    // Determine if an evalpoint has a static surrogate eval.
+    static bool hasSurrogateEval(const EvalPoint& evalPoint);
     /// Used for phase one
     static bool isPhaseOneSolution(const EvalPoint& evalPoint);
 };

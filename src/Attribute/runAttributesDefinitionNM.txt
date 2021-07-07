@@ -60,9 +60,7 @@ true
 
 . Argument: bool
 
-. If NM_OPTIMIZATION is true, no optimization algorithm will be performed.
-
-. Example: NM_SEARCH fase
+. Example: NM_SEARCH false
 
 \)
 \( advanced nelder mead simplex mads search\)

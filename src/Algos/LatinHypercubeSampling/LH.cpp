@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -47,14 +47,27 @@
 
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/LatinHypercubeSampling/LH.hpp"
+#include "../../Algos/Mads/GMesh.hpp"
 #include "../../Math/LHS.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 void NOMAD::LH::init()
 {
-    _name = "Latin Hypercube Sampling";
+    setStepType(NOMAD::StepType::ALGORITHM_LH);
     verifyParentNotNull();
 
+}
+
+NOMAD::ArrayOfPoint NOMAD::LH::suggest ()
+{
+    generateTrialPoints();
+    
+    NOMAD::ArrayOfPoint xs;
+    for (auto trialPoint : _trialPoints)
+    {
+        xs.push_back(*trialPoint.getX());
+    }
+    return xs;
 }
 
 
@@ -67,7 +80,7 @@ void NOMAD::LH::startImp()
 void NOMAD::LH::generateTrialPoints()
 {
     OUTPUT_INFO_START
-    AddOutputInfo("Generate points for " + _name, true, false);
+    AddOutputInfo("Generate points for " + getName(), true, false);
     OUTPUT_INFO_END
 
     auto lhEvals = _runParams->getAttributeValue<size_t>("LH_EVAL");
@@ -81,30 +94,47 @@ void NOMAD::LH::generateTrialPoints()
 
     if (!lowerBound.isComplete())
     {
-        throw NOMAD::Exception(__FILE__,__LINE__,_name + " requires a complete lower bound vector");
+        throw NOMAD::Exception(__FILE__,__LINE__,getName() + " requires a complete lower bound vector");
     }
 
     auto upperBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
     if (!upperBound.isComplete())
     {
-        throw NOMAD::Exception(__FILE__,__LINE__,_name + " requires a complete upper bound vector");
+        throw NOMAD::Exception(__FILE__,__LINE__,getName() + " requires a complete upper bound vector");
     }
 
     // Apply Latin Hypercube algorithm
     NOMAD::LHS lhs(n, lhEvals, lowerBound, upperBound);
     auto pointVector = lhs.Sample();
 
+    // Create a mesh and project points on this mesh. It will ensure that parameters
+    // BB_INPUT_TYPE and GRANULARITY are satisfied.
+    auto mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+    mesh->setEnforceSanityChecks(false);
+    // Modify mesh so it is the finest possible.
+    // Note: GRANULARITY is already adjusted with regards to BB_INPUT_TYPE.
+    NOMAD::ArrayOfDouble newMeshSize = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("GRANULARITY");
+    auto eps = NOMAD::Double::getEpsilon();
+    for (size_t i = 0; i < newMeshSize.size(); i++)
+    {
+        if (0 == newMeshSize[i])
+        {
+            // No granularity: Set mesh size to Epsilon.
+            newMeshSize[i] = eps;
+        }
+    }
+
+    mesh->setDeltas(newMeshSize, newMeshSize);
+    auto center = NOMAD::Point(n, 0);
+
     for (auto point : pointVector)
     {
-        // Make an EvalPoint from the Point.
-        // We do not need the Eval part of EvalPoint right now,
-        // but it will be used soon. Could be refactored, but
-        // not high priority. Note that an EvalPointSet compares
-        // the Point part of the EvalPoints only.
+        // First, project on mesh.
+        point = mesh->projectOnMesh(point, center);
+        // Second, snap to bounds.
+        point.snapToBounds(lowerBound, upperBound);
 
-        // Projection without scale
         NOMAD::EvalPoint evalPoint(point);
-
         // Test if the point is inserted correctly
         bool inserted = insertTrialPoint(evalPoint);
         OUTPUT_INFO_START
@@ -117,7 +147,7 @@ void NOMAD::LH::generateTrialPoints()
 
     OUTPUT_INFO_START
     AddOutputInfo("Generated " + std::to_string(getTrialPointsCount()) + " points");
-    AddOutputInfo("Generate points for " + _name, false, true);
+    AddOutputInfo("Generate points for " + getName(), false, true);
     OUTPUT_INFO_END
 
 }

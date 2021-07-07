@@ -1,4 +1,6 @@
+set(CMAKE_EXECUTABLE_SUFFIX .exe)
 add_executable(bb3.exe bb.cpp )
+set_target_properties(bb3.exe PROPERTIES SUFFIX "")
 
 target_link_libraries(bb3.exe PUBLIC OpenMP::OpenMP_CXX)
 

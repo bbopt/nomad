@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -49,19 +49,95 @@
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/Mads/MadsInitialization.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
+#include "../../Algos/Mads/MadsIteration.hpp"
+#include "../../Algos/Mads/MadsUpdate.hpp"
+#include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
 #include "../../Util/fileutils.hpp"
 #ifdef TIME_STATS
 #include "../../Util/Clock.hpp"
 #endif
 
-void NOMAD::Mads::init()
+void NOMAD::Mads::init(bool barrierInitializedFromCache)
 {
-    _name = "MADS";
+    setStepType(NOMAD::StepType::ALGORITHM_MADS);
 
     // Instantiate Mads initialization class
-    _initialization = std::make_unique<NOMAD::MadsInitialization>( this );
+    _initialization = std::make_unique<NOMAD::MadsInitialization>( this , barrierInitializedFromCache);
 
+}
+
+
+NOMAD::ArrayOfPoint NOMAD::Mads::suggest()
+{
+    NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
+
+    _initialization->start();
+    _initialization->run();
+    _initialization->end();
+
+    std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+    std::shared_ptr<NOMAD::Barrier> barrier = _initialization->getBarrier();
+    NOMAD::MadsMegaIteration megaIteration(this, 1, barrier, mesh, megaIterSuccess);
+
+    OUTPUT_INFO_START
+    AddOutputInfo("Mega Iteration generated:");
+    AddOutputInfo(megaIteration.getName());
+    OUTPUT_INFO_END
+
+    return megaIteration.suggest();
+
+}
+
+
+void NOMAD::Mads::observe(const std::vector<NOMAD::EvalPoint>& evalPointList)
+{
+    auto mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+    mesh->setEnforceSanityChecks(false);
+    mesh->setDeltas(_pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_MESH_SIZE"),
+                    _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_FRAME_SIZE"));
+    OUTPUT_DEBUG_START
+    AddOutputDebug("Delta frame size: " + mesh->getDeltaFrameSize().display());
+    AddOutputDebug("Delta mesh size:  " + mesh->getdeltaMeshSize().display());
+    OUTPUT_DEBUG_END
+    // Create barrier from current points in cache.
+    auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
+    auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+    std::shared_ptr<NOMAD::Barrier> barrier;
+    if (0 == NOMAD::CacheBase::getInstance()->size())
+    {
+        // No points in cache: Create it solely from evalPointList.
+        barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::Point(n),
+                                                   NOMAD::EvalType::BB,
+                                                   NOMAD::ComputeType::STANDARD,
+                                                   evalPointList);
+    }
+    else
+    {
+        // Constructer will create barrier from cache points.
+        barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::Point(n));
+    }
+
+    NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
+    NOMAD::MadsMegaIteration megaIteration(this, 0, barrier, mesh, megaIterSuccess);
+
+    OUTPUT_INFO_START
+    AddOutputInfo("Mega Iteration generated: ");
+    AddOutputInfo(megaIteration.getName());
+    OUTPUT_INFO_END
+
+    megaIteration.observe(evalPointList);
+
+    OUTPUT_DEBUG_START
+    AddOutputDebug("Delta frame size: " + mesh->getDeltaFrameSize().display());
+    AddOutputDebug("Delta mesh size:  " + mesh->getdeltaMeshSize().display());
+    OUTPUT_DEBUG_END
+
+    // Mesh has been modified by observe; update mesh parameter.
+    _pbParams->setAttributeValue("INITIAL_FRAME_SIZE", mesh->getDeltaFrameSize());
+    _pbParams->checkAndComply();
+    _runParams->setAttributeValue("H_MAX_0", barrier->getHMax());
+    _runParams->checkAndComply(nullptr, _pbParams); // nullptr: We do not have access to EvaluatorControlParameters in this case.
 }
 
 
@@ -150,13 +226,14 @@ void NOMAD::Mads::hotRestartOnUserInterrupt()
 
     // Reset mesh because parameters have changed.
     std::stringstream ss;
-    auto mesh = getIterationMesh();
-    if (nullptr != mesh)
+    const NOMAD::Iteration* iteration = getParentOfType<NOMAD::Iteration*>();
+    if (nullptr != iteration)
     {
+        auto mesh = getIterationMesh();
         ss << *mesh;
         // Reset pointer
         mesh.reset();
-        mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+        mesh = std::make_shared<NOMAD::GMesh>(iteration->getPbParams());
         // Get old mesh values
         ss >> *mesh;
     }

@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -55,7 +55,7 @@
 
 void NOMAD::MadsUpdate::init()
 {
-    _name = getAlgoName() + "Update";
+    setStepType(NOMAD::StepType::UPDATE);
     verifyParentNotNull();
 
     auto megaIter = getParentOfType<NOMAD::MadsMegaIteration*>();
@@ -67,10 +67,22 @@ void NOMAD::MadsUpdate::init()
 }
 
 
+std::string NOMAD::MadsUpdate::getName() const
+{
+    return getAlgoName() + NOMAD::stepTypeToString(_stepType);
+}
+
+
 bool NOMAD::MadsUpdate::runImp()
 {
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    auto evalType = evc->getEvalType();
+    NOMAD::EvalType evalType = NOMAD::EvalType::BB;
+    NOMAD::ComputeType computeType = NOMAD::ComputeType::STANDARD;
+    if (nullptr != evc)
+    {
+        evalType = evc->getEvalType();
+        computeType = evc->getComputeType();
+    }
     // megaIter barrier is already in subproblem.
     // So no need to convert refBestFeas and refBestInf
     // from full dimension to subproblem.
@@ -102,13 +114,19 @@ bool NOMAD::MadsUpdate::runImp()
         // Compute success
         // Get which of newBestFeas and newBestInf is improving
         // the solution. Check newBestFeas first.
-        NOMAD::ComputeSuccessType computeSuccess(evalType, evc->getComputeType());
+        NOMAD::ComputeSuccessType computeSuccess(evalType, computeType);
         std::shared_ptr<NOMAD::EvalPoint> newBest;
         NOMAD::SuccessType success = computeSuccess(newBestFeas, refBestFeas);
         if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
         {
             // newBestFeas is the improving point.
             newBest = newBestFeas;
+            // Workaround: If we do not have the point from which newBest was computed,
+            // use refBestFeas instead.
+            if (nullptr == newBest->getPointFrom() && nullptr != refBestFeas)
+            {
+                newBest->setPointFrom(refBestFeas, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+            }
             OUTPUT_DEBUG_START
             // Output Warning: When using '\n', the computed indentation for the
             // Step will be ignored. Leaving it like this for now. Using an
@@ -134,6 +152,12 @@ bool NOMAD::MadsUpdate::runImp()
             {
                 // newBestInf is the improving point.
                 newBest = newBestInf;
+                // Workaround: If we do not have the point from which newBest was computed,
+                // use refBestInf instead.
+                if (nullptr == newBest->getPointFrom() && nullptr != refBestInf)
+                {
+                    newBest->setPointFrom(refBestInf, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+                }
                 OUTPUT_DEBUG_START
                 s = "Update: improving infeasible point";
                 if (refBestInf)
@@ -159,7 +183,11 @@ bool NOMAD::MadsUpdate::runImp()
         // This is the value from the previous MegaIteration. If it
         // was not evaluated, ignore the test.
         // If queue is not cleared between runs, also ignore the test.
-        const bool clearEvalQueue = evc->getEvaluatorControlGlobalParams()->getAttributeValue<bool>("EVAL_QUEUE_CLEAR");
+        bool clearEvalQueue = true;
+        if (nullptr != evc)
+        {
+            clearEvalQueue = evc->getEvaluatorControlGlobalParams()->getAttributeValue<bool>("EVAL_QUEUE_CLEAR");
+        }
         const bool megaIterEvaluated = (NOMAD::SuccessType::NOT_EVALUATED != megaIter->getSuccessType());
         if (!clearEvalQueue && megaIterEvaluated && (success != megaIter->getSuccessType()))
         {
@@ -209,8 +237,11 @@ bool NOMAD::MadsUpdate::runImp()
                 OUTPUT_INFO_END
             }
 
-            NOMAD::EvcInterface::getEvaluatorControl()->setLastSuccessfulFeasDir(dirFeas);
-            NOMAD::EvcInterface::getEvaluatorControl()->setLastSuccessfulInfDir(dirInf);
+            if (nullptr != evc)
+            {
+                evc->setLastSuccessfulFeasDir(dirFeas);
+                evc->setLastSuccessfulInfDir(dirInf);
+            }
         }
 
         if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
@@ -219,10 +250,6 @@ bool NOMAD::MadsUpdate::runImp()
             if (success == NOMAD::SuccessType::PARTIAL_SUCCESS)
             {
                 AddOutputInfo("Last Iteration Improving. Delta remains the same.");
-            }
-            else
-            {
-                AddOutputInfo("Last Iteration Successful.");
             }
             OUTPUT_INFO_END
 
@@ -235,13 +262,13 @@ bool NOMAD::MadsUpdate::runImp()
                 if (mesh->enlargeDeltaFrameSize(*newBest->getDirection(), anisotropyFactor, anistropicMesh))
                 {
                     OUTPUT_INFO_START
-                    AddOutputInfo("Delta is enlarged.");
+                    AddOutputInfo("Last Iteration Successful. Delta is enlarged.");
                     OUTPUT_INFO_END
                 }
                 else
                 {
                     OUTPUT_INFO_START
-                    AddOutputInfo("Delta is not enlarged.");
+                    AddOutputInfo("Last Iteration Successful. Delta remains the same.");
                     OUTPUT_INFO_END
                 }
             }
@@ -249,7 +276,7 @@ bool NOMAD::MadsUpdate::runImp()
         else
         {
             OUTPUT_INFO_START
-            AddOutputInfo("Last Iteration Unsuccessful. Refine Delta.");
+            AddOutputInfo("Last Iteration Unsuccessful. Delta is refined.");
             OUTPUT_INFO_END
             mesh->refineDeltaFrameSize();
         }

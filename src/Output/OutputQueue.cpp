@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -75,9 +75,6 @@ NOMAD::OutputQueue::OutputQueue()
     _blockStart("{"),
     _blockEnd("}")
 {
-#ifdef _OPENMP
-    omp_init_lock(&_s_queue_lock);
-#endif // _OPENMP
 }
 
 
@@ -129,17 +126,20 @@ void NOMAD::OutputQueue::reset()
 std::unique_ptr<NOMAD::OutputQueue>& NOMAD::OutputQueue::getInstance()
 {
 #ifdef _OPENMP
-    // Lock queue before creating singleton
-    omp_set_lock(&_s_queue_lock);
-#endif
-    if (nullptr == _single)
+    #pragma omp critical(initOutputQueueLock)
     {
-        _single = std::unique_ptr<OutputQueue> (new OutputQueue()) ;
-    }
-
-#ifdef _OPENMP
-    omp_unset_lock(&_s_queue_lock);
 #endif // _OPENMP
+        if (nullptr == _single)
+        {
+#ifdef _OPENMP
+            omp_init_lock(&_s_queue_lock);
+#endif // _OPENMP
+            _single = std::unique_ptr<OutputQueue> (new OutputQueue());
+        }
+#ifdef _OPENMP
+    } // end of critical section
+#endif // _OPENMP
+
     return _single;
 }
 

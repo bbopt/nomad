@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -57,6 +57,7 @@
 
 #include <cmath>
 
+#include "../nomad_platform.hpp"
 #include "../Util/defines.hpp"
 #include "../Util/Exception.hpp"
 #include "../Util/utils.hpp"
@@ -76,9 +77,9 @@
         bool          _defined; ///< \c true if the number has a defined value.
 
         // \todo Make these local static objects
-        static double      _epsilon;    ///< Desired precision on comparisons.
-        static std::string _infStr;     ///< Infinity string.
-        static std::string _undefStr;   ///< Undefined value string.
+        DLL_UTIL_API static double      _epsilon;    ///< Desired precision on comparisons.
+        DLL_UTIL_API static std::string _infStr;     ///< Infinity string.
+        DLL_UTIL_API static std::string _undefStr;   ///< Undefined value string.
 
     public:
 
@@ -182,7 +183,7 @@
 
         /// Get the double value, truncated with respect to epsilon.
         double trunk() const;
-
+        
         /// Return the number of decimals of a double.
         std::size_t nbDecimals() const;
 
@@ -249,7 +250,12 @@
         /// Rounding to the nearest integer.
         const Double roundd() const;
 
-
+        /**
+        * Round the current value to given precision (number of decimals).
+        \return \c true if rounding is done defined, \c false if not.
+        */
+        bool roundToPrecision(const NOMAD::Double & precision) ;
+        
         /// Rounding upward to an integer.
         const Double ceil() const;
 

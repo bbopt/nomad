@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -156,7 +156,7 @@ bool addNomadStringParam(NomadProblem nomad_problem, char *keyword, char *param_
 bool addNomadArrayOfDoubleParam(NomadProblem nomad_problem, char *keyword, double *array_param) 
 {
     NOMAD::ArrayOfDouble param(nomad_problem->nb_inputs);
-    for (size_t i = 0; i < nomad_problem->nb_inputs; ++i) 
+    for (size_t i = 0; i < (size_t)nomad_problem->nb_inputs; ++i) 
     {
         param[i] = array_param[i];
     }
@@ -211,7 +211,7 @@ public:
         double *bb_outputs = new double[_nbOutputs];
 
         // collect the inputs parameters
-        for (size_t i = 0; i < _nbInputs; ++i)
+        for (size_t i = 0; i < (size_t)_nbInputs; ++i)
         {
             bb_inputs[i] = x[i].todouble();
         }
@@ -224,7 +224,7 @@ public:
             // collect outputs parameters
             auto bbOutputType = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
             std::string bbo("");
-            for (size_t i = 0; i < _nbOutputs; ++i)
+            for (size_t i = 0; i < (size_t)_nbOutputs; ++i)
             {
                 bbo += std::to_string(bb_outputs[i]) + " ";
             }
@@ -269,10 +269,10 @@ bool solveNomadProblem(NomadProblem nomad_problem,
     // starting points
     if (x0s != nullptr) {
         NOMAD::ArrayOfPoint start_x0s;
-        for (size_t pt_index = 0; pt_index < nb_starting_points; ++pt_index)
+        for (size_t pt_index = 0; pt_index < (size_t)nb_starting_points; ++pt_index)
         {
             NOMAD::Point start_x0(nomad_problem->nb_inputs);
-            for (size_t i = 0; i < nomad_problem->nb_inputs; ++i)
+            for (size_t i = 0; i < (size_t)nomad_problem->nb_inputs; ++i)
             {
                 start_x0[i] = x0s[i + pt_index * nomad_problem->nb_inputs];
             }
@@ -323,8 +323,9 @@ bool solveNomadProblem(NomadProblem nomad_problem,
 
         // Set the best feasible and best infeasible solutions ; TODO maybe change
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
-        auto nbInf = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
+        const NOMAD::EvalType &evalType = NOMAD::EvalType::BB;
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), evalType, NOMAD::ComputeType::STANDARD, nullptr);
+        auto nbInf = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), evalType, NOMAD::ComputeType::STANDARD, nullptr);
 
         if (nbInf > 0)
         {
@@ -350,26 +351,26 @@ bool solveNomadProblem(NomadProblem nomad_problem,
         if (bestInfEvalPoint != nullptr)
         {
             *exists_inf_sol = true;
-            for (size_t i = 0; i < nomad_problem->nb_inputs; ++i)
+            for (size_t i = 0; i < (size_t)nomad_problem->nb_inputs; ++i)
             {
                 bb_best_x_inf[i] = (*bestInfEvalPoint->getX())[i].todouble();
             }
-            for (size_t i = 0; i < nomad_problem->nb_outputs; ++i)
+            for (size_t i = 0; i < (size_t)nomad_problem->nb_outputs; ++i)
             {
-                bb_best_inf_outputs[i] = bestInfEvalPoint->getEval()->getBBOutput().getBBOAsArrayOfDouble()[i].todouble();
+                bb_best_inf_outputs[i] = bestInfEvalPoint->getEval(evalType)->getBBOutput().getBBOAsArrayOfDouble()[i].todouble();
             }
         }
 
         if (bestFeasEvalPoint != nullptr)
         {
             *exists_feas_sol = true;
-            for (size_t i = 0; i < nomad_problem->nb_inputs; ++i)
+            for (size_t i = 0; i < (size_t)nomad_problem->nb_inputs; ++i)
             {
                 bb_best_x_feas[i] = (*bestFeasEvalPoint->getX())[i].todouble();
             }
-            for (size_t i = 0; i < nomad_problem->nb_outputs; ++i)
+            for (size_t i = 0; i < (size_t)nomad_problem->nb_outputs; ++i)
             {
-                bb_best_feas_outputs[i] = bestFeasEvalPoint->getEval()->getBBOutput().getBBOAsArrayOfDouble()[i].todouble();
+                bb_best_feas_outputs[i] = bestFeasEvalPoint->getEval(evalType)->getBBOutput().getBBOAsArrayOfDouble()[i].todouble();
             }
         }
 
@@ -390,5 +391,5 @@ bool solveNomadProblem(NomadProblem nomad_problem,
     NOMAD::OutputQueue::Flush();
     NOMAD::CacheBase::getInstance()->clear();
 
-    return -1;
+    return true;
 }

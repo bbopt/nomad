@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -85,7 +85,7 @@ NOMAD::Projection::~Projection()
 
 void NOMAD::Projection::init()
 {
-    _name = "Projection";
+    //_name = "Projection";
     verifyParentNotNull();
 
     // Find cache points with model evaluation
@@ -148,11 +148,7 @@ bool NOMAD::Projection::runImp()
     bool projectionOk = true;
 
     // Return value: found better - unused.
-    // TODO Ensure OPPORTUNISM is off here
     evalTrialPoints(this);
-
-    // TODO - postprocessing?
-
 
     return projectionOk;
 }
@@ -172,9 +168,6 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
 
     // STD projected point
     stdProjectedPoint(oraclePoint);
-    // TODO compute this otherwise, if needed
-    //auto f = bestEvalPoint.getF(evalType);
-    //auto h = bestEvalPoint.getH(evalType);
 
     // Try pertubation
     std::string subStepName = "Projection candidate";
@@ -237,14 +230,6 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
     keep.clear();
 
 
-    // Evaluate projection trial points
-    // in the dynamic (quad or sgtelib) model
-    // TODO Analyse from NOMAD 3 and see if we can do something similiar
-    // in NOMAD 4. It may not be worth it, it seems more like an
-    // issue of sorting the points accorting to a SgtelibModel, and
-    // that would be better done in the EvaluatorControl.
-    //evaluateProjectionTrialPoints(trySet, ev, keep, bestEvalPoint);
-
 }
 
 
@@ -272,15 +257,11 @@ void NOMAD::Projection::stdProjectedPoint(const NOMAD::EvalPoint& oraclePoint)
 
     if (nullptr != _mesh)
     {
-        // TODO: Use mesh and frame center from IterationUtils
         // Project the point on the mesh
         xTry = _mesh->projectOnMesh(xTry, *_frameCenter);
     }
     NOMAD::EvalPoint evalPoint(xTry);
 
-    // TODO This code is based on NOMAD 3's Sgtelib_Model code.
-    // The goal here is to evaluate points according to the SgtelibModel.
-    // This may not have its place in the Projection class.
     bool doInsert = true;
     if (NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
     {
@@ -426,7 +407,7 @@ void NOMAD::Projection::doGreedySelection(const NOMAD::EvalPoint &oraclePoint,
             double Q = Ds[i]-lambda*Dr[i];
             if ( Q > Q_max )
             {
-                inew = i;
+                inew = (int)i;
                 Q_max = Q;
             }
         }

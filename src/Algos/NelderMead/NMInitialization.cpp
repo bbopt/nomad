@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -52,7 +52,7 @@
 
 void NOMAD::NMInitialization::init()
 {
-    _name = getAlgoName() + "Initialization";
+    setStepType(NOMAD::StepType::INITIALIZATION);
 
     _nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get( _stopReasons );
 }
@@ -131,7 +131,7 @@ void NOMAD::NMInitialization::generateTrialPoints()
     {
         std::string err = "Initialization: evalY0: Invalid X0 " + x0.display();
         size_t cacheSize = NOMAD::CacheBase::getInstance()->size();
-        if (cacheSize > 0)
+        if (cacheSize > (size_t)0)
         {
             err += ". Hint: Try not setting X0 so that the cache is used (";
             err += std::to_string(cacheSize) + " points)";

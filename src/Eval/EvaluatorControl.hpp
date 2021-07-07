@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -136,6 +136,9 @@ private:
      */
     std::atomic<size_t> _infBBEval;
 
+    /// The number of static surrogate evaluations performed
+    std::atomic<size_t> _surrogateEval;
+
     /// The total number of quad or modellib model evaluations. Used for stats exclusively.
     std::atomic<size_t> _totalModelEval;
 
@@ -180,6 +183,11 @@ private:
      */
     std::atomic<size_t> _nbPhaseOneSuccess;
 
+    /**
+     The VNS Mads search neighborhood parameter
+     */
+    std::atomic<size_t> _VNSMadsNeighParameter;
+
     bool _allDoneWithEval;     ///< All evaluations done. The queue can be destroyed.
 
 #ifdef TIME_STATS
@@ -208,6 +216,7 @@ public:
         _bbEvalNotOk(0),
         _feasBBEval(0),
         _infBBEval(0),
+        _surrogateEval(0),
         _totalModelEval(0),
         _blockEval(0),
         _indexSuccBlockEval(0),
@@ -216,6 +225,7 @@ public:
         _nbEvalSentToEvaluator(0),
         _nbRelativeSuccess(0),
         _nbPhaseOneSuccess(0),
+        _VNSMadsNeighParameter(0),
         _allDoneWithEval(false)
 #ifdef TIME_STATS
         ,_evalTime(0.0)
@@ -256,6 +266,12 @@ public:
     /// Get the number of feasible blackbox evaluations.
     size_t getFeasBbEval() const { return _feasBBEval; }
 
+    /// Get the number of infeasible blackbox evaluations.
+    size_t getInfeasBbEval() const { return _infBBEval; }
+
+    /// Get the number of surrogate evaluations.
+    size_t getSurrogateEval() const { return _surrogateEval; }
+
     size_t getModelEval(const int mainThreadNum = -1) const;
     void resetModelEval(const int mainThreadNum = -1);
     size_t getTotalModelEval() const { return _totalModelEval; }
@@ -292,6 +308,10 @@ public:
     void setLapMaxBbEval(const size_t maxBbEval);
     void resetLapBbEval();
     size_t getLapBbEval(const int threadNum = -1) const;
+
+    size_t getVNSMadsNeighParameter() const { return _VNSMadsNeighParameter; }
+    void resetVNSMadsNeighParameter() { _VNSMadsNeighParameter = 0; }
+    void incrementVNSMadsNeighParameter() { _VNSMadsNeighParameter++ ; }
 
     size_t getNbPhaseOneSuccess() const {return  _nbPhaseOneSuccess; }
     size_t getNbRelativeSuccess() const {return  _nbRelativeSuccess; }
@@ -359,6 +379,8 @@ public:
     EvalType getEvalType(const int mainThreadNum = -1) const;
     size_t getMaxBbEvalInSubproblem(const int mainThreadNum = -1) const;
     void setMaxBbEvalInSubproblem(const size_t maxBbEval);
+    bool getSurrogateOptimization(const int mainThreadNum = -1) const;
+    void setSurrogateOptimization(const bool surrogateOptimization);
 
     /*---------------*/
     /* Other methods */
@@ -375,7 +397,7 @@ public:
      We are done adding points.
      If doSort is \c true, the points in the queue are sorted using ComparePriority.
      */
-    void unlockQueue(const bool doSort = true);
+    void unlockQueue(const bool doSort = true, const size_t keepN = INF_SIZE_T, const StepType& removeStepType = StepType::UNDEFINED);
 
     /// Add a single point to the queue
     /**
@@ -518,8 +540,18 @@ private:
                         const bool evalOk,
                         const Double& hMax);
 
+    /// Helper for EvalType: BB OR (SURROGATE and EVAL_AS_SURROGATE)
+    bool evalTypeAsBB(const EvalType& evalType, const int mainThreadNum) const;
+    /// Helper for EvalType: BB OR SURROGATE. MODEL does not count for some counters.
+    bool evalTypeCounts(const EvalType& evalType) const;
+
     /// Sort the queue with respect to the selected sort strategy. Called by unlockQueue().
     void sort();
+
+    /// Helper for unlockQueue(), to validate if a point may be removed from the queue after sort.
+    bool canErase(const EvalQueuePointPtr &evalQueuePoint,
+                  const int threadNum,
+                  const StepType& removeStepType) const;
 
     /// Did we reach a stop condition (for a main thread)?
     /**
@@ -535,7 +567,6 @@ private:
 
     /// History and Solution file output
     void addDirectToFileInfo(EvalQueuePointPtr evalQueuePoint) const;
-
 };
 
 #include "../nomad_nsend.hpp"

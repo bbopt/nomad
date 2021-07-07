@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -50,7 +50,7 @@
 #include "../../Algos/Mads/PollMethodBase.hpp"
 #include "../../nomad_nsbegin.hpp"
 
-/// Class to perform Orth 2N Poll .
+/// Class to perform Ortho 2N Poll.
 class Ortho2NPollMethod final : public PollMethodBase
 {
 public:
@@ -80,7 +80,7 @@ private:
      \param directions  The directions obtained for this poll -- \b OUT.
      \param n                      The dimension of the variable space  -- \b IN.
       */
-     void generateUnitPollDirections(std::list<Direction> &directions, size_t n) const override  ;
+     void generateUnitPollDirections(std::list<Direction> &directions, const size_t n) const override final;
 
 };
 

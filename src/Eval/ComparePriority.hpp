@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -73,7 +73,7 @@ private:
     std::string _name;  ///< Method name, useful for information or debugging
 
 public:
-    virtual bool comp(EvalQueuePointPtr& point1 __attribute__((unused)), EvalQueuePointPtr& point2 __attribute__((unused))) const
+    virtual bool comp(EvalQueuePointPtr& NOMAD_UNUSED(point1), EvalQueuePointPtr& NOMAD_UNUSED(point2)) const
     {
         return false;
     }
@@ -135,6 +135,19 @@ public:
     bool comp(EvalQueuePointPtr& point1, EvalQueuePointPtr& point2) const override;
 };
 
+
+// Class for comparison using static surrogate evaluations.
+class OrderBySurrogate : public ComparePriorityMethod
+{
+public:
+    /// Constructor
+    explicit OrderBySurrogate()
+    {
+        setName("OrderBySurrogate");
+    }
+
+    bool comp(EvalQueuePointPtr& point1, EvalQueuePointPtr& point2) const override;
+};
 
 /// Class to compare priority of two EvalQueuePoint
 class ComparePriority

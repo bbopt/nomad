@@ -1,4 +1,0 @@
-<map id="MeshBase" name="MeshBase">
-<area shape="rect" id="node1" title="The generic class for meshes (discretization of design variables space)." alt="" coords="5,5,95,32"/>
-<area shape="rect" id="node2" href="$class_g_mesh.html" title="Class for the granular mesh of Mads." alt="" coords="17,80,83,107"/>
-</map>

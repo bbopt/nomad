@@ -164,6 +164,7 @@ BBE OBJ
                  previous evaluation in the same pass)
     SOL        : current feasible iterate
     SUCCESS_TYPE: success type for this evaluation, compared with the frame center
+    SURROGATE_EVAL: number of static surrogate evaluations
     THREAD_ALGO: thread number for the algorithm
     THREAD_NUM : thread number in which this evaluation was done
     TIME       : real time in seconds

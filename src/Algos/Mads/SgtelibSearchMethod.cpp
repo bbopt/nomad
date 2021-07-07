@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -60,8 +60,7 @@
 
 void NOMAD::SgtelibSearchMethod::init()
 {
-    setName("Sgtelib Search Method");
-    //setComment("(SgtelibModel)");
+    setStepType(NOMAD::StepType::SEARCH_METHOD_SGTELIB_MODEL);
     verifyParentNotNull();
 
     const auto parentSearch = getParentStep()->getParentOfType<NOMAD::SgtelibSearchMethod*>(false);
@@ -70,7 +69,7 @@ void NOMAD::SgtelibSearchMethod::init()
     if (isEnabled())
     {
         OUTPUT_INFO_START
-        AddOutputInfo(_name + " cannot be performed because NOMAD is compiled without sgtelib library");
+        AddOutputInfo(getName() + " cannot be performed because NOMAD is compiled without sgtelib library");
         OUTPUT_INFO_END
         setEnabled(false);
     }
@@ -85,14 +84,14 @@ void NOMAD::SgtelibSearchMethod::init()
         if (0 == nbObj)
         {
             OUTPUT_INFO_START
-            AddOutputInfo(_name + " not performed when there is no objective function");
+            AddOutputInfo(getName() + " not performed when there is no objective function");
             OUTPUT_INFO_END
             setEnabled(false);
         }
         else if (nbObj > 1)
         {
             OUTPUT_INFO_START
-            AddOutputInfo(_name + " not performed on multi-objective function");
+            AddOutputInfo(getName() + " not performed on multi-objective function");
             OUTPUT_INFO_END
             setEnabled(false);
         }
@@ -160,7 +159,7 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsImp()
         if (0 == oraclePoints.size())
         {
             OUTPUT_INFO_START
-            s = "Failed generating points. Stop " + _name;
+            s = "Failed generating points. Stop " + getName();
             AddOutputInfo(s, _displayLevel);
             OUTPUT_INFO_END
 

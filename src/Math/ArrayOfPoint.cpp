@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -69,10 +69,31 @@ std::ostream& NOMAD::operator<< (std::ostream& out, const NOMAD::ArrayOfPoint& a
 }
 
 
+std::istream& NOMAD::operator>>(std::istream& in, ArrayOfPoint& aop)
+{
+    // Patch: The ArrayOfPoint must contain 1 Point with the right dimension.
+    if (0 == aop.size() || 0 == aop[0].size())
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"Input ArrayOfPoint should have a point of nonzero value");
+    }
 
+    size_t n = aop[0].size();
+    aop.clear();
+    NOMAD::ArrayOfDouble aod(n);
+    NOMAD::Point point(n);
 
+    // Usually, point files do not have parenthesis in them, so read
+    // points as ArrayOfDouble. If Point parentesis is needed, we can add it.
+    while (in >> aod && in.good() && !in.eof())
+    {
+        point = aod;
+        aop.push_back(point);
+    }
+    if (!in.eof() || !point.isComplete())
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"Error while reading point file. A carriage return maybe be required at the end of a line.");
+    }
 
-
-
-
+    return in;
+}
 

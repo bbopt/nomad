@@ -1,6 +1,0 @@
-<map id="QuadModelIterationUtils" name="QuadModelIterationUtils">
-<area shape="rect" id="node1" title="Class of utils for QuadModel iterations." alt="" coords="84,80,265,107"/>
-<area shape="rect" id="node3" href="$class_quad_model_optimize.html" title="Class to create trial points by performing quadratic model optimization using Mads." alt="" coords="5,155,160,181"/>
-<area shape="rect" id="node4" href="$class_quad_model_single_pass.html" title=" " alt="" coords="184,155,349,181"/>
-<area shape="rect" id="node2" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="121,5,228,32"/>
-</map>

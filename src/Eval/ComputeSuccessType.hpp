@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -56,6 +56,7 @@
 #define __NOMAD_4_0_COMPUTESUCCESSTYPE__
 
 #include "../Eval/EvalPoint.hpp"
+#include "../nomad_platform.hpp"
 
 
 #include "../nomad_nsbegin.hpp"
@@ -116,6 +117,11 @@ public:
                                               const EvalPointPtr& evalPoint2,
                                               const Double& hMax = INF);
 
+    /// Similar to defaultComputeSuccessType, but using SURROGATE for EvalType
+    static SuccessType computeSuccessTypeSurrogate(const EvalPointPtr& evalPoint1,
+                                                 const EvalPointPtr& evalPoint2,
+                                                 const Double& hMax = INF);
+
     /// Function to compute success type in phase one.
     /**
      \param evalPoint1  First eval queue point -- \b IN.
@@ -125,7 +131,12 @@ public:
      */
     static SuccessType computeSuccessTypePhaseOne(const EvalPointPtr& evalPoint1,
                                               const EvalPointPtr& evalPoint2,
-                                              const Double& hMax __attribute__((unused)));
+                                              const Double& NOMAD_UNUSED(hMax));
+
+    /// Similar to computeSuccessTypePhaseOne, but using SURROGATE for EvalType
+    static SuccessType computeSuccessTypePhaseOneSurrogate(const EvalPointPtr& evalPoint1,
+                                              const EvalPointPtr& evalPoint2,
+                                              const Double& NOMAD_UNUSED(hMax));
 
 private:
     /// Helper for Constructor.

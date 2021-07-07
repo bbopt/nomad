@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -56,20 +56,167 @@ void NOMAD::PollMethodBase::init()
     verifyParentNotNull();
 }
 
-
 void NOMAD::PollMethodBase::generateTrialPoints()
+{
+    generateTrialPointsInternal(false);
+}
+
+void NOMAD::PollMethodBase::generate2NDirections(std::list<NOMAD::Direction> &directions, size_t n) const
+{
+    NOMAD::Direction dirUnit(n, 0.0);
+    NOMAD::Direction::computeDirOnUnitSphere(dirUnit);
+
+    // Householder Matrix
+    NOMAD::Direction** H = new NOMAD::Direction*[2*n];
+
+    // Ordering D_k alternates Hk and -Hk instead of [H_k -H_k]
+    for (size_t i = 0; i < n; ++i)
+    {
+        directions.push_back(NOMAD::Direction(n, 0.0));
+        H[i]   = &(directions.back());
+        directions.push_back(NOMAD::Direction(n, 0.0));
+        H[i+n] = &(directions.back());
+    }
+    // Householder transformations on the 2n directions on a unit n-sphere
+    NOMAD::Direction::householder(dirUnit, true, H);
+    delete [] H;
+}
+
+
+void NOMAD::PollMethodBase::generateTrialPointsNPlus1(const NOMAD::EvalPointSet& inputTrialPoints)
+{
+    // Clear trial points generated in the first pass, where 2N points were
+    // generated and N points were evaluated. The evaluations are not part of
+    // this data.
+    _trialPoints.clear();
+    // Then add back the N evaluated points, with evaluation this time.
+    for (auto trialPoint : inputTrialPoints)
+    {
+        insertTrialPoint(trialPoint);
+    }
+
+    generateTrialPointsInternal(true);
+}
+
+
+// If isNPlus1 is true, _trialPoints containes N evaluated trial points,
+// and the N+1th point needs to be generated.
+void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isNPlus1)
+{
+
+    std::list<NOMAD::Direction> directionsFullSpace = generateFullSpaceScaledDirections(isNPlus1);
+    
+    OUTPUT_INFO_START
+    std::string s = "Generate ";
+    s+= (isNPlus1) ? "n+1th point" : "n points";
+    s += " for " + getName();
+    AddOutputInfo(s, true, false);
+    OUTPUT_INFO_END
+
+    OUTPUT_DEBUG_START
+    for (auto dir : directionsFullSpace)
+    {
+        AddOutputDebug("Scaled and mesh projected poll direction: " + dir.display());
+    }
+    OUTPUT_DEBUG_END
+
+    auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
+    // We need a frame center to start with.
+    if (!_frameCenter.ArrayOfDouble::isDefined() || _frameCenter.size() != n)
+    {
+        std::string err = "Invalid frame center: " + _frameCenter.display();
+        throw NOMAD::Exception(__FILE__, __LINE__, err);
+    }
+
+    OUTPUT_DEBUG_START
+    AddOutputDebug("Frame center: " + _frameCenter.display());
+    OUTPUT_DEBUG_END
+
+    if (isNPlus1)
+    {
+        // Clear trial points so that they are not re-evaluated (or tried to be).
+        // If not N+1 pass, we keep all points from all PollMethods, for instance,
+        // Ortho 2N for primary poll center and Double for secondary poll center.
+        clearTrialPoints();
+    }
+    for (std::list<NOMAD::Direction>::iterator it = directionsFullSpace.begin(); it != directionsFullSpace.end() ; ++it)
+    {
+        NOMAD::Point pt(n);
+
+        // pt = frame center + direction
+        for (size_t i = 0 ; i < n ; ++i )
+        {
+            pt[i] = _frameCenter[i] + (*it)[i];
+        }
+
+        auto evalPoint = NOMAD::EvalPoint(pt);
+        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(_frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+        // Snap the points and the corresponding direction to the bounds
+        if (snapPointToBoundsAndProjectOnMesh(evalPoint,
+                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND"),
+                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND")))
+        {
+            if (*evalPoint.getX() != *_frameCenter.getX())
+            {
+                // New EvalPoint to be evaluated.
+                // Add it to the list.
+                evalPoint.addGenStep(getStepType());
+                bool inserted = insertTrialPoint(evalPoint);
+
+                OUTPUT_INFO_START
+                std::string s = "Generated point";
+                s += (inserted) ? ": " : " not inserted: ";
+                s += evalPoint.display();
+                AddOutputInfo(s);
+                OUTPUT_INFO_END
+            }
+            else
+            {
+                OUTPUT_INFO_START
+                std::string s = "Generated point not inserted (equal to frame center): ";
+                s += evalPoint.display();
+                AddOutputInfo(s);
+                OUTPUT_INFO_END
+            }
+        }
+    }
+
+    OUTPUT_INFO_START
+    AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");
+    std::string s = "Generate ";
+    s+= (isNPlus1) ? "n+1th point" : "n points";
+    s += " for " + getName();
+    AddOutputInfo(s, false, true);
+    OUTPUT_INFO_END
+}
+
+
+std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirections(bool isNPlus1, std::shared_ptr<NOMAD::MeshBase> mesh)
 {
     // Groups of variables.
     auto varGroups = _pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP");;
-
+    
     auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
-
+    
     std::list<NOMAD::Direction> directionsSubSpace, directionsFullSpace;
-
+    
     if (varGroups.size() == 0)
     {
-        // Creation of the poll directions in the full space
-        generateUnitPollDirections(directionsFullSpace,n);
+        if (!isNPlus1)
+        {
+            // Creation of the poll directions in the full space
+            generateUnitPollDirections(directionsFullSpace,n);
+        }
+        else
+        {
+            // Creation of the N+1th direction in the full space
+            generateNPlus1Direction(directionsFullSpace);
+
+            // The trial points were needed to generate the n+1th direction.
+            // We do not want to re-evaluate them, and the n+1th point will
+            // be added to _trialPoints when it is generated. So here, we clear the current trial points.
+            _trialPoints.clear();
+        }
     }
     else
     {
@@ -77,8 +224,18 @@ void NOMAD::PollMethodBase::generateTrialPoints()
         {
             size_t nVG = vg.size();
 
-            // Creation of the poll directions in the sub space of the variable group
-            generateUnitPollDirections(directionsSubSpace,nVG);
+            if (!isNPlus1)
+            {
+                // Creation of the poll directions in the sub space of the variable group
+                generateUnitPollDirections(directionsSubSpace,nVG);
+            }
+            else
+            {
+                // Creation of the N+1th poll direction in the sub space of the variable group
+                generateNPlus1Direction(directionsSubSpace);
+                // We do not want to re-evaluate points generated in the first pass.
+                _trialPoints.clear();
+            }
 
             // Convert sub space (in a group of variable) directions to full space directions (all variables)
             if (varGroups.size() > 1)
@@ -116,78 +273,22 @@ void NOMAD::PollMethodBase::generateTrialPoints()
             }
         }
     }
-
+    
     // Scale and project directions on the mesh
-    scaleAndProjectOnMesh(directionsFullSpace);
-
-    OUTPUT_DEBUG_START
-    for (auto dir : directionsFullSpace)
-    {
-        AddOutputDebug("Scaled and mesh projected poll direction: " + dir.display());
-    }
-    OUTPUT_DEBUG_END
-
-    OUTPUT_INFO_START
-    AddOutputInfo("Generate points for " + _name, true, false);
-    OUTPUT_INFO_END
-
-    // We need a frame center to start with.
-    if (!_frameCenter.ArrayOfDouble::isDefined() || _frameCenter.size() != n)
-    {
-        std::string err = "Invalid frame center: " + _frameCenter.display();
-        throw NOMAD::Exception(__FILE__, __LINE__, err);
-    }
-
-    OUTPUT_DEBUG_START
-    AddOutputDebug("Frame center: " + _frameCenter.display());
-    OUTPUT_DEBUG_END
-
-    for (std::list<NOMAD::Direction>::iterator it = directionsFullSpace.begin(); it != directionsFullSpace.end() ; ++it)
-    {
-        NOMAD::Point pt(n);
-
-        // pt = frame center + direction
-        for (size_t i = 0 ; i < n ; ++i )
-        {
-            pt[i] = _frameCenter[i] + (*it)[i];
-        }
-
-        auto evalPoint = NOMAD::EvalPoint(pt);
-        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(_frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
-        // Snap the points and the corresponding direction to the bounds
-        if (snapPointToBoundsAndProjectOnMesh(evalPoint,
-                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND"),
-                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND")))
-        {
-            if (*evalPoint.getX() != *_frameCenter.getX())
-            {
-                // New EvalPoint to be evaluated.
-                // Add it to the list.
-                evalPoint.setGenStep(getName());
-                bool inserted = insertTrialPoint(evalPoint);
-
-                OUTPUT_INFO_START
-                std::string s = "Generated point";
-                s += (inserted) ? ": " : " not inserted: ";
-                s += evalPoint.display();
-                AddOutputInfo(s);
-                OUTPUT_INFO_END
-            }
-        }
-    }
-
-    OUTPUT_INFO_START
-    AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");
-    AddOutputInfo("Generate points for " + _name, false, true);
-    OUTPUT_INFO_END
+    scaleAndProjectOnMesh(directionsFullSpace, mesh);
+    
+    return directionsFullSpace;
+    
 }
 
 
-void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs)
+void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs, std::shared_ptr<NOMAD::MeshBase> mesh)
 {
     // Scale the directions and project on the mesh
-
-    std::shared_ptr<NOMAD::MeshBase> mesh = getIterationMesh();
+    if (nullptr == mesh)
+    {
+        mesh = getIterationMesh();
+    }
     if (nullptr == mesh)
     {
         std::string err("Iteration or Mesh not found.");

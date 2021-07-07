@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -57,6 +57,7 @@
 #include <atomic>       // For atomic
 #include <vector>
 
+#include "../nomad_platform.hpp"
 #include "../Eval/EvalPoint.hpp"
 #include "../Param/CacheParameters.hpp"
 
@@ -89,7 +90,7 @@ protected:
      *   It could be a set (CacheSet), an unordered_set (CacheSet with
      *   precompiler option USE_UNORDEREDSET) map, multimap, SQL database, etc.
     */
-    static std::atomic<size_t> _nbCacheHits;
+    DLL_EVAL_API static std::atomic<size_t> _nbCacheHits;
 
     /// Name of the file to write or read cache to.
     /**
@@ -108,7 +109,7 @@ protected:
     /// The cache parameters used by the cache
     std::shared_ptr<CacheParameters> _cacheParams;
 
-    static std::unique_ptr<CacheBase> _single; ///< The singleton
+    DLL_EVAL_API static std::unique_ptr<CacheBase> _single; ///< The singleton
 
     /// Dimension of the points in the cache.
     /**
@@ -124,7 +125,7 @@ protected:
      * If the whole optimization is done, stop waitings for points
      * that will never be evaluated.
      */
-    bool _stopWaiting;
+    std::atomic<bool> _stopWaiting;
 
     /*---------*/
     /* Methods */
@@ -166,6 +167,15 @@ public:
         return _single;
     }
 
+    static void resetInstance()
+    {
+        if (nullptr != _single)
+        {
+            _single->clear();
+            _single.release() ; // REM : release works even if the pointer is NULL (does nothing then)
+        }
+    }
+    
     /// Destructor
     virtual ~CacheBase(void) = default;
 
@@ -209,11 +219,8 @@ public:
        each EvalPoint may be processed in place. It is not needed
        to remove it from the cache, process it, and then put it back.
      */
-    virtual void processOnAllPoints(void (*func)(EvalPoint&) __attribute__((unused)))
-    {
-        std::cerr << "Warning: processOnAllPoints is not implemented for this type of cache." << std::endl;
-    }
-    virtual void processOnAllPoints(void (*func)(EvalPoint&) __attribute__((unused)), const int mainThreadNum __attribute__((unused)))
+    typedef void (*EvalFunc_t)(EvalPoint&);
+    virtual void processOnAllPoints(EvalFunc_t NOMAD_UNUSED(func), const int NOMAD_UNUSED(mainThreadNum) = -1)
     {
         std::cerr << "Warning: processOnAllPoints is not implemented for this type of cache." << std::endl;
     }
@@ -256,7 +263,7 @@ public:
        \c false otherwise.
      \param evalPoint       The eval point to insert in the cache -- \b IN.
      \param maxNumberEval   The max number of evals           -- \b IN.
-     \param evalType        Look at the Blackbox or Model eval of the EvalPoint  -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
      \return                A boolean indicating if we should eval this point.
      */
     virtual bool smartInsert(const EvalPoint &evalPoint,
@@ -316,7 +323,7 @@ public:
     /**
      \param evalPointList   The best feasible eval points in a list  -- \b OUT.
      \param fixedVariable   Searching for a subproblem defined by this point -- \b IN.
-     \param evalType        Which eval (Blackbox or Model) of the EvalPoint to look at  -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
      \param refeval         The upper bound eval reference to accelerate the search  (can be nullptr)   -- \b IN.
      \return                The number of eval points found.
      */
@@ -338,7 +345,7 @@ public:
      \param evalPointList   The best infeasible eval points in a list                                   -- \b OUT.
      \param hMax            Select a point if h <= hMax                                                 -- \b IN.
      \param fixedVariable   Searching for a subproblem defined by this point                            -- \b IN.
-     \param evalType        Which eval (Blackbox or Model) of the EvalPoint to look at              -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at                                      -- \b IN.
      \param refeval         The upper bound eval reference to accelerate the search (can be nullptr)    -- \b IN.
      \return                The number of eval points found.
      */
@@ -409,7 +416,7 @@ public:
      * Eval is assumed non-NULL. \n
      * If the point is not found, throw an exception.
      \param evalPoint       The eval point to update                                        -- \b IN.
-     \param evalType        Which eval (Blackbox or Model) of the EvalPoint to look at  -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
      \return                A boolean indicating if update succeeded (\c true), \c false if there was an error.
      */
     virtual bool update(const EvalPoint& evalPoint, const EvalType& evalType) = 0;

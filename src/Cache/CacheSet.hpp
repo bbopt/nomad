@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -74,10 +74,11 @@ private:
 
     /// Lock for multithreading
 #ifdef _OPENMP
-    static omp_lock_t _cacheLock;
+    DLL_EVAL_API static omp_lock_t  _cacheLock;
 #endif // _OPENMP
 
-    static BBOutputTypeList _bbOutputType; ///< Corresponds to parameter BB_OUTPUT_TYPE used for this cache
+    DLL_EVAL_API static BBOutputTypeList    _bbOutputType;  ///< Corresponds to parameter BB_OUTPUT_TYPE used for this cache
+    DLL_EVAL_API static ArrayOfDouble       _bbEvalFormat;  ///< Used to write cache correctly
 
     EvalPointSet _cache;  ///< The set of points that constitutes the cache.
 
@@ -111,7 +112,8 @@ public:
      \param bbOutputType    List of the blackbox output type -- \b IN.
      */
     static void setInstance(const std::shared_ptr<CacheParameters>& cacheParams,
-                            const BBOutputTypeList& bbOutputType);
+                            const BBOutputTypeList& bbOutputType,
+                            const ArrayOfDouble& bbEvalFormat = ArrayOfDouble());
 
     /// Get the list of blackbox output types
     static BBOutputTypeList getBbOutputType() { return _bbOutputType; }
@@ -149,7 +151,7 @@ public:
 
      \param evalPoint       The point to insert                         -- \b IN.
      \param maxNumberEval   The max number of evaluations of the point  -- \b IN.
-     \param evalType        Which eval (Blackbox or Model) of the EvalPoint to look at  -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
      \return                A boolean indicating if we should eval this point.
      */
     bool smartInsert(const EvalPoint &evalPoint,
@@ -173,7 +175,7 @@ public:
      \param refeval                The point to find                                              -- \b IN.
      \param comp                       The comparison function                                        -- \b IN.
      \param evalPointList   The eval points that verify comp()==true returned in a list    -- \b OUT.
-     \param evalType              Which eval (Blackbox or Model) of the EvalPoint to look at  -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
      \return                 The number of eval points found.
      */
     size_t find(const Eval &refeval,
@@ -191,7 +193,7 @@ public:
      \param findFeas               Flag to find feasible points                               -- \b IN.
      \param hMax                        Maximum acceptable value for h, when findFeas is false     -- \b IN.
      \param fixedVariable    Searching for a subproblem defined by this point -- \b IN.
-     \param evalType               Which Eval (Blackbox or Model) of the EvalPoint to look at  -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
      \param refeval                 The point of reference                                              -- \b IN.
      \return                 The number of eval points found.
      */
@@ -208,7 +210,7 @@ public:
     /**
      \param evalPointList   The best feasible eval points in a list  -- \b OUT.
      \param fixedVariable   Searching for a subproblem defined by this point -- \b IN.
-     \param evalType              Which eval (Blackbox or Model) of the EvalPoint to look at  -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
      \param refeval                 The single best feasible eval point -- \b OUT.
      \return                 The number of eval points found.
      */
@@ -230,7 +232,7 @@ public:
      \param evalPointList   The best infeasible eval points in a list   -- \b OUT.
      \param hMax                       Select a point if h <= hMax                 -- \b IN.
      \param fixedVariable   The fixed variables have a fixed value      -- \b IN.
-     \param evalType              Which eval (Blackbox or Model) of the EvalPoint to look at  -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
      \param refeval               The single best infeasible eval point -- \b OUT.
      \return                The number of eval points found.
      */
@@ -288,7 +290,7 @@ public:
      * If the point is not found, throw an exception.
 
      \param evalPoint       The eval point to update  -- \b IN.
-     \param evalType        Which eval (Blackbox or Model) of the EvalPoint                          to look at  -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
      \return                A boolean indicating if update succeeded (\c true), \c false if there was an error.
      */
     bool update(const EvalPoint& evalPoint, const EvalType& evalType) override;
@@ -330,10 +332,8 @@ public:
      */
     size_t computeMeanF(Double &mean) const override;
 
-    /// Call function func() on all EvalPoint in cache.
-    void processOnAllPoints(void (*func)(EvalPoint&)) override;
     /// Call function func() on all EvalPoint in cache for Evals that were generated by mainThreadNum.
-    void processOnAllPoints(void (*func)(EvalPoint&), int mainThreadNum) override;
+    void processOnAllPoints(void (*func)(EvalPoint&), const int mainThreadNum = -1) override;
 
     void deleteModelEvalOnly(const int mainThreadNum) override;
 

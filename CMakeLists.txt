@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 # name of the project
-project (Nomad VERSION 4.0.2)
+project (Nomad VERSION 4.1.0)
 
 # use standard compilers parameters for c++14
 SET(CMAKE_CXX_STANDARD 14 )
@@ -23,16 +23,21 @@ endif()
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # require at least gcc 4
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8)
-        message(FATAL_ERROR "GCC version < 8 has not been tested for Nomad!")
+        message(FATAL_ERROR "GCC version < 8 has not been tested for Nomad")
     endif()
 elseif (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") 
     OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
     # require at least clang 5
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5)
-        message(FATAL_ERROR "Clang version has not been tested for Nomad!")
+        message(FATAL_ERROR "Clang version has not been tested for Nomad")
+    endif()
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    # require at least 15.0 (MSVC 2017) for C++14 support
+    if (MSVC_TOOLSET_VERSION VERSION_LESS 141)
+        message(FATAL_ERROR "MSVC version ${CMAKE_CXX_COMPILER_VERSION} has not been tested for Nomad")
     endif()
 else()
-    message(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang and GCC.")
+    message(WARNING "You are using an unsupported compiler. Compilation has only been tested with Clang, GCC, and MSVC.")
 endif()
 
 #options
@@ -63,7 +68,7 @@ message(STATUS "  Installation prefix set to ${CMAKE_INSTALL_PREFIX}")
 #
 # Use sgtelib
 #
-set(USE_SGTELIB ON)
+option(USE_SGTELIB "Option to use the Sgtelib library" ON)
 if(USE_SGTELIB MATCHES ON)
   message(CHECK_START "  Configuring for use of Sgtelib library")
 
@@ -88,6 +93,7 @@ if(TIME_STATS MATCHES ON)
    message(CHECK_START "  Enabling time stats for build")
    add_compile_definitions(TIME_STATS)
 endif()
+
 
 #
 # Test openMP package
@@ -117,16 +123,6 @@ if(BUILD_EXAMPLES MATCHES ON)
    message(CHECK_PASS " done")
 else()
    message(STATUS "  Examples NOT built")
-endif()
-
-option(BUILD_INTEGRATION_TESTS "Option to build integration tests" OFF)
-if(BUILD_INTEGRATION_TESTS MATCHES ON)
-   message(CHECK_START "  Configuring build for integration tests")
-
-   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/integration_tests)
-   message(CHECK_PASS " done")
-else()
-   message(STATUS "  Integration tests NOT built")
 endif()
 
 #

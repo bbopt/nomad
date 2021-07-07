@@ -1,4 +1,6 @@
+set(CMAKE_EXECUTABLE_SUFFIX .exe)
 add_executable(bb2.exe bb.cpp )
+set_target_properties(bb2.exe PROPERTIES SUFFIX "")
 
 # installing executables and libraries
 install(TARGETS bb2.exe

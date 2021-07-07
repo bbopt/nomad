@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -51,6 +51,7 @@
  \date   2010-04-02
  \see    Double.hpp
  */
+#include <cctype>   // for toupper
 #include <iomanip>  // For std::setprecision
 #include "../Math/Double.hpp"
 #include "../Util/defines.hpp"
@@ -167,6 +168,34 @@ double NOMAD::Double::trunk() const
 
     double trunk =  _epsilon * std::floor(_value / _epsilon);
     return trunk;
+
+}
+
+bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision )
+{
+    if (! _defined)
+    {
+        throw NotDefined(__FILE__, __LINE__,
+                          "NOMAD::Double::roundToPrecision(): value not defined");
+    }
+    
+    bool modif = false;
+    if (precision.isDefined())
+    {
+        if (precision > 0)
+        {
+            double powprec = std::pow(10,precision.round());
+            _value = std::round(_value * powprec) / powprec;
+        }
+        else
+        {
+            // Integer, binary (and categorical) have no decimal
+            _value = std::round(_value);
+        }
+        modif = true;
+    }
+    
+    return modif;
 
 }
 
@@ -322,6 +351,9 @@ bool NOMAD::Double::isBinary ( void ) const
 const NOMAD::Double NOMAD::operator / ( const NOMAD::Double & d1 ,
                                        const NOMAD::Double & d2   )
 {
+    if ( !d1.isDefined() || !d2.isDefined() )
+        throw NOMAD::Double::NotDefined ( "Double.cpp" , __LINE__ ,
+                           "NOMAD::Double: d1 / d2: d1 or d2 not defined" );
     if ( d2.todouble() == 0.0 )
         throw NOMAD::Double::InvalidValue ( "Double.cpp" , __LINE__ ,
                                             "NOMAD::Double: d1 / d2: division by zero" );
@@ -778,7 +810,7 @@ int NOMAD::Double::round ( void ) const
 // Ex. 123.4567 -> 4
 //     123 -> 0
 //     0.000 -> 3
-std::size_t NOMAD::Double::nbDecimals( ) const
+std::size_t NOMAD::Double::nbDecimals() const
 {
     std::size_t nbDec;
 
@@ -789,11 +821,11 @@ std::size_t NOMAD::Double::nbDecimals( ) const
     }
 
     NOMAD::Double rem( _value );
-    int dec = std::floor(log10(rem.todouble()));
+    int dec = (int)std::floor(log10(rem.todouble()));
     rem -= pow(10, dec);
     while (rem._value >= _epsilon)
     {
-        dec = std::floor(log10(rem.todouble()));
+        dec = (int)std::floor(log10(rem.todouble()));
         rem -= pow(10, dec);
     }
     if (dec > 0)
@@ -1003,7 +1035,9 @@ const NOMAD::Double NOMAD::Double::nextMult(const NOMAD::Double &granularity) co
         {
             granMult++;
         }
-        d = granMult * granularity;
+        double bigGranExp = pow(10, granularity.nbDecimals());
+        int bigGran = (int)(granularity.todouble() * bigGranExp);
+        d = granMult * bigGran / bigGranExp;
     }
 
     return d;
@@ -1027,7 +1061,9 @@ const NOMAD::Double NOMAD::Double::previousMult(const NOMAD::Double &granularity
         {
             granMult--;
         }
-        d = granMult * granularity;
+        double bigGranExp = pow(10, granularity.nbDecimals());
+        int bigGran = (int)(granularity.todouble() * bigGranExp);
+        d = granMult * bigGran / bigGranExp;
     }
 
     return d;

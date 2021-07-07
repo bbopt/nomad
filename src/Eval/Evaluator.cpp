@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -49,9 +49,25 @@
 #include "../Util/fileutils.hpp"
 #include <fstream>  // For ofstream
 #include <stdio.h>  // For popen
+#ifndef _WIN32
+#include <unistd.h> // for getpid
+#else
+#include <process.h>
+#define getpid _getpid
+#define popen  _popen
+#define pclose _pclose
+#endif
 
 // Initialize statics
 std::vector<std::string> NOMAD::Evaluator::_tmpFiles = std::vector<std::string>();
+
+namespace {
+    // the cleanup of temporary files at program shutdown needs to remain with this
+    // translation unit to guarantee the correct destruction order
+    struct TmpFilesCleanup {
+        ~TmpFilesCleanup() { NOMAD::Evaluator::removeTmpFiles(); }
+    } _TmpFilesCleanup;
+}
 
 //
 // Constructor
@@ -227,7 +243,21 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
 
     // At this point, we are for sure in batch mode.
     // Verify blackbox executable defined by BB_EXE is available and executable.
-    auto bbExe = _evalParams->getAttributeValue<std::string>("BB_EXE");
+    std::string bbExe;
+    switch (_evalType)
+    {
+        case NOMAD::EvalType::BB:
+            bbExe = _evalParams->getAttributeValue<std::string>("BB_EXE");
+            break;
+        case NOMAD::EvalType::SURROGATE:
+            bbExe = _evalParams->getAttributeValue<std::string>("SURROGATE_EXE");
+            break;
+        default:
+            std::string err = "Evaluator: No executable supported for EvalType ";
+            err += NOMAD::evalTypeToString(_evalType);
+            throw NOMAD::Exception(__FILE__,__LINE__,err);
+    }
+
     if (bbExe.empty())
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: No blackbox executable defined.");

@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -59,15 +59,19 @@ class MadsInitialization final: public Initialization
 {
 private:
     std::shared_ptr<MeshBase> _initialMesh;
+    
+    bool _barrierInitializedFromCache;
 
 public:
     /// Constructor
     /*
-     \param parentStep      The parent of this step -- \b IN.
+     \param parentStep                   The parent of this step -- \b IN.
+     \param barrierInitializedFromCache  Flag to initialize barrier from cache or not -- \b IN.
      */
-    explicit MadsInitialization(const Step* parentStep)
+    explicit MadsInitialization(const Step* parentStep, bool barrierInitializedFromCache=true)
       : Initialization(parentStep),
-        _initialMesh(nullptr)
+        _initialMesh(nullptr),
+        _barrierInitializedFromCache(barrierInitializedFromCache)
     {
         init();
     }

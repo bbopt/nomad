@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -45,10 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include <unistd.h> // For usleep
-
 #include "../Eval/EvcMainThreadInfo.hpp"
 #include "../Output/OutputQueue.hpp"
+#include "../Util/MicroSleep.hpp"
 
 /*-------------------------*/
 /* Class EvcMainThreadInfo */
@@ -104,7 +103,7 @@ bool NOMAD::EvcMainThreadInfo::getOpportunisticEval() const
         {
             return _evalContParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC");
         }
-        catch (NOMAD::ParameterToBeChecked &e)
+        catch (NOMAD::ParameterToBeChecked&)
         {
             // Exception due to parameters being in process of checkAndComply().
             // While will loop - Retry
@@ -128,7 +127,7 @@ bool NOMAD::EvcMainThreadInfo::getUseCache() const
         {
             return _evalContParams->getAttributeValue<bool>("EVAL_USE_CACHE");
         }
-        catch (NOMAD::ParameterToBeChecked &e)
+        catch (NOMAD::ParameterToBeChecked&)
         {
             // Exception due to parameters being in process of checkAndComply().
             // While will loop - Retry
@@ -152,7 +151,7 @@ size_t NOMAD::EvcMainThreadInfo::getMaxBbEvalInSubproblem() const
         {
             return _evalContParams->getAttributeValue<size_t>("SUBPROBLEM_MAX_BB_EVAL");
         }
-        catch (NOMAD::ParameterToBeChecked &e)
+        catch (NOMAD::ParameterToBeChecked&)
         {
             // Exception due to parameters being in process of checkAndComply().
             // While will loop - Retry
@@ -164,6 +163,30 @@ size_t NOMAD::EvcMainThreadInfo::getMaxBbEvalInSubproblem() const
 void NOMAD::EvcMainThreadInfo::setMaxBbEvalInSubproblem(const size_t maxBbEval)
 {
     _evalContParams->setAttributeValue("SUBPROBLEM_MAX_BB_EVAL", maxBbEval);
+    _evalContParams->checkAndComply();
+}
+
+
+bool NOMAD::EvcMainThreadInfo::getSurrogateOptimization() const
+{
+    while (true)
+    {
+        try
+        {
+            return _evalContParams->getAttributeValue<bool>("EVAL_SURROGATE_OPTIMIZATION");
+        }
+        catch (NOMAD::ParameterToBeChecked&)
+        {
+            // Exception due to parameters being in process of checkAndComply().
+            // While will loop - Retry
+        }
+    }
+}
+
+
+void NOMAD::EvcMainThreadInfo::setSurrogateOptimization(const bool surrogateOptimization)
+{
+    _evalContParams->setAttributeValue("EVAL_SURROGATE_OPTIMIZATION", surrogateOptimization);
     _evalContParams->checkAndComply();
 }
 

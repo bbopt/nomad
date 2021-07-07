@@ -5,17 +5,17 @@
 #---------------------------------------------------------------------------------#
 #  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                #
 #                                                                                 #
-#  NOMAD - Version 4.0 has been created by                                        #
+#  NOMAD - Version 4 has been created by                                          #
 #                 Viviane Rochon Montplaisir  - Polytechnique Montreal            #
 #                 Christophe Tribes           - Polytechnique Montreal            #
 #                                                                                 #
-#  The copyright of NOMAD - version 4.0 is owned by                               #
+#  The copyright of NOMAD - version 4 is owned by                                 #
 #                 Charles Audet               - Polytechnique Montreal            #
 #                 Sebastien Le Digabel        - Polytechnique Montreal            #
 #                 Viviane Rochon Montplaisir  - Polytechnique Montreal            #
 #                 Christophe Tribes           - Polytechnique Montreal            #
 #                                                                                 #
-#  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            #
+#  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             #
 #  NSERC (Natural Sciences and Engineering Research Council of Canada),           #
 #  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            #
 #  for Data Valorization)                                                         #
@@ -69,18 +69,27 @@ CONTACT:
 nomad@gerad.ca
 
 
+VERSION WARNING:
+
+This repository is for NOMAD 4. NOMAD 3 is not on GitHub.
+NOMAD 4 is similar in usage to NOMAD 3. It does not have all
+functionalities from NOMAD 3 yet. NOMAD 4 has a new software
+architecture, uses OpenMP to run evaluations in parallel,
+and also has some new functionalities.
+
+
 COMPILATION (Release):
 
 On Linux, Unix, Windows and Mac OS X, NOMAD can be compiled using CMake.
 The minimum version of CMake is 3.14. Older versions will trigger
-an error. A recent C++ compiler is also required.  
+an error. A recent C++ compiler is also required.
 
 The procedure is the following. On the command line in the
  $NOMAD_HOME directory:
 
-cmake -S . -B build/release     ---> Create the CMake files and directories for 
+cmake -S . -B build/release     ---> Create the CMake files and directories for
                                      building (-B) in build/release.
-                                     The source (-S) CMakeLists.txt file is in 
+                                     The source (-S) CMakeLists.txt file is in
                                        the $NOMAD_HOME directory.
                                      To enable time stats build:
                                        cmake -DTIME_STATS=ON -S . -B build/release
@@ -92,18 +101,18 @@ cmake -S . -B build/release     ---> Create the CMake files and directories for
                                        cmake -DTEST_OPENMP=OFF -S . -B build/release
 
 
-cmake --build build/release     ---> Build all the libraries and applications 
+cmake --build build/release     ---> Build all the libraries and applications
                                      Option --parallel xx can be added for faster
                                        build.
-                                     Option --config Release should be used on 
-                                       *Windows* to compile in Release configuration.
+                                     Option --config Release should be used on
+                                       *Windows* to compile Release configuration.
                                      The default configuration is Debug.
 
-cmake --install build/release   ---> Copy binaries and headers in 
+cmake --install build/release   ---> Copy binaries and headers in
                                        build/release/[bin, include, lib]
                                        and in the examples/tests directories.
                                      Option --config Release should be used on
-                                       Windows to install in Release configuration.
+                                       Windows to install Release configuration.
                                      The default configuration is Debug.
 
 The executable "nomad" will installed into the directory:
@@ -119,7 +128,7 @@ cmake --install $NOMAD_HOME/build/release
 
 COMPILATION (Debug):
 
-The procedure to build the debug version is the following. 
+The procedure to build the debug version is the following.
 On the command line in the $NOMAD_HOME directory:
 
 cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
@@ -127,12 +136,12 @@ cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
                                    Debug, RelWithDebugInfo, MinSizeRel, Release);
                                    flag CMAKE_BUILD_TYPE is ignored.
 
-cmake --build build/debug     ---> Build the libraries and applications 
+cmake --build build/debug     ---> Build the libraries and applications
                                      Option --parallel xx can be added for faster
                                      build.
                                    On Windows, the default configuration is Debug.
 
-cmake --install build/debug   ---> Copy binaries and headers in 
+cmake --install build/debug   ---> Copy binaries and headers in
                                      build/debug/[bin, include, lib]
                                      and in the examples/tests directories
 
@@ -141,13 +150,13 @@ EXAMPLES OF OPTIMIZATION:
 
 Batch Mode:
 There are examples in batch mode in examples/basic/batch/.
-In each directory, the blackbox (usually named bb) are compiled by default.
+In each directory, the blackbox functions (usually named bb) are compiled by default.
 The problem may be resolved using NOMAD and the parameter file:
 nomad param.txt
 
 Library Mode:
 There are examples in library mode in examples/basic/library/.
-In each directory, the executable may be compiled when building 
-Nomad application. The problems may be resolved by execution, 
+In each directory, the executable may be compiled when building
+Nomad application. The problems may be resolved by execution,
 for instance:
 example_lib.exe

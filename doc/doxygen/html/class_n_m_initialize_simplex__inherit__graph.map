@@ -1,6 +1,0 @@
-<map id="NMInitializeSimplex" name="NMInitializeSimplex">
-<area shape="rect" id="node1" title="Class for simplex initialization of NM algorithm." alt="" coords="11,155,165,181"/>
-<area shape="rect" id="node2" href="$class_step.html" title="Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,..." alt="" coords="5,80,56,107"/>
-<area shape="rect" id="node3" href="$class_n_m_iteration_utils.html" title="Class of utils for NM iterations." alt="" coords="81,80,210,107"/>
-<area shape="rect" id="node4" href="$class_iteration_utils.html" title="Class of utils (attributes and helper functions) for some phases of an algorithm that involve Iterati..." alt="" coords="92,5,199,32"/>
-</map>

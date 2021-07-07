@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -57,7 +57,7 @@
 
 void NOMAD::SgtelibModelOptimize::init()
 {
-    _name = getAlgoName() + "Optimize";
+    setStepType(NOMAD::StepType::OPTIMIZE);
     verifyParentNotNull();
 
     // Set and verify run parameter values
@@ -142,7 +142,7 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         // Create a Mads step
         // Parameters for mads (_optRunParams and _optPbParams) are already updated.
         _mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams);
-        _mads->setName(_mads->getName() + " (SgtelibModelOptimize)");
+        //_mads->setName(_mads->getName() + " (SgtelibModelOptimize)");
         _mads->setEndDisplay(false);
         evc->resetModelEval();
         _mads->start();
@@ -184,6 +184,7 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
     // Ensure there is no model used in model optimization.
     _optRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
+    _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
 
     // Set direction type to Ortho 2n
     _optRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);

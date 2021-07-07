@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -73,7 +73,7 @@ std::istream& NOMAD::operator>>(std::istream& in, NOMAD::ArrayOfDouble& coords)
     {
         in >> coords[k];
     }
-    if (in.fail())
+    if (in.fail() && !in.eof())
     {
         std::string err = "ArrayOfDouble: bad input for operator>>";
         throw NOMAD::Exception(__FILE__, __LINE__, err);
@@ -95,6 +95,24 @@ NOMAD::ArrayOfDouble::ArrayOfDouble(size_t n, const NOMAD::Double& d)
         if (d.isDefined())
         {
             std::fill (_array, _array + _n, d);
+        }
+    }
+    else
+    {
+        _n = 0;
+    }
+}
+
+NOMAD::ArrayOfDouble::ArrayOfDouble(const std::vector<double> & v)
+  : _n(v.size()),
+    _array(nullptr)
+{
+    if (_n > 0)
+    {
+        _array = new NOMAD::Double[_n];
+        for (size_t k = 0; k < _n; k++)
+        {
+            _array[k] = v[k];
         }
     }
     else
@@ -382,7 +400,7 @@ void NOMAD::ArrayOfDouble::readValuesAsArray(const NOMAD::ArrayOfString& strDoub
         // Ex. 2-4 -> { 2, 3, 4 }
         std::vector<int> indexRange;
         bool firstValueProcessed = false;
-        if (d.atof(strDouble[0]) && d.isInteger() && d < _n)
+        if (d.atof(strDouble[0]) && d.isInteger() && d < (double)_n)
         {
             // First value is a valid index.
             indexRange.push_back(d.round());
@@ -396,10 +414,10 @@ void NOMAD::ArrayOfDouble::readValuesAsArray(const NOMAD::ArrayOfString& strDoub
                 // First value is an index range.
                 std::string firstIndexStr = strDouble[0].substr(0, hyphenIndex);
                 std::string lastIndexStr  = strDouble[0].substr(hyphenIndex+1, strDouble[0].size());
-                if (d.atof(firstIndexStr) && d.isInteger() && d < _n)
+                if (d.atof(firstIndexStr) && d.isInteger() && d < (double)_n)
                 {
                     NOMAD::Double dLast;
-                    if (dLast.atof(lastIndexStr) && dLast.isInteger() && dLast < _n)
+                    if (dLast.atof(lastIndexStr) && dLast.isInteger() && dLast < (double)_n)
                     {
                         // Push indices until dLast is reached.
                         for (int index = d.round(); index <= dLast; index++)
@@ -500,6 +518,20 @@ const NOMAD::ArrayOfDouble & NOMAD::ArrayOfDouble::operator *= ( const NOMAD::Do
 
 
 /*----------------------------------------------------------*/
+/*                    scalar division                       */
+/*----------------------------------------------------------*/
+const NOMAD::ArrayOfDouble & NOMAD::ArrayOfDouble::operator /= ( const NOMAD::Double & d )
+{
+    NOMAD::Double * p = _array;
+    for (size_t k = 0 ; k < _n ; ++k , ++p)
+    {
+        *p /= d;
+    }
+
+    return *this;
+}
+
+/*----------------------------------------------------------*/
 /*                   addition of two arrays                 */
 /*----------------------------------------------------------*/
 const NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator+(const NOMAD::ArrayOfDouble& p) const
@@ -542,6 +574,21 @@ const NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator-(const NOMAD::ArrayOfD
     }
 
     return tmp;
+}
+
+bool NOMAD::ArrayOfDouble::roundToPrecision(const NOMAD::ArrayOfDouble & precision)
+{
+    bool modif = false;
+
+    for (size_t i = 0; i < _n; i++)
+    {
+        if (_array[i].roundToPrecision(precision[i]))
+        {
+            modif = true;
+        }
+    }
+    return modif;
+
 }
 
 

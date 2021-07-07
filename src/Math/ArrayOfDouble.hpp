@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -69,8 +69,8 @@ class ArrayOfDouble {
 
 public:
 
-    static const std::string pStart; ///< Static variable used for array delimitation.
-    static const std::string pEnd; ///< Static variable used for array delimitation.
+    DLL_UTIL_API static const std::string pStart; ///< Static variable used for array delimitation.
+    DLL_UTIL_API static const std::string pEnd; ///< Static variable used for array delimitation.
 
 protected:
     /*---------*/
@@ -91,6 +91,13 @@ public:
      \param val Initial value for all elements of the array -- \b IN (Opt) (default = undefined real).
      */
     explicit ArrayOfDouble(const size_t n = 0, const Double &val = Double());
+    
+    /// Constructor #2 -- used by PyNomad interface
+    /**
+     \param v vector of double -- \b IN .
+     */
+    explicit ArrayOfDouble(const std::vector<double> & v);
+    
 
     /// Copy constructor.
     /**
@@ -226,6 +233,14 @@ public:
      */
     const ArrayOfDouble & operator *= ( const Double & d );
 
+    /// Division by a scalar.
+    /**
+     - This implements \c *this \c = \c d \c / \c *this.
+     - The current object \c *this is modified.
+     \param d   The scalar -- \b IN.
+     \return    The AOD times \c d.
+     */
+    const ArrayOfDouble & operator /= ( const Double & d );
 
     /// Addition with another array.
     /**
@@ -254,6 +269,14 @@ public:
      */
     bool isMultipleOf(const ArrayOfDouble &gran, int &index) const;
 
+    /**
+    * Round all elements to their precision given as number of decimals.
+    \param precision    The number of decimals for each element -- \b IN.
+    \return        A \c bool equal to \c true if a single element has been rounded.
+    */
+    bool roundToPrecision(const NOMAD::ArrayOfDouble & precision);
+    
+    
     /*------------*/
     /* Comparison */
     /*------------*/

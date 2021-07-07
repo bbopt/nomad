@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -63,7 +63,7 @@ void NOMAD::EvalParameters::init()
         registerAttributes( _definition );
 
     }
-    catch ( NOMAD::Exception & e)
+    catch (NOMAD::Exception& e)
     {
         std::string errorMsg = "Attribute registration failed: ";
         errorMsg += e.what();
@@ -85,63 +85,11 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
         return;
     }
 
-    // Update BB_EXE if it was set by user:
-    // - Set full path
-    // - Remove '$' indicating a global call (e.g. python, perl)
-    // - Verify file is executable
-    if (isSetByUser("BB_EXE"))
-    {
-        auto bbExe = getAttributeValueProtected<std::string>("BB_EXE", false);
-        /*
-        // Ignore; the isSetByUser() is somehow sticky, so this causes issues in unit tests.
-        if (bbExe.empty())
-        {
-            throw NOMAD::Exception(__FILE__, __LINE__, "BB_EXE is not defined");
-        }
-        */
-
-        bool localExe = true;
-        auto problemDir = runParams->getAttributeValue<std::string>("PROBLEM_DIR");
-
-        if ('$' == bbExe[0])
-        {
-            // When the '$' character is put in first
-            // position of a string, it is considered
-            // as global and no path will be added.
-            localExe = false;
-        }
-
-        // Convert arguments; add path as needed.
-        auto bbExeAsArray = NOMAD::ArrayOfString(bbExe);
-        bbExe.clear();
-        for (size_t i = 0; i < bbExeAsArray.size(); i++)
-        {
-            std::string word = bbExeAsArray[i];
-            if (i > 0)
-            {
-                bbExe += " ";
-            }
-
-            if ('$' == word[0])
-            {
-                bbExe += word.substr(1, word.size());
-            }
-            else
-            {
-                // word is relative to problem directory.
-                completeFileName(word, problemDir);
-                bbExe += word;
-            }
-        }
-
-        setAttributeValue("BB_EXE", bbExe);
-        bbExeAsArray = NOMAD::ArrayOfString(bbExe);
-
-        if (localExe && !bbExe.empty() && !checkExeFile(bbExeAsArray[0]))
-        {
-            throw NOMAD::Exception(__FILE__, __LINE__, "BB_EXE needs to be an executable file: " + bbExeAsArray[0]);
-        }
-    }
+    /*--------------------------*/
+    /* BB_EXE and SURROGATE_EXE */
+    /*--------------------------*/
+    updateExeParam(runParams, "BB_EXE");
+    updateExeParam(runParams, "SURROGATE_EXE");
 
     /*----------------*/
     /* BB_OUTPUT_TYPE */
@@ -157,34 +105,70 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
     /*---------------------------*/
     /* BB_EVAL_FORMAT (internal) */
     /*---------------------------*/
-    size_t n = pbParams->getAttributeValue<size_t>("DIMENSION");
-    auto evalFormat = getAttributeValueProtected<NOMAD::ArrayOfDouble>("BB_EVAL_FORMAT",false);
-    if (!evalFormat.isDefined())
-    {
-        // Default precision is computed based on Epsilon.
-        int defaultPrec = static_cast<int>(-log10(NOMAD::Double::getEpsilon())) + 1;
-        evalFormat.reset(n, defaultPrec);
-        setAttributeValue("BB_EVAL_FORMAT", evalFormat);
-    }
-
-    auto bbInputType = pbParams->getAttributeValue<NOMAD::BBInputTypeList>("BB_INPUT_TYPE");
-    // CONTINUOUS variables will be written with full precision.
-    // INTEGER, BOOLEAN, and eventually CATEGORICAL variables will be written
-    // as integers.
-    for (size_t i = 0; i < n; i++)
-    {
-        if (NOMAD::BBInputType::CONTINUOUS != bbInputType[i])
-        {
-            evalFormat[i] = -1;
-        }
-    }
-    setAttributeValue("BB_EVAL_FORMAT", evalFormat);
+    
+    // Copy of POINT_FORMAT
+    auto pointFormat = pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("POINT_FORMAT");
+    setAttributeValue("BB_EVAL_FORMAT", pointFormat);
 
     _toBeChecked = false;
 
 }
 // End checkAndComply()
 
+
+void NOMAD::EvalParameters::updateExeParam(const std::shared_ptr<NOMAD::RunParameters>& runParams, const std::string& paramName)
+{
+    // Update BB_EXE / SURROGATE_EXE if it was set by user:
+    // - Set full path
+    // - Remove '$' indicating a global call (e.g. python, perl)
+    // - Verify file is executable
+    if (isSetByUser(paramName))
+    {
+        auto exe = getAttributeValueProtected<std::string>(paramName, false);
+
+        bool localExe = true;
+        auto problemDir = runParams->getAttributeValue<std::string>("PROBLEM_DIR");
+
+        if ('$' == exe[0])
+        {
+            // When the '$' character is put in first
+            // position of a string, it is considered
+            // as global and no path will be added.
+            localExe = false;
+        }
+
+        // Convert arguments; add path as needed.
+        auto exeAsArray = NOMAD::ArrayOfString(exe);
+        exe.clear();
+        for (size_t i = 0; i < exeAsArray.size(); i++)
+        {
+            std::string word = exeAsArray[i];
+            if (i > 0)
+            {
+                exe += " ";
+            }
+
+            if ('$' == word[0])
+            {
+                exe += word.substr(1, word.size());
+            }
+            else
+            {
+                // word is relative to problem directory.
+                NOMAD::completeFileName(word, problemDir);
+                exe += word;
+            }
+        }
+
+        setAttributeValue(paramName, exe);
+        exeAsArray = NOMAD::ArrayOfString(exe);
+
+        if (localExe && !exe.empty() && !checkExeFile(exeAsArray[0]))
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__, paramName + " needs to be an executable file: " + exeAsArray[0]);
+        }
+    }
+}
 
 
 

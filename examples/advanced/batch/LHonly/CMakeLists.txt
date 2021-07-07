@@ -1,4 +1,6 @@
+set(CMAKE_EXECUTABLE_SUFFIX .exe)
 add_executable(u.exe u.cpp )
+set_target_properties(u.exe PROPERTIES SUFFIX "")
 
 # installing executables and libraries
 install(TARGETS u.exe

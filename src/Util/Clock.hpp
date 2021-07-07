@@ -1,17 +1,17 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4.0 has been created by                                        */
+/*  NOMAD - Version 4 has been created by                                          */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  The copyright of NOMAD - version 4.0 is owned by                               */
+/*  The copyright of NOMAD - version 4 is owned by                                 */
 /*                 Charles Audet               - Polytechnique Montreal            */
 /*                 Sebastien Le Digabel        - Polytechnique Montreal            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
-/*  NOMAD v4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,            */
+/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
 /*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
 /*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
 /*  for Data Valorization)                                                         */
@@ -56,20 +56,8 @@
 
 #include <ctime>
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
-
-#ifdef _MSC_VER
-#pragma warning(disable:4275)
-#pragma warning(disable:4251)
-#ifdef DLL_EXPORTS
-#define DLL_API __declspec(dllexport)
-#else
-#define DLL_API __declspec(dllimport)
-#endif
-#else
-#define DLL_API
-#endif
-
 
 /// Clock class.
 /**
@@ -80,13 +68,13 @@
  std::cout << "elapsed CPU time  = " << Clock::getCPUTime()  << std::endl;
  \endcode
  */
-class DLL_API Clock {
+class DLL_UTIL_API Clock {
 
 private:
 
-    static time_t       _real_t0;          ///< Wall clock time measurement.
-    static clock_t      _CPU_t0;           ///< CPU time measurement.
-    static const double _D_CLOCKS_PER_SEC; ///< System constant for CPU time measurement.
+    static time_t       _real_t0;           ///< Wall clock time measurement.
+    static clock_t      _CPU_t0;            ///< CPU time measurement.
+    static const double _D_CLOCKS_PER_SEC;  ///< System constant for CPU time measurement.
 
 public:
     // No need for constructor. All is static.
