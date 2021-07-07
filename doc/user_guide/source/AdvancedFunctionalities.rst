@@ -10,6 +10,23 @@ Advanced parameters are intended to setup optimization problems, algorithmic and
 Only a few advanced parameters are presented below; all advanced parameters can be obtained with ``$NOMAD_HOME -h advanced``.
 Also a complete list of parameters and a short description is available in :ref:`appendix_parameters`.
 
+.. _eval_queue_sort:
+
+``EVAL_QUEUE_SORT``
+"""""""""""""""""""
+
+Allows ordering of points before evaluation. This option has an effect only if the opportunistic strategy is enabled (parameter :ref:`eval_opportunistic`). The possible arguments are:
+
+* ``DIR_LAST_SUCCESS``: Points that are generated in a direction similar to the last direction that provided a successful point are evaluated first.
+
+* ``LEXICOGRAPHICAL``: Points are sorted in lexicographical order before evaluation.
+
+* ``RANDOM``: Mix points randomly before evaluation, instead of sorting them.
+
+* ``SURROGATE``: Sort points using values given by static surrogate. See parameter :ref:`surrogate_exe`.
+
+
+
 .. _fixed_variable:
 
 ``FIXED_VARIABLE``
@@ -79,7 +96,7 @@ The *Variable Neighborhood Search (VNS)* is a strategy to escape local minima.
 
 The VNS Mads search strategy is described in [AuBeLe08b]_. It is based on the Variable Neighborhood Search metaheuristic [MlHa97a]_ and [HaMl01a]_.
 
-VNS Mads should only be used for problems with several such local optima. It will cost some additional evaluations, since each search performs another MADS run from a perturbed starting point. Currently, the VNS Mads search will not use a surrogate if it is provided. This feature will be available in the future. 
+VNS Mads should only be used for problems with several such local optima. It will cost some additional evaluations, since each search performs another MADS run from a perturbed starting point. Currently, the VNS Mads search will not use a surrogate if it is provided. This feature will be available in the future.
 
 In NOMAD, the VNS Mads search strategy is not activated by default. In order to use the VNS Mads search, the user has to define the parameter ``VNS_MADS_SEARCH``, with a boolean. The maximum desired ratio of VNS Mads blackbox evaluations over the total number of blackbox evaluations is specified with the real value parameter ``VNS_MADS_SEARCH_TRIGGER``. For example, a value of 0.75 means that  NOMAD will try to perform a maximum of 75% blackbox evaluations  within the VNS Mads search. The default trigger ratio is 0.75.
 
@@ -101,6 +118,25 @@ The possible syntaxes to specify the granularity of the variables are as follows
 * ``GRANULARITY * v``: all coordinates set to ``v``.
 
 
+.. _surrogate_exe:
+
+``SURROGATE_EXE``
+"""""""""""""""""
+
+Static surrogate executable.
+
+A static surrogate, or static surrogate function, is a cheaper blackbox function that is used, at least partially, to drive the optimization.
+
+.. figure:: ../figs/surrogate.png
+   :align: center
+
+   Blackbox optimization using a surrogate
+
+.. note:: The static surrogate is provided by the user.
+
+The current version of NOMAD can use a static surrogate, provided by the user, which is not updated during the algorithm. See [BoDeFrSeToTr99a]_ for a survey on surrogate optimization, and [AuCM2019]_ about using static surrogate evaluations. This surrogate may be used for sorting points before evaluation (see parameter :ref:`eval_queue_sort`).
+
+In batch mode, the parameter ``SURROGATE_EXE`` associates a static surrogate executable with the blackbox executable given by parameter ``BB_EXE``. The surrogate must display the same input and output types as its associated blackbox, given by parameters ``BB_INPUT_TYPE`` and ``BB_OUTPUT_TYPE``. In library mode, if a surrogate function is to be used, then its Evaluator should be of type ``EvalType::SURROGATE`` (see Section :ref:`library_mode`).
 
 
 .. _block_evaluations:
@@ -237,20 +273,27 @@ An example of usage of PSD-MADS in library mode is in
 
 .. topic:: References
 
+  .. [AuBeLe08b] C. Audet, V. Béchard, and S. Le Digabel.
+    Nonsmooth optimization through mesh adaptive direct search and variable neighborhood search.
+    *Journal of Global Optimization*, 41(2):299– 318, 2008.
+
+  .. [AuCM2019] C. Audet and J. Côté-Massicotte.
+    Dynamic improvements of static surrogates in direct search optimization.
+    *Optimization Letters* 13, 6 (2019), 1433-1447
+
   .. [AuDeLe07] C. Audet, J.E. Dennis, Jr., and S. Le Digabel.
     Parallel space decomposition of the mesh adaptive direct search algorithm.
     *SIAM Journal on Optimization*, 19(3):1150–1170, 2008.
 
-  .. [AuBeLe08b] C. Audet, V. Béchard, and S. Le Digabel. 
-    Nonsmooth optimization through mesh adaptive direct search and variable neighborhood search. 
-    *Journal of Global Optimization*, 41(2):299– 318, 2008.
+  .. [BoDeFrSeToTr99a] A.J. Booker, J.E. Dennis, Jr., P.D. Frank, D.B. Serafini, V. Torczon, and M.W. Trosset.
+    A Rigorous Framework for Optimization of Expensive Functions by Surrogates.
+    *Structural and Multidisciplinary Optimization*, 17(1):1–13, 1999.
 
-  .. [MlHa97a] N. Mladenović and P. Hansen. 
-    Variable neighborhood search. 
-    *Computers and Operations Research*, 24(11):1097–1100, 1997.
-
-  .. [HaMl01a] P. Hansen and N. Mladenović. 
+  .. [HaMl01a] P. Hansen and N. Mladenović.
     Variable neighborhood search: principles and applications.
     *European Journal of Operational Research*, 130(3):449–467, 2001.
 
+  .. [MlHa97a] N. Mladenović and P. Hansen.
+    Variable neighborhood search.
+    *Computers and Operations Research*, 24(11):1097–1100, 1997.
 
