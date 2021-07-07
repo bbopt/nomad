@@ -9,8 +9,8 @@ BB_OUTPUT_TYPE,NOMAD::BBOutputTypeList,basic,"Type of outputs provided by the bl
 CACHE_FILE,std::string,basic,"Cache file name",No default
 CACHE_SIZE_MAX,size_t,advanced,"Maximum number of evaluation points to be stored in the cache",INF
 DIMENSION,size_t,basic,"Dimension of the optimization problem (required)",0
-DIRECTION_TYPE,NOMAD::DirectionType,advanced,"Type of direction for Mads poll",ORTHO 2N
-DIRECTION_TYPE_SECONDARY_POLL,NOMAD::DirectionType,advanced,"Direction type for Mads secondary poll",DOUBLE
+DIRECTION_TYPE,NOMAD::DirectionTypeList,advanced,"Direction types for Mads Poll step",ORTHO 2N
+DIRECTION_TYPE_SECONDARY_POLL,NOMAD::DirectionTypeList,advanced,"Direction types for Mads secondary poll",DOUBLE
 DISPLAY_ALL_EVAL,bool,basic,"Flag to display all evaluations",false
 DISPLAY_DEGREE,int,basic,"Level of verbose during execution",2
 DISPLAY_HEADER,size_t,advanced,"Frequency at which the stats header is displayed",40
@@ -22,6 +22,8 @@ EVAL_OPPORTUNISTIC,bool,advanced,"Opportunistic strategy: Terminate evaluations 
 EVAL_QUEUE_CLEAR,bool,advanced,"Opportunistic strategy: Flag to clear EvaluatorControl queue between each run",true
 EVAL_QUEUE_SORT,NOMAD::EvalSortType,advanced,"How to sort points before evaluation",DIR_LAST_SUCCESS
 EVAL_STATS_FILE,string,basic,"The name of the file for stats about evaluations and successes",No default
+EVAL_SURROGATE_COST,size_t,advanced,"Cost of the surrogate function versus the true function",INF
+EVAL_SURROGATE_OPTIMIZATION,bool,advanced,"Use static surrogate as blackbox for optimization",false
 EVAL_USE_CACHE,bool,advanced,"Use cache in algorithms",true
 FIXED_VARIABLE,NOMAD::Point,advanced,"Fix some variables to some specific values",No default
 FRAME_CENTER_USE_CACHE,bool,advanced,"Find best points in the cache and use them as frame centers",false
@@ -42,6 +44,7 @@ MAX_BLOCK_EVAL,size_t,basic,"Stopping criterion on the number of blocks evaluati
 MAX_EVAL,size_t,advanced,"Stopping criterion on the number of evaluations (blackbox and cache)",INF
 MAX_ITERATION_PER_MEGAITERATION,size_t,advanced,"Maximum number of Iterations to generate for each MegaIteration.",INF
 MAX_ITERATIONS,size_t,advanced,"The maximum number of iterations of the MADS algorithm",INF
+MAX_SURROGATE_EVAL_OPTIMIZATION,size_t,basic,"Stopping criterion on the number of static surrogate evaluations",INF
 MAX_TIME,size_t,basic,"Maximum wall-clock time in seconds",INF
 MEGA_SEARCH_POLL,bool,advanced,"Evaluate points generated from Search and Poll steps all at once",false
 MIN_FRAME_SIZE,NOMAD::ArrayOfDouble,basic,"Termination criterion on minimal frame size of MADS",No default
@@ -104,8 +107,13 @@ SSD_MADS_SUBPROBLEM_MAX_BB_EVAL,size_t,advanced,"Max number of evaluations for e
 STATS_FILE,NOMAD::ArrayOfString,basic,"The name of the stats file",No default
 STOP_IF_FEASIBLE,bool,advanced,"Stop algorithm once a feasible point is obtained",false
 STOP_IF_PHASE_ONE_SOLUTION,bool,advanced,"Stop algorithm once a phase one solution is obtained",false
-TMP_DIR,std::string,advanced,"Directory where to put temporary files",/tmp/
+SURROGATE_EXE,std::string,advanced,"Static surrogate executable",No default
+TMP_DIR,std::string,advanced,"Directory where to put temporary files",No default
 UPPER_BOUND,NOMAD::ArrayOfDouble,basic,"The optimization problem upper bounds for each variable",No default
 USER_CALLS_ENABLED,bool,advanced,"Controls the automatic calls to user function",true
 VARIABLE_GROUP,NOMAD::ListOfVariableGroup,advanced,"The groups of variables)",No default
+VNS_MADS_OPTIMIZATION,bool,advanced,"VNS MADS stand alone optimization for constrained and unconstrained pbs",false
+VNS_MADS_SEARCH,bool,advanced,"VNS Mads optimization used as a search step for Mads",false
+VNS_MADS_SEARCH_MAX_TRIAL_PTS_NFACTOR,size_t,advanced,"VNS-Mads search stopping criterion.",100
+VNS_MADS_SEARCH_TRIGGER,NOMAD::Double,advanced,"VNS Mads search trigger",0.75
 X0,NOMAD::ArrayOfPoint,basic,"The initial point(s)",No default
