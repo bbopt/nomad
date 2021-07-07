@@ -105,7 +105,7 @@ cmake --build build/release     ---> Build all the libraries and applications
                                      Option --parallel xx can be added for faster
                                        build.
                                      Option --config Release should be used on
-                                       *Windows* to compile in Release configuration.
+                                       *Windows* to compile Release configuration.
                                      The default configuration is Debug.
 
 cmake --install build/release   ---> Copy binaries and headers in

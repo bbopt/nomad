@@ -39,7 +39,7 @@ The parameter may be entered with several types of arguments:
 * A vector of :math:`n` values with format ``(v0 v1 ... vn-1)``. Character ``-`` is used for free variables.
 
 * An index range if at least one starting point has been defined. ``FIXED_VARIABLE i-j``: variables ``i`` to ``j``
-  are fixed to their initial (``i-j`` may be replaced by ``i`` only). See :ref`x0` for practical examples of index ranges.
+  are fixed to their initial (``i-j`` may be replaced by ``i`` only). See :ref:`x0` for practical examples of index ranges.
 
 .. _seed:
 
@@ -113,7 +113,7 @@ The possible syntaxes to specify the granularity of the variables are as follows
 
 * :math:`n` real values with format ``GRANULARITY (v0 v1 ... vn-1)``.
 
-* ``GRANULARITY i-j v``: coordinates  ``i` to  ``j`` set to ``v``.
+* ``GRANULARITY i-j v``: coordinates  ``i`` to  ``j`` set to ``v``.
 
 * ``GRANULARITY * v``: all coordinates set to ``v``.
 
@@ -269,6 +269,45 @@ Remaining available threads are not used for algorithmic management or point gen
 only for point evaluation.
 An example of usage of PSD-MADS in library mode is in
 ``$NOMAD_HOME/examples/advanced/library/PSDMads``.
+
+.. _hot_restart:
+
+Hot and Warm Restart
+--------------------
+
+This new feature of NOMAD 4 makes it possible to continue the solving process after it has started, 
+without having to restart it from the beginning.
+In the case of hot restart, the user interrupts the solver to change the value of a parameter. 
+With warm restart, the user changes a parameter from a resolution that has already reached a termination condition. 
+In both cases, the solving process is then continued from its current state.
+
+Hot restart
+"""""""""""
+
+To enable hot restart, set parameter ``HOT_RESTART_ON_USER_INTERRUPT`` to ``true``.
+While NOMAD is running, interrupt the run with the command ``CTRL-C``.
+New values for parameters may be entered.
+For example, entering ``LH_SEARCH 0 20`` will make LH search be used for the rest of the optimization.
+The syntax is the same as the syntax of a parameter file, when in batch mode.
+When all new parameter values are entered, continue optimization by entering
+the command ``CTRL-D``. The new parameter values will be taken into account.
+
+Warm restart
+""""""""""""
+
+To enable warm restart, parameters ``HOT_RESTART_READ_FILES`` and ``HOT_RESTART_WRITE_FILES`` need to be set to ``true``.
+When NOMAD runs a first time, files ``hotrestart.txt`` and ``cache.txt`` are written to the problem directory.
+This information is used if NOMAD is run a second time.
+Instead of redoing the same optimization, NOMAD will continue where it was when the first run was ended.
+For example, suppose the first NOMAD run stopped at evaluation 100 because the value of parameter ``MAX_BB_EVAL`` was 100.
+The user still has room for 50 more evaluations.
+The parameter file may be changed with value ``MAX_BB_EVAL 150``, and the second run of
+NOMAD will start where it was, with evaluation 101.
+
+Doxygen
+-------
+
+A local doxygen documentation can be created by running the ``doxygen`` command (if available) in ``$NOMAD_HOME/doc/doxygen``. The documentation can be opened by a browser at ``$NOMAD_HOME/doc/doxygen/html/index.html``.
 
 
 .. topic:: References

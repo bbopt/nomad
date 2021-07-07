@@ -43,13 +43,23 @@ where the feasible set :math:`\Omega = \{ x \in X : c_j(x) \leq 0, j \in J\} \su
 Basics of the MADS algorithm
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-At the core of NOMAD resides the *Mesh Adaptive Direct Search (MADS)* algorithm. As the name implies, this method generates iterates on a series of meshes with varying size. A mesh is a discretization of the space of variables. However, also as the name implies, the algorithm performs an adaptive search on the meshes including controlling the refinement of the meshes. The reader interested in the rather technical details should read Reference [AuDe2006]_.
+At the core of NOMAD resides the *Mesh Adaptive Direct Search (MADS)* algorithm.
+As the name implies, this method generates iterates on a series of meshes with varying size.
+A mesh is a discretization of the space of variables.
+However, also as the name implies, the algorithm performs an adaptive search on the meshes including controlling the refinement of the meshes.
+The reader interested in the rather technical details should read Reference [AuDe2006]_.
 
-The objective of each iteration of the *MADS* algorithm, is to generate a trial point on the mesh that improves the current best solution. When an iteration fails to achieve this, the next iteration is initiated on a finer mesh.
+The objective of each iteration of the *MADS* algorithm, is to generate a trial point on the mesh that improves the current best solution.
+When an iteration fails to achieve this, the next iteration is initiated on a finer mesh.
 
-Each iteration is composed of two principal steps called the *Search* and the *Poll* steps [AuDe2006]_. The *Search* step is crucial in practice because it is so flexible, but it is a difficulty for the theory for the same reason. The *Search* can return any point on the underlying mesh, but of course, it is trying to identify a point that improves the current best solution.
+Each iteration is composed of two principal steps called the *Search* and the *Poll* steps [AuDe2006]_.
+The *Search* step is crucial in practice because it is so flexible and can improve the performance significantly.
+The *Search* step is constrained by the theory to return points on the underlying mesh, but of course,
+it is trying to identify a point that improves the current best solution.
 
-The *Poll* step is more rigidly defined, though there is still some flexibility in how this is implemented. The *Poll* step generates trial mesh points in the vicinity of the best current solution. Since the *Poll* step is the basis of the convergence analysis, it is the part of the algorithm where most research has been concentrated.
+The *Poll* step is more rigidly defined, though there is still some flexibility in how this is implemented.
+The *Poll* step generates trial mesh points in the vicinity of the best current solution.
+Since the *Poll* step is the basis of the convergence analysis, it is the part of the algorithm where most research has been concentrated.
 
 A high-level presentation of *MADS* is shown in the pseudo-code below.
 
@@ -65,24 +75,31 @@ Using NOMAD
 
 Minimally, users must accomplish several tasks to solve their own optimization problems:
 
-* Create a custom blackbox program(s) to evaluate the functions :math:`f` and :math:`c_j` OR embed the functions evaluations in C++ source code to be linked with the NOMAD library.
+* Create a custom blackbox program(s) to evaluate the functions :math:`f` and :math:`c_j` OR embed
+  the functions evaluations in C++ source code to be linked with the NOMAD library.
 
 * Create the optimization problem definition in a parameter file OR embed the problem definition in C++ source code to be linked with the NOMAD library.
 
 * Launch the execution at the command prompt OR from another executable system call.
 
 
-Users can find several examples provided in the installation package and described in this user guide to perform customization for their problems. The installation procedure is given in :ref:`installation`. New users should refer to :ref:`getting_started`. The most important instructions to use NOMAD are in :ref:'how_to_use_nomad'. In addition, tricks that may help solving specific problems and improve NOMAD efficiency are presented in :ref:`tricks_of_the_trade`. Advanced parameters and functionalities are presented in :ref:`advanced_functionalities`.
+Users can find several examples provided in the installation package and described in this user guide to perform customization for their problems.
+The installation procedure is given in :ref:`installation`. New users should refer to :ref:`getting_started`.
+The most important instructions to use NOMAD are in :ref:'basic_nomad_usage'.
+In addition, tricks that may help solving specific problems and improve NOMAD efficiency are presented in :ref:`tricks_of_the_trade`.
+Advanced parameters and functionalities are presented in :ref:`advanced_functionalities`.
 
 Supported platforms and environments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-NOMAD source codes are in C++ and are identical for all supported platforms. See :ref:`installation` for details to obtain binaries from the source files.
+NOMAD source codes are in C++ and are identical for all supported platforms.
+See :ref:`installation` for details to obtain binaries from the source files.
 
 Authors and fundings
 ^^^^^^^^^^^^^^^^^^^^
 
-The development of NOMAD started in 2001. Three versions of NOMAD have been developed before NOMAD 4. NOMAD 4 and NOMAD 3 are currently supported. NOMAD 4 is almost a completely new code compared with NOMAD 3.
+The development of NOMAD started in 2001. Three versions of NOMAD have been developed before NOMAD 4.
+NOMAD 4 and NOMAD 3 are currently supported. NOMAD 4 is almost a completely new code compared with NOMAD 3.
 
 NOMAD 4 has been funded by Huawei Canada, Rio Tinto, Hydro-Québec, NSERC (Natural Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute for Data Valorization)
 
@@ -90,7 +107,8 @@ NOMAD 3 was created and developed by Charles Audet, Sebastien Le Digabel, Christ
 
 NOMAD 1 and 2 were created and developed by Mark Abramson, Charles Audet, Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and Exxon Mobil.
 
-The library for dynamic surrogates (SGTELIB) has been developed by Bastien Talgorn (bastien-talgorn@fastmail.com), McGill University, Montreal. The SGTELIB is included in NOMAD since version 3.8.0.
+The library for dynamic surrogates (SGTELIB) has been developed by Bastien Talgorn (bastien-talgorn@fastmail.com), McGill University, Montreal.
+The SGTELIB is included in NOMAD since version 3.8.0.
 
 **Developers** of the methods behind NOMAD include:
 
@@ -105,9 +123,11 @@ The library for dynamic surrogates (SGTELIB) has been developed by Bastien Talgo
 Acknowledgments
 ^^^^^^^^^^^^^^^
 
-The developers of NOMAD wish to thank Florian Chambon, Mohamed Sylla and Quentin Reynaud, all from ISIMA, for their contribution to the project during Summer internships, and to Anthony Guillou and Dominique Orban for their help with AMPL, and their suggestions.
+The developers of NOMAD wish to thank Florian Chambon, Mohamed Sylla and Quentin Reynaud, all from ISIMA, for their contribution
+to the project during Summer internships, and to Anthony Guillou and Dominique Orban for their help with AMPL, and their suggestions.
 
-A special thank to Maud Bay, Eve Bélisle, Vincent Garnier, Michal Kvasnička, Alexander Lutz, Rosa-Maria Torres-Calderon, Yuri Vilmanis, Martin Posch, Etienne Duclos, Emmanuel Bigeon, Walid Zghal, Jerawan Armstrong, Stéphane Alarie and Klaus Truemper for their feedbacks and tests that significantly contributed to improve NOMAD. Some features of NOMAD have been developed under the impulsion of enthusiastic users/developers: Andrea Ianni, Florian Chambon, Mohamed Sylla, Quentin Reynaud, Amina Ihaddadene, Bastien Talgorn, Nadir Amaioua and Catherine Poissant. We also wish to thank Pascal Côté for his contribution in the development of the Python interface pyNomad and Jonathan Currie for the development of the foundations for a strong NOMAD interface for MATLAB.
+A special thank to Maud Bay, Eve Bélisle, Vincent Garnier, Michal Kvasnička, Alexander Lutz, Rosa-Maria Torres-Calderon, Yuri Vilmanis, Martin Posch, Etienne Duclos, Emmanuel Bigeon, Walid Zghal, Jerawan Armstrong, Stéphane Alarie and Klaus Truemper for their feedbacks and tests that significantly contributed to improve NOMAD. Some features of NOMAD have been developed under the impulsion of enthusiastic users/developers: Andrea Ianni, Florian Chambon, Mohamed Sylla, Quentin Reynaud, Amina Ihaddadene, Bastien Talgorn, Nadir Amaioua and Catherine Poissant.
+We also wish to thank Pascal Côté for his contribution in the development of the Python interface pyNomad and Jonathan Currie for the development of the foundations for a strong NOMAD interface for MATLAB.
 
 The contributions of  Miguel Anjos, Romain Couderc, Miguel Diago Martinez, Solène Kojtych, Guillaume Lameynardie, Wim Lavrijsen, Alexis Montoison, Caroline Rocha, Ludovic Salomon and Renaud Saltet was highly appreciated during the development and testing of NOMAD 4.
 

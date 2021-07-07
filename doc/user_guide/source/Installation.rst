@@ -98,6 +98,11 @@ For Windows, the default configuration is Debug. To obtain the Release version::
 
 Option ``--parallel xx`` can be added for faster build
 
+It is possible to build only a single application in its working directory::
+
+  cd $NOMAD_HOME/examples/basic/library/example1
+  cmake --build $NOMAD_HOME/build/release --target example1_lib.exe
+
 3- Install
 """"""""""
 
@@ -114,7 +119,6 @@ The executable ``nomad`` will installed into the directory::
 Additionally a symbolic link to ``nomad`` binary is available::
 
   $NOMAD_HOME/bin
-
 
 
 
@@ -136,7 +140,10 @@ Use another compiler
 
 The environment variables ``CC`` and ``CXX`` can be used to select the ``C`` and ``C++`` compilers.
 
-.. note:: ``Clang`` is the default compiler for Mac OSX using XCode. Users of Mac OSX can install ``GCC`` compilers using `MacPorts <https://www.macports.org/>`_ or `Homebrew <http://brew.sh/>`_.
+.. note:: ``Clang`` is the default compiler for Mac OSX using XCode. But, *OpenMP* (used for parallel evaluations)
+   support is disabled in *Clang* that come with *Xcode*.
+   Users of Mac OSX can install and use another compiler to enable *OpenMP* support.
+   For example, ``GCC`` compilers can be obtained using `MacPorts <https://www.macports.org/>`_ or `Homebrew <http://brew.sh/>`_.
 
 
 Testing installation
@@ -144,6 +151,14 @@ Testing installation
 
 Once building **and installation** have been performed some tests can be performed.
 By default the examples are built and can be tested::
+
+The NOMAD binary can be tested::
+
+  $NOMAD_HOME/bin/nomad -v
+
+This should return the version number on the command line.
+
+Additionally, by default the examples are built and can be tested::
 
   cd build/release
   ctest
