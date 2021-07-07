@@ -87,6 +87,20 @@ To disable the use of quadratic models, the parameter ``QUAD_MODEL_SEARCH`` can 
 Models from the *SGTELIB* library can be used by setting ``SGTELIB_MODEL_SEARCH`` to ``yes``.
 Many parameters are available to control *SGTELIB* models: ``$NOMAD_HOME/bin/nomad -h SGTELIB``.
 
+.. _vns_search:
+
+``VNS_MADS_SEARCH``
+"""""""""""""""""""
+
+The *Variable Neighborhood Search (VNS)* is a strategy to escape local minima.
+
+The VNS Mads search strategy is described in [AuBeLe08b]_. It is based on the Variable Neighborhood Search metaheuristic [MlHa97a]_ and [HaMl01a]_.
+
+VNS Mads should only be used for problems with several such local optima. It will cost some additional evaluations, since each search performs another MADS run from a perturbed starting point. Currently, the VNS Mads search will not use a surrogate if it is provided. This feature will be available in the future.
+
+In NOMAD, the VNS Mads search strategy is not activated by default. In order to use the VNS Mads search, the user has to define the parameter ``VNS_MADS_SEARCH``, with a boolean. The maximum desired ratio of VNS Mads blackbox evaluations over the total number of blackbox evaluations is specified with the real value parameter ``VNS_MADS_SEARCH_TRIGGER``. For example, a value of 0.75 means that  NOMAD will try to perform a maximum of 75% blackbox evaluations  within the VNS Mads search. The default trigger ratio is 0.75.
+
+
 .. _granularity:
 
 ``GRANULARITY``
@@ -259,11 +273,27 @@ An example of usage of PSD-MADS in library mode is in
 
 .. topic:: References
 
-  .. [AuCM2019] C. Audet and J. Côté-Massicotte. Dynamic improvements of static surrogates in direct search optimization. *Optimization Letters* 13, 6 (2019), 1433-1447
+  .. [AuBeLe08b] C. Audet, V. Béchard, and S. Le Digabel.
+    Nonsmooth optimization through mesh adaptive direct search and variable neighborhood search.
+    *Journal of Global Optimization*, 41(2):299– 318, 2008.
+
+  .. [AuCM2019] C. Audet and J. Côté-Massicotte.
+    Dynamic improvements of static surrogates in direct search optimization.
+    *Optimization Letters* 13, 6 (2019), 1433-1447
 
   .. [AuDeLe07] C. Audet, J.E. Dennis, Jr., and S. Le Digabel.
     Parallel space decomposition of the mesh adaptive direct search algorithm.
     *SIAM Journal on Optimization*, 19(3):1150–1170, 2008.
 
-  .. [BoDeFrSeToTr99a] A.J. Booker, J.E. Dennis, Jr., P.D. Frank, D.B. Serafini, V. Torczon, and M.W. Trosset.  A Rigorous Framework for Optimization of Expensive Functions by Surrogates. Structural and Multidisciplinary Optimization, 17(1):1–13, 1999.
+  .. [BoDeFrSeToTr99a] A.J. Booker, J.E. Dennis, Jr., P.D. Frank, D.B. Serafini, V. Torczon, and M.W. Trosset.
+    A Rigorous Framework for Optimization of Expensive Functions by Surrogates.
+    *Structural and Multidisciplinary Optimization*, 17(1):1–13, 1999.
+
+  .. [HaMl01a] P. Hansen and N. Mladenović.
+    Variable neighborhood search: principles and applications.
+    *European Journal of Operational Research*, 130(3):449–467, 2001.
+
+  .. [MlHa97a] N. Mladenović and P. Hansen.
+    Variable neighborhood search.
+    *Computers and Operations Research*, 24(11):1097–1100, 1997.
 

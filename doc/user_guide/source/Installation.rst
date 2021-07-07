@@ -3,14 +3,14 @@
 Installation
 ============
 
-.. warning:: Current version of the source code does not support compilation with Microsoft Visual Studio. Future versions will provide this option.
-
-
-On Linux and Mac OS X, NOMAD can be compiled using *CMake*, a tool to manage building of source code.
+On Linux, Windows and Mac OS X, NOMAD can be compiled using *CMake*, a tool to manage building of source code.
 
 The minimum version of *CMake* is 3.14. Older versions should trigger an error.
 
-A recent C++ compiler is also required. *CMake* will detect which compiler is available.
+A recent C++ compiler supporting C++14 is also required. The compilation has been tested on Linux with gcc 9.3.0, 10.1.0 and 11.1.0. The compilation has been tested on OSX with gcc Homebrew 9.3.0 and Apple clang version 11.0.3. The compilation has been tested on Windows 8 with Microsoft Visual Studio 2019 (cl.exe 19.29.300038.1) and Microsoft Visual Studio 2017.
+
+*CMake* will detect which compiler is available.
+
 
 .. warning:: Some older version of *CMake* do not trigger an explicit error on the version number.
    If the ``cmake`` commands fail, check the version manually on the command line
@@ -31,17 +31,21 @@ A recent C++ compiler is also required. *CMake* will detect which compiler is av
 
    For Linux, several package managers exist to automate the procedure.
 
+   For Windows, an installer tool is available at `cmake.org/download <https://cmake.org/download/>`_. Please note that all commands are performed in the Windows Command Prompt windows of Visual Studio.
+
 
 The NOMAD installation procedure has the three following steps: **configuration, building and installation**.
 
-.. warning:: Before starting the procedure we recommend to set the environment variable ``$NOMAD_HOME`` with the path where NOMAD has been copied.
+.. warning:: Before starting the procedure we recommend to set the environment variable ``$NOMAD_HOME`` with the path where NOMAD has been copied. For Linux and OSX,
 
   ::
 
     export NOMAD_HOME=/home/myUserName/PathToNomad
 
+For Windows, add an environment variable ``%NOMAD_HOME%`` containing the path.
 
-  The remaining of the documentation uses this ``$NOMAD_HOME`` environment variable.
+
+  The remaining of the documentation uses the ``$NOMAD_HOME`` environment variable.
 
 
 
@@ -84,9 +88,13 @@ The command can be modified to enable/disable some options (see side bar).
 2- Build
 """"""""
 
-Build the libraries and applications::
+Build the libraries and applications (Linux/OSX)::
 
   cmake --build build/release
+
+For Windows, the default configuration is Debug. To obtain the Release version::
+
+  cmake --build build/release --config Release
 
 Option ``--parallel xx`` can be added for faster build
 
@@ -96,6 +104,8 @@ Option ``--parallel xx`` can be added for faster build
 Copy binaries and headers in build/release/[bin, include, lib] and in the examples/tests directories::
 
   cmake --install build/release
+
+Option --config Release should be used on Windows to install Release configuration.
 
 The executable ``nomad`` will installed into the directory::
 
@@ -111,7 +121,7 @@ Additionally a symbolic link to ``nomad`` binary is available::
 Bulding for debug version
 """""""""""""""""""""""""
 
-The procedure to configure, build and install the ``debug`` version is the following. On the command line in the ``$NOMAD_HOME`` directory::
+The procedure to configure, build and install the ``debug`` version is the following (linux/OSX). On the command line in the ``$NOMAD_HOME`` directory::
 
   cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
 
@@ -119,6 +129,7 @@ The procedure to configure, build and install the ``debug`` version is the follo
 
   cmake --install build/debug
 
+On Windows, all 4 configurations are always build Debug, RelWithDebugInfo, MinSizeRel, Release); the flag CMAKE_BUILD_TYPE can be ignored.
 
 Use another compiler
 """"""""""""""""""""
@@ -131,7 +142,7 @@ The environment variables ``CC`` and ``CXX`` can be used to select the ``C`` and
 Testing installation
 ====================
 
-Once building and installation have been performed some tests can be performed.
+Once building **and installation** have been performed some tests can be performed.
 By default the examples are built and can be tested::
 
   cd build/release
