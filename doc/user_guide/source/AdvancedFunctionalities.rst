@@ -23,7 +23,7 @@ EVAL_QUEUE_SORT allows ordering of points before evaluation. This option has an 
 
 * ``RANDOM``: Mix points randomly before evaluation, instead of sorting them.
 
-* ``SURROGATE``: Sort points using values given by static surrogate. See parameter surrogate_exe_.
+* ``SURROGATE``: Sort points using values given by static surrogate. See parameter :ref:`surrogate_exe`.
 
 
 
@@ -114,18 +114,18 @@ Static surrogate executable.
 Static surrogates, or static surrogate functions, are cheaper blackbox functions that are
 used, at least partially, to drive the optimization.
 
-.. figure:: ../figs/surrogate.pdf
+.. figure:: ../figs/surrogate.png
    :align: center
 
    Blackbox optimization using surrogates
 
-.. note:: Static surrogates are provided by the user
+.. note:: Static surrogates are provided by the user.
 
 The current version of NOMAD can use a static surrogate, provided by the user, which is not updated
 during the algorithm. See [BoDeFrSeToTr99a]_ for a survey on surrogate
-optimization. This surrogate may be used for sorting points before evaluation (see eval_queue_sort_).
+optimization. This surrogate may be used for sorting points before evaluation (see parameter :ref:`eval_queue_sort`).
 
-In batch mode, the parameter ``SURROGATE_EXE`` associates a static surrogate executable with the blackbox executable. The surrogates must display the same number of outputs as its associated blackbox. In library mode, if a surrogate function is to be used, then its Evaluator should be of type ``EvalType::SURROGATE`` (see Section library_mode_).
+In batch mode, the parameter ``SURROGATE_EXE`` associates a static surrogate executable with the blackbox executable. The surrogates must display the same number of outputs as its associated blackbox. In library mode, if a surrogate function is to be used, then its Evaluator should be of type ``EvalType::SURROGATE`` (see Section :ref:`library_mode`).
 
 
 .. _block_evaluations:
