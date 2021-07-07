@@ -251,9 +251,18 @@ Algorithmic parameters
 ``DIRECTION_TYPE``
 """"""""""""""""""
 
-The type of direction ``DIRECTION_TYPE`` for *Mads* *Poll* step must be selected in the set ``{ORTHO 2N, N+1 UNI, SINGLE, DOUBLE}``. The option ``ORTHO 2N`` corresponds to the original *Ortho Mads* algorithm [AbAuDeLe09]_ with :math:`2n` directions.
-With option ``N+1 UNI`` *Mads* *Poll* step uses :math:`n+1` uniformly distributed directions. Options ``SINGLE`` and ``DOUBLE`` produces one or two directions for *Mads* *Poll* step respectively.
+This parameter defines the type of directions for *Mads* *Poll* step. The possible arguments are:
 
+.. csv-table:: Toto
+   :widths: 5,20
+
+   ``ORTHO 2N``, "OrthoMADS, 2n. This corresponds to the original *Ortho Mads* algorithm [AbAuDeLe09]_ with :math:`2n` directions."
+   ``ORTHO N+1 NEG``, "OrthoMADS, n+1, with ((n+1)th dir = negative sum of the first n dirs)."
+   ``N+1 UNI``, "MADS with n+1, using :math:`n+1` uniformly distributed directions."
+   ``SINGLE``, "A single direction is produced"
+   ``DOUBLE``, "Two opposite directions are produced"
+
+Multiple direction types may be chosen by specifying ``DIRECTION_TYPE`` several times.
 
 
 .. _initial_mesh_size:
