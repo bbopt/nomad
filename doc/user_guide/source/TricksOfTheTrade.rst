@@ -20,9 +20,10 @@ Here are a few suggestions for tuning NOMAD when facing different symptoms. The 
    " ",	Tighten bounds , :ref:`bounds`
    Many variables ,	Fix some variables  , :ref:`fixed_variable`
    " ",	Use *PSD-MADS*  , :ref:`psd_mads`
-   Unsatisfactory solution ,	Change direction type to ``N+1 UNI`` , :ref:`direction_type`
+   Unsatisfactory solution ,	Change direction type to ``N+1 UNI`` or ``N+1 NEG`` , :ref:`direction_type`
    " ", 	Change initial point , :ref:`LH Search and X0 <x0>`
    " ", 	Add a LH search , :ref:`LH Search and X0 <x0>`
+   " ", 	Add a VNS Mads search , :ref:`VNS Mads Search <vns_search>`
    " ", 	Tighten bounds , :ref:`bounds`
    " ", 	Change :math:`\Delta_0` , :ref:`initial_mesh_size`
    " ", 	Modify seeds that affect algorithms , :ref:`seed`
@@ -37,3 +38,4 @@ Here are a few suggestions for tuning NOMAD when facing different symptoms. The 
    Optimization is time consuming	, 	Perform parallel blackbox evaluations , :ref:`block_evaluations` and :ref:`parallel_evaluations`
    Blackbox is not that expensive		, Setup maximum wall-clock time , remove ``MAX_BB_EVAL`` and set ``MAX_TIME``
    " ", 	Add a LH search , :ref:`LH Search and X0 <x0>`
+   " ", 	Add a VNS Mads search , :ref:`VNS Mads Search <vns_search>`

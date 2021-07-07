@@ -31,7 +31,7 @@ A recent C++ compiler supporting C++14 is also required. The compilation has bee
 
    For Linux, several package managers exist to automate the procedure.
 
-   For Windows, an installer tool is available at `cmake.org <https://cmake.org/download/>`_. Please note that all commands are performed in the Windows Command Prompt windows of Visual Studio.
+   For Windows, an installer tool is available at `cmake.org/download <https://cmake.org/download/>`_. Please note that all commands are performed in the Windows Command Prompt windows of Visual Studio.
 
 
 The NOMAD installation procedure has the three following steps: **configuration, building and installation**.

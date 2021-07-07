@@ -139,8 +139,8 @@ is suggested that you use the NOMAD types as much as  possible. For reals, NOMAD
 and for vectors, the classes ``NOMAD::Point`` or ``NOMAD::ArrayOfDouble``.
 A lot of functionalities have been coded for theses classes, which are visible  in files ``$NOMAD_HOME/src/Math/*.hpp``.
 
-The namespace \sComp{NOMAD} is used for all NOMAD types, and you must type ``NOMAD::``
-in front of all types  unless you type ``using namespace NOMAD;``  at the beginning of your program.
+The namespace ``NOMAD`` is used for all NOMAD types, and you must type ``NOMAD::``
+in front of all types unless you type ``using namespace NOMAD;``  at the beginning of your program.
 
 Providing the blackbox evaluation of objective and constraints directly in the code avoids
 the use of temporary files and system calls by the algorithm. This is achieved by defining a derived
@@ -372,7 +372,9 @@ Access to solution and optimization data
 PyNomad interface
 -----------------
 
-.. note:: The Python interface requires Python 3.6 and Cython 0.24.
+.. note:: The Python interface requires Python 3.6 and Cython 0.24. 
+
+.. note:: Presently, PyNomad cannot be built when using Windows.
 
 A Python interface for NOMAD is provided for Mac OS X and Linux.
 Some examples and source codes are provided in ``$NOMAD_HOME/interfaces/PyNomad``.
