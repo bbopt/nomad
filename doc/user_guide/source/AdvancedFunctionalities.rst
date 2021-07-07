@@ -15,7 +15,7 @@ Also a complete list of parameters and a short description is available in :ref:
 ``EVAL_QUEUE_SORT``
 """""""""""""""""""
 
-EVAL_QUEUE_SORT allows ordering of points before evaluation. This option has an effect only if the opportunistic strategy is enabled. The possible arguments are:
+Allows ordering of points before evaluation. This option has an effect only if the opportunistic strategy is enabled (parameter :ref:`eval_opportunistic`). The possible arguments are:
 
 * ``DIR_LAST_SUCCESS``: Points that are generated in a direction similar to the last direction that provided a successful point are evaluated first.
 
@@ -111,21 +111,20 @@ The possible syntaxes to specify the granularity of the variables are as follows
 
 Static surrogate executable.
 
-Static surrogates, or static surrogate functions, are cheaper blackbox functions that are
-used, at least partially, to drive the optimization.
+A static surrogate, or static surrogate function, is a cheaper blackbox function that is used, at least partially, to drive the optimization.
 
 .. figure:: ../figs/surrogate.png
    :align: center
 
-   Blackbox optimization using surrogates
+   Blackbox optimization using a surrogate
 
-.. note:: Static surrogates are provided by the user.
+.. note:: The static surrogate is provided by the user.
 
 The current version of NOMAD can use a static surrogate, provided by the user, which is not updated
 during the algorithm. See [BoDeFrSeToTr99a]_ for a survey on surrogate
 optimization. This surrogate may be used for sorting points before evaluation (see parameter :ref:`eval_queue_sort`).
 
-In batch mode, the parameter ``SURROGATE_EXE`` associates a static surrogate executable with the blackbox executable. The surrogates must display the same number of outputs as its associated blackbox. In library mode, if a surrogate function is to be used, then its Evaluator should be of type ``EvalType::SURROGATE`` (see Section :ref:`library_mode`).
+In batch mode, the parameter ``SURROGATE_EXE`` associates a static surrogate executable with the blackbox executable given by parameter ``BB_EXE``. The surrogate must display the same input and output types as its associated blackbox, given by parameters ``BB_INPUT_TYPE`` and ``BB_OUTPUT_TYPE``. In library mode, if a surrogate function is to be used, then its Evaluator should be of type ``EvalType::SURROGATE`` (see Section :ref:`library_mode`).
 
 
 .. _block_evaluations:
