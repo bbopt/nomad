@@ -103,7 +103,7 @@ cmake --install build/release   ---> Copy binaries and headers in
                                        build/release/[bin, include, lib]
                                        and in the examples/tests directories.
                                      Option --config Release should be used on
-                                       Windows to install in Release configuration.
+                                       Windows to install Release configuration.
                                      The default configuration is Debug.
 
 The executable "nomad" will installed into the directory:
