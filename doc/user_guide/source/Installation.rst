@@ -92,7 +92,7 @@ Build the libraries and applications (Linux/OSX)::
 
   cmake --build build/release
 
-For Windows, the default configureation is Debug. To obtain the Release version::
+For Windows, the default configuration is Debug. To obtain the Release version::
 
   cmake --build build/release --config Release
 

@@ -374,7 +374,7 @@ PyNomad interface
 
 .. note:: The Python interface requires Python 3.6 and Cython 0.24. 
 
-.. note:: Presently, PyNomad cannot be built when using Windows.
+.. note:: Currently, PyNomad cannot be built when using Windows.
 
 A Python interface for NOMAD is provided for Mac OS X and Linux.
 Some examples and source codes are provided in ``$NOMAD_HOME/interfaces/PyNomad``.
