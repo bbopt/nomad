@@ -148,6 +148,7 @@ Types of models
 * :ref:`kernel_type` (Can be optimized)
 * :ref:`kernel_shape` (Can be optimized)
 * :ref:`distance_type` (Can be optimized)
+* :ref:`preset`: Defines the type of LOWESS model used. TODO
 * :ref:`budget`: Defines the budget allocated for parameter optimization.
 * :ref:`output`: Defines the output text file.
 
@@ -176,13 +177,14 @@ Types of models
 
 ``ENSEMBLE``
 """"""""""""""
-| ENSEMBLE is a type of model.
+| ENSEMBLE is a type of model that uses multiple models simultaneously.
 | Authorized fields:
 
 * :ref:`weight`: Defines how the ensemble weights are computed.
 * :ref:`metric`: Defines which metric is used to compute the weights.
-* :ref:`budget`: Defines the budget allocated for parameter optimization.
 * :ref:`distance_type`: This parameter is transfered to the models contained in the Ensemble.
+* :ref:`preset`: Defines the selection of models in the ensemble.
+* :ref:`budget`: Defines the budget allocated for parameter optimization.
 * :ref:`output`: Defines the output text file.
 
 | Example:
@@ -195,9 +197,19 @@ Types of models
 ``ENSEMBLE_STAT``
 """"""""""""""""""
 
-[AuLedSa2021]_
+| ENSEMBLE_STAT is a type of model [AuLedSa2021]_.
+| Authorized fields:
 
-TODO
+* all the fields from :ref:`ensemble` (with different default values though).
+* :ref:`uncertainty`: Selects an alternative for the uncertainty (smooth or nonsmooth).
+* :ref:`size_param`: Defines the size parameter (different meaning depending on the value of UNCERTAINTY).
+* :ref:`sigma_mult`: Defines the scaling factor of the uncertainty.
+* :ref:`lambda_p`: Defines the shape parameter of the probability of feasibility.
+* :ref:`lambda_pi`: Defines the shape parameter of the probability of improvement.
+
+| Example:
+| ``TYPE ENSEMBLE_STAT UNCERTAINTY SMOOTH WEIGHT SELECT5 METRIC RMSECV SIZE_PARAM 15``
+
 
 
 The following table summarizes the possible fields for every model.
@@ -205,16 +217,16 @@ The following table summarizes the possible fields for every model.
 .. csv-table:: Model authorized fields
    :header: "Model type", :ref:`degree`, :ref:`ridge`, :ref:`kernel_type`, :ref:`kernel_shape`, :ref:`distance_type`, :ref:`preset`, :ref:`weight`, :ref:`metric`, :ref:`uncertainty`,:ref:`budget`, :ref:`output`
 
-   :ref:`prs`,          ✔,  ✔,  ,    ,    ,   ,  ,  ,   , ✔, ✔
+   :ref:`prs`,          ✔,  ✔,  ,    ,    ,   ,  ,  ,  , ✔, ✔
    :ref:`prs_edge`,     ✔,  ✔,  ,    ,    ,   ,  ,  ,  , ✔, ✔
    :ref:`prs_cat`,      ✔,  ✔,  ,    ,    ,   ,  ,  ,  , ✔, ✔
    :ref:`rbf`,           ,  ✔,  ✔,  ✔,  ✔, ✔,   ,  ,  , ✔, ✔
    :ref:`ks`,            ,   ,  ✔,  ✔,  ✔,   ,   ,  ,  , ✔, ✔
-   :ref:`kriging`,       ,  ✔,  ,    ,   ✔,  ,   ,  ,  , ✔, ✔
-   :ref:`lowess`,       ✔, ✔, ✔,  ✔,   ✔,   ,   ,  ,  , ✔, ✔
+   :ref:`kriging`,       ,  ✔,  ,    ,   ✔,  ,    ,  ,  , ✔, ✔
+   :ref:`lowess`,       ✔, ✔, ✔,  ✔,   ✔, ✔,    ,  ,  , ✔, ✔
    :ref:`cn`,            ,   ,  ,    ,   ✔,  ,    ,  ,  , ✔, ✔
-   :ref:`ensemble`,      ,   ,  ,    ,   ✔,  ,  ✔, ✔,  , ✔, ✔
-   :ref:`ensemble_stat`, ,   ,  ,    ,   ✔,  ,  ✔, ✔, ✔, ✔, ✔
+   :ref:`ensemble`,      ,   ,  ,    ,   ✔, ✔,  ✔, ✔,  , ✔, ✔
+   :ref:`ensemble_stat`, ,   ,  ,    ,   ✔, ✔,  ✔, ✔, ✔, ✔, ✔
 
 
 Main model parameters
@@ -225,7 +237,7 @@ Main model parameters
 ``DEGREE``
 """"""""""""""
 | The field name DEGREE defines the degree of a polynomial response surface. The value must be an integer :math:`\geq 1`.
-| Allowed for models of type: :ref:`prs`, :ref:`prs_edge`, :ref:`prs_cat`, :ref:`lowess`.
+| Allowed for models of type: :ref:`prs`, :ref:`prs_edge`, :ref:`prs_cat` and :ref:`lowess`.
 | Default value: 5
 
 * For PRS models, the default degree is 2.
@@ -242,7 +254,7 @@ Main model parameters
 ``RIDGE``
 """"""""""""""
 | The field name RIDGE defines the regularization parameter of the model.
-| Allowed for models of type: :ref:`prs`, :ref:`prs_edge`, :ref:`prs_cat`, :ref:`lowess`, :ref:`rbf`.
+| Allowed for models of type: :ref:`prs`, :ref:`prs_edge`, :ref:`prs_cat`, :ref:`rbf`, :ref:`kriging` and :ref:`lowess`.
 | Possible values: Real value :math:`\geq 0`. Recommended values are :math:`0` and :math:`0.001`.
 | Default value: :math:`0.001`.
 
@@ -256,10 +268,10 @@ Main model parameters
 ``KERNEL_TYPE``
 """"""""""""""""
 | The field name KERNEL_TYPE defines the type of kernel used in the model. The field name ``KERNEL`` is equivalent.
-| Allowed for models of type: :ref:`rbf`, :ref:`kriging`, :ref:`lowess` and :ref:`ks`.
+| Allowed for models of type: :ref:`rbf`, :ref:`lowess` and :ref:`ks`.
 | Possible values:
 
-* ``D1``: Gaussian kernel (default)
+* ``D1``: Gaussian kernel
 * ``D2``: Inverse Quadratic Kernel
 * ``D3``: Inverse Multiquadratic Kernel
 * ``D4``: Bi-quadratic Kernel
@@ -273,6 +285,8 @@ Main model parameters
 * ``I4``: Polyharmonic splines, degree 4
 * ``OPTIM``: The type of kernel is optimized
 
+| Default value: ``D1``, except for RBF models where it is ``I2``.
+
 | Example:
 | ``TYPE KS KERNEL_TYPE D2`` defines a KS model with Inverse Quadratic Kernel.
 | ``TYPE KS KERNEL_TYPE OPTIM KERNEL_SHAPE OPTIM`` defines a KS model with optimized kernel shape and type.
@@ -282,13 +296,13 @@ Main model parameters
 
 ``KERNEL_SHAPE``
 """"""""""""""""""
-| The field name KERNEL_SHAPE defines the shape coefficient of the kernel function. Note that this field name has no impact for kernel types ``I1``, ``I2``, ``I3`` and ``I4`` because these kernels do not include a shape parameter.
-| Allowed for models of type: :ref:`rbf`, :ref:`ks`, :ref:`kriging`, :ref:`lowess`.
-| Possible values: Real value :math:`\geq 0`. Recommended range is :math:`[0:1; 10]`. For KS and LOWESS model, small values lead to smoother models.
+| The field name KERNEL_SHAPE defines the shape coefficient of the kernel function. Note that this field name has no impact for kernel types ``I1``, ``I2``, ``I3`` and ``I4`` because these kernels do not include a shape parameter. The keyword ``KERNEL_COEF`` is equivalent.
+| Allowed for models of type: :ref:`rbf`, :ref:`ks` and :ref:`lowess`.
+| Possible values: Real value :math:`\geq 0`. Recommended range is :math:`[0.1; 10]`. For KS and LOWESS model, small values lead to smoother models.
 | Default value: By default, the kernel coefficient is optimized.
 
 | Example:
-| ``TYPE RBF KERNEL_SHAPE 10`` defines a RBF model with a shape coefficient of :math:`10`.
+| ``TYPE RBF KERNEL_TYPE D4 KERNEL_SHAPE 10`` defines a RBF model with an inverse bi-quadratic kernel of shape coefficient :math:`10`.
 | ``TYPE KS KERNEL_TYPE OPTIM KERNEL_SHAPE OPTIM`` defines a KS model with optimized kernel shape and type.
 
 
@@ -296,8 +310,8 @@ Main model parameters
 
 ``DISTANCE_TYPE``
 """"""""""""""""""
-| The field name DISTANCE TYPE defines the distance function used in the model.
-| Allowed for models of type: :ref:`rbf`, :ref:`ks`, :ref:`lowess`, :ref:`cn`.
+| The field name DISTANCE_TYPE defines the distance function used in the model.
+| Allowed for models of type: :ref:`rbf`, :ref:`ks`, :ref:`kriging`, :ref:`lowess`, :ref:`cn`, :ref:`ensemble` and :ref:`ensemble_stat`.
 | Possible values:
 
 * ``NORM1``: Euclidian distance
@@ -306,7 +320,7 @@ Main model parameters
 * ``NORM2_IS0``: Tailored distance for discontinuity in :math:`0`
 * ``NORM2_CAT``: Tailored distance for categorical models
 
-| Default value: NORM2.
+| Default value: ``NORM2``.
 
 | Example:
 | ``TYPE KS DISTANCE NORM2 IS0`` defines a KS model tailored for VAN optimization.
@@ -316,46 +330,84 @@ Main model parameters
 
 ``PRESET``
 """"""""""""""
-| The field name PRESET defines the type of RBF model used.
-| Allowed for models of type: :ref:`rbf`.
-| Possible values:
+| The field name PRESET defines the type of model used when applicable.
+| Allowed for models of type: :ref:`rbf`, :ref:`lowess`, :ref:`ensemble` and :ref:`ensemble_stat`.
 
-* ``O``: RBF with linear terms and orthogonal constraints
-* ``R``: RBF with linear terms and regularization term
-* ``I``: RBF with incomplete set of basis functions (see [AuKoLedTa2016]_ for RBFI models)
+* When applied to :ref:`rbf` models, PRESET defines the type of RBF.
+      Possible values:
 
-| Default value: I.
+      * ``O``: RBF with linear terms and orthogonal constraints
+      * ``R``: RBF with linear terms and regularization term
+      * ``I``: RBF with incomplete set of basis functions (see [AuKoLedTa2016]_ for RBFI models)
+
+| Default value: ``I``.
 
 | Example:
 | ``TYPE RBF PRESET O``
+
+* When applied to :ref:`lowess` models, PRESET defines TODO (voir article).
+      Possible values:
+
+      * TODO
+
+| Default value: TODO
+
+| Example:
+| ``TYPE LOWESS PRESET`` TODO
+
+* When applied to :ref:`ensemble` or :ref:`ensemble_stat` models, PRESET determines the selection of models in the ensemble.
+      Possible values:
+
+      * ``DEFAULT``: selection of 18 models of types :ref:`prs`, :ref:`ks`, :ref:`rbf` and :ref:`cn` with various settings. 
+      * ``KS``: selection of 7 models of type :ref:`ks` with various kernel shapes.
+      * ``PRS``: selection of 7 models of type :ref:`prs` with various degrees.
+      * ``IS0``: selection of 30 models of type :ref:`prs_edge`, :ref:`ks`, :ref:`rbf` with various settings and DISTANCE_TYPE set to NOMR2_IS0.
+      * ``CAT``: selection of 30 models of type :ref:`prs_edge`, :ref:`ks`, :ref:`rbf` with various settings and DISTANCE_TYPE set to NOMR2_CAT.
+      * ``SUPER1``: selection of 4 models of types :ref:`prs`, :ref:`ks`, :ref:`rbf` and :ref:`lowess`.
+      * ``SMALL``: selection of 3 models of types :ref:`prs`, :ref:`ks` and :ref:`rbf`.
+
+| Default value: ``DEFAULT``.
+
+| Example:
+| ``TYPE ENSEMBLE PRESET SUPER1``
+
 
 .. _weight:
 
 ``WEIGHT``
 """"""""""""""
 | The field name WEIGHT defines the method used to compute the weights :math:`\boldsymbol{w}` of the ensemble of models. The keyword ``WEIGHT_TYPE`` is equivalent.
-| Allowed for models of type: :ref:`ensemble`, :ref:`ensemble_stat`.
+| Allowed for models of type: :ref:`ensemble` and :ref:`ensemble_stat`.
 | Possible values:
 
-* ``WTA1``: :math:`w_k \propto \mathcal{E}_{sum} - \mathcal{E}_k`  (default)
+* ``WTA1``: :math:`w_k \propto \mathcal{E}_{sum} - \mathcal{E}_k`
 * ``WTA3``: :math:`w_k \propto (\mathcal{E}_k + \alpha\mathcal{E}_{mean})^{\beta}`
-* ``SELECT``: :math:`w_k \propto 1` if :math:`\mathcal{E}_k = \mathcal{E}_{min}`
+* ``SELECT``: :math:`w_k \propto 1` if :math:`\mathcal{E}_k = \mathcal{E}_{min}` (only the best model is selected)
+* ``SELECTN``: :math:`w_k \propto \mathcal{E}_{sum}^N - \mathcal{E}_k` (for :math:`N=1,2,\dots,6`)
 * ``OPTIM``: :math:`\boldsymbol{w}` minimizes :math:`\mathcal{E}(\boldsymbol{w})`
-* TODO
 
-| Default value: TODO
+Where :math:`\mathcal{E}_k` is the error metric (defined by the keyword :ref:`metric`) of the :math:`k^{th}` model in the ensemble,
+:math:`\mathcal{E}_{sum}` is the cumulated error of all models,
+:math:`\mathcal{E}_{min}` is the minimal error,
+:math:`\mathcal{E}_{mean}` is the average error,
+:math:`\alpha=0.05`, :math:`\beta=-1`,
+and :math:`\mathcal{E}_{sum}^N` is the cumulated error metric of the :math:`N` best models.
+
+| Default value: ``SELECT`` for :ref:`ensemble` models, ``SELECT3`` for :ref:`ensemble_stat` models with :ref:`uncertainty` set to ``SMOOTH``, and  ``SELECT4`` for :ref:`ensemble_stat` models with :ref:`uncertainty` set to ``NONSMOOTH``.
 
 | Example:
 | ``TYPE ENSEMBLE WEIGHT SELECT METRIC RMSECV`` defines an ensemble of models which selects the model that has the best RMSECV.
 | ``TYPE ENSEMBLE WEIGHT OPTIM METRIC RMSECV`` defines an ensemble of models where the weights :math:`\boldsymbol{w}` are computed to minimize the RMSECV of the model.
+| ``TYPE ENSEMBLE WEIGHT SELECT3 METRIC OECV`` defines an ensemble of models which selects the 3 models that have the best OECV.
 
 
 .. _uncertainty:
 
 ``UNCERTAINTY``
-""""""""""""""""
+"""""""""""""""
+(specific to :ref:`ensemble_stat` models)
+
 | The field name UNCERTAINTY defines the type of uncertainty used in ENSEMBLE_STAT models. 
-| Allowed for models of type: :ref:`ensemble_stat`.
 | Possible values:
 
 * ``SMOOTH``: Smooth alternative of the uncertainty (default)
@@ -365,6 +417,69 @@ Main model parameters
 | ``TYPE ENSEMBLE_STAT UNCERTAINTY NONSMOOTH``
 
 
+.. _size_param:
+
+``SIZE_PARAM``
+""""""""""""""""
+(advanced parameter specific to :ref:`ensemble_stat` models)
+
+| The field name SIZE_PARAM defines the size of the directions of either :
+
+- the simplex used to compute the simplex gradients of the models if the field :ref:`uncertainty` is set to ``SMOOTH``
+- the positive spanning set used to compare models values if the field :ref:`uncertainty` is set to ``NONSMOOTH``
+
+| Possible values: Real value :math:`\geq 0`. Recommended range is :math:`[0.001; 0.1]`.
+| Default value: :math:`0.001` if the field UNCERTAINTY is set to ``SMOOTH``, :math:`0.005` if the field UNCERTAINTY is set to ``NONSMOOTH``.
+
+| Example:
+| ``TYPE ENSEMBLE_STAT UNCERTAINTY SMOOTH SIZE_PARAM 0.003``
+
+
+.. _sigma_mult:
+
+``SIGMA_MULT``
+""""""""""""""""
+(advanced parameter specific to :ref:`ensemble_stat` models)
+
+| The field name SIGMA_MULT defines the scaling factor of the uncertain to be multiplied by the variance of already sampled function values.
+
+| Possible values: Real value :math:`\geq 0`. Recommended range is :math:`[1; 100]`.
+| Default value: :math:`10`.
+
+| Example:
+| ``TYPE ENSEMBLE_STAT UNCERTAINTY NONSMOOTH SIGMA_MULT 30``
+
+
+.. _lambda_p:
+
+``LAMBDA_P``
+""""""""""""""""
+(advanced parameter specific to :ref:`ensemble_stat` models)
+
+| The field name LAMBDA_P defines the shape parameter of the probability of *feasibility* (P).
+
+| Possible values: Real value :math:`\geq 0`. Recommended range is :math:`[0.1; 10]`.
+| Default value: :math:`3` if the field UNCERTAINTY is set to ``SMOOTH``, :math:`1` if the field UNCERTAINTY is set to ``NONSMOOTH``.
+
+| Example:
+| ``TYPE ENSEMBLE_STAT UNCERTAINTY NONSMOOTH LAMBDA_P 1.5``
+
+
+.. _lambda_pi:
+
+``LAMBDA_PI``
+""""""""""""""""
+(advanced parameterspecific to :ref:`ensemble_stat` models)
+
+| The field name LAMBDA_PI defines the shape parameter of the probability of *improvement* (PI).
+
+| Possible values: Real value :math:`\geq 0`. Recommended range is :math:`[0.01; 3]`.
+| Default value: :math:`0.1` if the field UNCERTAINTY is set to ``SMOOTH``, :math:`0.5` if the field UNCERTAINTY is set to ``NONSMOOTH``.
+
+| Example:
+| ``TYPE ENSEMBLE_STAT UNCERTAINTY NONSMOOTH LAMBDA_PI 0.3``
+
+
 .. _output:
 
 ``OUTPUT``
@@ -372,21 +487,6 @@ Main model parameters
 Defines a text file in which model information are recorded. Allowed for ALL types of model.
 
 
-(specific to ENSEMBLE_STAT models)
-
-``SIZE_PARAM``
-""""""""""""""""
-
-TODO
-
-``SIGMA_MULT``
-""""""""""""""""
-
-``LAMBDA_P``
-""""""""""""""
-
-``LAMBDA_PI``
-""""""""""""""
 
 
 Parameter optimization and selection
@@ -428,7 +528,7 @@ Parameter optimization and selection
 * ``AOE``: Aggregate Order Error
 * ``AOECV``: Aggregate Order Error with Cross-Validation
 
-| Default value: ``AOECV``. TODO
+| Default value: ``AOECV`` except for :ref:`ensemble_stat` models where it is ``OECV``.
 
 | Example:
 | ``TYPE ENSEMBLE WEIGHT SELECT METRIC RMSECV`` defines an ensemble of models which selects the model that has the best RMSECV.
