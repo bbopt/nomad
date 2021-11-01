@@ -4,17 +4,17 @@ Surrogate Library
 ========================
 
 The *SGTELIB* library is a dynamic surrogate modeling library. It is used in the *Search* step of Mads to dynamically construct models from the previous evaluations.
-During a *Search* step that uses *SGTELIB*, the selected models of the objective and the constraints are contrusted and a surrogate subproblem involving these modes is optimized.
-The resulting solutions are the next candidate for evaluation by the true problem.
+During a *Search* step that uses *SGTELIB*, models of the objective and the constraints are contrusted and a surrogate subproblem involving these models is optimized.
+The resulting solutions are the next candidates for evaluation by the true problem.
 
-| Models from the *SGTELIB* library can be used by setting ``SGTELIB_MODEL_SEARCH`` to ``yes``.
+| Models from the *SGTELIB* library can be used by setting the parameter ``SGTELIB_MODEL_SEARCH`` to ``yes`` or ``true``.
 
 
 Models
 -------------------
 
-Models in sgtelib are defined by using a succession of field names and field values.
-To choose a model, the ``SGTELIB_MODEL_DEFINITION`` parameter must be used followed by the field name ``TYPE``, and then by the model type.
+Models in *SGTELIB* are defined by using a succession of field names and field values.
+To choose a model, the parameter ``SGTELIB_MODEL_DEFINITION`` must be used followed by the field name ``TYPE``, and then by the model type.
 The subsequent fields enable to define the settings of the model.
 Each field name is made of one single word and each field value is made of one single word or numerical value.
 
@@ -25,6 +25,8 @@ The section below describes the models and settings availables.
 
 Types of models
 """"""""""""""""""""""
+
+Below is the list of all possible models and their authorized fields.
 
 .. _prs:
 
@@ -71,7 +73,7 @@ Types of models
 
 ``PRS_CAT``
 """"""""""""""
-| PRS_CAT (Categorical Polynomial Response Surface) is a type of model that allows to build one PRS model for each dierent value of the first component of :math:`x`.
+| PRS_CAT (Categorical Polynomial Response Surface) is a type of model that allows to build one PRS model for each different value of the first component of :math:`x`.
 | Authorized fields:
 
 * :ref:`degree` (Can be optimized)
@@ -140,7 +142,7 @@ Types of models
 
 ``LOWESS``
 """"""""""""""
-| LOWESS (Locally Weighted Regression) is a type of model [TaAuKoLed2016]_.
+| LOWESS (Locally Weighted Regression) is a type of model (from [TaAuKoLed2016]_).
 | Authorized fields:
 
 * :ref:`degree`: Must be 1 (default) or 2 (Can be optimized).
@@ -148,7 +150,7 @@ Types of models
 * :ref:`kernel_type` (Can be optimized)
 * :ref:`kernel_shape` (Can be optimized)
 * :ref:`distance_type` (Can be optimized)
-* :ref:`preset`: Defines the type of LOWESS model used. TODO
+* :ref:`preset`: Defines how the weight of each data point is computed.
 * :ref:`budget`: Defines the budget allocated for parameter optimization.
 * :ref:`output`: Defines the output text file.
 
@@ -197,7 +199,7 @@ Types of models
 ``ENSEMBLE_STAT``
 """"""""""""""""""
 
-| ENSEMBLE_STAT is a type of model [AuLedSa2021]_.
+| ENSEMBLE_STAT is a type of model (from [AuLedSa2021]_).
 | Authorized fields:
 
 * all the fields from :ref:`ensemble` (with different default values though).
@@ -231,6 +233,8 @@ The following table summarizes the possible fields for every model.
 
 Main model parameters
 """"""""""""""""""""""""""
+
+Below is the list of fields and their descriptions.
 
 .. _degree:
 
@@ -296,7 +300,7 @@ Main model parameters
 
 ``KERNEL_SHAPE``
 """"""""""""""""""
-| The field name KERNEL_SHAPE defines the shape coefficient of the kernel function. Note that this field name has no impact for kernel types ``I1``, ``I2``, ``I3`` and ``I4`` because these kernels do not include a shape parameter. The keyword ``KERNEL_COEF`` is equivalent.
+| The field name KERNEL_SHAPE defines the shape coefficient of the kernel function. The field name ``KERNEL_COEF`` is equivalent. Note that this field name has no impact for kernel types ``I1``, ``I2``, ``I3`` and ``I4`` because these kernels do not include a shape parameter.
 | Allowed for models of type: :ref:`rbf`, :ref:`ks` and :ref:`lowess`.
 | Possible values: Real value :math:`\geq 0`. Recommended range is :math:`[0.1; 10]`. For KS and LOWESS model, small values lead to smoother models.
 | Default value: By default, the kernel coefficient is optimized.
@@ -323,7 +327,7 @@ Main model parameters
 | Default value: ``NORM2``.
 
 | Example:
-| ``TYPE KS DISTANCE NORM2 IS0`` defines a KS model tailored for VAN optimization.
+| ``TYPE KS DISTANCE NORM2_IS0`` defines a KS model tailored for VAN optimization.
 
 
 .. _preset:
@@ -340,43 +344,52 @@ Main model parameters
       * ``R``: RBF with linear terms and regularization term
       * ``I``: RBF with incomplete set of basis functions (see [AuKoLedTa2016]_ for RBFI models)
 
-| Default value: ``I``.
+      |
+      | Default value: ``I``.
 
-| Example:
-| ``TYPE RBF PRESET O``
+      | Example:
+      | ``TYPE RBF PRESET O``
 
-* When applied to :ref:`lowess` models, PRESET defines TODO (voir article).
+* When applied to :ref:`lowess` models [TaAuKoLed2016]_, PRESET defines how the weight :math:`w_i` of each data point :math:`x_i` is computed.
       Possible values:
 
-      * TODO
+      * ``D``: :math:`w_i=\phi(d_i)` where :math:`\phi` is the kernel of type and shape defined by the fields :ref:`kernel_type` and :ref:`kernel_shape`, respectively, and :math:`d_i` is the distance between the prediction point and the data point :math:`x_i`
+      * ``DEN``: :math:`w_i=\phi(d_i/d_q)` where :math:`d_q` is the distance between the prediction point and the :math:`q^{th}` closest data point, and :math:`d_q` is computed with an empirical method
+      * ``DGN``: :math:`w_i=\phi(d_i/d_q)` where :math:`d_q` is computed with the Gamma method
+      * ``RE``: :math:`w_i=\phi(r_i)` where :math:`r_i` is the rank of :math:`x_i` in terms of distance to the prediction point, and :math:`r_i` is computed with empirical method
+      * ``RG``: :math:`w_i=\phi(r_i)` where :math:`r_i` is computed with the Gamma method
+      * ``REN``: same as ``RE`` but the ranks are normalized in :math:`[0,1]`
+      * ``RGN``: same as ``RG`` but the ranks are normalized in :math:`[0,1]`
 
-| Default value: TODO
+      |      
+      | Default value: ``DGN``.
 
-| Example:
-| ``TYPE LOWESS PRESET`` TODO
+      | Example:
+      | ``TYPE LOWESS PRESET RE``
 
 * When applied to :ref:`ensemble` or :ref:`ensemble_stat` models, PRESET determines the selection of models in the ensemble.
       Possible values:
 
-      * ``DEFAULT``: selection of 18 models of types :ref:`prs`, :ref:`ks`, :ref:`rbf` and :ref:`cn` with various settings. 
-      * ``KS``: selection of 7 models of type :ref:`ks` with various kernel shapes.
-      * ``PRS``: selection of 7 models of type :ref:`prs` with various degrees.
-      * ``IS0``: selection of 30 models of type :ref:`prs_edge`, :ref:`ks`, :ref:`rbf` with various settings and DISTANCE_TYPE set to NOMR2_IS0.
-      * ``CAT``: selection of 30 models of type :ref:`prs_edge`, :ref:`ks`, :ref:`rbf` with various settings and DISTANCE_TYPE set to NOMR2_CAT.
-      * ``SUPER1``: selection of 4 models of types :ref:`prs`, :ref:`ks`, :ref:`rbf` and :ref:`lowess`.
-      * ``SMALL``: selection of 3 models of types :ref:`prs`, :ref:`ks` and :ref:`rbf`.
+      * ``DEFAULT``: selection of 18 models of types :ref:`prs`, :ref:`ks`, :ref:`rbf` and :ref:`cn` with various settings
+      * ``KS``: selection of 7 models of type :ref:`ks` with various kernel shapes
+      * ``PRS``: selection of 7 models of type :ref:`prs` with various degrees
+      * ``IS0``: selection of 30 models of type :ref:`prs_edge`, :ref:`ks`, :ref:`rbf` with various settings and DISTANCE_TYPE set to NOMR2_IS0
+      * ``CAT``: selection of 30 models of type :ref:`prs_edge`, :ref:`ks`, :ref:`rbf` with various settings and DISTANCE_TYPE set to NOMR2_CAT
+      * ``SUPER1``: selection of 4 models of types :ref:`prs`, :ref:`ks`, :ref:`rbf` and :ref:`lowess`
+      * ``SMALL``: selection of 3 models of types :ref:`prs`, :ref:`ks` and :ref:`rbf`
 
-| Default value: ``DEFAULT``.
+      |
+      | Default value: ``DEFAULT``.
 
-| Example:
-| ``TYPE ENSEMBLE PRESET SUPER1``
+      | Example:
+      | ``TYPE ENSEMBLE PRESET SUPER1``
 
 
 .. _weight:
 
 ``WEIGHT``
 """"""""""""""
-| The field name WEIGHT defines the method used to compute the weights :math:`\boldsymbol{w}` of the ensemble of models. The keyword ``WEIGHT_TYPE`` is equivalent.
+| The field name WEIGHT defines the method used to compute the weights :math:`\boldsymbol{w}` of the ensemble of models. The field name ``WEIGHT_TYPE`` is equivalent.
 | Allowed for models of type: :ref:`ensemble` and :ref:`ensemble_stat`.
 | Possible values:
 
@@ -386,7 +399,7 @@ Main model parameters
 * ``SELECTN``: :math:`w_k \propto \mathcal{E}_{sum}^N - \mathcal{E}_k` (for :math:`N=1,2,\dots,6`)
 * ``OPTIM``: :math:`\boldsymbol{w}` minimizes :math:`\mathcal{E}(\boldsymbol{w})`
 
-Where :math:`\mathcal{E}_k` is the error metric (defined by the keyword :ref:`metric`) of the :math:`k^{th}` model in the ensemble,
+Where :math:`\mathcal{E}_k` is the error metric (defined by the field name :ref:`metric`) of the :math:`k^{th}` model in the ensemble,
 :math:`\mathcal{E}_{sum}` is the cumulated error of all models,
 :math:`\mathcal{E}_{min}` is the minimal error,
 :math:`\mathcal{E}_{mean}` is the average error,
@@ -456,7 +469,7 @@ and :math:`\mathcal{E}_{sum}^N` is the cumulated error metric of the :math:`N` b
 """"""""""""""""
 (advanced parameter specific to :ref:`ensemble_stat` models)
 
-| The field name LAMBDA_P defines the shape parameter of the probability of *feasibility* (P).
+| The field name LAMBDA_P defines the shape parameter of the *probability of feasibility* (P).
 
 | Possible values: Real value :math:`\geq 0`. Recommended range is :math:`[0.1; 10]`.
 | Default value: :math:`3` if the field UNCERTAINTY is set to ``SMOOTH``, :math:`1` if the field UNCERTAINTY is set to ``NONSMOOTH``.
@@ -471,7 +484,7 @@ and :math:`\mathcal{E}_{sum}^N` is the cumulated error metric of the :math:`N` b
 """"""""""""""""
 (advanced parameterspecific to :ref:`ensemble_stat` models)
 
-| The field name LAMBDA_PI defines the shape parameter of the probability of *improvement* (PI).
+| The field name LAMBDA_PI defines the shape parameter of the *probability of improvement* (PI).
 
 | Possible values: Real value :math:`\geq 0`. Recommended range is :math:`[0.01; 3]`.
 | Default value: :math:`0.1` if the field UNCERTAINTY is set to ``SMOOTH``, :math:`0.5` if the field UNCERTAINTY is set to ``NONSMOOTH``.
@@ -492,11 +505,13 @@ Defines a text file in which model information are recorded. Allowed for ALL typ
 Parameter optimization and selection
 """"""""""""""""""""""""""""""""""""""""
 
+Below is the list of some field names and values that influence the behaviour of other fields.
+
 .. _optim:
 
 ``OPTIM``
 """"""""""""""
-| The field value OPTIM indicate that the model parameter must be optimized. The default optimization criteria is the AOECV error metric (except for ENSEMBLE_STAT models where it is OECV).
+| The field value OPTIM indicates that the model parameter must be optimized. The default optimization criteria is the AOECV error metric (except for ENSEMBLE_STAT models where it is OECV).
 | Parameters that can be optimized:
 
 * :ref:`degree`
@@ -526,9 +541,9 @@ Parameter optimization and selection
 * ``OECV``: Order Error with Cross-Validation [AuKoLedTa2016]_
 * ``LINV``: Invert of the Likelihood
 * ``AOE``: Aggregate Order Error
-* ``AOECV``: Aggregate Order Error with Cross-Validation
+* ``AOECV``: Aggregate Order Error with Cross-Validation [TaAuKoLed2016]_
 
-| Default value: ``AOECV`` except for :ref:`ensemble_stat` models where it is ``OECV``.
+| Default value: ``AOECV``, except for :ref:`ensemble_stat` models where it is ``OECV``.
 
 | Example:
 | ``TYPE ENSEMBLE WEIGHT SELECT METRIC RMSECV`` defines an ensemble of models which selects the model that has the best RMSECV.
@@ -538,7 +553,7 @@ Parameter optimization and selection
 
 ``BUDGET``
 """"""""""""""
-| Budget for model parameter optimization. The number of sets of model parameters that are tested is equal to the optimization budget multiplied by the the number of parameters to optimize.
+| Budget for model parameter optimization. The number of sets of model parameters that are tested is equal to the optimization budget multiplied by the number of parameters to optimize.
 | Allowed for ALL types of model.
 | Default value: :math:`20`
 
@@ -552,22 +567,22 @@ Parameter optimization and selection
 Surrogate subproblem formulations
 -------------------------------------
 
-The *SGTELIB* library offers different formulations of the surrogate subproblem to be optimized at the *Search* step [TaLeDKo2014]_.
-The ``SGTELIB_MODEL_FORMULATION`` parameter enables to choose a formulation, and the ``SGTELIB_MODEL_DIVERSIFICATION`` parameter enables to adjust a diversification parameter.
+The *SGTELIB* library offers different formulations of the surrogate subproblem to be optimized at the *Search* step (see [TaLeDKo2014]_).
+The ``SGTELIB_MODEL_FORMULATION`` parameter enables to choose a formulation, and the parameter ``SGTELIB_MODEL_DIVERSIFICATION`` enables to adjust a diversification parameter.
 
 
 ``SGTELIB_MODEL_FORMULATION``
 """"""""""""""""""""""""""""""
 
 | The formulations of the surrogate subproblem involve various quantities.
-| :math:`\hat f` denotes a model of the objective :math:`\hat f` and :math:`\hat c_j` a model of the constraint :math:`c_j`, :math:`j=1,2,\dots,m`. For :math:`x\in X`, :math:`\sigma_f(x)` denotes the uncertainty associated with the prediction :math:`\hat f(x)`, and :math:`\sigma_j(x)` the uncertainty associated with the prediction :math:`\hat c_j(x)`, :math:`j=1,2,\dots,m`. This uncertainty depends on the model chosen.
+| :math:`\hat f` denotes a model of the objective :math:`f` and :math:`\hat c_j` a model of the constraint :math:`c_j`, :math:`j=1,2,\dots,m`. For :math:`x\in X`, :math:`\sigma_f(x)` denotes the uncertainty associated with the prediction :math:`\hat f(x)`, and :math:`\sigma_j(x)` denotes the uncertainty associated with the prediction :math:`\hat c_j(x)`, :math:`j=1,2,\dots,m`. This uncertainty depends on the model chosen.
 
 | For a :ref:`kriging` model, :math:`\sigma_f(x)` (or :math:`\sigma_j(x)`) is readily available through the standard deviation that the model natively produces.
-| For an :ref:`ensemble_stat` model, the uncertainty is constructed by comparing the predictions of the ensemble models as in [AuLedSa2021]_.
+| For an :ref:`ensemble_stat` model, the uncertainty is constructed by comparing the predictions of the ensemble models (see [AuLedSa2021]_).
 | For any other model except ENSEMBLE, :math:`\sigma_f(x)` (or :math:`\sigma_j(x)`) is computed with the distance from :math:`x` to previously evaluated points.
 | Finally, for an :ref:`ensemble` model, the uncertainty is computed through a weighted sum of the squared uncertainties of the ensemble models.
 
-| There are eight different formulations that can be chosen with the parameter ``SGTELIB_MODEL_FORMULATION``. Some formulations involve a :math:`\lambda` parameter that is described later.
+| There are eight different formulations that can be chosen with the parameter ``SGTELIB_MODEL_FORMULATION``. Some formulations involve a parameter :math:`\lambda` that is described later.
 
 * ``FS`` (default):
 
@@ -601,7 +616,7 @@ the expected amplitude thereof.
  
       \min_{x\in X}\ -\mathrm{EFI}(x)
 
-where :math:`\mathrm{EFI}` is the *expected feasible improvement* : :math:`\mathrm{EFI} = \mathrm{EI}\times\mathrm{P}`
+where :math:`\mathrm{EFI}` is the *expected feasible improvement* : :math:`\mathrm{EFI} = \mathrm{EI}\times\mathrm{P}`.
 
 * ``EFIS``:
 
@@ -615,7 +630,7 @@ where :math:`\mathrm{EFI}` is the *expected feasible improvement* : :math:`\math
   
       \min_{x\in X}\ -\mathrm{EFI}(x)-\lambda\hat\sigma_f(x)\mu(x)
 
-where :math:`\mu` is the *uncertainty in the feasibility* : :math:`\mu = 4\mathrm{P}\times(1-\mathrm{P})`
+where :math:`\mu` is the *uncertainty in the feasibility* : :math:`\mu = 4\mathrm{P}\times(1-\mathrm{P})`.
 
 * ``EFIC``:
 
@@ -673,5 +688,5 @@ with :math:`\mathrm{PI}` being the *probability of improvement* which is the pro
 
   .. [AuLedSa2021] C.Audet, S.Le Digabel and R.Saltet.
     Quantifying uncertainty with ensembles of surrogates for blackbox optimization.
-    Rapport technique G-2020-58, Les cahiers du GERAD, 2020.
+    Rapport technique G-2021-37, Les cahiers du GERAD, 2021.
     http://www.optimization-online.org/DB_HTML/2021/07/8489.html
