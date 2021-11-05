@@ -85,7 +85,7 @@ By default, a quadratic model is used to propose new points to be evaluated with
 To disable the use of quadratic models, the parameter ``QUAD_MODEL_SEARCH`` can be set to ``no``.
 
 Models from the *SGTELIB* library can be used by setting ``SGTELIB_MODEL_SEARCH`` to ``yes``.
-Many parameters are available to control *SGTELIB* models: ``$NOMAD_HOME/bin/nomad -h SGTELIB``.
+Many parameters are available to control *SGTELIB* models: ``$NOMAD_HOME/bin/nomad -h SGTELIB``, or see :ref:`sgtelib`.
 
 .. _vns_search:
 

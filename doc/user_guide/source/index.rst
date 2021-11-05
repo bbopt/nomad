@@ -56,7 +56,7 @@ A complete introduction to derivative-free and blackbox optimization can be foun
    Installation
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: First NOMAD steps:
 
    GettingStarted
@@ -64,6 +64,7 @@ A complete introduction to derivative-free and blackbox optimization can be foun
    LibraryMode
    TricksOfTheTrade
    AdvancedFunctionalities
+   SgteLib
 
 
 .. toctree::
