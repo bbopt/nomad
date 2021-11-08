@@ -3,8 +3,8 @@
 Surrogate Library
 ========================
 
-The *SGTELIB* library is a dynamic surrogate modeling library. It is used in the *Search* step of Mads to dynamically construct models from the previous evaluations.
-During a *Search* step that uses *SGTELIB*, models of the objective and the constraints are contrusted and a surrogate subproblem involving these models is optimized.
+The *SGTELIB* library is a dynamic surrogate modelling library. It is used in the *Search* step of Mads to dynamically construct models from the previous evaluations.
+During a *Search* step that uses *SGTELIB*, models of the objective and the constraints are constructed and a surrogate subproblem involving these models is optimized.
 The resulting solutions are the next candidates for evaluation by the true problem.
 
 | Models from the *SGTELIB* library can be used by setting the parameter ``SGTELIB_MODEL_SEARCH`` to ``yes`` or ``true``.
@@ -20,7 +20,7 @@ Each field name is made of one single word and each field value is made of one s
 
 Example : ``SGTELIB_MODEL_DEFINITION TYPE <model type> FIELD1 <field 1 value> FIELD2 <field 2 value>``
 
-The section below describes the models and settings availables.
+The section below describes the models and settings available.
 
 
 Types of models
