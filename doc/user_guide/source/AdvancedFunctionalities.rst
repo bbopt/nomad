@@ -85,7 +85,7 @@ By default, a quadratic model is used to propose new points to be evaluated with
 To disable the use of quadratic models, the parameter ``QUAD_MODEL_SEARCH`` can be set to ``no``.
 
 Models from the *SGTELIB* library can be used by setting ``SGTELIB_MODEL_SEARCH`` to ``yes``.
-Many parameters are available to control *SGTELIB* models: ``$NOMAD_HOME/bin/nomad -h SGTELIB``.
+Many parameters are available to control *SGTELIB* models: ``$NOMAD_HOME/bin/nomad -h SGTELIB``, or see :ref:`sgtelib`.
 
 .. _vns_search:
 
@@ -134,7 +134,7 @@ A static surrogate, or static surrogate function, is a cheaper blackbox function
 
 .. note:: The static surrogate is provided by the user.
 
-The current version of NOMAD can use a static surrogate, provided by the user, which is not updated during the algorithm. See [BoDeFrSeToTr99a]_ for a survey on surrogate optimization, and [AuCM2019]_ about using static surrogate evaluations. This surrogate may be used for sorting points before evaluation (see parameter :ref:`eval_queue_sort`).
+The current version of NOMAD can use a static surrogate, provided by the user, which is not updated during the algorithm. See [BoDeFrSeToTr99a]_ for a survey on surrogate optimization, and [AuCM2019]_ about using static surrogate evaluations. This surrogate may be used for sorting points before evaluation. This sorting strategy is obtained by setting the parameter :ref:`eval_queue_sort` to ``SURROGATE``.
 
 In batch mode, the parameter ``SURROGATE_EXE`` associates a static surrogate executable with the blackbox executable given by parameter ``BB_EXE``. The surrogate must display the same input and output types as its associated blackbox, given by parameters ``BB_INPUT_TYPE`` and ``BB_OUTPUT_TYPE``. In library mode, if a surrogate function is to be used, then its Evaluator should be of type ``EvalType::SURROGATE`` (see Section :ref:`library_mode`).
 

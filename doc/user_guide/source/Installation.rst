@@ -5,11 +5,9 @@ Installation
 
 On Linux, Windows and Mac OS X, NOMAD can be compiled using *CMake*, a tool to manage building of source code.
 
-The minimum version of *CMake* is 3.14. Older versions should trigger an error.
+The minimum version of *CMake* is 3.14. Older versions should trigger an error. *CMake* will detect which compiler is available.
 
 A recent C++ compiler supporting C++14 is also required. The compilation has been tested on Linux with gcc 9.3.0, 10.1.0 and 11.1.0. The compilation has been tested on OSX with gcc Homebrew 9.3.0 and Apple clang version 11.0.3. The compilation has been tested on Windows 8 with Microsoft Visual Studio 2019 (cl.exe 19.29.300038.1) and Microsoft Visual Studio 2017.
-
-*CMake* will detect which compiler is available.
 
 
 .. warning:: Some older version of *CMake* do not trigger an explicit error on the version number.
@@ -150,7 +148,6 @@ Testing installation
 ====================
 
 Once building **and installation** have been performed some tests can be performed.
-By default the examples are built and can be tested::
 
 The NOMAD binary can be tested::
 
@@ -158,10 +155,12 @@ The NOMAD binary can be tested::
 
 This should return the version number on the command line.
 
-Additionally, by default the examples are built and can be tested::
+By default the examples are built and can be tested::
 
   cd build/release
   ctest
 
-Option ``--parallel xx`` can be added for faster execution.
+For Windows, the configuration must be provided: ``ctest -C Release``.
+
+Please note that the tests will take several minutes. Option ``--parallel xx`` can be added for faster execution.
 The log of the tests can be found in ``$NOMAD_HOME/build/release/Testing/Temporary``.
