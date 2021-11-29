@@ -368,6 +368,25 @@ Access to solution and optimization data
 .. NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD,nullptr);
 
 
+Matlab interface
+-----------------
+
+.. note:: Building the Matlab MEX interface requires compatibility of the versions of Matlab and the compiler. 
+Check the compatibility at `MathWorks <https://www.mathworks.com/support/requirements/supported-compilers.html>`_ 
+
+The Matlab MEX interface allows to run NOMAD within the command line of Matlab.
+Some examples and source codes are provided in ``$NOMAD_HOME/interface/Matlab_MEX``.
+To enable the building of the Python interface, option ``-DBUILD_INTERFACE_MATLAB=ON`` must be
+set when configuring for building NOMAD, as such: ``cmake -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release``.
+The command ``cmake --install build/release`` must be run before using the Matlab ``nomadOpt`` function. Also, 
+the Matlab command ``addpath()``
+
+All functionalities of NOMAD are available in ``nomadOpt``.
+NOMAD parameters are provided in a Matlab structure with keywords and values using the same syntax as used in the NOMAD parameter
+files. For example, ``params = struct('initial_mesh_size','* 10','MAX_BB_EVAL','100');``
+
+
+
 PyNomad interface
 -----------------
 
@@ -377,8 +396,8 @@ PyNomad interface
 
 A Python interface for NOMAD is provided for Mac OS X and Linux.
 Some examples and source codes are provided in ``$NOMAD_HOME/interfaces/PyNomad``.
-To enable the building of the Python interface, option ``-DBUILD_INTERFACES=ON`` must be
-set when configuring for building NOMAD, as such: ``cmake -DBUILD_INTERFACES=ON -S . -B build/release``.
+To enable the building of the Python interface, option ``-DBUILD_INTERFACE_PYTHON=ON`` must be
+set when configuring for building NOMAD, as such: ``cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release``.
 The build procedure relies on Python 3.6 and Cython 0.24 or higher.
 A simple way to make it work is to first install the `Anaconda <http://www.anaconda.org/>`_ package.
 The command ``cmake --install build/release`` must be run before using the PyNomad module.
@@ -394,7 +413,7 @@ C interface
 
 A C interface for NOMAD is provided for Mac OS X and Linux.
 The source codes are provided in ``$NOMAD_HOME/interfaces/CInterface/``.
-To enable the building of the C interface, option ``-DBUILD_INTERFACES=ON`` must be
+To enable the building of the C interface, option ``-DBUILD_INTERFACE_C=ON`` must be
 set when building NOMAD, as such: ``cmake -DBUILD_TESTS=ON -S . -B build/release``.
 The command ``cmake --install build/release`` must be run before using the library.
 
