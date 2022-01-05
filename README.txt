@@ -93,10 +93,14 @@ cmake -S . -B build/release     ---> Create the CMake files and directories for
                                        the $NOMAD_HOME directory.
                                      To enable time stats build:
                                        cmake -DTIME_STATS=ON -S . -B build/release
-                                     To enable interfaces (C and Python) building:
-                                       cmake -DBUILD_INTERFACES=ON -S . -B build/release
-                                       Python and Cython need to be available;
-                                       using Anaconda is recommended.
+                                     To enable C interface building:
+                                       cmake -DBUILD_INTERFACE_C=ON -S . -B build/release
+                                     To enable Matlab interface building:
+                                       cmake -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release
+                                       ! Compiler version and Matlab version need to be compatible;
+                                       ! Check https://www.mathworks.com/support/requirements/supported-compilers.html
+                                     To enable Python interface (PyNomad) building:
+                                       cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release
                                      To deactivate compilation with OpenMP:
                                        cmake -DTEST_OPENMP=OFF -S . -B build/release
 
