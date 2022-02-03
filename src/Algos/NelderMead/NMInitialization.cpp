@@ -52,8 +52,6 @@
 
 void NOMAD::NMInitialization::init()
 {
-    setStepType(NOMAD::StepType::INITIALIZATION);
-
     _nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get( _stopReasons );
 }
 
@@ -122,7 +120,7 @@ bool NOMAD::NMInitialization::checkCacheCanFormSimplex()
 }
 
 // Generate trial points to form a simplex
-void NOMAD::NMInitialization::generateTrialPoints()
+void NOMAD::NMInitialization::generateTrialPointsImp()
 {
     NOMAD::Point x0 = _pbParams->getAttributeValue<NOMAD::Point>("X0");
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");

@@ -169,6 +169,34 @@ void SGTELIB::Surrogate_Kriging::predict_private ( const SGTELIB::Matrix & XXs,
 }//
 
 
+// Predict only objectives (used in Surrogate Ensemble Stat)
+void SGTELIB::Surrogate_Kriging::predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
+                                                             SGTELIB::Matrix * ZZsurr_around            ) {
+  check_ready(__FILE__,__FUNCTION__,__LINE__);
+
+  const size_t pxx = XXd.size();
+  const int nbd = XXd[0]->get_nb_rows();
+  SGTELIB::Matrix temp;
+
+
+  // Loop on all pxx points 
+  for (int i=0 ; i<pxx ; i++){
+    // *(XXd[i]) is of dimension nbd * _n
+    const SGTELIB::Matrix r = compute_covariance_matrix(*(XXd[i])).transpose();
+    // Compute only objectives
+    for (int j=0 ; j<_m ; j++){
+      if (_trainingset.get_bbo(j)==SGTELIB::BBO_OBJ){
+        // Row i of ZZsurr_around is set to [f(x_i + d_1) , ... , f(x_i + d_nbd)]
+        temp = SGTELIB::Matrix::ones(nbd,1) * _beta.get_col(j) + r.transpose() * _alpha.get_col(j);
+        ZZsurr_around->set_row( temp.transpose() , i);
+        break;
+      }
+    } // end for j
+  } // end for i
+
+}
+
+
 void SGTELIB::Surrogate_Kriging::predict_private (const SGTELIB::Matrix & XXs,
                                                 SGTELIB::Matrix * ZZs,
                                                 SGTELIB::Matrix * std, 

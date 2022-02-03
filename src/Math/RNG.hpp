@@ -52,8 +52,8 @@
  \see    RNG.cpp
  */
 
-#ifndef __NOMAD_4_0_RNG__
-#define __NOMAD_4_0_RNG__
+#ifndef __NOMAD_4_2_RNG__
+#define __NOMAD_4_2_RNG__
 
 #include "../nomad_platform.hpp"
 #include "../Util/defines.hpp"
@@ -206,4 +206,4 @@ private:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_0_RNG__
+#endif // __NOMAD_4_2_RNG__

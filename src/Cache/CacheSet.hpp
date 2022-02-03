@@ -52,8 +52,8 @@
  * \see    CacheSet.cpp
  */
 
-#ifndef __NOMAD_4_0_CACHESET__
-#define __NOMAD_4_0_CACHESET__
+#ifndef __NOMAD_4_2_CACHESET__
+#define __NOMAD_4_2_CACHESET__
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -110,6 +110,7 @@ public:
     /**
      \param cacheParams     The cache parameters -- \b IN.
      \param bbOutputType    List of the blackbox output type -- \b IN.
+     \param bbEvalFormat    Format to write cache correctly -- \b IN.
      */
     static void setInstance(const std::shared_ptr<CacheParameters>& cacheParams,
                             const BBOutputTypeList& bbOutputType,
@@ -156,7 +157,7 @@ public:
      */
     bool smartInsert(const EvalPoint &evalPoint,
                      const short maxNumberEval,
-                     const EvalType& evalType) override;
+                     EvalType evalType ) override;
 
     /// Get eval point at point x from the cache and return it in a list.
     /**
@@ -176,13 +177,16 @@ public:
      \param comp                       The comparison function                                        -- \b IN.
      \param evalPointList   The eval points that verify comp()==true returned in a list    -- \b OUT.
      \param evalType        Which eval of the EvalPoint to look at -- \b IN.
+     \param computeType   Which type of computation                            -- \b IN.
      \return                 The number of eval points found.
      */
     size_t find(const Eval &refeval,
-             std::function<bool(const Eval&, const Eval&, const ComputeType&)> comp,
+             std::function<bool(const Eval&, const Eval&, ComputeType)> comp,
              std::vector<EvalPoint> &evalPointList,
-             const EvalType& evalType = EvalType::BB,
-             const ComputeType& computeType = ComputeType::STANDARD) const override;
+             EvalType evalType = EvalType::BB,
+             ComputeType computeType = ComputeType::STANDARD) const override;
+
+    
 
     /**
      * \brief Get best eval points, using comp().
@@ -193,17 +197,18 @@ public:
      \param findFeas               Flag to find feasible points                               -- \b IN.
      \param hMax                        Maximum acceptable value for h, when findFeas is false     -- \b IN.
      \param fixedVariable    Searching for a subproblem defined by this point -- \b IN.
-     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
+     \param evalType               Which eval of the EvalPoint to look at -- \b IN.
+     \param computeType        Which ComputeType of the EvalPoint to look at -- \b IN.
      \param refeval                 The point of reference                                              -- \b IN.
      \return                 The number of eval points found.
      */
-    virtual size_t findBest(std::function<bool(const Eval&, const Eval&, const ComputeType&)> comp,
+    virtual size_t findBest(std::function<bool(const Eval&, const Eval&, ComputeType)> comp,
                      std::vector<EvalPoint> &evalPointList,
                      const bool findFeas,
                      const Double& hMax,
                      const Point& fixedVariable,
-                     const EvalType& evalType,
-                     const ComputeType& computeType,
+                     EvalType  evalType,
+                     ComputeType computeType,
                      const Eval* refeval) const override;
 
     /// Find best feasible points, using operator<.
@@ -211,36 +216,38 @@ public:
      \param evalPointList   The best feasible eval points in a list  -- \b OUT.
      \param fixedVariable   Searching for a subproblem defined by this point -- \b IN.
      \param evalType        Which eval of the EvalPoint to look at -- \b IN.
+     \param computeType    Which ComputeType to look at -- \b IN.
      \param refeval                 The single best feasible eval point -- \b OUT.
      \return                 The number of eval points found.
      */
     virtual size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
                                 const Point& fixedVariable,
-                                const EvalType& evalType,
-                                const ComputeType& computeType,
+                                EvalType  evalType,
+                                ComputeType computeType,
                                 const Eval* refeval) const override;
 
     /// Test if cache contains a feasible point.
     /**
      \return \c true if the cache contains at least one feasible point, \c false otherwise.
      */
-    bool hasFeas(const EvalType& evalType,
-                 const ComputeType& computeType = ComputeType::STANDARD) const override;
+    bool hasFeas(EvalType evalType,
+                 ComputeType computeType = ComputeType::STANDARD) const override;
 
     /// Find best infeasible points, with h <= hMax, using operator<.
     /**
      \param evalPointList   The best infeasible eval points in a list   -- \b OUT.
      \param hMax                       Select a point if h <= hMax                 -- \b IN.
      \param fixedVariable   The fixed variables have a fixed value      -- \b IN.
-     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
+     \param evalType              Which eval of the EvalPoint to look at -- \b IN.
+     \param computeType       Which ComputeType to look at -- \b IN.
      \param refeval               The single best infeasible eval point -- \b OUT.
      \return                The number of eval points found.
      */
     virtual size_t findBestInf(std::vector<EvalPoint> &evalPointList,
                             const Double& hMax,
                             const Point& fixedVariable,
-                            const EvalType& evalType,
-                            const ComputeType& computeType,
+                            EvalType  evalType,
+                            ComputeType computeType,
                             const Eval* refeval) const override;
 
     /// Get all eval points verifying a criterion function with respect to point X. The criterion function can be a measure of distance to X.
@@ -262,7 +269,7 @@ public:
      All the points for which crit() return true are put in evalPointList.
 
      \param crit                        The criteria function                               -- \b IN.
-     \param evalPointList    The eval points within the prescribed distance of X -- \b OUT.
+     \param evalPointList    The eval points within verifying the criteria -- \b OUT.
      \return                 The number of eval points found.
      */
     virtual size_t find(std::function<bool(const EvalPoint&)> crit,
@@ -275,7 +282,7 @@ public:
 
      \param crit1                      The first criteria function                                    -- \b IN.
      \param crit2                      The second criteria function                               -- \b IN.
-     \param evalPointList    The eval points within the prescribed distance of X -- \b OUT.
+     \param evalPointList    The eval points verifying the criteria -- \b OUT.
      \return                 The number of eval points found.
      */
     virtual size_t find(std::function<bool(const EvalPoint&)> crit1,
@@ -293,7 +300,7 @@ public:
      \param evalType        Which eval of the EvalPoint to look at -- \b IN.
      \return                A boolean indicating if update succeeded (\c true), \c false if there was an error.
      */
-    bool update(const EvalPoint& evalPoint, const EvalType& evalType) override;
+    bool update(const EvalPoint& evalPoint, EvalType  evalType) override;
 
     /// Return number of eval points in the cache.
     size_t size() const override { return _cache.size(); }
@@ -301,7 +308,7 @@ public:
     /// Empty the cache.
     bool clear() override;
 
-    /// Clear all quad and sgtelib model evaluations from the cache
+    /// Clear all model (sgtelib) evaluations from the cache
     void clearModelEval(const int mainThreadNum) override;
 
     /** Purge the cache to get under CACHE_SIZE_MAX.
@@ -385,4 +392,4 @@ std::istream& operator>>(std::istream& is, CacheSet& cache);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_CACHESET__
+#endif // __NOMAD_4_2_CACHESET__

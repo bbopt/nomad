@@ -50,8 +50,8 @@
  \author Sebastien Le Digabel, modified by Viviane Rochon Montplaisir
  \date   March 2017
  */
-#ifndef __NOMAD_4_0_DEFINES__
-#define __NOMAD_4_0_DEFINES__
+#ifndef __NOMAD_4_2_DEFINES__
+#define __NOMAD_4_2_DEFINES__
 
 #include <string>
 #include <iostream>
@@ -124,6 +124,7 @@ const std::string DEFAULT_UNDEF_STR_HYPHEN = "-";
 const std::string DEFAULT_UNDEF_STR_1 = "nan";
 
 const double INF = std::numeric_limits<double>::max(); ///< Infinity
+const double M_INF = std::numeric_limits<double>::min(); ///< -Infinity
 const double NaN = std::numeric_limits<double>::quiet_NaN(); ///< Quiet Not-A-Number
 const int P_INF_INT = std::numeric_limits<int>::max(); ///< plus infinity for int
 const int M_INF_INT = std::numeric_limits<int>::min(); ///< minus infinity for int
@@ -161,4 +162,4 @@ enum class SuccessType
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_DEFINES__
+#endif // __NOMAD_4_2_DEFINES__

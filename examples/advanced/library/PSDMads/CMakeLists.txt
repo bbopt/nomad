@@ -5,7 +5,7 @@ add_executable(rosenbrock.exe rosenbrock.cpp )
 target_include_directories(rosenbrock.exe PRIVATE
     ${CMAKE_SOURCE_DIR}/src)
 
-set_target_properties(rosenbrock.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
+set_target_properties(rosenbrock.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" SUFFIX "")
 
 target_link_libraries(rosenbrock.exe PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
 

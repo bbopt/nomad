@@ -168,6 +168,7 @@ void NOMAD::SgtelibModelMegaIteration::runIterationsAndSetTrialPoints()
     {
         if (_stopReasons->checkTerminate())
         {
+            AddOutputInfo("Sgtelib model mega iteration terminates without setting trial points");
             break;
         }
         auto iteration = _iterList[i];
@@ -242,7 +243,7 @@ void NOMAD::SgtelibModelMegaIteration::runIterationsAndSetTrialPoints()
 }
 
 
-void NOMAD::SgtelibModelMegaIteration::generateTrialPoints()
+void NOMAD::SgtelibModelMegaIteration::generateTrialPointsImp()
 {
     generateIterations();
     runIterationsAndSetTrialPoints();

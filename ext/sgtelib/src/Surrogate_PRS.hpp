@@ -59,6 +59,8 @@ namespace SGTELIB {
     void predict_private ( const SGTELIB::Matrix & XXs,
                                  SGTELIB::Matrix * ZZs) override;
 
+    virtual void predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
+                                             SGTELIB::Matrix * ZZsurr_around            ) override;
 
     // Compute metrics
     const SGTELIB::Matrix * get_matrix_Zvs (void) override;

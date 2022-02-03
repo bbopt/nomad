@@ -52,8 +52,8 @@
  \date   2010-04-02
  \see    Double.cpp
  */
-#ifndef __NOMAD_4_0_DOUBLE__
-#define __NOMAD_4_0_DOUBLE__
+#ifndef __NOMAD_4_2_DOUBLE__
+#define __NOMAD_4_2_DOUBLE__
 
 #include <cmath>
 
@@ -329,6 +329,13 @@
          */
         const Double previousMult(const Double &granularity) const;
 
+        // Unused for the moment. Maybe used by projectToMesh
+        void truncateToGranMultiple ( const Double & ref   ,
+                              const Double & delta ,
+                              const Double & lb = Double()   ,
+                              const Double & ub = Double()   );
+        
+        
         /// Operator \c ++ (prefix position).
         /**
          Allows \c ++d;
@@ -629,4 +636,4 @@
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_0_DOUBLE__
+#endif // __NOMAD_4_2_DOUBLE__

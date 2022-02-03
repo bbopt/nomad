@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_NMSHRINK__
-#define __NOMAD_4_0_NMSHRINK__
+#ifndef __NOMAD_4_2_NMSHRINK__
+#define __NOMAD_4_2_NMSHRINK__
 
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
 #include "../../Algos/Step.hpp"
@@ -99,7 +99,7 @@ public:
     /**
      The new shrunk simplex is obtained with the formula y[k] = y0[k] + _gamma*(yi[k]-y0[k]). Where y0 is the frame center and yi are elements of the previous simplex. Gamma must be a parameter in ]0;1]
      */
-    void generateTrialPoints() override;
+    void generateTrialPointsImp() override;
 
 
 private:
@@ -116,4 +116,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_NMSHRINK__
+#endif // __NOMAD_4_2_NMSHRINK__

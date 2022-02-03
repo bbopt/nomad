@@ -4,7 +4,7 @@ target_include_directories(example1_c_api.exe PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/interfaces/CInterface)
 
-set_target_properties(example1_c_api.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
+set_target_properties(example1_c_api.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" SUFFIX "")
 
 
 if(OpenMP_CXX_FOUND)

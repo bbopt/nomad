@@ -54,12 +54,20 @@ void NOMAD::LHSearchMethod::init()
 {
     setStepType(NOMAD::StepType::SEARCH_METHOD_LH);
 
-    auto lhSearch = _runParams->getAttributeValue<NOMAD::LHSearchType>("LH_SEARCH");
-    setEnabled(lhSearch.isEnabled());
+    // For some testing, it is possible that _runParams is null
+    if ( nullptr != _runParams)
+    {
+        auto lhSearch = _runParams->getAttributeValue<NOMAD::LHSearchType>("LH_SEARCH");
+        setEnabled(lhSearch.isEnabled());
+    }
+    else
+    {
+        setEnabled(false);
+    }
 }
 
 
-void NOMAD::LHSearchMethod::generateTrialPointsImp()
+void NOMAD::LHSearchMethod::generateTrialPointsFinal()
 {
     if (nullptr == _iterAncestor)
     {

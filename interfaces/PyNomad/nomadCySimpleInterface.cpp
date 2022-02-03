@@ -80,17 +80,16 @@ static void printPyNomadVersion()
 
 static void printPyNomadUsage()
 {
-    std::cout << "-----------------------------------------------------------"          << std::endl;
+    std::cout << "--------------------------------------------------------------"          << std::endl;
     std::cout << " PyNomad interface usage"                                             << std::endl;
-    std::cout << "-----------------------------------------------------------"          << std::endl;
-    std::cout << "  Run NOMAD : [x_best, f_best, h_best, nb_evals, nb_iters, exit_status] = ";
-    std::cout << "PyNomad.optimize(bb, x0, lb, ub, param)"                              << std::endl;
-    std::cout << "-----------------------------------------------------------"          << std::endl;
+    std::cout << "--------------------------------------------------------------"          << std::endl;
+    std::cout << "  Run NOMAD : result = PyNomad.optimize(bb, x0, lb, ub, param)"                              << std::endl;
+    std::cout << "--------------------------------------------------------------"          << std::endl;
     std::cout << "    Info    : PyNomad.info()"                                         << std::endl;
     std::cout << "    Help    : PyNomad.help(\"keywords\") or PyNomad.help()"           << std::endl;
     std::cout << "    Version : PyNomad.version()"                                      << std::endl;
     std::cout << "    Usage   : PyNomad.usage()"                                        << std::endl;
-    std::cout << "-----------------------------------------------------------"          << std::endl;
+    std::cout << "--------------------------------------------------------------"          << std::endl;
     std::cout                                                                           << std::endl;
 
     //std::cout << " Run NOMAD : [x_best, f_best, h_best, nb_evals, nb_iters, exit_status] = ";
@@ -252,7 +251,7 @@ public:
             // Call Python blackbox function on a vector of EvalPoints
             try
             {
-                // Call callback 
+                // Call callback
                 std::shared_ptr<NOMAD::Block> block_ptr = std::make_shared<NOMAD::Block>(block);
                 PyGILState_STATE state = PyGILState_Ensure();
                 std::vector<int> cblret = _cbL(_apply, block_ptr, _hasSgte, false); // See above
@@ -470,7 +469,7 @@ static int runNomad(Callback cb,
         }
 
         NOMAD::MainStep::resetComponentsBetweenOptimization();
-        
+
         Py_END_ALLOW_THREADS
         return stopflag;
     }
@@ -483,5 +482,3 @@ static int runNomad(Callback cb,
     return -1;
 
 }
-
-

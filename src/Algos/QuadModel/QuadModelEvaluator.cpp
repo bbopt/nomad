@@ -74,6 +74,22 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
                                                const NOMAD::Double &hMax,
                                                std::vector<bool> &countEval) const
 {
+    //Important remarks about fixed variables
+    //
+    // The attribute _fixedVariables is passed to the constructor. It can be undefined or not.
+    //
+    // Case with undefined fixed variables
+    // 1- The evaluator and the component requesting quad model evaluations are on the same local space.
+    // 2- The values of variables detected as fixed when building the training set are visible.  There is no fixed_variables per say. No need to convert.
+    // 2- sgtelib identifies fixed variables from the training set when building models.
+    // 3- If the original definition of the problem has fixed variable, they are not 'seen' by models (training set, quad model evaluator and optimization).
+    //
+    // Case with defined fixed variables
+    // 1- The evaluator is defined in a "local" subspace and the component requesting evaluations (QuadModelOptimize) send points in full space.
+    // 2- The training set construction uses points in subspace.
+    // 3- After evaluations are done in subspace, the points must be reconverted in full space.
+    
+    
     std::vector<bool> evalOk;
     countEval.clear();
 
@@ -83,15 +99,18 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
         throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: eval_block called with an empty block");
     }
 
-    // points were sent to the evaluator in full space.
+    // points are sent to the evaluator in full space.
     // Convert points to subspace, because model is in subspace.
-    for (size_t i = 0; i < block.size(); i++)
+    if (!_fixedVariable.isEmpty())
     {
-        block[i] = std::make_shared<NOMAD::EvalPoint>(block[i]->makeSubSpacePointFromFixed(_fixedVariable));
+        for (size_t i = 0; i < block.size(); i++)
+        {
+            block[i] = std::make_shared<NOMAD::EvalPoint>(block[i]->makeSubSpacePointFromFixed(_fixedVariable));
+        }
     }
-
+    
     size_t m = block.size();
-    size_t n = block[0]->size();
+    size_t n = block[0]->size(); // dimension of the local full space.
 
     const auto bbot = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
 
@@ -192,13 +211,16 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
         (*it)->setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, NOMAD::EvalType::MODEL);
 
     }
-
+    
     // Convert points back to full space.
-    for (size_t i = 0; i < block.size(); i++)
+    if (!_fixedVariable.isEmpty())
     {
-        block[i] = std::make_shared<NOMAD::EvalPoint>(block[i]->makeFullSpacePointFromFixed(_fixedVariable));
+        for (size_t i = 0; i < block.size(); i++)
+        {
+            block[i] = std::make_shared<NOMAD::EvalPoint>(block[i]->makeFullSpacePointFromFixed(_fixedVariable));
+        }
     }
-
+    
     return evalOk;
 }
 

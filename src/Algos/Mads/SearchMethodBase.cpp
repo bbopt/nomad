@@ -65,14 +65,14 @@ void NOMAD::SearchMethodBase::endImp()
 }
 
 
-void NOMAD::SearchMethodBase::generateTrialPoints()
+void NOMAD::SearchMethodBase::generateTrialPointsImp()
 {
 
     OUTPUT_INFO_START
     AddOutputInfo("Generate points for " + getName(), true, false);
     OUTPUT_INFO_END
-
-    generateTrialPointsImp();
+    
+    generateTrialPointsFinal();
 
     // Snap the points to bounds and mesh
     auto searchMethodPoints = getTrialPoints();
@@ -98,9 +98,10 @@ void NOMAD::SearchMethodBase::generateTrialPoints()
     {
         insertTrialPoint(evalPoint);
     }
-
+    
     OUTPUT_INFO_START
     AddOutputInfo("Generated " + std::to_string(getTrialPointsCount()) + " points");
     AddOutputInfo("Generate points for " + getName(), false, true);
     OUTPUT_INFO_END
+
 }

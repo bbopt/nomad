@@ -49,16 +49,16 @@
 
 #include "../../nomad_platform.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Algos/NelderMead/NMInitializeSimplex.hpp"
 #include "../../Algos/NelderMead/NMIteration.hpp"
 #include "../../Algos/NelderMead/NMUpdate.hpp"
 #include "../../Algos/NelderMead/NMMegaIteration.hpp"
 #include "../../Algos/NelderMead/NMReflective.hpp"
 #include "../../Algos/NelderMead/NMShrink.hpp"
-#include "../../Algos/NelderMead/NMInitializeSimplex.hpp"
 
 void NOMAD::NMIteration::init()
 {
-    setStepType(NOMAD::StepType::ITERATION);
+    setStepType(NOMAD::StepType::NM_ITERATION);
 
     _bestSuccess = NOMAD::SuccessType::UNSUCCESSFUL;
 
@@ -66,20 +66,18 @@ void NOMAD::NMIteration::init()
 
 void NOMAD::NMIteration::startImp()
 {
-    incK();
-
-    // Update main barrier.
-    NOMAD::NMUpdate update( this );
-    update.start();
-    update.run();
-    update.end();
-
+    // Not used anymore. Displays a MADS Update block!
+    //NOMAD::NMUpdate update( this );
+    //update.start();
+    //update.run();
+    //update.end();
+    
     // Create the initial simplex Y if it is empty. Use a center pt and the cache
     NOMAD::NMInitializeSimplex initSimplex ( this );
     initSimplex.start();
     bool initSuccess = initSimplex.run();
     initSimplex.end();
-
+    
     if ( ! initSuccess )
     {
         auto nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get ( getAllStopReasons() );
@@ -140,10 +138,12 @@ bool NOMAD::NMIteration::runImp()
     }
 
     // Perform SHRINK only for a standalone NM optimization
-    if ( ! _stopReasons->checkTerminate() &&
-         stepType == NOMAD::StepType::NM_SHRINK  &&
+    // Shrink because Reflect step has failed (last chance) or when requested
+    if ( (_stopReasons->checkTerminate() || stepType == NOMAD::StepType::NM_SHRINK)  &&
          nmOpt )
     {
+        NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get(_stopReasons)->setStarted();
+        
         // Create shrink trial points and evaluate them
         NMShrink shrink ( this );
         shrink.start();

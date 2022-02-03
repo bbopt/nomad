@@ -53,8 +53,8 @@
  */
 
 
-#ifndef __NOMAD_4_0_CALLBACK_TYPE__
-#define __NOMAD_4_0_CALLBACK_TYPE__
+#ifndef __NOMAD_4_2_CALLBACK_TYPE__
+#define __NOMAD_4_2_CALLBACK_TYPE__
 
 #include "../nomad_nsbegin.hpp"
 
@@ -67,4 +67,4 @@ enum class CallbackType
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_0_CALLBACK_TYPE__
+#endif  // __NOMAD_4_2_CALLBACK_TYPE__

@@ -44,9 +44,11 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_NMSEARCHMETHOD__
-#define __NOMAD_4_0_NMSEARCHMETHOD__
+#ifndef __NOMAD_4_2_NMSEARCHMETHOD__
+#define __NOMAD_4_2_NMSEARCHMETHOD__
 
+#include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Algos/NelderMead/NM.hpp"
 #include "../../Algos/Mads/SearchMethodAlgo.hpp"
 
 #include "../../nomad_nsbegin.hpp"
@@ -58,13 +60,20 @@
  */
 class NMSearchMethod final : public SearchMethodAlgo
 {
+private:
+    std::shared_ptr<AlgoStopReasons<NMStopType>> _nmStopReasons;
+    
+    std::unique_ptr<NM> _nm;
+
 public:
     /// Constructor
     /**
      /param parentStep      The parent of this search step -- \b IN.
      */
     explicit NMSearchMethod(const Step* parentStep )
-      : SearchMethodAlgo(parentStep )
+      : SearchMethodAlgo(parentStep ),
+        _nmStopReasons(nullptr),
+        _nm(nullptr)
     {
         init();
     }
@@ -84,16 +93,17 @@ private:
      */
     void init();
 
-    ///Generate new points (no evaluation)
+    /// Generate new points (no evaluation)
     /**
-     \copydoc SearchMethodAlgo::generateTrialPointsImp \n
+     \copydoc SearchMethodAlgo::generateTrialPointsFinal 
+     
      Perform one iteration of all reflective steps (Reflect, Expansion, Inside and Outside Contraction). This is just portion of the NM algorithm without iteration.
      */
-    virtual void generateTrialPointsImp() override;
+     void generateTrialPointsFinal() override;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_NMSEARCHMETHOD__
+#endif // __NOMAD_4_2_NMSEARCHMETHOD__
 

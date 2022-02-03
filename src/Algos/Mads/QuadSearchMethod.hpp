@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_QUADSEARCHMETHOD__
-#define __NOMAD_4_0_QUADSEARCHMETHOD__
+#ifndef __NOMAD_4_2_QUADSEARCHMETHOD__
+#define __NOMAD_4_2_QUADSEARCHMETHOD__
 
 #include "../../Algos/Mads/SearchMethodSimple.hpp"
 #ifdef USE_SGTELIB
@@ -86,14 +86,15 @@ private:
 
     ///Generate new points (no evaluation)
     /**
-     \copydoc SearchMethodSimple::generateTrialPointsImp \n
+     \copydoc SearchMethodSimple::generateTrialPointsFinal 
+     
      A quadratic model (built with Sgtelib) is constructed around the best feasible and around the best infeasible point. For each model a  single sub-optimization is performed to obtain a best feasible and a best infeasible point. At most 4 trial points can be generated.
      */
-    void generateTrialPointsImp() override ;
+    void generateTrialPointsFinal() override ;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_QUADSEARCHMETHOD__
+#endif // __NOMAD_4_2_QUADSEARCHMETHOD__
 

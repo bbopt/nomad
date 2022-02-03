@@ -205,8 +205,17 @@ const NOMAD::Double NOMAD::Direction::angle(const NOMAD::Direction& dir1,
     {
         return NOMAD::Double();
     }
-
-    return std::acos((innerProduct / (norm1.sqrt() * norm2.sqrt())).todouble());
+    NOMAD::Double tmp = innerProduct / (norm1.sqrt() * norm2.sqrt());
+    if ( tmp > 1.0 || tmp < -1.0)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Cannot calculate angle between two directions.");
+    }
+    if ( tmp == 1.0 )
+        return 0;
+    else if ( tmp == -1.0 )
+        return std::acos(-1.0);
+    else
+        return std::acos(tmp.todouble());
 }
 
 

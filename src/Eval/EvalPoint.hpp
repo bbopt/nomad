@@ -52,8 +52,8 @@
  \see    EvalPoint.cpp
  */
 
-#ifndef __NOMAD_4_0_EVALPOINT__
-#define __NOMAD_4_0_EVALPOINT__
+#ifndef __NOMAD_4_2_EVALPOINT__
+#define __NOMAD_4_2_EVALPOINT__
 
 #ifdef USE_UNORDEREDSET
 #include <unordered_set>
@@ -87,7 +87,7 @@ private:
 
     int                         _threadAlgo;    ///< Main thread that generated this point
 
-    short                       _numberEval; ///< Number of times \c *this point has been evaluated (blackbox only)
+    short                       _numberBBEval; ///< Number of times \c *this point has been evaluated (blackbox only)
 
     std::shared_ptr<EvalPoint>  _pointFrom; ///< The frame center which generated \c *this point (blackbox only). Full space.
 
@@ -149,10 +149,10 @@ public:
     const Point* getX() const { return dynamic_cast<const Point*>(this); }
 
     /// Get the Eval part of this EvalPoint, using the right EvalType (BB or MODEL)
-    Eval* getEval(const EvalType& evalType) const;
+    Eval* getEval(EvalType evalType) const;
 
     /// Set the Eval part of this EvalPoint, using the right EvalType (BB or MODEL)
-    void setEval(const Eval& eval, const EvalType& evalType);
+    void setEval(const Eval& eval, EvalType evalType);
 
     /// Clear the model evaluation of \c *this
     void clearModelEval() { _eval[EvalType::MODEL].reset(); }
@@ -162,13 +162,13 @@ public:
 
     /// Get the objective function value of Eval of this EvalType,
     /// using the given ComputeType.
-    Double getF(const EvalType& evalType = EvalType::BB, const ComputeType& computeType = ComputeType::STANDARD) const;
+    Double getF(EvalType evalType = EvalType::BB, ComputeType computeType = ComputeType::STANDARD) const;
 
     /// Get the infeasibility measure of the Eval of this EvalType
-    Double getH(const EvalType& evalType = EvalType::BB, const ComputeType& computeType = ComputeType::STANDARD) const;
+    Double getH(EvalType evalType = EvalType::BB, ComputeType computeType = ComputeType::STANDARD) const;
 
     /// Get the blackbox output for the Eval of this EvalType as a \c string
-    std::string getBBO(const EvalType& evalType) const;
+    std::string getBBO(EvalType evalType) const;
 
     /// Set the blackbox output for the Eval of this EvalType from a \c string.
     /**
@@ -179,7 +179,7 @@ public:
     */
     void setBBO(const std::string &bbo,
                 const BBOutputTypeList& bbOutputTypeList,
-                const EvalType& evalType = EvalType::BB,
+                EvalType evalType = EvalType::BB,
                 const bool evalOk = true);
 
     /// Set the true or model blackbox output from a \c string.
@@ -191,16 +191,16 @@ public:
      */
     void setBBO(const std::string &bbo,
                 const std::string &sBBOutputTypes = "",
-                const EvalType& evalType = EvalType::BB,
+                EvalType evalType = EvalType::BB,
                 const bool evalOk = true);
 
-    void setBBOutputType(const BBOutputTypeList& bbOutputType, const EvalType& evalType = EvalType::BB);
+    void setBBOutputType(const BBOutputTypeList& bbOutputType, EvalType evalType = EvalType::BB);
 
     /// Get evaluation status of the Eval of this EvalType
-    EvalStatusType getEvalStatus(const EvalType& evalType) const;
+    EvalStatusType getEvalStatus(EvalType evalType) const;
 
     /// Set evaluation status of the Eval of this EvalType
-    void setEvalStatus(const EvalStatusType &evalStatus, const EvalType& evalType);
+    void setEvalStatus(EvalStatusType evalStatus, EvalType evalType);
 
     int getTag() const { return _tag; }
     void setTag(const int tag) const { _tag = tag; } ///< Sets mutable _tag
@@ -210,9 +210,9 @@ public:
     int getThreadAlgo() const { return _threadAlgo; }
     void setThreadAlgo(const int threadAlgo) { _threadAlgo = threadAlgo; }
 
-    short getNumberEval() const { return _numberEval; }
-    void setNumberEval(const short numEval) { _numberEval = numEval; }
-    void incNumberEval() { _numberEval++; }
+    short getNumberBBEval() const { return _numberBBEval; }
+    void setNumberBBEval(const short numBBEval) { _numberBBEval = numBBEval; }
+    void incNumberBBEval() { _numberBBEval++; }
 
     /// Get the Point which was the center when this point was generated
     const std::shared_ptr<EvalPoint> getPointFrom() const { return _pointFrom; }
@@ -251,7 +251,7 @@ public:
                       const Point& fixedVariable);
 
     /// Get evaluation feasibility flag f the Eval of this EvalType
-    bool isFeasible(const EvalType& evalType, const ComputeType& computeType = ComputeType::STANDARD) const;
+    bool isFeasible(EvalType evalType, ComputeType computeType = ComputeType::STANDARD) const;
 
     /// Comparison operator used by NM algorithm.
     /**
@@ -261,8 +261,8 @@ public:
      \return        \c true if \c *this dominates x.
      */
     bool dominates(const EvalPoint& rhs,
-                   const EvalType& evalType,
-                   const ComputeType& computeType = ComputeType::STANDARD) const;
+                   EvalType evalType,
+                   ComputeType computeType = ComputeType::STANDARD) const;
 
     /// Convert a point from sub space to full space using fixed variables.
     /**
@@ -305,10 +305,10 @@ public:
     /*---------------*/
     /* Class methods */
     /*---------------*/
-    bool isEvalOk(const EvalType& evalType) const;
+    bool isEvalOk(EvalType evalType) const;
 
     /// Display with or without format
-    std::string display(const ComputeType& computeType,
+    std::string display(ComputeType computeType,
                         const ArrayOfDouble &pointFormat = ArrayOfDouble(),
                         const int &solFormat = NOMAD::DISPLAY_PRECISION_FULL,
                         const bool surrogateAsBB = false) const;
@@ -319,7 +319,7 @@ public:
     std::string displayForCache(const ArrayOfDouble &pointFormat);
 
     /// Display both true and model evaluations. Useful for debugging
-    std::string displayAll(const ComputeType& computeType = ComputeType::STANDARD) const;
+    std::string displayAll(ComputeType computeType = ComputeType::STANDARD) const;
 
     /// Function to test if evaluation is required.
     /**
@@ -330,30 +330,39 @@ public:
      \param evalType        Blackbox or model evaluation  -- \b IN.
      \return                \c true if evaluation is required and \c false otherwise.
      */
-    bool toEval(short maxPointEval, const EvalType& evalType) const;
+    bool toEval(short maxPointEval, EvalType evalType) const;
 
     /**
-    \warning It is unclear if the caller wants to verify if the base point is defined,
-    or if f is defined. To avoid mistakes and confusion, throw an error.
+    \warning It is unclear if the caller wants to verify if the base point is defined, or if f is defined. To avoid mistakes and confusion, throw an error.
      */
     bool isDefined() const override
     {
         throw Exception(__FILE__,__LINE__,"Error: Calling EvalPoint::isDefined(). Choose ArrayOfDouble::isDefined() or Double::isDefined() instead.");
     }
 
-    // Determine if an evalpoint has a bb (regular) eval.
+    /// Determine if an evalpoint has a bb (regular) eval.
     static bool hasBbEval(const EvalPoint& evalPoint);
-    // Determine if an evalpoint has a model eval.
+    
+    /// Determine if an evalpoint has a model eval.
     static bool hasModelEval(const EvalPoint& evalPoint);
-    // Determine if an evalpoint has a static surrogate eval.
+    
+    /// Determine if an evalpoint has a static surrogate eval.
     static bool hasSurrogateEval(const EvalPoint& evalPoint);
     /// Used for phase one
     static bool isPhaseOneSolution(const EvalPoint& evalPoint);
+    
+    ///  Get the rank of the generating directions of a vector of eval points
+    /**
+     \param vectEvalPoints   The eval points   -- \b IN.
+     \return                 The rank of generating directions
+     */
+    static size_t getRank(const std::vector<NOMAD::EvalPoint> & vectEvalPoints);
 };
 
 
 /// Display useful values so that a new EvalPoint could be constructed using these values.
-std::ostream& operator<<(std::ostream& os, const EvalPoint &evalPoint);
+std::ostream& operator<<(std::ostream& os,
+                         const EvalPoint &evalPoint);
 
 /// Get these values from stream
 std::istream& operator>>(std::istream& is, EvalPoint &evalPoint);
@@ -361,11 +370,14 @@ std::istream& operator>>(std::istream& is, EvalPoint &evalPoint);
 /// Definition for eval point pointer
 typedef std::shared_ptr<EvalPoint> EvalPointPtr;
 
+typedef std::shared_ptr<const EvalPoint> EvalPointCstPtr;
+
 /// Definition for block (vector) of EvalPointPtr
 typedef std::vector<EvalPointPtr> Block;
 
 /// Utility to find Point in EvalPoint vector
-bool findInList(const Point& point, const std::vector<EvalPoint>& evalPointList,
+bool findInList(const Point& point,
+                const std::vector<EvalPoint>& evalPointList,
                 EvalPoint& foundEvalPoint);
 
 
@@ -392,6 +404,7 @@ public:
 #else
     typedef std::set<EvalPoint, EvalPointCompare> EvalPointSet;
 #endif
+    static const EvalPointSet emptyEvalPointSet = {}; /// For convenience. Used when calling functions with EvalPointSet as arguments.
 
 /// Definition for EvalPointList
 typedef std::vector<EvalPoint> EvalPointList;
@@ -429,4 +442,4 @@ namespace std {
 #endif // USE_UNORDEREDSET
 
 
-#endif // __NOMAD_4_0_EVALPOINT__
+#endif // __NOMAD_4_2_EVALPOINT__

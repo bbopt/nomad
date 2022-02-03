@@ -1580,7 +1580,6 @@ SGTELIB::Matrix SGTELIB::Matrix::ones ( const int nbRows , const int nbCols ) {
 /*---------------------------*/
 SGTELIB::Matrix SGTELIB::Matrix::rank ( void ) const {
 
-  // TODO: use faster method...
   if ((_nbRows>1) && (_nbCols>1)) 
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Matrix::rank: dimension error" );
 

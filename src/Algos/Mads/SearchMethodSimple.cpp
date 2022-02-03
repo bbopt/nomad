@@ -62,6 +62,12 @@ bool NOMAD::SearchMethodSimple::runImp()
 
 void NOMAD::SearchMethodSimple::startImp()
 {
+    // Reset success
+    _success = SuccessType::NOT_EVALUATED;
+    
+    // Reset the current counters. The total counters are not reset (done only once when constructor is called).
+    _trialPointStats.resetCurrentStats();
+    
     if ( ! _stopReasons->checkTerminate() )
     {
         // Create EvalPoints and snap to bounds and snap on mesh

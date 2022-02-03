@@ -49,6 +49,7 @@
 #include "../../Algos/PSDMads/PSDMadsMegaIteration.hpp"
 #include "../../Output/OutputQueue.hpp"
 #include "../../Type/DirectionType.hpp"
+#include "../../Type/EvalSortType.hpp"
 #include "../../Type/LHSearchType.hpp"
 
 
@@ -107,18 +108,25 @@ bool NOMAD::PSDMadsMegaIteration::runImp()
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     int mainThreadNum = NOMAD::getThreadNum();
 
+    OUTPUT_INFO_START
     std::string s = "Running " + _madsOnSubPb->getName();
     s += " on thread " + NOMAD::itos(mainThreadNum);
-    AddOutputInfo(s, NOMAD::OutputLevel::LEVEL_NORMAL);
+    AddOutputInfo(s);
+    OUTPUT_INFO_END
+    
+    
     _madsOnSubPb->start();
     bool madsSuccessful = _madsOnSubPb->run();   // If this run is successful, barrier will be updated.
     _madsOnSubPb->end();
 
-    s = "Done running " + _madsOnSubPb->getName();
+    OUTPUT_INFO_START
+    std::string s = "Done running " + _madsOnSubPb->getName();
     s += " on thread " + NOMAD::itos(mainThreadNum) + ". ";
     s += "Number of evaluations: " + NOMAD::itos(evc->getBbEvalInSubproblem()) + ". ";
     s += "Found a new success: " + NOMAD::boolToString(madsSuccessful) + ".";
-    AddOutputInfo(s, NOMAD::OutputLevel::LEVEL_NORMAL);
+    AddOutputInfo(s);
+    OUTPUT_INFO_END
+    
     evc->resetBbEvalInSubproblem();
 
     return madsSuccessful;
@@ -132,9 +140,6 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
     auto mainFrameSize = _mainMesh->getDeltaFrameSize();
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
 
-    // Note: If n >= 50, models are disabled. They could be re-enabled on
-    // subproblems with lesser dimension. See issue #370.
-
     subProblemPbParams->doNotShowWarnings();
     if (isPollster)
     {
@@ -143,11 +148,12 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
 
         // Disable all searches
         subProblemRunParams->setAttributeValue("LH_SEARCH", NOMAD::LHSearchType("0 0"));
+
         subProblemRunParams->setAttributeValue("NM_SEARCH", false);
         subProblemRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
         subProblemRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
         subProblemRunParams->setAttributeValue("SPECULATIVE_SEARCH", false);
-        subProblemRunParams->setAttributeValue("VNS_MADS_SEARCH", false);  // VNS has static member. Problematic with threads. See issue # 604
+        subProblemRunParams->setAttributeValue("VNS_MADS_SEARCH", false); 
         
     }
     else
@@ -159,7 +165,7 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
         // Initial and min must be compatible -> adjust.
         for (size_t i = 0; i < initialFrameSize.size(); i++)
         {
-            if (initialFrameSize[i] < mainFrameSize[i])
+            if (initialFrameSize[i].todouble() < mainFrameSize[i].todouble())
             {
                 OUTPUT_INFO_START
                 AddOutputInfo("Set initial frame size to main frame size.");
@@ -169,6 +175,11 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
             }
         }
 
+        // Issue #685. Force some algo settings. Need to test more thoroughly what give the best results
+        subProblemRunParams->setAttributeValue("NM_SEARCH", false);
+        subProblemRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
+        subProblemRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_NP1_QUAD);
+        
         subProblemPbParams->setAttributeValue("FIXED_VARIABLE", _fixedVariable);
         subProblemPbParams->setAttributeValue("X0", _x0);
         subProblemPbParams->setAttributeValue("MIN_FRAME_SIZE", mainFrameSize);

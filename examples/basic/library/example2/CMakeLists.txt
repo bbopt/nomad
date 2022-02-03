@@ -3,7 +3,7 @@ add_executable(example2_lib.exe example2_lib.cpp )
 target_include_directories(example2_lib.exe PRIVATE
     ${CMAKE_SOURCE_DIR}/src)
 
-set_target_properties(example2_lib.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
+set_target_properties(example2_lib.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" SUFFIX "")
 
 
 if(OpenMP_CXX_FOUND)
@@ -17,7 +17,7 @@ install(TARGETS example2_lib.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example
-message(STATUS "    Add example library test 2") 
+message(STATUS "    Add example library #2") 
 
 # Can run this test after install
 if (WIN32)

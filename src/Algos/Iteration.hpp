@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_ITERATION__
-#define __NOMAD_4_0_ITERATION__
+#ifndef __NOMAD_4_2_ITERATION__
+#define __NOMAD_4_2_ITERATION__
 
 #include "../Algos/Step.hpp"
 
@@ -67,7 +67,7 @@ public:
     /// Constructor
     /**
      \param parentStep         The parent of this step -- \b IN.
-     \param k                  The iteration number -- \b IN.
+     \param k                  The initial iteration counter -- \b IN.
      */
     explicit Iteration(const Step *parentStep,
                        const size_t k)
@@ -85,7 +85,7 @@ public:
 
     // Get/Set
     /// Get name
-    std::string getName() const override;
+    virtual std::string getName() const override;
 
     /// Get iteration number
     /**
@@ -93,14 +93,10 @@ public:
      */
     size_t getK() const { return _k; }
 
-    /// Increment iteration number by one
-    /// To be used only when a single Iteration is used over and over, e.g. Nelder Mead
-    void incK() { _k++; }
-
     /**
      \return \c nullptr for algorithms that do not use a mesh. Otherwise, this function must be reimplemented in algorithm specific iteration (for example, MadsIteration, NMIteration).
      */
-    virtual const std::shared_ptr<MeshBase> getMesh() const { return nullptr; }
+    virtual const MeshBasePtr getMesh() const { return nullptr; }
 
 protected:
 
@@ -115,13 +111,18 @@ protected:
     virtual bool runImp()      override = 0;
 
     /**
-     The default implement for end function displays the stop reason and calls the customized end function if provided by the user. \n
-     If an end implementation function specific to an algorithm is required, it is convenient to call this function for default task.
+     The default implement for end function displays the stop reason, calls the customized end function if provided by the user and increment the counter. \n
+     If an end implementation function specific to an algorithm is required, this function MUST be called for default tasks.
      */
-    virtual void endImp()      override;
+     virtual void endImp()      override;
+
+private:
+    
+    /// Implementation to increment the iteration counter
+    virtual void incrementCounters() override { _k++ ;}
 
 };
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_ITERATION__
+#endif // __NOMAD_4_2_ITERATION__

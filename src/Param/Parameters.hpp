@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_PARAMETERS__
-#define __NOMAD_4_0_PARAMETERS__
+#ifndef __NOMAD_4_2_PARAMETERS__
+#define __NOMAD_4_2_PARAMETERS__
 
 #include <algorithm>
 #include <fstream>
@@ -781,4 +781,4 @@ protected:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_0_PARAMETERS__
+#endif // __NOMAD_4_2_PARAMETERS__

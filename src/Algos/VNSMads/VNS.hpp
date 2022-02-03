@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_VNS__
-#define __NOMAD_4_0_VNS__
+#ifndef __NOMAD_4_2_VNS__
+#define __NOMAD_4_2_VNS__
 
 
 #include "../../Algos/Algorithm.hpp"
@@ -66,7 +66,14 @@ private:
     std::shared_ptr<RunParameters>      _optRunParams; ///< run parameters for Mads sub optimization
     std::shared_ptr<PbParameters>       _optPbParams; ///< pb parameters for mads sub optimization
     
-    std::shared_ptr<EvalPoint>       _frameCenter; ///< pb parameters for mads sub optimization
+    EvalPointPtr          _frameCenter; ///< frame center to start mads sub optimization
+    
+    Point                           _refFrameCenter; ///<  The reference frame center to test if frame center is modified
+    
+    /**
+     The neighborhood parameter is used to multiply the shake direction. Explore further away when neighborhood parameter is increased.
+     */
+    double _neighParameter;
     
 public:
     /// Constructor
@@ -79,11 +86,11 @@ public:
     explicit VNS(const Step* parentStep,
                 std::shared_ptr<AlgoStopReasons<VNSStopType>> stopReasons,
                 const std::shared_ptr<RunParameters>& runParams,
-                const std::shared_ptr<PbParameters>& pbParams,
-                 const std::shared_ptr<EvalPoint>& frameCenter )
+                const std::shared_ptr<PbParameters>& pbParams )
       : Algorithm(parentStep, stopReasons, runParams, pbParams),
-        _frameCenter (frameCenter),
-        _barrier (nullptr)
+        _barrier (nullptr),
+        _frameCenter (nullptr),
+        _neighParameter (0.0)
     {
         init();
     }
@@ -94,6 +101,9 @@ public:
     virtual void readInformationForHotRestart() override {}
 
     std::shared_ptr<Barrier> getBarrier() {return _barrier; }
+    
+    /// The frame center is used as initial point for the sub-obptimization
+    void setFrameCenter(const EvalPointPtr frameCenter);
     
 private:
     
@@ -130,4 +140,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_VNS__
+#endif // __NOMAD_4_2_VNS__

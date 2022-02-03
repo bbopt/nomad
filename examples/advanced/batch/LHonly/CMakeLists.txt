@@ -8,7 +8,7 @@ install(TARGETS u.exe
 
 # Add a test for this example
 if(BUILD_TESTS MATCHES ON)
-    message(STATUS "    Add example batch test LHOnly") 
+    message(STATUS "    Add example batch LHOnly") 
 
     # Test run in working directory AFTER install of bb executable
     add_test(NAME ExampleAdvancedBatchLHOnly

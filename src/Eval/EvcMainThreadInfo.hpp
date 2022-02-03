@@ -52,8 +52,8 @@
  \see    EvcMainThreadInfo.cpp
  */
 
-#ifndef __NOMAD_4_0_EVCMAINTHREADINFO__
-#define __NOMAD_4_0_EVCMAINTHREADINFO__
+#ifndef __NOMAD_4_2_EVCMAINTHREADINFO__
+#define __NOMAD_4_2_EVCMAINTHREADINFO__
 
 #include <atomic>   // for atomic
 
@@ -70,12 +70,12 @@
 class EvcMainThreadInfo
 {
 private:
-    std::shared_ptr<Evaluator>      _evaluator;         ///< The Evaluator for either blackbox or model evaluations.
+    EvaluatorPtr      _evaluator;         ///< The Evaluator for either blackbox or model evaluations.
     const std::unique_ptr<EvaluatorControlParameters> _evalContParams;  ///< The parameters controlling the behavior of EvaluatorControl for this main thread
     std::atomic<size_t>             _nbPointsInQueue;   ///< Number of points in the evaluation queue for this main thread
     bool                            _doneWithEval;      ///< All evaluations done for this main thread
     std::shared_ptr<Barrier>        _barrier;
-    std::shared_ptr<EvalPoint>      _bestIncumbent;     ///< Temporary value useful for display only
+    EvalPointPtr      _bestIncumbent;     ///< Temporary value useful for display only
     std::vector<EvalPoint>          _evaluatedPoints;   ///< Where evaluated points are put temporarily
     SuccessType                     _success;           ///< Success type of the last run
     std::atomic<size_t>             _currentlyRunning;  ///< Count number of evaluations currently running.
@@ -94,7 +94,7 @@ public:
      \param evaluator       The Evaluator for either blackbox or model evaluations-- \b IN.
      \param evalContParams  The parameters controlling how the EvaluatorControl behaves for this main thread-- \b IN.
      */
-    explicit EvcMainThreadInfo(std::shared_ptr<Evaluator> evaluator,
+    explicit EvcMainThreadInfo(EvaluatorPtr evaluator,
                                std::unique_ptr<EvaluatorControlParameters> evalContParams)
       : _evaluator(evaluator),
         _evalContParams(std::move(evalContParams)),
@@ -122,7 +122,7 @@ public:
      \param evaluator       The Evaluator for either blackbox or model evaluations-- \b IN.
      \return                The previous Evaluator.
      */
-    std::shared_ptr<Evaluator> setEvaluator(std::shared_ptr<Evaluator> evaluator);
+    EvaluatorPtr setEvaluator(EvaluatorPtr evaluator);
     const Evaluator* getEvaluator() { return _evaluator.get(); }
     std::shared_ptr<EvalParameters> getEvalParams() const;
     EvalType getEvalType() const;
@@ -162,8 +162,9 @@ public:
     const std::shared_ptr<Barrier>& getBarrier() const { return _barrier; }
     void setBarrier(const std::shared_ptr<Barrier>& barrier) { _barrier = barrier; }
 
-    const std::shared_ptr<EvalPoint>& getBestIncumbent() const;
-    void setBestIncumbent(const std::shared_ptr<EvalPoint>& bestIncumbent);
+    const EvalPointPtr getBestIncumbent() const;
+    void setBestIncumbent(const EvalPointPtr bestIncumbent);
+    void resetBestIncumbent() { _bestIncumbent = nullptr; }
 
     std::vector<EvalPoint> retrieveAllEvaluatedPoints();
     void addEvaluatedPoint(const EvalPoint& evaluatedPoint);
@@ -178,7 +179,7 @@ public:
     void incCurrentlyRunning();
     void decCurrentlyRunning();
 
-    void setComputeType(const ComputeType &computeType) { _computeType = computeType; }
+    void setComputeType(ComputeType computeType) { _computeType = computeType; }
     const ComputeType& getComputeType() const { return _computeType; }
 
     void setLastSuccessfulFeasDir(const std::shared_ptr<Direction> &feasDir) { _lastSuccessfulFeasDir = feasDir; }
@@ -200,4 +201,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_EVCMAINTHREADINFO__
+#endif // __NOMAD_4_2_EVCMAINTHREADINFO__

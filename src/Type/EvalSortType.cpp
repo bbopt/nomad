@@ -57,7 +57,7 @@
 #include "../Util/utils.hpp"
 
 
-// Convert a string ("LEXICOGRAPHICAL", "DIR_LAST_SUCCESS", "RANDOM", "SURROGATE")
+// Convert a string ("LEXICOGRAPHICAL", "DIR_LAST_SUCCESS", "RANDOM", "SURROGATE", "QUADRATIC_MODEL")
 // to a NOMAD::EvalSortType.
 NOMAD::EvalSortType NOMAD::stringToEvalSortType(const std::string &sConst)
 {
@@ -80,6 +80,10 @@ NOMAD::EvalSortType NOMAD::stringToEvalSortType(const std::string &sConst)
     else if (s == "SURROGATE")
     {
         ret = NOMAD::EvalSortType::SURROGATE;
+    }
+    else if (s == "QUADRATIC_MODEL")
+    {
+        ret = NOMAD::EvalSortType::QUADRATIC_MODEL;
     }
     else
     {
@@ -109,6 +113,9 @@ std::string NOMAD::evalSortTypeToString(const NOMAD::EvalSortType& evalSortType)
             break;
         case NOMAD::EvalSortType::SURROGATE:
             s = "SURROGATE";
+            break;
+        case NOMAD::EvalSortType::QUADRATIC_MODEL:
+            s = "QUADRATIC_MODEL";
             break;
         default:
             throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized NOMAD::EvalSortType " + std::to_string((int)evalSortType));

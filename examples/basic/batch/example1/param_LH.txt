@@ -7,7 +7,7 @@ DIMENSION 10
 
 # Black box
 BB_EXE bb1.exe
-BB_OUTPUT_TYPE OBJ PB PB EB
+BB_OUTPUT_TYPE OBJ PB PB PB
 
 # Starting point
 X0 ( 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 )
@@ -33,17 +33,11 @@ MAX_EVAL 1100
 # Latin Hypercube Search parameters
 LH_SEARCH 100 10
 
-# Search and Poll stop as soon as a success is found
-EVAL_OPPORTUNISTIC true
-
 
 # DISPLAY PARAMETERS
 ####################
 DISPLAY_DEGREE 2
-# Default value for DISPLAY_ALL_EVAL is true.
-DISPLAY_ALL_EVAL false
 DISPLAY_INFEASIBLE true
-DISPLAY_UNSUCCESSFUL false
 DISPLAY_STATS BBE EVAL ( SOL ) OBJ CONS_H H_MAX
 #STATS_FILE stats.txt BBE SOL OBJ
 

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_OUTPUTDIRECTTOFILE__
-#define __NOMAD_4_0_OUTPUTDIRECTTOFILE__
+#ifndef __NOMAD_4_2_OUTPUTDIRECTTOFILE__
+#define __NOMAD_4_2_OUTPUTDIRECTTOFILE__
 
 #include <vector>
 #ifdef _OPENMP
@@ -154,4 +154,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_OUTPUTDIRECTTOFILE__
+#endif // __NOMAD_4_2_OUTPUTDIRECTTOFILE__

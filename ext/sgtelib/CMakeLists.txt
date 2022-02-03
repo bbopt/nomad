@@ -52,6 +52,7 @@ set(SGTELIB_HEADERS
     src/Surrogate.hpp
     src/Surrogate_CN.hpp
     src/Surrogate_Ensemble.hpp
+    src/Surrogate_Ensemble_Stat.hpp
     src/Surrogate_Factory.hpp
     src/Surrogate_KS.hpp
     src/Surrogate_Kriging.hpp
@@ -64,7 +65,6 @@ set(SGTELIB_HEADERS
     src/Surrogate_Utils.hpp
     src/Tests.hpp
     src/TrainingSet.hpp
-    src/sgtelib.hpp
     src/sgtelib_help.hpp
     )
 
@@ -76,6 +76,7 @@ set(SGTELIB_SOURCES
     src/Surrogate.cpp
     src/Surrogate_CN.cpp
     src/Surrogate_Ensemble.cpp
+    src/Surrogate_Ensemble_Stat.cpp
     src/Surrogate_Factory.cpp
     src/Surrogate_KS.cpp
     src/Surrogate_Kriging.cpp
@@ -88,9 +89,10 @@ set(SGTELIB_SOURCES
     src/Surrogate_Utils.cpp
     src/Tests.cpp
     src/TrainingSet.cpp
-    src/sgtelib.cpp
     src/sgtelib_help.cpp
     )
+
+set(SGTELIB_MAIN_SOURCE src/sgtelib.cpp)
 
 # load classic directories for unix systems
 include(GNUInstallDirs)
@@ -108,31 +110,24 @@ if (WIN32)
     target_compile_definitions(sgtelib PRIVATE -DDLL_EXPORTS)
 endif()
 
-## build executable sgtelib_main
-#add_executable(sgtelib_main ${SGTELIB_SOURCES})
-#target_include_directories(sgtelib_main PUBLIC
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-#    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>
-#    )
-
-## installing executables and libraries
-#install(TARGETS sgtelib_main sgtelib 
-#    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-#    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-#    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
-#    )
+add_executable (sgtelib_main ${SGTELIB_MAIN_SOURCE})
+set_target_properties(sgtelib_main PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+target_include_directories(sgtelib_main PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>
+)
+target_link_libraries(sgtelib_main PUBLIC sgtelib)
 
 # installing executables and libraries
-install(TARGETS sgtelib 
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    PUBLIC_HEADER DESTINATION include/sgtelib
+install(TARGETS sgtelib_main sgtelib 
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
     )
-
 
 # install header files
 install(FILES ${SGTELIB_HEADERS}
-    DESTINATION include/sgtelib
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
     )
 
 

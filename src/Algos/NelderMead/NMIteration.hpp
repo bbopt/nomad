@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_NMITERATION__
-#define __NOMAD_4_0_NMITERATION__
+#ifndef __NOMAD_4_2_NMITERATION__
+#define __NOMAD_4_2_NMITERATION__
 
 #include "../../Algos/Iteration.hpp"
 #include "../../Algos/MeshBase.hpp"
@@ -76,12 +76,12 @@ private:
      The initial simplex is built around this point.
      The frame center of MADS is used when Nelder Mead is used for a search method of MADS.
      */
-    const std::shared_ptr<EvalPoint> _simplexCenter;
+    const EvalPointPtr _simplexCenter;
 
     /**
      The Mads mesh can be available if Nelder Mead is used as a Search method. If not, it is set to \c nullptr. When available, trials can be projected on it.
      */
-    const std::shared_ptr<MeshBase> _madsMesh;
+    const MeshBasePtr _madsMesh;
 
     SuccessType _bestSuccess; ///< The best success obtained during the Nelder Mead iterations.
 
@@ -94,9 +94,9 @@ public:
      \param madsMesh           Mads Mesh for trial point projection (can be null) -- \b IN.
      */
     explicit NMIteration(const Step *parentStep,
-                         const std::shared_ptr<EvalPoint> &frameCenter,
+                         const EvalPointPtr frameCenter,
                          const size_t k,
-                         std::shared_ptr<MeshBase> madsMesh)
+                         MeshBasePtr madsMesh)
       : Iteration(parentStep, k),
         _simplexCenter(frameCenter),
         _madsMesh(madsMesh)
@@ -110,9 +110,9 @@ public:
 
     // Get/Set
 
-    const std::shared_ptr<EvalPoint> getSimplexCenter() const { return _simplexCenter ; }
+    const EvalPointPtr getSimplexCenter() const { return _simplexCenter ; }
 
-    const std::shared_ptr<MeshBase> getMesh() const override { return _madsMesh; }
+    const MeshBasePtr getMesh() const override { return _madsMesh; }
 
     const std::shared_ptr<NMSimplexEvalPointSet> getY( void ) const { return _nmY; }
 
@@ -136,4 +136,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_NMITERATION__
+#endif // __NOMAD_4_2_NMITERATION__

@@ -57,13 +57,12 @@
 
 void NOMAD::MadsInitialization::init()
 {
-    setStepType(NOMAD::StepType::INITIALIZATION);
+    _initialMesh = std::make_shared<NOMAD::GMesh>(_pbParams);
 }
 
 
 bool NOMAD::MadsInitialization::runImp()
 {
-    _initialMesh = std::make_shared<NOMAD::GMesh>(_pbParams);
 
     bool doContinue = ! _stopReasons->checkTerminate();
 
@@ -150,8 +149,13 @@ bool NOMAD::MadsInitialization::eval_x0s()
     {
         auto x0 = x0s[x0index];
         NOMAD::EvalPoint evalPointX0(x0);
+        
+        // Create a trial point with a tag
+        evalPointX0.updateTag();
+        
         evalPointSet.insert(evalPointX0);
     }
+    _trialPointStats.incrementTrialPointsGenerated(evalPointSet.size(), evalType);
 
     // Add points to the eval queue.
     // Convert to full dimension if needed.
@@ -238,6 +242,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
     }
     else
     {
+        _trialPointStats.incrementEvalsDone(evalPointX0s.size(), evalType);
         OUTPUT_INFO_START
         for (auto evalPointX0 : evalPointX0s)
         {

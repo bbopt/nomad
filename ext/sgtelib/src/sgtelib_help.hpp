@@ -37,8 +37,8 @@
 
 
 namespace SGTELIB {
-  int dim_help_data (void);
-  std::string ** get_help_data (void);
+   DLL_API int dim_help_data (void);
+   DLL_API std::string ** get_help_data (void);
 }
 
 #endif

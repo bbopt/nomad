@@ -15,20 +15,13 @@ X0 ( 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )
 ######################
 # ALGORITHM PARAMETERS
 ######################
-SGTELIB_MODEL_SEARCH no
 
 # The algorithm terminates after that number black-box evaluations
 MAX_BB_EVAL 1000
 
-MEGA_SEARCH_POLL false
-
 # The algorithm terminates after that total number of evaluations,
 # including cache hits
 MAX_EVAL 200
-
-# Search and Poll steps end as soon as a success is found
-EVAL_OPPORTUNISTIC true
-
 
 # Parameters for display
 DISPLAY_DEGREE 2

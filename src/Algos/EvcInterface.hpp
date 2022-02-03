@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_0_EVCINTERFACE__
-#define __NOMAD_4_0_EVCINTERFACE__
+#ifndef __NOMAD_4_2_EVCINTERFACE__
+#define __NOMAD_4_2_EVCINTERFACE__
 
 #include "../Algos/Step.hpp"
 #include "../Eval/EvaluatorControl.hpp"
@@ -136,6 +136,19 @@ public:
      \param useMesh     Flag to use mesh or not -- \b IN.
      */
     void keepPointsThatNeedEval(const EvalPointSet &trialPoints, bool useMesh = true);
+    
+    // Possible refactoring to prevent code duplication.
+    /**
+     *  For each point, if true flag, look if it is in the cache. If DoEval, add to the vector for sorting.
+     *  IMPORTANT: The points that are added are not for evaluation, just for sort.
+
+     \param trialPoints The trial points -- \b IN.
+     \param forceRandom Flag to force random sort -- \b IN.
+     \param flagTrimIfNotDoEval A flag to trim of not (optional) -- \b IN.
+     */
+    std::vector<EvalPoint> getSortedTrialPoints(const EvalPointSet &trialPoints,
+                                                bool forceRandom,
+                                                bool flagTrimIfNotDoEval=true);
 
 
     /**
@@ -175,4 +188,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_EVCINTERFACE__
+#endif // __NOMAD_4_2_EVCINTERFACE__

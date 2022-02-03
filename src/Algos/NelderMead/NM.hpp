@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_NM__
-#define __NOMAD_4_0_NM__
+#ifndef __NOMAD_4_2_NM__
+#define __NOMAD_4_2_NM__
 
 
 #include "../../Algos/Algorithm.hpp"
@@ -96,18 +96,8 @@ private:
      */
     virtual bool runImp() override;
 
-    /// Implementation for start tasks.
-    /**
-     - Set the stop reason to STARTED
-     - Reset sub-algorithm counter
-     - Perform Initialization tasks (start, run, end)
-     */
-    virtual void startImp() override;
-
-    virtual void endImp() override;
-
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_NM__
+#endif // __NOMAD_4_2_NM__

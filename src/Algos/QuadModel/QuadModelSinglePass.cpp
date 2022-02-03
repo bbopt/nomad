@@ -51,32 +51,67 @@
 #include "../../Cache/CacheBase.hpp"
 
 
-void NOMAD::QuadModelSinglePass::generateTrialPoints ()
+void NOMAD::QuadModelSinglePass::generateTrialPointsImp ()
 {
     // Select the sample points to construct the model. Use a center pt and the cache
-    NOMAD::QuadModelUpdate update(this);
+    NOMAD::QuadModelUpdate update(this,_scalingDirections,emptyEvalPointSet /* No trial points -> for search */);
+        
     update.start();
     bool updateSuccess = update.run();
     update.end();
-
+    
     // Model Update is handled in start().
     if (!_stopReasons->checkTerminate() && updateSuccess && getModel()->is_ready() )
     {
-        // Clear model value info from cache. For each pass we suppose we have a different quatric model and MODEL value must be re-evaluated.
+        // Clear model value info from cache. For each pass we suppose we have a different quadratic model and MODEL value must be re-evaluated.
         NOMAD::CacheBase::getInstance()->clearModelEval(NOMAD::getThreadNum());
 
         // Optimize to generate oracle points on this model
         // Initialize optimize member - model optimizer on sgte
-        NOMAD::QuadModelOptimize optimize (this, _pbParams);
+        bool scaledBounds = (_scalingDirections.size() > 0);
+        NOMAD::QuadModelOptimize optimize (this, _pbParams , scaledBounds);
 
         optimize.start();
         // No run, the trial points are evaluated somewhere else.
         optimize.end();
 
         auto trialPts = optimize.getTrialPoints();
+        
+        // Manage all trial points
         for ( const auto & pt : trialPts )
-            insertTrialPoint( pt );
-
+        {
+            if (scaledBounds)
+            {
+                // Need to copy to a non const eval point
+                NOMAD::EvalPoint scaledPt(pt);
+                update.unscalingByDirections(scaledPt);
+                insertTrialPoint(scaledPt);
+                OUTPUT_DEBUG_START
+                std::string s = "Unscaled xt: " + scaledPt.display();
+                AddOutputInfo(s, OutputLevel::LEVEL_DEBUG);
+                OUTPUT_DEBUG_END
+                
+            }
+            else
+            {
+                insertTrialPoint( pt );
+            }
+        }
+        
+        // Manage best feasible point and best infeasible point
+        _bestXFeas = optimize.getBestFeas();
+        _bestXInf = optimize.getBestInf();
+        if (scaledBounds)
+        {
+            if(nullptr != _bestXFeas)
+            {
+                update.unscalingByDirections(*_bestXFeas);
+            }
+            if(nullptr != _bestXInf)
+            {
+                update.unscalingByDirections(*_bestXInf);
+            }
+        }
     }
 
     // If everything is ok we set the stop reason.

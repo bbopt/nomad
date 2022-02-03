@@ -97,6 +97,10 @@ SGTELIB::Surrogate * SGTELIB::Surrogate_Factory ( SGTELIB::TrainingSet & TS,
     S = new Surrogate_Ensemble(TS,p);
     break;
 
+  case SGTELIB::ENSEMBLE_STAT: 
+    S = new Surrogate_Ensemble_Stat(TS,p);
+    break;
+  
   case SGTELIB::KRIGING: 
     S = new Surrogate_Kriging(TS,p);
     break;

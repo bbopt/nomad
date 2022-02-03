@@ -55,7 +55,6 @@
 
 void NOMAD::SgtelibModelInitialization::init()
 {
-    setStepType(NOMAD::StepType::INITIALIZATION);
     verifyParentNotNull();
 }
 
@@ -162,6 +161,10 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     {
         auto x0 = x0s[x0index];
         NOMAD::EvalPoint evalPoint_x0(x0);
+        
+        //Set the eval point tag and increment for the next point.
+        evalPoint_x0.updateTag();
+        
         evalPointSet.insert(evalPoint_x0);
     }
 

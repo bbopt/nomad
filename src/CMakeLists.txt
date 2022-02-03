@@ -21,6 +21,7 @@ Algos/SubproblemManager.hpp
 Algos/SurrogateEvaluation.hpp
 Algos/SurrogateEvaluator.hpp
 Algos/Termination.hpp
+Algos/TrialPointStats.hpp
 )
 
 set(ALGOS_SOURCES
@@ -39,7 +40,8 @@ Algos/Step.cpp
 Algos/Subproblem.cpp
 Algos/SubproblemManager.cpp
 Algos/SurrogateEvaluation.cpp
-Algos/Termination.cpp)
+Algos/Termination.cpp
+Algos/TrialPointStats.cpp)
 
 #
 # Attribute
@@ -54,6 +56,7 @@ Attribute/evaluatorControlGlobalAttributesDefinition.txt
 Attribute/pbAttributesDefinition.txt
 Attribute/runAttributesDefinition.txt
 Attribute/runAttributesDefinitionNM.txt
+Attribute/runAttributesDefinitionCS.txt
 Attribute/runAttributesDefinitionPSDSSD.txt
 Attribute/runAttributesDefinitionQuadModel.txt
 Attribute/runAttributesDefinitionSgtelibModel.txt
@@ -69,6 +72,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evaluatorControlGlobalAttributesDefinition
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/pbAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionNM.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionCS.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionPSDSSD.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionQuadModel.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionSgtelibModel.hpp
@@ -288,6 +292,31 @@ Algos/LatinHypercubeSampling/LH.cpp
 )
 
 #
+# CS
+#
+set(CS_HEADERS
+Algos/CoordinateSearch/CS.hpp
+Algos/CoordinateSearch/CSInitialization.hpp
+Algos/CoordinateSearch/CSIteration.hpp
+Algos/CoordinateSearch/CSMegaIteration.hpp
+Algos/CoordinateSearch/CSMesh.hpp
+Algos/CoordinateSearch/CSPoll.hpp
+Algos/CoordinateSearch/CSPollMethod.hpp
+Algos/CoordinateSearch/CSUpdate.hpp
+)
+
+set(CS_SOURCES
+Algos/CoordinateSearch/CS.cpp
+Algos/CoordinateSearch/CSInitialization.cpp
+Algos/CoordinateSearch/CSIteration.cpp
+Algos/CoordinateSearch/CSMegaIteration.cpp
+Algos/CoordinateSearch/CSMesh.cpp
+Algos/CoordinateSearch/CSPoll.cpp
+Algos/CoordinateSearch/CSPollMethod.cpp
+Algos/CoordinateSearch/CSUpdate.cpp
+)
+
+#
 # Mads
 #
 set(MADS_HEADERS
@@ -303,9 +332,10 @@ Algos/Mads/MegaSearchPoll.hpp
 Algos/Mads/NMSearchMethod.hpp
 Algos/Mads/NP1UniPollMethod.hpp
 Algos/Mads/Ortho2NPollMethod.hpp
-Algos/Mads/OrthoNPlus1NegPollMethod.hpp
+Algos/Mads/OrthoNPlus1PollMethod.hpp
 Algos/Mads/Poll.hpp
 Algos/Mads/PollMethodBase.hpp
+Algos/Mads/QuadSldSearchMethod.hpp
 Algos/Mads/QuadSearchMethod.hpp
 Algos/Mads/Search.hpp
 Algos/Mads/SearchMethodAlgo.hpp
@@ -331,9 +361,10 @@ Algos/Mads/MegaSearchPoll.cpp
 Algos/Mads/NMSearchMethod.cpp
 Algos/Mads/NP1UniPollMethod.cpp
 Algos/Mads/Ortho2NPollMethod.cpp
-Algos/Mads/OrthoNPlus1NegPollMethod.cpp
+Algos/Mads/OrthoNPlus1PollMethod.cpp
 Algos/Mads/Poll.cpp
 Algos/Mads/PollMethodBase.cpp
+Algos/Mads/QuadSldSearchMethod.cpp
 Algos/Mads/QuadSearchMethod.cpp
 Algos/Mads/Search.cpp
 Algos/Mads/SearchMethodAlgo.cpp
@@ -430,6 +461,35 @@ Algos/QuadModel/QuadModelUpdate.cpp
 )
 
 #
+# QuadModel SLD
+#
+set(QUADMODELSLD_HEADERS
+Algos/QuadModelSLD/QuadModelSld.hpp
+Algos/QuadModelSLD/QuadModelSldAlgo.hpp
+Algos/QuadModelSLD/QuadModelSldEvaluator.hpp
+Algos/QuadModelSLD/QuadModelSldInitialization.hpp
+Algos/QuadModelSLD/QuadModelSldIteration.hpp
+Algos/QuadModelSLD/QuadModelSldIterationUtils.hpp
+Algos/QuadModelSLD/QuadModelSldMegaIteration.hpp
+Algos/QuadModelSLD/QuadModelSldOptimize.hpp
+Algos/QuadModelSLD/QuadModelSldSinglePass.hpp
+Algos/QuadModelSLD/QuadModelSldUpdate.hpp
+)
+
+set(QUADMODELSLD_SOURCES
+Algos/QuadModelSLD/QuadModelSld.cpp
+Algos/QuadModelSLD/QuadModelSldAlgo.cpp
+Algos/QuadModelSLD/QuadModelSldEvaluator.cpp
+Algos/QuadModelSLD/QuadModelSldInitialization.cpp
+Algos/QuadModelSLD/QuadModelSldIteration.cpp
+Algos/QuadModelSLD/QuadModelSldIterationUtils.cpp
+Algos/QuadModelSLD/QuadModelSldMegaIteration.cpp
+Algos/QuadModelSLD/QuadModelSldOptimize.cpp
+Algos/QuadModelSLD/QuadModelSldSinglePass.cpp
+Algos/QuadModelSLD/QuadModelSldUpdate.cpp
+)
+
+#
 # SgtelibModel
 #
 set(SGTELIBMODEL_HEADERS
@@ -499,7 +559,7 @@ add_custom_command(
 # Build libraries
 #
 
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # export all symbols on Windows
@@ -537,23 +597,26 @@ endif()
 
 # Algos
 if(USE_SGTELIB MATCHES ON)
-    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${QUADMODEL_SOURCES} ${SGTELIBMODEL_SOURCES} ${SSDMADS_SOURCES} ${VNSMADS_SOURCES})
+    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${CS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${QUADMODEL_SOURCES} ${QUADMODELSLD_SOURCES} ${SGTELIBMODEL_SOURCES} ${SSDMADS_SOURCES} ${VNSMADS_SOURCES})
    target_include_directories(nomadAlgos PUBLIC
       $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Algos
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/CoordinateSearch
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/Mads
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/NelderMead
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PhaseOne
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModel
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModelSLD
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SgtelibModel
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads>
       $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}>)
 else()
-    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${SSDMADS_SOURCES} ${VNSMADS_SOURCES})
+    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${CS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${SSDMADS_SOURCES} ${VNSMADS_SOURCES})
     target_include_directories(nomadAlgos PUBLIC
         $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Algos
+        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/CoordinateSearch
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/Mads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/NelderMead
@@ -582,7 +645,7 @@ endif()
 #
 
 add_executable (nomad ${NOMAD_SOURCES})
-set_target_properties(nomad PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set_target_properties(nomad PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 target_include_directories(nomad PUBLIC
     $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/
     ${CMAKE_CURRENT_SOURCE_DIR}/Nomad>
@@ -601,9 +664,9 @@ endif()
 
 # installing executables and libraries
 install(TARGETS nomad nomadUtils nomadEval nomadAlgos
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        PUBLIC_HEADER DESTINATION include
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/
 )
 
 # install header files
@@ -667,6 +730,10 @@ install(FILES ${QUADMODEL_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/QuadModel
 )
 
+install(FILES ${QUADMODELSLD_HEADERS}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/QuadModelSLD
+)
+
 install(FILES ${SGTELIB_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SgtelibModel
 )
@@ -681,6 +748,7 @@ install(FILES ${VNSMADS_HEADERS}
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/nomad_nsbegin.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/nomad_nsend.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/nomad_platform.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/nomad_version.hpp
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/
 )

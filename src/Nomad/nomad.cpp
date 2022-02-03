@@ -102,13 +102,11 @@ int main (int argc, char ** argv)
             // Display help if option '-h' has been specified
             else if (option == "-H" || option == "-HELP" || option == "--HELP")
             {
-                std::string helpSubject = "";
+                std::string helpSubject = "_____";  // Empty help subject displays a special message about the type of attributes and subjects (not all subjects)
                 if (3 == argc)
                 {
                     helpSubject = argv[2];
                     NOMAD::toupper( helpSubject );
-                    if ( helpSubject == "ALL" )
-                        helpSubject = "";
                 }
                 TheMainStep->displayHelp ( helpSubject );
             }

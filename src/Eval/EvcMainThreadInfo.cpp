@@ -221,13 +221,13 @@ void NOMAD::EvcMainThreadInfo::resetBbEvalInSubproblem()
 }
 
 
-const std::shared_ptr<NOMAD::EvalPoint>& NOMAD::EvcMainThreadInfo::getBestIncumbent() const
+const NOMAD::EvalPointPtr NOMAD::EvcMainThreadInfo::getBestIncumbent() const
 {
     return _bestIncumbent;
 }
 
 
-void NOMAD::EvcMainThreadInfo::setBestIncumbent(const std::shared_ptr<NOMAD::EvalPoint>& bestIncumbent)
+void NOMAD::EvcMainThreadInfo::setBestIncumbent(const NOMAD::EvalPointPtr bestIncumbent)
 {
     NOMAD::ComputeSuccessType computeSuccess(_evaluator->getEvalType(), _computeType);
     if (computeSuccess(bestIncumbent, _bestIncumbent) >= NOMAD::SuccessType::PARTIAL_SUCCESS)

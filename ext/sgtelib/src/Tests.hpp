@@ -30,7 +30,7 @@
 
 namespace SGTELIB {
 
-  void sand_box (void);
+	DLL_API void sand_box (void);
 
   // test_quick: build the surrogate and compute the metrics
   std::string test_quick (const std::string & s , const SGTELIB::Matrix & X0 );
@@ -42,7 +42,9 @@ namespace SGTELIB {
   std::string test_update(const std::string & s , const SGTELIB::Matrix & X0 );
   // test_pxx: build a surrogate and perform prediction on XX of various sizes
   // (especially pxx > _p)
-  std::string test_pxx   (const std::string & s , const SGTELIB::Matrix & X0 );
+  std::string test_pxx (const std::string & s , const SGTELIB::Matrix & X0 );
+  // test_pxx: build a surrogate and perform prediction on XX and plots predictions and std
+  std::string test_and_plot (const int & function_number, const std::string & type, const std::string & s , const SGTELIB::Matrix & X0 );
   // test_scale: build 2 surrogates with a different scale on the data. 
   std::string test_scale (const std::string & s , const SGTELIB::Matrix & X0 );
   // test_dimension: build surrogates with various sizes of p,n,m to check for dimension errors
@@ -52,7 +54,7 @@ namespace SGTELIB {
   std::string test_multiple_occurrences (const std::string & s );
 
   // test_scale: build 2 surrogates with a different scale on the data. 
-  void test_many_models ( const std::string & out_file , const SGTELIB::Matrix & X0 , const SGTELIB::Matrix & Z0 );
+  DLL_API void test_many_models ( const std::string & out_file , const SGTELIB::Matrix & X0 , const SGTELIB::Matrix & Z0 );
 
 
   void test_LOWESS_times (void);
@@ -66,7 +68,7 @@ namespace SGTELIB {
   void check_matrix_diff (const SGTELIB::Matrix * A, const SGTELIB::Matrix * B);
 
 
-  void build_test_data ( const std::string & function_name , SGTELIB::Matrix & X0 , SGTELIB::Matrix & Z0 );
+  DLL_API void build_test_data ( const std::string & function_name , SGTELIB::Matrix & X0 , SGTELIB::Matrix & Z0 );
 
 
 }

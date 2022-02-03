@@ -19,5 +19,8 @@ def bb(x):
 X0 = [0, 0, 0, 0, 0]
 params = ["DIMENSION 5","BB_OUTPUT_TYPE OBJ PB EB", "MAX_BB_EVAL 100", "X0 * 0" , "LOWER_BOUND * -6" , "DISPLAY_DEGREE 2", "DISPLAY_ALL_EVAL false", "DISPLAY_STATS BBE OBJ"]
 
-x_return, f_return, h_return, nb_evals, nb_iters, stopflag = PyNomad.optimize(bb, X0, [] , [], params)
-print ("\n NOMAD outputs \n X_sol={} \n F_sol={} \n H_sol={} \n NB_evals={} \n NB_iters={} \n".format(x_return,f_return,h_return,nb_evals,nb_iters))
+result = PyNomad.optimize(bb, X0, [] , [], params)
+
+fmt = ["{} = {}".format(n,v) for (n,v) in result.items()]
+output = "\n".join(fmt)
+print("\nNOMAD results \n" + output + " \n")

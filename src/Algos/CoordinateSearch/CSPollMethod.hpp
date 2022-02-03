@@ -45,52 +45,50 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/Mads/OrthoNPlus1NegPollMethod.hpp"
-#include "../../Math/Direction.hpp"
+#ifndef __NOMAD_4_2_CSPOLLMETHOD__
+#define __NOMAD_4_2_CSPOLLMETHOD__
 
+#include "../../Algos/Mads/PollMethodBase.hpp"
 
-void NOMAD::OrthoNPlus1NegPollMethod::init()
+#include "../../nomad_nsbegin.hpp"
+
+/**
+ Class to perform CS Poll: generate poll directions, create the trial points and perform evaluations.
+  The CS poll directions consists of unitary direction of each coordinate separetely, that is north, south, east and west directions in 2D.
+ Only the generation of poll directions is implemented in this class, the remaining tasks are performed by derived classes.
+*/
+class CSPollMethod final : public PollMethodBase
 {
-    setStepType(NOMAD::StepType::POLL_METHOD_ORTHO_NPLUS1_NEG);
-    verifyParentNotNull();
-
-}
-
-// Generate poll directions
-void NOMAD::OrthoNPlus1NegPollMethod::generateUnitPollDirections(std::list<NOMAD::Direction> &directions, const size_t n) const
-{
-    directions.clear();
-
-    generate2NDirections(directions, n);
-}
-
-
-// Ref in NOMAD 3: NOMAD::Mads::get_single_dynamic_direction.
-// Get a single dynamic direction from incomplete poll by sum of negative
-void NOMAD::OrthoNPlus1NegPollMethod::generateNPlus1Direction(std::list<Direction> &directions) const
-{
-    // Gather directions for points which are already generated - which are currently
-    // in _trialPoints.
-    NOMAD::Direction dirNPlus1;
-    for (auto trialPoint : _trialPoints)
+public:
+    /// Constructor
+    /**
+     /param parentStep      The parent of this search step -- \b IN.
+     */
+    explicit CSPollMethod(const Step* parentStep,
+                          const EvalPointPtr frameCenter)
+      : PollMethodBase(parentStep, frameCenter)
     {
-        auto dir = trialPoint.getDirection();
-        if (nullptr != dir)
-        {
-            if (0 == dirNPlus1.size())
-            {
-                dirNPlus1 = -(*dir);
-            }
-            else
-            {
-                dirNPlus1 -= (*dir);
-            }
-        }
+        init();
     }
-    if (dirNPlus1.size() > 0 && dirNPlus1.norm() > 0 && _trialPoints.size() > 0)
-    {
-        dirNPlus1 /= (double)_trialPoints.size();
-        directions.push_back(dirNPlus1);
-    }
-}
 
+private:
+
+    /// Helper for constructor.
+    /**
+
+     */
+    void init();
+
+   
+    /**
+     ADD DESCRIPTION
+     \param directions  The directions obtained for this poll -- \b OUT.
+     \param n                      The dimension of the variable space  -- \b IN.
+      */
+     void generateUnitPollDirections(std::list<Direction> &directions, const size_t n) const override final;
+
+};
+
+#include "../../nomad_nsend.hpp"
+
+#endif // __NOMAD_4_2_CSPOLLMETHOD__

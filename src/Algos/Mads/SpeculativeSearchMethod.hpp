@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_SPECULATIVESEARCHMETHOD__
-#define __NOMAD_4_0_SPECULATIVESEARCHMETHOD__
+#ifndef __NOMAD_4_2_SPECULATIVESEARCHMETHOD__
+#define __NOMAD_4_2_SPECULATIVESEARCHMETHOD__
 
 #include "../../Algos/Mads/SearchMethodSimple.hpp"
 
@@ -75,13 +75,13 @@ private:
 
     /// Generate new points to evaluate
     /**
-     \copydoc SearchMethodSimple::generateTrialPointsImp \n
+     \copydoc SearchMethodSimple::generateTrialPointsFinal \n
      The speculative search generates points in the direction of success.
      */
-    void generateTrialPointsImp() override;
+    void generateTrialPointsFinal() override;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_SPECULATIVESEARCHMETHOD__
+#endif // __NOMAD_4_2_SPECULATIVESEARCHMETHOD__

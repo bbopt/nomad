@@ -51,11 +51,14 @@
 
 void NOMAD::GMesh::init()
 {
-    // Compute and initialize values for _frameSizeMant and _frameSizeExp.
+    // Compute and initialize values for _frameSizeMant, _frameSizeExp and _finestMeshSize
     initFrameSizeGranular(_initialFrameSize);
 
     _initFrameSizeExp.reset(_n);
     _initFrameSizeExp = _frameSizeExp;
+    
+    // Compute finest mesh size once init frame size is set
+    _finestMeshSize = getdeltaMeshSize();
 
     // Expecting _minMeshSize to be fully defined.
     if (!_minMeshSize.isComplete())
@@ -176,9 +179,9 @@ bool NOMAD::GMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction,
         bool frameSizeIChanged = false;
         // Test for producing anisotropic mesh
         if ( ! anisotropicMesh
-            || ( direction[i].abs() / getdeltaMeshSize(i) / getRho(i) > anisotropyFactor )
-            || ( _granularity[i] == 0  && _frameSizeExp[i] < _initFrameSizeExp[i] && getRho(i) > minRho*minRho )
-            )
+        || ( direction[i].abs() / getdeltaMeshSize(i) / getRho(i) > anisotropyFactor )
+        || ( _granularity[i] == 0  && _frameSizeExp[i] < _initFrameSizeExp[i] && getRho(i) > minRho*minRho )
+        )
         {
             getLargerMantExp(_frameSizeMant[i], _frameSizeExp[i]);
             frameSizeIChanged = true;
@@ -192,7 +195,14 @@ bool NOMAD::GMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction,
             checkDeltasGranularity(i, getdeltaMeshSize(i), getDeltaFrameSize(i));
         }
     }
-
+    
+    // When we enlarge the frame size we may keep the mesh size unchanged. So we need to test.
+    NOMAD::ArrayOfDouble meshSize = getdeltaMeshSize();
+    if(_finestMeshSize < meshSize)
+    {
+        _isFinest = false;
+    }
+    
     return oneFrameSizeChanged;
 }
 
@@ -225,6 +235,16 @@ void NOMAD::GMesh::refineDeltaFrameSize()
             checkFrameSizeIntegrity(_frameSizeExp[i], _frameSizeMant[i]);
             checkDeltasGranularity(i, getdeltaMeshSize(i), getDeltaFrameSize(i));
         }
+    }
+    NOMAD::ArrayOfDouble meshSize = getdeltaMeshSize();
+    if(meshSize <= _finestMeshSize)
+    {
+        _isFinest = true;
+        _finestMeshSize = meshSize;
+    }
+    else
+    {
+        _isFinest = false;
     }
 }
 
@@ -290,7 +310,6 @@ void NOMAD::GMesh::initFrameSizeGranular(const NOMAD::ArrayOfDouble &initialFram
         _frameSizeExp[i]  = exp;
         _frameSizeMant[i] = roundFrameSizeMant(div.todouble() * pow(10 , -exp));
     }
-
 }
 
 

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_NMALLREFLECTIVE__
-#define __NOMAD_4_0_NMALLREFLECTIVE__
+#ifndef __NOMAD_4_2_NMALLREFLECTIVE__
+#define __NOMAD_4_2_NMALLREFLECTIVE__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/NelderMead/NMIteration.hpp"
@@ -67,8 +67,8 @@ public:
      \param madsMesh        Mads Mesh for trial point projection and simplex scaling (can be null) -- \b IN.
      */
     explicit NMAllReflective(const Step* parentStep,
-                             const std::shared_ptr<EvalPoint>& simplexCenter,
-                             const std::shared_ptr<MeshBase>& madsMesh)
+                             const EvalPointPtr simplexCenter,
+                             const MeshBasePtr& madsMesh)
       : NMIteration(parentStep, simplexCenter, 0, madsMesh),
         NMIterationUtils(parentStep)
     {
@@ -95,11 +95,15 @@ private:
     /// Implementation of run task. Nothing to do.
     void endImp() override {}
 
-    void generateTrialPoints() override;
+    void generateTrialPointsImp() override;
 
+protected:
+    // Override default Step::getName that seeks the algo name. Here we have a single Iteration and the class does not derive from an Algo.
+    std::string getName() const override;
+    
 };
 
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_NMALLREFLECTIVE__
+#endif // __NOMAD_4_2_NMALLREFLECTIVE__

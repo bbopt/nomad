@@ -1,0 +1,23 @@
+DIMENSION      5              # number of variables
+
+BB_EXE         '$/opt/homebrew/bin/mpirun $-np $4 bb4.exe'   # WARNING Adjust the path to mpirun 
+                                                          # or mpiexec according to your setup.
+                                                         
+
+BB_MAX_BLOCK_SIZE 20 
+MEGA_SEARCH_POLL yes
+
+
+BB_OUTPUT_TYPE OBJ PB PB
+
+X0             ( 0 0 0 0 0 )  # starting point
+
+LOWER_BOUND    * -6.0           # all variables are >= -6
+UPPER_BOUND    ( 5 6 7 - - )  # x_1 <= 5, x_2 <= 6, x_3 <= 7
+                              # x_4 and x_5 have no bounds
+
+MAX_BB_EVAL 200
+
+DISPLAY_DEGREE 2
+DISPLAY_STATS BLK_EVA BLK_SIZE OBJ
+DISPLAY_ALL_EVAL true

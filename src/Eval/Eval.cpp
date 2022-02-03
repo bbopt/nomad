@@ -105,7 +105,7 @@ NOMAD::Eval::Eval(const NOMAD::Eval &eval)
 /*-----------------------*/
 /*     Other methods     */
 /*-----------------------*/
-bool NOMAD::Eval::isFeasible(const NOMAD::ComputeType& computeType) const
+bool NOMAD::Eval::isFeasible(NOMAD::ComputeType computeType) const
 {
     if (NOMAD::EvalStatusType::EVAL_OK != _evalStatus)
     {
@@ -114,7 +114,6 @@ bool NOMAD::Eval::isFeasible(const NOMAD::ComputeType& computeType) const
     NOMAD::Double h = getH(computeType);
     return (h.isDefined() && h.todouble() < NOMAD::Double::getEpsilon());
 }
-
 
 // This Eval has a status that permits its point to be re-evaluated.
 bool NOMAD::Eval::canBeReEvaluated() const
@@ -152,7 +151,7 @@ bool NOMAD::Eval::goodForCacheFile() const
 /*------------------------------------*/
 /*      Get f. Always recomputed.     */
 /*------------------------------------*/
-NOMAD::Double NOMAD::Eval::getF(const NOMAD::ComputeType& computeType) const
+NOMAD::Double NOMAD::Eval::getF(NOMAD::ComputeType computeType) const
 {
     NOMAD::Double f;
 
@@ -181,7 +180,7 @@ NOMAD::Double NOMAD::Eval::getF(const NOMAD::ComputeType& computeType) const
 /*-------------------------------------*/
 /*      Get h. Always recomputed.      */
 /*-------------------------------------*/
-NOMAD::Double NOMAD::Eval::getH(const NOMAD::ComputeType& computeType) const
+NOMAD::Double NOMAD::Eval::getH(NOMAD::ComputeType computeType) const
 {
     NOMAD::Double h;
 
@@ -378,6 +377,7 @@ bool NOMAD::Eval::operator==(const NOMAD::Eval &e) const
         }
         else
         {
+            // Warning. Maybe we need a flag to do f1.todouble() == f2.todouble() && (h1.todouble() == h2.todouble() )
             equal = ( (f1 == f2) && (h1 == h2) );
         }
     }
@@ -405,13 +405,13 @@ bool NOMAD::Eval::operator<(const NOMAD::Eval &eval) const
 /* Otherwise, return false.                                                 */
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
-bool NOMAD::Eval::dominates(const NOMAD::Eval &eval, const NOMAD::ComputeType &computeType) const
+bool NOMAD::Eval::dominates(const NOMAD::Eval &eval, NOMAD::ComputeType computeType) const
 {
     bool dom = false;
 
-    NOMAD::Double f1 = getF(computeType);
+    double f1 = getF(computeType).todouble();
     NOMAD::Double h1 = getH(computeType);
-    NOMAD::Double f2 = eval.getF(computeType);
+    double f2 = eval.getF(computeType).todouble();
     NOMAD::Double h2 = eval.getH(computeType);
 
     if (isFeasible(computeType) && eval.isFeasible(computeType))
@@ -433,7 +433,7 @@ bool NOMAD::Eval::dominates(const NOMAD::Eval &eval, const NOMAD::ComputeType &c
 
 
 // Comparison function used for Cache's findBest functions.
-bool NOMAD::Eval::compEvalFindBest(const NOMAD::Eval &eval1, const NOMAD::Eval &eval2, const NOMAD::ComputeType& computeType)
+bool NOMAD::Eval::compEvalFindBest(const NOMAD::Eval &eval1, const NOMAD::Eval &eval2, NOMAD::ComputeType computeType)
 {
     // Success is PARTIAL_SUCCESS or FULL_SUCCESS
     // if eval1 is better than eval2.
@@ -443,17 +443,10 @@ bool NOMAD::Eval::compEvalFindBest(const NOMAD::Eval &eval1, const NOMAD::Eval &
     return (success >= NOMAD::SuccessType::PARTIAL_SUCCESS);
 }
 
-
-/*
-NOMAD::SuccessType NOMAD::Eval::computeSuccessType(const NOMAD::Eval* eval1,
-                                                   const NOMAD::Eval* eval2,
-                                                   const NOMAD::ComputeType& computeType,
-                                                   const NOMAD::Double& hMax)
-*/
 // Comparison function used for Cache's findBest functions.
 bool NOMAD::Eval::compInsertInBarrier(const NOMAD::Eval &eval1,
                                       const NOMAD::Eval &eval2,
-                                      const NOMAD::ComputeType& computeType,
+                                      NOMAD::ComputeType computeType,
                                       NOMAD::SuccessType successType,
                                       bool strictEqual)
 {
@@ -486,22 +479,21 @@ bool NOMAD::Eval::compEvalBarrier(const NOMAD::Eval &eval1, const NOMAD::Eval &e
     {
         isBetter = false;
     }
-    else if (eval1.getF() < eval2.getF())
+    else if (eval1.getF().todouble() < eval2.getF().todouble())
     {
         isBetter = true;
     }
-    else if (eval2.getF() < eval1.getF())
+    else if (eval2.getF().todouble() < eval1.getF().todouble())
     {
         isBetter = false;
     }
-
     return isBetter;
 }
 
 
 NOMAD::SuccessType NOMAD::Eval::computeSuccessType(const NOMAD::Eval* eval1,
                                                    const NOMAD::Eval* eval2,
-                                                   const NOMAD::ComputeType& computeType,
+                                                   NOMAD::ComputeType computeType,
                                                    const NOMAD::Double& hMax)
 {
     // NOT_EVALUATED,      // Not evaluated yet
@@ -553,7 +545,7 @@ NOMAD::SuccessType NOMAD::Eval::computeSuccessType(const NOMAD::Eval* eval1,
                 // Comparing two infeasible points
                 if (eval1->getH(computeType) <= hMax
                     && eval1->getH(computeType) < eval2->getH(computeType)
-                    && eval1->getF(computeType) > eval2->getF(computeType))
+                    && eval1->getF(computeType).todouble() > eval2->getF(computeType).todouble())
                 {
                     // Partial success (improving). Found an infeasible
                     // solution with a better h. f is worse.
@@ -574,7 +566,7 @@ NOMAD::SuccessType NOMAD::Eval::computeSuccessType(const NOMAD::Eval* eval1,
 /*--------------------------------------------------*/
 /*                      display                     */
 /*--------------------------------------------------*/
-std::string NOMAD::Eval::display(const NOMAD::ComputeType& computeType, const int prec) const
+std::string NOMAD::Eval::display(NOMAD::ComputeType computeType, const int prec) const
 {
     std::string s;
 

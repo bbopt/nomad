@@ -8,7 +8,7 @@ install(TARGETS bb.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example
-message(STATUS "    Add example batch test single_obj") 
+message(STATUS "    Add example batch single_obj") 
 
 # Test run in working directory AFTER install of bb.exe executable
 add_test(NAME ExampleSingleObjBasicBatch

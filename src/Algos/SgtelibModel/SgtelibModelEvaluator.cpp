@@ -98,6 +98,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
                                           const NOMAD::Double &hMax,
                                           bool &countEval) const
 {
+    
     // Convert x to subspace, because model is in subspace.
     x = x.makeSubSpacePointFromFixed(_fixedVariable);
 
@@ -217,7 +218,6 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             OUTPUT_INFO_END
 
             auto model = _modelAlgo->getModel();
-            model->build();
             model->check_ready(__FILE__,__FUNCTION__,__LINE__);
 
             if (useStatisticalCriteria)
@@ -508,5 +508,3 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     // Always eval_ok = true
     return true;
 }
-
-

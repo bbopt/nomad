@@ -56,6 +56,7 @@
 #include "../../Eval/ComputeSuccessType.hpp"
 #include "../../Output/OutputQueue.hpp"
 #include "../../Type/DirectionType.hpp"
+#include "../../Type/EvalSortType.hpp"
 
 void NOMAD::QuadModelOptimize::init()
 {
@@ -136,16 +137,20 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
 {
     _optRunParams = std::make_shared<NOMAD::RunParameters>(*_runParams);
 
+    _optRunParams->setAttributeValue("MEGA_SEARCH_POLL", false);
+    
     _optRunParams->setAttributeValue("MAX_ITERATIONS", INF_SIZE_T);
 
     // Ensure there is no model, no NM and no VNS used in model optimization.
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("NM_SEARCH", false);
+    _optRunParams->setAttributeValue("SPECULATIVE_SEARCH", true);
     
     // IMPORTANT: if VNS_MADS_SEARCH is changed to yes, the static members of VNSSearchMethod must be managed correctly
-    // See issue #601.
     _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
+    
+    _optRunParams->setAttributeValue("ANISOTROPIC_MESH", false);
 
     // Set direction type to Ortho 2n
     _optRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
@@ -155,9 +160,8 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
 
     // Disable user calls
     _optRunParams->setAttributeValue("USER_CALLS_ENABLED", false);
-
+    
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
-
     _optRunParams->checkAndComply(evcParams, _optPbParams);
 }
 
@@ -173,9 +177,11 @@ void NOMAD::QuadModelOptimize::setupPbParameters()
     // The initial mesh and frame sizes will be calculated from bounds and X0
     _optPbParams->resetToDefaultValue("INITIAL_MESH_SIZE");
     _optPbParams->resetToDefaultValue("INITIAL_FRAME_SIZE");
+  
     // Use default min mesh and frame sizes
     _optPbParams->resetToDefaultValue("MIN_MESH_SIZE");
     _optPbParams->resetToDefaultValue("MIN_FRAME_SIZE");
+    
 
     // Granularity is set to 0 and bb_input_type is set to all continuous variables. Candidate points are projected on the mesh before evaluation.
     _optPbParams->resetToDefaultValue("GRANULARITY");
@@ -196,10 +202,8 @@ void NOMAD::QuadModelOptimize::setupPbParameters()
 }
 
 
-void NOMAD::QuadModelOptimize::generateTrialPoints()
+void NOMAD::QuadModelOptimize::generateTrialPointsImp()
 {
-    // Clear the previous trial points
-    clearTrialPoints();
 
     // Set the bounds and fixed variables from the model
     setModelBoundsAndFixedVar();
@@ -222,22 +226,31 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     // Enforce no opportunism and use no cache.
     auto previousOpportunism = evc->getOpportunisticEval();
     auto previousUseCache = evc->getUseCache();
-    evc->setOpportunisticEval(false);
+    
+    evc->setOpportunisticEval(true);
     evc->setUseCache(false);
+    
+    // Enforce specific sort type
+    auto evcParams = evc->getEvaluatorControlGlobalParams();
+    auto previousEvalSortType = evcParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT");
+    evcParams->setAttributeValue("EVAL_QUEUE_SORT", NOMAD::EvalSortType::DIR_LAST_SUCCESS);
+    evcParams->checkAndComply();
+    
 
     auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
 
-    auto fullFixedVar = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
     OUTPUT_INFO_START
     std::string s = "Create QuadModelEvaluator with fixed variable = ";
-    s += fullFixedVar.display();
+    s += _modelFixedVar.display();
     AddOutputInfo(s);
     OUTPUT_INFO_END
 
+    // Evaluations are in the quad model (local) full space: fixed variables detected when creating the training set (lb==ub) are not modified by the optimizer but evaluator receives points in local full space. The "local full space" is used because fixed variables from the parent problem are not seen/considered.
+    // We send an empty Point for fixed variables to indicate that the evaluation are done in local full space.
     auto ev = std::make_shared<NOMAD::QuadModelEvaluator>(evc->getEvalParams(),
                                                           _model,
                                                           modelDisplay,
-                                                          fullFixedVar);
+                                                          NOMAD::Point());
 
     // Replace the EvaluatorControl's evaluator with this one
     // we just created
@@ -269,8 +282,9 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
 
     // Create a Mads step
     // Parameters for mads (_optRunParams and _optPbParams) are already updated.
-    auto mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams);
-    //mads->setName(mads->getName() + " (QuadModelOptimize)");
+    // We force mads to use local fixed variable to make sure we only work on fixed variables identified during construction of the training set. The evaluator works on the quad model, we don't need to map to the global full space for evaluation (not BB eval).
+    auto mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams, true /* use local fixed variables */);
+    
     evc->resetModelEval();
     mads->start();
     runOk = mads->run();
@@ -285,6 +299,10 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     // Reset opportunism to previous values.
     evc->setOpportunisticEval(previousOpportunism);
     evc->setUseCache(previousUseCache);
+    
+    // Reset eval sort type to previous values
+    evcParams->setAttributeValue("EVAL_QUEUE_SORT", previousEvalSortType);
+    evcParams->checkAndComply();
 
     if (!runOk)
     {
@@ -293,63 +311,71 @@ void NOMAD::QuadModelOptimize::generateTrialPoints()
     }
     else
     {
-        auto bestXFeas = mads->getMegaIterationBarrier()->getFirstXFeas();
-        auto bestXInf  = mads->getMegaIterationBarrier()->getFirstXInf();
-        if (nullptr != bestXFeas)
+        // Get the best points in their reference dimension
+        _bestXFeas = std::make_shared<NOMAD::EvalPoint>(mads->getBestSolution(true));
+        _bestXInf  = std::make_shared<NOMAD::EvalPoint>(mads->getBestSolution(false));
+        if (_bestXFeas->isComplete())
         {
             // New EvalPoint to be evaluated.
             // Add it to the list (local or in Search method).
-            bool inserted = insertTrialPoint(*bestXFeas);
+            bool inserted = insertTrialPoint(*_bestXFeas);
 
             OUTPUT_INFO_START
             std::string s = "xt:";
             s += (inserted) ? " " : " not inserted: ";
-            s += bestXFeas->display();
+            s += _bestXFeas->display();
             AddOutputInfo(s);
             OUTPUT_INFO_END
         }
-        if (nullptr != bestXInf)
+        else
+        {
+            // Reset shared_ptr to default
+            _bestXFeas.reset();
+        }
+        if (_bestXInf->isComplete())
         {
             // New EvalPoint to be evaluated.
             // Add it to the lists (local or in Search method).
-            insertTrialPoint(*bestXInf);
-
+            bool inserted = insertTrialPoint(*_bestXInf);
+            
+            OUTPUT_INFO_START
+            std::string s = "xt:";
+            s += (inserted) ? " " : " not inserted: ";
+            s += _bestXInf->display();
+            AddOutputInfo(s);
+            OUTPUT_INFO_END
+        
         }
-    }
-
-    if (_modelFixedVar.nbDefined() > 0)
-    {
-        // Put back trial points in their reference dimension
-        NOMAD::EvalPointSet evalPointSet;
-        for (auto trialPoint : _trialPoints)
+        else
         {
-            evalPointSet.insert(trialPoint.makeFullSpacePointFromFixed(_modelFixedVar));
+            // Reset shared_ptr to default
+            _bestXInf.reset();
         }
-        _trialPoints.clear();
-        _trialPoints = evalPointSet;
     }
+
 }
 
 
 // Set the bounds and the extra fixed variables (when lb=ub) of the model.
 void NOMAD::QuadModelOptimize::setModelBoundsAndFixedVar()
 {
+    // When optWithScaleBounds is true, the training set is scaled with some generating directions. Warning: points are not necessarilly in [0,1]^n
     const SGTELIB::Matrix & X = _trainingSet->get_matrix_X();
-
+    
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     if (n != (size_t)X.get_nb_cols())
     {
         throw NOMAD::Exception(__FILE__, __LINE__,
                                "QuadModel::setModelBounds() dimensions do not match");
     }
-
+    
     int nbDim = X.get_nb_cols();
     int nbPoints = X.get_nb_rows();
-
+    
     // Build model bounds & detect fixed variables
     NOMAD::Double lb;
     NOMAD::Double ub;
-
+    bool isFixed = false;
     for (int j = 0; j < nbDim; j++)
     {
         lb = _modelLowerBound[j];
@@ -357,7 +383,7 @@ void NOMAD::QuadModelOptimize::setModelBoundsAndFixedVar()
         for (int p = 0; p < nbPoints; p++)
         {
             // Use a comparison on regular double for better precision
-
+            
             auto xpj = NOMAD::Double(X.get(p,j));
             if (lb.isDefined())
             {
@@ -378,54 +404,79 @@ void NOMAD::QuadModelOptimize::setModelBoundsAndFixedVar()
                 ub = xpj;
             }
         }
+        isFixed = false;
         // Comparison of Double at epsilon
         if (lb == ub)
         {
             _modelFixedVar[j] = ub;
             lb = NOMAD::Double(); // undefined
             ub = NOMAD::Double();
+            isFixed = true;
         }
-
-        _modelLowerBound[j] = lb;
-        _modelUpperBound[j] = ub;
-
-    }
-
-    // Detect the model center of the bounds
-    // Scale the bounds around the model center
-    auto reduction_factor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR");
-    for (int j = 0; j < nbDim; j++)
-    {
-        lb = _modelLowerBound[j];
-        ub = _modelUpperBound[j];
-        if (lb.isDefined() && ub.isDefined())
+        
+        
+        if (!_optWithScaledBounds)
         {
-            // The model center is the bounds middle point
-            _modelCenter[j] = (lb + ub)/2.0;
-
-            // Scale the bounds with respect to the bounds
-            lb = _modelCenter[j] + (lb-_modelCenter[j])/reduction_factor;
-            ub = _modelCenter[j] + (ub-_modelCenter[j])/reduction_factor;
-
-            // Comparison of Double at epsilon
-            if (lb == ub)
-            {
-                _modelFixedVar[j] = ub;
-                _modelCenter[j] = ub;
-                lb = NOMAD::Double(); // undefined
-                ub = NOMAD::Double();
-
-            }
+            _modelLowerBound[j] = lb;
+            _modelUpperBound[j] = ub;
         }
         else
         {
-            _modelCenter[j] = _modelFixedVar[j];
+            // When scaling we force the bounds to be [0,1] whatever the training set except if we have a fixed variable.
+            // If optWithScaledBounds is true and we detect a fixed variable, the modelFixedVar is not necessarily within [0,1] but the model center and the fixed variable must be equal.
+            if (isFixed)
+            {
+                _modelLowerBound[j] = _modelUpperBound[j] = NOMAD::Double();
+                _modelCenter[j] = _modelFixedVar[j];
+            }
+            // If not fixed, the model bounds and model center are pretermined.
+            else
+            {
+                _modelLowerBound[j] = 0;
+                _modelUpperBound[j] = 1;
+                _modelCenter[j] = 0.5;
+            }
         }
-
-        _modelLowerBound[j] = lb;
-        _modelUpperBound[j] = ub;
     }
-
+    
+    if (!_optWithScaledBounds)
+    {
+        // Detect the model center of the bounds
+        // Scale the bounds around the model center
+        auto reduction_factor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR");
+        for (int j = 0; j < nbDim; j++)
+        {
+            lb = _modelLowerBound[j];
+            ub = _modelUpperBound[j];
+            if (lb.isDefined() && ub.isDefined())
+            {
+                // The model center is the bounds middle point
+                _modelCenter[j] = (lb + ub)/2.0;
+                
+                // Scale the bounds with respect to the bounds
+                lb = _modelCenter[j] + (lb-_modelCenter[j])/reduction_factor;
+                ub = _modelCenter[j] + (ub-_modelCenter[j])/reduction_factor;
+                
+                // Comparison of Double at epsilon
+                if (lb == ub)
+                {
+                    _modelFixedVar[j] = ub;
+                    _modelCenter[j] = ub;
+                    lb = NOMAD::Double(); // undefined
+                    ub = NOMAD::Double();
+                    
+                }
+            }
+            else
+            {
+                _modelCenter[j] = _modelFixedVar[j];
+            }
+            
+            _modelLowerBound[j] = lb;
+            _modelUpperBound[j] = ub;
+        }
+    }
+    
     OUTPUT_INFO_START
     std::string s = "model lower bound: " + _modelLowerBound.display();
     AddOutputInfo(s);
@@ -434,5 +485,5 @@ void NOMAD::QuadModelOptimize::setModelBoundsAndFixedVar()
     s = "model center: " + _modelCenter.display();
     AddOutputInfo(s);
     OUTPUT_INFO_END
-
+    
 } // end setModelBounds

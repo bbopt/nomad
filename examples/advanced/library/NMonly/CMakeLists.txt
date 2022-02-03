@@ -3,7 +3,7 @@ add_executable(NMOpt.exe NMOpt.cpp )
 target_include_directories(NMOpt.exe PRIVATE
     ${CMAKE_SOURCE_DIR}/src)
 
-set_target_properties(NMOpt.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
+set_target_properties(NMOpt.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" SUFFIX "")
 
 
 if(OpenMP_CXX_FOUND)

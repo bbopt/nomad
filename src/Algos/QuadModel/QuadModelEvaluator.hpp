@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_QUAD_MODEL_EVALUATION__
-#define __NOMAD_4_0_QUAD_MODEL_EVALUATION__
+#ifndef __NOMAD_4_2_QUAD_MODEL_EVALUATION__
+#define __NOMAD_4_2_QUAD_MODEL_EVALUATION__
 
 #include "../../Eval/Evaluator.hpp"
 #include "../../Output/OutputInfo.hpp"
@@ -60,13 +60,13 @@ private:
     const std::shared_ptr<SGTELIB::Surrogate> _model;
     std::string                _modelDisplay;
     OutputLevel                _displayLevel;
-    Point                      _fixedVariable;  ///< Points are sent to evaluator in full space. Evaluator works in its own dimension. This member is used for conversions.
+    Point                      _fixedVariable;  ///< Points maybe sent to evaluator in  full space. Evaluator works in local sub space. In this case this member is used for conversions. Can be undefined: sub=full.
 
 
 public:
     /// Constructor
     /**
-     Usually, Evaluators work in full dimension. In this case, the models may work better in subdimension. This is why a fixed variable is used.
+     Quad model evaluators work in the local full space. No need to pass the fixed variables
      */
     explicit QuadModelEvaluator(const std::shared_ptr<EvalParameters>& evalParams,
                                 const std::shared_ptr<SGTELIB::Surrogate>& model,
@@ -98,4 +98,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_QUAD_MODEL_EVALUATION__
+#endif // __NOMAD_4_2_QUAD_MODEL_EVALUATION__

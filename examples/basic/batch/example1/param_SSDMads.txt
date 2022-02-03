@@ -1,0 +1,33 @@
+
+# PROBLEM PARAMETERS
+####################
+
+# Number of variables
+DIMENSION 10
+
+# Black box
+BB_EXE bb1.exe
+BB_OUTPUT_TYPE OBJ PB PB PB
+
+# Starting point
+X0 ( 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 )
+
+# Bounds are useful to avoid extreme values
+LOWER_BOUND * -20.0
+UPPER_BOUND *  20.0
+
+
+# ALGORITHM PARAMETERS
+######################
+
+SSD_MADS_OPTIMIZATION yes
+
+# The algorithm terminates after that number black-box evaluations
+MAX_BB_EVAL 1000
+
+
+# Parameters for display
+DISPLAY_ALL_EVAL 1
+DISPLAY_STATS BBE ( SOL ) OBJ
+#STATS_FILE stats.txt BBE SOL OBJ
+

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_BARRIER__
-#define __NOMAD_4_0_BARRIER__
+#ifndef __NOMAD_4_2_BARRIER__
+#define __NOMAD_4_2_BARRIER__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -79,12 +79,14 @@ public:
      \param hMax            The max of h to keep a point in the barrier -- \b IN.
      \param fixedVariable   The fixed variables have a fixed value -- \b IN.
      \param evalType        Type of evaluation (BB or MODEL) -- \b IN.
+     \param computeType  Type of function computation (standard, phase-one or user) -- \b IN.
      \param evalPointList   Additional points to consider in building the barrier -- \b IN.
+     \param barrierInitializedFromCache Flag to initialize the barrier from cache -- \b IN.
      */
     Barrier(const Double& hMax = INF,
             const Point& fixedVariable = Point(),
-            const EvalType& evalType = EvalType::BB,
-            const ComputeType& computeType = ComputeType::STANDARD,
+            EvalType evalType = EvalType::BB,
+            ComputeType computeType = ComputeType::STANDARD,
             const std::vector<EvalPoint>& evalPointList = std::vector<EvalPoint>(),
             bool barrierInitializedFromCache= true)
       : _xFeas(),
@@ -132,8 +134,9 @@ public:
      * If the point is feasible it is added, if not an exception is triggered.
      \param xFeas       The eval point to add -- \b IN.
      \param evalType    Which eval (Blackbox or Model) of the EvalPoint to use to verify feasibility  -- \b IN.
+     \param computeType  Which obj/cons computation (standard, phase-one or user) of the EvalPoint to use to verify feasibility  -- \b IN.
      */
-    void addXFeas(const EvalPoint &xFeas, const EvalType& evalType, const ComputeType& computeType = ComputeType::STANDARD);
+    void addXFeas(const EvalPoint &xFeas, EvalType evalType, ComputeType computeType = ComputeType::STANDARD);
 
     /// Remove feasible points from the barrier.
     void clearXFeas();
@@ -169,8 +172,9 @@ public:
     /**
      * If the point is nullptr an exception is triggered.
      \param xInf   The eval point to add -- \b IN.
+     \param evalType    Check that eval type exists (Blackbox or Model) for the EvalPoint to add  -- \b IN.
      */
-    void addXInf(const EvalPoint &xInf, const EvalType& evalType);
+    void addXInf(const EvalPoint &xInf, EvalType evalType);
 
     /// Remove infeasible points from the barrier.
     void clearXInf();
@@ -201,10 +205,10 @@ public:
      * \return true if the Barrier was updated, false otherwise
      * \note Input EvalPoints are already in subproblem dimention
      */
-    SuccessType getSuccessTypeOfPoints(const std::shared_ptr<EvalPoint> & xFeas,
-                                       const std::shared_ptr<EvalPoint> & xInf,
-                                       const EvalType& evalType,
-                                       const ComputeType& computeType);
+    SuccessType getSuccessTypeOfPoints(const EvalPointPtr xFeas,
+                                       const EvalPointPtr xInf,
+                                       EvalType evalType,
+                                       ComputeType computeType);
 
     /// Update xFeas and xInf according to given points.
     /* \param evalPointList vector of EvalPoints  -- \b IN.
@@ -213,8 +217,8 @@ public:
      * \note Input EvalPoints are already in subproblem dimention
      */
     bool updateWithPoints(const std::vector<EvalPoint>& evalPointList,
-                          const EvalType& evalType,
-                          const ComputeType& computeType,
+                          EvalType evalType,
+                          ComputeType computeType,
                           const bool keepAllPoints = false);
 
     /// Return the barrier as a string.
@@ -235,12 +239,13 @@ private:
      \param fixedVariable   The fixed variables have a fixed value     -- \b IN.
      \param evalType        Which eval (Blackbox or Model) to use to verify feasibility  -- \b IN.
      \param evalPointList   Additional points to consider to construct barrier. -- \b IN.
+     \param computeType    Which compute type (standard, phase-one or user) must be available to find in cache  -- \b IN.
      \param barrierInitializedFromCache  Flag to initialize barrier from cache or not. -- \b IN.
      */
     void init(const Point& fixedVariable,
-              const EvalType& evalType,
+              EvalType evalType,
               const std::vector<EvalPoint>& evalPointList,
-              const ComputeType& computeType,
+              ComputeType computeType,
               bool barrierInitializedFromCache);
 
     /**
@@ -261,8 +266,8 @@ private:
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
     void checkXFeas(const EvalPoint &xFeas,
-                    const EvalType& evalType,
-                    const ComputeType& computeType = ComputeType::STANDARD);
+                    EvalType evalType,
+                    ComputeType computeType = ComputeType::STANDARD);
 
     /**
      * \brief Helper function for insertion.
@@ -270,15 +275,15 @@ private:
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
     void checkXFeasIsFeas(const EvalPoint &xFeas,
-                          const EvalType& evalType,
-                          const ComputeType& computeType = ComputeType::STANDARD);
+                          EvalType evalType,
+                          ComputeType computeType = ComputeType::STANDARD);
 
     /**
      * \brief Helper function for insertion.
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
-    void checkXInf(const EvalPoint &xInf, const EvalType& evalType);
+    void checkXInf(const EvalPoint &xInf, EvalType evalType);
 
     /**
      * \brief Helper function for init/setHMax.
@@ -298,4 +303,4 @@ std::istream& operator>>(std::istream& is, Barrier& barrier);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_BARRIER__
+#endif // __NOMAD_4_2_BARRIER__

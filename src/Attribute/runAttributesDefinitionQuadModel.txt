@@ -49,6 +49,25 @@ true
 \( basic mads quad model search model_search \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
+###############################################################################
+QUAD_MODEL_SLD_SEARCH
+bool
+false
+\( Quad model (SLD) search \)
+\(
+
+. MADS model search, using Sébastien Le Digabel quad models
+
+. Argument: one boolean ('yes' or 'no')
+
+. Disabled for more than 50 variables
+
+. Example: QUAD_MODEL_SLD_SEARCH yes
+
+\)
+\( basic mads quad model search model_search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
 ################################################################################
 QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR
 NOMAD::Double
@@ -125,25 +144,51 @@ false
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################
-QUAD_MODEL_RADIUS_FACTOR
+QUAD_MODEL_SEARCH_BOX_FACTOR
 NOMAD::Double
-2.0
-\( Quadratic model radius factor \)
+4.0
+\( Quadratic model search point selection factor \)
 \(
-. Quadratic model radius factor
+. Quadratic model search point selection factor
 
-. This parameter is used to select points to build the quadratic model
+. This parameter is used to select points to build the quadratic model for
+  the search method
 
-. Frame size is multiplied by this factor to get the search radius
-
-. Points inside a circle centered on the poll center, within this radius,
-  are selected to build the quadratic model
+. The max, min and average of trial points coordinates are used to identify a
+  box. This box contains all trial points to sort.
+  
+. The box is enlarged by this factor. Cache evaluation points inside this box
+  are selected to build the quadratic model for search.
 
 . Arguments: one strictly positive real
 
-. Example: QUAD_MODEL_RADIUS_FACTOR 1.0
+. Example: QUAD_MODEL_SEARCH_BOX_FACTOR 1.0
 \)
-\( developer quadratic model radius \)
+\( developer quadratic model search radius \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QUAD_MODEL_SORT_BOX_FACTOR
+NOMAD::Double
+2.0
+\( Quadratic model sort point selection factor \)
+\(
+. Quadratic model sort point selection factor
+
+. This parameter is used to select points to build the quadratic model for
+  sorting trial points
+
+. The max, min and average of trial points coordinates are used to identify a
+  box. This box contains all trial points to sort.
+  
+. The box is enlarged by this factor. Cache evaluation points inside this box
+  are selected to build the quadratic model for sort.
+
+. Arguments: one strictly positive real
+
+. Example: QUAD_MODEL_SORT_BOX_FACTOR 1.0
+\)
+\( developer quadratic model sort \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################

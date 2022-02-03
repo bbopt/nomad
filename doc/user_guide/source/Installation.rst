@@ -65,9 +65,17 @@ On the command line, in the ``$NOMAD_HOME`` directory::
 
         cmake -DTIME_STATS=ON -S . -B build/release
 
-     To enable interfaces (C and Python) building::
+     To enable C interface building::
 
-        cmake -DBUILD_INTERFACES=ON -S . -B build/release
+        cmake -DBUILD_INTERFACE_C=ON -S . -B build/release
+
+     To enable Matlab interface building::
+
+        cmake -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release
+
+     To enable Python interface (PyNomad) building::
+
+        cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release
 
      To disable *OpenMP* compilation::
 

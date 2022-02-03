@@ -54,8 +54,6 @@
 
 void NOMAD::QuadModelInitialization::init()
 {
-    setStepType(NOMAD::StepType::INITIALIZATION);
-
     _qmStopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get( _stopReasons );
 
 }
@@ -112,7 +110,7 @@ bool NOMAD::QuadModelInitialization::runImp()
 
 
 // The name generateTrialPoints is not well suited here because we use provided X0s and check provided cache.
-void NOMAD::QuadModelInitialization::generateTrialPoints()
+void NOMAD::QuadModelInitialization::generateTrialPointsImp()
 {
     auto x0s = _pbParams->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
@@ -129,7 +127,7 @@ void NOMAD::QuadModelInitialization::generateTrialPoints()
         {
             // New EvalPoint to be evaluated.
             // Add it to the list (local or in Search method).
-            validX0available = insertTrialPoint(NOMAD::EvalPoint(x0));;
+            validX0available = insertTrialPoint(NOMAD::EvalPoint(x0));
         }
 
     }

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_SGTELIBSEARCHMETHOD__
-#define __NOMAD_4_0_SGTELIBSEARCHMETHOD__
+#ifndef __NOMAD_4_2_SGTELIBSEARCHMETHOD__
+#define __NOMAD_4_2_SGTELIBSEARCHMETHOD__
 
 #include "../../Algos/Mads/SearchMethodAlgo.hpp"
 #ifdef USE_SGTELIB
@@ -99,16 +99,17 @@ private:
 
     ///Generate new points (no evaluation)
     /**
-     \copydoc SearchMethod::generateTrialPointsImp \n
-     This function is used only when a MADS search based on Quad Model with
-     the option to generate all points before evaluation. It performs a single
-     sub optimization (on the sgtelib model) around all the points in the Barrier.
+     \copydoc SearchMethodAlgo::generateTrialPointsFinal
+     
+     This function is used only when a MADS search based on a sgtelib model
+     with the option to generate all points before evaluation. It performs a
+     single  sub optimization (on the model) around all the points in the Barrier.
      */
-    void generateTrialPointsImp() override;
+    void generateTrialPointsFinal() override;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_SGTELIBSEARCHMETHOD__
+#endif // __NOMAD_4_2_SGTELIBSEARCHMETHOD__
 

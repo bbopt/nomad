@@ -52,8 +52,8 @@
  \see    EvalType.cpp
  */
 
-#ifndef __NOMAD_4_0_EVAL_TYPE__
-#define __NOMAD_4_0_EVAL_TYPE__
+#ifndef __NOMAD_4_2_EVAL_TYPE__
+#define __NOMAD_4_2_EVAL_TYPE__
 
 #include <sstream>
 
@@ -78,10 +78,10 @@ enum class EvalType
 EvalType stringToEvalType(const std::string &s);
 
 // Convert an EvalType to a string
-std::string evalTypeToString(const EvalType& evalType);
+std::string evalTypeToString(EvalType evalType);
 
 
-inline std::ostream& operator<<(std::ostream& out, const EvalType &evalType)
+inline std::ostream& operator<<(std::ostream& out, EvalType evalType)
 {
     out << evalTypeToString(evalType);
     return out;
@@ -89,4 +89,4 @@ inline std::ostream& operator<<(std::ostream& out, const EvalType &evalType)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_0_EVAL_TYPE__
+#endif  // __NOMAD_4_2_EVAL_TYPE__

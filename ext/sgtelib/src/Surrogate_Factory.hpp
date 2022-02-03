@@ -36,6 +36,7 @@
 #include "Surrogate_PRS_EDGE.hpp"
 #include "Surrogate_PRS_CAT.hpp"
 #include "Surrogate_Ensemble.hpp"
+#include "Surrogate_Ensemble_Stat.hpp"
 #include "Surrogate_LOWESS.hpp"
 #include "Surrogate_Kriging.hpp"
 

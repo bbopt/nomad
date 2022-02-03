@@ -118,7 +118,12 @@ void NOMAD::NMReflective::startImp()
 
     if (_iterAncestor->getMesh())
     {
-        verifyPointsAreOnMesh(getName());
+        if (!verifyPointsAreOnMesh(getName()))
+        {
+            OUTPUT_INFO_START
+            AddOutputInfo("At least one trial point is not on mesh. May need investigation if this happens too often.");
+            OUTPUT_INFO_END
+        }
     }
 }
 
@@ -167,7 +172,7 @@ bool NOMAD::NMReflective::runImp()
 }
 
 
-void NOMAD::NMReflective::generateTrialPoints()
+void NOMAD::NMReflective::generateTrialPointsImp()
 {
     // The pb params handle only variables (fixed variables are not considered)
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
@@ -261,7 +266,12 @@ void NOMAD::NMReflective::generateTrialPoints()
 
     if (_iterAncestor->getMesh())
     {
-        verifyPointsAreOnMesh(getName());
+        if (!verifyPointsAreOnMesh(getName()))
+        {
+            OUTPUT_INFO_START
+            AddOutputInfo("xt is not on mesh. May need investigation if this happens too often.");
+            OUTPUT_INFO_END
+        }
     }
 }
 
@@ -758,6 +768,7 @@ bool NOMAD::NMReflective::insertInY(const NOMAD::EvalPoint& x)
         return false;
     }
 
+    size_t size_before_insert = _nmY->size();
     std::pair<std::set<NOMAD::EvalPoint>::iterator,bool> ret_x = _nmY->insert(x);
 
     // Insertion of x ok
@@ -814,11 +825,14 @@ bool NOMAD::NMReflective::insertInY(const NOMAD::EvalPoint& x)
     }
     else
     {
-        // Try to remove point from Y (in case it was there)
-        _nmY->erase(ret_x.first);
+        // Remove point from Y in case it was there
+        if ( _nmY->size() > size_before_insert )
+        {
+            _nmY->erase(ret_x.first);
 
-        // Update simplex characteristics (volumes and diameter)
-        updateYCharacteristics();
+            // Update simplex characteristics (volumes and diameter)
+            updateYCharacteristics();
+        }
 
         OUTPUT_DEBUG_START
         AddOutputDebug("Cannot insert point in Y. Point possibly already in Y.");

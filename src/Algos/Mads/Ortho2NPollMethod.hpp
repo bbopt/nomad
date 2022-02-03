@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_ORTHO2NPOLLMETHOD__
-#define __NOMAD_4_0_ORTHO2NPOLLMETHOD__
+#ifndef __NOMAD_4_2_ORTHO2NPOLLMETHOD__
+#define __NOMAD_4_2_ORTHO2NPOLLMETHOD__
 
 #include "../../Algos/Mads/PollMethodBase.hpp"
 #include "../../nomad_nsbegin.hpp"
@@ -59,7 +59,7 @@ public:
      /param parentStep      The parent of this search step -- \b IN.
      */
     explicit Ortho2NPollMethod(const Step* parentStep,
-                               const EvalPoint& frameCenter)
+                               const EvalPointPtr frameCenter)
       : PollMethodBase(parentStep, frameCenter)
     {
         init();
@@ -86,4 +86,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_ORTHO2NPOLLMETHOD__
+#endif // __NOMAD_4_2_ORTHO2NPOLLMETHOD__

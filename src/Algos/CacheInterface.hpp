@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_0_CACHEINTERFACE__
-#define __NOMAD_4_0_CACHEINTERFACE__
+#ifndef __NOMAD_4_2_CACHEINTERFACE__
+#define __NOMAD_4_2_CACHEINTERFACE__
 
 #include "Step.hpp"
 
@@ -81,13 +81,14 @@ public:
     /// Find best feasible point(s) in cache
     /**
      \param evalPointList  The found evaluation points -- \b OUT.
-     \param evalType             Criteria for EvalType -- \b IN.
+     \param evalType             Criterion for EvalType -- \b IN.
+     \param computeType      Criterion for ComputType    -- \b IN.
      \param refeval               The point of reference                                      -- \b IN.
-     \return                Number of points found
+     \return              Number of points found
      */
     size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
-                        const EvalType& evalType,
-                        const ComputeType& computeType,
+                        EvalType  evalType,
+                        ComputeType computeType,
                         const Eval* refeval) const;
 
     /// Find best infeasible point(s) in cache
@@ -95,13 +96,14 @@ public:
      \param evalPointList   The found evaluation points -- \b OUT.
      \param hMax                       Points' h value must be under this value -- \b IN.
      \param evalType              Points' EvalType to look at -- \b IN.
+     \param computeType       Points' ComputType to look at    -- \b IN.
      \param refeval                The point of reference                   -- \b IN.
      \return                 Number of points found
      */
     size_t findBestInf(std::vector<EvalPoint> &evalPointList,
                        const Double& hMax,
-                       const EvalType& evalType,
-                       const ComputeType& computeType,
+                       EvalType  evalType,
+                       ComputeType computeType,
                        const Eval* refeval) const;
 
     /// Interface for CacheBase::smartInsert.
@@ -114,7 +116,7 @@ public:
      */
     bool smartInsert(const EvalPoint &evalPoint,
                      const short maxNumberEval = 1,
-                     const EvalType& evalType = EvalType::BB);
+                     EvalType evalType = EvalType::BB);
 
     /// Interface for CacheBase::smartFind.
     /**
@@ -123,8 +125,9 @@ public:
      \param evalPoint   The found EvalPoint -- \b OUT.
      \param evalType    If not UNDEFINED, wait for Eval of this EvalType to be completed. -- \b IN.
      */
-    size_t find(const Point& x, EvalPoint &evalPoint,
-                const EvalType& evalType = EvalType::UNDEFINED);
+    size_t find(const Point& x,
+                EvalPoint &evalPoint,
+                EvalType evalType = EvalType::UNDEFINED);
 
     /// Find points in the cache fulfilling a criteria
     /**
@@ -154,4 +157,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_CACHEINTERFACE__
+#endif // __NOMAD_4_2_CACHEINTERFACE__

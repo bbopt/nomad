@@ -69,7 +69,7 @@ bool SGTELIB::Surrogate_KS::build_private ( void ) {
 }//
 
 /*--------------------------------------*/
-/*       predict_private (ZZs only)      */
+/*       predict_private (ZZs only)     */
 /*--------------------------------------*/
 void SGTELIB::Surrogate_KS::predict_private ( const SGTELIB::Matrix & XXs,
                                                     SGTELIB::Matrix * ZZs) {
@@ -130,6 +130,84 @@ void SGTELIB::Surrogate_KS::predict_private ( const SGTELIB::Matrix & XXs,
   }
 
 }//
+
+
+// Predict only objectives (used in Surrogate Ensemble Stat)
+void SGTELIB::Surrogate_KS::predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
+                                                        SGTELIB::Matrix * ZZsurr_around            ) {
+  check_ready(__FILE__,__FUNCTION__,__LINE__);
+
+  const size_t pxx = XXd.size();
+  const int nbd = XXd[0]->get_nb_rows();
+
+  // ind: index of a point in Xs
+  // d: index of a point in XXd[i]
+  int ind,d;
+
+  // Loop on all pxx points 
+  for (int i=0 ; i<pxx ; i++){
+    // XXd[i] is of dimension nbd * _n
+
+    // D : distance between points of XXd[i] and other points of the trainingset
+    SGTELIB::Matrix D = _trainingset.get_distances(*(XXd[i]), get_matrix_Xs(), _param.get_distance_type());
+
+    // Kernel shape coefficient
+    double ks = _param.get_kernel_coef() / _trainingset.get_Ds_mean();
+
+    // Compute weights 
+    SGTELIB::Matrix phi = kernel(_param.get_kernel_type(), ks, D);
+
+    // Get only objective values in Zs
+    SGTELIB::Matrix Zs ("Zs", nbd, 1);
+    Zs = get_matrix_Zs().get_col(0); // if no objective (for tests only)
+    double Zs_mean = 0;
+    for (int j=0 ; j<_m ; j++){
+      if (_trainingset.get_bbo(j)==SGTELIB::BBO_OBJ){
+        Zs = get_matrix_Zs().get_col(j);
+        Zs_mean = _trainingset.get_Zs_mean(j);
+        break;
+      }
+    }
+
+    // Row i of ZZsurr_around is set to [f(x_i + d_1) , ... , f(x_i + d_nbd)]
+    SGTELIB::Matrix PhiZ = phi*Zs;
+    SGTELIB::Matrix Div = phi.sum(2);
+    Div.hadamard_inverse();
+    SGTELIB::Matrix temp;
+    ZZsurr_around->set_row( ( SGTELIB::Matrix::diagA_product(Div, PhiZ) ).transpose() , i );
+
+    if (Div.has_inf()){
+      // Loop on the points of XXd[i]
+      for (d=0 ; d<nbd ; d++){
+        if ( isinf(Div.get(d,0)) ){
+          // Need to use the limit behavior of kernels
+          switch (_param.get_kernel_type()){
+            case SGTELIB::KERNEL_D1:
+            case SGTELIB::KERNEL_D4:
+            case SGTELIB::KERNEL_D5:
+              // imin is the index of the closest neighbor of xx in Xs
+              ind = D.get_min_index_row(d); 
+              // Copy the output of the point i
+              ZZsurr_around->set( i,d, Zs.get(ind,0) );
+              break;
+            case SGTELIB::KERNEL_D2:
+            case SGTELIB::KERNEL_D3:
+            case SGTELIB::KERNEL_D6:
+              // Use the mean of the output over the trainingset
+              ZZsurr_around->set( i,d, Zs_mean);
+              break;
+            default:
+              throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+                    "Surrogate_KS::predict_private_objective: Unacceptable kernel type" );
+          }
+        }
+      } // end for d
+    }
+
+  } // end for i
+
+}
+
 
 
 /*--------------------------------------*/

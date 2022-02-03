@@ -44,10 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-
+#include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/PollMethodBase.hpp"
 #include "../../Algos/SubproblemManager.hpp"
+#include "../../Algos/SurrogateEvaluation.hpp"
 #include "../../Output/OutputQueue.hpp"
+#include "../../Type/EvalSortType.hpp"
 
 
 void NOMAD::PollMethodBase::init()
@@ -56,9 +58,19 @@ void NOMAD::PollMethodBase::init()
     verifyParentNotNull();
 }
 
-void NOMAD::PollMethodBase::generateTrialPoints()
+void NOMAD::PollMethodBase::generateTrialPointsImp()
 {
+    
+    OUTPUT_INFO_START
+    AddOutputInfo("Generate points for " + getName(), true, false);
+    OUTPUT_INFO_END
+    
     generateTrialPointsInternal(false);
+    
+    OUTPUT_INFO_START
+    AddOutputInfo("Generated " + std::to_string(getTrialPointsCount()) + " points");
+    AddOutputInfo("Generate points for " + getName(), false, true);
+    OUTPUT_INFO_END
 }
 
 void NOMAD::PollMethodBase::generate2NDirections(std::list<NOMAD::Direction> &directions, size_t n) const
@@ -82,33 +94,22 @@ void NOMAD::PollMethodBase::generate2NDirections(std::list<NOMAD::Direction> &di
     delete [] H;
 }
 
-
-void NOMAD::PollMethodBase::generateTrialPointsNPlus1(const NOMAD::EvalPointSet& inputTrialPoints)
+void NOMAD::PollMethodBase::generateTrialPointsSecondPassImp()
 {
-    // Clear trial points generated in the first pass, where 2N points were
-    // generated and N points were evaluated. The evaluations are not part of
-    // this data.
-    _trialPoints.clear();
-    // Then add back the N evaluated points, with evaluation this time.
-    for (auto trialPoint : inputTrialPoints)
-    {
-        insertTrialPoint(trialPoint);
-    }
-
     generateTrialPointsInternal(true);
 }
 
 
-// If isNPlus1 is true, _trialPoints containes N evaluated trial points,
-// and the N+1th point needs to be generated.
-void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isNPlus1)
+// If isSecondPass is true, _trialPoints contains evaluated trial points,
+// and the second pass trial points need to be generated.
+void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isSecondPass)
 {
 
-    std::list<NOMAD::Direction> directionsFullSpace = generateFullSpaceScaledDirections(isNPlus1);
+    std::list<NOMAD::Direction> directionsFullSpace = generateFullSpaceScaledDirections(isSecondPass);
     
     OUTPUT_INFO_START
     std::string s = "Generate ";
-    s+= (isNPlus1) ? "n+1th point" : "n points";
+    s+= (isSecondPass) ? "second pass trial point(s)" : " first pass trial points";
     s += " for " + getName();
     AddOutputInfo(s, true, false);
     OUTPUT_INFO_END
@@ -122,23 +123,16 @@ void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isNPlus1)
 
     auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     // We need a frame center to start with.
-    if (!_frameCenter.ArrayOfDouble::isDefined() || _frameCenter.size() != n)
+    if (!_frameCenter->ArrayOfDouble::isDefined() || _frameCenter->size() != n)
     {
-        std::string err = "Invalid frame center: " + _frameCenter.display();
+        std::string err = "Invalid frame center: " + _frameCenter->display();
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
     OUTPUT_DEBUG_START
-    AddOutputDebug("Frame center: " + _frameCenter.display());
+    AddOutputDebug("Frame center: " + _frameCenter->display());
     OUTPUT_DEBUG_END
 
-    if (isNPlus1)
-    {
-        // Clear trial points so that they are not re-evaluated (or tried to be).
-        // If not N+1 pass, we keep all points from all PollMethods, for instance,
-        // Ortho 2N for primary poll center and Double for secondary poll center.
-        clearTrialPoints();
-    }
     for (std::list<NOMAD::Direction>::iterator it = directionsFullSpace.begin(); it != directionsFullSpace.end() ; ++it)
     {
         NOMAD::Point pt(n);
@@ -146,17 +140,18 @@ void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isNPlus1)
         // pt = frame center + direction
         for (size_t i = 0 ; i < n ; ++i )
         {
-            pt[i] = _frameCenter[i] + (*it)[i];
+            pt[i] = (*_frameCenter)[i] + (*it)[i];
         }
 
         auto evalPoint = NOMAD::EvalPoint(pt);
-        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(_frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+        evalPoint.setPointFrom(_frameCenter, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+        
         // Snap the points and the corresponding direction to the bounds
         if (snapPointToBoundsAndProjectOnMesh(evalPoint,
                                               _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND"),
                                               _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND")))
         {
-            if (*evalPoint.getX() != *_frameCenter.getX())
+            if (*evalPoint.getX() != *_frameCenter->getX())
             {
                 // New EvalPoint to be evaluated.
                 // Add it to the list.
@@ -184,14 +179,14 @@ void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isNPlus1)
     OUTPUT_INFO_START
     AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");
     std::string s = "Generate ";
-    s+= (isNPlus1) ? "n+1th point" : "n points";
+    s+= (isSecondPass) ? "second pass trial point(s)" : "first pass trial points";
     s += " for " + getName();
     AddOutputInfo(s, false, true);
     OUTPUT_INFO_END
 }
 
 
-std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirections(bool isNPlus1, std::shared_ptr<NOMAD::MeshBase> mesh)
+std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirections(bool isSecondPass,   NOMAD::MeshBasePtr mesh)
 {
     // Groups of variables.
     auto varGroups = _pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP");;
@@ -202,19 +197,17 @@ std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirect
     
     if (varGroups.size() == 0)
     {
-        if (!isNPlus1)
+        if (!isSecondPass)
         {
             // Creation of the poll directions in the full space
             generateUnitPollDirections(directionsFullSpace,n);
         }
         else
         {
-            // Creation of the N+1th direction in the full space
-            generateNPlus1Direction(directionsFullSpace);
+            // Creation of the directions for the second pass. For example, the N+1th direction in the full space for Ortho N+1 methods
+            generateSecondPassDirections(directionsFullSpace);
 
-            // The trial points were needed to generate the n+1th direction.
-            // We do not want to re-evaluate them, and the n+1th point will
-            // be added to _trialPoints when it is generated. So here, we clear the current trial points.
+            // The trial points were needed to generate the second pass direction. We clear the first trial points before adding the second pass trial points.
             _trialPoints.clear();
         }
     }
@@ -224,15 +217,15 @@ std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirect
         {
             size_t nVG = vg.size();
 
-            if (!isNPlus1)
+            if (!isSecondPass)
             {
                 // Creation of the poll directions in the sub space of the variable group
                 generateUnitPollDirections(directionsSubSpace,nVG);
             }
             else
             {
-                // Creation of the N+1th poll direction in the sub space of the variable group
-                generateNPlus1Direction(directionsSubSpace);
+                // Creation of the second pass poll direction in the sub space of the variable group
+                generateSecondPassDirections(directionsSubSpace);
                 // We do not want to re-evaluate points generated in the first pass.
                 _trialPoints.clear();
             }
@@ -275,7 +268,12 @@ std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirect
     }
     
     // Scale and project directions on the mesh
-    scaleAndProjectOnMesh(directionsFullSpace, mesh);
+    // Always do it for first pass
+    // For second pass only do it when the flag is on. For the moment, the flag is off only for Ortho n+1 quad.
+    if (!isSecondPass || _scaleAndProjectSecondPassDirectionOnMesh )
+    {
+        scaleAndProjectOnMesh(directionsFullSpace, mesh);
+    }
     
     return directionsFullSpace;
     
@@ -316,5 +314,51 @@ void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs, s
         }
 
         *itDir = scaledDir;
+    }
+}
+
+// Complete trial points information for sorting before evaluation
+void NOMAD::PollMethodBase::completeTrialPointsInformation()
+{
+    
+    // Send trial EvalPoints to EvaluatorControl
+    NOMAD::EvcInterface evcInterface(this);
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    
+    
+    std::unique_ptr<NOMAD::SurrogateEvaluation> surrogateEvaluation = nullptr;
+
+    // If sort type is MODEL, but Evaluator type is not MODEL,
+    // start by evaluating points using the surrogate (MODEL) Evaluator.
+    // No need to sort if not opportunistic
+    if ( NOMAD::EvalSortType::QUADRATIC_MODEL == evc->getEvaluatorControlGlobalParams()->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT")
+        && NOMAD::EvalType::MODEL != evc->getEvalType()
+        && _trialPoints.size() > 1
+        && evc->getOpportunisticEval())
+    {
+        // Reset the counter (otherwise the cumulative model evals for sorting may exceed the limit MODEL_MAX_EVAL)
+        evc->resetModelEval();
+        
+        // Construction of quadratic model
+        surrogateEvaluation = std::make_unique<NOMAD::SurrogateEvaluation>(this,
+                                                                                _trialPoints,
+                                                                                _frameCenter,
+                                                                                NOMAD::EvalType::MODEL);
+    }
+    // If sort type is SURROGATE, but Evaluator type is not SURROGATE,
+    // start by evaluating points using the surrogate Evaluator.
+    else if ( NOMAD::EvalSortType::SURROGATE == evc->getEvaluatorControlGlobalParams()->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT")
+        && NOMAD::EvalType::SURROGATE != evc->getEvalType()
+        && _trialPoints.size() > 1
+        && evc->getOpportunisticEval())
+    {
+        surrogateEvaluation = std::make_unique<NOMAD::SurrogateEvaluation>(this,_trialPoints, nullptr, NOMAD::EvalType::SURROGATE);
+    }
+    
+    if (nullptr != surrogateEvaluation)
+    {
+        surrogateEvaluation->start(); // start sets the eval type to MODEL or SURROGATE, perform MODEL construction if it is its eval type
+        surrogateEvaluation->run(); // Perform MODEL or SURROGATE evaluations on the trial points
+        surrogateEvaluation->end();
     }
 }

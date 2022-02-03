@@ -58,7 +58,6 @@
 void NOMAD::SSDMadsMegaIteration::init()
 {
     setStepType(NOMAD::StepType::MEGA_ITERATION);
-    _randomPickup.reset();
 }
 
 
@@ -69,6 +68,9 @@ void NOMAD::SSDMadsMegaIteration::startImp()
     update.start();
     update.run();
     update.end();
+    
+    // Reset the random pickup (put back n to its initial value)
+    _randomPickup.reset();
 
     // Now that update has used the previous MegaIteration success type, reset it
     setSuccessType(NOMAD::SuccessType::NOT_EVALUATED);

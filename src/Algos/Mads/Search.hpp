@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_SEARCH__
-#define __NOMAD_4_0_SEARCH__
+#ifndef __NOMAD_4_2_SEARCH__
+#define __NOMAD_4_2_SEARCH__
 
 #include "../../Algos/Mads/SearchMethodBase.hpp"
 
@@ -75,12 +75,6 @@ public:
     }
 
     virtual ~Search() {}
-
-    /**
-     - Generate new points to evaluate. Use all enabled search methods.
-     - To be used only when parameter MEGA_SEARCH_POLL is true.
-     */
-    void generateTrialPoints() override;
 
 #ifdef TIME_STATS
     /// Time stats
@@ -114,10 +108,17 @@ private:
      Identify if there is at least one search enabled. If there are none, do not print Search step at all.
      */
     bool isEnabled() const;
+    
+    /**
+     - Generate new points to evaluate. Use all enabled search methods.
+     - To be used only when parameter MEGA_SEARCH_POLL is true.
+     */
+    void generateTrialPointsImp() override;
+
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_SEARCH__
+#endif // __NOMAD_4_2_SEARCH__
 

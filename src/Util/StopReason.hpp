@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_STOPREASON__
-#define __NOMAD_4_0_STOPREASON__
+#ifndef __NOMAD_4_2_STOPREASON__
+#define __NOMAD_4_2_STOPREASON__
 
 #include <map>
 #include "../Util/Exception.hpp"
@@ -108,7 +108,17 @@ enum class LHStopType : int
     ALL_POINTS_EVALUATED    ,  ///< No more points to evaluate
     LAST
 };
-
+/// Stop type for Coordinate Search
+enum class CSStopType : int
+{
+    STARTED                 ,  ///< Started (no stop)
+    MESH_PREC_REACHED       ,  ///< Mesh minimum precision stop criterion
+    MIN_MESH_SIZE_REACHED   ,  ///< Min mesh size stop criterion
+    MIN_FRAME_SIZE_REACHED  , ///< Min frame size stop criterion
+    GRANULARITY_REACHED     , ///< Granularity value reached
+    X0_FAIL                 ,  ///< Problem with starting point evaluation
+    LAST
+};
 
 /// Stop type for all model based searches (sgtelib or quad) or optimization
 enum class ModelStopType : int
@@ -288,6 +298,8 @@ public:
 
         _stopReason = s;
     }
+    
+    
 
     /// Reset the stop reason to the default STARTED state.
     void setStarted ()
@@ -317,9 +329,20 @@ public:
      */
     bool checkTerminate () const ;
 
+    
+    /// Check if the stop reason is the provided stop type  .
+    /**
+
+     \return \c true if stop reason is the provided stop type, \c false otherwise.
+     */
+    bool checkStopType (T s) const
+    {
+        return ( _stopReason == s );
+    }
+    
 };
 
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_STOPREASON__
+#endif // __NOMAD_4_2_STOPREASON__

@@ -48,6 +48,7 @@
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/Search.hpp"
 #include "../../Algos/Mads/QuadSearchMethod.hpp"
+#include "../../Algos/Mads/QuadSldSearchMethod.hpp"
 #include "../../Algos/Mads/SgtelibSearchMethod.hpp"
 #include "../../Algos/Mads/SpeculativeSearchMethod.hpp"
 #include "../../Algos/Mads/LHSearchMethod.hpp"
@@ -60,9 +61,9 @@
 #include "../../Util/Clock.hpp"
 
 // Initialize static variables
-// 5 search methods are available
-std::vector<double> NOMAD::Search::_searchTime(5, 0.0);
-std::vector<double> NOMAD::Search::_searchEvalTime(5, 0.0);
+// 8 search methods are available
+std::vector<double> NOMAD::Search::_searchTime(8, 0.0);
+std::vector<double> NOMAD::Search::_searchEvalTime(8, 0.0);
 #endif // TIME_STATS
 
 void NOMAD::Search::init()
@@ -73,6 +74,7 @@ void NOMAD::Search::init()
     auto speculativeSearch      = std::make_shared<NOMAD::SpeculativeSearchMethod>(this);
     auto userSearch             = std::make_shared<NOMAD::UserSearchMethod>(this);
     auto quadSearch             = std::make_shared<NOMAD::QuadSearchMethod>(this);
+    auto quadSldSearch             = std::make_shared<NOMAD::QuadSldSearchMethod>(this);
     auto sgtelibSearch          = std::make_shared<NOMAD::SgtelibSearchMethod>(this);
     auto lhSearch               = std::make_shared<NOMAD::LHSearchMethod>(this);
     auto nmSearch               = std::make_shared<NOMAD::NMSearchMethod>(this);
@@ -94,6 +96,7 @@ void NOMAD::Search::init()
     _searchMethods.push_back(speculativeSearch);    // 1. speculative search
     _searchMethods.push_back(userSearch);           // 2. user search
     _searchMethods.push_back(quadSearch);           // 5a. Quad Model Searches
+    _searchMethods.push_back(quadSldSearch);           // 5a'. Quad Model SLD Searches
     _searchMethods.push_back(sgtelibSearch);        // 5b. Model Searches
     _searchMethods.push_back(vnsSearch);
     _searchMethods.push_back(lhSearch);             // 7. Latin-Hypercube (LH) search
@@ -106,6 +109,11 @@ void NOMAD::Search::startImp()
    // Sanity check.
     verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 
+    // Reset the current trial stats before run is called and increment the number of calls
+    // This is managed by iteration utils when using generateTrialPoint instead of the (start, run, end) sequence.
+    _trialPointStats.resetCurrentStats();
+    _trialPointStats.incrementNbCalls();
+    
 }
 
 
@@ -140,7 +148,9 @@ bool NOMAD::Search::runImp()
         auto searchMethod = _searchMethods[i];
         bool enabled = searchMethod->isEnabled();
         OUTPUT_DEBUG_START
-        s = "Search method " + searchMethod->getName() + (enabled ? " is enabled" : " not enabled");
+        s = "Search method " + NOMAD::stepTypeToString(searchMethod->getStepType()) + (enabled ? " is enabled" : " not enabled");
+
+        
         AddOutputDebug(s);
         OUTPUT_DEBUG_END
         if (!enabled) { continue; }
@@ -148,10 +158,12 @@ bool NOMAD::Search::runImp()
         double searchStartTime = NOMAD::Clock::getCPUTime();
         double searchEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
 #endif // TIME_STATS
+               
         searchMethod->start();
         searchMethod->run();
         success = searchMethod->getSuccessType();
         searchSuccessful = (success >= NOMAD::SuccessType::FULL_SUCCESS);
+           
         if (success > bestSuccessYet)
         {
             bestSuccessYet = success;
@@ -188,12 +200,16 @@ void NOMAD::Search::endImp()
 {
     // Sanity check. The endImp function should be called only when trial points are generated and evaluated for each search method separately.
     verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
-
+    
     if (!isEnabled())
     {
         // Early out
         return;
     }
+    
+    // Update the trial stats of the parent (Mads)
+    // This is directly managed by iteration utils when using generateTrialPoint instead of the (start, run, end) sequence done here.
+    _trialPointStats.updateParentStats();
 
     // Need to reset the EvalStopReason if a sub optimization is used during Search and the max bb is reached for this sub optimization
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
@@ -205,11 +221,10 @@ void NOMAD::Search::endImp()
 }
 
 
-void NOMAD::Search::generateTrialPoints()
+void NOMAD::Search::generateTrialPointsImp()
 {
     // Sanity check. The generateTrialPoints function should be called only when trial points are generated for all each search method. After that all trials points evaluated at once.
     verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, true);
-
     for (auto searchMethod : _searchMethods)
     {
         if (searchMethod->isEnabled())

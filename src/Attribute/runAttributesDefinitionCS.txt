@@ -1,0 +1,51 @@
+###############################################################################
+#######         Definition of Run Parameters attributes (CS)       ############
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+CS_OPTIMIZATION
+bool
+false
+\( Coordinate Search optimization \)
+\(
+
+. Coordinate search optimization. When enabled, the DIRECTION_TYPE is forced
+  to CS.
+
+. Argument: bool
+
+. Example: CS_OPTIMIZATION true
+
+\)
+\( basic coordinate search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################

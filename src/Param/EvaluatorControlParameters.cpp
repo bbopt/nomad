@@ -118,14 +118,11 @@ void NOMAD::EvaluatorControlParameters::checkAndComply(
         bool isSurrogateOptimization = getAttributeValueProtected<bool>("EVAL_SURROGATE_OPTIMIZATION", false);
         if (isSurrogateOptimization)
         {
-            // If this is a surrogate optimization, either it has to
-            // have a cost relative to bb evaluations (for MAX_EVAL to have effect - it could be set if all variables are granular),
-            // or it has to have a maximum number of surrogate evaluations.
-            auto surrogateCost = evaluatorControlGlobalParams->getAttributeValue<size_t>("EVAL_SURROGATE_COST");
-            if (NOMAD::INF_SIZE_T == surrogateCost && NOMAD::INF_SIZE_T == maxSurrogateEval)
+            // If this is a surrogate optimization, it has to have a maximum number of surrogate evaluations.
+            if (NOMAD::INF_SIZE_T == maxSurrogateEval)
             {
                 throw NOMAD::Exception(__FILE__, __LINE__,
-                    "Parameter MAX_SURROGATE_EVAL_OPTIMIZATION or EVAL_SURROGATE_COST must be non-infinite when EVAL_SURROGATE_OPTIMIZATION is used.");
+                    "EVAL_SURROGATE_OPTIMIZATION is used. Parameter MAX_SURROGATE_EVAL_OPTIMIZATION should be set.");
             }
             if (evaluatorControlGlobalParams->getAttributeValue<size_t>("MAX_BB_EVAL") < NOMAD::INF_SIZE_T)
             {

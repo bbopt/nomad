@@ -143,7 +143,7 @@ void NOMAD::Mads::observe(const std::vector<NOMAD::EvalPoint>& evalPointList)
 
 bool NOMAD::Mads::runImp()
 {
-    size_t k = 1;   // Iteration number
+    size_t k = 0;   // Iteration number (incremented at start)
     NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
     bool successFound = false;
@@ -153,15 +153,15 @@ bool NOMAD::Mads::runImp()
         std::shared_ptr<NOMAD::MeshBase> mesh;
         std::shared_ptr<NOMAD::Barrier> barrier;
 
-        if (nullptr != _megaIteration)
+        if (nullptr != _refMegaIteration)
         {
             // Case hot restart
-            k       = _megaIteration->getK();
-            barrier = _megaIteration->getBarrier();
+            k       = _refMegaIteration->getK();
+            barrier = _refMegaIteration->getBarrier();
 
             // Downcast from MegaIteration to MadsMegaIteration
-            mesh    = (std::dynamic_pointer_cast<NOMAD::MadsMegaIteration> (_megaIteration ))->getMesh();
-            megaIterSuccess = _megaIteration->getSuccessType();
+            mesh    = (std::dynamic_pointer_cast<NOMAD::MadsMegaIteration> (_refMegaIteration ))->getMesh();
+            megaIterSuccess = _refMegaIteration->getSuccessType();
         }
         else
         {
@@ -169,27 +169,25 @@ bool NOMAD::Mads::runImp()
             barrier = _initialization->getBarrier();
         }
 
-        // Mads member _megaIteration is used for hot restart (read and write),
+        // Mads member _refMegaIteration is used for hot restart (read and write),
         // as well as to keep values used in Mads::end(), and may be used for _termination.
         // Update it here.
-        _megaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, k, barrier, mesh, megaIterSuccess);
+        _refMegaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, k, barrier, mesh, megaIterSuccess);
 
-
+        // Create a MegaIteration for looping: manage multiple iterations on different
+        // meshes and with different frame centers at the same time.
+        NOMAD::MadsMegaIteration megaIteration(this, k, barrier, mesh, megaIterSuccess);
         while (!_termination->terminate(k))
         {
-            // Create an MegaIteration: manage multiple iterations on different
-            // meshes and with different frame centers at the same time.
-            NOMAD::MadsMegaIteration megaIteration(this, k, barrier, mesh, megaIterSuccess);
+            
             megaIteration.start();
             megaIteration.run();
             megaIteration.end();
-
-            // Remember these values to construct the next MegaIteration.
-            k       = megaIteration.getNextK();
-            barrier = megaIteration.getBarrier();
-            mesh    = megaIteration.getMesh();
+            
+            // Counter is incremented when calling mega iteration end()
+            k       = megaIteration.getK();
             megaIterSuccess = megaIteration.getSuccessType();
-
+            
             if (!successFound && megaIterSuccess >= NOMAD::SuccessType::FULL_SUCCESS)
             {
                 successFound = true;
@@ -269,7 +267,7 @@ void NOMAD::Mads::readInformationForHotRestart()
             auto barrier = std::make_shared<NOMAD::Barrier>(NOMAD::INF, NOMAD::Point(_pbParams->getAttributeValue<size_t>("DIMENSION")), NOMAD::EvalType::BB);
             std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
 
-            _megaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, 0, barrier, mesh, NOMAD::SuccessType::NOT_EVALUATED);
+            _refMegaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, 0, barrier, mesh, NOMAD::SuccessType::NOT_EVALUATED);
 
             // Here we use Algorithm::operator>>
             NOMAD::read<NOMAD::Mads>(*this, hotRestartFile);

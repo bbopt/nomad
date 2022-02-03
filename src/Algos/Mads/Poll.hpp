@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_POLL__
-#define __NOMAD_4_0_POLL__
+#ifndef __NOMAD_4_2_POLL__
+#define __NOMAD_4_2_POLL__
 
 #include <set>
 
@@ -61,13 +61,16 @@
 class Poll: public Step, public IterationUtils
 {
 private:
-    std::vector<std::shared_ptr<PollMethodBase>> _pollMethods;  ///< Unlike for Search, Poll methods generate all their points and only then they are evaluated.
 #ifdef TIME_STATS
     DLL_ALGO_API static double  _pollTime;      ///< Total time spent running the poll
     DLL_ALGO_API static double  _pollEvalTime;  ///< Total time spent evaluating poll points
 #endif // TIME_STATS
 
+protected:
+    std::vector<std::shared_ptr<PollMethodBase>> _pollMethods;  ///< Unlike for Search, Poll methods generate all their points and only then they are evaluated.
 
+    std::vector<EvalPointPtr> _frameCenters;  ///< The frame centers (primary and secondary) of the poll methods. 
+    
 public:
     /// Constructor
     /**
@@ -82,20 +85,14 @@ public:
     }
     virtual ~Poll() {}
 
-    /// Generate new points to evaluate
-    /**
-     The trial points are obtained by:
-        - adding poll directions (Poll::setPollDirections) to the poll center (frame center).
-        - snaping points (and directions) to bounds.
-        - projecting points on mesh.
-     */
-    void generateTrialPoints() override;
 
-    /// Generate N+1th point for ORTHO N+1 methods
+
+    /// Second pass of point generation after first pass is not successfull.
     /**
-      The trial point is obtained from the evaluations of the first N points.
+      For Ortho N+1 methods the N+1th point is produced after evaluating N sorted points without success.
+      In this second pass, the trial points are determined using the evaluations of the first N points.
       */
-    void generateTrialPointsNPlus1(const NOMAD::EvalPointSet& inputTrialPoints);
+    void generateTrialPointsSecondPass();
 
 #ifdef TIME_STATS
     /// Time stats
@@ -103,21 +100,34 @@ public:
     static double getPollEvalTime()   { return _pollEvalTime; }
 #endif // TIME_STATS
 
-
+protected:
+    /// Helper for start: get lists of Primary and Secondary Polls
+    void computePrimarySecondaryPollCenters(std::vector<EvalPoint> &primaryCenters, std::vector<EvalPoint> &secondaryCenters) const;
+    
+    /// Helper for start: create poll methods
+    virtual void createPollMethods(const bool isPrimary, const EvalPoint & frameCenter);
+    
+    /// Helper for generateTrialPoints
+    ///  Set the stop type for the Algorithm (can be reimplemented, for example CS)
+    virtual void setMeshPrecisionStopType();
+    
 
 private:
     /// Helper for constructor
     void init();
 
+    /// Helper to create poll methods for current poll centers
+    void createPollMethodsForPollCenters();
+    
     /// Implementation for start tasks for MADS poll.
     /**
-     Call to generate trial points and test for mesh precision
+     Call to generate the poll methods
      */
     virtual void    startImp() override ;
 
     /// Implementation for run tasks for MADS poll.
     /**
-     Start trial points evaluation.
+     Call poll methods and perform trial points evaluation.
      \return Flag \c true if found better solution \c false otherwise.
      */
     virtual bool    runImp() override;
@@ -128,14 +138,18 @@ private:
      */
     virtual void    endImp() override ;
 
-    /// Helper for start: get lists of Primary and Secondary Polls
-    void computePrimarySecondaryPollCenters(std::vector<EvalPoint> &primaryCenters, std::vector<EvalPoint> &secondaryCenters) const;
-
-    /// Helper for start: create poll methods
-    std::vector<std::shared_ptr<PollMethodBase>> createPollMethods(const bool isPrimary, const EvalPoint& frameCenter) const;
+    /// Generate new points to evaluate
+    /**
+     Implementation called by IterationUtils::generateTrialPoints.
+     The trial points are obtained by:
+        - adding poll directions (Poll::setPollDirections) to the poll center (frame center).
+        - snaping points (and directions) to bounds.
+        - projecting points on mesh.
+     */
+    void generateTrialPointsImp() override;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_POLL__
+#endif // __NOMAD_4_2_POLL__

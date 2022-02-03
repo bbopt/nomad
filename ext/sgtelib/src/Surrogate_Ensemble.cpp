@@ -236,6 +236,23 @@ bool SGTELIB::Surrogate_Ensemble::build_private ( void ) {
     case SGTELIB::WEIGHT_SELECT:
       compute_W_by_select();
       break;
+
+    case SGTELIB::WEIGHT_SELECT2:
+      compute_W_by_select_nb(2);
+      break;
+    case SGTELIB::WEIGHT_SELECT3:
+      compute_W_by_select_nb(3);
+      break;
+    case SGTELIB::WEIGHT_SELECT4:
+      compute_W_by_select_nb(4);
+      break;
+    case SGTELIB::WEIGHT_SELECT5:
+      compute_W_by_select_nb(5);
+      break;
+    case SGTELIB::WEIGHT_SELECT6:
+      compute_W_by_select_nb(6);
+      break;
+      
     case SGTELIB::WEIGHT_WTA1:
       compute_W_by_wta1();
       break;
@@ -381,6 +398,142 @@ void SGTELIB::Surrogate_Ensemble::compute_W_by_select ( void ) {
   _param.set_weight(W);
 
 }//
+
+
+
+/*--------------------------------------*/
+/*      compute_W_by_select k bests     */
+/*--------------------------------------*/
+void SGTELIB::Surrogate_Ensemble::compute_W_by_select_nb ( const int nb_bests ) {
+
+  // Init Weight matrix
+  SGTELIB::Matrix W ("W", _kmax , _m );
+  W.fill(0.0);
+
+  int j,k;
+  int k_best = 0;
+  double metric;
+  double metric_best;
+  double metric_sum;
+  double weight_sum;
+
+  // Loop on the outputs
+  for (j=0 ; j<_m ; j++){
+    if (_trainingset.get_bbo(j)!=SGTELIB::BBO_DUM){
+
+      // Memorize all metrics and indices
+      // Find the value of the best metric
+      std::vector< double > metrics; // to record metrics
+      std::vector< bool > selected; // to record selected models
+      metric_best = SGTELIB::INF;
+      for (k=0 ; k<_kmax ; k++){
+        if (is_ready(k)){
+          metric = _surrogates.at(k)->get_metric(_param.get_metric_type(),j);
+          metrics.push_back(metric);
+          if (! isnan(metric)) {
+            metric_best = std::min(metric,metric_best);
+          }
+        }
+        else{
+          metrics.push_back(0); // just to keep tabs on indices
+        }
+        selected.push_back(false); // no model is selected as of now
+      }// end loop k
+
+      // Find the number of surrogate that have this metric value
+      k_best = 0;
+      for (k=0 ; k<_kmax ; k++){
+        if (is_ready(k)){
+          metric = _surrogates.at(k)->get_metric(_param.get_metric_type(),j);
+          // If the metric is close to metric_best
+          if ( fabs(metric-metric_best)<EPSILON ){
+            // Give weight to this model
+            W.set(k,j,1.0);
+            // Increment k_best (number of surrogates such that metric=metric_best)
+            k_best++;
+          }
+        }
+      }// end loop k
+
+      if (k_best >= nb_bests){
+        // Keep all the k_best models
+        // Normalise as in select
+        for (k=0 ; k<_kmax ; k++){
+          if (is_ready(k)){
+            if ( W.get(k,j) > EPSILON ){
+              W.set(k,j,1.0/double(k_best));
+            }
+          }
+        }// end loop k
+      }
+      else{
+        // Select nb_bests models
+        int index_best=-1;
+        metric_sum = 0;
+        bool found_a_model;
+        // Do nb_bests passes and select the best available model each time
+        for (int i=0 ; i<nb_bests ; i++){
+          metric_best = SGTELIB::INF;
+          found_a_model = false;
+          for (k=0 ; k<_kmax ; k++){
+            if ( is_ready(k) && !selected[k] ){
+              if ( isdef(metrics[k]) && (metrics[k] < metric_best) ) {
+                metric_best = metrics[k];
+                index_best = k;
+                found_a_model = true;
+              }
+            }
+          }// end for k
+          if (found_a_model){
+            metric_sum += metric_best;
+            selected[index_best] = true;
+          }
+        } // end for i
+
+        // Affect weight:
+        if (metric_sum>EPSILON){
+          for (k=0 ; k<_kmax ; k++){
+            if (selected[k]){
+              // If metric of model k is equal to metric_sum
+              // set weigth to 0.1
+              if ( fabs(metrics[k]-metric_sum)<EPSILON ){
+                W.set(k,j, 0.1);
+              }
+              else{
+                W.set(k,j, 1-metrics[k]/metric_sum);
+              }
+            }
+            else{
+              W.set(k,j,0.0);
+            }
+          }
+        }
+        else{
+          for (k=0 ; k<_kmax ; k++){
+            if (is_ready(k)) W.set(k,j,1.0);
+          }
+        }
+
+        // Normalize
+        weight_sum = 0;
+        for (k=0 ; k<_kmax ; k++){
+          weight_sum += W.get(k,j);
+        }
+        W.multiply_col( 1.0/weight_sum , j );
+
+        // Normalise as in wta1
+      }// end if (k_best >= nb_bests) else
+
+
+    }// end DUM
+  }// end loop j
+
+  _param.set_weight(W);
+
+}//
+
+
+
 
 /*--------------------------------------*/
 /*       compute_W_by_wta1              */

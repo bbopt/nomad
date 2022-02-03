@@ -64,7 +64,8 @@ void NOMAD::SgtelibSearchMethod::init()
     verifyParentNotNull();
 
     const auto parentSearch = getParentStep()->getParentOfType<NOMAD::SgtelibSearchMethod*>(false);
-    setEnabled((nullptr == parentSearch) && _runParams->getAttributeValue<bool>("SGTELIB_MODEL_SEARCH"));
+    // For some testing, it is possible that _runParams is null
+    setEnabled((nullptr == parentSearch) && (nullptr != _runParams) && _runParams->getAttributeValue<bool>("SGTELIB_MODEL_SEARCH"));
 #ifndef USE_SGTELIB
     if (isEnabled())
     {
@@ -118,7 +119,8 @@ void NOMAD::SgtelibSearchMethod::init()
 bool NOMAD::SgtelibSearchMethod::runImp()
 {
     // SgtelibModel algorithm _modelAlgo was created in init().
-    // Use generateTrialPoints(). It will call createOraclePoints().
+    // Use generateTrialPoints() to call the final implementation generateTrialPointsFinal().
+    // It will call createOraclePoints().
     generateTrialPoints();
 
     bool foundBetter = evalTrialPoints(this);
@@ -127,7 +129,7 @@ bool NOMAD::SgtelibSearchMethod::runImp()
 }
 
 
-void NOMAD::SgtelibSearchMethod::generateTrialPointsImp()
+void NOMAD::SgtelibSearchMethod::generateTrialPointsFinal()
 {
 #ifdef USE_SGTELIB
     std::string s;
@@ -135,7 +137,7 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsImp()
 
     // Get Iteration
     const NOMAD::MadsIteration* iteration = getParentOfType<NOMAD::MadsIteration*>();
-
+    
     if (!_stopReasons->checkTerminate())
     {
         // Initial displays
@@ -154,7 +156,12 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsImp()
         /*----------------*/
         /*  oracle points */
         /*----------------*/
+        
+        _modelAlgo->start();
+        
         oraclePoints = _modelAlgo->createOraclePoints();
+        
+        _modelAlgo->end();
 
         if (0 == oraclePoints.size())
         {

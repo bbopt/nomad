@@ -44,8 +44,10 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_VNSSEARCHMETHOD__
-#define __NOMAD_4_0_VNSSEARCHMETHOD__
+#ifndef __NOMAD_4_2_VNSSEARCHMETHOD__
+#define __NOMAD_4_2_VNSSEARCHMETHOD__
+
+#include <string>
 
 #include "../../Algos/Mads/SearchMethodAlgo.hpp"
 #include "../../Algos/VNSMads/VNS.hpp"
@@ -58,10 +60,20 @@ class VNSSearchMethod final: public SearchMethodAlgo
 private:
     OutputLevel _displayLevel;
 
-    DLL_ALGO_API static Point   _refFrameCenter;    ///< The reference frame center. If frame center same as reference, do not perform search
-    DLL_ALGO_API static size_t  _bbEvalByVNS;       ///< Counter of VNS evals, used to trigger VNS.
+    Point   _refFrameCenter;    ///< The reference frame center for the last call. If frame center same as reference, do not perform search.
+        
+    double _trigger; ///< Evaluation ratio (vns evals vs all evals) to trigger vns search
+
+    /**
+        The algorithm used by the search method.
+     */
+    std::unique_ptr<VNS> _vnsAlgo;
     
-    DLL_ALGO_API static size_t  _nbVNSSearchRuns;   ///< Counter of VNS runs (for display).
+    /**
+        VNS has its own stop reasons
+     */
+    std::shared_ptr<NOMAD::AlgoStopReasons<NOMAD::VNSStopType>>        _vnsStopReasons;
+
     
 /*----------------------------------------------------------------------*/
 
@@ -73,32 +85,30 @@ public:
      */
     explicit VNSSearchMethod(const Step* parentStep)
       : SearchMethodAlgo(parentStep),
-        _displayLevel(OutputLevel::LEVEL_NORMAL)
+        _displayLevel(OutputLevel::LEVEL_NORMAL),
+        _vnsAlgo(nullptr)
     {
         init();
     }
 
-    /// Reset the reference frame center and the number of evals done by VNS so far.
-    static void reset();
-    
 private:
     void init();
-
+    
     bool runImp() override;
 
     ///Generate new points (no evaluation)
-    /**
-     \copydoc SearchMethod::generateTrialPointsImp \n
-     This function is used only when a VNS MADS search with
-     the option to generate all points before evaluation. It performs a single
-     Mads iteration (search and poll) around the best incumbent points in the Barrier.
+    /*! \copydoc SearchMethodBase::generateTrialPointsFinal() /n
+     * This function is used only when a VNS MADS search with
+     * the option to generate all points before evaluation. It performs a single
+     * Mads iteration (search and poll) around the best incumbent points in the Barrier.
      */
-    void generateTrialPointsImp() override;
+    void generateTrialPointsFinal() override;
 
 
+    
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_VNSSEARCHMETHOD__
+#endif // __NOMAD_4_2_VNSSEARCHMETHOD__
 

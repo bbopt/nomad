@@ -46,14 +46,14 @@
 /*---------------------------------------------------------------------------------*/
 /**
  \file   DirectionType.hpp
- \brief  Types for Poll direction : Ortho Mads (2n, n+1 Uni, n+1 neg), LT_MADS
+ \brief  Types for Poll direction : Ortho Mads (2n, n+1 Uni, n+1 neg), LT_MADS,
  \author Christophe Tribes
  \date   May 2019
  \see    DirectionType.cpp
  */
 
-#ifndef __NOMAD_4_0_DIRECTION_TYPE__
-#define __NOMAD_4_0_DIRECTION_TYPE__
+#ifndef __NOMAD_4_2_DIRECTION_TYPE__
+#define __NOMAD_4_2_DIRECTION_TYPE__
 
 #include <list>
 #include <sstream>
@@ -65,6 +65,7 @@
 enum class DirectionType
 {
     ORTHO_2N,
+    CS,
     ORTHO_NP1_NEG,
     ORTHO_NP1_QUAD,
     NP1_UNI,
@@ -95,11 +96,11 @@ DirectionType stringToDirectionType(const std::list<std::string> & ls);
 DirectionType stringToDirectionType(const std::string & s);
 
 /// Convert an DirectionType to a string
-std::string directionTypeToString(const DirectionType& dT);
+std::string directionTypeToString(DirectionType dT);
 /// Convert a DirectionTypeList to a string
 std::string directionTypeListToString(const DirectionTypeList& dirTypeList);
 
-inline std::ostream& operator<<(std::ostream& out, const DirectionType &directionType)
+inline std::ostream& operator<<(std::ostream& out, DirectionType directionType)
 {
     out << directionTypeToString(directionType);
     return out;
@@ -114,4 +115,4 @@ inline std::ostream& operator<<(std::ostream& out, const DirectionTypeList &dirT
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_0_DIRECTION_TYPE__
+#endif  // __NOMAD_4_2_DIRECTION_TYPE__

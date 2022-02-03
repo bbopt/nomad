@@ -57,25 +57,39 @@ NOMAD::QuadModelUpdate::~QuadModelUpdate()
 {
 }
 
-
 void NOMAD::QuadModelUpdate::init()
 {
     setStepType(NOMAD::StepType::UPDATE);
     verifyParentNotNull();
-
+    
+    // Clear old model info from cache.
+    // Very important because we need to update model info with new bb evaluations info.
+    NOMAD::CacheBase::getInstance()->clearModelEval(NOMAD::getThreadNum());
+    
+    _flagUseTrialPointsToDefineBox = ( _trialPoints.size() > 0);
+    
+    _flagUseScaledModel = (_scalingDirections.size() > 0);
+    
 }
 
 
 std::string NOMAD::QuadModelUpdate::getName() const
 {
-    return getAlgoName() + NOMAD::stepTypeToString(_stepType);
+    if (_flagUseTrialPointsToDefineBox)
+    {
+        return NOMAD::stepTypeToString(_stepType);
+    }
+    else
+    {
+        return getAlgoName() + NOMAD::stepTypeToString(_stepType);
+    }
 }
 
 
 // Update the SGTELIB::TrainingSet and SGTELIB::Surrogate contained in the
 // ancestor QuadModel (modelAlgo).
 //
-// 1- Get relevant points in cache, around current frame center.
+// 1- Get relevant points in cache, around current center (can be the frame center or not).
 // 2- Add points to training set, and build new model.
 // 3- Assess if model is ready. Update its bounds.
 //
@@ -91,7 +105,7 @@ bool NOMAD::QuadModelUpdate::runImp()
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Update must have a Iteration among its ancestors.");
     }
-
+    
     auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     const auto bbot = NOMAD::QuadModelAlgo::getBBOutputType();
     size_t nbConstraints = NOMAD::getNbConstraints(bbot);
@@ -110,100 +124,162 @@ bool NOMAD::QuadModelUpdate::runImp()
 
 
     // Go through cache points
-    AddOutputInfo("Review of the cache", _displayLevel);
+    OUTPUT_INFO_START
+    AddOutputInfo("Review of the cache");
+    OUTPUT_INFO_END
     NOMAD::Double v;
 
-    _radiuses = NOMAD::ArrayOfDouble(n,INF);
     //
     // 1- Get relevant points in cache, around current frame centers.
     //
     std::vector<NOMAD::EvalPoint> evalPointList;
     if (NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
     {
-        _frameCenter = iter->getFrameCenter()->getX();
-        NOMAD::EvalPoint frameCenterEvalPoint;
-        NOMAD::CacheInterface cacheInterface(this);
-        if (0 == cacheInterface.find(*_frameCenter, frameCenterEvalPoint))
+        
+        // Select valid points that are close enough to model center.
+        // Compute distances that must not be violated for each variable (box size).
+        // For Quad Model Search: Get a Delta (frame size) if available and multiply by factor
+        // For Quad Model Sort: use min and max of the points to sort
+        if (_flagUseTrialPointsToDefineBox)
         {
-            // In the context of using the cache, ensure the frame center is in it.
-            cacheInterface.smartInsert(*iter->getFrameCenter());
+            // Case of Quad Model used for SORT
+            
+            NOMAD::ArrayOfDouble minVal(n,INF), maxVal(n,M_INF);
+            for (const auto & pt: _trialPoints)
+            {
+                for (size_t i=0; i < n ; i++)
+                {
+                    minVal[i] = min(minVal[i], (*pt.getX())[i]);
+                    maxVal[i] = max(maxVal[i], (*pt.getX())[i]);
+                }
+            }
+            _modelCenter.reset(n);
+            _boxSize.reset(n);
+            
+            NOMAD::Double boxFactor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_SORT_BOX_FACTOR");
+            
+            // Model center is obtained by averaging min and max of the trial points.
+            // Multiply box size by box factor parameter
+            for (size_t i=0; i < n ; i++)
+            {
+                _modelCenter[i] = ( minVal[i] + maxVal[i] ) / 2.0;
+                _boxSize[i] = ( maxVal[i] - minVal[i] ) * boxFactor;
+            }
         }
-
-        // Select valid points that are close enough to frame centers
-        // Compute distances that must not be violated for each variable.
-        // Get a Delta (frame size) if available.
-
-        if (nullptr != iter->getMesh())
+        else if (nullptr != iter->getMesh())
         {
-            _radiuses = iter->getMesh()->getDeltaFrameSize();
+            
+            // Case of Quad Model used for SEARCH
+            
+            if (nullptr == iter->getModelCenter() )
+            {
+                throw NOMAD::Exception(__FILE__,__LINE__,"Update must have a model center.");
+            }
+            
+            // Model center is the frame center from the QuadModelIteration
+            // Box size is the current frame size
+            _modelCenter = *iter->getModelCenter()->getX();
+            _boxSize = iter->getMesh()->getDeltaFrameSize();
 
-            // Multiply by radius parameter
-            auto radiusFactor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_RADIUS_FACTOR");
-            _radiuses *= radiusFactor;
-        }
-        OUTPUT_DEBUG_START
-        if (nullptr != iter->getMesh())
-        {
+            NOMAD::Double boxFactor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_SEARCH_BOX_FACTOR");
+            
+            // Multiply by box factor parameter
+            _boxSize *= boxFactor;
+            
+            OUTPUT_INFO_START
             s = "Mesh size: " + iter->getMesh()->getdeltaMeshSize().display();
             AddOutputInfo(s);
             s = "Frame size: " + iter->getMesh()->getDeltaFrameSize().display();
             AddOutputInfo(s);
+            OUTPUT_INFO_END
+            
         }
-        s = "Radiuses: " + _radiuses.display();
-        AddOutputInfo(s);
-        OUTPUT_DEBUG_END
+        else
+        {
+           if (nullptr == iter->getModelCenter() )
+           {
+               throw NOMAD::Exception(__FILE__,__LINE__,"Update must have a model center.");
+           }
+            _boxSize = NOMAD::ArrayOfDouble(n,NOMAD::INF);
+            _modelCenter = *iter->getModelCenter()->getX();
+            OUTPUT_INFO_START
+            AddOutputInfo("Box size set to infinity. All evaluated points in cache will be used for update.");
+            OUTPUT_INFO_END
+        }
+        
+        if ( ! _modelCenter.isComplete() || ! _boxSize.isComplete() )
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__,"Update must have complete frame center and box size.");
+        }
 
+        OUTPUT_INFO_START
+        s = "Box size: " + _boxSize.display();
+        AddOutputInfo(s);
+        s = "Model center: " + _modelCenter.display();
+        AddOutputInfo(s);
+        OUTPUT_INFO_END
+        
         // Get valid points: notably, they have a BB evaluation.
         // Use CacheInterface to ensure the points are converted to subspace
+        NOMAD::CacheInterface cacheInterface(this);
         auto crit = [&](const NOMAD::EvalPoint& evalPoint){return this->isValidForIncludeInModel(evalPoint);};
         cacheInterface.find(crit, evalPointList, true /*find in subspace*/);
+        
+        // If the number of points is less than n, enlarge the box size and repeat
+        if (evalPointList.size()<n)
+        {
+            evalPointList.clear();
+            _boxSize *= 2;
+            cacheInterface.find(crit, evalPointList, true /*find in subspace*/);
+            OUTPUT_INFO_START
+            s = "Enlarge box size to get more points: " + _boxSize.display();
+            AddOutputInfo(s);
+            OUTPUT_INFO_END
+        }
     }
 
     // Minimum and maximum number of valid points to build a model
     const size_t minNbPoints = _runParams->getAttributeValue<size_t>("SGTELIB_MIN_POINTS_FOR_MODEL");
-    // not using SGTELIB_MAX_POINTS_FOR_MODEL, see justification below.
-    //const size_t maxNbPoints = _runParams->getAttributeValue<size_t>("SGTELIB_MAX_POINTS_FOR_MODEL");
-
+    const size_t maxNbPoints = _runParams->getAttributeValue<size_t>("SGTELIB_MAX_POINTS_FOR_MODEL");
 
     size_t nbValidPoints = evalPointList.size();
 
-    /*
-    // This is not a safe way to select a subset of points.
-    // First, we should ensure that the frame center is part of that subset.
-    // Second, how to select the other points? The points closest to
-    // the frame center seem like an interesting option.
+    // Keep the maxNbPoints points closest to the frame center
     if (nbValidPoints > maxNbPoints)
     {
-
+        // Sort the eval points list based on distance to model center
+        std::sort(evalPointList.begin(), evalPointList.end(),
+                  [&](const NOMAD::EvalPoint& x, const NOMAD::EvalPoint &y)
+                        {
+                            return NOMAD::Point::dist(*x.getX(),_modelCenter) < NOMAD::Point::dist(*y.getX(),_modelCenter) ;
+                        }
+                 );
+        // Keep only the first maxNbPoints elements of list
+        evalPointList.resize(maxNbPoints);
+                 
         OUTPUT_INFO_START
         s = "QuadModel found " + std::to_string(nbValidPoints);
         s += " valid points to build model. Keep only ";
         s += std::to_string(maxNbPoints);
         AddOutputInfo(s);
         OUTPUT_INFO_END
-
-        // First, sort evalPointList by dominance
-        std::sort(evalPointList.begin(), evalPointList.end());
-        // Next, get first maxNbPoints points
-        std::vector<NOMAD::EvalPoint> evalPointListShort;
-        for (size_t i = 0; i < maxNbPoints; i++)
-        {
-            evalPointListShort.push_back(evalPointList[i]);
-        }
-        evalPointList = evalPointListShort;
         nbValidPoints = evalPointList.size();
     }
-    */
 
-    if (nbValidPoints < minNbPoints)
+    if (nbValidPoints < 2 || nbValidPoints < minNbPoints || nbValidPoints < n)
     {
-        // If no points available, it is impossible to build a model.
-        auto stopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
-        stopReason->set(NOMAD::ModelStopType::NOT_ENOUGH_POINTS );
+        
+        // If no points available, it is impossible to build a model, a stop reason is set.
+        if (!_flagUseTrialPointsToDefineBox)
+        {
+            auto stopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+            stopReason->set(NOMAD::ModelStopType::NOT_ENOUGH_POINTS );
+        }
 
         OUTPUT_INFO_START
         AddOutputInfo("QuadModel has not enough points to build model");
         OUTPUT_INFO_END
+        return false;
     }
     OUTPUT_INFO_START
     s = "Found " + std::to_string(nbValidPoints);
@@ -216,11 +292,35 @@ bool NOMAD::QuadModelUpdate::runImp()
     AddOutputInfo(s, NOMAD::OutputLevel::LEVEL_INFO);
     OUTPUT_INFO_END
 
+    OUTPUT_DEBUG_START
+    for (const auto & dir : _scalingDirections)
+    {
+        s = "Scaling direction: ( " + dir.display() + ")" ;
+        AddOutputInfo(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    }
+    OUTPUT_DEBUG_END
+    
+    
     for (auto evalPoint : evalPointList)
     {
         NOMAD::Point x = *evalPoint.getX();
-        s = "xNew = " + evalPoint.display();
-        AddOutputInfo(s, _displayLevel);
+                
+        bool success = true;
+        if (_flagUseScaledModel)
+        {
+            success = scalingByDirections(x);
+        }
+        if (! success)
+        {
+            s = "xNew = " + evalPoint.display() + " cannot be scaled";
+            AddOutputInfo(s, OutputLevel::LEVEL_DEBUG);
+            return false;
+        }
+        else
+        {
+            s = "xNew = " + x.display();
+            AddOutputInfo(s, OutputLevel::LEVEL_DEBUG);
+        }
 
         for (size_t j = 0; j < n; j++)
         {
@@ -260,15 +360,29 @@ bool NOMAD::QuadModelUpdate::runImp()
     if (add_X->get_nb_rows() > 0)
     {
         // Build the model
+        OUTPUT_INFO_START
         AddOutputInfo("Add points to training set...", _displayLevel);
+        OUTPUT_INFO_END
 
         trainingSet->partial_reset_and_add_points(*add_X, *add_Z);
 
+        OUTPUT_INFO_START
         AddOutputInfo("OK.", _displayLevel);
         AddOutputInfo("Build model from training set...", _displayLevel);
+        OUTPUT_INFO_END
 
-        model->build();
-        AddOutputInfo("OK.", _displayLevel);
+        if (model->build())
+        {
+            OUTPUT_INFO_START
+            AddOutputInfo("OK.", _displayLevel);
+            OUTPUT_INFO_END
+        }
+        else
+        {
+            OUTPUT_INFO_START
+            AddOutputInfo("Cannot build model.", _displayLevel);
+            OUTPUT_INFO_END
+        }
     }
 
     //
@@ -297,12 +411,15 @@ bool NOMAD::QuadModelUpdate::runImp()
 
 bool NOMAD::QuadModelUpdate::isValidForIncludeInModel(const NOMAD::EvalPoint& evalPoint) const
 {
-    if ( ! _frameCenter->NOMAD::ArrayOfDouble::isComplete() || ! _radiuses.isComplete() )
-    {
-        std::cerr << "QuadModelUpdate : isValidForIncludeInModel : frameCenter or radiuses not defined  " << std::endl;
-    }
 
-    return (isValidForUpdate(evalPoint) && NOMAD::ArrayOfDouble(*evalPoint.getX() - *_frameCenter).abs() <= _radiuses ) ;
+    if(! isValidForUpdate(evalPoint))
+        return false;
+    
+    NOMAD::ArrayOfDouble diff = (*evalPoint.getX() - _modelCenter);
+    
+    diff *= 2.0; // Comparison with half of the box size. But instead we multiply the diff by two.
+    
+    return diff.abs() <= _boxSize ;
 
 }
 
@@ -347,3 +464,95 @@ bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint)
     return validPoint;
 }
 
+
+bool NOMAD::QuadModelUpdate::scalingByDirections ( NOMAD::Point & x )
+{
+    
+    if (_scalingDirections.size() <= 0)
+    {
+        // For now, we expect to have scaling directions to do scaling. Maybe we could just return.
+        throw NOMAD::Exception(__FILE__,__LINE__,"Scaling directions not provided");
+        
+    }
+    if (! _modelCenter.isComplete())
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"Defining the scaling requires a model center");
+    }
+    
+    size_t n = _modelCenter.size();
+    if (_scalingDirections.size() != n)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"Number of scaling directions must be n");
+    }
+    
+
+    
+    // Scale with rotation based on direction and center (see paper Reducing the number of function evaluations in Mesh Adaptive Direct Search algorithms, Audet, Ianni, LeDigabel, Tribes, 2014
+    // T(y)=(D')^-1*(center-x)/delta_m/(1-epsilon) - epsilon*1/(1-epsilon)
+    // (D')^-1=(D')^T/normCol^2
+    NOMAD::Point temp(n,0.0);
+    std::vector<NOMAD::Direction>::const_iterator itDir=_scalingDirections.begin();
+    for ( size_t i = 0 ; i < n ; ++i )
+    {
+        temp[i]=(_modelCenter[i].todouble()-x[i].todouble())/(1.0-epsilon);
+        
+        x[i]=0.0;
+    }
+    size_t j=0;
+    for (itDir=_scalingDirections.begin(); itDir != _scalingDirections.end(); itDir++,j++)
+    {
+        double normCol2= (*itDir).squaredL2Norm().todouble();
+        if (normCol2 == 0)
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__,"Norm of a scaling direction cannot be null");
+        }
+        for ( size_t i = 0 ; i < n ; ++i )
+        {
+            x[j]+=temp[i].todouble()*(*itDir)[i].todouble()/normCol2;
+        }
+        x[j]-=epsilonDelta;
+    }
+
+    
+    return true;
+}
+
+void NOMAD::QuadModelUpdate::unscalingByDirections( NOMAD::EvalPoint & x)
+{
+    if (_scalingDirections.size() <= 0)
+    {
+        // For now, we expect to have scaling directions to do unscaling. Maybe we could just return.
+        throw NOMAD::Exception(__FILE__,__LINE__,"Scaling directions not provided");
+        
+    }
+    if (! _modelCenter.isComplete())
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"Defining the scaling requires a model center");
+    }
+    
+    size_t n = _modelCenter.size();
+    
+    
+    // UnScale with rotation see paper Reducing the number of function evaluations in Mesh Adaptive Direct Search algorithms, Audet, Ianni, LeDigabel, Tribes, 2014
+    //T^−1(x) = center + Dp ((ε−1)x−ε1)
+    NOMAD::Point temp(n,0.0);
+    for ( size_t i = 0 ; i < n ; ++i )
+    {
+        temp[i]=(x[i]*(epsilon-1.0)-epsilon);
+        x[i]=0.0;
+    }
+    std::vector<NOMAD::Direction>::const_iterator itDir;
+    int j=0;
+    for (itDir=_scalingDirections.begin(); itDir != _scalingDirections.end(); itDir++,j++)
+    {
+        for (size_t i=0 ; i< n ; i++)
+        {
+            x[i]+=temp[j]*(*itDir)[i];
+        }
+    }
+    for ( size_t i = 0 ; i < n ; ++i )
+    {
+        x[i]+=_modelCenter[i];
+    }
+
+}

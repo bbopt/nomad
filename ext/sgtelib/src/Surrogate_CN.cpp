@@ -87,6 +87,47 @@ void SGTELIB::Surrogate_CN::predict_private ( const SGTELIB::Matrix & XXs,
 }//
 
 
+// Predict only objectives (used in Surrogate Ensemble Stat)
+void SGTELIB::Surrogate_CN::predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
+                                                                           SGTELIB::Matrix * ZZsurr_around) {
+  check_ready(__FILE__,__FUNCTION__,__LINE__);
+
+  const size_t pxx = XXd.size();
+  const int nbd = XXd[0]->get_nb_rows();
+
+  // Data:
+  const SGTELIB::Matrix & Zs = get_matrix_Zs();
+  SGTELIB::Matrix Zs_obj ("Zs_obj", _p, 1);
+  // Get only objectives values is Zs
+  for (int j=0 ; j<_m ; j++){
+    if (_trainingset.get_bbo(j)==SGTELIB::BBO_OBJ){
+      Zs_obj = Zs.get_col(j);
+      break;
+    }
+  }
+
+  // Loop on all pxx points 
+  for (int i=0 ; i<pxx ; i++){
+    // XXd[i] is of dimension nbd * _n
+    int d,dmin;
+
+    // D : distance between points of XXd[i] and other points of the trainingset
+    SGTELIB::Matrix D = _trainingset.get_distances(*(XXd[i]), get_matrix_Xs(), _param.get_distance_type());
+
+    // Loop on the points of XXs
+    for (d=0 ; d<nbd ; d++){
+      // imin is the index of the closest neighbor of xx in Xs
+      dmin = D.get_min_index_row(d); 
+      // Copy the output of this point
+      ZZsurr_around->set( i,d, Zs.get(dmin,0) );
+    }
+
+  } // end for i
+
+}
+
+
+
 /*--------------------------------------*/
 /*      compute cv values               */
 /*--------------------------------------*/

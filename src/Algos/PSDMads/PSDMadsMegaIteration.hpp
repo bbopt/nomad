@@ -69,6 +69,8 @@ public:
      \param barrier         The barrier for constraints handling -- \b IN.
      \param mesh            Mesh on which other Iteration meshes are based -- \b IN.
      \param success         Success type of the previous MegaIteration. -- \b IN.
+     \param x0               Best point found yet by all subproblems, used as x0 -- \b IN.
+     \param fixedVariable     Fixed variables for subproblem opt. -- \b IN.
      */
     explicit PSDMadsMegaIteration(const Step* parentStep,
                                   const size_t k,

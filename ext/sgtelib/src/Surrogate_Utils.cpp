@@ -296,6 +296,7 @@ std::string SGTELIB::model_type_to_str ( const SGTELIB::model_t t ) {
   case SGTELIB::SVN      : return "SVN";
   case SGTELIB::LOWESS   : return "LOWESS";
   case SGTELIB::ENSEMBLE : return "ENSEMBLE";
+  case SGTELIB::ENSEMBLE_STAT : return "ENSEMBLE_STAT"; 
   default:
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined type" );
   }
@@ -321,6 +322,11 @@ std::string SGTELIB::weight_type_to_str ( const SGTELIB::weight_t cb ) {
 /*----------------------------------------------------------*/
   switch (cb){
     case SGTELIB::WEIGHT_SELECT : return "SELECT";
+    case SGTELIB::WEIGHT_SELECT2 : return "SELECT2";  
+    case SGTELIB::WEIGHT_SELECT3 : return "SELECT3";  
+    case SGTELIB::WEIGHT_SELECT4 : return "SELECT4";  
+    case SGTELIB::WEIGHT_SELECT5 : return "SELECT5";  
+    case SGTELIB::WEIGHT_SELECT6 : return "SELECT6";  
     case SGTELIB::WEIGHT_OPTIM  : return "OPTIM" ;
     case SGTELIB::WEIGHT_WTA1   : return "WTA1"  ;
     case SGTELIB::WEIGHT_WTA3   : return "WTA3"  ;
@@ -330,6 +336,47 @@ std::string SGTELIB::weight_type_to_str ( const SGTELIB::weight_t cb ) {
   }
 }//
 
+
+
+
+/*----------------------------------------------------------*/
+std::string SGTELIB::uncertainty_type_to_str ( const SGTELIB::uncertainty_t cb ) {
+/*----------------------------------------------------------*/
+  switch (cb){
+    case SGTELIB::UNCERTAINTY_SMOOTH    : return "SMOOTH"   ;
+    case SGTELIB::UNCERTAINTY_NONSMOOTH : return "NONSMOOTH";
+    default :
+      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined type" );
+  }
+}//
+
+
+/*----------------------------------------------------------*/
+std::string SGTELIB::size_param_to_str ( const double cb ) {
+/*----------------------------------------------------------*/
+  return std::to_string(cb);
+}//
+
+
+/*----------------------------------------------------------*/
+std::string SGTELIB::sigma_mult_to_str ( const double cb ) {
+/*----------------------------------------------------------*/
+  return std::to_string(cb);
+}//
+
+
+/*----------------------------------------------------------*/
+std::string SGTELIB::lambda_p_to_str ( const double cb ) {
+/*----------------------------------------------------------*/
+  return std::to_string(cb);
+}//
+
+
+/*----------------------------------------------------------*/
+std::string SGTELIB::lambda_pi_to_str ( const double cb ) {
+/*----------------------------------------------------------*/
+  return std::to_string(cb);
+}//
 
 
 /*----------------------------------------------------------*/
@@ -362,6 +409,7 @@ SGTELIB::model_t SGTELIB::str_to_model_type ( const std::string & s ) {
   if ( ss=="LWR"            ){ return SGTELIB::LOWESS; }
   if ( ss=="LOWESS"         ){ return SGTELIB::LOWESS; }
   if ( ss=="ENSEMBLE"       ){ return SGTELIB::ENSEMBLE; }
+  if ( ss=="ENSEMBLE_STAT"  ){ return SGTELIB::ENSEMBLE_STAT; }
   throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Unrecognised string \""+s+"\" ( "+ss+" )" );
 }//
 
@@ -370,12 +418,57 @@ SGTELIB::weight_t SGTELIB::str_to_weight_type ( const std::string & s ) {
 /*----------------------------------------------------------*/
   std::string ss = SGTELIB::toupper(s);
   if ( ss=="SELECT" ){ return SGTELIB::WEIGHT_SELECT;}
+  if ( ss=="SELECT2" ){ return SGTELIB::WEIGHT_SELECT2;} 
+  if ( ss=="SELECT3" ){ return SGTELIB::WEIGHT_SELECT3;} 
+  if ( ss=="SELECT4" ){ return SGTELIB::WEIGHT_SELECT4;} 
+  if ( ss=="SELECT5" ){ return SGTELIB::WEIGHT_SELECT5;} 
+  if ( ss=="SELECT6" ){ return SGTELIB::WEIGHT_SELECT6;} 
+
   if ( ss=="OPTIM"  ){ return SGTELIB::WEIGHT_OPTIM; }
   if ( ss=="WTA1"   ){ return SGTELIB::WEIGHT_WTA1;  }
   if ( ss=="WTA3"   ){ return SGTELIB::WEIGHT_WTA3;  }
   if ( ss=="EXTERN" ){ return SGTELIB::WEIGHT_EXTERN;}
   throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Unrecognised string \""+s+"\" ( "+ss+" )" );
 }//
+
+
+/*----------------------------------------------------------*/
+SGTELIB::uncertainty_t SGTELIB::str_to_uncertainty_type ( const std::string & s ) {
+/*----------------------------------------------------------*/
+  std::string ss = SGTELIB::toupper(s);
+  if ( ss=="SMOOTH"    ){ return SGTELIB::UNCERTAINTY_SMOOTH;   }
+  if ( ss=="NONSMOOTH" ){ return SGTELIB::UNCERTAINTY_NONSMOOTH;}
+  throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Unrecognised string \""+s+"\" ( "+ss+" )" );
+}//
+
+
+/*----------------------------------------------------------*/
+double SGTELIB::str_to_size_param ( const std::string & s ) {
+/*----------------------------------------------------------*/
+  return std::stod(s);
+}//
+
+
+/*----------------------------------------------------------*/
+double SGTELIB::str_to_sigma_mult ( const std::string & s ) {
+/*----------------------------------------------------------*/
+  return std::stod(s);
+}//
+
+
+/*----------------------------------------------------------*/
+double SGTELIB::str_to_lambda_p ( const std::string & s ) {
+/*----------------------------------------------------------*/
+  return std::stod(s);
+}//
+
+
+/*----------------------------------------------------------*/
+double SGTELIB::str_to_lambda_pi ( const std::string & s ) {
+/*----------------------------------------------------------*/
+  return std::stod(s);
+}//
+
 
 /*----------------------------------------------------------*/
 SGTELIB::distance_t SGTELIB::str_to_distance_type ( const std::string & s ) {
@@ -424,6 +517,25 @@ bool SGTELIB::same_sign (const double a, const double b) {
   return ( (a*b>0) || ( (fabs(a)<EPSILON) && (fabs(b)<EPSILON) ) );
 }//
 
+/*--------------------------------------*/
+/*       Sigmoid function               */
+/*--------------------------------------*/
+double SGTELIB::sigmoid (double x , double lambda ) {
+  return 1 / (1 + exp( - lambda*x));
+} 
+
+double SGTELIB::sigmoid (double f, double mu, double sigma , double lambda) {
+  if (sigma < -EPSILON){
+    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+             "Surrogate_Utils::normcdf: sigma is <0" );
+  }
+  if (sigma < EPSILON){
+    // The sigmoid is an Heavyside function
+    return (f > mu) ? 1.0 : 0.0;
+  }
+  double x = (f-mu) / sigma;
+  return sigmoid(x, lambda);
+} 
 
 /*----------------------------------------*/
 /*  Compute CUMULATIVE Density Function   */
@@ -511,6 +623,33 @@ double SGTELIB::normei ( double fh , double sh , double f_min ) {
     // Normal case
     double d = (f_min-fh)/sh;
     return (f_min-fh)*normcdf(d) + sh*normpdf(d);
+  }
+}//
+
+
+/*----------------------------------------*/
+/*  Compute EI (expected improvement)     */
+/*          (sigmoid version)             */
+/*----------------------------------------*/
+double SGTELIB::newei ( double fh , double sh , double f_min ) {
+  if (sh<-EPSILON){
+    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+             "Surrogate_Utils::normei: sigma is <0" );
+  } 
+  // Apply lower bound to sigma
+  if (APPROX_CDF){
+    sh = std::max(sh,EPSILON);
+  }
+  if (sh<EPSILON){
+    // If there is no uncertainty, then:
+    //    - fh<f_min => EI = f_min-fh
+    //    - fh>f_min => EI = 0
+    return (fh < f_min) ? (f_min-fh) : 0;
+  }
+  else{
+    // Normal case
+    double d = (f_min-fh)/sh;
+    return (f_min-fh)*sigmoid(d) + 2.506628274633719*sh*normpdf(d);
   }
 }//
 

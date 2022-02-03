@@ -577,6 +577,7 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
         out += " " + _comment;
     }
 
+    /*
     if (starSuccess)
     {
         // Add an '*' if this evaluation was a success relative to the previous
@@ -587,6 +588,7 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
             out += " *";
         }
     }
+    */
 
     return out;
 }

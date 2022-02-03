@@ -44,56 +44,44 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_ORTHO_N_PLUS_1_POLLMETHOD__
-#define __NOMAD_4_0_ORTHO_N_PLUS_1_POLLMETHOD__
 
-#include "../../Algos/Mads/PollMethodBase.hpp"
+#ifndef __NOMAD_4_2_CSINITIALIZATION__
+#define __NOMAD_4_2_CSINITIALIZATION__
+
+#include "../../Algos/Mads/MadsInitialization.hpp"
+
 #include "../../nomad_nsbegin.hpp"
 
-/// Class to perform Ortho N+1 Neg Poll.
-// Ortho MADS N+1 NEG:
-// 1- Generate 2N points
-// 2- Sort points and keep only the first N
-// 3- Evaluate N points
-// 4- If no success found, compute N+1 NEG direction and generate N+1th point
-// 5- Evaluate 1 point
-class OrthoNPlus1NegPollMethod final : public PollMethodBase
+/// Class for CS initialization (step 0)
+/**
+ The parent run function of this step validates and evaluates X0(s).
+ The initialization creates the CS Mesh
+ */
+class CSInitialization final: public MadsInitialization
 {
+
+
 public:
     /// Constructor
-    /**
-     /param parentStep      The parent of this search step -- \b IN.
+    /*
+     \param parentStep      The parent of this step -- \b IN.
+     \param barrierInitializedFromCache  Flag to initialize barrier from cache or not -- \b IN.
      */
-    explicit OrthoNPlus1NegPollMethod(const Step* parentStep,
-                               const EvalPoint& frameCenter)
-      : PollMethodBase(parentStep, frameCenter, true)   // true: hasSecondPass
+    explicit CSInitialization(const Step* parentStep, bool barrierInitializedFromCache=true)
+      : MadsInitialization(parentStep, barrierInitializedFromCache)
     {
         init();
     }
 
-private:
+    virtual ~CSInitialization() {}
 
-    /// Helper for constructor.
-    /**
-     Test if the OrthoNPlus1 Poll is enabled or not.
-     */
+    
+private:
     void init();
 
-    ///Generate N+1 polls direction on a unit N-Sphere (no evaluation)
-    /**
-     \param directions  The n+1 directions obtained for this poll -- \b OUT.
-     \param n           The dimension of the variable space  -- \b IN.
-      */
-    void generateUnitPollDirections(std::list<Direction> &directions, const size_t n) const override final;
-
-    /// Compute n+1th direction and add it to the vector of directions.
-    /**
-     \param directions  The n / n+1 directions obtained for this poll -- \b IN / OUT.
-      */
-    void generateNPlus1Direction(std::list<Direction> &directions) const override final;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_ORTHO_N_PLUS_1_POLLMETHOD__
+#endif // __NOMAD_4_2_CSINITIALIZATION__

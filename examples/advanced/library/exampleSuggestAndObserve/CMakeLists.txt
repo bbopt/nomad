@@ -7,8 +7,8 @@ target_include_directories(loopSuggestAndObserve.exe PRIVATE
     ${CMAKE_SOURCE_DIR}/src)
 
 
-set_target_properties(suggestAndObserve.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
-set_target_properties(loopSuggestAndObserve.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
+set_target_properties(suggestAndObserve.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" SUFFIX "")
+set_target_properties(loopSuggestAndObserve.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" SUFFIX "")
 
 
 if(OpenMP_CXX_FOUND)

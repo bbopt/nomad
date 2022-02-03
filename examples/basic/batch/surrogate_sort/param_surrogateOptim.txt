@@ -1,0 +1,37 @@
+# PROBLEM PARAMETERS
+####################
+
+# Number of variables
+DIMENSION 2
+
+# Black box
+BB_OUTPUT_TYPE OBJ
+
+# Surrogate
+SURROGATE_EXE ss_sgte.exe
+EVAL_SURROGATE_COST 2
+
+# Starting point
+X0 ( 5.0 5.0 )
+
+# Bounds are useful to avoid extreme values
+LOWER_BOUND * -20.0
+UPPER_BOUND *  20.0
+
+
+# ALGORITHM PARAMETERS
+######################
+# The algorithm terminates after that number surrogate evaluations
+MAX_SURROGATE_EVAL_OPTIMIZATION 100
+
+# Use surrogate executable to sort points before evaluating them with the blackbox
+EVAL_SURROGATE_OPTIMIZATION yes
+
+# Using only one thread for clarity and reproducibility
+NB_THREADS_OPENMP 1
+
+# Display parameters
+####################
+DISPLAY_ALL_EVAL true
+DISPLAY_STATS SURROGATE_EVAL ( SOL ) OBJ
+

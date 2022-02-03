@@ -65,6 +65,10 @@ void NOMAD::SgtelibModelUpdate::init()
 {
     setStepType(NOMAD::StepType::UPDATE);
     verifyParentNotNull();
+    
+    // Clear old model info from cache.
+    // Very important because we need to update model info with new bb evaluations info.
+    NOMAD::CacheBase::getInstance()->clearModelEval(NOMAD::getThreadNum());
 }
 
 
@@ -131,7 +135,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
 
     // Go through cache points
     OUTPUT_INFO_START
-    AddOutputInfo("Review of the cache", _displayLevel);
+    AddOutputInfo("Review of the cache");
     OUTPUT_INFO_END
     int k = 0;
     NOMAD::Double v;
@@ -329,7 +333,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
         AddOutputInfo("Add points...", _displayLevel);
         OUTPUT_INFO_END
 
-        trainingSet->add_points(*add_X, *add_Z);
+        trainingSet->partial_reset_and_add_points(*add_X, *add_Z);
 
         OUTPUT_INFO_START
         AddOutputInfo("OK", _displayLevel);

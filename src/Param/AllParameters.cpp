@@ -181,12 +181,30 @@ void NOMAD::AllParameters::displayHelp(const std::string &helpSubject , bool dev
     _pbParams->displayHelp(helpSubject,devHelp, ossBasic , ossAdvanced);
     _cacheParams->displayHelp(helpSubject,devHelp,ossBasic , ossAdvanced);
     _dispParams->displayHelp(helpSubject,devHelp, ossBasic , ossAdvanced);
-
+    
     if ( !devHelp )
     {
         if (ossBasic.str().empty() && ossAdvanced.str().empty())
         {
-            os << "No help found for " << helpSubject << std::endl << std::endl;
+            if (helpSubject == "_____") // Empty subject
+            {
+                os << "The nomad -h command is used to get help on a specific subject." << std::endl;
+                os << "A keyword for the subject must be provided:"<< std::endl ;
+                os << "      nomad -h keyword" << std::endl << std::endl;
+                os << "The subject can relate to BASIC or ADVANCED parameters to define " << std::endl ;
+                os << "an optimization problem, select an algorithm and its settings or" << std::endl ;
+                os << "manage the outputs." << std::endl << std::endl;
+                os << "For example, to obtain help on problem bounds: " << std::endl ;
+                os << "      nomad -h bounds OR nomad -h bound." << std::endl << std::endl;
+                os << "To obtain help on mesh stoping criterions or mesh initialization: " << std::endl ;
+                os << "      nomad -h mesh."  << std::endl << std::endl;
+                os << "Please note that the help will scan all subjects that mention " << std::endl;
+                os << "the keyword. Hence, for a given keyword, help on several " << std::endl;
+                os << "parameters is provided." <<  std::endl << std::endl;
+                os << "The keyword selection is case insensitive." << std::endl << std::endl;
+            }
+            else
+                os << "No help found for " << helpSubject << std::endl << std::endl;
         }
 
         if (!ossBasic.str().empty())
@@ -209,7 +227,14 @@ void NOMAD::AllParameters::displayHelp(const std::string &helpSubject , bool dev
     {
         if ( ossBasic.str().empty() )
         {
-            os << "No help found for " << helpSubject << std::endl << std::endl;
+            if (helpSubject == "_____") // Empty subject
+            {
+                os << "Provide a subject to obtain help: nomad -d keyword" << std::endl << std::endl;
+            }
+            else
+            {
+                os << "No help found for " << helpSubject << std::endl << std::endl;
+            }
         }
         else
         {
@@ -236,7 +261,7 @@ void NOMAD::AllParameters::checkAndComply()
     _evaluatorControlGlobalParams->checkAndComply(_pbParams);
     _runParams->checkAndComply(_evaluatorControlGlobalParams, _pbParams);
     _evaluatorControlParams->checkAndComply(_evaluatorControlGlobalParams, _runParams);
-    _evalParams->checkAndComply(_runParams, _pbParams);
+    _evalParams->checkAndComply(_runParams, _pbParams, _evaluatorControlGlobalParams, _evaluatorControlParams);
     _cacheParams->checkAndComply(_runParams);
     _dispParams->checkAndComply(_runParams, _pbParams);
 
