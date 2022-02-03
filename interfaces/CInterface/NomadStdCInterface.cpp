@@ -51,7 +51,11 @@
 #include "../Math/RNG.hpp"
 #include "../Nomad/nomad.hpp"
 #include "../Param/AllParameters.hpp"
+#include "../Type/EvalSortType.hpp"
+#include "../Type/DirectionType.hpp"
 #include "../Type/LHSearchType.hpp"
+#include "../Type/SgtelibModelFeasibilityType.hpp"
+#include "../Type/SgtelibModelFormulationType.hpp"
 
 #include <string.h>
 #include <iostream>
@@ -118,6 +122,12 @@ bool addNomadValParam(NomadProblem nomad_problem, char *keyword, int value)
     return true;
 }
 
+bool addNomadDoubleParam(NomadProblem nomad_problem, char *keyword, double value)
+{
+    nomad_problem->p->setAttributeValue(std::string(keyword), NOMAD::Double(value));
+    return true;
+}
+
 bool addNomadBoolParam(NomadProblem nomad_problem, char *keyword, bool value)
 {
     nomad_problem->p->setAttributeValue(std::string(keyword), value);
@@ -137,9 +147,32 @@ bool addNomadStringParam(NomadProblem nomad_problem, char *keyword, char *param_
         nomad_problem->p->getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE",
                                                              NOMAD::stringToBBOutputTypeList(std::string(param_str)));
     }
+    else if (std::string(keyword) == "EVAL_QUEUE_SORT")
+    {
+        nomad_problem->p->getEvalParams()->setAttributeValue("EVAL_QUEUE_SORT",
+                                                             NOMAD::stringToEvalSortType(std::string(param_str)));
+    }
+    else if (std::string(keyword) == "DIRECTION_TYPE")
+    {
+        nomad_problem->p->setAttributeValue("DIRECTION_TYPE", NOMAD::stringToDirectionType(std::string(param_str)));
+    }
+    else if (std::string(keyword) == "DIRECTION_TYPE_SECONDARY_POLL")
+    {
+        nomad_problem->p->setAttributeValue("DIRECTION_TYPE_SECONDARY_POLL", NOMAD::stringToDirectionType(std::string(param_str)));
+    }
     else if (std::string(keyword) == "LH_SEARCH")
     {
         nomad_problem->p->getRunParams()->setAttributeValue("LH_SEARCH", NOMAD::LHSearchType(std::string(param_str)));
+    }
+    else if (std::string(keyword) == "SGTELIB_MODEL_FEASIBILITY")
+    {
+        nomad_problem->p->setAttributeValue("SGTELIB_MODEL_FEASIBILITY",
+                                                            NOMAD::stringToSgtelibModelFeasibilityType(std::string(param_str)));
+    }
+    else if (std::string(keyword) == "SGTELIB_MODEL_FORMULATION")
+    {
+        nomad_problem->p->setAttributeValue("SGTELIB_MODEL_FORMULATION",
+                                                            NOMAD::stringToSgtelibModelFormulationType(std::string(param_str)));
     }
     else if (std::string(keyword) == "DISPLAY_STATS")
     {

@@ -7,7 +7,7 @@ DIMENSION 10
 
 # Black box
 BB_EXE bb1.exe
-BB_OUTPUT_TYPE OBJ PB PB EB
+BB_OUTPUT_TYPE OBJ PB PB PB
 
 # Starting point
 X0 ( 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 )
@@ -28,7 +28,7 @@ MAX_BB_EVAL 200
 # DISPLAY PARAMETERS
 ####################
 # Show more info - display degree = 3
-DISPLAY_DEGREE 3
-DISPLAY_STATS BBE SOL OBJ
+DISPLAY_DEGREE 2 
+DISPLAY_STATS BBE ( SOL ) OBJ CONS_H
 #STATS_FILE stats.txt BBE SOL OBJ
 

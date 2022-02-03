@@ -1,22 +1,8 @@
 ## Next releases
 
-### v4.1 - July 2021
+### v4.2 - February 2022 - DONE
 
-* Windows version of the nomad executable
-
-* Static surrogate may be used for sorting or for optimizing
-
-* Variable Neighborhood Search (VNS)
-
-* Poll direction ORTHO N+1 NEG added
-
-### v4.2 - October 2021
-
-These are the features we consider for 4.2:
-
-* Improvements to VNS
-
-* Poll direction ORTHO N+1 MODEL
+* Poll direction ORTHO N+1 QUAD
 
 * Use models for sorting
 
@@ -24,11 +10,14 @@ These are the features we consider for 4.2:
 
 * Python interface on Windows
 
-* Periodic variables
-
 * Coordinate search algorithm
 
+### v4.3 - July 2022
+
+These are the features we consider for 4.3:
+
+* Periodic variables
+
+* Implement control on precision for display
+
 * Functionality to interrupt the resolution to show the current best solution, and then resume
-
-
-

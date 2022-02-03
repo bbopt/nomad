@@ -26,7 +26,7 @@ install(TARGETS suggest.exe observe.exe bbr.exe
 # Add a test for this example
 if(BUILD_TESTS MATCHES ON)
 
-    message(STATUS "    Add example batch test suggest and observe") 
+    message(STATUS "    Add example batch suggest and observe") 
     # Test run in working directory AFTER install of bb executable
 
     if (WIN32)

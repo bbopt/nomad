@@ -86,6 +86,7 @@ bool NOMAD::OrderByDirection::comp(NOMAD::EvalQueuePointPtr& point1,
         || 0 == lastSuccessfulDir1->norm() || 0 == lastSuccessfulDir2->norm())
     {
         // If no valid last direction of success revert to tag ordering
+        // Note: This is different than Nomad 3.
         useTag = true;
     }
     else
@@ -188,30 +189,39 @@ bool NOMAD::BasicComp::comp(NOMAD::EvalQueuePointPtr& point1,
 
 
 /*------------------------*/
-/* Class OrderBySurrogate */
+/* Class OrderByEval */
 /*------------------------*/
-bool NOMAD::OrderBySurrogate::comp(NOMAD::EvalQueuePointPtr& point1,
+bool NOMAD::OrderByEval::comp(NOMAD::EvalQueuePointPtr& point1,
                             NOMAD::EvalQueuePointPtr& point2) const
 {
     bool useTag = false;    // If tie, or anything preventing computation, use tag.
     bool lowerPriority = false; // Sorting from less interesting to most interesting point, so return true if point1 is less interesting than point2.
 
-    auto eval1 = point1->getEval(NOMAD::EvalType::SURROGATE);
-    auto eval2 = point2->getEval(NOMAD::EvalType::SURROGATE);
+    auto eval1 = point1->getEval(_evalTypeForOrder);
+    auto eval2 = point2->getEval(_evalTypeForOrder);
     if (nullptr == eval1)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "OrderBySurrogate: SURROGATE evaluation missing for point " + point1->displayAll());
+        throw NOMAD::Exception(__FILE__, __LINE__, "OrderByEval: " + evalTypeToString(_evalTypeForOrder) + " evaluation missing for point " + point1->displayAll());
     }
     else if (nullptr == eval2)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "OrderBySurrogate: SURROGATE evaluation missing for point " + point2->displayAll());
+        throw NOMAD::Exception(__FILE__, __LINE__, "OrderBySurrogate: " + evalTypeToString(_evalTypeForOrder) + " evaluation missing for point " + point2->displayAll());
     }
-
+    // two cases to compare when both are feasible or both are infeasible. Dominance based on fs and hs.
     if (eval1->dominates(*eval2))
     {
         lowerPriority = false;
     }
     else if (eval2->dominates(*eval1))
+    {
+        lowerPriority = true;
+    }
+    // two cases where one is feasible and the other is not (no need to compare fs and hs
+    else if (eval1->isFeasible(ComputeType::STANDARD) && !eval2->isFeasible(ComputeType::STANDARD))
+    {
+        lowerPriority = false;
+    }
+    else if (! eval1->isFeasible(ComputeType::STANDARD) && eval2->isFeasible(ComputeType::STANDARD))
     {
         lowerPriority = true;
     }

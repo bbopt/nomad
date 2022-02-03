@@ -130,7 +130,7 @@ void initParams(NOMAD::AllParameters &p)
     p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ PB PB"));
 
     NOMAD::Point X0(n, 0.0);
-    X0[n-1] = -6.0; // starting point (0.0 0.0 0.0 0.0 0.0 -6.0)
+    X0[n-1] = -4.0; // starting point (0.0 0.0 0.0 0.0 0.0 -4.0)
     p.getPbParams()->setAttributeValue("X0", X0);
     p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, -6.0)); // all var. >= -6
     NOMAD::ArrayOfDouble ub(n);     // x_4 and x_5 have no bounds

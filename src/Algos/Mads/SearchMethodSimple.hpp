@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_SEARCHMETHODSIMPLE__
-#define __NOMAD_4_0_SEARCHMETHODSIMPLE__
+#ifndef __NOMAD_4_2_SEARCHMETHODSIMPLE__
+#define __NOMAD_4_2_SEARCHMETHODSIMPLE__
 
 #include "../../Algos/Mads/SearchMethodBase.hpp"
 
@@ -84,15 +84,10 @@ public:
      */
     bool runImp() override;
 
-    /**
-     - Pure virtual function.
-     - The derived class must provide the implementation that generate the trial point.
-     */
-    virtual void generateTrialPointsImp() override = 0 ;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_SEARCHMETHODSIMPLE__
+#endif // __NOMAD_4_2_SEARCHMETHODSIMPLE__
 

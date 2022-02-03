@@ -65,6 +65,9 @@ void NOMAD::PhaseOne::startImp()
     // Temporarily disable solution file (restored in endImp())
     NOMAD::OutputDirectToFile::getInstance()->disableSolutionFile();
 
+    // Default algorithm start
+    NOMAD::Algorithm::startImp();
+    
     // Setup the run parameters to stop once a point that satisfies EB constraints is obtained
     _runParams = std::make_shared<NOMAD::RunParameters>(*_runParams);
     _runParams->setAttributeValue("STOP_IF_PHASE_ONE_SOLUTION", true);
@@ -74,11 +77,6 @@ void NOMAD::PhaseOne::startImp()
     // Setup Mads
     _madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
     _mads = std::make_shared<NOMAD::Mads>(this, _madsStopReasons, _runParams, _pbParams);
-}
-
-
-void NOMAD::PhaseOne::readInformationForHotRestart()
-{
 }
 
 
@@ -97,6 +95,8 @@ bool NOMAD::PhaseOne::runImp()
     _mads->end();
 
     evc->setComputeType(previousComputeType);
+    
+    evc->resetBestIncumbent(-1); // Reset for display (-1 for all main threads)
 
     if (!hasPhaseOneSolution())
     {
@@ -110,6 +110,8 @@ bool NOMAD::PhaseOne::runImp()
 
 void NOMAD::PhaseOne::endImp()
 {
+    NOMAD::Algorithm::endImp();
+    
     // Ensure evaluation of queue will continue
     NOMAD::EvcInterface::getEvaluatorControl()->restart();
     NOMAD::EvcInterface::getEvaluatorControl()->setLastSuccessfulFeasDir(nullptr);

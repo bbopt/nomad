@@ -41,6 +41,7 @@ namespace SGTELIB {
   // Surrogate Ensemble is a friend, so that it can access to private and protected 
   // prediction methods of other derived classed of Surrogate_Ensemble
   friend class Surrogate_Ensemble;
+  friend class Surrogate_Ensemble_Stat; 
 
   protected:
 
@@ -119,6 +120,10 @@ namespace SGTELIB {
  
     virtual void predict_private ( const SGTELIB::Matrix & XXs,
                                          SGTELIB::Matrix * ZZs) = 0; 
+    
+    // Predict only objectives (used in Surrogate Ensemble Stat)
+    virtual void predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
+                                             SGTELIB::Matrix * ZZsurr_around            ) = 0;
 
     // Display private 
     virtual void display_private ( std::ostream & out ) const = 0;

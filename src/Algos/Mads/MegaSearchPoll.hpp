@@ -44,10 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_MEGASEARCHPOLL__
-#define __NOMAD_4_0_MEGASEARCHPOLL__
+#ifndef __NOMAD_4_2_MEGASEARCHPOLL__
+#define __NOMAD_4_2_MEGASEARCHPOLL__
 
 #include "../../Algos/IterationUtils.hpp"
+#include "../../Algos/Mads/Search.hpp"
+#include "../../Algos/Mads/Poll.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -59,14 +61,20 @@
  */
 class MegaSearchPoll: public Step, public IterationUtils
 {
+private:
+    std::unique_ptr<Poll> _poll;
+    std::unique_ptr<Search> _search;
+    
 public:
     /// Constructor
     /**
      \param parentStep The parent of this step
      */
-    explicit MegaSearchPoll(const Step* parentStep )
-      : Step( parentStep ),
-        IterationUtils( parentStep )
+    explicit MegaSearchPoll(const Step* parentStep)
+      : Step(parentStep),
+        IterationUtils(parentStep),
+        _poll(nullptr),
+        _search(nullptr)
     {
         init();
     }
@@ -78,6 +86,8 @@ public:
 
 private:
 
+    
+    
     /// Generate the trial poins for the search and poll steps.
     /**
      Call MegaSearchPoll::generateTrialPoints.
@@ -97,12 +107,13 @@ private:
     /// Generate new points to evaluate
     /**
      The trial points are produced using poll and search. The duplicates are removed and they are merged all together.
+     Called by IterationUtils::generateTrialPoints().
      */
-    void generateTrialPoints() override ;
+    void generateTrialPointsImp() override ;
 
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_MEGASEARCHPOLL__
+#endif // __NOMAD_4_2_MEGASEARCHPOLL__

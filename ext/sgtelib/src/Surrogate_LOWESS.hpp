@@ -47,6 +47,7 @@ namespace SGTELIB {
     double *  _W; // Weights of each observation
     double ** _A; // Matrix of the linear system (and preconditionner)
     double ** _HWZ; // Second term
+    double ** _HWZ_obj; // Second term (objective only)
     double * _u; // First line of inverse of A
     double * _old_u; // Last value of gamma
     double * _old_x; // Last value of x
@@ -60,6 +61,12 @@ namespace SGTELIB {
 
     void predict_private ( const SGTELIB::Matrix & XXs,
                                  SGTELIB::Matrix * ZZs) override;
+
+    // Predict only objectives (used in Surrogate Ensemble Stat)
+    virtual void predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
+                                                               SGTELIB::Matrix * ZZsurr_around ) override;
+
+    void predict_private_objective_single ( SGTELIB::Matrix XXs , int i_exclude = -1, double * z = 0);
 
     void delete_matrices (void);
 

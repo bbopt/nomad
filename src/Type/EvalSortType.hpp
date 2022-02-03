@@ -52,8 +52,8 @@
  \see    EvalSortType.cpp
  */
 
-#ifndef __NOMAD_4_0_EVAL_SORT_TYPE__
-#define __NOMAD_4_0_EVAL_SORT_TYPE__
+#ifndef __NOMAD_4_2_EVAL_SORT_TYPE__
+#define __NOMAD_4_2_EVAL_SORT_TYPE__
 
 #include <sstream>
 
@@ -65,7 +65,8 @@ enum class EvalSortType
     DIR_LAST_SUCCESS,   ///< Sort using direction of last successful point
     LEXICOGRAPHICAL,    ///< Sort using lexicographical order
     RANDOM,             ///< Mix points randomly instead of sorting them
-    SURROGATE           ///< Sort using static surrogate evaluator
+    SURROGATE,          ///< Sort using static surrogate evaluator
+    QUADRATIC_MODEL     ///< Sort using dynamic quadratic model
 };
 
 
@@ -77,7 +78,7 @@ EvalSortType stringToEvalSortType(const std::string &s);
 std::string evalSortTypeToString(const EvalSortType& evalSortType);
 
 
-inline std::ostream& operator<<(std::ostream& out, const EvalSortType &evalSortType)
+inline std::ostream& operator<<(std::ostream& out, EvalSortType evalSortType)
 {
     out << evalSortTypeToString(evalSortType);
     return out;
@@ -85,4 +86,4 @@ inline std::ostream& operator<<(std::ostream& out, const EvalSortType &evalSortT
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_0_EVAL_SORT_TYPE__
+#endif  // __NOMAD_4_2_EVAL_SORT_TYPE__

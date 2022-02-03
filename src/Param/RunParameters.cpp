@@ -71,6 +71,9 @@ void NOMAD::RunParameters::init()
         #include "../Attribute/runAttributesDefinitionLH.hpp"
         registerAttributes( _definition );
 
+        #include "../Attribute/runAttributesDefinitionCS.hpp"
+        registerAttributes( _definition );
+
         #include "../Attribute/runAttributesDefinitionNM.hpp"
         registerAttributes( _definition );
 
@@ -131,7 +134,6 @@ void NOMAD::RunParameters::checkAndComply(
     }
 
     // check the non-interpreted parameters:
-    //const std::shared_ptr<NOMAD::ParameterEntry> pe = getNonInterpretedParamEntry();
     std::vector<std::shared_ptr<NOMAD::ParameterEntry>> allNonInterp = getAllNonInterpretedParamEntries();
     if (allNonInterp.size() > 0)
     {
@@ -282,20 +284,24 @@ void NOMAD::RunParameters::checkAndComply(
         dirTypes.push_back(NOMAD::DirectionType::SINGLE);
         setAttributeValue("DIRECTION_TYPE_SECONDARY_POLL", dirTypes);
     }
+    
+    // Test for CS
+    bool useAlgoCS = getAttributeValueProtected<bool>("CS_OPTIMIZATION", false) ;
+    if (primaryDirTypes.size() > 1 || !useAlgoCS)
+    {
+        if (std::count(primaryDirTypes.begin(), primaryDirTypes.end(),NOMAD::DirectionType::CS) >= 1)
+        {
+            err = "CS Direction_Type can only be used by CS Optimization. It cannot be combined with any other direction type";
+            throw NOMAD::Exception(__FILE__,__LINE__, err);
+        }
+    }
+    
+    
+    
 
     // Precisions on MEGA_SEARCH_POLL
     if (getAttributeValueProtected<bool>("MEGA_SEARCH_POLL", false))
     {
-        // MEGA_SEARCH_POLL does not support ORTHO_NP1_NEG and ORTHO_NP1_QUAD.
-        for (auto dirType : primaryDirTypes)
-        {
-            if (   NOMAD::DirectionType::ORTHO_NP1_NEG == dirType
-                || NOMAD::DirectionType::ORTHO_NP1_QUAD == dirType)
-            {
-                err = "Parameters check: Direction type " + NOMAD::directionTypeToString(dirType) + " is not supported with MEGA_SEARCH_POLL";
-                throw NOMAD::Exception(__FILE__,__LINE__, err);
-            }
-        }
         for (auto dirType : getAttributeValueProtected<NOMAD::DirectionTypeList>("DIRECTION_TYPE_SECONDARY_POLL", false))
         {
             if (   NOMAD::DirectionType::ORTHO_NP1_NEG == dirType
@@ -306,6 +312,30 @@ void NOMAD::RunParameters::checkAndComply(
             }
         }
     }
+    
+    // Coordinate Search algorithm
+    if (useAlgoCS)
+    {
+        if (primaryDirTypes.size() > 1)
+        {
+            err = "CS Optimization can only use one direction type CS. It cannot be combined with any other direction type";
+            throw NOMAD::Exception(__FILE__,__LINE__, err);
+        }
+        
+        // Get the default direction type
+        auto defaultPrimaryDirTypes = getAttributeValueProtected<NOMAD::DirectionTypeList>("DIRECTION_TYPE", false, true);
+        if (primaryDirTypes[0] != NOMAD::DirectionType::CS)
+        {
+            if ( primaryDirTypes[0] != defaultPrimaryDirTypes[0] )
+            {
+                // Warn the user if he has changed the direction type. Otherwise, change silently to CS.
+                std::cerr << "Warning: parameter DIRECTION_TYPE reset to CS because CS_OPTIMIZATION is enabled" <<  std::endl;
+            }
+            setAttributeValue("DIRECTION_TYPE", std::vector<NOMAD::DirectionType> {NOMAD::DirectionType::CS});
+        }
+    }
+    
+    
 
     // PSD-Mads and SSD-Mads parameters
     bool useAlgoPSDMads = getAttributeValueProtected<bool>("PSD_MADS_OPTIMIZATION", false);
@@ -373,7 +403,7 @@ void NOMAD::RunParameters::checkAndComply(
     bool useAlgoNM = getAttributeValueProtected<bool>("NM_OPTIMIZATION", false);
     bool useAlgoQuadOpt = getAttributeValueProtected<bool>("QUAD_MODEL_OPTIMIZATION", false);
     bool useAlgoSgtelibModel = getAttributeValueProtected<bool>("SGTELIB_MODEL_EVAL", false);
-    int totalAlgoSet = (int)useAlgoLH + (int)useAlgoNM + (int)useAlgoQuadOpt
+    int totalAlgoSet = (int)useAlgoLH + (int)useAlgoCS +(int)useAlgoNM + (int)useAlgoQuadOpt
                        + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoSSDMads;
 
     if (totalAlgoSet >= 2)
@@ -383,6 +413,10 @@ void NOMAD::RunParameters::checkAndComply(
         if (useAlgoLH)
         {
             err += " LH_EVAL";
+        }
+        if (useAlgoCS)
+        {
+            err += " CS_OPTIMIZATION";
         }
         if (useAlgoNM)
         {

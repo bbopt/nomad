@@ -52,8 +52,8 @@
  \see    EvalQueuePoint.cpp
  */
 
-#ifndef __NOMAD_4_0_EVALQUEUEPOINT__
-#define __NOMAD_4_0_EVALQUEUEPOINT__
+#ifndef __NOMAD_4_2_EVALQUEUEPOINT__
+#define __NOMAD_4_2_EVALQUEUEPOINT__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -77,8 +77,6 @@ private:
     ArrayOfDouble   _meshSize; ///< Remenbers size of mesh that created point.
     ArrayOfDouble   _frameSize; ///< Remenbers size of frame that created point.
 
-    // Support Mesh Index (issue (feature) #381)
-
     size_t          _k; ///< The number of the iteration that generated this point. For sorting purposes.
 
 public:
@@ -88,7 +86,7 @@ public:
      \param evalPoint       The point to eval and its evaluation. It is what goes in the cache.-- \b IN.
      \param evalType        The type of evaluation (BB, MODEL,...).-- \b IN.
      */
-    explicit EvalQueuePoint(const EvalPoint& evalPoint, const EvalType& evalType)
+    explicit EvalQueuePoint(const EvalPoint& evalPoint, EvalType evalType)
       : EvalPoint(evalPoint),
         _evalType(evalType),
         _success(SuccessType::NOT_EVALUATED),
@@ -124,6 +122,6 @@ typedef std::vector<EvalQueuePointPtr> BlockForEval;
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_EVALQUEUEPOINT__
+#endif // __NOMAD_4_2_EVALQUEUEPOINT__
 
 

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_SEARCHMETHODBASE__
-#define __NOMAD_4_0_SEARCHMETHODBASE__
+#ifndef __NOMAD_4_2_SEARCHMETHODBASE__
+#define __NOMAD_4_2_SEARCHMETHODBASE__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/Step.hpp"
@@ -85,9 +85,10 @@ public:
     bool hasComment() const { return (!_comment.empty()); }
     void setComment(const std::string& comment) { _comment = comment; }
 
+    
     /**
      - Pure virtual function.
-     - The implementation of startImp function in the derived class generates trial points  (in SearchMethodSimple) OR does nothing (in SearchMethodAlgo).
+     - The implementation of startImp function in the derived class generates trial points and do some reset (in SearchMethodSimple) OR just reset (stats and success) (in SearchMethodAlgo).
      */
     virtual void startImp() override =0 ;
 
@@ -103,27 +104,38 @@ public:
     */
     void endImp() override ;
 
-    /// Intermediate function (not yet implementation that can generate the trial points)
+    /// The name of the search method
     /**
-     - Display before and after generation comments.
-     - Launches the implementation of the search method to generate the trial points (::generateTrialPointsImp).
-     - Snap the points to bounds and mesh.
+        For search methods the name is completed with the number of calls
      */
-    void generateTrialPoints() override;
-
+    std::string getName() const override
+    {
+        return NOMAD::stepTypeToString(_stepType) + " #" + std::to_string(_trialPointStats.getNbCalls());
+    }
+    
+protected:
+    void init();
+    
+private:
+    
+    /**
+     Base implementation to generate trial points. The trial points are snapped to bounds and projected on mesh.
+     Implementation for final derived search methods is in generateTrialPointsFinal.
+     */
+    void generateTrialPointsImp() override ;
+    
     /**
      - Pure virtual function.
      - See derived classes (SearchMethodSimple, SearchMethodAlgo) for implementations.
      */
-    virtual void generateTrialPointsImp() = 0 ;
-
-
-protected:
-    void init();
-
+    virtual void generateTrialPointsFinal() = 0;
+    
+    /// Implementation to increment the nb of calls counter
+    virtual void incrementCounters() override { _trialPointStats.incrementNbCalls() ;}
+    
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_SEARCHMETHODBASE__
+#endif // __NOMAD_4_2_SEARCHMETHODBASE__
 

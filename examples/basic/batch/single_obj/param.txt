@@ -1,5 +1,6 @@
 DIMENSION      5              # number of variables
 
+
 BB_EXE         bb.exe         # 'bb.exe' is a program that
 BB_OUTPUT_TYPE OBJ PB EB     # takes in argument the name of
                               # a text file containing 5
@@ -33,6 +34,7 @@ MAX_BB_EVAL    100            # the algorithm terminates when
                               # account and if TMP_DIR is on a
                               # local disk)
 
-
-DISPLAY_STATS BBE ( SOL ) OBJ # Display the number of evaluation (BBE),
-							  # the current solution ( SOL ) and the objective
+DISPLAY_DEGREE 2 
+DISPLAY_STATS BBE ( SOL ) OBJ CONS_H  # Display the number of evaluation (BBE),
+		     		  # the current solution ( SOL ) and the objective
+DISPLAY_INFEASIBLE yes        # Allow to display infeasible solution during PhaseOne

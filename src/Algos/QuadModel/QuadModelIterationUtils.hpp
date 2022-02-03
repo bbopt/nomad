@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_0_QUADMODELITERATIONUTILS__
-#define __NOMAD_4_0_QUADMODELITERATIONUTILS__
+#ifndef __NOMAD_4_2_QUADMODELITERATIONUTILS__
+#define __NOMAD_4_2_QUADMODELITERATIONUTILS__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../../ext/sgtelib/src/Surrogate.hpp"
@@ -63,6 +63,10 @@ private:
     void init();
 
 protected:
+    
+    EvalPointPtr _bestXFeas;
+    EvalPointPtr _bestXInf;
+    
     std::shared_ptr<SGTELIB::TrainingSet>   _trainingSet;
     std::shared_ptr<SGTELIB::Surrogate>     _model;
 
@@ -76,16 +80,21 @@ public:
     explicit QuadModelIterationUtils(const Step* parentStep)
       : IterationUtils(parentStep),
         _trainingSet(nullptr),
+        _bestXFeas(nullptr),
+        _bestXInf(nullptr),
         _model(nullptr)
     {
         init();
     }
 
     void displayModelInfo() const;
+    
+    EvalPointPtr getBestFeas() const { return _bestXFeas; }
+    EvalPointPtr getBestInf() const { return _bestXInf; }
 
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_QUADMODELITERATIONUTILS__
+#endif // __NOMAD_4_2_QUADMODELITERATIONUTILS__

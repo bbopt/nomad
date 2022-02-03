@@ -50,8 +50,8 @@
   \author Viviane Rochon Montplaisir
   \date   June 2018
 */
-#ifndef __NOMAD_4_0_MAINSTEP__
-#define __NOMAD_4_0_MAINSTEP__
+#ifndef __NOMAD_4_2_MAINSTEP__
+#define __NOMAD_4_2_MAINSTEP__
 
 #include "../Algos/Algorithm.hpp"
 #include "../Eval/Evaluator.hpp"
@@ -74,7 +74,7 @@ class MainStep: public Step
 protected:
     std::string                         _paramFileName;  ///< Name of the file containing the parameters.
     std::shared_ptr<AllParameters>      _allParams;
-    std::shared_ptr<Evaluator>          _evaluator; ///< Used in library running mode (not batch mode)
+    EvaluatorPtr          _evaluator; ///< Used in library running mode (not batch mode)
     std::vector<std::shared_ptr<Algorithm>>  _algos;
 
 #ifdef TIME_STATS
@@ -117,7 +117,7 @@ public:
     /**
      The evaluator may be shared between main threads.
      */
-    void setEvaluator(std::shared_ptr<Evaluator> ev) { _evaluator = ev;}
+    void setEvaluator(EvaluatorPtr ev) { _evaluator = ev;}
 
 
     /*---------*/
@@ -154,11 +154,15 @@ public:
     /// Helper to reset the cache
     static void resetCache();
 
+    /// Helper for PyNomad to reset the evalutor control and its barrier
+    static void resetEvaluatorControl();
+    
+    ///For suggest and observe PyNomad interface
     NOMAD::ArrayOfPoint suggest() override;
-
+    
     /**
       Observe method updates cache, computes new mesh size and new hMax.
-      */
+    */
     void observe(const std::vector<NOMAD::EvalPoint>& evalPointList) override;
     /**
       Observe version to be called by the Python interface.
@@ -224,4 +228,4 @@ private:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_0_MAINSTEP__
+#endif // __NOMAD_4_2_MAINSTEP__

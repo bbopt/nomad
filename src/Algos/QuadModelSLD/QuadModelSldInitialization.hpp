@@ -44,35 +44,47 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#include <cmath>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <string>
-using namespace std;
+#ifndef __NOMAD_4_2_QUAD_MODEL_SLD_INITIALIZATION__
+#define __NOMAD_4_2_QUAD_MODEL_SLD_INITIALIZATION__
 
-int main ( int argc , char ** argv ) {
+#include "../../Algos/Initialization.hpp"
+#include "../../Algos/IterationUtils.hpp"
 
-    double f = 1e20, c1 = 1e20 , c2 = 1e20;
-    double x[5];
+#include "../../nomad_nsbegin.hpp"
 
-    if ( argc >= 2 ) {
-        c1 = 0.0 , c2 = 0.0;
-        ifstream in ( argv[1] );
-        for ( int i = 0 ; i < 5 ; i++ ) {
-            in >> x[i];
-            c1 += pow ( x[i]-1 , 2 );
-            c2 += pow ( x[i]+1 , 2 );
-        }
-        f = x[4];
-        if ( in.fail() )
-            f = c1 = c2 = 1e20;
-        else {
-            c1 = c1 - 25;
-            c2 = 25 - c2;
-        }
-        in.close();
+
+class QuadModelSldInitialization: public Initialization, public IterationUtils
+{
+private:
+    std::shared_ptr<AlgoStopReasons<ModelStopType>> _qmStopReason;
+public:
+    /// Constructor
+    explicit QuadModelSldInitialization(const Step* parentStep)
+      : Initialization(parentStep),
+        IterationUtils(parentStep)
+    {
+        init();
     }
-    cout << f << " " << c1 << " " << c2 << endl;
-    return 0;
-}
+
+    virtual ~QuadModelSldInitialization();
+
+
+private:
+    void init();
+
+    virtual void startImp() override;
+    virtual bool runImp() override;
+    void endImp() override {};
+
+    /// Insert X0s for evaluation or (exclusive) check cache
+    void generateTrialPointsImp() override;
+
+    /// Eval X0s, using blackbox.
+    bool eval_x0s();
+
+};
+
+#include "../../nomad_nsend.hpp"
+
+#endif // __NOMAD_4_2_QUAD_MODEL_SLD_INITIALIZATION__
+

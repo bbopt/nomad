@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_SEARCHMETHODALGO__
-#define __NOMAD_4_0_SEARCHMETHODALGO__
+#ifndef __NOMAD_4_2_SEARCHMETHODALGO__
+#define __NOMAD_4_2_SEARCHMETHODALGO__
 
 #include "../../Algos/Mads/SearchMethodBase.hpp"
 
@@ -65,32 +65,31 @@ public:
     : SearchMethodBase( parentStep ) {}
 
     /**
-         An empty (disabled) startImp is required for a search method that launches an iterative algorithm during the run.
-
+         A startImp is required for a search method that launches an iterative algorithm during the run.
      */
-    void startImp() override {}
+    void startImp() override
+    {
+        // Reset the current counters. The total counters are not reset (done only once when constructor is called.
+        _trialPointStats.resetCurrentStats();
+        
+        // Reset success
+        _success = SuccessType::NOT_EVALUATED;
+    }
 
     /**
      - Pure virtual function.
      - This function must be implemented for algo based search methods that can perform several iterations.
      - The derived runImp implementation of this function launches the sequence of start, run and end on an algorithm.
      - When running the algorithm, evaluations must be performed.
-     - Calling this function implies that ::generateTrialPointsImp is not called.
-     - This function is used only when the option to generate all points before evaluation is disabled, that is the ::generateTrialPointsImp is not called.
+     - Calling this function implies that ::generateTrialPointsFinal is not called.
+     - This function is used only when the option to generate all points before evaluation is disabled, that is the ::generateTrialPointsFinal is not called.
      */
     virtual bool runImp() override = 0 ;
 
-    /**
-     - Pure virtual function.
-     - This function must be implemented for algo based search methods that can perform a single iteration for generating points.
-     - This function is used only when the option to generate all points before evaluation is enabled, that is the runImp is not called.
-     - Evaluations are automatically performed when running SearchMethodSimple::runImp.
-     */
-    virtual void generateTrialPointsImp() override = 0 ;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_SEARCHMETHODALGO__
+#endif // __NOMAD_4_2_SEARCHMETHODALGO__
 

@@ -226,16 +226,6 @@ NOMAD::Point NOMAD::Point::makeSubSpacePointFromFixed(const NOMAD::Point &fixedV
     size_t fullSpaceDim = fixedVariable.size();
     size_t subSpaceDim = fullSpaceDim - nbFixed;
 
-    if (size() != fullSpaceDim)
-    {
-        std::string s = "Error converting point " + this->NOMAD::Point::display();
-        s += " (size " + std::to_string(this->size()) + ")";
-        s += " to subspace defined by fixed variable " + fixedVariable.NOMAD::Point::display();
-        s += " (size " + std::to_string(fixedVariable.size()) + ")";
-        s += ": they should have the same size.";
-        throw NOMAD::Exception(__FILE__,__LINE__,s);
-    }
-
     NOMAD::Point subSpacePoint(subSpaceDim);
 
     if (0 == nbFixed)
@@ -246,6 +236,16 @@ NOMAD::Point NOMAD::Point::makeSubSpacePointFromFixed(const NOMAD::Point &fixedV
     }
     else
     {
+        if (size() != fullSpaceDim)
+        {
+            std::string s = "Error converting point " + this->NOMAD::Point::display();
+            s += " (size " + std::to_string(this->size()) + ")";
+            s += " to subspace defined by fixed variable " + fixedVariable.NOMAD::Point::display();
+            s += " (size " + std::to_string(fixedVariable.size()) + ")";
+            s += ": they should have the same size.";
+            throw NOMAD::Exception(__FILE__,__LINE__,s);
+        }
+        
         size_t iSub = 0;
         for (size_t i = 0; i < fullSpaceDim && i < _n; i++)
         {
@@ -287,6 +287,39 @@ bool NOMAD::Point::hasFixed(const NOMAD::Point &fixedVariable) const
     }
 
     return compatible;
+}
+
+
+// Unused for the moment. Maybe used by projectToMesh
+/*------------------------------------*/
+/*  projection to mesh of size delta  */
+/*      (*this = ref + k * delta)     */
+/*------------------------------------*/
+void NOMAD::Point::projectToMesh ( const NOMAD::Point & ref   ,
+                                    const NOMAD::ArrayOfDouble & delta ,
+                                    const NOMAD::ArrayOfDouble & lb    ,
+                                    const NOMAD::ArrayOfDouble & ub      )
+{
+    if ( delta.size() != _n               ||
+        ref.size()   != _n               ||
+        ( lb.size() > 0 && lb.size() != _n ) ||
+        ( ub.size() > 0 && ub.size() != _n )    )
+        throw NOMAD::Exception(__FILE__,__LINE__,"Projection to mesh: invalid Point sizes." );
+
+    size_t k;
+
+    if ( lb.size() == 0 && ub.size() == 0 )
+        for ( k = 0 ; k < _n ; ++k )
+            (*this)[k].truncateToGranMultiple( ref[k] , delta[k] );
+    else if ( lb.size() == 0 )
+        for ( k = 0 ; k < _n ; ++k )
+            (*this)[k].truncateToGranMultiple( ref[k] , delta[k] , NOMAD::Double() , ub[k] );
+    else if ( ub.size() == 0 )
+        for ( k = 0 ; k < _n ; ++k  )
+            (*this)[k].truncateToGranMultiple( ref[k] , delta[k] , lb[k] );
+    else
+        for ( k = 0 ; k < _n ; ++k  )
+            (*this)[k].truncateToGranMultiple( ref[k] , delta[k] , lb[k] , ub[k] );
 }
 
 

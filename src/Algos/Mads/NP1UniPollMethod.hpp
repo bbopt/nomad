@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_NP1UNIPOLLMETHOD__
-#define __NOMAD_4_0_NP1UNIPOLLMETHOD__
+#ifndef __NOMAD_4_2_NP1UNIPOLLMETHOD__
+#define __NOMAD_4_2_NP1UNIPOLLMETHOD__
 
 #include "../../Algos/Mads/PollMethodBase.hpp"
 #include "../../nomad_nsbegin.hpp"
@@ -59,7 +59,7 @@ public:
      /param parentStep      The parent of this search step -- \b IN.
      */
     explicit NP1UniPollMethod(const Step* parentStep,
-                              const EvalPoint& frameCenter)
+                              const EvalPointPtr frameCenter)
       : PollMethodBase(parentStep, frameCenter)
     {
         init();
@@ -84,4 +84,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_ORTHONP1UNIPOLLMETHOD__
+#endif // __NOMAD_4_2_ORTHONP1UNIPOLLMETHOD__

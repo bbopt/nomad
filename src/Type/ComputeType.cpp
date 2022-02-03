@@ -90,7 +90,7 @@ NOMAD::ComputeType NOMAD::stringToComputeType(const std::string &sConst)
 // Convert a NOMAD::ComputeType to a string.
 // NOMAD::ComputeType::UNDEFINED returns "UNDEFINED".
 // An unrecognized compute type returns an exception.
-std::string NOMAD::computeTypeToString(const NOMAD::ComputeType& computeType)
+std::string NOMAD::computeTypeToString(NOMAD::ComputeType computeType)
 {
     std::string s;
 

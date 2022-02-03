@@ -68,9 +68,6 @@ void NOMAD::QuadModelIterationUtils::displayModelInfo() const
     OUTPUT_DEBUG_START
     NOMAD::OutputInfo dbgInfo("Quad Model iteration utils", "", NOMAD::OutputLevel::LEVEL_DEBUG );
 
-//    dbgInfo.addMsg("The quad model from sgtelib: ");
-//        dbgInfo.addMsg( _model->display()) ;
-
     NOMAD::OutputQueue::Add(std::move(dbgInfo));
     NOMAD::OutputQueue::Flush();
     OUTPUT_DEBUG_END

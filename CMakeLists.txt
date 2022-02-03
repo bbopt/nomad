@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 # name of the project
-project (Nomad VERSION 4.1.0)
+project (Nomad VERSION 4.2.0)
 
 # use standard compilers parameters for c++14
 SET(CMAKE_CXX_STANDARD 14 )
@@ -94,6 +94,14 @@ if(TIME_STATS MATCHES ON)
    add_compile_definitions(TIME_STATS)
 endif()
 
+#
+# Choose to disable display degree tests for faster code
+#
+option(REDUCED_DISPLAY_TEST "Option to disable display tests for faster run" OFF)
+if(REDUCED_DISPLAY_TEST MATCHES ON)
+   message(CHECK_START "  Disable display test for build")
+   add_compile_definitions(REDUCED_DISPLAY_TEST)
+endif()
 
 #
 # Test openMP package
@@ -125,24 +133,81 @@ else()
    message(STATUS "  Examples NOT built")
 endif()
 
-#
-# Choose to build the interface
-#
-option(BUILD_INTERFACES "Option to build interfaces to Nomad" OFF)
-if(BUILD_INTERFACES MATCHES ON)
-   message(CHECK_START "  Configuring build for interfaces")
 
-   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces)
+#
+# Choose to build the C interface
+#
+option(BUILD_INTERFACE_C "Option to build C interfaces to Nomad" OFF)
+if(BUILD_INTERFACE_C MATCHES ON)
+   message(CHECK_START "  Configuring build for C interface")
+   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/CInterface)
    message(CHECK_PASS " done")
 else()
-   message(STATUS "  Interfaces to Nomad NOT built")
+   message(STATUS "  C interface to Nomad NOT built")
+endif()
+
+#
+# Choose to build the Python interface
+#
+option(BUILD_INTERFACE_PYTHON "Option to build Python interface to Nomad" OFF)
+if(BUILD_INTERFACE_PYTHON MATCHES ON)
+   if(OpenMP_FOUND)
+       message(STATUS "  Warning: Cannot build Python interface with OpenMP enabled")
+   else()
+       message(CHECK_START "  Configuring build for Python interface")
+       add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/PyNomad)
+       message(CHECK_PASS " done")
+   endif()
+else()
+   message(STATUS "  Python interface to Nomad NOT built")
+endif()
+
+#
+# Choose to build the Matlab interface
+#
+option(BUILD_INTERFACE_MATLAB "Option to build Matlab interface to Nomad" OFF)
+if(BUILD_INTERFACE_MATLAB MATCHES ON)
+   if(OpenMP_FOUND)
+       message(STATUS "  Warning: Cannot build Matlab interface with OpenMP enabled")
+   else()
+       find_package(Matlab QUIET REQUIRED COMPONENTS MEX_COMPILER)
+       if(MATLAB_FOUND)
+          add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/Matlab_MEX)
+       else()
+          message(STATUS "  Matlab no found... interface not built")
+       endif()
+   endif()
+else()
+   message(STATUS "  Matlab interface to Nomad NOT built")
+endif()
+
+#
+# Choose to build the Java interface
+#
+option(BUILD_INTERFACE_JAVA "Option to build Java Swig interface to Nomad" OFF)
+if(BUILD_INTERFACE_JAVA MATCHES ON)
+   find_package(Java REQUIRED COMPONENTS Runtime Development)
+   find_package(SWIG 4.0 REQUIRED COMPONENTS java)
+   find_package(JNI REQUIRED)
+   if(SWIG_FOUND)
+       if(NOT SWIG_java_FOUND)
+           message(WARNING "   SWIG java bindings cannot be generated")
+       else()
+           add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/jNomad)
+       endif()
+   else()
+       message(STATUS "  Swig not found... java interface not built")
+   endif()
+
+else()
+   message(STATUS "  Java Swig interface to Nomad NOT built")
 endif()
 
 
 #
 # Custom options final message
 #
-list(POP_BACK CMAKE_MESSAGE_INDENT)
+list(REMOVE_ITEM CMAKE_MESSAGE_INDENT "  ")
 message(CHECK_PASS " done")
 
 #

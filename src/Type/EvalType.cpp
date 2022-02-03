@@ -91,7 +91,7 @@ NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst)
 // NOMAD::EvalType::UNDEFINED returns "UNDEFINED".
 // NOMAD::EvalType::LAST throws an exception.
 // An unrecognized eval type throws an exception.
-std::string NOMAD::evalTypeToString(const NOMAD::EvalType& evalType)
+std::string NOMAD::evalTypeToString(NOMAD::EvalType evalType)
 {
     std::string s;
 

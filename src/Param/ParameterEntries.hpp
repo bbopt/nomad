@@ -51,8 +51,8 @@
  \date   2010-04-05
  \see    ParameterEntries.cpp
  */
-#ifndef __NOMAD_4_0_PARAMETERENTRIES__
-#define __NOMAD_4_0_PARAMETERENTRIES__
+#ifndef __NOMAD_4_2_PARAMETERENTRIES__
+#define __NOMAD_4_2_PARAMETERENTRIES__
 
 #include <set>
 #include <vector>
@@ -138,4 +138,4 @@ inline std::ostream& operator<< (std::ostream &out,
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_PARAMETERENTRIES__
+#endif // __NOMAD_4_2_PARAMETERENTRIES__

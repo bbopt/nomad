@@ -3,7 +3,7 @@ add_executable(restart.exe restart.cpp )
 target_include_directories(restart.exe PRIVATE
     ${CMAKE_SOURCE_DIR}/src)
 
-set_target_properties(restart.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
+set_target_properties(restart.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" SUFFIX "")
 
 
 if(OpenMP_CXX_FOUND)

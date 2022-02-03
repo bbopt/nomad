@@ -56,12 +56,6 @@
 // Reference: File VNS_Search.cpp in NOMAD 3.9.1
 // Author: Christophe Tribes
 
-
-// Initialize static members (this is not very good, see Issue #604)
-size_t NOMAD::VNSSearchMethod::_bbEvalByVNS=0;
-size_t NOMAD::VNSSearchMethod::_nbVNSSearchRuns=0;
-NOMAD::Point NOMAD::VNSSearchMethod::_refFrameCenter= NOMAD::Point();
-
 void NOMAD::VNSSearchMethod::init()
 {
     setStepType(NOMAD::StepType::SEARCH_METHOD_VNS_MADS);
@@ -70,42 +64,69 @@ void NOMAD::VNSSearchMethod::init()
     const auto parentSearch = getParentStep()->getParentOfType<NOMAD::VNSSearchMethod*>(false);
     
     // Do not perform if EVAL_SURROGATE_OPTIMIZATION is true
-    bool bBEval = ( NOMAD::EvcInterface::getEvaluatorControl()->getEvalType() == EvalType::BB ) ;
-    
-    setEnabled((nullptr == parentSearch) && _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH") && bBEval);
+    if (nullptr != NOMAD::EvcInterface::getEvaluatorControl())
+    {
+        bool bBEval = ( NOMAD::EvcInterface::getEvaluatorControl()->getEvalType() == EvalType::BB ) ;
+        
+        // For some testing, it is possible that _runParams is null
+        setEnabled((nullptr == parentSearch) && nullptr != _runParams && _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH") && bBEval);
+    }
+    else
+    {
+        setEnabled(false);
+    }
+    if (isEnabled())
+    {
+        _trigger = _runParams->getAttributeValue<NOMAD::Double>("VNS_MADS_SEARCH_TRIGGER").todouble();
+        
+        // At first the reference frame center is not defined.
+        // We obtain the frame center from the EvaluatorControl. If
+        _refFrameCenter = NOMAD::Point();
+        
+        // Create the VNS algorithm with its own stop reason
+        _vnsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::VNSStopType>>();
+        _vnsAlgo = std::make_unique<NOMAD::VNS>(this,
+                                                _vnsStopReasons ,
+                                                _runParams,
+                                                _pbParams);
+    }
 
-}
-
-void NOMAD::VNSSearchMethod::reset()
-{
-    _refFrameCenter = NOMAD::Point();
-    _bbEvalByVNS = 0;
-    _nbVNSSearchRuns = 0;
 }
 
 bool NOMAD::VNSSearchMethod::runImp()
 {
     bool foundBetter = false;
     
-    _nbVNSSearchRuns++;
-    
     if (isEnabled())
     {
+        auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+        
         // check the VNS_trigger criterion:
         size_t bbEval = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
-        auto trigger = _runParams->getAttributeValue<NOMAD::Double>("VNS_MADS_SEARCH_TRIGGER");
-        if (bbEval == 0 || double(_bbEvalByVNS)/bbEval < trigger.todouble())
+        if (bbEval == 0 || double(_trialPointStats.getNbEvalsDone(evalType))/bbEval < _trigger)
         {
             
-            std::shared_ptr<EvalPoint> frameCenter = nullptr;
-            
-            NOMAD::EvcInterface::getEvaluatorControl()->incrementVNSMadsNeighParameter();
-            
-            // Frame center for VNS Mads
+            EvalPointPtr frameCenter = nullptr;
+               
+            // Barrier of parent Mads not the same as the VNS Mads suboptimization
             std::shared_ptr<NOMAD::Barrier> barrier = nullptr;
             
-            // Get barrier from upper MadsMegaIteration, if available.
+            // Check that mesh from upper MadsMegaIteration is finer than initial
             auto madsMegaIter = getParentOfType<NOMAD::MadsMegaIteration*>(false);
+            auto frameSize = madsMegaIter->getMesh()->getDeltaFrameSize();
+            auto initialFrameSize = madsMegaIter->getMesh()->getInitialFrameSize();
+            
+            // Continue only if current frame size is small than initial frame size
+            if ( initialFrameSize < frameSize )
+            {
+                OUTPUT_INFO_START
+                AddOutputInfo("Current frame size larger than initial one. Stop VNS Mads Search.");
+                OUTPUT_INFO_END
+                setSuccessType(NOMAD::SuccessType::UNSUCCESSFUL);
+                return foundBetter;
+            }
+            
+            // Get barrier from upper MadsMegaIteration, if available.
             if (nullptr != madsMegaIter)
             {
                 barrier = madsMegaIter->getBarrier();
@@ -119,7 +140,7 @@ bool NOMAD::VNSSearchMethod::runImp()
             auto bestXFeas = barrier->getFirstXFeas();
             auto bestXInf  = barrier->getFirstXInf();
             
-            auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+            // Get the frame center for VNS sub optimization
             auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
             if (nullptr != bestXFeas
                 && bestXFeas->getF(evalType, computeType).isDefined()
@@ -139,30 +160,19 @@ bool NOMAD::VNSSearchMethod::runImp()
             
             if ( nullptr != frameCenter )
             {
-                if ( !_refFrameCenter.isDefined() || *(frameCenter->getX()) != _refFrameCenter)
-                {
-                    NOMAD::EvcInterface::getEvaluatorControl()->resetVNSMadsNeighParameter();
-                    _refFrameCenter = *(frameCenter->getX());
-                }
-                NOMAD::EvcInterface::getEvaluatorControl()->incrementVNSMadsNeighParameter();
-                                
-                // VNS is an algorithm with its own stop reasons.
-                auto vnsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::VNSStopType>>();
                 
-                // Create the NM algorithm with its own stop reason
-                NOMAD::VNS vnsAlgo (this,
-                                    vnsStopReasons ,
-                                    _runParams,
-                                    _pbParams,
-                                    frameCenter);
-                vnsAlgo.setEndDisplay(false);
-                
-                vnsAlgo.start();
-                vnsAlgo.run();
-                vnsAlgo.end();
+                _vnsAlgo->setEndDisplay(false);
+
+                // VNS algo needs a frame center used as initial point for sub-optimization
+                _vnsAlgo->setFrameCenter(frameCenter);
+
+                // VNS conduct sub-optimization
+                _vnsAlgo->start();
+                _vnsAlgo->run();
+                _vnsAlgo->end();
                 
                 // Get the success type and update Mads barrier with VNS Mads barrier
-                auto vnsBarrier = vnsAlgo.getBarrier();
+                auto vnsBarrier = _vnsAlgo->getBarrier();
                 
                 if (nullptr != vnsBarrier)
                 {
@@ -185,24 +195,26 @@ bool NOMAD::VNSSearchMethod::runImp()
                                                                     _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
                     
                 }
-                
-                size_t bbEvalAfterVNS = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
-                
-                _bbEvalByVNS += bbEvalAfterVNS - bbEval;
-                
             }
-            
+        }
+        else
+        {
+            OUTPUT_INFO_START
+            AddOutputInfo("VNS trigger criterion not met. Stop VNS Mads Search.");
+            OUTPUT_INFO_END
         }
     }
     return foundBetter;
 }
 
 
-void NOMAD::VNSSearchMethod::generateTrialPointsImp()
+void NOMAD::VNSSearchMethod::generateTrialPointsFinal()
 {
     std::string s;
     NOMAD::EvalPointSet trialPoints;
 
+    throw NOMAD::Exception(__FILE__,__LINE__,"VNS Mads generateTrialPointsFinal() not yet implemented.");
+    
     // The trial points of one iteration of VNS are generated (not evaluated).
     // The trial points are obtained by shuffle + mads poll
 

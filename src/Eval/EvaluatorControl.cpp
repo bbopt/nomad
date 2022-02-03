@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../Algos/QuadModel/QuadModelIteration.hpp"
 #include "../Cache/CacheBase.hpp"
 #include "../Eval/ComparePriority.hpp"
 #include "../Eval/EvaluatorControl.hpp"
@@ -133,8 +134,8 @@ std::shared_ptr<NOMAD::Evaluator> NOMAD::EvaluatorControl::setEvaluator(std::sha
 
 void NOMAD::EvaluatorControl::addMainThread(const int threadNum,
                                             const std::shared_ptr<NOMAD::StopReason<NOMAD::EvalMainThreadStopType>>,
-                                            const std::shared_ptr<NOMAD::Evaluator>& evaluator,
-                                            const std::shared_ptr<NOMAD::EvaluatorControlParameters>& evalContParams)
+                                            const NOMAD::EvaluatorPtr evaluator,
+                                            const std::shared_ptr<NOMAD::EvaluatorControlParameters> evalContParams)
 {
     if (!isMainThread(threadNum))
     {
@@ -276,19 +277,24 @@ const std::shared_ptr<NOMAD::Barrier>& NOMAD::EvaluatorControl::getBarrier(const
 }
 
 
-void NOMAD::EvaluatorControl::setBestIncumbent(const int mainThreadNum, const std::shared_ptr<NOMAD::EvalPoint>& bestIncumbent)
+void NOMAD::EvaluatorControl::setBestIncumbent(const int mainThreadNum, const NOMAD::EvalPointPtr bestIncumbent)
 {
     getMainThreadInfo(mainThreadNum).setBestIncumbent(bestIncumbent);
 }
 
+void NOMAD::EvaluatorControl::resetBestIncumbent(const int mainThreadNum)
+{
+    getMainThreadInfo(mainThreadNum).resetBestIncumbent();
+}
 
-const std::shared_ptr<NOMAD::EvalPoint>& NOMAD::EvaluatorControl::getBestIncumbent(const int mainThreadNum) const
+
+const NOMAD::EvalPointPtr NOMAD::EvaluatorControl::getBestIncumbent(const int mainThreadNum) const
 {
     return getMainThreadInfo(mainThreadNum).getBestIncumbent();
 }
 
 
-void NOMAD::EvaluatorControl::setComputeType(const NOMAD::ComputeType& computeType)
+void NOMAD::EvaluatorControl::setComputeType(NOMAD::ComputeType computeType)
 {
     getMainThreadInfo().setComputeType(computeType);
 }
@@ -511,7 +517,7 @@ void NOMAD::EvaluatorControl::unlockQueue(bool doSort, const size_t keepN, const
     // In non-opportunistic context, it is useless to sort.
     if (doSort && getOpportunisticEval(threadNum) && getQueueSize(-1) > 1)
     {
-        sort();
+        sort(_evalPointQueue,false);
     }
 
     if (0 == keepN)
@@ -593,7 +599,7 @@ bool NOMAD::EvaluatorControl::canErase(const NOMAD::EvalQueuePointPtr &evalQueue
 
 
 // Add an EvalPoint to the Queue
-bool NOMAD::EvaluatorControl::addToQueue(const NOMAD::EvalQueuePointPtr &evalQueuePoint)
+bool NOMAD::EvaluatorControl::addToQueue(const NOMAD::EvalQueuePointPtr evalQueuePoint)
 {
     bool pointInserted = false;
 
@@ -609,7 +615,7 @@ bool NOMAD::EvaluatorControl::addToQueue(const NOMAD::EvalQueuePointPtr &evalQue
     // I.e. Ensure the queue is already locked.
     if (omp_test_lock(&_evalQueueLock))
     {
-        std::string err = "Error: tring to add an element to a queue that was not locked.";
+        std::string err = "Error: trying to add an element to a queue that was not locked.";
         // Unlock queue before throwing exception.
         // If we are in this section, it means that the queue was locked by
         // the call to omp_test_lock().
@@ -782,14 +788,14 @@ bool NOMAD::EvaluatorControl::popBlock(NOMAD::BlockForEval &block)
     return success;
 }
 
-
-void NOMAD::EvaluatorControl::sort()
+void NOMAD::EvaluatorControl::sort(std::vector<EvalQueuePointPtr> & evalPointsPtrToSort, bool forceRandom)
 {
-    // This method is private, called by unlockQueue.
-    // Queue is currently locked.
-    // This method is only called from a main thread.
-    const int mainThreadNum = NOMAD::getThreadNum();
 
+    if (evalPointsPtrToSort.size() == 0)
+    {
+        return;
+    }
+    
     std::shared_ptr<NOMAD::ComparePriorityMethod> compMethod = nullptr;
     auto evalSortType =  _evalContGlobalParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT");
     // If there is an user-defined sort method, use it.
@@ -797,27 +803,48 @@ void NOMAD::EvaluatorControl::sort()
     {
         compMethod = _userCompMethod;
     }
-    else if (NOMAD::EvalSortType::RANDOM == evalSortType)
+    else if (NOMAD::EvalSortType::RANDOM == evalSortType || forceRandom)
     {
-        compMethod = std::make_shared<NOMAD::RandomComp>(getQueueSize(mainThreadNum));
+        compMethod = std::make_shared<NOMAD::RandomComp>(evalPointsPtrToSort.size());
     }
     else if (NOMAD::EvalSortType::DIR_LAST_SUCCESS == evalSortType)
     {
-        // Default: Use last successful directions.
-        // Fill vector for argument to OrderByDirection.
-        std::vector<std::shared_ptr<NOMAD::Direction>> lastSuccessfulFeasDirs(_mainThreads.size());
-        std::vector<std::shared_ptr<NOMAD::Direction>> lastSuccessfulInfDirs(_mainThreads.size());
-        for (auto mainth : _mainThreads)
-        {
-            lastSuccessfulFeasDirs[mainth] = getMainThreadInfo(mainth).getLastSuccessfulFeasDir();
-            lastSuccessfulInfDirs[mainth] = getMainThreadInfo(mainth).getLastSuccessfulInfDir();
-        }
-        compMethod = std::make_shared<NOMAD::OrderByDirection>(lastSuccessfulFeasDirs, lastSuccessfulInfDirs);
+        compMethod = makeCompMethodOrderByDirection();
     }
     else if (NOMAD::EvalSortType::SURROGATE == evalSortType)
     {
         // Consider all SURROGATE evaluations are already done.
-        compMethod = std::make_shared<NOMAD::OrderBySurrogate>();
+        compMethod = std::make_shared<NOMAD::OrderByEval>(NOMAD::EvalType::SURROGATE);
+    }
+    // For now, consider only quadratic_model, can be generalized
+    else if (NOMAD::EvalSortType::QUADRATIC_MODEL == evalSortType)
+    {
+        // Check if QUADRATIC_MODEL evaluations are available.
+        
+        // Check model evals are valid
+        bool valid_model_eval = true;
+        for (auto eqp : evalPointsPtrToSort)
+        {
+            if (nullptr == eqp->getEval(EvalType::MODEL) )
+            {
+                OUTPUT_DEBUG_START
+                std::string s = " Model eval missing for: " + eqp->displayAll();
+                NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+                OUTPUT_DEBUG_END
+                valid_model_eval = false;
+                break;
+            }
+        }
+        
+        if (valid_model_eval)
+        {
+            compMethod = std::make_shared<NOMAD::OrderByEval>(NOMAD::EvalType::MODEL);
+        }
+        else
+        {
+            // Revert to Order by direction
+            compMethod = makeCompMethodOrderByDirection();
+        }
     }
     else if (NOMAD::EvalSortType::LEXICOGRAPHICAL == evalSortType)
     {
@@ -837,12 +864,12 @@ void NOMAD::EvaluatorControl::sort()
         }
         s = "Sort using " + sortMethodName;
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-        s = "Evaluation queue before sort:";
+        s = "Evaluation points before sort:";
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
         // Display in reverse order: as the _evalPointQueue is popped,
         // the first point being evaluated is at the end of the queue.
         // We want to show the first point to be evaluated first.
-        for (auto it = _evalPointQueue.rbegin(); it != _evalPointQueue.rend(); ++it)
+        for (auto it = evalPointsPtrToSort.rbegin(); it != evalPointsPtrToSort.rend(); ++it)
         {
             auto evalPoint = (*it);
             s = "\t" + evalPoint->display();
@@ -850,12 +877,12 @@ void NOMAD::EvaluatorControl::sort()
         }
         OUTPUT_DEBUG_END
 
-        std::sort(_evalPointQueue.begin(), _evalPointQueue.end(), comp);
+        std::sort(evalPointsPtrToSort.begin(), evalPointsPtrToSort.end(), comp);
 
         OUTPUT_DEBUG_START
-        s = "Evaluation queue after sort:";
+        s = "Evaluation points after sort:";
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-        for (auto it = _evalPointQueue.rbegin(); it != _evalPointQueue.rend(); ++it)
+        for (auto it = evalPointsPtrToSort.rbegin(); it != evalPointsPtrToSort.rend(); ++it)
         {
             auto evalPoint = (*it);
             s = "\t" + evalPoint->display();
@@ -864,6 +891,49 @@ void NOMAD::EvaluatorControl::sort()
         OUTPUT_DEBUG_END
     }
 }
+
+
+
+bool NOMAD::EvaluatorControl::checkModelEvals() const
+{
+    // Return false if a single eval queue point has no model evaluation information
+    bool valid_eval = true;
+    
+    for (auto eqp : _evalPointQueue)
+    {
+        if (nullptr == eqp->getEval(EvalType::MODEL) )
+        {
+            OUTPUT_DEBUG_START
+            std::string s = "    Main thread: " + std::to_string(eqp->getThreadAlgo()) + " Model eval missing for: " + eqp->displayAll();
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
+            valid_eval = false;
+            break;
+        }
+    }
+    
+    return valid_eval;
+}
+
+
+std::shared_ptr<NOMAD::OrderByDirection> NOMAD::EvaluatorControl::makeCompMethodOrderByDirection() const
+{
+    // Default: Use last successful directions.
+    // Fill vector for argument to OrderByDirection.
+    // This sort is also use if a Quadratic Model cannot be constructed.
+    // If no valid lass success direction, revert to tag ordering
+    std::vector<std::shared_ptr<NOMAD::Direction>> lastSuccessfulFeasDirs(_mainThreads.size());
+    std::vector<std::shared_ptr<NOMAD::Direction>> lastSuccessfulInfDirs(_mainThreads.size());
+    for (auto mainth : _mainThreads)
+    {
+        lastSuccessfulFeasDirs[mainth] = getMainThreadInfo(mainth).getLastSuccessfulFeasDir();
+        lastSuccessfulInfDirs[mainth] = getMainThreadInfo(mainth).getLastSuccessfulInfDir();
+    }
+    
+    return std::make_shared<NOMAD::OrderByDirection>(lastSuccessfulFeasDirs, lastSuccessfulInfDirs);
+    
+}
+
 
 
 size_t NOMAD::EvaluatorControl::clearQueue(const int mainThreadNum, const bool showDebug)
@@ -1331,7 +1401,7 @@ bool NOMAD::EvaluatorControl::reachedMaxEval() const
     {
         if (ret)
         {
-            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_NORMAL);
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_INFO);
         }
     }
 
@@ -1589,6 +1659,7 @@ void NOMAD::EvaluatorControl::computeSuccess(NOMAD::EvalQueuePointPtr evalQueueP
                                              const bool evalOk,
                                              const NOMAD::Double& hMax)
 {
+    
     NOMAD::SuccessType success = NOMAD::SuccessType::UNSUCCESSFUL;
     bool newBestIncumbent = false;
     NOMAD::EvalType evalType = evalQueuePoint->getEvalType();
@@ -1650,13 +1721,16 @@ void NOMAD::EvaluatorControl::computeSuccess(NOMAD::EvalQueuePointPtr evalQueueP
     OUTPUT_DEBUG_START
     std::string s = NOMAD::evalTypeToString(evalType) + " Evaluation done for ";
     s += evalQueuePoint->displayAll();
-    s += ". Success found: " + NOMAD::enumStr(evalQueuePoint->getSuccess());
+    if(nullptr != getBarrier(mainThreadNum))
+    {
+        s += ". Success found: " + NOMAD::enumStr(evalQueuePoint->getSuccess());
+    }
     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
     OUTPUT_DEBUG_END
 }
 
 
-bool NOMAD::EvaluatorControl::evalTypeAsBB(const NOMAD::EvalType& evalType, const int mainThreadNum) const
+bool NOMAD::EvaluatorControl::evalTypeAsBB(NOMAD::EvalType evalType, const int mainThreadNum) const
 {
     return (NOMAD::EvalType::BB == evalType
             || (   NOMAD::EvalType::SURROGATE == evalType
@@ -1664,7 +1738,7 @@ bool NOMAD::EvaluatorControl::evalTypeAsBB(const NOMAD::EvalType& evalType, cons
 }
 
 
-bool NOMAD::EvaluatorControl::evalTypeCounts(const NOMAD::EvalType& evalType) const
+bool NOMAD::EvaluatorControl::evalTypeCounts(NOMAD::EvalType evalType) const
 {
     return (NOMAD::EvalType::BB == evalType || NOMAD::EvalType::SURROGATE == evalType);
 }
@@ -1855,7 +1929,7 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
             }
             // All bb evals count for _nbEvalSentToEvaluator.
             _nbEvalSentToEvaluator++;
-            evalPoint->incNumberEval();
+            evalPoint->incNumberBBEval();
             NOMAD::OutputQueue::getInstance()->setTotalEval(_nbEvalSentToEvaluator);
         }
         else if (NOMAD::EvalType::SURROGATE == evalType)

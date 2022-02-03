@@ -52,8 +52,8 @@
  \see    Direction.cpp
  */
 
-#ifndef __NOMAD_4_0_DIRECTION__
-#define __NOMAD_4_0_DIRECTION__
+#ifndef __NOMAD_4_2_DIRECTION__
+#define __NOMAD_4_2_DIRECTION__
 
 #include <numeric>
 #include "../Math/ArrayOfDouble.hpp"
@@ -197,4 +197,4 @@ std::ostream& operator<< (std::ostream& out, const Direction& d);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_0_DIRECTION__
+#endif // __NOMAD_4_2_DIRECTION__

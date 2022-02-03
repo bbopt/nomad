@@ -53,7 +53,7 @@
 
 void NOMAD::QuadModelMegaIteration::init()
 {
-    setStepType(NOMAD::StepType::MEGA_ITERATION);
+
 }
 
 
@@ -71,8 +71,6 @@ void NOMAD::QuadModelMegaIteration::startImp()
     // Use xFeas or xInf if XFeas is not available.
     // Use a single iteration object with several start, run, end for the various iterations of the algorithm.
 
-    // See issue (feature) #384
-
     if ( ! _stopReasons->checkTerminate() )
     {
         // MegaIteration's barrier member is already in sub dimension.
@@ -81,21 +79,13 @@ void NOMAD::QuadModelMegaIteration::startImp()
 
         if (nullptr != bestXFeas)
         {
-            auto sqmIteration = std::make_shared<NOMAD::QuadModelIteration>(
-                                            this,
-                                            bestXFeas,
-                                            0,/*counter at 0 for start */
-                                            nullptr);
+            auto sqmIteration = std::make_shared<NOMAD::QuadModelIteration>(this, bestXFeas);
             _iterList.push_back(sqmIteration);
 
         }
         else if (nullptr != bestXInf)
         {
-            auto sqmIteration = std::make_shared<NOMAD::QuadModelIteration>(
-                                            this,
-                                            bestXInf,
-                                            0,  /*counter at 0 for start */
-                                            nullptr);
+            auto sqmIteration = std::make_shared<NOMAD::QuadModelIteration>(this, bestXInf);
             _iterList.push_back(sqmIteration);
         }
 
@@ -114,7 +104,7 @@ void NOMAD::QuadModelMegaIteration::startImp()
 
             AddOutputDebug( _iterList[i]->getName());
             // Ensure we get frame center from a QuadModelIteration.
-            auto frameCenter = sqmIteration->getFrameCenter();
+            auto frameCenter = sqmIteration->getModelCenter();
             AddOutputDebug("Frame center: " + frameCenter->display());
             auto previousFrameCenter = frameCenter->getPointFrom();
             AddOutputDebug("Previous frame center: " + (previousFrameCenter ? previousFrameCenter->display() : "NULL"));

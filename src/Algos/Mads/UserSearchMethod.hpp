@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_USERSEARCHMETHOD__
-#define __NOMAD_4_0_USERSEARCHMETHOD__
+#ifndef __NOMAD_4_2_USERSEARCHMETHOD__
+#define __NOMAD_4_2_USERSEARCHMETHOD__
 
 #include "../../Algos/Mads/SearchMethodSimple.hpp"
 
@@ -71,10 +71,10 @@ private:
     void init();
 
     /**
-     \copydoc SearchMethodSimple::generateTrialPointsImp \n
+     \copydoc SearchMethodSimple::generateTrialPointsFinal \n
      A user can implement this function.
      */
-    virtual void generateTrialPointsImp() override
+    virtual void generateTrialPointsFinal() override
     {
         throw Exception(__FILE__, __LINE__, "User search not implemented.");
     };
@@ -83,5 +83,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_USERSEARCHMETHOD__
+#endif // __NOMAD_4_2_USERSEARCHMETHOD__
 

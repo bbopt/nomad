@@ -49,6 +49,7 @@
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Algorithm.hpp"
+#include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Eval/Evaluator.hpp"
 #include "../../Math/RandomPickup.hpp"
 
@@ -62,6 +63,8 @@ private:
     std::shared_ptr<MeshBase>   _psdMainMesh;           ///< Base Mesh to create subproblem Mads. Updated only by pollster.
     std::shared_ptr<Barrier>    _barrier;               ///< Barrier with the latest successful values. Updated by all Mads.
 
+    std::shared_ptr<MadsMegaIteration> _masterMegaIteration;
+    
     std::atomic<bool>           _lastMadsSuccessful;    ///< Used as indication to enlarge or refine the mesh. Updated by all Mads.
 
     DLL_ALGO_API static omp_lock_t  _psdMadsLock;       ///< Lock access to the previous elements when they are updated.

@@ -51,14 +51,12 @@
  * \date   November 2017
  */
 
-#ifndef __NOMAD_4_0_GMESH__
-#define __NOMAD_4_0_GMESH__
+#ifndef __NOMAD_4_2_GMESH__
+#define __NOMAD_4_2_GMESH__
 
 #include "../../Algos/MeshBase.hpp"
 
 #include "../../nomad_nsbegin.hpp"
-
-// Support Mesh Index (issue (feature) #381)
 
 /// Class for the granular mesh of Mads.
 /**
@@ -74,9 +72,12 @@ class GMesh: public MeshBase
     ArrayOfDouble        _initFrameSizeExp;  ///< The initial frame size exponent.
     ArrayOfDouble        _frameSizeMant;  ///< The current frame size mantissa.
     ArrayOfDouble        _frameSizeExp;  ///< The current frame size exponent.
+    
+    ArrayOfDouble        _finestMeshSize; ///< The current finest mesh size
+    
     const ArrayOfDouble  _granularity;  ///< The fixed granularity of the mesh
     bool                 _enforceSanityChecks;   ///< Should we enforce sanity checks?
-
+    
 public:
 
     /// Constructor
@@ -88,6 +89,7 @@ public:
         _initFrameSizeExp(ArrayOfDouble()),
         _frameSizeMant(ArrayOfDouble()),
         _frameSizeExp(ArrayOfDouble()),
+        _finestMeshSize(ArrayOfDouble()),
         _granularity(parameters->getAttributeValue<ArrayOfDouble>("GRANULARITY")),
         _enforceSanityChecks(true)
     {
@@ -148,6 +150,7 @@ public:
 
     ArrayOfDouble getdeltaMeshSize() const override;
     Double getdeltaMeshSize(const size_t i) const override;
+    
 private:
 
     /// Helper function
@@ -241,4 +244,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_GMESH__
+#endif // __NOMAD_4_2_GMESH__

@@ -153,14 +153,9 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     bbOutputTypes.push_back(NOMAD::BBOutputType::OBJ);    // f
     bbOutputTypes.push_back(NOMAD::BBOutputType::EB);     // c2000
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
-
+    allParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_2N);
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
-    allParams->setAttributeValue("DISPLAY_ALL_EVAL", false);
     allParams->setAttributeValue("DISPLAY_UNSUCCESSFUL", false);
-
-    allParams->getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
-    allParams->getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
-
 
     // Parameters validation
     allParams->checkAndComply();

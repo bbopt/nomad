@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_NMINITIALIZESIMPLEX__
-#define __NOMAD_4_0_NMINITIALIZESIMPLEX__
+#ifndef __NOMAD_4_2_NMINITIALIZESIMPLEX__
+#define __NOMAD_4_2_NMINITIALIZESIMPLEX__
 
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
 
@@ -71,7 +71,7 @@ public:
     virtual ~NMInitializeSimplex() {}
 
     /// No new points are generated
-    void generateTrialPoints() override {}
+    void generateTrialPointsImp() override {}
 
 private:
     /// Helper for constructor
@@ -102,4 +102,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_NMINITIALIZESIMPLEX__
+#endif // __NOMAD_4_2_NMINITIALIZESIMPLEX__

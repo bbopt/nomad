@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_POLLMETHODBASE__
-#define __NOMAD_4_0_POLLMETHODBASE__
+#ifndef __NOMAD_4_2_POLLMETHODBASE__
+#define __NOMAD_4_2_POLLMETHODBASE__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/Step.hpp"
@@ -60,8 +60,11 @@
 class PollMethodBase: public Step, public IterationUtils
 {
 private:
-    const EvalPoint _frameCenter;
-    const bool _hasNPlus1;      // Second pass for Ortho N+1 methods
+    const EvalPointPtr _frameCenter;
+    const bool _hasSecondPass;      ///< A Second pass is available after first pass fail to improve. Ortho N+1 methods require second pass.
+
+protected:
+    bool _scaleAndProjectSecondPassDirectionOnMesh ; ///< Flag to scale and project on mesh
 
 public:
     /// Constructor
@@ -69,25 +72,31 @@ public:
      /param parentStep      The parent of this poll step -- \b IN.
      */
     explicit PollMethodBase(const Step* parentStep,
-                            const EvalPoint& frameCenter,
-                            const bool hasNPlus1 = false)
+                            const EvalPointPtr frameCenter,
+                            const bool hasSecondPass = false)
       : Step(parentStep),
         IterationUtils(parentStep),
         _frameCenter(frameCenter),
-        _hasNPlus1(hasNPlus1)
+        _hasSecondPass(hasSecondPass),
+        _scaleAndProjectSecondPassDirectionOnMesh(true)
     {
         init();
     }
 
-    bool hasNPlus1() const { return _hasNPlus1; }
+    bool hasSecondPass() const { return _hasSecondPass; }
     
     
     /// Implementation of startImp.
     /**
-      Do nothing.
+      Reset trial point stats.
       Point generation is done in Poll.
      */
-    void startImp() override {}
+    void startImp() override
+    {
+        // Reset the current counters. The total counters are not reset (done only once when constructor is called).
+        _trialPointStats.resetCurrentStats();
+
+    }
 
     /// Implementation of endImp.
     /**
@@ -104,26 +113,26 @@ public:
     void endImp() override {}
 
     /// Intermediate function used by generateTrialPoints
-    std::list<NOMAD::Direction> generateFullSpaceScaledDirections(bool isNPlus1, std::shared_ptr<NOMAD::MeshBase> mesh = nullptr);
+    std::list<NOMAD::Direction> generateFullSpaceScaledDirections(bool isSecondPass, NOMAD::MeshBasePtr mesh = nullptr);
     
-    /// Intermediate function (not yet the implementation that generates the trial points)
-    /**
-     - Display before and after generation comments.
-     - Launch the implementation of the poll method to generate the trial points (::generateTrialPointsImp).
-     - Snap the points to bounds and mesh.
-     */
-    void generateTrialPoints() override;
     
-    /// Intermediate function to compute N+1th point, to be used when _hasNPlus1 is true.
+    
+    /// Add evaluation information from static surrogate or model to trial points
     /*
-       \param inputTrialPoints  Trial points generated from the "N" part, evaluated, and
-                                not successful.
-    */
-    virtual void generateTrialPointsNPlus1(const NOMAD::EvalPointSet& inputTrialPoints);
+     This is used for sorting. Sorting can be used to reduce the number of trial points and also to prioritize the evaluations.
+     */
+    virtual void completeTrialPointsInformation();
+    
+    /// Reduce the number of trial points
+    /*
+     This is currently used only by Ortho Mads n+1. 
+     */
+    virtual void trialPointsReduction() {} ;
+    
 
-    /// Generate poll directions on a unitary frame. See derived classes (Ortho2nPollMethod, Np1UniPollMethod,...) for implementations.
-    virtual void generateUnitPollDirections(std::list<Direction> &directions, const size_t dim) const = 0;
-
+    
+    
+    
 protected:
     void init();
     
@@ -135,13 +144,23 @@ protected:
       */
     void generate2NDirections(std::list<NOMAD::Direction> &directions, size_t n) const;
     
-    /// Generate n+1th direction. Optionally reimplemented (in Ortho N+1).
-    virtual void generateNPlus1Direction(std::list<Direction> &directions) const {};
 
 private:
     
-    /// Private method to handle general case and also N+1 case
-    void generateTrialPointsInternal(const bool isNPlus1 = false);
+    /// Generate poll directions on a unitary frame. See derived classes (Ortho2nPollMethod, Np1UniPollMethod,...) for implementations.
+    virtual void generateUnitPollDirections(std::list<Direction> &directions, const size_t dim) const = 0;
+    
+    /// Generate second pass directions. Optionally reimplemented (in Ortho N+1 and maybe more in the future).
+    virtual void generateSecondPassDirections(std::list<Direction> &directions) const {};
+
+    
+
+    /// Private method to handle general case and also second pass generation
+    /*
+        Real implementation to generate the trial points.
+        Snap the points to bounds and mesh.
+     */
+    void generateTrialPointsInternal(const bool isSecondPass = false);
     
     /// Scale and project on mesh poll directions.
     /**
@@ -149,10 +168,24 @@ private:
      */
     void scaleAndProjectOnMesh(std::list<Direction> & dirs, std::shared_ptr<NOMAD::MeshBase> mesh = nullptr );
 
-
+    /// Intermediate function (not yet the implementation that generates the trial points)
+    /**
+         - Display before and after generation comments.
+         - Launch the implementation of the poll method to generate the trial points (::generateTrialPointsInternal).
+    */
+    void generateTrialPointsImp() override ;
+    
+    
+    /// Intermediate function to compute second pass trial points.
+    // virtual void generateTrialPointsNPlus1(const NOMAD::EvalPointSet& inputTrialPoints);
+    void generateTrialPointsSecondPassImp() override ;
+    
+    /// Implementation to increment the nb of calls counter
+    virtual void incrementCounters() override { _trialPointStats.incrementNbCalls() ;}
+    
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_POLLMETHODBASE__
+#endif // __NOMAD_4_2_POLLMETHODBASE__
 

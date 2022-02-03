@@ -1093,7 +1093,7 @@ NOMAD::ArrayOfPoint NOMAD::Parameters::readPointValuesFromFile(const std::string
 size_t NOMAD::Parameters::readValuesForVariableGroup(const NOMAD::ParameterEntry &pe,
                                                      NOMAD::VariableGroup &vg )
 {
-    int i;
+    int i=0;
 
     std::list<std::string>::const_iterator it , end;
     std::pair<NOMAD::VariableGroup::iterator,bool> ret;
@@ -1194,7 +1194,7 @@ void NOMAD::Parameters::displayHelp(const std::string & helpSubject , bool devHe
         NOMAD::toupper(helpInfo);
         NOMAD::toupper(keywords);
 
-        if (   helpSubject.empty()
+        if (   helpSubject == "ALL"
             || paramName.find(helpSubject) != std::string::npos
             || keywords.find(helpSubject)  != std::string::npos
             || helpInfo.find(helpSubject)  != std::string::npos )

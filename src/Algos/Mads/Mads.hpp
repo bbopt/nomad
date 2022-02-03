@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_0_MADS__
-#define __NOMAD_4_0_MADS__
+#ifndef __NOMAD_4_2_MADS__
+#define __NOMAD_4_2_MADS__
 
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
@@ -70,13 +70,15 @@ public:
      \param runParams           The run parameters that control MADS -- \b IN.
      \param pbParams            The problem parameters that control MADS -- \b IN.
      \param barrierInitializedFromCache  Flag to initialize barrier from cache or not -- \b IN.
+     \param forceRootAlgo   Flag to make a root algorithm -- \b IN.
      */
     explicit Mads(const Step* parentStep,
                   std::shared_ptr<AlgoStopReasons<MadsStopType>> stopReasons,
                   const std::shared_ptr<RunParameters>& runParams,
                   const std::shared_ptr<PbParameters>& pbParams,
-                  bool barrierInitializedFromCache = true )
-      : Algorithm(parentStep, stopReasons, runParams, pbParams)
+                  bool barrierInitializedFromCache = true,
+                  bool forceRootAlgo = true )
+      : Algorithm(parentStep, stopReasons, runParams, pbParams, forceRootAlgo)
     {
         init(barrierInitializedFromCache);
     }
@@ -84,8 +86,8 @@ public:
     /// Helper for hot restart
     void hotRestartOnUserInterrupt() override;
     
+    /// For suggest and observe PyNomad interface
     NOMAD::ArrayOfPoint suggest() override;
-    
     void observe(const std::vector<NOMAD::EvalPoint>& evalPointList) override;
 
 private:
@@ -108,4 +110,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_MADS__
+#endif // __NOMAD_4_2_MADS__

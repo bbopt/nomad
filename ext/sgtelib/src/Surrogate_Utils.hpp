@@ -81,50 +81,62 @@ namespace SGTELIB {
     KRIGING  ,
     SVN      ,
     RBF      ,
-    LOWESS      ,
-    ENSEMBLE 
+    LOWESS   ,
+    ENSEMBLE ,
+    ENSEMBLE_STAT
   };
   const int NB_MODEL_TYPES = 12;
 
-  // Aggregation methods (for the Surrogate_Ensemble)
+  // Aggregation methods (for the Surrogate_Ensemble and Surrogate_Ensemble_Stat)
   enum weight_t {
     WEIGHT_SELECT,// Take the model with the best metrics.
+    WEIGHT_SELECT2,// Take the 2 models with the best metrics. 
+    WEIGHT_SELECT3,// ...
+    WEIGHT_SELECT4,
+    WEIGHT_SELECT5,
+    WEIGHT_SELECT6,
     WEIGHT_OPTIM, // Optimize the metric
     WEIGHT_WTA1,  // Goel, Ensemble of surrogates 2007
     WEIGHT_WTA3,  // Goel, Ensemble of surrogates 2007
     WEIGHT_EXTERN // Belief vector is set externaly by the user.
   };
-  const int NB_WEIGHT_TYPES = 5;
+  const int NB_WEIGHT_TYPES = 10;
   
- 
+  // Aggregation methods (for the Surrogate_Ensemble_Stat)
+  enum uncertainty_t {
+    UNCERTAINTY_SMOOTH,
+    UNCERTAINTY_NONSMOOTH
+  };
+  const int NB_UNCERTAINTY_TYPES = 2;
+
   // Diff in ms
   int diff_ms(timeval t1, timeval t2);
 
   // Compare strings
-  bool streq       ( const std::string & s1 , const std::string & s2 );
-  bool streqi      ( const std::string & s1 , const std::string & s2 );
+  DLL_API bool streq       ( const std::string & s1 , const std::string & s2 );
+  DLL_API bool streqi      ( const std::string & s1 , const std::string & s2 );
   // Check if s is a substring of S
-  bool string_find ( const std::string & S  , const std::string & s );
+  DLL_API bool string_find ( const std::string & S  , const std::string & s );
   //bool issubstring (const std::string S , const std::string s);
 
 
   // Remove useless spaces in string
-  std::string deblank ( const std::string & s_input );
+  DLL_API std::string deblank ( const std::string & s_input );
 
   // test if a file exists
-  bool exists (const std::string & file);
+  DLL_API bool exists (const std::string & file);
 
   // Word count
-  int count_words(const std::string & s );
+  DLL_API int count_words(const std::string & s );
 
   // add string on a new line of an existing files
-  void append_file (const std::string & s , const std::string & file);
+  DLL_API void append_file (const std::string & s , const std::string & file);
 
   // wait 
-  void wait (double t);
+  DLL_API void wait (double t);
 
   // isdef (not nan nor inf)
-  bool isdef ( const double x );
+  DLL_API bool isdef ( const double x );
 
   // rounding:
   int round ( double d );
@@ -154,12 +166,21 @@ namespace SGTELIB {
   DLL_API std::string bbo_type_to_str           ( const SGTELIB::bbo_t          );
   DLL_API std::string weight_type_to_str        ( const SGTELIB::weight_t       );
   DLL_API std::string distance_type_to_str      ( const SGTELIB::distance_t     );
-
+  DLL_API std::string uncertainty_type_to_str   ( const SGTELIB::uncertainty_t  ); 
+  DLL_API std::string size_param_to_str         ( const double                  ); 
+  DLL_API std::string sigma_mult_to_str         ( const double                  ); 
+  DLL_API std::string lambda_p_to_str           ( const double                  ); 
+  DLL_API std::string lambda_pi_to_str          ( const double                  ); 
 
   // conversion functions (from string) :
   bool isdigit                                       ( const std::string & s );
+  double  str_to_size_param                          ( const std::string & s ); 
+  double  str_to_sigma_mult                          ( const std::string & s ); 
+  double  str_to_lambda_p                            ( const std::string & s ); 
+  double  str_to_lambda_pi                           ( const std::string & s ); 
   DLL_API SGTELIB::model_t         str_to_model_type         ( const std::string & s );
   DLL_API SGTELIB::weight_t        str_to_weight_type        ( const std::string & s );
+  DLL_API SGTELIB::uncertainty_t   str_to_uncertainty_type   ( const std::string & s ); 
   DLL_API SGTELIB::distance_t      str_to_distance_type      ( const std::string & s );
   DLL_API SGTELIB::distance_t      int_to_distance_type      ( const int i );
 
@@ -171,6 +192,11 @@ namespace SGTELIB {
   int get_min_index ( const double * v , const int vsize , const int i_exclude);
   */
 
+  // Sigmoid
+
+  double sigmoid (double x , double lambda=1 );
+  double sigmoid (double f, double mu, double sigma , double lambda=1);
+
   // Statistics
   double normcdf ( double x );
   double normcdf ( double x , double mu , double sigma );
@@ -178,6 +204,7 @@ namespace SGTELIB {
   double normpdf ( double x , double mu , double sigma );
   double normei  ( double fh, double sh , double f_min  );
   double gammacdf   ( double x, double a, double b);
+  double newei   ( double fh, double sh , double f_min  );
   double gammacdfinv( double f, double a, double b);
   double lower_incomplete_gamma ( const double x, const double p );
 

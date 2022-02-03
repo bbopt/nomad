@@ -52,8 +52,8 @@
  \see    Eval.cpp
  */
 
-#ifndef __NOMAD_4_0_EVAL__
-#define __NOMAD_4_0_EVAL__
+#ifndef __NOMAD_4_2_EVAL__
+#define __NOMAD_4_2_EVAL__
 
 #include <functional>   // For std::function
 
@@ -140,8 +140,8 @@ public:
     /*---------*/
 
     // f and h are always recomputed.
-    Double getF(const ComputeType& = ComputeType::STANDARD) const;
-    Double getH(const ComputeType& = ComputeType::STANDARD) const;
+    Double getF(ComputeType = ComputeType::STANDARD) const;
+    Double getH(ComputeType = ComputeType::STANDARD) const;
 
     EvalStatusType getEvalStatus() const { return _evalStatus; }
     void setEvalStatus(const EvalStatusType &evalStatus) { _evalStatus = evalStatus; }
@@ -170,7 +170,7 @@ public:
      \param computeType How to compute f and h -- \b IN
      \return                    \c true if no constraint is broken, \c false otherwise.
      */
-    bool isFeasible(const ComputeType& computeType = ComputeType::STANDARD) const;
+    bool isFeasible(ComputeType computeType = ComputeType::STANDARD) const;
 
     /// Can this point be re-evaluated? Based on the eval status only.
     bool canBeReEvaluated() const;
@@ -222,7 +222,7 @@ public:
      \param computeType How to compute f and h -- \b IN
      \return     A boolean equal to \c true if  \c *this \c dominates \c eval.
      */
-    bool dominates(const Eval& eval, const ComputeType& computeType = ComputeType::STANDARD) const;
+    bool dominates(const Eval& eval, ComputeType computeType = ComputeType::STANDARD) const;
 
     /// Comparison of 2 evaluations.
     /**
@@ -230,11 +230,12 @@ public:
      \note This is different than dominance.
      \param eval1   First eval -- \b IN.
      \param eval2   Second eval -- \b IN.
+     \param computeType     Which compute type to look at                     -- \b IN.
      \return        If \c eval1 dominates \c eval2, return \c true. If eval1 and eval2 are both infeasible, and eval1.getH() < eval2.getH(), return \c true.
     */
     static bool compEvalFindBest(const Eval &eval1,
                                  const Eval &eval2,
-                                 const ComputeType& computeType);
+                                 ComputeType computeType);
 
     /// Comparison of 2 evaluations.
     /**
@@ -243,11 +244,14 @@ public:
 
      \param eval1   First eval -- \b IN.
      \param eval2   Second eval -- \b IN.
+     \param computeType     Which compute type to look at                     -- \b IN.
+     \param successType     Which success type to look at                     -- \b IN.
+     \param strictEqual     Flag to compare success                             -- \b IN.
      \return        If \c eval1 dominates \c eval2, return \c true. If eval1 and eval2 are both infeasible, and eval1.getH() < eval2.getH(), return \c true.
     */
     static bool compInsertInBarrier(const Eval &eval1,
                                     const Eval &eval2,
-                                    const NOMAD::ComputeType& computeType,
+                                    NOMAD::ComputeType computeType,
                                     SuccessType successType,
                                     bool strictEqual);
 
@@ -271,13 +275,16 @@ public:
      */
     static SuccessType computeSuccessType(const Eval* eval1,
                                           const Eval* eval2,
-                                          const ComputeType& computeType,
+                                          ComputeType computeType,
                                           const Double& hMax = INF);
 
-    /// \brief Display of eval
-    /// \param computeType How to compute f and h -- \b IN
-    /// \return A formatted eval as a string
-    std::string display(const ComputeType& computeType = ComputeType::STANDARD, const int prec = DISPLAY_PRECISION_STD) const;
+    ///  Display of eval
+    /**
+     \param computeType How to compute f and h -- \b IN.
+     \param prec   Display precision -- \b IN.
+     \return A formatted eval as a string
+     */
+    std::string display(ComputeType computeType = ComputeType::STANDARD, const int prec = DISPLAY_PRECISION_STD) const;
 
 private:
     /// Helpers for getF() and getH()
@@ -302,4 +309,4 @@ std::istream& operator>>(std::istream& is, EvalStatusType &evalStatus);
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_0_EVAL__
+#endif  // __NOMAD_4_2_EVAL__

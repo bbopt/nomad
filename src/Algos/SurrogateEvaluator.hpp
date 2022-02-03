@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_SURROGATE_EVALUATOR__
-#define __NOMAD_4_0_SURROGATE_EVALUATOR__
+#ifndef __NOMAD_4_2_SURROGATE_EVALUATOR__
+#define __NOMAD_4_2_SURROGATE_EVALUATOR__
 
 #include "../Eval/Evaluator.hpp"
 
@@ -67,4 +67,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_SURROGATE_EVALUATOR__
+#endif // __NOMAD_4_2_SURROGATE_EVALUATOR__

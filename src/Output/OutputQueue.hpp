@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_OUTPUTQUEUE__
-#define __NOMAD_4_0_OUTPUTQUEUE__
+#ifndef __NOMAD_4_2_OUTPUTQUEUE__
+#define __NOMAD_4_2_OUTPUTQUEUE__
 
 #include <vector>
 #ifdef _OPENMP
@@ -144,15 +144,20 @@ public:
         return getInstance()->goodLevel(outputLevel);
     }
 
-    // Macros for output
+// Macros for output
 #define OUTPUT_STATS_START if (OutputQueue::GoodLevel(OutputLevel::LEVEL_STATS)) {
 #define OUTPUT_INFO_START if (OutputQueue::GoodLevel(OutputLevel::LEVEL_INFO)) {
 #define OUTPUT_DEBUG_START if (OutputQueue::GoodLevel(OutputLevel::LEVEL_DEBUG)) {
+#define OUTPUT_DEBUGDEBUG_START if (OutputQueue::GoodLevel(OutputLevel::LEVEL_DEBUGDEBUG)) {
 #define OUTPUT_STATS_END }
 #define OUTPUT_INFO_END }
 #define OUTPUT_DEBUG_END }
+#define OUTPUT_DEBUGDEBUG_END }
 
     void setDisplayDegree(const int displayDegree);
+    void setMaxOutputLevel(OutputLevel outputLevel) { _maxOutputLevel = outputLevel; }
+    
+    OutputLevel getMaxOutputLevel() { return _maxOutputLevel ;}
 
     void setStatsFileName(const std::string& statsFile) { _statsFile = statsFile; }
     void initStatsFile();
@@ -233,4 +238,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_OUTPUTQUEUE__
+#endif // __NOMAD_4_2_OUTPUTQUEUE__

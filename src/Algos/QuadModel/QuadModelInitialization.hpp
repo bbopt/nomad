@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_QUAD_MODEL_INITIALIZATION__
-#define __NOMAD_4_0_QUAD_MODEL_INITIALIZATION__
+#ifndef __NOMAD_4_2_QUAD_MODEL_INITIALIZATION__
+#define __NOMAD_4_2_QUAD_MODEL_INITIALIZATION__
 
 #include "../../Algos/Initialization.hpp"
 #include "../../Algos/IterationUtils.hpp"
@@ -77,7 +77,7 @@ private:
     void endImp() override {};
 
     /// Insert X0s for evaluation or (exclusive) check cache
-    void generateTrialPoints() override;
+    void generateTrialPointsImp() override;
 
     /// Eval X0s, using blackbox.
     bool eval_x0s();
@@ -86,5 +86,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_QUAD_MODEL_INITIALIZATION__
+#endif // __NOMAD_4_2_QUAD_MODEL_INITIALIZATION__
 

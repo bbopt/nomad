@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_QUAD_MODEL_MEGAITERATION__
-#define __NOMAD_4_0_QUAD_MODEL_MEGAITERATION__
+#ifndef __NOMAD_4_2_QUAD_MODEL_MEGAITERATION__
+#define __NOMAD_4_2_QUAD_MODEL_MEGAITERATION__
 
 
 #include "../../Algos/MegaIteration.hpp"
@@ -64,7 +64,7 @@ class QuadModelMegaIteration: public MegaIteration
 {
 private:
     std::vector<std::shared_ptr<QuadModelIteration>> _iterList;
-
+    
 public:
     /// Constructor
     /**
@@ -105,4 +105,4 @@ std::istream& operator>>(std::istream& is, QuadModelMegaIteration& megaIteration
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_QUAD_MODEL_MEGAITERATION__
+#endif // __NOMAD_4_2_QUAD_MODEL_MEGAITERATION__

@@ -54,7 +54,7 @@
 void NOMAD::NMShrink::init()
 {
     setStepType(NOMAD::StepType::NM_SHRINK);
-    _currentStepType = NOMAD::StepType::NM_SHRINK;   
+    _currentStepType = NOMAD::StepType::NM_SHRINK; 
 
     _gamma = _runParams->getAttributeValue<NOMAD::Double>("NM_GAMMA");
 
@@ -105,7 +105,7 @@ void NOMAD::NMShrink::endImp()
 }
 
 
-void NOMAD::NMShrink::generateTrialPoints ()
+void NOMAD::NMShrink::generateTrialPointsImp ()
 {
 
     auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");

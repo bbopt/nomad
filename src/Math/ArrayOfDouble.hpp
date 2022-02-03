@@ -52,8 +52,8 @@
  \see    ArrayOfDouble.cpp
  */
 
-#ifndef __NOMAD_4_0_ARRAYOFDOUBLE__
-#define __NOMAD_4_0_ARRAYOFDOUBLE__
+#ifndef __NOMAD_4_2_ARRAYOFDOUBLE__
+#define __NOMAD_4_2_ARRAYOFDOUBLE__
 
 #include <numeric>
 #include "../Math/Double.hpp"
@@ -350,4 +350,4 @@ std::ostream& operator<<(std::ostream& out, const ArrayOfDouble& aod);
 std::istream& operator>>(std::istream& in, ArrayOfDouble& aod);
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_0_ARRAYOFDOUBLE__
+#endif // __NOMAD_4_2_ARRAYOFDOUBLE__

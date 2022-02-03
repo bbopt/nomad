@@ -89,18 +89,23 @@ void NOMAD::DisplayParameters::checkAndComply(
         return;
     }
     
-    auto display_degree = getAttributeValueProtected<int>("DISPLAY_DEGREE",false);
-    // Force display all eval
-    if (display_degree>=3)
+    if (getAttributeValueProtected<int>("DISPLAY_DEGREE",false) >= 3)
     {
+        // High display degree. Force display all eval.
         setAttributeValue("DISPLAY_ALL_EVAL", true);
+    }
+
+    // Verify DISPLAY_HEADER is positive
+    if (0 == getAttributeValueProtected<size_t>("DISPLAY_HEADER",false))
+    {
+        throw NOMAD::InvalidParameter(__FILE__,__LINE__, "DISPLAY_HEADER must be positive. To disable headers, set DISPLAY_HEADER to INF.");
     }
 
     // Pb params must be checked before accessing its value
     size_t n = pbParams->getAttributeValue<size_t>("DIMENSION");
     if (n == 0)
     {
-        throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DIMENSION must be positive" );
+        throw NOMAD::InvalidParameter(__FILE__,__LINE__, "Parameters check: DIMENSION must be positive" );
     }
 
 

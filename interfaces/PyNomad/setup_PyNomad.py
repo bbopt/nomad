@@ -5,47 +5,33 @@ import os
 import sys
 
 
-# Windows not supported
-if sys.platform.startswith("win"):
-    print("The", sys.platform, "platform is not supported.")
-    exit()
     
-if (len(sys.argv) != 5 and len(sys.argv) != 3):
-    print("The script ", str(sys.argv[0]), " requires 4 arguments (building in place) or 2 arguments (installing). When building in place, arguments 1 and 2 are for passing Nomad options.")
+if (len(sys.argv) != 4 and len(sys.argv) != 2):
+    print("The script ", str(sys.argv[0]), " requires 3 arguments (building in place) or 1 arguments (installing). When building in place, arguments 1 is for passing Nomad path.")
     exit()
 
-use_openmp=0
 root_build_dir=""
 os_include_dirs=""
-if (len(sys.argv) == 5):
+if (len(sys.argv) == 4):
     #print("original sys argv: " + str(sys.argv))
-    use_openmp = (int)(sys.argv[1])     # Argument 1 is the flag for using openMP or not
-    root_build_dir = str(sys.argv[2])   # Argument 2 is to path to find libraries and headers
+    root_build_dir = str(sys.argv[1])   # Argument 1 is to path to find libraries and headers
     os_include_dirs = [root_build_dir + "/../../src"]
-    del sys.argv[1]
     del sys.argv[1]
     # print("new sys argv: " + str(sys.argv))
 
 build_lib_dir = root_build_dir + "/src"
-installed_lib_dir = root_build_dir + "/lib"
+installed_lib_dir1 = root_build_dir + "/lib"
+installed_lib_dir2 = root_build_dir + "/lib64"
 
 compile_args = []
-compile_args.append("-Wall")
+compile_args.append("-w")
+#compile_args.append("-Wall")
 if not sys.platform.startswith("win"):
     compile_args.append("-std=c++14")
-    compile_args.append("-Wextra")
+    # compile_args.append("-Wextra")
     compile_args.append("-pthread")
 
 link_args = []
-if (use_openmp==1):
-    if not sys.platform.startswith("win"):
-        compile_args.append("-fopenmp")
-        link_args.append("-fopenmp")
-    if sys.platform == "darwin":
-        print("The PyNomad interface may fail on ", sys.platform, " when building with OPENMP. If this happens, you may deactivate OPENMP for building Nomad and PyNomad.")
-    
-    compile_args.append("-DUSE_OMP")
-    # print(compile_args)
 
 # Use gcc
 if (str(os.environ.get("CC")) == ""):
@@ -59,7 +45,8 @@ lib_extension="so"
 
 # The rpath is set to the libraries installation directory.
 if not sys.platform.startswith("win"):
-    link_args.append("-Wl,-rpath," + installed_lib_dir)
+    link_args.append("-Wl,-rpath," + installed_lib_dir1)
+    link_args.append("-Wl,-rpath," + installed_lib_dir2)
 
 if sys.platform == "darwin":
      link_args.append("-headerpad_max_install_names")

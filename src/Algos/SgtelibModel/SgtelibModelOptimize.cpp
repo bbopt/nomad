@@ -141,7 +141,8 @@ bool NOMAD::SgtelibModelOptimize::runImp()
 
         // Create a Mads step
         // Parameters for mads (_optRunParams and _optPbParams) are already updated.
-        _mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams);
+        // We force mads to use local fixed variables to make sure we only work on fixed variables identified during construction of the training set (not the global fixed variables of the original problem). The evaluator works on the quad model, we don't need to map to the full space for evaluation (not BB eval).
+        _mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams, true /* use local fixed variables */);
         //_mads->setName(_mads->getName() + " (SgtelibModelOptimize)");
         _mads->setEndDisplay(false);
         evc->resetModelEval();
@@ -184,6 +185,7 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
     // Ensure there is no model used in model optimization.
     _optRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
+    
     _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
 
     // Set direction type to Ortho 2n
@@ -293,9 +295,9 @@ void NOMAD::SgtelibModelOptimize::updateOraclePoints()
     _oraclePoints.clear();
 
     std::shared_ptr<NOMAD::Barrier> barrier;
-    if (nullptr != _mads && nullptr != _mads->getMegaIteration())
+    if (nullptr != _mads && nullptr != _mads->getRefMegaIteration())
     {
-        barrier = _mads->getMegaIteration()->getBarrier();
+        barrier = _mads->getRefMegaIteration()->getBarrier();
     }
 
     if (barrier)

@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_0_PROJECTION__
-#define __NOMAD_4_0_PROJECTION__
+#ifndef __NOMAD_4_2_PROJECTION__
+#define __NOMAD_4_2_PROJECTION__
 
 #include "../Algos/IterationUtils.hpp"
 #include "../Algos/Step.hpp"
@@ -71,8 +71,8 @@ private:
     std::vector<EvalPoint>      _cacheModelEval;
 
     // Mesh and frame center to project on
-    std::shared_ptr<MeshBase>   _mesh;
-    std::shared_ptr<EvalPoint>  _frameCenter;
+    MeshBasePtr   _mesh;
+    EvalPointPtr  _frameCenter;
 
     std::set<size_t>            _indexSet;
     size_t                      _nbProjTrial;
@@ -96,7 +96,7 @@ private:
     virtual bool runImp() override;
     virtual void endImp() override;
 
-    void generateTrialPoints() override;
+    void generateTrialPointsImp() override;
 
     void projectPoint(const EvalPoint& oraclePoint);
 
@@ -123,4 +123,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_PROJECTION__
+#endif // __NOMAD_4_2_PROJECTION__

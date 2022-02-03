@@ -175,7 +175,6 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
     auto modelMaxEval = quadModelMaxEval;
     if (quadModelChanged && sgtelibModelChanged && quadModelMaxEval != sgtelibModelMaxEval)
     {
-        // See issue #505
         std::cerr << "Warning: Currently not supported: QUAD_MODEL_MAX_EVAL (";
         std::cerr << quadModelMaxEval << ") different than SGTELIB_MODEL_MAX_EVAL (";
         std::cerr << sgtelibModelMaxEval << "). Using only the value of QUAD_MODEL_MAX_EVAL." << std::endl;
@@ -221,7 +220,6 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
 
     if (quadModelChanged && sgtelibModelChanged && quadModelBlockSize != sgtelibModelBlockSize)
     {
-        // See issue #505
         std::cerr << "Warning: Currently not supported: QUAD_MODEL_MAX_BLOCK_SIZE (";
         std::cerr << quadModelBlockSize << ") different than SGTELIB_MODEL_MAX_BLOCK_SIZE (";
         std::cerr << sgtelibModelBlockSize << "). Using only the value of QUAD_MODEL_MAX_BLOCK_SIZE." << std::endl;

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_SGTELIB_MODEL__
-#define __NOMAD_4_0_SGTELIB_MODEL__
+#ifndef __NOMAD_4_2_SGTELIB_MODEL__
+#define __NOMAD_4_2_SGTELIB_MODEL__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Algorithm.hpp"
@@ -93,7 +93,7 @@ private:
     ArrayOfDouble _modelLowerBound; ///> Lower bound
     ArrayOfDouble _modelUpperBound; ///> Upper bound
 
-    std::shared_ptr<MeshBase> _mesh; ///> Useful for sizes if a mesh is available.
+    MeshBasePtr _mesh; ///> Useful for sizes if a mesh is available.
 
 public:
     /// Constructor
@@ -102,7 +102,7 @@ public:
                           std::shared_ptr<Barrier> barrier,
                           const std::shared_ptr<RunParameters>& runParams,
                           const std::shared_ptr<PbParameters>& pbParams,
-                          const std::shared_ptr<MeshBase>& mesh)
+                          const MeshBasePtr& mesh)
       : Algorithm(parentStep, stopReasons, runParams, pbParams),
         _barrierForX0s(barrier),
         _trainingSet(nullptr),
@@ -127,7 +127,7 @@ public:
     // They are used for the sub-Mads initialization.
     std::vector<EvalPoint> getX0s() const;
     // Return only first X0.
-    std::shared_ptr<EvalPoint> getX0() const;
+    EvalPointPtr getX0() const;
 
     std::shared_ptr<SGTELIB::TrainingSet> getTrainingSet() const { return _trainingSet; }
     std::shared_ptr<SGTELIB::Surrogate> getModel() const { return _model; }
@@ -142,7 +142,7 @@ public:
     Double getFMin() const;
     const SgtelibModelFormulationType getFormulation() const;
 
-    std::shared_ptr<MeshBase> getMesh() const { return _mesh; }
+    MeshBasePtr getMesh() const { return _mesh; }
     Double getDeltaMNorm() const;
 
 
@@ -161,7 +161,6 @@ public:
     // Basic methods
     bool isReady() const;
     void update();
-    void reset();
     void info();
 
     static size_t getNbModels(const SgtelibModelFeasibilityType modelFeasibility,
@@ -181,12 +180,10 @@ public:
 private:
     void init();
 
-    void startImp() override;
     bool runImp() override;
-    void endImp() override;
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_SGTELIB_MODEL__
+#endif // __NOMAD_4_2_SGTELIB_MODEL__
 

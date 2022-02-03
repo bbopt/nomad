@@ -81,6 +81,8 @@ def suggest(params):
   # Reset the cache (important for static members reinitialization) before calling suggest
   mainStep.resetCache()
 
+  # Reset the evaluator control and its barrier (initialization from cache will create a new barrier)
+  mainStep.resetEvaluatorControl()
 
   # Because the seed is not set as a Nomad parameters, the parameter has a 0 default value.
   # The check and comply will set the RNG state accordingly to a wrong state.
@@ -208,7 +210,7 @@ def optimize(f, pX0, pLB, pUB, params):
         for i in xrange(uInfeas.size()):
             xReturn.append(uInfeas.get_coord(i))
 
-    return [ xReturn, fReturn, hReturn, nbEvals, nbIters, runStatus ]
+    return {'x_best': xReturn, 'f_best': fReturn, 'h_best': hReturn, 'nb_evals': nbEvals, 'nb_iters': nbIters, 'exit_status': runStatus}
 
 cdef extern from "Algos/MainStep.hpp" namespace "NOMAD":
     cdef cppclass MainStep:
@@ -224,6 +226,8 @@ cdef extern from "Algos/MainStep.hpp" namespace "NOMAD":
         void resetComponentsBetweenOptimization()
         @staticmethod
         void resetCache()
+        @staticmethod
+        void resetEvaluatorControl()
 
 cdef extern from "Math/Point.hpp" namespace "NOMAD":
     cdef cppclass Point:

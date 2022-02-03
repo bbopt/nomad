@@ -66,71 +66,71 @@ void NOMAD::VNS::init()
     }
      */
     setStepType(NOMAD::StepType::ALGORITHM_VNS_MADS);
-    
-    if (nullptr == _frameCenter)
-    {
-        throw NOMAD::Exception(__FILE__,__LINE__,"VNS Mads needs a frame center");
-    }
 
 }
 
 
 void NOMAD::VNS::startImp()
 {
-    // All stop reasons are reset.
-    _stopReasons->setStarted();
-
-    // Reset the lapBbEval counter for this sub-optimization
-    NOMAD::EvcInterface::getEvaluatorControl()->resetLapBbEval();
+    if (nullptr == _frameCenter)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"VNS Mads needs a frame center");
+    }
+    
+    // Default algorithm start
+    NOMAD::Algorithm::startImp();
 
     // Setup Mads
     _madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
+
+    // Increment the neighborood parameter
+    _neighParameter ++;
     
 }
 
 bool NOMAD::VNS::runImp()
 {
     _algoSuccessful = false;
-    
+
     _algoBestSuccess = NOMAD::SuccessType::NOT_EVALUATED;
-    
+
     auto VNSStopReasons = NOMAD::AlgoStopReasons<NOMAD::VNSStopType>::get(_stopReasons);
-    
+
     if ( _stopReasons->checkTerminate() )
     {
         return _algoSuccessful;
     }
-    
+
     if (_runParams->getAttributeValue<bool>("VNS_MADS_OPTIMIZATION"))
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"VNS_MADS_OPTIMIZATION not yet implemented");
     }
-    
+
     // Get the parent Mads Mega iteration and its associated mesh
     auto parentMadsMegaIter = getParentOfType<NOMAD::MadsMegaIteration*>(false);
     if (nullptr == parentMadsMegaIter)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"VNS Mads needs a MadsMegaIteration");
     }
-    
+
     // Shaking direction: use single poll method
-    NOMAD::SinglePollMethod pollMethod(this, *_frameCenter);
-    std::list<NOMAD::Direction> scaledDirection = pollMethod.generateFullSpaceScaledDirections(false,parentMadsMegaIter->getMesh());
-    
+    NOMAD::SinglePollMethod pollMethod(this,_frameCenter);
+    std::list<NOMAD::Direction> scaledDirection = pollMethod.generateFullSpaceScaledDirections(false, parentMadsMegaIter->getMesh());
+
     // Get the single direction
     NOMAD::Direction dir = scaledDirection.front();
     if (!dir.isDefined())
     {
-      throw NOMAD::Exception(__FILE__,__LINE__,"VNS_MADS_OPTIMIZATION: single scaled direction not defined");
+        throw NOMAD::Exception(__FILE__,__LINE__,"VNS_MADS_OPTIMIZATION: single scaled direction not defined");
     }
-    
+
     // Multiply shake direction by VNS neighborhood parameter
-    dir *= (double)NOMAD::EvcInterface::getEvaluatorControl()->getVNSMadsNeighParameter();
-    
+    dir *= _neighParameter;
+
     OUTPUT_INFO_START
     AddOutputInfo("Shaking direction: " + dir.display());
     OUTPUT_INFO_END
-    
+
     // shaking: the perturbation is tried twice with dir and -dir
     //          (in case x == x + dir after snapping)
     NOMAD::Point shakePoint = *(_frameCenter->getX()) + dir; // pun intended;
@@ -145,39 +145,38 @@ bool NOMAD::VNS::runImp()
                 OUTPUT_INFO_START
                 AddOutputInfo("VNS: Shaking failed");
                 OUTPUT_INFO_END
-                
+
                 VNSStopReasons->set(NOMAD::VNSStopType::SHAKING_FAILED);
-                
+
                 return _algoSuccessful;
             }
-            
+
             // 2nd try (-dir instead of dir):
             shakePoint =  *(_frameCenter->getX()) - dir;
             shakePoint.snapToBounds(_pbParams->getAttributeValue<ArrayOfDouble>("LOWER_BOUND"),_pbParams->getAttributeValue<ArrayOfDouble>("UPPER_BOUND"));
-            
         }
     }
-    
+
     // Generate base point (X0 for Mads)
     auto evalPoint = NOMAD::EvalPoint(shakePoint);
-    
+
     // Meta information on eval point
     evalPoint.setPointFrom(_frameCenter, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
     evalPoint.addGenStep(getStepType());
 
     // Get the current Mads frame size to be used as min frame size for suboptimization
     NOMAD::ArrayOfDouble currentMadsFrameSize = parentMadsMegaIter->getMesh()->getDeltaFrameSize();
-    
+
     setupPbParameters(shakePoint,currentMadsFrameSize);
     setupRunParameters();
-    
+
     NOMAD::Mads mads(this, _madsStopReasons, _optRunParams, _optPbParams, false /*false: Barrier not initialized from cache */ );
-    
+
     // Run Mads.
     mads.start();
     mads.run();
     mads.end();
-    
+
     if ( _madsStopReasons->testIf(NOMAD::MadsStopType::X0_FAIL) )
     {
         VNSStopReasons->set(NOMAD::VNSStopType::X0_FAILED);
@@ -188,23 +187,19 @@ bool NOMAD::VNS::runImp()
         _algoSuccessful = true;
         _algoBestSuccess = NOMAD::SuccessType::FULL_SUCCESS;
     }
-    
-    
+
+
     _termination->start();
     _termination->run();
     _termination->end();
-    
+
     return _algoSuccessful;
 }
-
-
 
 
 void NOMAD::VNS::endImp()
 {
     NOMAD::Algorithm::endImp();
-
-
 }
 
 
@@ -216,18 +211,18 @@ void NOMAD::VNS::setupRunParameters()
 
     // VNS do not perform VNS search
     _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
-    
+
     // No LH search
     _optRunParams->setAttributeValue("LH_SEARCH", NOMAD::LHSearchType("0 0"));
-    
-    
+
+
     auto vnsFactor = _runParams->getAttributeValue<size_t>("VNS_MADS_SEARCH_MAX_TRIAL_PTS_NFACTOR");
     auto dim = _pbParams->getAttributeValue<size_t>("DIMENSION");
     if (vnsFactor < NOMAD::INF_SIZE_T)
     {
         NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval( dim*vnsFactor );
     }
-    
+
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
 
     _optRunParams->checkAndComply(evcParams, _optPbParams);
@@ -242,7 +237,7 @@ void NOMAD::VNS::setupPbParameters(const NOMAD::Point & center, const NOMAD::Arr
     // The initial mesh and frame sizes will be calculated from bounds and X0
     _optPbParams->resetToDefaultValue("INITIAL_MESH_SIZE");
     _optPbParams->resetToDefaultValue("INITIAL_FRAME_SIZE");
-    
+
     // set min frame size (min mesh size will be updated)
     _optPbParams->resetToDefaultValue("MIN_MESH_SIZE");
     _optPbParams->resetToDefaultValue("MIN_FRAME_SIZE");
@@ -256,4 +251,15 @@ void NOMAD::VNS::setupPbParameters(const NOMAD::Point & center, const NOMAD::Arr
 
     _optPbParams->checkAndComply();
 
+}
+
+void NOMAD::VNS::setFrameCenter(const EvalPointPtr frameCenter)
+{
+    _frameCenter=frameCenter ;
+ 
+    if ( !_refFrameCenter.isDefined() || *(frameCenter->getX()) != _refFrameCenter)
+    {
+        _neighParameter = 0.0;
+        _refFrameCenter = *(frameCenter->getX());
+    }
 }

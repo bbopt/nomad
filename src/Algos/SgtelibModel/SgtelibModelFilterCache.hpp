@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_SGTELIB_MODEL_FILTER_CACHE__
-#define __NOMAD_4_0_SGTELIB_MODEL_FILTER_CACHE__
+#ifndef __NOMAD_4_2_SGTELIB_MODEL_FILTER_CACHE__
+#define __NOMAD_4_2_SGTELIB_MODEL_FILTER_CACHE__
 
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #include "../../Output/OutputInfo.hpp"  // for OutputLevel
@@ -158,4 +158,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_SGTELIB_MODEL_FILTER_CACHE__
+#endif // __NOMAD_4_2_SGTELIB_MODEL_FILTER_CACHE__

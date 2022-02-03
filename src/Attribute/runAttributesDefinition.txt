@@ -85,19 +85,23 @@ RESTART_ATTRIBUTE yes
 ################################################################################
 DIRECTION_TYPE
 NOMAD::DirectionTypeList
-ORTHO 2N
-\( Direction types for Mads Poll step \)
+ORTHO N+1 QUAD
+\( Direction types for Poll steps \)
 \(
-. Direction types used by Mads Poll step to generate trial points.
+. Direction types used by Poll steps (Mads and CS) to generate trial points.
 
 . Several direction types can be defined (one direction type per line).
 
 . Arguments: direction type in:
     ORTHO 2N      : OrthoMADS, 2n
-    ORTHO N+1 NEG : OrthoMADS, n+1, with ((n+1)th dir = negative sum of the first n dirs)
+    ORTHO N+1 NEG : OrthoMADS, n+1, with (n+1)th dir = negative sum of
+                                                       the first n dirs
+    ORTHO N+1 QUAD: OrthoMADS, n+1, with (n+1)th dir from quad
+                                                     model optimization
     N+1 UNI       : MADS with n+1, uniform distribution of dirs
     SINGLE        : Single direction
     DOUBLE        : Two opposite directions
+    CS            : Coordinate directions (only with CS_OPTIMIZATION)
 
 . Examples:
     . DIRECTION_TYPE N+1 UNI

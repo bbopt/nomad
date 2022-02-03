@@ -73,7 +73,9 @@ std::string NOMAD::Iteration::getName() const
 
 void NOMAD::Iteration::endImp()
 {
+    OUTPUT_INFO_START
     AddOutputInfo("Stop reason: " + _stopReasons->getStopReasonAsString() );
+    OUTPUT_INFO_END
 
     if ( _runParams->getAttributeValue<bool>("USER_CALLS_ENABLED") )
     {

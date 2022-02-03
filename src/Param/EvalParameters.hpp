@@ -44,9 +44,11 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_EVALPARAMETERS__
-#define __NOMAD_4_0_EVALPARAMETERS__
+#ifndef __NOMAD_4_2_EVALPARAMETERS__
+#define __NOMAD_4_2_EVALPARAMETERS__
 
+#include "../Param/EvaluatorControlGlobalParameters.hpp"
+#include "../Param/EvaluatorControlParameters.hpp"
 #include "../Param/Parameters.hpp"
 #include "../Param/RunParameters.hpp"
 
@@ -69,7 +71,9 @@ public:
 
     /// Check the sanity of parameters.
     void checkAndComply(const std::shared_ptr<RunParameters>& runParams,
-                        const std::shared_ptr<PbParameters>& pbParams);
+                        const std::shared_ptr<PbParameters>& pbParams,
+                        const std::shared_ptr<EvaluatorControlGlobalParameters>& evaluatorControlGlobalParams,
+                        const std::shared_ptr<EvaluatorControlParameters>& evaluatorControlParams);
 
 private:
     /// Helper for constructor
@@ -85,5 +89,5 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_EVALPARAMETERS__
+#endif // __NOMAD_4_2_EVALPARAMETERS__
 

@@ -65,7 +65,10 @@ NOMAD::ArrayOfPoint NOMAD::LH::suggest ()
     NOMAD::ArrayOfPoint xs;
     for (auto trialPoint : _trialPoints)
     {
-        xs.push_back(*trialPoint.getX());
+        if (std::find(xs.begin(),xs.end(), *trialPoint.getX()) == xs.end())
+        {
+            xs.push_back(*trialPoint.getX());
+        }
     }
     return xs;
 }
@@ -73,15 +76,15 @@ NOMAD::ArrayOfPoint NOMAD::LH::suggest ()
 
 void NOMAD::LH::startImp()
 {
+    // Default algorithm start
+    NOMAD::Algorithm::startImp();
+    
     generateTrialPoints();
 }
 
 
-void NOMAD::LH::generateTrialPoints()
+void NOMAD::LH::generateTrialPointsImp()
 {
-    OUTPUT_INFO_START
-    AddOutputInfo("Generate points for " + getName(), true, false);
-    OUTPUT_INFO_END
 
     auto lhEvals = _runParams->getAttributeValue<size_t>("LH_EVAL");
     if (NOMAD::INF_SIZE_T == lhEvals)
@@ -144,12 +147,6 @@ void NOMAD::LH::generateTrialPoints()
         AddOutputInfo(s);
         OUTPUT_INFO_END
     }
-
-    OUTPUT_INFO_START
-    AddOutputInfo("Generated " + std::to_string(getTrialPointsCount()) + " points");
-    AddOutputInfo("Generate points for " + getName(), false, true);
-    OUTPUT_INFO_END
-
 }
 
 
@@ -166,11 +163,26 @@ bool NOMAD::LH::runImp()
     {
         LHStopReasons->set( NOMAD::LHStopType::ALL_POINTS_EVALUATED );
     }
+    
+    // Update local stats with evaluations done
+    // This is normally done in postProcessing but LH does not call this function
+    size_t nbTrialPointsEvaluated = 0;
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    auto evalType = NOMAD::EvalType::BB;
+    if (nullptr != evc)
+    {
+        evalType = evc->getEvalType();
+    }
+    for (auto trialPoint : _trialPoints)
+    {
+        // We are looking for trial points that have been evaluated
+        if (trialPoint.isEvalOk(evalType))
+        {
+            nbTrialPointsEvaluated ++;
+        }
+    }
+    NOMAD::IterationUtils::_trialPointStats.incrementEvalsDone(nbTrialPointsEvaluated, evalType);
 
     return foundBetter;
 }
 
-
-void NOMAD::LH::endImp()
-{
-}

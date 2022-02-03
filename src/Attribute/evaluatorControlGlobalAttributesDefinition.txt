@@ -82,10 +82,11 @@ RESTART_ATTRIBUTE yes
 #################################################################################
 EVAL_QUEUE_SORT
 NOMAD::EvalSortType
-DIR_LAST_SUCCESS
+QUADRATIC_MODEL
 \( How to sort points before evaluation \)
 \(
-. Argument: One of DIR_LAST_SUCCESS, LEXICOGRAPHICAL, RANDOM, SURROGATE
+. Argument: One of DIR_LAST_SUCCESS, LEXICOGRAPHICAL, RANDOM, SURROGATE,
+  QUADRATIC_MODEL
 
 . DIR_LAST_SUCCESS: Points that are generated in a direction similar to the
   last direction that provided a successful point are evaluated first.
@@ -95,6 +96,8 @@ DIR_LAST_SUCCESS
 . RANDOM: Mix points randomly before evaluation, instead of sorting them.
 
 . SURROGATE: Sort points using values given by static surrogate. See parameter SURROGATE_EXE.
+
+. QUADRATIC_MODEL: Sort points using values given by dynamic quadratic models.
 
 . Example: EVAL_QUEUE_SORT LEXICOGRAPHICAL
 
@@ -257,7 +260,7 @@ RESTART_ATTRIBUTE yes
 ################################################################################
 QUAD_MODEL_MAX_EVAL
 size_t
-1000
+5000
 \( Max number of model evaluations for each optimization of the quad model problem \)
 \(
 . Max number of model evaluations for each optimization of the quad model problem.

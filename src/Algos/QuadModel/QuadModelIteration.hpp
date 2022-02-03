@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_QUAD_MODEL_ITERATION__
-#define __NOMAD_4_0_QUAD_MODEL_ITERATION__
+#ifndef __NOMAD_4_2_QUAD_MODEL_ITERATION__
+#define __NOMAD_4_2_QUAD_MODEL_ITERATION__
 
 #include "../../Algos/Iteration.hpp"
 #include "../../Algos/MeshBase.hpp"
@@ -66,31 +66,42 @@ private:
      - The center point of the model.
      - Cache points used to build the model are taken around this point.
      */
-    const std::shared_ptr<EvalPoint> _frameCenter;
+    const EvalPointPtr _center;
 
+    /**
+     The trial points use to create the radiuses to select the training set when building the model
+     */
+    const EvalPointSet & _trialPoints;
+    
     /**
      The Mads mesh can be available if this is called during a Search method. If not, it is set to \c nullptr. When available, trials points can be projected on it.
      */
-    const std::shared_ptr<MeshBase> _madsMesh;
+    const MeshBasePtr _madsMesh;
 
     std::shared_ptr<SGTELIB::TrainingSet>   _trainingSet; ///<
     std::shared_ptr<SGTELIB::Surrogate>     _model;
 
+    bool _useForSortingTrialPoints;
+    
 public:
     /// Constructor
     /**
      \param parentStep      The parent of this step -- \b IN.
-     \param frameCenter     The frame center -- \b IN.
+     \param center     The frame center -- \b IN.
      \param k               The iteration number -- \b IN.
      \param madsMesh        Mads Mesh for trial point projection (can be null) -- \b IN.
+     \param trialPoints   Trial points used to define the selection box  (can be empty, so box is defined with mesh)  -- \b IN.
      */
     explicit QuadModelIteration(const Step *parentStep,
-                                const std::shared_ptr<EvalPoint> &frameCenter,
-                                const size_t k,
-                                std::shared_ptr<MeshBase> madsMesh)
+                                const EvalPointPtr center,
+                                const size_t k = 0,
+                                const MeshBasePtr madsMesh = nullptr,
+                                const EvalPointSet & trialPoints = emptyEvalPointSet )
       : Iteration(parentStep, k) ,
-        _frameCenter(frameCenter),
-        _madsMesh(madsMesh)
+        _center(center),
+        _madsMesh(madsMesh),
+        _useForSortingTrialPoints(false),
+        _trialPoints(trialPoints)
     {
         init();
     }
@@ -100,24 +111,33 @@ public:
     /// When iteration is done, Flush prints output queue.
     virtual ~QuadModelIteration()
     {
-        reset();
+        /// Reset the model and the training set.
+        if (nullptr != _model)
+        {
+            _model.reset();
+        }
+        
+        if (nullptr != _trainingSet)
+        {
+            _trainingSet.reset();
+        }
     }
 
-    /// Reset the model and the training set.
-    void reset();
 
     /// Access to the quadratic model
     const std::shared_ptr<SGTELIB::Surrogate> getModel() const { return _model;}
-
+    
     /// Access to the training set
     const std::shared_ptr<SGTELIB::TrainingSet> getTrainingSet() const { return _trainingSet; }
 
     /// Access to the frame center (can be undefined)
-    const std::shared_ptr<EvalPoint> getFrameCenter() const { return _frameCenter ; }
+    const EvalPointPtr getModelCenter() const { return _center ; }
 
     /// Reimplement to have access to the mesh (can be null)
-    const std::shared_ptr<MeshBase> getMesh() const override { return _madsMesh; }
-
+    const MeshBasePtr getMesh() const override { return _madsMesh; }
+    
+    /// Reimplement the access to the name. If the class is used for sorting trial points we get name without algo name.
+    std::string getName() const override;
 
 protected:
 
@@ -133,4 +153,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_QUAD_MODEL_ITERATION__
+#endif // __NOMAD_4_2_QUAD_MODEL_ITERATION__

@@ -1,0 +1,9 @@
+*.cxx
+*.o
+*.h
+*.so
+*.jar
+*.class
+*.jnilib
+*.dylib
+*.dll

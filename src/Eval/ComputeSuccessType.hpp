@@ -52,8 +52,8 @@
  \see    ComputeSuccessType.cpp
  */
 
-#ifndef __NOMAD_4_0_COMPUTESUCCESSTYPE__
-#define __NOMAD_4_0_COMPUTESUCCESSTYPE__
+#ifndef __NOMAD_4_2_COMPUTESUCCESSTYPE__
+#define __NOMAD_4_2_COMPUTESUCCESSTYPE__
 
 #include "../Eval/EvalPoint.hpp"
 #include "../nomad_platform.hpp"
@@ -78,7 +78,7 @@ private:
 public:
 
     /// Constructor
-    explicit ComputeSuccessType(const EvalType& evalType, const ComputeType& computeType)
+    explicit ComputeSuccessType(EvalType evalType, ComputeType computeType)
     {
         setComputeSuccessTypeFunction(evalType, computeType);
     }
@@ -126,7 +126,7 @@ public:
     /**
      \param evalPoint1  First eval queue point -- \b IN.
      \param evalPoint2  Second eval queue point -- \b IN.
-     \param hMax        Unused
+     \param hMax               Unused
      \return            Success type.
      */
     static SuccessType computeSuccessTypePhaseOne(const EvalPointPtr& evalPoint1,
@@ -134,6 +134,12 @@ public:
                                               const Double& NOMAD_UNUSED(hMax));
 
     /// Similar to computeSuccessTypePhaseOne, but using SURROGATE for EvalType
+    /**
+     \param evalPoint1  First eval queue point -- \b IN.
+     \param evalPoint2  Second eval queue point -- \b IN.
+     \param hMax               Unused
+     \return            Success type.
+     */
     static SuccessType computeSuccessTypePhaseOneSurrogate(const EvalPointPtr& evalPoint1,
                                               const EvalPointPtr& evalPoint2,
                                               const Double& NOMAD_UNUSED(hMax));
@@ -141,9 +147,9 @@ public:
 private:
     /// Helper for Constructor.
     /// Set default function for comparing EvalPoints, depending if the evaluation is model or blackbox
-    void setComputeSuccessTypeFunction(const EvalType& evalType, const ComputeType& computeType);
+    void setComputeSuccessTypeFunction(EvalType evalType, ComputeType computeType);
 
 };
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_COMPUTESUCCESSTYPE__
+#endif // __NOMAD_4_2_COMPUTESUCCESSTYPE__

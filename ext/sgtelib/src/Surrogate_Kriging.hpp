@@ -81,6 +81,10 @@ namespace SGTELIB {
                                          SGTELIB::Matrix * ei ,
                                          SGTELIB::Matrix * cdf ) override;
 
+    // Predict only objectives (used in Surrogate Ensemble Stat)
+    virtual void predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
+                                             SGTELIB::Matrix * ZZsurr_around            ) override;
+    
     /*--------------------------------------*/
     /*          Compute matrices            */
     /*--------------------------------------*/

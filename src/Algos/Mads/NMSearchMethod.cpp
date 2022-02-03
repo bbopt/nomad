@@ -45,27 +45,30 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/NMSearchMethod.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/EvcInterface.hpp"
-#include "../../Algos/NelderMead/NM.hpp"
 #include "../../Algos/NelderMead/NMAllReflective.hpp"
 
 void NOMAD::NMSearchMethod::init()
 {
-    if ( _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL") )
+    // For some testing, it is possible that _runParams is null or evaluator control is null
+    bool nmSearch = false;
+    if ( nullptr != _runParams && nullptr != NOMAD::EvcInterface::getEvaluatorControl() )
     {
-        setStepType(NOMAD::StepType::SEARCH_METHOD_NM);
+        if ( _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL") )
+        {
+            setStepType(NOMAD::StepType::SEARCH_METHOD_NM);
+        }
+        else
+        {
+            setStepType(NOMAD::StepType::ALGORITHM_NM);
+        }
+        nmSearch = _runParams->getAttributeValue<bool>("NM_SEARCH");
     }
-    else
-    {
-        setStepType(NOMAD::StepType::ALGORITHM_NM);
-    }
-
-    auto nmSearch = _runParams->getAttributeValue<bool>("NM_SEARCH");
     setEnabled(nmSearch);
-
+    
+    
     if (nmSearch)
     {
         // Set the lap counter
@@ -75,38 +78,42 @@ void NOMAD::NMSearchMethod::init()
         {
             NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval( dim*nmFactor );
         }
+        
+        // NM is an algorithm with its own stop reasons.
+        _nmStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::NMStopType>>();
+        
+        // Create the NM algorithm with its own stop reason
+        _nm = std::make_unique<NOMAD::NM>(this,
+                                              _nmStopReasons ,
+                                              _runParams,
+                                              _pbParams);
+        
     }
 }
 
 
 bool NOMAD::NMSearchMethod::runImp()
 {
-    // NM is an algorithm with its own stop reasons.
-    auto nmStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::NMStopType>>();
+   
+    _nm->setEndDisplay(false);
 
-    // Create the NM algorithm with its own stop reason
-    auto nm = std::make_shared<NOMAD::NM>(this,
-                                          nmStopReasons ,
-                                          _runParams,
-                                          _pbParams);
-    nm->setEndDisplay(false);
+    _nm->start();
+    bool foundBetter = _nm->run();
+    _nm->end();
 
-    nm->start();
-    bool foundBetter = nm->run();
-    nm->end();
-
+    // Maybe use _nmStopReason to update parent algorithm
+    
     return foundBetter;
 }
 
 
-void NOMAD::NMSearchMethod::generateTrialPointsImp()
+void NOMAD::NMSearchMethod::generateTrialPointsFinal()
 {
     // The trial points of one iteration of NM reflective steps are generated (not evaluated).
     // The trial points are Reflect, Expansion, Inside and Outside Contraction NM points
 
     auto madsIteration = getParentOfType<MadsIteration*>();
 
-    // Note: Use first point of barrier as simplex center.
     NOMAD::NMAllReflective allReflective(this,
                             std::make_shared<NOMAD::EvalPoint>(getMegaIterationBarrier()->getFirstPoint()),
                             madsIteration->getMesh());

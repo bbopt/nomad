@@ -69,22 +69,6 @@ void NOMAD::NM::init()
     _initialization = std::make_unique<NOMAD::NMInitialization>( this );
 }
 
-
-void NOMAD::NM::startImp()
-{
-    // All stop reasons are reset.
-    _stopReasons->setStarted();
-
-    // Reset the lapBbEval counter for this sub-optimization
-    NOMAD::EvcInterface::getEvaluatorControl()->resetLapBbEval();
-
-    _initialization->start();
-    _initialization->run();
-    _initialization->end();
-
-}
-
-
 bool NOMAD::NM::runImp()
 {
     _algoSuccessful = false;
@@ -113,20 +97,18 @@ bool NOMAD::NM::runImp()
         }
 
         NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
-
+        
+        // Create a MegaIteration: manage multiple iterations.
+        NOMAD::NMMegaIteration megaIteration(this, k, barrier, megaIterSuccess);
         while (!_termination->terminate(k))
         {
-            // Create a MegaIteration: manage multiple iterations.
-            NOMAD::NMMegaIteration megaIteration(this, k, barrier, megaIterSuccess);
             megaIteration.start();
             bool currentMegaIterSuccess = megaIteration.run();
             megaIteration.end();
 
             _algoSuccessful = _algoSuccessful || currentMegaIterSuccess;
 
-            // Remember these values to construct the next MegaIteration.
-            k       = megaIteration.getNextK();
-            barrier = megaIteration.getBarrier();
+            k       = megaIteration.getK();
             megaIterSuccess = megaIteration.getSuccessType();
 
             if ( megaIterSuccess > _algoBestSuccess )
@@ -141,9 +123,9 @@ bool NOMAD::NM::runImp()
         }
 
         // Issue #372: For hot restart make sure to save the simplex (maybe as X0s)
-        // _megaIteration is used for hot restart (read
+        // _refMegaIteration is used for hot restart (read
         // and write), as well as to keep values used in Mads::end(). Update it here.
-        _megaIteration = std::make_shared<NOMAD::NMMegaIteration>(this, k, barrier, megaIterSuccess);
+        _refMegaIteration = std::make_shared<NOMAD::NMMegaIteration>(this, k, barrier, megaIterSuccess);
 
         _termination->start();
         _termination->run();
@@ -178,15 +160,10 @@ void NOMAD::NM::readInformationForHotRestart()
             NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
 
 
-            _megaIteration = std::make_shared<NOMAD::NMMegaIteration>(this, k, barrier, success);
+            _refMegaIteration = std::make_shared<NOMAD::NMMegaIteration>(this, k, barrier, success);
 
             // Here we use NM::operator>>
             NOMAD::read<NM>(*this, hotRestartFile);
         }
     }
-}
-
-void NOMAD::NM::endImp()
-{
-    NOMAD::Algorithm::endImp();
 }
