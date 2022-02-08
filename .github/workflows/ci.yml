@@ -102,4 +102,8 @@ jobs:
           name: ${{ matrix.config.os }}
           path:  |
              build/bin
+             build/lib
+             LICENSE
+             README.txt
              examples
+             
