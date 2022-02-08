@@ -235,7 +235,7 @@ Algorithmic parameters
    :header: "Name", "Argument", "Short description", "Default"
    :widths: 20,7,20,7
 
-   :ref:`DIRECTION_TYPE <direction_type>` , direction type, type of directions for the poll , ``ORTHO 2N``
+   :ref:`DIRECTION_TYPE <direction_type>` , direction type, type of directions for the poll , ``ORTHO N+1 QUAD``
    F_TARGET , real :math:`t` , NOMAD terminates if :math:`f(x_k) \leq t` for the objective function, none
    :ref:`INITIAL_MESH_SIZE <initial_mesh_size>` , array of doubles, :math:`\delta_0` [AuDe2006]_ , none
    :ref:`INITIAL_FRAME_SIZE <initial_mesh_size>` , array of doubles, :math:`\Delta_0` [AuDe2006]_ , ``r0.1`` or based on ``X0``
@@ -256,6 +256,7 @@ This parameter defines the type of directions for *Mads* *Poll* step. The possib
 .. csv-table:: Direction types
    :widths: 6,20
 
+   ``ORTHO N+1 QUAD``, "OrthoMADS, n+1, with ((n+1)th dir = quad model optimization) [Default since 4.2][AuIaLeDTr2014]_"
    ``ORTHO 2N``, "OrthoMADS, 2n. This corresponds to the original *Ortho Mads* algorithm [AbAuDeLe09]_ with :math:`2n` directions."
    ``ORTHO N+1 NEG``, "OrthoMADS, n+1, with ((n+1)th dir = negative sum of the first n dirs) [AuIaLeDTr2014]_"
    ``N+1 UNI``, "MADS with n+1, using :math:`n+1` uniformly distributed directions."
@@ -370,4 +371,4 @@ These parameters display information each time a new feasible incumbent (i.e. a 
 .. topic:: References
 
   .. [AuDe04a] C. Audet and J.E. Dennis, Jr. A pattern search filter method for nonlinear programming without derivatives. *SIAM Journal on Optimization*, 14(4):980–1010, 2004.
-  .. [AuIaLeDTr2014] C. Audet and A. Ianni and S. Le~Digabel and C. Tribes. Reducing the Number of Function Evaluations in Mesh Adaptive Direct Search Algorithms. *SIAM Journal on Optimization*, 24(2):621-642, 2014.
+  .. [AuIaLeDTr2014] C. Audet and A. Ianni and S. Le Digabel and C. Tribes. Reducing the Number of Function Evaluations in Mesh Adaptive Direct Search Algorithms. *SIAM Journal on Optimization*, 24(2):621-642, 2014.

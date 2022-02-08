@@ -4,10 +4,10 @@ Optimization in library mode
 ----------------------------
 
 The library mode allows to tailor the evaluation of the objectives and constraints within a
-specialized executable that contains NOMAD shared object library.
+specialized executable that calls NOMAD shared object libraries.
 
-For example, it is possible to link your own code with the NOMAD library (provided during installation)
-in a single executable that can define and run optimization for your problem. Contrary to the batch
+For example, it is possible to link your own code with the NOMAD libraries (provided during installation or built)
+in a light executable that can define and run optimization for your problem. Contrary to the batch
 mode, this has the disadvantage that a crash within the executable (for example during the evaluation of a point)
 will end the optimization unless a special treatment of exception is provided by the user.
 But, as a counterpart, it offers more options and flexibility for blackbox integration and
@@ -15,7 +15,7 @@ optimization management (display, pre- and post-processing, multiple optimizatio
 
 The library mode requires additional coding and compilation before conducting optimization.
 First, we will briefly review the compilation of source code to obtain NOMAD binaries
-(executable and shared object libraries) and how to use library.
+(executable and shared object libraries) and how to use them.
 Then, details on how to interface your own code are presented.
 
 Compilation of the source code
@@ -32,8 +32,7 @@ If it is not the case, please consider making a copy in a more convenient locati
 Using NOMAD libraries
 ^^^^^^^^^^^^^^^^^^^^^
 
-Using the routines that are in the pre-compiled NOMAD shared object libraries (so) or dll
-(not yet available for Windows) with a ``C++`` program requires building an executable
+Calling functionalities in NOMAD shared object libraries (so or dll) requires to build a ``C++`` program and link it with the libraries to form an executable
 (:ref:`installation` describes how to build the libraries and the examples). This is illustrated on the example located in the directory::
 
   $NOMAD_HOME/examples/basic/library/example1
@@ -42,11 +41,10 @@ It is supposed that the environment variable ``NOMAD_HOME`` is defined and NOMAD
 object libraries are built. A basic knowledge of object oriented programming with ``C++`` is assumed.
 For this example, just one ``C++`` source file is used, but there could be a lot more.
 
-Test the basic example 1
-""""""""""""""""""""""""
+Basic example 1
+"""""""""""""""
 
-Let us first test the basic example to check that libraries are working fine and accessible.
-Library mode examples are built during the installation procedure (unless the flag ``BUILD_LIBMODE_EXAMPLES`` is set to ``OFF``)::
+Library mode examples are built during the installation procedure. Let us first test the basic example to check that libraries are working fine and accessible::
 
   > cd $NOMAD_HOME/examples/basic/library/example1
   > ls
@@ -55,40 +53,23 @@ Library mode examples are built during the installation procedure (unless the fl
   All variables are granular. MAX_EVAL is set to 1000000 to prevent algorithm from circling around best solution indefinetely
   BBE OBJ
   1 -28247.525326  (Phase One)
-  12   -398.076167  (Phase One)
-  55   -413.531262
-  81  -1084.90725
-  136  -1632.176507
-  188  -1754.758402
-  201  -1787.5835
-  260  -1967.858372
-  764  -1967.860497
-  765  -1967.866871
-  766  -1967.885992
-  767  -1967.943355
-  768  -1968.115446
-  769  -1968.63171
-  770  -1970.180451
-  771  -1974.828012
-  772  -1988.763221
-  862  -1989.292074
-  863  -1990.878576
-  864  -1995.637558
-  895  -1999.023493
-  940  -1999.116474
-  942  -1999.395208
-  957  -1999.556452
-  961  -1999.835309
-  A termination criterion is reached: Max number of blackbox evaluations (Eval Global) No more points to evaluate 1001
+  5   -398.076167  (Phase One)
+  47   -413.531262
+  51   -490.074916
+  59   -656.349576
+  60  -1192.679165
+  65  -1595.921082
+  A termination criterion is reached: Maximum number of blackbox evaluations (Eval Global) No more points to evaluate 1000
 
-  Best feasible solution:     #44485 ( 1.81678 5.21878 4.40965 8.1 15.1 8.8 5 10.1 1.6 5.5 )	Evaluation OK	 f = -1999.835309000000052     	 h =   0
+  Best feasible solution:     #171 ( 0.9 24.4 2.4 7.8 5.6 10.5 3.8 9.9 2.7 6.5 )	Evaluation OK	 f = -1595.9210820000000695    	 h =   0
 
-  Best infeasible solution:   #44525 ( -26570.1 0 -5895.58 -3.58722e+06 -8.60934e+06 -5.73956e+06 -1.36315e+07 5.73957e+06 1.14791e+07 2.86978e+06 )	Evaluation OK	 f = -1151.1639900000000125    	 h =   0.5625
+  Best infeasible solution:   #66734 ( 0 -1.39247e+08 2.57422e+07 -6.45581e+06 -8.23276e+07 -8.42645e+06 7.52545e+07 6.46595e+07 1.91927e+07 3.1608e+07 )	Evaluation OK	 f = -1999.9964250000000447    	 h =   0.5625
 
-  Blackbox evaluations:        1001
-  Total model evaluations:     41241
-  Cache hits:                  104
-  Total number of evaluations: 1105
+  Blackbox evaluations:        1000
+  Total model evaluations:     64042
+  Cache hits:                  205
+  Total number of evaluations: 1205
+
 
 Modify ``CMake`` files
 """"""""""""""""""""""
@@ -338,7 +319,7 @@ For the example, the parameters are set in
       bbOutputTypes.push_back(NOMAD::BBOutputType::OBJ);    // f
       bbOutputTypes.push_back(NOMAD::BBOutputType::EB);     // c2000
       allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
-
+      allParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_2N);
       allParams->setAttributeValue("DISPLAY_DEGREE", 2);
       allParams->setAttributeValue("DISPLAY_ALL_EVAL", false);
       allParams->setAttributeValue("DISPLAY_UNSUCCESSFUL", false);
@@ -358,28 +339,31 @@ Otherwise an exception is triggered.
 Access to solution and optimization data
 """"""""""""""""""""""""""""""""""""""""
 
-**Not available yet**
+In the basic example 1, final information is displayed at the end of an algorithm. More specialized access to solution and optimization data is allowed.
 
-.. In the basic example 1, final information is displayed at the end of an algorithm. More specialized access to solution and optimization data is allowed.
+To access the best feasible and infeasible points, use
 
-.. To access the best feasible and infeasible points, use the methods \sComp{NOMAD::Mads::get\_best}\-\sComp{\_feasible()} and \sComp{NOMAD::Mads::get\_best\_infeasible()}. To access optimization data or statistics, call the method \sComp{NOMAD::Mads::get\_stats()} which returns access to  a \sComp{NOMAD::Stats} object. Then, use the access methods defined in \sComp{Stats.hpp}. For example, to display the number of blackbox evaluations, write:
+``NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD, nullptr);``
 
-.. NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD, nullptr);
-.. NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD,nullptr);
+``NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD,nullptr);``
 
+** More stats will be available in future version. **
 
 Matlab interface
 -----------------
 
-.. note:: Building the Matlab MEX interface requires compatibility of the versions of Matlab and the compiler. 
-Check the compatibility at `MathWorks <https://www.mathworks.com/support/requirements/supported-compilers.html>`_ 
+.. note:: Building the Matlab MEX interface requires compatibility of the versions of Matlab and the compiler. Check the compatibility at `MathWorks <https://www.mathworks.com/support/requirements/supported-compilers.html>`_.
 
 The Matlab MEX interface allows to run NOMAD within the command line of Matlab.
 Some examples and source codes are provided in ``$NOMAD_HOME/interface/Matlab_MEX``.
-To enable the building of the Python interface, option ``-DBUILD_INTERFACE_MATLAB=ON`` must be
-set when configuring for building NOMAD, as such: ``cmake -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release``.
-The command ``cmake --install build/release`` must be run before using the Matlab ``nomadOpt`` function. Also, 
-the Matlab command ``addpath()``
+To enable the building of the interface, option ``-DBUILD_INTERFACE_MATLAB=ON`` must be
+set when configuring for building NOMAD, as such: ``cmake -DTEST_OPENMP=OFF -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release``.
+
+.. warning:: Building the Matlab MEX interface is disabled when NOMAD uses OpenMP. Hence, the option ``-DTEST_OPENMP=OFF`` must be passed during configuration.
+
+The command ``cmake --build build/release`` (or ``cmake --build build/release --config Release`` for Windows) is used for building the selected configuration.
+The command ``cmake --install build/release`` must be run before using the Matlab ``nomadOpt`` function. Also,
+the Matlab command ``addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib'))`` or ``addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib64'))`` must be executed to have access to the libraries and run the examples.
 
 All functionalities of NOMAD are available in ``nomadOpt``.
 NOMAD parameters are provided in a Matlab structure with keywords and values using the same syntax as used in the NOMAD parameter
@@ -390,16 +374,20 @@ files. For example, ``params = struct('initial_mesh_size','* 10','MAX_BB_EVAL','
 PyNomad interface
 -----------------
 
-.. note:: The Python interface requires Python 3.6 and Cython 0.24. 
-
-.. note:: Currently, PyNomad cannot be built when using Windows.
-
-A Python interface for NOMAD is provided for Mac OS X and Linux.
+A Python interface for NOMAD called PyNomad can be obtained by building source codes.
 Some examples and source codes are provided in ``$NOMAD_HOME/interfaces/PyNomad``.
+
+.. note:: The build procedure relies on Python 3.6 and Cython 0.24 or higher. A simple way to make it work is to first install the `Anaconda <http://www.anaconda.org/>`_ package.
+
 To enable the building of the Python interface, option ``-DBUILD_INTERFACE_PYTHON=ON`` must be
-set when configuring for building NOMAD, as such: ``cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release``.
-The build procedure relies on Python 3.6 and Cython 0.24 or higher.
-A simple way to make it work is to first install the `Anaconda <http://www.anaconda.org/>`_ package.
+set when configuring for building NOMAD. The configuration command ``cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release`` must be performed within a Conda environment with Cython available (``conda activate ...`` or ``activate ...``).
+
+For Windows, the default Anaconda is Win64. Visual Studio can support both Win32 and Win64 compilations.
+The configuration must be forced to use Win64 with a command such as ``cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release -G"Visual Studio 15 2017 Win64"``.
+The Visual Studio version must be adapted.
+
+The command ``cmake --build build/release`` (or ``cmake --build build/release --config Release`` for Windows) is used for building the selected configuration.
+
 The command ``cmake --install build/release`` must be run before using the PyNomad module.
 
 All functionalities of NOMAD are available in PyNomad.
@@ -411,10 +399,13 @@ running.
 C interface
 -----------
 
-A C interface for NOMAD is provided for Mac OS X and Linux.
+A C interface for NOMAD is available.
 The source codes are provided in ``$NOMAD_HOME/interfaces/CInterface/``.
 To enable the building of the C interface, option ``-DBUILD_INTERFACE_C=ON`` must be
 set when building NOMAD, as such: ``cmake -DBUILD_TESTS=ON -S . -B build/release``.
+
+The command ``cmake --build build/release`` (or ``cmake --build build/release --config Release`` for Windows) is used for building the selected configuration.
+
 The command ``cmake --install build/release`` must be run before using the library.
 
 All functionalities of NOMAD are available in the C interface.
