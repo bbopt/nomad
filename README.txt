@@ -184,12 +184,16 @@ There are examples in batch mode in examples/basic/batch/.
 In each directory, the blackbox functions (usually named bb) are compiled 
 by default. The problem may be resolved using NOMAD and the parameter file:
 
-nomad param.txt
+$NOMAD_HOME/build/release/bin/nomad param.txt
+
+For convenience, the path to $NOMAD_HOME/build/release/bin directory can 
+be added to the $PATH environement variable. For *Windows*, this is 
+achieved by setting the parameters for environment variable %PATH%. 
 
 Library Mode:
-There are examples in library mode in examples/basic/library/.
+There are examples in library mode in $NOMAD_HOME/examples/basic/library/.
 In each directory, the executable may be compiled when building
 Nomad application. The problems may be resolved by execution,
 for instance:
 
-example_lib.exe
+./example_lib.exe
