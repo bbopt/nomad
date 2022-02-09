@@ -20,7 +20,7 @@ Here are a few suggestions for tuning NOMAD when facing different symptoms. The 
    " ",	Tighten bounds , :ref:`bounds`
    Many variables ,	Fix some variables  , :ref:`fixed_variable`
    " ",	Use *PSD-MADS*  , :ref:`psd_mads`
-   Unsatisfactory solution ,	Change direction type to ``N+1 UNI`` or ``N+1 NEG`` , :ref:`direction_type`
+   Unsatisfactory solution ,	Change direction type to ``2N`` or ``N+1 UNI`` or ``N+1 NEG`` , :ref:`direction_type`
    " ", 	Change initial point , :ref:`LH Search and X0 <x0>`
    " ", 	Add a LH search , :ref:`LH Search and X0 <x0>`
    " ", 	Add a VNS Mads search , :ref:`VNS Mads Search <vns_search>`

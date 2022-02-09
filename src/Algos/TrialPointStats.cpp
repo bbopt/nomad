@@ -69,6 +69,10 @@ void NOMAD::TrialPointStats::init()
     initializeMap(_nbTotalTrialPointsGenerated);
     initializeMap(_nbCurrentTrialPointsGenerated);
     
+#ifdef _OPENMP
+    omp_init_lock(&_updateLock);
+#endif
+    
 }
 
 void NOMAD::TrialPointStats::initializeMap(std::map<EvalType, size_t> & counter)

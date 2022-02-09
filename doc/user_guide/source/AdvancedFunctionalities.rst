@@ -17,6 +17,9 @@ Also a complete list of parameters and a short description is available in :ref:
 
 Allows ordering of points before evaluation. This option has an effect only if the opportunistic strategy is enabled (parameter :ref:`eval_opportunistic`). The possible arguments are:
 
+
+* ``QUADRATIC_MODEL``: Sort points using values given by dynamic quadratic models.
+
 * ``DIR_LAST_SUCCESS``: Points that are generated in a direction similar to the last direction that provided a successful point are evaluated first.
 
 * ``LEXICOGRAPHICAL``: Points are sorted in lexicographical order before evaluation.
@@ -275,10 +278,10 @@ An example of usage of PSD-MADS in library mode is in
 Hot and Warm Restart
 --------------------
 
-This new feature of NOMAD 4 makes it possible to continue the solving process after it has started, 
+This new feature of NOMAD 4 makes it possible to continue the solving process after it has started,
 without having to restart it from the beginning.
-In the case of hot restart, the user interrupts the solver to change the value of a parameter. 
-With warm restart, the user changes a parameter from a resolution that has already reached a termination condition. 
+In the case of hot restart, the user interrupts the solver to change the value of a parameter.
+With warm restart, the user changes a parameter from a resolution that has already reached a termination condition.
 In both cases, the solving process is then continued from its current state.
 
 Hot restart
@@ -335,4 +338,3 @@ A local doxygen documentation can be created by running the ``doxygen`` command 
   .. [MlHa97a] N. Mladenović and P. Hansen.
     Variable neighborhood search.
     *Computers and Operations Research*, 24(11):1097–1100, 1997.
-

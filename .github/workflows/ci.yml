@@ -100,4 +100,10 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.config.os }}
-          path: build
+          path:  |
+             build/bin
+             build/lib
+             LICENSE
+             README.txt
+             examples
+             

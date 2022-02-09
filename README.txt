@@ -86,6 +86,14 @@ On Linux, Unix, Windows and Mac OS X, NOMAD can be compiled using CMake.
 The minimum version of CMake is 3.14. Older versions will trigger
 an error. A recent C++ compiler is also required.
 
+Before starting the procedure we recommend to set the environment variable 
+$NOMAD_HOME with the path where NOMAD has been copied. For Linux and OSX,
+
+export NOMAD_HOME=/home/myUserName/PathToNomad
+
+For Windows, add an environment variable %NOMAD_HOME% containing the path.
+The remaining text uses the $NOMAD_HOME environment variable.
+
 The procedure is the following. On the command line in the
  $NOMAD_HOME directory:
 
@@ -93,34 +101,30 @@ cmake -S . -B build/release
     ---> Create the CMake files and directories for building (-B) in build/release.
          The source (-S) CMakeLists.txt file is in the $NOMAD_HOME directory.
 
-         To enable time stats build:
-              cmake -DTIME_STATS=ON -S . -B build/release
+         To deactivate compilation with OpenMP:
+              cmake -DTEST_OPENMP=OFF -S . -B build/release
 
-         To enable C interface building:
+         To enable *C interface* building:
               cmake -DBUILD_INTERFACE_C=ON -S . -B build/release
 
-         To enable Matlab interface building:
-              cmake -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release
+         To enable *Matlab* interface building:
+              cmake -DBUILD_INTERFACE_MATLAB=ON  -DTEST_OPENMP=OFF -S . -B build/release
               ! Compiler version and Matlab version need to be compatible;
               ! Check https://www.mathworks.com/support/requirements/supported-compilers.html
                
               ! The Matlab interface will not be built if OpenMP is enabled.
 
               ! An extra addpath Matlab command must be done to have access 
-              to nomad Mex binaries, 
+              to nomad Mex binaries. 
 
-         To enable Python interface (PyNomad) building:
+         To enable *Python* interface (PyNomad) building:
               cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release
-              ! The Matlab interface will not be built if OpenMP is enabled.
-
+             
               ! Building requires to have Cython. Cython can be obtained with
               Anaconda distribution platform.
   
               ! On *Windows*, using Visual Studio, see the user guide to properly
               manage X86/X64 building of binaries. 
-
-         To deactivate compilation with OpenMP:
-              cmake -DTEST_OPENMP=OFF -S . -B build/release
 
 
 cmake --build build/release     
@@ -176,16 +180,20 @@ make --install build/debug
 EXAMPLES OF OPTIMIZATION:
 
 Batch Mode:
-There are examples in batch mode in examples/basic/batch/.
+There are examples in batch mode in $NOMAD_HOME/examples/basic/batch/.
 In each directory, the blackbox functions (usually named bb) are compiled 
 by default. The problem may be resolved using NOMAD and the parameter file:
 
-nomad param.txt
+$NOMAD_HOME/build/release/bin/nomad param.txt
+
+For convenience, the path to $NOMAD_HOME/build/release/bin directory can 
+be added to the $PATH environment variable. For *Windows*, this is 
+achieved by setting the parameters for environment variable %PATH%. 
 
 Library Mode:
-There are examples in library mode in examples/basic/library/.
+There are examples in library mode in $NOMAD_HOME/examples/basic/library/.
 In each directory, the executable may be compiled when building
 Nomad application. The problems may be resolved by execution,
 for instance:
 
-example_lib.exe
+./example_lib.exe
