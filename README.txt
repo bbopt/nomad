@@ -180,14 +180,14 @@ make --install build/debug
 EXAMPLES OF OPTIMIZATION:
 
 Batch Mode:
-There are examples in batch mode in examples/basic/batch/.
+There are examples in batch mode in $NOMAD_HOME/examples/basic/batch/.
 In each directory, the blackbox functions (usually named bb) are compiled 
 by default. The problem may be resolved using NOMAD and the parameter file:
 
 $NOMAD_HOME/build/release/bin/nomad param.txt
 
 For convenience, the path to $NOMAD_HOME/build/release/bin directory can 
-be added to the $PATH environement variable. For *Windows*, this is 
+be added to the $PATH environment variable. For *Windows*, this is 
 achieved by setting the parameters for environment variable %PATH%. 
 
 Library Mode:
