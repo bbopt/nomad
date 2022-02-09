@@ -58,8 +58,8 @@
 //
 // Note: As of September 2019, this class is not used by NOMAD.
 
-#ifndef __NOMAD_4_0_BB_INPUT__
-#define __NOMAD_4_0_BB_INPUT__
+#ifndef __NOMAD_4_2_BB_INPUT__
+#define __NOMAD_4_2_BB_INPUT__
 
 
 #include "../Math/Point.hpp"
@@ -110,4 +110,4 @@ inline std::ostream& operator<<(std::ostream& out, const BBInput &bbinput)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_0_BB_INPUT__
+#endif  // __NOMAD_4_2_BB_INPUT__

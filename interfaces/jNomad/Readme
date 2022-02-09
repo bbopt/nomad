@@ -1,0 +1,20 @@
+How to compile Java wrapper for Nomad ?
+=======================================
+Requirements:
+ - SWIG (http://www.swig.org/)
+ - C/C++ compiler
+ - Java (JDK >=8)
+
+Step 1: In the $NOMAD_HOME directory do
+cmake -DBUILD_INTERFACE_JAVA=ON -S . -B build/release
+cmake --build build/release
+cmake --install build/release
+
+How to run the example ?
+========================
+
+Step 2: In the $NOMAD_HOME/interfaces/jNomad do
+javac -cp ./jNomad.jar Examples/Rosenbrock.java
+java -cp .:./jNomad.jar Examples/Rosenbrock
+
+

@@ -62,7 +62,11 @@ void NOMAD::QuadSearchMethod::init()
 
     const auto parentSearch = getParentStep()->getParentOfType<NOMAD::QuadSearchMethod*>(false);
 
-    setEnabled((nullptr == parentSearch) && _runParams->getAttributeValue<bool>("QUAD_MODEL_SEARCH"));
+    // For some testing, it is possible that _runParams is null or evaluator control is null
+    setEnabled((nullptr == parentSearch)
+               && (nullptr !=_runParams)
+               && _runParams->getAttributeValue<bool>("QUAD_MODEL_SEARCH")
+               &&  (nullptr != EvcInterface::getEvaluatorControl()));
 #ifndef USE_SGTELIB
     if (isEnabled())
     {
@@ -103,7 +107,7 @@ void NOMAD::QuadSearchMethod::init()
 }
 
 
-void NOMAD::QuadSearchMethod::generateTrialPointsImp()
+void NOMAD::QuadSearchMethod::generateTrialPointsFinal()
 {
 #ifdef USE_SGTELIB
     // The trial points are generated for a feasible frame center and an infeasible one.
@@ -121,7 +125,7 @@ void NOMAD::QuadSearchMethod::generateTrialPointsImp()
             && bestXFeas->getF(evalType, computeType).isDefined()
             && bestXFeas->getF(evalType, computeType) < MODEL_MAX_OUTPUT)
         {
-            NOMAD::QuadModelSinglePass singlePassFeas(this, bestXFeas, madsIteration->getMesh());
+            NOMAD::QuadModelSinglePass singlePassFeas(this, bestXFeas, madsIteration->getMesh(),{} /* no scaling direction */);
 
             // Generate the trial points
             singlePassFeas.generateTrialPoints();
@@ -140,7 +144,7 @@ void NOMAD::QuadSearchMethod::generateTrialPointsImp()
             && bestXInf->getH(evalType, computeType).isDefined()
             && bestXInf->getH(evalType, computeType) < MODEL_MAX_OUTPUT)
         {
-            NOMAD::QuadModelSinglePass singlePassInf(this, bestXInf, madsIteration->getMesh());
+            NOMAD::QuadModelSinglePass singlePassInf(this, bestXInf, madsIteration->getMesh(),{} /* no scaling direction */);
 
             // Generate the trial points
             singlePassInf.generateTrialPoints();

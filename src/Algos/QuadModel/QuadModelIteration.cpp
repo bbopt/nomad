@@ -51,23 +51,9 @@
 #include "../../Algos/QuadModel/QuadModelUpdate.hpp"
 #include "../../../ext/sgtelib/src/Surrogate_Factory.hpp"
 
-void NOMAD::QuadModelIteration::reset()
-{
-    if (nullptr != _model)
-    {
-        _model.reset();
-    }
-
-    if (nullptr != _trainingSet)
-    {
-        _trainingSet.reset();
-    }
-}
-
 
 void NOMAD::QuadModelIteration::init()
 {
-    setStepType(NOMAD::StepType::ITERATION);
 
     // Count the number of constraints
     const auto bbot = NOMAD::QuadModelAlgo::getBBOutputType();
@@ -81,21 +67,39 @@ void NOMAD::QuadModelIteration::init()
 
     // The quadratic model uses Sgtelib
     _model = std::shared_ptr<SGTELIB::Surrogate>(SGTELIB::Surrogate_Factory(*_trainingSet, "TYPE PRS"));
+    
+    if (_trialPoints.size() > 0)
+    {
+        _useForSortingTrialPoints = true;
+        setStepType(NOMAD::StepType::QUAD_MODEL_SORT);
+    }
 
+}
+
+std::string NOMAD::QuadModelIteration::getName() const
+{
+    if (_useForSortingTrialPoints)
+    {
+        return NOMAD::stepTypeToString(_stepType) + " #" + std::to_string(_k);
+    }
+    else
+    {
+        return NOMAD::Iteration::getName();
+    }
 }
 
 
 void NOMAD::QuadModelIteration::startImp()
 {
-    incK();
 
     // Select the sample points to construct the model. Use a center pt and the cache
-    NOMAD::QuadModelUpdate update(this);
+    
+    NOMAD::QuadModelUpdate update(this, std::vector<Direction>() /* no scaling directions */, _trialPoints);
     update.start();
     bool updateSuccess = update.run();
     update.end();
 
-    if ( ! updateSuccess )
+    if ( ! updateSuccess && ! _useForSortingTrialPoints)
     {
         auto qmsStopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get ( getAllStopReasons() );
 
@@ -111,8 +115,8 @@ bool NOMAD::QuadModelIteration::runImp()
 
     bool iterationSuccess = false;
 
-    // Initialize optimize member - model optimizer on sgte
-    NOMAD::QuadModelOptimize optimize (this, _pbParams);
+    // Initialize optimize member on model
+    NOMAD::QuadModelOptimize optimize (this, _pbParams, false /* do not perform on a scaled models */);
 
     // Model Update is handled in start().
     if (!_stopReasons->checkTerminate() && _model->is_ready() )

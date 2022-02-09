@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_SINGLEPOLLMETHOD__
-#define __NOMAD_4_0_SINGLEPOLLMETHOD__
+#ifndef __NOMAD_4_2_SINGLEPOLLMETHOD__
+#define __NOMAD_4_2_SINGLEPOLLMETHOD__
 
 #include "../../Algos/Mads/PollMethodBase.hpp"
 #include "../../nomad_nsbegin.hpp"
@@ -59,7 +59,7 @@ public:
      /param parentStep      The parent of this search step -- \b IN.
      */
     explicit SinglePollMethod(const Step* parentStep,
-                              const EvalPoint& frameCenter)
+                              const EvalPointPtr frameCenter)
       : PollMethodBase(parentStep, frameCenter)
     {
         init();
@@ -77,10 +77,9 @@ private:
      \param n                      The dimension of the variable space -- \b IN.
       */
      void generateUnitPollDirections(std::list<Direction> &directions, const size_t n) const override final;
-
-
+    
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_SINGLEPOLLMETHOD__
+#endif // __NOMAD_4_2_SINGLEPOLLMETHOD__

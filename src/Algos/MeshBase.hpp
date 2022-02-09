@@ -51,8 +51,8 @@
  * \date   November 2017
  */
 
-#ifndef __NOMAD_4_0_MESHBASE__
-#define __NOMAD_4_0_MESHBASE__
+#ifndef __NOMAD_4_2_MESHBASE__
+#define __NOMAD_4_2_MESHBASE__
 
 #include <memory>   // for shared_ptr
 
@@ -87,6 +87,9 @@ protected:
     const ArrayOfDouble  _minFrameSize; ///< The minimum frame size (stopping criterion).
     const ArrayOfDouble _lowerBound;
     const ArrayOfDouble _upperBound;
+    
+    bool _isFinest;
+
 
 public:
 
@@ -242,7 +245,11 @@ public:
     \return     \c true if the point is on the mesh, false otherwise.
     */
     bool verifyPointIsOnMesh(const Point& point, const Point& frameCenter) const;
-
+    
+    /// Return if mesh is finest
+    bool isFinest() const {return _isFinest ;}
+     
+    
 private:
     /// Helper for constructor.
     void init();
@@ -254,6 +261,7 @@ protected:
     void verifyDimension(const std::string& arrayName, size_t dim);
 };
 
+typedef std::shared_ptr<MeshBase> MeshBasePtr;
 
 ///   Display useful values so that a new mesh could be constructed using these values.
 std::ostream& operator<<(std::ostream& os, const MeshBase& mesh);
@@ -264,4 +272,4 @@ std::istream& operator>>(std::istream& is, MeshBase& mesh);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_MESHBASE__
+#endif // __NOMAD_4_2_MESHBASE__

@@ -284,11 +284,11 @@ RESTART_ATTRIBUTE yes
 ################################################################################
 SGTELIB_MAX_POINTS_FOR_MODEL
 size_t
-100
+500
 \( Maximum number of valid points used to build a model \)
 \(
 . Defines the maximum number of valid points kept to build a model.
-  Extra points are ignored.
+  Extra points too far from center are ignored.
 
 . Arguments: one positive integer
 

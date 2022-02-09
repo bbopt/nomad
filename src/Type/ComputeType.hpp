@@ -52,8 +52,8 @@
  \see    ComputeType.cpp
  */
 
-#ifndef __NOMAD_4_0_COMPUTE_TYPE__
-#define __NOMAD_4_0_COMPUTE_TYPE__
+#ifndef __NOMAD_4_2_COMPUTE_TYPE__
+#define __NOMAD_4_2_COMPUTE_TYPE__
 
 #include <sstream>
 
@@ -79,10 +79,10 @@ enum class ComputeType
 ComputeType stringToComputeType(const std::string &s);
 
 // Convert an ComputeType to a string
-std::string computeTypeToString (const ComputeType& computeType);
+std::string computeTypeToString (ComputeType computeType);
 
 
-inline std::ostream& operator<<(std::ostream& out, const ComputeType &computeType)
+inline std::ostream& operator<<(std::ostream& out, ComputeType computeType)
 {
     out << computeTypeToString(computeType);
     return out;
@@ -90,4 +90,4 @@ inline std::ostream& operator<<(std::ostream& out, const ComputeType &computeTyp
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_0_COMPUTE_TYPE__
+#endif  // __NOMAD_4_2_COMPUTE_TYPE__

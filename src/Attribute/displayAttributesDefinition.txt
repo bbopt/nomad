@@ -61,14 +61,16 @@ int
 \( Level of verbose during execution \)
 \(
 
-. Argument: one integer in {0, 1, 2, 3} (basic) or one string in:
-    . 'NO', 'NO_DISPLAY',
-    . 'MIN', 'MINIMAL', 'MINIMAL_DISPLAY',
-    . 'NORMAL', 'NORMAL_DISPLAY',
-    . 'FULL', 'FULL_DISPLAY'
+. Argument: one integer:
+    . 0: No display. Print nothing.
+    . 1: High-level display. Print only errors and results.
+    . 2: Normal display. Print medium level like global information and useful information.
+    . 3: Info-level display. Print lots of information.
+    . 4: Debug-level display.
+    . 5: Even more display.
 
 . Example:
-    DISPLAY_DEGREE 2    # basic: normal display
+    DISPLAY_DEGREE 2    # normal display
 
 \)
 \( basic display verbose output(s) info(s) \)
@@ -181,7 +183,7 @@ RESTART_ATTRIBUTE yes
 ###############################################################################
 DISPLAY_UNSUCCESSFUL
 bool
-true
+false
 \( Flag to display unsuccessful \)
 \(
 

@@ -62,6 +62,7 @@ bool NOMAD::isAlgorithm(const StepType& stepType)
     switch (stepType)
     {
         case NOMAD::StepType::ALGORITHM_LH:
+        case NOMAD::StepType::ALGORITHM_CS:
         case NOMAD::StepType::ALGORITHM_MADS:
         case NOMAD::StepType::ALGORITHM_NM:
         case NOMAD::StepType::ALGORITHM_PHASE_ONE:
@@ -83,6 +84,7 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
 {
     static std::map<NOMAD::StepType,std::string> dictionary = {
         {NOMAD::StepType::ALGORITHM_LH, "Latin Hypercube"},
+        {NOMAD::StepType::ALGORITHM_CS, "Coordinate Search"},
         {NOMAD::StepType::ALGORITHM_MADS, "MADS"},
         {NOMAD::StepType::ALGORITHM_NM, "Nelder-Mead"},
         {NOMAD::StepType::ALGORITHM_PHASE_ONE, "Phase One"},
@@ -106,6 +108,7 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::NM_INITIALIZE_SIMPLEX, "NM Initialize Simplex"},
         {NOMAD::StepType::NM_INSERT_IN_Y, "NM Insert in Y"},
         {NOMAD::StepType::NM_INSIDE_CONTRACTION, "NM Inside Contraction"},
+        {NOMAD::StepType::NM_ITERATION, "NM Iteration"},
         {NOMAD::StepType::NM_OUTSIDE_CONTRACTION, "NM Outside Contraction"},
         {NOMAD::StepType::NM_REFLECT, "NM Reflect"},
         {NOMAD::StepType::NM_SHRINK, "NM Shrink"},
@@ -113,20 +116,26 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
 
         {NOMAD::StepType::OPTIMIZE, "Optimize"},
         {NOMAD::StepType::POLL, "Poll"},
+        {NOMAD::StepType::CS_POLL, "Coordinate Search Poll"},
         {NOMAD::StepType::POLL_METHOD_DOUBLE, "Double Poll Method"},
         {NOMAD::StepType::POLL_METHOD_ORTHO_NPLUS1_NEG, "Ortho N+1 Neg Poll Method"},
+        {NOMAD::StepType::POLL_METHOD_ORTHO_NPLUS1_QUAD, "Ortho N+1 Quad Poll Method"},
         {NOMAD::StepType::POLL_METHOD_ORTHO_2N, "Ortho 2N Poll Method"},
         {NOMAD::StepType::POLL_METHOD_SINGLE, "Single Poll Method"},
         {NOMAD::StepType::POLL_METHOD_UNI_NPLUS1, "Uniform N+1 Poll Method"},
+        {NOMAD::StepType::CS_POLL_METHOD, "Coordinate Search Poll Method"},
         {NOMAD::StepType::SEARCH, "Search"},
         {NOMAD::StepType::SEARCH_METHOD_LH, "Latin Hypercube Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_NM, "Nelder-Mead Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_QUAD_MODEL, "Quadratic Model Search Method"},
+        {NOMAD::StepType::SEARCH_METHOD_QUAD_MODEL_SLD, "Quadratic Model (SLD) Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_SGTELIB_MODEL, "Sgtelib Model Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_SPECULATIVE, "Speculative Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_USER, "User-Defined Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_VNS_MADS, "VNS Mads Search Method"},
         {NOMAD::StepType::SURROGATE_EVALUATION, "Points evaluated using static surrogate"},
+        {NOMAD::StepType::MODEL_EVALUATION, "Points evaluated using dynamic model"},
+        {NOMAD::StepType::QUAD_MODEL_SORT, "Build dynamic model for sorting points"},
         {NOMAD::StepType::TERMINATION, "Termination"},
         {NOMAD::StepType::UNDEFINED, "Undefined"},
         {NOMAD::StepType::UPDATE, "Update"}
@@ -148,19 +157,10 @@ std::string NOMAD::stepTypeToString(const NOMAD::StepType& stepType)
 std::string NOMAD::StepTypeListToString(const StepTypeList& stepTypeList)
 {
     std::string s;
-    bool showAlgorithm = false; // Too much information in general.
-    if (stepTypeList.size() > 1 && NOMAD::StepType::INITIALIZATION == (*stepTypeList.begin()))
-    {
-        showAlgorithm = true;
-    }
 
     bool first = true;  // First Step Type to be shown
     for (auto it = stepTypeList.rbegin(); it < stepTypeList.rend(); ++it)
     {
-        if (!showAlgorithm && isAlgorithm(*it))
-        {
-            continue;
-        }
         if (!first)
         {
             s += " - ";

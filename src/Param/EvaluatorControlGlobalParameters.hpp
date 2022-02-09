@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_EVALUATORCONTROLGLOBALPARAMETERS__
-#define __NOMAD_4_0_EVALUATORCONTROLGLOBALPARAMETERS__
+#ifndef __NOMAD_4_2_EVALUATORCONTROLGLOBALPARAMETERS__
+#define __NOMAD_4_2_EVALUATORCONTROLGLOBALPARAMETERS__
 
 #include "../Param/Parameters.hpp"
 #include "../Param/PbParameters.hpp"
@@ -82,5 +82,5 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_EVALUATORCONTROLGLOBALPARAMETERS__
+#endif // __NOMAD_4_2_EVALUATORCONTROLGLOBALPARAMETERS__
 

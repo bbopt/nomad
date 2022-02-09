@@ -50,9 +50,6 @@
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/Mads.hpp"
-#include "../../Algos/Mads/MegaSearchPoll.hpp"
-#include "../../Algos/Mads/Search.hpp"
-#include "../../Algos/Mads/Poll.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
 
@@ -72,11 +69,24 @@ double NOMAD::MadsIteration::_pollEvalTime = 0.0;
 void NOMAD::MadsIteration::init()
 {
     setStepType(NOMAD::StepType::ITERATION);
+    
+    // For some testing, it is possible that _runParams is null
+    if (nullptr != _runParams && _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
+    {
+        _megasearchpoll = std::make_unique<NOMAD::MegaSearchPoll>(this);
+    }
+    else
+    {
+        _poll = std::make_unique<NOMAD::Poll>(this);
+        _search = std::make_unique<NOMAD::Search>(this);
+    }
 }
 
 
 void NOMAD::MadsIteration::startImp()
 {
+    setSuccessType(NOMAD::SuccessType::NOT_EVALUATED);
+    
 #ifdef TIME_STATS
     _iterStartTime = NOMAD::Clock::getCPUTime();
 #endif // TIME_STATS
@@ -87,17 +97,16 @@ NOMAD::ArrayOfPoint NOMAD::MadsIteration::suggest()
 {
     NOMAD::ArrayOfPoint xs;
     
-    if (_runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
+    if (nullptr != _megasearchpoll)
     {
         OUTPUT_INFO_START
         AddOutputInfo("Mads Iteration Suggest. Mega Search Poll.");
         OUTPUT_INFO_END
         
         // suggest uses MegaSearchPoll for now
-        MegaSearchPoll megaStep( this );
-        megaStep.start();
+        _megasearchpoll->start();
         
-        auto trialPoints = megaStep.getTrialPoints();
+        auto trialPoints = _megasearchpoll->getTrialPoints();
         
         NOMAD::EvalPoint evalPointFound;
         for (auto trialPoint : trialPoints)
@@ -105,10 +114,14 @@ NOMAD::ArrayOfPoint NOMAD::MadsIteration::suggest()
             // Do not suggest points that are already in cache.
             if (0 == NOMAD::CacheBase::getInstance()->find(trialPoint, evalPointFound))
             {
-                xs.push_back(*trialPoint.getX());
+                // Do not suggest point already in vector
+                if (std::find(xs.begin(), xs.end(), *trialPoint.getX() ) == xs.end() )
+                {
+                    xs.push_back(*trialPoint.getX());
+                }
             }
         }
-        megaStep.end();
+        _megasearchpoll->end();
     }
     else
     {
@@ -126,19 +139,18 @@ bool NOMAD::MadsIteration::runImp()
 
     // Parameter Update is handled at the upper level - MegaIteration.
 
-    if (_runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL")
+    if ( nullptr != _megasearchpoll
         && !_stopReasons->checkTerminate())
     {
-        MegaSearchPoll megaStep( this );
-        megaStep.start();
+        _megasearchpoll->start();
 
-        bool successful = megaStep.run();
+        bool successful = _megasearchpoll->run();
 
-        megaStep.end();
+        _megasearchpoll->end();
 
         if (successful)
         {
-            bestSuccessYet = megaStep.getSuccessType();
+            bestSuccessYet = _megasearchpoll->getSuccessType();
             OUTPUT_DEBUG_START
             std::string s = getName() + ": new success " + NOMAD::enumStr(bestSuccessYet);
             s += " stopReason = " + _stopReasons->getStopReasonAsString() ;
@@ -146,26 +158,25 @@ bool NOMAD::MadsIteration::runImp()
             OUTPUT_DEBUG_END
         }
     }
-
     else
     {
         // 1. Search
-        if ( ! _stopReasons->checkTerminate() )
+        if ( nullptr != _search && ! _stopReasons->checkTerminate() )
         {
 #ifdef TIME_STATS
             double searchStartTime = NOMAD::Clock::getCPUTime();
             double searchEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
 #endif // TIME_STATS
-            NOMAD::Search search(this );
-            search.start();
-            iterationSuccess = search.run();
+        
+            _search->start();
+            iterationSuccess = _search->run();
 
-            NOMAD::SuccessType success = search.getSuccessType();
+            NOMAD::SuccessType success = _search->getSuccessType();
             if (success > bestSuccessYet)
             {
                 bestSuccessYet = success;
             }
-            search.end();
+            _search->end();
 #ifdef TIME_STATS
             _searchTime += NOMAD::Clock::getCPUTime() - searchStartTime;
             _searchEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - searchEvalStartTime;
@@ -173,7 +184,7 @@ bool NOMAD::MadsIteration::runImp()
 
         }
 
-        if ( ! _stopReasons->checkTerminate() )
+        if ( nullptr != _search && ! _stopReasons->checkTerminate() )
         {
             if (iterationSuccess)
             {
@@ -188,19 +199,18 @@ bool NOMAD::MadsIteration::runImp()
                 double pollEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
 #endif // TIME_STATS
                 // 2. Poll
-                NOMAD::Poll poll(this);
-                poll.start();
+                _poll->start();
                 // Iteration is a success if either a better xFeas or
                 // a better xInf (partial success or dominating) xInf was found.
                 // See Algorithm 12.2 from DFBO.
-                iterationSuccess = poll.run();
+                iterationSuccess = _poll->run();
 
-                NOMAD::SuccessType success = poll.getSuccessType();
+                NOMAD::SuccessType success = _poll->getSuccessType();
                 if (success > bestSuccessYet)
                 {
                     bestSuccessYet = success;
                 }
-                poll.end();
+                _poll->end();
 #ifdef TIME_STATS
                 _pollTime += NOMAD::Clock::getCPUTime() - pollStartTime;
                 _pollEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - pollEvalStartTime;

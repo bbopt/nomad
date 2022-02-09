@@ -52,8 +52,8 @@
  \see    RandomPickup.cpp
  */
 
-#ifndef __NOMAD_4_0_RANDOM_PICKUP__
-#define __NOMAD_4_0_RANDOM_PICKUP__
+#ifndef __NOMAD_4_2_RANDOM_PICKUP__
+#define __NOMAD_4_2_RANDOM_PICKUP__
 
 #include <cstdlib>
 #include "../Util/Uncopyable.hpp"
@@ -96,7 +96,7 @@ public:
     /// Get number of remaining values
     size_t getN() const { return _n; }
 
-    /// Reset.
+    /// Reset n to n0 and put back elems
     void reset();
 
     /// Randomly pick up an element in [0;n-1].
@@ -110,4 +110,4 @@ public:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_0_RANDOM_PICKUP__
+#endif // __NOMAD_4_2_RANDOM_PICKUP__

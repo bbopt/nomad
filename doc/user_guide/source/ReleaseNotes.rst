@@ -10,7 +10,7 @@ Some functionalities available in NOMAD 3 will be included in NOMAD 4 in future 
 * *RobustMads* [AudIhaLedTrib2016]_ and *StoMads* [G-2019-30]_
 * Categorical [AuDe01a]_ and periodical variables [AuLe2012]_
 
-The performance of NOMAD 4 and 3 are similar when the default parameters of NOMAD 4 are used (see [AuLeRoTr2021]_).
+The performance of NOMAD 4 and 3 are similar when the default parameters of NOMAD 3 are used (see [AuLeRoTr2021]_).
 
 .. topic:: References
 

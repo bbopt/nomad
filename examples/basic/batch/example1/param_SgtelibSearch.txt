@@ -1,0 +1,40 @@
+
+# PROBLEM PARAMETERS
+####################
+
+# Number of variables
+DIMENSION 10
+
+# Black box
+BB_EXE bb1.exe
+BB_OUTPUT_TYPE OBJ PB PB PB
+
+# Starting point
+X0 ( 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 )
+
+# Some variables must be multiple of 1, others of 0.5
+GRANULARITY ( 1 1 0.5 1 1 1 1 0.5 1 1 )
+
+
+# ALGORITHM PARAMETERS
+######################
+SGTELIB_MODEL_SEARCH yes
+
+SGTELIB_MODEL_DEFINITION TYPE ENSEMBLE_STAT UNCERTAINTY NONSMOOTH
+
+NM_SEARCH no
+QUAD_MODEL_SEARCH no
+
+
+# The algorithm terminates after that number black-box evaluations
+MAX_BB_EVAL 200
+
+# The algorithm terminates after that total number of evaluations,
+# including cache hits
+# MAX_EVAL 200
+
+# Parameters for display
+DISPLAY_DEGREE 2
+DISPLAY_ALL_EVAL 1
+DISPLAY_STATS BBE ( SOL ) OBJ GEN_STEP
+#STATS_FILE stats.txt BBE SOL OBJ

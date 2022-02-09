@@ -312,7 +312,8 @@ false
 MODEL_RADIUS_FACTOR
 NOMAD::Double
 2.0
-\( Deprecated from Nomad 3: replaced by QUAD_MODEL_RADIUS_FACTOR in Nomad 4 \)
+\( Deprecated from Nomad 3: replaced by QUAD_MODEL_SEARCH_xxx_FACTOR
+ in Nomad 4 \)
 \(
 \)
 \( internal \)

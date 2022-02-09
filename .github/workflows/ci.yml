@@ -1,0 +1,109 @@
+# All actions have a name that will be displayed in the "Actions" page in GitHub.
+name: CI
+
+# Controls when the action will run.
+on:
+  # push:
+  #  branches: [ develop ]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "nomad"
+  nomad:
+    # The type of runner that the job will run on
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Windows -- MSVC", artifact: "Windows-MSVC.tar.xz",
+            os: windows-latest,
+            build_type: "Release", cc: "cl", cxx: "cl",
+            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+          }
+        - {
+            name: "Windows -- MinGW", artifact: "Windows-MinGW.tar.xz",
+            os: windows-latest,
+            build_type: "Release", cc: "gcc", cxx: "g++"
+          }
+        - {
+            name: "Ubuntu", artifact: "Linux.tar.xz",
+            os: ubuntu-latest,
+            build_type: "Release", cc: "gcc", cxx: "g++"
+          }
+        - {
+            name: "MacOS", artifact: "macOS.tar.xz",
+            os: macos-latest,
+            build_type: "Release", cc: "clang", cxx: "clang++"
+          }
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # Usually this is always needed
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies on Windows
+        if: startsWith(matrix.config.name, 'Windows')
+        run: |
+          choco install cmake
+          cmake --version
+
+      - name: Install dependencies on Ubuntu
+        if: startsWith(matrix.config.name, 'Ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install cmake
+          cmake --version
+          gcc --version
+
+      - name: Install dependencies on MacOS
+        if: startsWith(matrix.config.name, 'MacOS')
+        run: |
+          brew install cmake
+          cmake --version
+
+      - name: Configure
+        shell: bash
+        run: |
+          mkdir instdir
+          mkdir build
+          cd build
+          cmake \
+            -DCMAKE_CC_COMPILER=${{matrix.config.cc}} \
+            -DCMAKE_CXX_COMPILER=${{matrix.config.cxx}} \
+            -DTEST_OPENMP=OFF \
+            -DCMAKE_INSTALL_PREFIX=../instdir \
+            ..
+
+      - name: Build
+        shell: bash
+        run: |
+          cmake --build build --parallel 8 --config ${{matrix.config.build_type}}
+
+      - name: Install
+        shell: bash
+        run: |
+          cmake --install build --config ${{matrix.config.build_type}}
+
+      - name: Tests
+        shell: bash
+        run: |
+          export PATH=`pwd`/build/bin:$PATH
+          echo $PATH
+          cd build
+          ctest -C ${{matrix.config.build_type}} --parallel 8
+
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.config.os }}
+          path:  |
+             build/bin
+             build/lib
+             LICENSE
+             README.txt
+             examples
+             

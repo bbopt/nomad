@@ -95,6 +95,16 @@ std::string SGTELIB::Surrogate_Parameters::to_standard_field_name (const std::st
   if ( streqi(field,"WEIGHT_CHOICE") )  return "WEIGHT_TYPE";
   if ( streqi(field,"CHOICE_WEIGHT") )  return "WEIGHT_TYPE";
 
+  if ( streqi(field,"UNCERTAINTY") )      return "UNCERTAINTY_TYPE";
+  if ( streqi(field,"UNCERTAINTY_TYPE") ) return "UNCERTAINTY_TYPE";
+
+  if ( streqi(field,"SIZE_PARAM") )  return "SIZE_PARAM";
+
+  if ( streqi(field,"SIGMA_MULT") )  return "SIGMA_MULT";
+
+  if ( streqi(field,"LAMBDA_P") )  return "LAMBDA_P";
+  if ( streqi(field,"LAMBDA_PI") )  return "LAMBDA_PI";
+
   if ( streqi(field,"RIDGE") )                return "RIDGE";
   if ( streqi(field,"RIDGE_COEF") )           return "RIDGE";
   if ( streqi(field,"RIDGE_PARAM") )          return "RIDGE";
@@ -151,6 +161,10 @@ void SGTELIB::Surrogate_Parameters::read_string (const std::string & model_descr
   std::string field;
   std::string content;
   bool content_is_optim;
+  bool _weight_type_given = false;
+  bool _size_param_given = false;
+  bool _lambda_p_given = false;
+  bool _lambda_pi_given = false;
   std::istringstream in_line (model_description);	
   const bool display = false;
   if (display){
@@ -245,6 +259,7 @@ void SGTELIB::Surrogate_Parameters::read_string (const std::string & model_descr
     }
     else if ( streqi(field,"WEIGHT_TYPE") ){
       _weight_type = str_to_weight_type(content);
+      _weight_type_given = true;
       if (content_is_optim) 
         _weight_status = SGTELIB::STATUS_OPTIM;
       // Note, the weight_type can be one of the following:
@@ -256,6 +271,45 @@ void SGTELIB::Surrogate_Parameters::read_string (const std::string & model_descr
       // The variable weight_type is not optimized. It is the weights that are
       // optimized.
       // This is different from, for example, the kernel_type, which can be optimized.
+    }
+    else if ( streqi(field,"UNCERTAINTY_TYPE") ){ 
+      _uncertainty_type = str_to_uncertainty_type(content);
+
+      if ( _uncertainty_type == UNCERTAINTY_NONSMOOTH ){
+        // Default weight_type, size_param, lambda_p and lambda_pi depends on uncertainty_type
+        if ( !_weight_type_given ){
+          _weight_type = WEIGHT_SELECT4;
+        }
+        if ( !_size_param_given ){
+          _size_param = 0.005;
+        }
+        if ( !_lambda_p_given ){
+          _lambda_p = 1;
+        }
+        if ( !_lambda_pi_given ){
+          _lambda_pi = 0.5;
+        }
+      }
+      // Cannot be optimized
+    }
+    else if ( streqi(field,"SIZE_PARAM") ){ 
+      _size_param = str_to_size_param(content);
+      _size_param_given = true;
+      // Cannot be optimized
+    }
+    else if ( streqi(field,"SIGMA_MULT") ){ 
+      _sigma_mult = str_to_sigma_mult(content);
+      // Cannot be optimized
+    }
+    else if ( streqi(field,"LAMBDA_P") ){ 
+      _lambda_p = str_to_lambda_p(content);
+      _lambda_p_given = true;
+      // Cannot be optimized
+    }
+    else if ( streqi(field,"LAMBDA_PI") ){ 
+      _lambda_pi = str_to_lambda_pi(content);
+      _lambda_pi_given = true;
+      // Cannot be optimized
     }
     else if ( streqi(field,"METRIC_TYPE") ){
       _metric_type = str_to_metric_type(content);
@@ -343,6 +397,18 @@ bool SGTELIB::Surrogate_Parameters::authorized_field ( const std::string & field
       if (streqi(field,"PRESET")) return true;
       if (streqi(field,"DISTANCE_TYPE")) return true;
       break;
+    
+    case SGTELIB::ENSEMBLE_STAT: 
+      if (streqi(field,"WEIGHT_TYPE")) return true;
+      if (streqi(field,"PRESET")) return true;
+      if (streqi(field,"DISTANCE_TYPE")) return true;
+      if (streqi(field,"UNCERTAINTY")) return true;
+      if (streqi(field,"UNCERTAINTY_TYPE")) return true;
+      if (streqi(field,"SIZE_PARAM")) return true;
+      if (streqi(field,"SIGMA_MULT")) return true;
+      if (streqi(field,"LAMBDA_P")) return true;
+      if (streqi(field,"LAMBDA_PI")) return true;
+      break;
 
     default:
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined model type" );
@@ -370,6 +436,12 @@ bool SGTELIB::Surrogate_Parameters::authorized_optim ( const std::string & field
   if (streqi(field,"METRIC_TYPE"))   return false;
   if (streqi(field,"PRESET"))        return false;
   if (streqi(field,"BUDGET"))        return false;
+  if (streqi(field,"UNCERTAINTY_TYPE")) return false; 
+  if (streqi(field,"UNCERTAINTY"))   return false; 
+  if (streqi(field,"SIZE_PARAM"))    return false; 
+  if (streqi(field,"SIGMA_MULT"))    return false; 
+  if (streqi(field,"LAMBDA_P"))      return false; 
+  if (streqi(field,"LAMBDA_PI"))     return false; 
 
   std::cout << "Field : " << field << "\n";
   throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined field" );
@@ -463,6 +535,9 @@ void SGTELIB::Surrogate_Parameters::check ( void ) {
     case SGTELIB::ENSEMBLE: 
       break;
 
+    case SGTELIB::ENSEMBLE_STAT: 
+      break;
+
     case SGTELIB::CN: 
       break;
 
@@ -541,6 +616,17 @@ void SGTELIB::Surrogate_Parameters::display ( std::ostream & out ) const {
       out << "Preset: " << _preset << std::endl;
       break;
 
+    case SGTELIB::ENSEMBLE_STAT: 
+      out << "Metric type: " << metric_type_to_str(_metric_type) << std::endl;
+      out << "Weight type: " << weight_type_to_str(_weight_type) << std::endl;
+      out << "uncertainty type: " << uncertainty_type_to_str(_uncertainty_type) << std::endl;
+      out << "size parameter: " << size_param_to_str(_size_param) << std::endl;
+      out << "size parameter: " << sigma_mult_to_str(_sigma_mult) << std::endl;
+      out << "size parameter: " << lambda_p_to_str(_lambda_p) << std::endl;
+      out << "size parameter: " << lambda_pi_to_str(_lambda_pi) << std::endl;
+      out << "Preset: " << _preset << std::endl;
+      break;
+    
     default: 
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined type" );
   }
@@ -636,6 +722,18 @@ void SGTELIB::Surrogate_Parameters::set_defaults ( void ) {
       _preset = "DEFAULT";
       break;
 
+    case SGTELIB::ENSEMBLE_STAT: 
+      _metric_type = METRIC_OECV;
+      _weight_type = WEIGHT_SELECT3; 
+      _weight_status = SGTELIB::STATUS_MODEL_DEFINED;
+      _uncertainty_type = UNCERTAINTY_SMOOTH; 
+      _size_param = 0.001;
+      _sigma_mult = 10;
+      _lambda_p = 3;
+      _lambda_pi = 0.1;
+      _preset = "DEFAULT";
+      break;
+    
     case SGTELIB::CN:
       break;
 
@@ -706,6 +804,18 @@ std::string SGTELIB::Surrogate_Parameters::get_string ( void ) const {
       s += " DISTANCE_TYPE " + distance_type_to_str(_distance_type);
       break;
 
+    case SGTELIB::ENSEMBLE_STAT: 
+      s += " METRIC_TYPE " + metric_type_to_str(_metric_type);
+      s += " WEIGHT_TYPE " + weight_type_to_str(_weight_type);
+      s += " PRESET " + _preset;
+      s += " DISTANCE_TYPE " + distance_type_to_str(_distance_type);
+      s += " UNCERTAINTY_TYPE " + uncertainty_type_to_str(_uncertainty_type);
+      s += " SIZE_PARAM " + size_param_to_str(_size_param);
+      s += " SIGMA_MULT " + sigma_mult_to_str(_sigma_mult);
+      s += " LAMBDA_P " + lambda_p_to_str(_lambda_p);
+      s += " LAMBDA_PI " + lambda_pi_to_str(_lambda_pi);
+      break;
+    
     default: 
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined type" );
   }
@@ -789,6 +899,11 @@ std::string SGTELIB::Surrogate_Parameters::get_short_string ( void ) const {
       if (!streqi(_preset,"DEFAULT")) s += " "+_preset;
       break;
 
+    case SGTELIB::ENSEMBLE_STAT: 
+      s += " " + metric_type_to_str(_metric_type) + " " + weight_type_to_str(_weight_type) + " " + uncertainty_type_to_str(_uncertainty_type) + " " + size_param_to_str(_size_param) + " " + sigma_mult_to_str(_sigma_mult) + " " + lambda_p_to_str(_lambda_p) + " " + lambda_pi_to_str(_lambda_pi);
+      if (!streqi(_preset,"DEFAULT")) s += " "+_preset;
+      break;
+    
     default: 
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined type" );
   }

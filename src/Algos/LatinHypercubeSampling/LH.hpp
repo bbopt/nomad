@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_LH__
-#define __NOMAD_4_0_LH__
+#ifndef __NOMAD_4_2_LH__
+#define __NOMAD_4_2_LH__
 
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
@@ -79,7 +79,7 @@ public:
 
     virtual void readInformationForHotRestart() override {}
     
-    virtual NOMAD::ArrayOfPoint suggest() override;
+    virtual NOMAD::ArrayOfPoint suggest() override; ///< For suggest and observe PyNomad interface
 
 private:
     /// Helper for constructor
@@ -87,7 +87,7 @@ private:
 
     /// Implementation for start task.
     /**
-     Call LH::generateTrialPoints
+     Calls default algorithm start and LH::generateTrialPoints
      */
     virtual void    startImp() override;
 
@@ -99,20 +99,14 @@ private:
      */
     virtual bool    runImp()   override;
 
-    /// Implementation for end task.
-    /**
-     Clean-up evaluation queue.
-     */
-    virtual void    endImp()   override;
-
     /**
      \copydoc IterationUtils::generateTrialPoints \n
      \note For LH, the generation of points uses LHS for sampling with the problem's bounds and X0.
      */
-    void generateTrialPoints() override;
+    void generateTrialPointsImp() override;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_LH__
+#endif // __NOMAD_4_2_LH__

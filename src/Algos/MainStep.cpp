@@ -66,6 +66,7 @@
 
 // Specific algos
 #include "../Algos/LatinHypercubeSampling/LH.hpp"
+#include "../Algos/CoordinateSearch/CS.hpp"
 #include "../Algos/Mads/Mads.hpp"
 #include "../Algos/Mads/MadsIteration.hpp"
 #include "../Algos/Mads/Search.hpp"
@@ -160,6 +161,12 @@ NOMAD::ArrayOfPoint NOMAD::MainStep::suggest()
 
         // Update X0 from CacheFile - to satisfy MadsInitialization().
         updateX0sFromCache();
+        auto x0s = _allParams->getPbParams()->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
+        if (x0s.empty() || x0s[0].toBeDefined())
+        {
+            AddOutputInfo("No X0 is available. Cannot suggest any new point with MegaSearchPoll");
+            return suggestedPoints;
+        }
 
         // Need to start evaluator control.
         // Even though there are no BB evaluations done by suggest(),
@@ -326,8 +333,16 @@ void NOMAD::MainStep::startImp()
 
     createCache();
     updateX0sFromCache();
+    auto x0s = _allParams->getPbParams()->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
 
-    
+    auto nbLHEval = _allParams->getRunParams()->getAttributeValue<size_t>("LH_EVAL");
+
+    if ( (x0s.empty() || x0s[0].toBeDefined()) && nbLHEval == 0)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Need X0 to continue.");
+    }
+
+
     // Setup EvaluatorControl
     setNumThreads();
 
@@ -357,7 +372,7 @@ void NOMAD::MainStep::startImp()
     NOMAD::EvcInterface::getEvaluatorControl()->start();
 
     // Create the Algorithms that we want to solve.
-    // Currently available: PhaseOne, Mads, LH, NM, SgtelibModelEval,
+    // Currently available: PhaseOne, Mads, LH, NM, SgtelibModelEval, CS
     // QuadModelOptimization
     // Note: These algorithm parameters are mutually exclusive:
     // LH_EVAL NM_OPTIMIZATION PSD_MADS_OPTIMIZATION QUAD_MODEL_OPTIMIZATION
@@ -365,7 +380,7 @@ void NOMAD::MainStep::startImp()
     // This is caught by checkAndComply().
     _algos.clear();
 
-    auto nbLHEval = _allParams->getRunParams()->getAttributeValue<size_t>("LH_EVAL");
+    auto doCSoptimization = _allParams->getRunParams()->getAttributeValue<bool>("CS_OPTIMIZATION");
     auto doNMOptimization = _allParams->getRunParams()->getAttributeValue<bool>("NM_OPTIMIZATION");
 #ifdef _OPENMP
     bool doPSDMads = _allParams->getRunParams()->getAttributeValue<bool>("PSD_MADS_OPTIMIZATION");
@@ -410,10 +425,21 @@ void NOMAD::MainStep::startImp()
                                               _allParams->getPbParams());
         _algos.push_back(nm);
     }
+    else if( doCSoptimization )
+    {
+        auto csStopReason = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::CSStopType>>();
+
+        auto cs = std::make_shared<NOMAD::CS>(this,
+                                              csStopReason ,
+                                              _allParams->getRunParams(),
+                                              _allParams->getPbParams());
+        _algos.push_back(cs);
+    }
+
 #ifdef _OPENMP
     else if (doPSDMads)
     {
-        auto PSDMadsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>(); // A PSD-MADS is a MADS with respect to stop reasons.
+        auto PSDMadsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>(); // A PSD-MADS has a MADS type stop reason.
         auto psd = std::make_shared<NOMAD::PSDMads>(this,
                                                     _evaluator,
                                                     _allParams->getEvaluatorControlParams(),
@@ -463,7 +489,7 @@ void NOMAD::MainStep::startImp()
 #endif // USE_SGTELIB
     else if (doSSDMads)
     {
-        auto SSDMadsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>(); // A SSD-MADS is a MADS with respect to stop reasons.
+        auto SSDMadsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>(); // A SSD-MADS has MADS Stop type.
         auto ssd = std::make_shared<NOMAD::SSDMads>(this,
                                                     SSDMadsStopReasons,
                                                     _allParams->getRunParams(),
@@ -495,7 +521,7 @@ void NOMAD::MainStep::startImp()
                                                       _allParams->getRunParams(),
                                                       _allParams->getPbParams());
             // Get MegaIteration from PhaseOne to continue optimization
-            mads->setMegaIteration(phaseOne->getMegaIteration());
+            mads->setRefMegaIteration(phaseOne->getRefMegaIteration());
             _algos.push_back(mads);
         }
         else
@@ -508,7 +534,7 @@ void NOMAD::MainStep::startImp()
             _algos.push_back(mads);
         }
     }
-    
+
 
 
 }
@@ -682,10 +708,6 @@ void NOMAD::MainStep::updateX0sFromCache() const
                 NOMAD::CacheBase::getInstance()->findBestInf(evalPointList,
                                                     hMax, fixedVariable,
                                                     evalType, computeType, nullptr);
-            }
-            if (0 == evalPointList.size())
-            {
-                throw NOMAD::Exception(__FILE__, __LINE__, "Cache did not find a best point to initialize X0");
             }
             for (size_t i = 0; i < evalPointList.size(); i++)
             {
@@ -878,22 +900,30 @@ void NOMAD::MainStep::resetComponentsBetweenOptimization()
 
     // Reset static tag counter
     NOMAD::EvalPoint::resetCurrentTag();
+
     // Reset SubproblemManager map
     NOMAD::SubproblemManager::getInstance()->reset();
+
     // Reset evaluator control
     NOMAD::EvcInterface::resetEvaluatorControl();
+
     // Reset seed
     NOMAD::RNG::resetPrivateSeedToDefault();
+
     // Reset parameter entries
     NOMAD::Parameters::eraseAllEntries();
-    // Reset VNS Mads search
-    NOMAD::VNSSearchMethod::reset();
+
 }
 
 void NOMAD::MainStep::resetCache()
 {
     // Get a new cache
     NOMAD::CacheBase::resetInstance(); // Need to reset the singleton. When calling createCache there is no instance and we are sure to call NOMAD::CacheSet::setInstance from scratch. The cache file is read and the cache is set with its content.
+}
+
+void NOMAD::MainStep::resetEvaluatorControl()
+{
+    NOMAD::EvcInterface::resetEvaluatorControl();
 }
 
 
@@ -1042,4 +1072,3 @@ void NOMAD::MainStep::displayDetailedStats() const
     evalStatsStream << paddedStats << std::endl;
     evalStatsStream.close();
 }
-

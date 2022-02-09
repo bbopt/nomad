@@ -122,10 +122,15 @@ bool NOMAD::MadsUpdate::runImp()
             // newBestFeas is the improving point.
             newBest = newBestFeas;
             // Workaround: If we do not have the point from which newBest was computed,
-            // use refBestFeas instead.
-            if (nullptr == newBest->getPointFrom() && nullptr != refBestFeas)
+            // use refBestFeas instead if available or refBestInf.
+            if (nullptr == newBest->getPointFrom() )
             {
-                newBest->setPointFrom(refBestFeas, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+                if ( nullptr != refBestFeas )
+                    newBest->setPointFrom(refBestFeas, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+                else if ( nullptr != refBestInf )
+                    newBest->setPointFrom(refBestInf, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+                else
+                    throw NOMAD::Exception(__FILE__,__LINE__,"Error: Cannot set the point at the origin of newBest (feasible)");
             }
             OUTPUT_DEBUG_START
             // Output Warning: When using '\n', the computed indentation for the
@@ -153,10 +158,15 @@ bool NOMAD::MadsUpdate::runImp()
                 // newBestInf is the improving point.
                 newBest = newBestInf;
                 // Workaround: If we do not have the point from which newBest was computed,
-                // use refBestInf instead.
-                if (nullptr == newBest->getPointFrom() && nullptr != refBestInf)
+                // use refBestInf instead if available or refBestFeas.
+                if (nullptr == newBest->getPointFrom() )
                 {
-                    newBest->setPointFrom(refBestInf, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+                    if ( nullptr != refBestInf )
+                        newBest->setPointFrom(refBestInf, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+                    else if ( nullptr != refBestFeas )
+                        newBest->setPointFrom(refBestFeas, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+                    else
+                        throw NOMAD::Exception(__FILE__,__LINE__,"Error: Cannot set the point at the origin of newBest (infeasible)");
                 }
                 OUTPUT_DEBUG_START
                 s = "Update: improving infeasible point";

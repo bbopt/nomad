@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_MEGAITERATION__
-#define __NOMAD_4_0_MEGAITERATION__
+#ifndef __NOMAD_4_2_MEGAITERATION__
+#define __NOMAD_4_2_MEGAITERATION__
 
 #include "../Algos/Iteration.hpp"
 #include "../Algos/Step.hpp"
@@ -97,7 +97,7 @@ public:
     /// Constructor
     /**
      \param parentStep      The parent step of this step -- \b IN.
-     \param k               The main iteration counter -- \b IN.
+     \param k               The initial main iteration counter -- \b IN.
      \param barrier         The barrier for constraints handling. Belongs to subproblem space. -- \b IN.
      \param success         Success type of the previous MegaIteration. -- \b IN.
      */
@@ -115,7 +115,7 @@ public:
 
     size_t getK() const                                         { return _k; }
     void setK(const size_t k)                                   { _k = k; }
-    size_t getNextK() const;
+
 
     // Barrier
     const std::shared_ptr<Barrier>& getBarrier() const          { return _barrier; }
@@ -149,9 +149,15 @@ protected:
 
     /// Implementation of the end task.
     /**
-     Perform callback check for user termination and clear the iteration list.
+     The default implement performs callback check for user termination AND increment counter k.
+     If an end implementation function specific to an algorithm is required, this function MUST be called for default tasks.
      */
-    virtual void endImp()      override;
+     void endImp()      override;
+    
+private:
+    
+    /// Implementation to increment the mega iteration counter
+    virtual void incrementCounters() override { _k++ ;}
 };
 
 
@@ -166,4 +172,4 @@ std::istream& operator>>(std::istream& is, MegaIteration& megaIteration);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_MEGAITERATION__
+#endif // __NOMAD_4_2_MEGAITERATION__

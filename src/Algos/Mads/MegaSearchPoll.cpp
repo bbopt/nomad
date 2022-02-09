@@ -48,8 +48,6 @@
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/MegaSearchPoll.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
-#include "../../Algos/Mads/Search.hpp"
-#include "../../Algos/Mads/Poll.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 void NOMAD::MegaSearchPoll::init()
@@ -62,6 +60,9 @@ void NOMAD::MegaSearchPoll::init()
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"An instance of class MegaSearch must have a MadsMegaIteration among its ancestors");
     }
+    
+    _poll = std::make_unique<NOMAD::Poll>(this);
+    _search = std::make_unique<NOMAD::Search>(this);
 
 }
 
@@ -99,12 +100,9 @@ void NOMAD::MegaSearchPoll::endImp()
 
 
 // Generate new points to evaluate from Poll and Search
-void NOMAD::MegaSearchPoll::generateTrialPoints()
+void NOMAD::MegaSearchPoll::generateTrialPointsImp()
 {
     verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, true);
-    OUTPUT_INFO_START
-    AddOutputInfo("Generate points for " + getName(), true, false);
-    OUTPUT_INFO_END
 
     NOMAD::EvalPointSet trialPoints;
 
@@ -112,13 +110,12 @@ void NOMAD::MegaSearchPoll::generateTrialPoints()
     // Note: Search and Poll generateTrialPoints() methods both
     // take care of verifying that the generated are on mesh, and also
     // update the "PointFrom" with the frame center.
-    NOMAD::Search search(this);
-    search.generateTrialPoints();
-    auto trialPointsSearch = search.getTrialPoints();
+    _search->generateTrialPoints();
+    auto trialPointsSearch = _search->getTrialPoints();
 
-    NOMAD::Poll poll(this);
-    poll.generateTrialPoints();
-    auto trialPointsPoll = poll.getTrialPoints();
+    _poll->generateTrialPoints();
+    _poll->generateTrialPointsSecondPass();
+    auto trialPointsPoll = _poll->getTrialPoints();
 
     // Merge two sets and remove duplicates
     // Naive implementation. Easier to understand - I could not make std::merge,
@@ -132,10 +129,5 @@ void NOMAD::MegaSearchPoll::generateTrialPoints()
     {
         insertTrialPoint(point);
     }
-
-    OUTPUT_INFO_START
-    AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");
-    AddOutputInfo("Generate points for " + getName(), false, true);
-    OUTPUT_INFO_END
 
 }

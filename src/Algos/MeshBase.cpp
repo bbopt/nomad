@@ -54,7 +54,8 @@ NOMAD::MeshBase::MeshBase(const std::shared_ptr<NOMAD::PbParameters> pbParams)
         _initialFrameSize(pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_FRAME_SIZE")),
         _minFrameSize(pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("MIN_FRAME_SIZE")),
         _lowerBound(pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND")),
-        _upperBound(pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND"))
+        _upperBound(pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND")),
+        _isFinest(true)
 {
     init();
 }

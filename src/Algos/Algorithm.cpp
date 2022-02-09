@@ -62,7 +62,6 @@
 
 void NOMAD::Algorithm::init()
 {
-    //_name = "AGenericAlgorithmHasNoName";
 
     // Verifications that throw Exceptions to the Constructor if not validated.
     verifyParentNotNull();
@@ -90,7 +89,7 @@ void NOMAD::Algorithm::init()
     _termination    = std::make_unique<NOMAD::Termination>( this );
 
     // Update SubproblemManager
-    NOMAD::Point fullFixedVariable = isRootAlgo() ? _pbParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE")
+    NOMAD::Point fullFixedVariable = (isRootAlgo()||_useLocalFixedVariables) ? _pbParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE")
                                    : NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(_parentStep);
 
     NOMAD::Subproblem subproblem(_pbParams, fullFixedVariable);
@@ -116,13 +115,18 @@ NOMAD::Algorithm::~Algorithm()
 
 void NOMAD::Algorithm::startImp()
 {
+
 #ifdef TIME_STATS
     if (isRootAlgo())
     {
         _startTime = NOMAD::Clock::getCPUTime();
     }
 #endif // TIME_STATS
-
+    
+    // Reset the current counters. The total counters are not reset (done only once when algo constructor is called.
+    _trialPointStats.resetCurrentStats();
+    
+    
     // All stop reasons are reset.
     _stopReasons->setStarted();
 
@@ -142,7 +146,7 @@ void NOMAD::Algorithm::startImp()
     NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval( NOMAD::INF_SIZE_T );
     NOMAD::EvcInterface::getEvaluatorControl()->resetModelEval();
 
-    if (nullptr == _megaIteration)
+    if (nullptr == _refMegaIteration)
     {
         // Default behavior - not hot restart.
         // Clear cache hits.
@@ -168,7 +172,7 @@ void NOMAD::Algorithm::startImp()
     {
         // Hot restart situation.
         // We will not need Initialization.
-        auto barrier = _megaIteration->getBarrier();
+        auto barrier = _refMegaIteration->getBarrier();
 
         // Update X0s
         // Use best points.
@@ -189,6 +193,7 @@ void NOMAD::Algorithm::startImp()
 
 void NOMAD::Algorithm::endImp()
 {
+    
     if ( _endDisplay )
     {
         displayBestSolutions();
@@ -202,7 +207,17 @@ void NOMAD::Algorithm::endImp()
 
         displayEvalCounts();
     }
-
+    
+    // Update parent if it exists (can be Algo or IterationUtils)  with this stats
+    _trialPointStats.updateParentStats();
+    
+    OUTPUT_DEBUG_START
+    std::string s = "Total number of evals: " + std::to_string(_trialPointStats.getNbEvalsDone(NOMAD::EvalType::BB,true)) + "\n";
+    AddOutputDebug(s);
+    s = "Current number of evals: " + std::to_string(_trialPointStats.getNbEvalsDone(NOMAD::EvalType::BB,false)) + "\n";
+    AddOutputDebug(s);
+    OUTPUT_DEBUG_END
+    
     // Update the SearchMethod success type with best success found.
     if ( _algoSuccessful )
     {
@@ -228,6 +243,32 @@ void NOMAD::Algorithm::endImp()
     }
 }
 
+//void NOMAD::Algorithm::updateParentStats(TrialPointStats &trialPointStats)
+//{
+//    // First try to update iteration utils parent
+//    // The parent can be an IterationUtils using an Algorithm to generate and evaluate trial point.
+//    // For example, VNS Search Method (IU) runs a VNS (Algo) which runs a Mads (Algo), etc. We need to pass the stats from Mads to VNS and from VNS to VNS Search Method.
+//    auto step = const_cast<Step*>(_parentStep);
+//    auto iu = dynamic_cast<NOMAD::IterationUtils*>(step);
+//    if (nullptr != iu)
+//    {
+//        iu->updateStats(trialPointStats);
+//    }
+//    else
+//    {
+//        // Update parent algorithm (if available) with trial point stats.
+//        auto algo = this->getParentOfType<NOMAD::Algorithm*>();
+//        if (nullptr != algo)
+//        {
+//            algo->updateStats(trialPointStats);
+//        }
+//    }
+//}
+
+void NOMAD::Algorithm::updateStats(TrialPointStats &trialPointStats)
+{
+    _trialPointStats.updateWithCurrentStats(trialPointStats);
+}
 
 void NOMAD::Algorithm::hotRestartOnUserInterrupt()
 {
@@ -501,11 +542,10 @@ void NOMAD::Algorithm::displayEvalCounts() const
     std::string sCacheHits      = "Cache hits: " + sFeedCacheHits + NOMAD::itos(nbCacheHits);
     std::string sNbEval         = "Total number of evaluations: " + sFeedNbEval + NOMAD::itos(nbEval);
 
-
 #ifdef TIME_STATS
     std::string sTotalRealTime  = "Total real time (round s):    " + std::to_string(_totalRealAlgoTime);
     std::string sTotalCPUTime   = "Total CPU time (s):           " + std::to_string(_totalCPUAlgoTime);
- #endif // TIME_STATS
+#endif // TIME_STATS
 
     AddOutputInfo("", outputLevelHigh); // skip line
     // Always show number of blackbox evaluations
@@ -544,9 +584,36 @@ void NOMAD::Algorithm::displayEvalCounts() const
 #endif // TIME_STATS
 }
 
+NOMAD::EvalPoint NOMAD::Algorithm::getBestSolution(bool bestFeas) const
+{
+    NOMAD::EvalPoint bestSol;
+
+    auto fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
+
+    auto barrier = getMegaIterationBarrier();
+    if (nullptr != barrier)
+    {
+        NOMAD::EvalPointPtr bestSolPtr = nullptr;
+        if (bestFeas)
+        {
+            bestSolPtr = barrier->getFirstXFeas();
+        }
+        else
+        {
+            bestSolPtr = barrier->getFirstXInf();
+        }
+        if (nullptr != bestSolPtr)
+        {
+            bestSol = bestSolPtr->makeFullSpacePointFromFixed(fixedVariable);
+        }
+    }
+    
+    return bestSol;
+}
 
 bool NOMAD::Algorithm::isSubAlgo() const
 {
+    
     bool isSub = false;
 
     auto parentAlgo = getParentOfType<NOMAD::Algorithm*>();
@@ -569,7 +636,7 @@ void NOMAD::Algorithm::display ( std::ostream& os ) const
 {
 
     os << "MEGA_ITERATION " << std::endl;
-    os << *_megaIteration << std::endl;
+    os << *_refMegaIteration << std::endl;
     os << "NB_EVAL " << NOMAD::EvcInterface::getEvaluatorControl()->getNbEval() << std::endl;
     os << "NB_BB_EVAL " << NOMAD::EvcInterface::getEvaluatorControl()->getBbEval() << std::endl;
     uint32_t x, y, z;
@@ -598,7 +665,7 @@ void NOMAD::Algorithm::read(std::istream& is)
     {
         if ("MEGA_ITERATION" == name)
         {
-            is >> *_megaIteration;
+            is >> *_refMegaIteration;
         }
         else if ("NB_EVAL" == name)
         {

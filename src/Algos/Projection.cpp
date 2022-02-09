@@ -147,7 +147,6 @@ bool NOMAD::Projection::runImp()
 {
     bool projectionOk = true;
 
-    // Return value: found better - unused.
     evalTrialPoints(this);
 
     return projectionOk;
@@ -233,7 +232,7 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
 }
 
 
-void NOMAD::Projection::generateTrialPoints()
+void NOMAD::Projection::generateTrialPointsImp()
 {
     for (auto oraclePoint : _oraclePoints)
     {
@@ -262,6 +261,8 @@ void NOMAD::Projection::stdProjectedPoint(const NOMAD::EvalPoint& oraclePoint)
     }
     NOMAD::EvalPoint evalPoint(xTry);
 
+    // The goal here is to evaluate points according to the SgtelibModel.
+    // This may not have its place in the Projection class.
     bool doInsert = true;
     if (NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
     {

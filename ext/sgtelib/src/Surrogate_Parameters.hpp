@@ -62,6 +62,12 @@ namespace SGTELIB {
     SGTELIB::Matrix _weight; // Stores the weight values
     weight_t _weight_type; // Indicate the method (WTA1, WTA2, WTA3, or OPTIM)
     SGTELIB::param_status_t _weight_status;
+    // Ensemble Stat parameters
+    uncertainty_t _uncertainty_type; // Indicate the method (SMOOTH or NONSMOOTH)
+    double _size_param;
+    double _sigma_mult;
+    double _lambda_p;
+    double _lambda_pi;
     // Kriging covariance coefficients
     SGTELIB::Matrix _covariance_coef;
     SGTELIB::param_status_t _covariance_coef_status;
@@ -105,6 +111,11 @@ namespace SGTELIB {
     double          get_ridge           (void) const {return _ridge;};
     SGTELIB::Matrix get_weight          (void) const {return _weight;};
     weight_t        get_weight_type     (void) const {return _weight_type;};
+    uncertainty_t   get_uncertainty_type (void) const {return _uncertainty_type;}; 
+    double          get_size_param      (void) const {return _size_param;}; 
+    double          get_sigma_mult      (void) const {return _sigma_mult;}; 
+    double          get_lambda_p        (void) const {return _lambda_p;}; 
+    double          get_lambda_pi       (void) const {return _lambda_pi;}; 
     metric_t        get_metric_type     (void) const {return _metric_type;};
     std::string     get_metric_type_str (void) const {return SGTELIB::metric_type_to_str(_metric_type);};
     distance_t      get_distance_type   (void) const {return _distance_type;};
@@ -122,6 +133,11 @@ namespace SGTELIB {
     // Set
     void set_kernel_coef     ( const double v          ) { _kernel_coef = v;      };
     void set_weight_type     ( const weight_t wt       ) { _weight_type = wt;     };
+    void set_uncertainty_type ( const uncertainty_t ut ) { _uncertainty_type = ut; }; 
+    void set_size_param      ( const double sp )         { _size_param = sp; }; 
+    void set_sigma_mult      ( const double m )          { _sigma_mult = m; }; 
+    void set_lambda_p        ( const double lp )          { _lambda_p = lp; }; 
+    void set_lambda_pi       ( const double lp )          { _lambda_pi = lp; }; 
     void set_weight          ( const SGTELIB::Matrix& W ) { _weight = W;           };
     void update_covariance_coef ( const int nvar );
     //void set_distance_type   ( distance_t dt ) { _distance_type = dt; };

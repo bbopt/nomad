@@ -9,7 +9,7 @@ install(TARGETS bb3.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example
-message(STATUS "    Add example batch test single_obj_parallel") 
+message(STATUS "    Add example batch single_obj_parallel") 
 
 # Test run in working directory AFTER install of bb executable
 add_test(NAME ExampleBasicBatchSingleObjParallel

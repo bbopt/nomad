@@ -111,15 +111,6 @@ void NOMAD::SgtelibModel::init()
 /*-------------------------*/
 NOMAD::SgtelibModel::~SgtelibModel()
 {
-    reset();
-}
-
-
-/*-------------------------*/
-/*           reset         */
-/*-------------------------*/
-void NOMAD::SgtelibModel::reset()
-{
     if (nullptr != _model)
     {
         _model.reset();
@@ -308,22 +299,14 @@ NOMAD::ArrayOfDouble NOMAD::SgtelibModel::getExtendedUpperBound() const
 } // end getExtendedUpperBound
 
 
-// Start is executed when SgtelibModel is used as an algorithm on its own.
-void NOMAD::SgtelibModel::startImp()
+bool NOMAD::SgtelibModel::runImp()
 {
-    // Manages initialization among other things.
-    NOMAD::Algorithm::startImp();
-
     // There is no upper step, so barrier is not inherited from an Algorithm Ancestor.
     // Barrier was computed in the Initialization step.
     // This barrier is in subspace.
     // X0s are found relative to BB, not SGTE
     _barrierForX0s = _initialization->getBarrier();
-}
-
-
-bool NOMAD::SgtelibModel::runImp()
-{
+    
     size_t k = 0;   // Iteration number
 
     if (!_termination->terminate(k))
@@ -341,18 +324,18 @@ bool NOMAD::SgtelibModel::runImp()
                                                        NOMAD::EvcInterface::getEvaluatorControl()->getComputeType());
         }
         NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
-
+        
+        // Create a MegaIteration: may manage multiple iterations at the same time.
+        NOMAD::SgtelibModelMegaIteration megaIteration(this, k, barrier, megaIterSuccess);
         while (!_termination->terminate(k))
         {
-            // Create an MegaIteration: manage multiple iterations at the same time.
-            NOMAD::SgtelibModelMegaIteration megaIteration(this, k, barrier, megaIterSuccess);
+
             megaIteration.start();
             megaIteration.run();
             megaIteration.end();
 
             // Remember these values to construct the next MegaIteration.
             k       = megaIteration.getK();
-            barrier = megaIteration.getBarrier();
             megaIterSuccess = megaIteration.NOMAD::MegaIteration::getSuccessType();
 
             if (_userInterrupt)
@@ -364,7 +347,7 @@ bool NOMAD::SgtelibModel::runImp()
 
         // member _megaIteration is used for hot restart (read and write)
         // Update it here.
-        _megaIteration = std::make_shared<NOMAD::SgtelibModelMegaIteration>(this, k, barrier, megaIterSuccess);
+        _refMegaIteration = std::make_shared<NOMAD::SgtelibModelMegaIteration>(this, k, barrier, megaIterSuccess);
     }
 
 
@@ -376,13 +359,6 @@ bool NOMAD::SgtelibModel::runImp()
 
     return true;
 }
-
-
-void NOMAD::SgtelibModel::endImp()
-{
-    NOMAD::Algorithm::endImp();
-}
-
 
 /*------------------------------------------------------------------------*/
 /*          Compute which formulation must be used in the evalX           */

@@ -24,7 +24,7 @@ This chapter explains how to get started with NOMAD in batch mode. The following
 .. note::
    Building NOMAD binaries and running the examples provided during the installation requires to have a ``C++`` compiler installed on your machine.
 
-   Compilation instructions rely on **CMake** and have been tested with **GCC** (GNU Compiler Collection) on Linux and OSX.
+   Compilation instructions rely on **CMake** and have been tested with **GCC** (GNU Compiler Collection), Clang and Visual Studio.
 
 
 .. _create_blackbox_program:

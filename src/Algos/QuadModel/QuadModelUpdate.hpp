@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_QUAD_MODEL_UPDATE__
-#define __NOMAD_4_0_QUAD_MODEL_UPDATE__
+#ifndef __NOMAD_4_2_QUAD_MODEL_UPDATE__
+#define __NOMAD_4_2_QUAD_MODEL_UPDATE__
 
 #include "../../Algos/Step.hpp"
 
@@ -55,14 +55,33 @@ class QuadModelUpdate : public Step
 {
 private:
     OutputLevel _displayLevel;
+    
+    /**
+     Cache points within a box are selected
+     */
+    Point _modelCenter;
+    ArrayOfDouble _boxSize;
+    
+    bool _flagUseTrialPointsToDefineBox;
+    bool _flagUseScaledModel;
+    
+    const EvalPointSet & _trialPoints;
+    const std::vector<Direction> & _scalingDirections;
 
-    const Point * _frameCenter;
-    ArrayOfDouble _radiuses;
-
+    const double epsilon = 0.01; ///<  For scaling by directions
+    const double epsilonDelta = epsilon/(1.0 - epsilon);
+    
+    
 public:
-    explicit QuadModelUpdate(const Step* parentStep)
+    explicit QuadModelUpdate(const Step* parentStep,
+                             const std::vector<Direction> & scalingDirections,
+                             const EvalPointSet & trialPoints )
       : Step(parentStep),
-        _displayLevel(OutputLevel::LEVEL_INFO)
+        _displayLevel(OutputLevel::LEVEL_INFO),
+        _flagUseTrialPointsToDefineBox(false),
+        _flagUseScaledModel(false),
+        _scalingDirections(scalingDirections),
+        _trialPoints(trialPoints)
     {
         init();
     }
@@ -70,6 +89,8 @@ public:
     virtual ~QuadModelUpdate();
 
     std::string getName() const override;
+    
+    void unscalingByDirections( EvalPoint & x );
 
 private:
     void init();
@@ -92,14 +113,16 @@ private:
     /**
      No end task is required
      */
-    virtual void    endImp() override {}
+    virtual void endImp() override {}
 
     bool isValidForUpdate(const EvalPoint& evalPoint) const; ///< Helper function for cache find.
 
     bool isValidForIncludeInModel(const EvalPoint& evalPoint) const; ///< Helper function for cache find.
+    
+    bool scalingByDirections( Point & x);
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_QUAD_MODEL_UPDATE__
+#endif // __NOMAD_4_2_QUAD_MODEL_UPDATE__

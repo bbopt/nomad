@@ -47,7 +47,6 @@
 
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/MadsInitialization.hpp"
-#include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/MadsUpdate.hpp"
 #include "../../Algos/PSDMads/PSDMads.hpp"
 #include "../../Algos/PSDMads/PSDMadsMegaIteration.hpp"
@@ -64,6 +63,13 @@ void NOMAD::PSDMads::init(const std::shared_ptr<NOMAD::Evaluator>& evaluator,
 {
     setStepType(NOMAD::StepType::ALGORITHM_PSD_MADS);
     verifyParentNotNull();
+    
+    auto blockSize = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams()->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE");
+    if (blockSize > 1)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "PSD-Mads: eval points blocks are not supported.");
+    }
+    
 
     // Instanciate MadsInitialization member
     _initialization = std::make_unique<NOMAD::MadsInitialization>(this);
@@ -113,7 +119,7 @@ void NOMAD::PSDMads::startImp()
         size_t k = 0;
         _psdMainMesh = dynamic_cast<NOMAD::MadsInitialization*>(_initialization.get())->getMesh();
         _barrier = _initialization->getBarrier();   // Initialization was run in Algorithm::startImp()
-        _megaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, k, _barrier, _psdMainMesh, NOMAD::SuccessType::NOT_EVALUATED);
+        _masterMegaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, k, _barrier, _psdMainMesh, NOMAD::SuccessType::NOT_EVALUATED);
     }
     else
     {
@@ -133,7 +139,7 @@ bool NOMAD::PSDMads::runImp()
     bool isPollster = (0 == NOMAD::getThreadNum());   // Pollster is thread 0, which is always a main thread.
     size_t k;
     omp_set_lock(&_psdMadsLock);
-    k = _megaIteration->getK();
+    k = _masterMegaIteration->getK();
     omp_unset_lock(&_psdMadsLock);
 
     while (!_termination->terminate(k))
@@ -156,7 +162,7 @@ bool NOMAD::PSDMads::runImp()
         {
             omp_set_lock(&_psdMadsLock);
             NOMAD::PSDMadsMegaIteration psdMegaIteration(this, k, _barrier,
-                                        _psdMainMesh, _megaIteration->getSuccessType(),
+                                        _psdMainMesh, _masterMegaIteration->getSuccessType(),
                                         bestEvalPoint, fixedVariable);
             omp_unset_lock(&_psdMadsLock);
             psdMegaIteration.start();
@@ -197,7 +203,7 @@ bool NOMAD::PSDMads::runImp()
 
                 // MegaIteration manages the mesh and barrier
                 // MegaIteration will not be run.
-                NOMAD::MadsUpdate update(_megaIteration.get());
+                NOMAD::MadsUpdate update(_masterMegaIteration.get());
 
                 // Update will take care of enlarging or refining the mesh,
                 // based on the current _barrier.
@@ -211,7 +217,7 @@ bool NOMAD::PSDMads::runImp()
             }
 
             // Update iteration number
-            _megaIteration->setK(k++);
+            _masterMegaIteration->setK(k++);
         }
 
         if (_userInterrupt)

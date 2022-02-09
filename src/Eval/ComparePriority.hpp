@@ -52,8 +52,8 @@
  \see    ComparePriority.cpp
  */
 
-#ifndef __NOMAD_4_0_COMPAREPRIORITY__
-#define __NOMAD_4_0_COMPAREPRIORITY__
+#ifndef __NOMAD_4_2_COMPAREPRIORITY__
+#define __NOMAD_4_2_COMPAREPRIORITY__
 
 #include "../Eval/EvalQueuePoint.hpp"
 #include "../Math/Direction.hpp"
@@ -136,14 +136,28 @@ public:
 };
 
 
-// Class for comparison using static surrogate evaluations.
-class OrderBySurrogate : public ComparePriorityMethod
+// Class for comparison using static surrogate or model evaluations.
+class OrderByEval : public ComparePriorityMethod
 {
+private:
+    EvalType _evalTypeForOrder;
 public:
     /// Constructor
-    explicit OrderBySurrogate()
+    explicit OrderByEval(NOMAD::EvalType evalType):
+    _evalTypeForOrder(evalType)
     {
-        setName("OrderBySurrogate");
+        if (_evalTypeForOrder == NOMAD::EvalType::SURROGATE)
+        {
+            setName("OrderBySurrogate");
+        }
+        else if (_evalTypeForOrder == NOMAD::EvalType::MODEL)
+        {
+            setName("OrderByModel");
+        }
+        else
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__, "OrderByEval: Eval Type " + evalTypeToString(_evalTypeForOrder) + " cannot be used for ordering points") ;
+        }
     }
 
     bool comp(EvalQueuePointPtr& point1, EvalQueuePointPtr& point2) const override;
@@ -173,6 +187,6 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_COMPAREPRIORITY__
+#endif // __NOMAD_4_2_COMPAREPRIORITY__
 
 

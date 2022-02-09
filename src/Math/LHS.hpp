@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_0_LHS__
-#define __NOMAD_4_0_LHS__
+#ifndef __NOMAD_4_2_LHS__
+#define __NOMAD_4_2_LHS__
 
 #include <vector>
 #include "../Math/Point.hpp"
@@ -81,6 +81,9 @@ public:
      \param p               Number of samples -- \b IN.
      \param lowerBound      Lower bounds -- \b IN.
      \param upperBound      Upper bounds -- \b IN.
+     \param frameCenter    Frame center to use if bounds are not supplied  -- \b IN.
+     \param deltaFrameSize  Used if bounds are not supplied -- \b IN.
+     \param scaleFactor       Used if bounds are not supplied  -- \b IN.
      */
     explicit LHS(const size_t n,
                  const size_t p,
@@ -130,4 +133,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_LHS__
+#endif // __NOMAD_4_2_LHS__

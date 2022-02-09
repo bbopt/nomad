@@ -1068,3 +1068,26 @@ const NOMAD::Double NOMAD::Double::previousMult(const NOMAD::Double &granularity
 
     return d;
 }
+
+// Unused for the moment. Maybe used by projectToMesh
+/*------------------------------------*/
+/*  Truncate value to granularity     */
+/*  ( *this = ref + k * gran  )       */
+/*------------------------------------*/
+void NOMAD::Double::truncateToGranMultiple ( const NOMAD::Double & ref   ,
+                                            const NOMAD::Double & granularity ,
+                                            const NOMAD::Double & lb    ,
+                                            const NOMAD::Double & ub      )
+{
+    if ( !_defined )
+        return;
+    
+    NOMAD::Double v0 = ( ref._defined ) ? ref : 0.0;
+    
+    if ( granularity._defined && granularity != 0.0 )
+    {
+        
+        *this = v0 + ( (*this-v0) / granularity).roundd() * granularity;
+        
+    }
+}

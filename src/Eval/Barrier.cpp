@@ -51,9 +51,9 @@
 #include "../Output/OutputQueue.hpp"
 
 void NOMAD::Barrier::init(const NOMAD::Point& fixedVariable,
-                          const NOMAD::EvalType& evalType,
+                          NOMAD::EvalType  evalType,
                           const std::vector<NOMAD::EvalPoint>& evalPointList,
-                          const NOMAD::ComputeType& computeType,
+                          NOMAD::ComputeType computeType,
                           bool barrierInitializedFromCache)
 {
     std::vector<NOMAD::EvalPoint> cachePoints;
@@ -170,8 +170,8 @@ void NOMAD::Barrier::checkCache()
 
 
 void NOMAD::Barrier::checkXFeas(const NOMAD::EvalPoint &xFeas,
-                                const NOMAD::EvalType& evalType,
-                                const NOMAD::ComputeType& computeType)
+                                NOMAD::EvalType  evalType,
+                                NOMAD::ComputeType computeType)
 {
     // If evalType is UNDEFINED, skip this check.
     if (NOMAD::EvalType::UNDEFINED != evalType)
@@ -187,8 +187,8 @@ void NOMAD::Barrier::checkXFeas(const NOMAD::EvalPoint &xFeas,
 
 
 void NOMAD::Barrier::checkXFeasIsFeas(const NOMAD::EvalPoint &xFeas,
-                                      const NOMAD::EvalType& evalType,
-                                      const NOMAD::ComputeType& computeType)
+                                      NOMAD::EvalType  evalType,
+                                      NOMAD::ComputeType computeType)
 {
     // If evalType is UNDEFINED, skip this check.
     if (NOMAD::EvalType::UNDEFINED != evalType)
@@ -207,7 +207,7 @@ void NOMAD::Barrier::checkXFeasIsFeas(const NOMAD::EvalPoint &xFeas,
 }
 
 
-void NOMAD::Barrier::checkXInf(const NOMAD::EvalPoint &xInf, const NOMAD::EvalType& evalType)
+void NOMAD::Barrier::checkXInf(const NOMAD::EvalPoint &xInf, NOMAD::EvalType evalType)
 {
     // If evalType is UNDEFINED, skip this check.
     if (NOMAD::EvalType::UNDEFINED != evalType)
@@ -256,8 +256,8 @@ NOMAD::EvalPointPtr NOMAD::Barrier::getFirstXFeas() const
 
 
 void NOMAD::Barrier::addXFeas(const NOMAD::EvalPoint &xFeas,
-                              const NOMAD::EvalType& evalType,
-                              const NOMAD::ComputeType& computeType)
+                              NOMAD::EvalType evalType,
+                              NOMAD::ComputeType computeType)
 {
     checkXFeas(xFeas, evalType, computeType);
     _xFeas.push_back(xFeas);
@@ -283,16 +283,16 @@ NOMAD::EvalPointPtr NOMAD::Barrier::getFirstXInf() const
 
 
 void NOMAD::Barrier::addXInf(const NOMAD::EvalPoint &xInf,
-                             const NOMAD::EvalType& evalType)
+                             NOMAD::EvalType evalType)
 {
     checkXInf(xInf, evalType);
     _xInf.push_back(xInf);
 }
 
-NOMAD::SuccessType NOMAD::Barrier::getSuccessTypeOfPoints(const std::shared_ptr<EvalPoint> & xFeas,
-                                                          const std::shared_ptr<EvalPoint> & xInf,
-                                                          const NOMAD::EvalType & evalType,
-                                                          const NOMAD::ComputeType & computeType)
+NOMAD::SuccessType NOMAD::Barrier::getSuccessTypeOfPoints(const EvalPointPtr xFeas,
+                                                          const EvalPointPtr xInf,
+                                                          NOMAD::EvalType evalType,
+                                                          NOMAD::ComputeType computeType)
 {
     NOMAD::SuccessType successType = SuccessType::UNSUCCESSFUL;
     NOMAD::SuccessType successType2 = SuccessType::UNSUCCESSFUL;
@@ -335,11 +335,11 @@ NOMAD::SuccessType NOMAD::Barrier::getSuccessTypeOfPoints(const std::shared_ptr<
 // and do not update it if the new point is equivalent.
 // we want to keep only the one that is already in the barrier.
 bool NOMAD::Barrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalPointList,
-                                      const NOMAD::EvalType& evalType,
-                                      const NOMAD::ComputeType& computeType,
+                                      NOMAD::EvalType evalType,
+                                      NOMAD::ComputeType computeType,
                                       const bool keepAllPoints)
 {
-    bool (*comp)(const NOMAD::Eval&, const NOMAD::Eval&, const NOMAD::ComputeType&, NOMAD::SuccessType, bool) = NOMAD::Eval::compInsertInBarrier;
+    bool (*comp)(const NOMAD::Eval&, const NOMAD::Eval&, NOMAD::ComputeType, NOMAD::SuccessType, bool) = NOMAD::Eval::compInsertInBarrier;
     bool updated = false;
     bool updatedFeas = false;
     bool updatedInf = false;

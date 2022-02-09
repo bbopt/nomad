@@ -80,12 +80,6 @@ std::string NOMAD::MegaIteration::getName() const
 }
 
 
-size_t NOMAD::MegaIteration::getNextK() const
-{
-    return _k + 1;
-}
-
-
 void NOMAD::MegaIteration::endImp()
 {
     if (_runParams->getAttributeValue<bool>("USER_CALLS_ENABLED"))

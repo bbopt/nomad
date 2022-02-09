@@ -57,7 +57,7 @@
 #include "../Util/utils.hpp"
 #include <numeric>    // For std::accumulate
 
-// Convert a string with separation ("ORTHO 2N", "ORTHO N+1 NEG")
+// Convert a string with separation ("ORTHO 2N", "ORTHO N+1 NEG", ...)
 // to a NOMAD::DirectionType.
 NOMAD::DirectionType NOMAD::stringToDirectionType(const std::string & s)
 {
@@ -74,7 +74,7 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::string & s)
     return stringToDirectionType(ls);
 }
 
-// Convert a list of strings ("ORTHO 2N", "ORTHO N+1 NEG")
+// Convert a list of strings ("ORTHO 2N", "ORTHO N+1 NEG", ...)
 // to a NOMAD::DirectionType.
 NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> & ls)
 {
@@ -114,7 +114,11 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
     {
         ret = NOMAD::DirectionType::DOUBLE;
     }
-
+    
+    if (s == "CS")
+    {
+        ret = NOMAD::DirectionType::CS;
+    }
 
     // Ortho-MADS with n+1 (plus QUAD or NEG), or 2n directions:
     if (s == "ORTHO")
@@ -144,14 +148,13 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
             if (it==end)
             {
                 throw NOMAD::Exception(__FILE__, __LINE__, "ORTHO N+1 QUAD direction type not yet supported");
-                //ret = NOMAD::DirectionType::ORTHO_NP1_QUAD;   // Default for ORTHO N+1
+                ret = NOMAD::DirectionType::ORTHO_NP1_QUAD;   // Default for ORTHO N+1
             }
             s = *it;
             NOMAD::toupper ( s );
             if ( s=="QUAD" )
             {
-                throw NOMAD::Exception(__FILE__, __LINE__, "ORTHO N+1 QUAD direction type not yet supported");
-                //ret= NOMAD::DirectionType::ORTHO_NP1_QUAD;
+                ret= NOMAD::DirectionType::ORTHO_NP1_QUAD;
             }
             if ( s=="NEG" )
             {
@@ -169,130 +172,12 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
     if ( s == "LT" )
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "LT direction type not yet supported");
-
-        ++it;
-        if ( it == end )
-        {
-            ret = NOMAD::DirectionType::LT_2N;
-        }
-        if ( *it == "1" )
-        {
-            ret = NOMAD::DirectionType::LT_1;
-        }
-        if ( *it == "2" )
-        {
-            ret = NOMAD::DirectionType::LT_2;
-        }
-        s = *it;
-        NOMAD::toupper ( s );
-        if ( s == "N+1" )
-        {
-            ret = NOMAD::DirectionType::LT_NP1;
-        }
-        if ( s == "2N" )
-        {
-            ret = NOMAD::DirectionType::LT_2N;
-        }
     }
 
     // GPS:
     if ( s == "GPS" )
     {
-
         throw NOMAD::Exception(__FILE__, __LINE__, "GPS direction type not yet supported");
-
-        ++it;
-        if ( it == end )
-        {
-            ret = NOMAD::DirectionType::GPS_2N_STATIC;
-        }
-        s = *it;
-        NOMAD::toupper ( s );
-
-        // GPS for binary variables:
-        if ( s == "BINARY" || s == "BIN" )
-        {
-            ret = NOMAD::DirectionType::GPS_BINARY;
-        }
-
-        // GPS, n+1 directions:
-        if ( s == "N+1" )
-        {
-            ++it;
-            if ( it == end )
-            {
-                ret = NOMAD::DirectionType::GPS_NP1_STATIC;
-            }
-            s = *it;
-            NOMAD::toupper ( s );
-
-            // GPS, n+1, static:
-            if ( s == "STATIC" )
-            {
-                ++it;
-                if ( it == end )
-                {
-                    ret = NOMAD::DirectionType::GPS_NP1_STATIC;
-                }
-                s = *it;
-                NOMAD::toupper ( s );
-                if ( s == "UNIFORM" )
-                {
-                    ret = NOMAD::DirectionType::GPS_NP1_STATIC_UNIFORM;
-                }
-            }
-
-            // GPS, n+1, random:
-            if ( s == "RAND" || s == "RANDOM" )
-            {
-                ++it;
-                if ( it == end )
-                {
-                    ret = NOMAD::DirectionType::GPS_NP1_RAND;
-                }
-                s = *it;
-                NOMAD::toupper ( s );
-                if ( s == "UNIFORM" )
-                {
-                    ret = NOMAD::DirectionType::GPS_NP1_RAND_UNIFORM;
-                }
-            }
-        }
-
-        // 2n directions:
-        if ( s == "2N" )
-        {
-            ++it;
-            if ( it == end )
-            {
-                ret = NOMAD::DirectionType::GPS_2N_STATIC;
-            }
-            s = *it;
-            NOMAD::toupper ( s );
-            if ( s == "STATIC" )
-            {
-                ret = NOMAD::DirectionType::GPS_2N_STATIC;
-            }
-            if ( s == "RAND" || s == "RANDOM" )
-            {
-                ret = NOMAD::DirectionType::GPS_2N_RAND;
-            }
-        }
-        // 2n directions:
-        if ( s == "1" )
-        {
-            ++it;
-            if ( it == end )
-            {
-                ret = NOMAD::DirectionType::GPS_1_STATIC;
-            }
-            s = *it;
-            NOMAD::toupper ( s );
-            if ( s == "STATIC" )
-            {
-                ret = NOMAD::DirectionType::GPS_1_STATIC;
-            }
-        }
     }
 
     if (ret == DirectionType::UNDEFINED_DIRECTION)
@@ -309,7 +194,7 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
 // Convert a NOMAD::DirectionType to a string.
 // NOMAD::DirectionType::UNDEFINED returns "UNDEFINED".
 // An unrecognized eval type returns an exception.
-std::string NOMAD::directionTypeToString(const NOMAD::DirectionType& dt)
+std::string NOMAD::directionTypeToString(NOMAD::DirectionType dt)
 {
     std::string s;
 
@@ -317,6 +202,9 @@ std::string NOMAD::directionTypeToString(const NOMAD::DirectionType& dt)
     {
         case NOMAD::DirectionType::ORTHO_2N:
             s = "ORTHO 2N";
+            break;
+        case NOMAD::DirectionType::CS:
+            s = "CS";
             break;
         case NOMAD::DirectionType::NP1_UNI:
             s = "N+1 UNI";

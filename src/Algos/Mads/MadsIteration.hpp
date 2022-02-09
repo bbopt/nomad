@@ -44,10 +44,13 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_MADSITERATION__
-#define __NOMAD_4_0_MADSITERATION__
+#ifndef __NOMAD_4_2_MADSITERATION__
+#define __NOMAD_4_2_MADSITERATION__
 
 #include "../../Algos/Iteration.hpp"
+#include "../../Algos/Mads/MegaSearchPoll.hpp"
+#include "../../Algos/Mads/Poll.hpp"
+#include "../../Algos/Mads/Search.hpp"
 #include "../../Algos/MeshBase.hpp"
 #include "../../Eval/EvalPoint.hpp"
 
@@ -60,9 +63,13 @@
 class MadsIteration: public Iteration
 {
 private:
-    const std::shared_ptr<MeshBase>  _mesh;        ///< Mesh on which the points are
+    const MeshBasePtr  _mesh;        ///< Mesh on which the points are
     SuccessType                      _success;     ///< Success type of this iteration
 
+    std::unique_ptr<Poll> _poll;
+    std::unique_ptr<Search> _search;
+    std::unique_ptr<MegaSearchPoll> _megasearchpoll;
+    
 #ifdef TIME_STATS
     /// Time counters
     DLL_ALGO_API static double  _iterTime;          ///< Total time spent running this class
@@ -82,10 +89,13 @@ public:
      */
     explicit MadsIteration(const Step *parentStep,
                            const size_t k,
-                           const std::shared_ptr<MeshBase> mesh)
+                           const MeshBasePtr mesh)
       : Iteration(parentStep, k),
         _mesh(mesh),
-        _success(SuccessType::NOT_EVALUATED)
+        _success(SuccessType::NOT_EVALUATED),
+        _poll(nullptr),
+        _search(nullptr),
+        _megasearchpoll(nullptr)
 #ifdef TIME_STATS
         ,_iterStartTime(0.0)
 #endif // TIME_STATS
@@ -93,8 +103,7 @@ public:
         init();
     }
 
-    
-    NOMAD::ArrayOfPoint suggest() override;
+    NOMAD::ArrayOfPoint suggest() override;  ///< For suggest and observe PyNomad interface
 
     // Gets/Sets
 
@@ -102,7 +111,7 @@ public:
      The Mads algorithm iteration possesses a mesh, unlike the base iteration that has none.
      \remark Used by Step::getIterationMesh() to pass the mesh whenever needed
      */
-    const std::shared_ptr<MeshBase> getMesh() const override { return _mesh; }
+    const MeshBasePtr getMesh() const override { return _mesh; }
 
     /// Return current SuccessType
     const SuccessType& getSuccessType() const { return _success; }
@@ -143,4 +152,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_MADSITERATION__
+#endif // __NOMAD_4_2_MADSITERATION__

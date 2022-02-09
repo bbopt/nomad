@@ -39,7 +39,7 @@ namespace SGTELIB {
   const double wta3_beta  = -1;
 
   /*--------------------------------------*/
-  /*         Surrogate_Ensemble class        */
+  /*         Surrogate_Ensemble class     */
   /*--------------------------------------*/
   class DLL_API Surrogate_Ensemble : public SGTELIB::Surrogate {
 
@@ -72,6 +72,7 @@ namespace SGTELIB {
     virtual const SGTELIB::Matrix * get_matrix_Zvs (void) override;
 
     void compute_W_by_select(void);
+    void compute_W_by_select_nb (const int nb_bests);
     void compute_W_by_wta1  (void);
     void compute_W_by_wta3  (void);
 
@@ -85,6 +86,8 @@ namespace SGTELIB {
     virtual void predict_private ( const SGTELIB::Matrix & XXs,
                                          SGTELIB::Matrix * ZZ ) override;
 
+    virtual void predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
+                                             SGTELIB::Matrix * ZZsurr_around           ) override {};
 
   public:
 

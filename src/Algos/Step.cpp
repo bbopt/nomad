@@ -272,6 +272,10 @@ void NOMAD::Step::observe(const std::vector<NOMAD::EvalPoint>& evalPointList)
 
 void NOMAD::Step::defaultStart()
 {
+    
+    // Increment counters
+    incrementCounters();
+    
     // Test shared_ptr here because MainStep has no stopReason
     if ( _stopReasons && ! _stopReasons->checkTerminate() )
     {
@@ -285,6 +289,7 @@ void NOMAD::Step::defaultStart()
 void NOMAD::Step::defaultEnd()
 {
     AddOutputInfo("End step " + getName(), false, true);
+    
     // Flush because the step is done.
     NOMAD::OutputQueue::Flush();
 }
@@ -389,7 +394,7 @@ const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() con
     {
         // An Algorithm has its own MegaIteration member. Get it.
         auto algo = dynamic_cast<const NOMAD::Algorithm*>(this);
-        megaIter = algo->getMegaIteration().get();
+        megaIter = algo->getRefMegaIteration().get();
     }
     else
     {

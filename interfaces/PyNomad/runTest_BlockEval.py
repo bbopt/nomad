@@ -27,7 +27,10 @@ ub=[]
 
 params =  ["BB_OUTPUT_TYPE OBJ", "MAX_BB_EVAL 100", "UPPER_BOUND * 1"]
 params += ["DISPLAY_DEGREE 2", "DISPLAY_STATS BBE BLK_SIZE OBJ", "DISPLAY_ALL_EVAL false"]
-params += ["NB_THREADS_OPENMP 1", "BB_MAX_BLOCK_SIZE 4"]
+params += ["MEGA_SEARCH_POLL yes", "BB_MAX_BLOCK_SIZE 4"]
 
-x_return, f_return, h_return, nb_evals, nb_iters, stopflag = PyNomad.optimize(bb_block, x0, lb, ub, params)
-print ("\n NOMAD outputs \n X_sol={} \n F_sol={} \n H_sol={} \n NB_evals={} \n NB_iters={} \n".format(x_return,f_return,h_return,nb_evals,nb_iters))
+result = PyNomad.optimize(bb_block, x0, lb, ub, params)
+
+fmt = ["{} = {}".format(n,v) for (n,v) in result.items()]
+output = "\n".join(fmt)
+print("\nNOMAD results \n" + output + " \n")

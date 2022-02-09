@@ -59,7 +59,7 @@ void NOMAD::CacheInterface::init()
 
 bool NOMAD::CacheInterface::smartInsert(const NOMAD::EvalPoint &evalPoint,
                                         const short maxNumberEval,
-                                        const NOMAD::EvalType& evalType)
+                                        NOMAD::EvalType evalType)
 {
     // Always insert full dimension points.
     NOMAD::EvalPoint evalPointFull = evalPoint.makeFullSpacePointFromFixed(_fixedVariable);
@@ -69,7 +69,7 @@ bool NOMAD::CacheInterface::smartInsert(const NOMAD::EvalPoint &evalPoint,
 
 size_t NOMAD::CacheInterface::find(const NOMAD::Point& x,
                                    NOMAD::EvalPoint &evalPoint,
-                                   const NOMAD::EvalType& evalType)
+                                   NOMAD::EvalType evalType)
 {
     // Look for full dimension points.
     NOMAD::Point xFull = x.makeFullSpacePointFromFixed(_fixedVariable);
@@ -83,8 +83,8 @@ size_t NOMAD::CacheInterface::find(const NOMAD::Point& x,
 
 
 size_t NOMAD::CacheInterface::findBestFeas(std::vector<NOMAD::EvalPoint> &evalPointList,
-                                           const NOMAD::EvalType& evalType,
-                                           const NOMAD::ComputeType& computeType,
+                                           NOMAD::EvalType  evalType,
+                                           NOMAD::ComputeType computeType,
                                            const NOMAD::Eval* refeval) const
 {
     // Cache holds the full dimension points.
@@ -100,8 +100,8 @@ size_t NOMAD::CacheInterface::findBestFeas(std::vector<NOMAD::EvalPoint> &evalPo
 
 size_t NOMAD::CacheInterface::findBestInf(std::vector<NOMAD::EvalPoint>& evalPointList,
                                           const NOMAD::Double& hMax,
-                                          const NOMAD::EvalType& evalType,
-                                          const NOMAD::ComputeType& computeType,
+                                          NOMAD::EvalType  evalType,
+                                          NOMAD::ComputeType computeType,
                                           const NOMAD::Eval* refeval) const
 {
     // Cache holds the full dimension points.

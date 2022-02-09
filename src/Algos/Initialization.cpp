@@ -65,3 +65,14 @@ std::string NOMAD::Initialization::getName() const
     return getAlgoName() + NOMAD::stepTypeToString(_stepType);
 }
 
+void NOMAD::Initialization::endImp()
+{
+    
+    _trialPointStats.updateParentStats();
+}
+
+void NOMAD::Initialization::incrementCounters()
+{
+    // Increment number of calls to start, run and end sequence.
+    _trialPointStats.incrementNbCalls();
+}

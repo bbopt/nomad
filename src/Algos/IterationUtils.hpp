@@ -45,12 +45,13 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_0_ITERATIONUTILS__
-#define __NOMAD_4_0_ITERATIONUTILS__
+#ifndef __NOMAD_4_2_ITERATIONUTILS__
+#define __NOMAD_4_2_ITERATIONUTILS__
 
 #include <stdexcept>
 
 #include "../Algos/Iteration.hpp"
+#include "../Algos/TrialPointStats.hpp"
 #include "../Algos/MegaIteration.hpp"
 #include "../Algos/Step.hpp"
 
@@ -70,9 +71,6 @@ protected:
 
     size_t _nbEvalPointsThatNeedEval;
 
-
-protected:
-
     const Step * _parentStep;
 
     SuccessType _success; ///< Success type of this step.
@@ -89,7 +87,11 @@ protected:
      */
     MegaIteration* _megaIterAncestor;
 
-
+    /**
+         Stats for trial points generated and evaluated.
+     */
+    TrialPointStats _trialPointStats;
+    
 private:
     /**
      Flag: True if the direct parent step is an Algorithm. False otherwise. \n
@@ -109,6 +111,7 @@ public:
         _parentStep(parentStep),
         _success(SuccessType::NOT_EVALUATED),
         _iterAncestor(nullptr),
+        _trialPointStats( parentStep ),
         _fromAlgo(false)
     {
         init();
@@ -118,9 +121,9 @@ public:
     /**
      Clear trial points
      */
-    virtual ~IterationUtils() {
+    virtual ~IterationUtils()
+    {
         _trialPoints.clear();
-
     }
 
     /*---------*/
@@ -131,6 +134,9 @@ public:
 
     size_t getTrialPointsCount() const              { return _trialPoints.size(); }
     const EvalPointSet& getTrialPoints() const      { return _trialPoints; }
+    
+    
+    
 
     /*---------------*/
     /* Other methods */
@@ -139,7 +145,10 @@ public:
     bool insertTrialPoint(const EvalPoint &evalPoint);
 
     /// Clear trial points
-    void clearTrialPoints( void ) { _trialPoints.clear(); }
+    void clearTrialPoints( void )
+    {
+        _trialPoints.clear();
+    }
 
     /// Helper for end task
     /**
@@ -152,9 +161,10 @@ public:
     /// Helper for start task
     /**
      Verify that all points in trialPoints are on the current mesh.
-     If a point is not on the mesh, issue a warning and remove it from the set.
+     If a point is not on the mesh the function returns false.
+     All points are snapped to the bounds and the mesh. Sometimes, this verification fails anyway. Depending on the algorithm calling we may trigger an exception or display a warning.
      */
-    void verifyPointsAreOnMesh(const std::string& name) const;
+    bool verifyPointsAreOnMesh(const std::string& name) const;
 
     /// Snap a given trial point to the bounds and project on mesh
     /**
@@ -175,24 +185,41 @@ public:
      * Called by run.
      \param step    Current step.
      \param keepN   Number of points to keep (by default keep all)
+     \param removeStepType Remove trial points of this type after evaluation (default UNDEFINED, do not remove).
      \return true if a success was found, false otherwise.
      */
-    bool evalTrialPoints(const Step* step, const size_t keepN = INF_SIZE_T, const StepType& removeStepType = StepType::UNDEFINED);
+    bool evalTrialPoints(const Step* step,
+                         const size_t keepN = INF_SIZE_T,
+                         StepType removeStepType = StepType::UNDEFINED);
 
     /// Get the number of evaluation points in the queue for evaluation
     size_t getNbEvalPointsThatNeededEval() const { return _nbEvalPointsThatNeedEval; }
 
     /// Generate the trial points of an algorithm iteration before evaluation.
-    /** Virtual function that algorithm iteration steps must implement
+    /** Algorithm iteration steps must implement generateTrialPointImp
      */
-    virtual void generateTrialPoints() = 0;
+    void generateTrialPoints();
 
+    /// Generate the second pass trial points of an algorithm iteration before evaluation.
+    void generateTrialPointsSecondPass();
+    
+    /// Implementation for first pass to generate the trial points (pure virtual because Search Methods and Poll Methods must implement it)
+    virtual void generateTrialPointsImp() = 0;
+    
+    /// Implementation for second pass to generate the trial points (currently, only Poll Methods must implement it, the default does nothing)
+    virtual void generateTrialPointsSecondPassImp() {} ;
+    
+    void updateStats(TrialPointStats & trialPointStats);
+
+protected:
+    bool meshIsFinest() const;
+    
 private:
-
+       
     /// Helper for constructor
     void init();
 };
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_ITERATIONUTILS__
+#endif // __NOMAD_4_2_ITERATIONUTILS__

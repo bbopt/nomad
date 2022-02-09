@@ -221,8 +221,8 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeSurrogate(
 }
 
 
-void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(const NOMAD::EvalType& evalType,
-                                                              const NOMAD::ComputeType& computeType)
+void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(NOMAD::EvalType evalType,
+                                                              NOMAD::ComputeType computeType)
 {
     if (NOMAD::EvalType::BB == evalType)
     {
@@ -236,7 +236,6 @@ void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(const NOMAD::EvalT
         }
         else
         {
-
         }
     }
     else if (NOMAD::EvalType::SURROGATE == evalType)

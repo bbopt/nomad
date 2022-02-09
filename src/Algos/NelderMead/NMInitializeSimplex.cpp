@@ -149,9 +149,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
         dbgInfo.addMsg("The include rectangle: " + includeRectangle.display() );
         OUTPUT_DEBUG_END
     }
-    if ( includeRectangle.max() == 0 )
-        throw NOMAD::Exception(__FILE__, __LINE__, "The include rectangle has no volume");
-
+    
     // The set of points initially included
     NOMAD::NMSimplexEvalPointSet T;
 

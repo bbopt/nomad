@@ -52,8 +52,8 @@
  \see    Point.cpp
  */
 
-#ifndef __NOMAD_4_0_POINT__
-#define __NOMAD_4_0_POINT__
+#ifndef __NOMAD_4_2_POINT__
+#define __NOMAD_4_2_POINT__
 
 #include <numeric>
 #include "../Math/ArrayOfDouble.hpp"
@@ -133,7 +133,6 @@ public:
      */
     std::string displayNoPar(const ArrayOfDouble &prec = ArrayOfDouble()) const;
 
-    //void displayNoPar(std::ostream& out) const;
 
     /*------------*/
     /* Comparison */
@@ -159,6 +158,9 @@ public:
      */
     static bool weakLess(const Point &lhs, const Point &rhs);
 
+    
+    
+    
     /// Addition point = point + direction
     /**
      The current object \c *this is not modified.
@@ -226,6 +228,13 @@ public:
      \return                \c true if \c *this is part of sub-space
      */
     bool hasFixed(const Point &fixedVariable) const;
+    
+    // Unused for the moment. Maybe used by projectToMesh
+    void projectToMesh ( const NOMAD::Point & ref   ,
+                        const ArrayOfDouble & delta ,
+                        const ArrayOfDouble & lb     ,
+                        const ArrayOfDouble & ub      );
+    
 
 };
 
@@ -250,4 +259,4 @@ std::istream& operator>>(std::istream& in, Point& pt);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_0_POINT__
+#endif // __NOMAD_4_2_POINT__

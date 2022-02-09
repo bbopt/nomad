@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_MADSINITIALIZATION__
-#define __NOMAD_4_0_MADSINITIALIZATION__
+#ifndef __NOMAD_4_2_MADSINITIALIZATION__
+#define __NOMAD_4_2_MADSINITIALIZATION__
 
 #include "../../Algos/Initialization.hpp"
 
@@ -54,11 +54,12 @@
 /// Class for Mads initialization (step 0)
 /**
  The run function of this step validates and evaluates X0(s).
+ Initialization of the mesh is performed at construction.
  */
-class MadsInitialization final: public Initialization
+class MadsInitialization : public Initialization
 {
-private:
-    std::shared_ptr<MeshBase> _initialMesh;
+protected:
+    MeshBasePtr _initialMesh;
     
     bool _barrierInitializedFromCache;
 
@@ -78,7 +79,7 @@ public:
 
     virtual ~MadsInitialization() {}
 
-    std::shared_ptr<MeshBase> getMesh() const { return _initialMesh; }
+    MeshBasePtr getMesh() const { return _initialMesh; }
 
 private:
     void init();
@@ -86,10 +87,12 @@ private:
     void validateX0s() const;
     bool eval_x0s();
 
+protected:
+    
     virtual bool runImp() override;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_MADSINITIALIZATION__
+#endif // __NOMAD_4_2_MADSINITIALIZATION__

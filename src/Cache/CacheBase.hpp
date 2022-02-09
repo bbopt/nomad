@@ -51,8 +51,8 @@
  * \date   April 2017
  */
 
-#ifndef __NOMAD_4_0_CACHEBASE__
-#define __NOMAD_4_0_CACHEBASE__
+#ifndef __NOMAD_4_2_CACHEBASE__
+#define __NOMAD_4_2_CACHEBASE__
 
 #include <atomic>       // For atomic
 #include <vector>
@@ -250,7 +250,7 @@ public:
      \return            The number of eval points found.
      */
     virtual size_t find(const Point & x, EvalPoint &evalPoint,
-                        const EvalType evalType = EvalType::UNDEFINED) const = 0;
+                        EvalType evalType = EvalType::UNDEFINED) const = 0;
 
     /// Insert evalPoint in cache.
     /**
@@ -268,7 +268,7 @@ public:
      */
     virtual bool smartInsert(const EvalPoint &evalPoint,
                              const short maxNumberEval = 1,
-                             const EvalType& evalType = EvalType::BB) = 0;
+                             EvalType evalType = EvalType::BB) = 0;
 
     /// Find all eval points at point x in the cache.
     /**
@@ -289,13 +289,14 @@ public:
      \param comp            The comparison function                                     -- \b IN.
      \param evalPointList   The list of eval points found in cache that match comp()    -- \b OUT.
      \param evalType        Which Eval of the EvalPoint to look at                      -- \b IN.
+     \param computeType   Which type of computation                            -- \b IN.
      \return                The number of points found.
      */
     virtual size_t find(const Eval &refeval,
-                        std::function<bool(const Eval&, const Eval&, const ComputeType&)> comp,
+                        std::function<bool(const Eval&, const Eval&, ComputeType)> comp,
                         std::vector<EvalPoint> &evalPointList,
-                        const EvalType& evalType = EvalType::BB,
-                        const ComputeType& computeType = ComputeType::STANDARD) const = 0;
+                        EvalType evalType = EvalType::BB,
+                        ComputeType computeType = ComputeType::STANDARD) const = 0;
 
 
     /// Get best eval points, using comp(). Only the points with eval status EVAL_OK are considered.
@@ -306,16 +307,19 @@ public:
      \param hMax            The hmax to detect feasibility                             -- \b IN.
      \param fixedVariable   Searching for a subproblem defined by this point           -- \b IN.
      \param evalType        Which Eval of the EvalPoint to look at                     -- \b IN.
+     \param computeType     Which compute type of the EvalPoint to look at                     -- \b IN.
      \param refeval         The upper bound eval reference to accelerate the search  (can be nullptr) -- \b IN.
      \return                The number of eval points found.
      */
-    virtual size_t findBest(std::function<bool(const Eval&, const Eval&, const ComputeType&)> comp,
+    virtual size_t findBest(std::function<bool(const Eval&,
+                                               const Eval&,
+                                               ComputeType)> comp,
                             std::vector<EvalPoint> &evalPointList,
                             const bool findFeas,
                             const Double& hMax,
                             const Point& fixedVariable,
-                            const EvalType& evalType,
-                            const ComputeType& computeType,
+                            EvalType  evalType,
+                            ComputeType computeType,
                             const Eval* refeval) const = 0;
 
 
@@ -324,21 +328,22 @@ public:
      \param evalPointList   The best feasible eval points in a list  -- \b OUT.
      \param fixedVariable   Searching for a subproblem defined by this point -- \b IN.
      \param evalType        Which eval of the EvalPoint to look at -- \b IN.
+     \param computeType     Which compute type of the EvalPoint to look at                     -- \b IN.
      \param refeval         The upper bound eval reference to accelerate the search  (can be nullptr)   -- \b IN.
      \return                The number of eval points found.
      */
     virtual size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
                             const Point& fixedVariable,
-                            const EvalType& evalType,
-                            const ComputeType& computeType,
+                            EvalType  evalType,
+                            ComputeType computeType,
                             const Eval* refeval) const = 0;
 
     /// Test if cache contains feasible points.
     /**
       \return \c true if the cache contains at least one feasible point, \c false otherwise.
      */
-    virtual bool hasFeas(const EvalType& evalType = EvalType::BB,
-                         const ComputeType& computeType = ComputeType::STANDARD) const = 0;
+    virtual bool hasFeas(EvalType evalType = EvalType::BB,
+                         ComputeType computeType = ComputeType::STANDARD) const = 0;
 
     /// Find best infeasible points, with h <= hMax, using operator< (pure virtual).
     /**
@@ -346,14 +351,15 @@ public:
      \param hMax            Select a point if h <= hMax                                                 -- \b IN.
      \param fixedVariable   Searching for a subproblem defined by this point                            -- \b IN.
      \param evalType        Which eval of the EvalPoint to look at                                      -- \b IN.
+     \param computeType     Which compute type of the EvalPoint to look at                     -- \b IN.
      \param refeval         The upper bound eval reference to accelerate the search (can be nullptr)    -- \b IN.
      \return                The number of eval points found.
      */
     virtual size_t findBestInf(std::vector<EvalPoint> &evalPointList,
                             const Double& hMax,
                             const Point& fixedVariable,
-                            const EvalType& evalType,
-                            const ComputeType& computeType,
+                            EvalType  evalType,
+                            ComputeType computeType,
                             const Eval* refeval) const = 0;
 
     /// Get all eval points within a distance of point X.
@@ -419,7 +425,7 @@ public:
      \param evalType        Which eval of the EvalPoint to look at -- \b IN.
      \return                A boolean indicating if update succeeded (\c true), \c false if there was an error.
      */
-    virtual bool update(const EvalPoint& evalPoint, const EvalType& evalType) = 0;
+    virtual bool update(const EvalPoint& evalPoint, EvalType  evalType) = 0;
 
     /// Return number of eval points in the cache.
     virtual size_t size() const = 0;
@@ -469,4 +475,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_CACHEBASE__
+#endif // __NOMAD_4_2_CACHEBASE__

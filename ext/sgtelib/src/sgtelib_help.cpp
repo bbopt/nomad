@@ -258,6 +258,25 @@ std::string ** SGTELIB::get_help_data (void){
 "Example\n"
 "      TYPE ENSEMBLE WEIGHT SELECT METRIC OECV      TYPE ENSEMBLE WEIGHT OPTIM METRIC RMSECV DISTANCE_TYPE NORM2 BUDGET 100";
   i++;
+  //==============================
+  //      ENSEMBLE_STAT           
+  //==============================
+  HELP_DATA[i][0] = "ENSEMBLE_STAT";
+  HELP_DATA[i][1] = "TYPE WEIGHT SELECT SELECTION";
+  HELP_DATA[i][2] = "ENSEMBLE_STAT is a type of model. \n"
+" \n"
+"Authorized fields for this type of model  \n"
+" * WEIGHT: Defines how the ensemble weights are computed. \n"
+" * METRIC: Defines which metric is used to compute the weights. \n"
+" * UNCERTAINTY: Defines if smooth or non-smooth uncertainty is used. \n"
+" * SIZE_PARAM: Defines the size used to computes positive spanning set or simplex. \n"
+" * SIGMA_MULT: Multiplier of the uncertainty. \n"
+" * LAMBDA_P: Value of the sigmoid parameters in probability of feasibility. \n"
+" * LAMBDA_PI: Value of the sigmoid parameters in probability of improvement. \n"
+" \n"
+"Example\n"
+"      TYPE ENSEMBLE_STAT WEIGHT SELECT METRIC OECV UNCERTAINTY SMOOTH SIZE_PARAM 0.03   TYPE ENSEMBLE_STAT WEIGHT OPTIM METRIC RMSECV DISTANCE_TYPE NORM2 BUDGET 100";
+  i++;
   //================================
   //      TYPE
   //================================
@@ -273,6 +292,7 @@ std::string ** SGTELIB::get_help_data (void){
 " * RBF: Radial Basis Function Model \n"
 " * LOWESS: Locally Weighted Regression \n"
 " * ENSEMBLE: Ensemble of surrogates \n"
+" * ENSEMBLE_STAT: Ensemble of surrogates with a particular variance \n"
 " * KRIGING: Kriging model \n"
 " * CN: Closest neighbor \n"
 " \n"

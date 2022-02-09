@@ -194,6 +194,20 @@ template<> std::map<NOMAD::LHStopType,std::string> & NOMAD::StopReason<NOMAD::LH
     return dictionary;
 }
 
+// Dictionary function for CSStopType
+template<> std::map<NOMAD::CSStopType,std::string> & NOMAD::StopReason<NOMAD::CSStopType>::dict() const
+{
+    static std::map<NOMAD::CSStopType,std::string> dictionary = {
+        {NOMAD::CSStopType::STARTED,"Started"},   // Set a the begining of a Step
+        {NOMAD::CSStopType::MESH_PREC_REACHED,"Mesh minimum precision reached"},
+        {NOMAD::CSStopType::GRANULARITY_REACHED," minimum Granularity value reached"},
+        {NOMAD::CSStopType::MIN_MESH_SIZE_REACHED,"Min mesh size reached"},
+        {NOMAD::CSStopType::MIN_FRAME_SIZE_REACHED,"Min frame size reached"},
+        {NOMAD::CSStopType::X0_FAIL,"Problem with starting point evaluation"}
+    };
+    return dictionary;
+}
+
 // Dictionary function for VNSStopType
 template<> std::map<NOMAD::VNSStopType,std::string> & NOMAD::StopReason<NOMAD::VNSStopType>::dict() const
 {
@@ -219,6 +233,27 @@ template<> bool NOMAD::StopReason<NOMAD::LHStopType>::checkTerminate() const
             return true;
             break;
         case NOMAD::LHStopType::STARTED:
+            return false;
+            break;
+        default:
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for algo terminate");
+    }
+    return false;
+}
+
+// Returns true when Coordinate Search  is complete, or no points generated
+template<> bool NOMAD::StopReason<NOMAD::CSStopType>::checkTerminate() const
+{
+    switch ( _stopReason )
+    {
+        case NOMAD::CSStopType::MESH_PREC_REACHED:
+        case NOMAD::CSStopType::MIN_MESH_SIZE_REACHED:
+        case NOMAD::CSStopType::MIN_FRAME_SIZE_REACHED:
+        case NOMAD::CSStopType::GRANULARITY_REACHED:
+        case NOMAD::CSStopType::X0_FAIL:
+            return true;
+            break;
+        case NOMAD::CSStopType::STARTED:
             return false;
             break;
         default:
@@ -441,6 +476,7 @@ template<> bool NOMAD::StopReason<NOMAD::ModelStopType>::checkTerminate() const
             return false;
             break;
         case NOMAD::ModelStopType::MODEL_OPTIMIZATION_FAIL:
+        case NOMAD::ModelStopType::ORACLE_FAIL:
         case NOMAD::ModelStopType::INITIAL_FAIL:
         case NOMAD::ModelStopType::NOT_ENOUGH_POINTS:
         case NOMAD::ModelStopType::NO_NEW_POINTS_FOUND:

@@ -66,13 +66,18 @@ void NOMAD::SpeculativeSearchMethod::init()
 {
     setStepType(NOMAD::StepType::SEARCH_METHOD_SPECULATIVE);
 
-    auto enable = _runParams->getAttributeValue<bool>("SPECULATIVE_SEARCH");
+    bool enable = false;
+    // For some testing, it is possible that _runParams is null
+    if (nullptr != _runParams)
+    {
+        enable = _runParams->getAttributeValue<bool>("SPECULATIVE_SEARCH");
+    }
 
     setEnabled(enable);
 }
 
 
-void NOMAD::SpeculativeSearchMethod::generateTrialPointsImp()
+void NOMAD::SpeculativeSearchMethod::generateTrialPointsFinal()
 {
     if (nullptr == _iterAncestor)
     {

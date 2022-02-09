@@ -45,13 +45,14 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_0_ALGORITHM__
-#define __NOMAD_4_0_ALGORITHM__
+#ifndef __NOMAD_4_2_ALGORITHM__
+#define __NOMAD_4_2_ALGORITHM__
 
 #include "../Algos/Initialization.hpp"
 #include "../Algos/MegaIteration.hpp"
 #include "../Algos/Step.hpp"
 #include "../Algos/Termination.hpp"
+#include "../Algos/TrialPointStats.hpp"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -72,7 +73,7 @@ protected:
 
     std::unique_ptr<Initialization>  _initialization;   ///< To initialize the algorithm (X0)
     std::unique_ptr<Termination>     _termination;      ///< To verify termination conditions
-    std::shared_ptr<MegaIteration>   _megaIteration;    ///< MegaIteration used to keep information between steps
+    std::shared_ptr<MegaIteration>   _refMegaIteration; ///< MegaIteration used to pass information between two algorithm runs
 
     bool                             _endDisplay;
 
@@ -86,28 +87,36 @@ protected:
     double _totalCPUAlgoTime;
 #endif // TIME_STATS
 
+    TrialPointStats                        _trialPointStats;   ///< The trial point counters stats for algo execution
+    
+    bool _useLocalFixedVariables ; ///< This flag is to force an algo to use local fixed variable. This is usefull when we change the design space like when doing quad model search. The evaluation of the quad model are only in the sub space.
+    
 public:
     /// Constructor
     /**
-     \param parentStep          The parent of this Step -- \b IN.
+     \param parentStep           The parent of this Step -- \b IN.
      \param stopReasons         The stop reasons of this algo -- \b IN.
-     \param runParams           The run parameters that control the algorithm -- \b IN.
-     \param pbParams            The problem parameters that control the algorithm -- \b IN.
+     \param runParams             The run parameters that control the algorithm -- \b IN.
+     \param pbParams               The problem parameters that control the algorithm -- \b IN.
+     \param useLocalFixedVariables Flag is to force an algo to use local fixed variable  -- \b IN.
      */
     explicit Algorithm(const Step* parentStep,
                        std::shared_ptr<AllStopReasons> stopReasons,
                        const std::shared_ptr<RunParameters>& runParams,
-                       const std::shared_ptr<PbParameters>& pbParams )
+                       const std::shared_ptr<PbParameters>& pbParams ,
+                       bool useLocalFixedVariables = false)
       : Step(parentStep, stopReasons, runParams, pbParams),
         _initialization(nullptr),
         _termination(nullptr),
-        _megaIteration(nullptr),
-        _endDisplay(true)
+        _refMegaIteration(nullptr),
+        _endDisplay(true),
 #ifdef TIME_STATS
-        ,_totalRealAlgoTime(0),
+        _totalRealAlgoTime(0),
         _startTime(0.0),
-        _totalCPUAlgoTime(0.0)
+        _totalCPUAlgoTime(0.0),
 #endif // TIME_STATS
+        _trialPointStats(parentStep),
+        _useLocalFixedVariables(useLocalFixedVariables)
     {
         init();
     }
@@ -118,10 +127,12 @@ public:
     /*---------*/
     /* Get/Set */
     /*---------*/
-    const std::shared_ptr<MegaIteration>& getMegaIteration() const { return _megaIteration; }
-    void setMegaIteration(const std::shared_ptr<MegaIteration> megaIteration) { _megaIteration = megaIteration; }
+    const std::shared_ptr<MegaIteration>& getRefMegaIteration() const { return _refMegaIteration; }
+    void setRefMegaIteration(const std::shared_ptr<MegaIteration> megaIteration) { _refMegaIteration = megaIteration; }
 
     void setEndDisplay( bool endDisplay ) { _endDisplay = endDisplay; }
+    
+    void updateStats(TrialPointStats & trialPointStats); /// Update the trial point counter stats
 
 protected:
 
@@ -131,7 +142,7 @@ protected:
      If doing a hot restart get the algorithm ready to continue. \n
      If starting a new algorithm, reset the stop reason, the lap evaluation counter, and perform initialization.
      */
-    virtual void startImp() override;
+    void startImp() override;
 
     /// Default implementation of the end tasks of an algorithm
     /**
@@ -155,7 +166,7 @@ protected:
     void displayBestSolutions() const;
     /// Helper for end()
     void displayEvalCounts() const;
-
+    
     /// Helper for hot restart
     void hotRestartOnUserInterrupt() override;
 
@@ -175,10 +186,19 @@ public:
     virtual void read(std::istream& is);
     virtual void display(std::ostream& os) const;
 
+    /// Access to the best solution (can be undefined)
+    EvalPoint getBestSolution (bool bestFeas = false) const;
+    
 private:
 
     ///  Helper for Constructor.
     void init();
+    
+    
+    private:
+    
+    /// Implementation to increment the nb of calls counter
+    virtual void incrementCounters() override { _trialPointStats.incrementNbCalls() ;}
 
 };
 
@@ -191,4 +211,4 @@ std::istream& operator>>(std::istream& is, Algorithm& algo);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_ALGORITHM__
+#endif // __NOMAD_4_2_ALGORITHM__

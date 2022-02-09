@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_SSDMADSMEGAITERATION__
-#define __NOMAD_4_0_SSDMADSMEGAITERATION__
+#ifndef __NOMAD_4_2_SSDMADSMEGAITERATION__
+#define __NOMAD_4_2_SSDMADSMEGAITERATION__
 
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
@@ -77,7 +77,7 @@ public:
     explicit SSDMadsMegaIteration(const Step* parentStep,
                                   size_t k,
                                   std::shared_ptr<Barrier> barrier,
-                                  std::shared_ptr<MeshBase> mesh,
+                                  MeshBasePtr mesh,
                                   SuccessType success)
       : MadsMegaIteration(parentStep, k, barrier, mesh, success),
         _randomPickup(_pbParams->getAttributeValue<size_t>("DIMENSION"))
@@ -110,4 +110,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_SSDMADSMEGAITERATION__
+#endif // __NOMAD_4_2_SSDMADSMEGAITERATION__

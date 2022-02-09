@@ -52,8 +52,8 @@
 //  Copyright (c) 2017 GERAD. All rights reserved.
 //
 
-#ifndef __NOMAD_4_0_ATTRIBUTEFACTORY__
-#define __NOMAD_4_0_ATTRIBUTEFACTORY__
+#ifndef __NOMAD_4_2_ATTRIBUTEFACTORY__
+#define __NOMAD_4_2_ATTRIBUTEFACTORY__
 
 #include "../Param/TypeAttribute.hpp"
 
@@ -87,4 +87,4 @@ public:
 };
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_0_ATTRIBUTEFACTORY__
+#endif  // __NOMAD_4_2_ATTRIBUTEFACTORY__

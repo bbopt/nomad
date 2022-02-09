@@ -60,11 +60,6 @@ void NOMAD::SSDMads::init()
 }
 
 
-void NOMAD::SSDMads::readInformationForHotRestart()
-{
-}
-
-
 bool NOMAD::SSDMads::runImp()
 {
     size_t k = 0;   // Iteration number
@@ -84,21 +79,18 @@ bool NOMAD::SSDMads::runImp()
         // Mads member _megaIteration is used for hot restart (read and write),
         // as well as to keep values used in Mads::end(), and may be used for _termination.
         // Update it here.
-        _megaIteration = std::make_shared<NOMAD::SSDMadsMegaIteration>(this, k, barrier, mesh, megaIterSuccess);
+        _refMegaIteration = std::make_shared<NOMAD::SSDMadsMegaIteration>(this, k, barrier, mesh, megaIterSuccess);
 
+        // Create a MegaIteration to manage the pollster worker and the regular workers.
+        NOMAD::SSDMadsMegaIteration ssdMegaIteration(this, k, barrier, mesh, megaIterSuccess);
         while (!_termination->terminate(k))
         {
 
-            // Create a MegaIteration to manage the pollster worker and the regular workers.
-            NOMAD::SSDMadsMegaIteration ssdMegaIteration(this, k, barrier, mesh, megaIterSuccess);
             ssdMegaIteration.start();
             ssdMegaIteration.run();
             ssdMegaIteration.end();
 
-            // Remember these values to construct the next MegaIteration.
-            k       = ssdMegaIteration.getNextK();
-            barrier = ssdMegaIteration.getBarrier();
-            mesh    = ssdMegaIteration.getMesh();
+            k       = ssdMegaIteration.getK();
             megaIterSuccess = ssdMegaIteration.getSuccessType();
 
             if (_userInterrupt)

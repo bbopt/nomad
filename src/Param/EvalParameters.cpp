@@ -48,6 +48,7 @@
 #include "../Param/EvalParameters.hpp"
 #include "../Type/BBInputType.hpp"
 #include "../Type/BBOutputType.hpp"
+#include "../Type/EvalSortType.hpp"
 #include "../Util/fileutils.hpp"
 
 /*----------------------------------------*/
@@ -75,7 +76,9 @@ void NOMAD::EvalParameters::init()
 /*            check the parameters        */
 /*----------------------------------------*/
 void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParameters>& runParams,
-                                           const std::shared_ptr<NOMAD::PbParameters>& pbParams)
+                                           const std::shared_ptr<NOMAD::PbParameters>& pbParams,
+                                           const std::shared_ptr<EvaluatorControlGlobalParameters>& evaluatorControlGlobalParams,
+                                           const std::shared_ptr<EvaluatorControlParameters>& evaluatorControlParams)
 {
     checkInfo();
 
@@ -88,8 +91,39 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
     /*--------------------------*/
     /* BB_EXE and SURROGATE_EXE */
     /*--------------------------*/
+    // If SURROGATE_EXE is defined, verify that it is used.
+    auto surrogateExe = getAttributeValueProtected<std::string>("SURROGATE_EXE", false);
+    bool sortTypeIsSurrogate = (NOMAD::EvalSortType::SURROGATE == evaluatorControlGlobalParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT"));
+    if (surrogateExe.empty())
+    {
+        if (sortTypeIsSurrogate)
+        {
+            throw NOMAD::InvalidParameter(__FILE__, __LINE__, "Parameter EVAL_QUEUE_SORT is set to SURROGATE. Parameter SURROGATE_EXE needs to be defined.");
+        }
+    }
+    else
+    {
+        // Surrogate executable is defined. Verify that it is used.
+        bool surrogateUsed = false;
+        // Verify EVAL_QUEUE_SORT
+        if (NOMAD::EvalSortType::SURROGATE == evaluatorControlGlobalParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT"))
+        {
+            surrogateUsed = true;
+        }
+        else if (evaluatorControlParams->getAttributeValue<bool>("EVAL_SURROGATE_OPTIMIZATION"))
+        {
+            surrogateUsed = true;
+        }
+
+        if (!surrogateUsed)
+        {
+            throw NOMAD::InvalidParameter(__FILE__, __LINE__, "Parameter SURROGATE_EXE is defined but not used. To fix this, unset SURROGATE_EXE, or set parameter EVAL_QUEUE_SORT to SURROGATE, or set parameter EVAL_SURROGATE_OPTIMIZATION to true.");
+        }
+    }
+
     updateExeParam(runParams, "BB_EXE");
     updateExeParam(runParams, "SURROGATE_EXE");
+
 
     /*----------------*/
     /* BB_OUTPUT_TYPE */

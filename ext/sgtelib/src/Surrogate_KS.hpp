@@ -42,6 +42,10 @@ namespace SGTELIB {
     virtual void predict_private ( const SGTELIB::Matrix & XXs,
                                          SGTELIB::Matrix * ZZs) override;
 
+    // Predict only objectives (used in Surrogate Ensemble Stat)
+    virtual void predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
+                                             SGTELIB::Matrix * ZZsurr_around            ) override;
+
     // Compute metrics
     virtual const SGTELIB::Matrix * get_matrix_Zvs (void) override;
     virtual const SGTELIB::Matrix * get_matrix_Zhs (void) override;

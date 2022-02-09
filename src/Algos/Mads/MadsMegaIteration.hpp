@@ -44,10 +44,10 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_MADSMEGAITERATION__
-#define __NOMAD_4_0_MADSMEGAITERATION__
+#ifndef __NOMAD_4_2_MADSMEGAITERATION__
+#define __NOMAD_4_2_MADSMEGAITERATION__
 
-
+#include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/MegaIteration.hpp"
 
 #include "../../nomad_nsbegin.hpp"
@@ -76,8 +76,10 @@ protected:
     /**
      Main mesh that holds the mesh size and frame size that we would use in the standard MADS algorithm or other Mesh-based algorithm.
      */
-    std::shared_ptr<MeshBase> _mainMesh;
+    MeshBasePtr _mainMesh;
 
+    std::unique_ptr<MadsIteration> _madsIteration;
+    
     void init();
 
 public:
@@ -92,17 +94,18 @@ public:
     explicit MadsMegaIteration(const Step* parentStep,
                               size_t k,
                               std::shared_ptr<Barrier> barrier,
-                              std::shared_ptr<MeshBase> mesh,
+                              MeshBasePtr mesh,
                               SuccessType success)
       : MegaIteration(parentStep, k, barrier, success),
-        _mainMesh(mesh)
+        _mainMesh(mesh),
+        _madsIteration(nullptr)
     {
         init();
     }
     virtual ~MadsMegaIteration() {}
 
+    /// For suggest and observe PyNomad interface
     NOMAD::ArrayOfPoint suggest() override;
-
     void observe(const std::vector<NOMAD::EvalPoint>& evalPointList) override;
 
     /// Implementation of the start tasks for MADS mega iteration.
@@ -120,8 +123,8 @@ public:
     virtual bool runImp() override;
 
 
-    const std::shared_ptr<MeshBase> getMesh() const          { return _mainMesh; }
-    void setMesh(const std::shared_ptr<MeshBase> &mesh)      { _mainMesh = mesh; }
+    const MeshBasePtr getMesh() const          { return _mainMesh; }
+    void setMesh(const MeshBasePtr &mesh)      { _mainMesh = mesh; }
 
     void read(  std::istream& is ) override;
     void display(  std::ostream& os ) const override ;
@@ -138,4 +141,4 @@ std::istream& operator>>(std::istream& is, MadsMegaIteration& megaIteration);
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_MADSMEGAITERATION__
+#endif // __NOMAD_4_2_MADSMEGAITERATION__

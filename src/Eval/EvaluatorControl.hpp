@@ -52,8 +52,8 @@
  \see    EvaluatorControl.cpp
  */
 
-#ifndef __NOMAD_4_0_EVALUATORCONTROL__
-#define __NOMAD_4_0_EVALUATORCONTROL__
+#ifndef __NOMAD_4_2_EVALUATORCONTROL__
+#define __NOMAD_4_2_EVALUATORCONTROL__
 
 #include "../Eval/Barrier.hpp"
 #include "../Eval/ComparePriority.hpp"
@@ -183,11 +183,6 @@ private:
      */
     std::atomic<size_t> _nbPhaseOneSuccess;
 
-    /**
-     The VNS Mads search neighborhood parameter
-     */
-    std::atomic<size_t> _VNSMadsNeighParameter;
-
     bool _allDoneWithEval;     ///< All evaluations done. The queue can be destroyed.
 
 #ifdef TIME_STATS
@@ -201,7 +196,7 @@ public:
      \param evalContGlobalParams  The parameters controlling how the class works -- \b IN.
      \param evalContParams  The parameters for main threads -- \b IN.
      */
-    explicit EvaluatorControl(std::shared_ptr<Evaluator> evaluator,
+    explicit EvaluatorControl(EvaluatorPtr evaluator,
                               const std::shared_ptr<EvaluatorControlGlobalParameters>& evalContGlobalParams,
                               const std::shared_ptr<EvaluatorControlParameters>& evalContParams)
       : _evalContGlobalParams(evalContGlobalParams),
@@ -225,7 +220,6 @@ public:
         _nbEvalSentToEvaluator(0),
         _nbRelativeSuccess(0),
         _nbPhaseOneSuccess(0),
-        _VNSMadsNeighParameter(0),
         _allDoneWithEval(false)
 #ifdef TIME_STATS
         ,_evalTime(0.0)
@@ -245,14 +239,14 @@ public:
     /*---------------*/
     void addMainThread(const int threadNum,
                        const std::shared_ptr<StopReason<EvalMainThreadStopType>> evalMainThreadStopReason,
-                       const std::shared_ptr<Evaluator>& evaluator,
-                       const std::shared_ptr<EvaluatorControlParameters>& evalContParams);
+                       const EvaluatorPtr evaluator,
+                       const std::shared_ptr<EvaluatorControlParameters> evalContParams);
     bool isMainThread(const int threadNum) const { return (_mainThreads.end() != _mainThreads.find(threadNum)); }
 
     const std::set<int>& getMainThreads() const { return _mainThreads; }
     int getNbMainThreads() const { return int(_mainThreads.size()); }
 
-    std::shared_ptr<Evaluator> setEvaluator(std::shared_ptr<Evaluator> evaluator);
+    EvaluatorPtr setEvaluator(EvaluatorPtr evaluator);
 
     /// Get the number of blackbox evaluations.
     size_t getBbEval() const { return _bbEval; }
@@ -309,10 +303,6 @@ public:
     void resetLapBbEval();
     size_t getLapBbEval(const int threadNum = -1) const;
 
-    size_t getVNSMadsNeighParameter() const { return _VNSMadsNeighParameter; }
-    void resetVNSMadsNeighParameter() { _VNSMadsNeighParameter = 0; }
-    void incrementVNSMadsNeighParameter() { _VNSMadsNeighParameter++ ; }
-
     size_t getNbPhaseOneSuccess() const {return  _nbPhaseOneSuccess; }
     size_t getNbRelativeSuccess() const {return  _nbRelativeSuccess; }
     size_t getIndexFeasEval() const { return _indexBestFeasEval; }
@@ -331,12 +321,13 @@ public:
     void setBarrier(const std::shared_ptr<Barrier>& barrier);
     const std::shared_ptr<Barrier>& getBarrier(const int threadNum = -1) const;
 
-    void setBestIncumbent(const int mainThreadNum, const std::shared_ptr<EvalPoint>& bestIncumbent);
-    const std::shared_ptr<EvalPoint>& getBestIncumbent(const int mainThreadNum) const;
+    void setBestIncumbent(const int mainThreadNum, const EvalPointPtr bestIncumbent);
+    void resetBestIncumbent(const int mainThreadNum);
+    const EvalPointPtr getBestIncumbent(const int mainThreadNum) const;
 
     void setUserCompMethod(const std::shared_ptr<ComparePriorityMethod>& compMethod) { _userCompMethod = compMethod; }
 
-    void setComputeType(const ComputeType& computeType);
+    void setComputeType(ComputeType computeType);
     const ComputeType& getComputeType(const int mainThreadNum = -1) const;
 
     void setLastSuccessfulFeasDir(const std::shared_ptr<Direction>& feasDir);
@@ -403,7 +394,8 @@ public:
     /**
      \return \c true if point was inserted in queue
     **/
-    bool addToQueue(const EvalQueuePointPtr& evalQueuePoint);
+    bool addToQueue(const EvalQueuePointPtr evalQueuePoint);
+    
 
     /// Get the top point from the queue and pop it.
     /**
@@ -511,11 +503,18 @@ public:
 
     /// For debugging purposes. Show the contents of the evaluation queue.
     void debugDisplayQueue() const;
+    
+    /// Sort provided points.
+    /**
+     Can be eval points in the queue ready for evaluation or eval points that need to be sorted before some are removed like in Ortho Mads N+1.
+     The option to force a random ordering is for Ortho Mads n+1. So we have guarantee that the direction will grow asymptotically dense.
+     */
+    void sort(std::vector<EvalQueuePointPtr> & evalPointsPtrToSort, bool forceRandom);
 
 private:
 
     /// Helper for constructor
-    void init(std::shared_ptr<Evaluator> evaluator,
+    void init(EvaluatorPtr evaluator,
               const std::shared_ptr<EvaluatorControlParameters>& evalContParams);
     /// Helper for destructor
     void destroy();
@@ -541,12 +540,10 @@ private:
                         const Double& hMax);
 
     /// Helper for EvalType: BB OR (SURROGATE and EVAL_AS_SURROGATE)
-    bool evalTypeAsBB(const EvalType& evalType, const int mainThreadNum) const;
+    bool evalTypeAsBB(EvalType evalType, const int mainThreadNum) const;
     /// Helper for EvalType: BB OR SURROGATE. MODEL does not count for some counters.
-    bool evalTypeCounts(const EvalType& evalType) const;
-
-    /// Sort the queue with respect to the selected sort strategy. Called by unlockQueue().
-    void sort();
+    bool evalTypeCounts(EvalType evalType) const;
+    
 
     /// Helper for unlockQueue(), to validate if a point may be removed from the queue after sort.
     bool canErase(const EvalQueuePointPtr &evalQueuePoint,
@@ -567,8 +564,14 @@ private:
 
     /// History and Solution file output
     void addDirectToFileInfo(EvalQueuePointPtr evalQueuePoint) const;
+    
+    /// Helper for sort
+    std::shared_ptr<NOMAD::OrderByDirection> makeCompMethodOrderByDirection() const ;
+    
+    bool checkModelEvals() const;
+    
 };
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_EVALUATORCONTROL__
+#endif // __NOMAD_4_2_EVALUATORCONTROL__

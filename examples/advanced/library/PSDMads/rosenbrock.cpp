@@ -111,9 +111,7 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     // Bounds
     allParams->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(N, -10.0 ));
     allParams->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(N, 10.0 ));
-
     
-    allParams->setAttributeValue("NM_SEARCH",false);
     allParams->setAttributeValue("PSD_MADS_OPTIMIZATION",true);
     allParams->setAttributeValue("PSD_MADS_NB_VAR_IN_SUBPROBLEM",2);
     allParams->setAttributeValue("PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE",NOMAD::Double(0.0));
@@ -126,7 +124,7 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
     allParams->setAttributeValue("DISPLAY_UNSUCCESSFUL",false);
-    allParams->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString("stats.txt bbe obj"));
+    // allParams->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString("stats.txt bbe obj"));
 
     // Parameters validation
     allParams->checkAndComply();

@@ -44,10 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-
-//#include "../../Algos/Mads/GMesh.hpp" // Code using GMesh is commented out
 #include "../../Algos/Mads/Mads.hpp"
-#include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/MadsUpdate.hpp"
 #include "../../Cache/CacheBase.hpp"
@@ -57,24 +54,25 @@
 void NOMAD::MadsMegaIteration::init()
 {
     setStepType(NOMAD::StepType::MEGA_ITERATION);
+    
+    // Create a single MadsIteration
+    _madsIteration = std::make_unique<NOMAD::MadsIteration>(this, _k, _mainMesh);
 }
 
 
 NOMAD::ArrayOfPoint NOMAD::MadsMegaIteration::suggest()
 {
-    // Create a single MadsIteration
-    NOMAD::MadsIteration madsIteration (this, _k, _mainMesh);
-
+    
     OUTPUT_DEBUG_START
     AddOutputDebug("Iteration generated:");
-    AddOutputDebug(madsIteration.getName());
-    NOMAD::ArrayOfDouble meshSize  = madsIteration.getMesh()->getdeltaMeshSize();
-    NOMAD::ArrayOfDouble frameSize = madsIteration.getMesh()->getDeltaFrameSize();
+    AddOutputDebug(_madsIteration->getName());
+    NOMAD::ArrayOfDouble meshSize  = _madsIteration->getMesh()->getdeltaMeshSize();
+    NOMAD::ArrayOfDouble frameSize = _madsIteration->getMesh()->getDeltaFrameSize();
     AddOutputDebug("Mesh size:  " + meshSize.display());
     AddOutputDebug("Frame size: " + frameSize.display());
     OUTPUT_DEBUG_END
 
-    return madsIteration.suggest();
+    return _madsIteration->suggest();
 }
 
 
@@ -92,6 +90,7 @@ void NOMAD::MadsMegaIteration::observe(const std::vector<NOMAD::EvalPoint>& eval
         else
         {
             // Point is not in cache yet
+            evalPoint.updateTag();
             NOMAD::CacheBase::getInstance()->smartInsert(evalPoint);
         }
     }
@@ -128,7 +127,7 @@ void NOMAD::MadsMegaIteration::startImp()
     setSuccessType(NOMAD::SuccessType::NOT_EVALUATED);
 
     // Verify mesh stop conditions.
-    _mainMesh->checkMeshForStopping( _stopReasons );
+    _mainMesh->checkMeshForStopping(_stopReasons);
 
     OUTPUT_DEBUG_START
     AddOutputDebug("Mesh Stop Reason: " + _stopReasons->getStopReasonAsString());
@@ -159,29 +158,28 @@ bool NOMAD::MadsMegaIteration::runImp()
     }
     if (!mads->terminate(_k))
     {
-        // Create a single MadsIteration
-        std::shared_ptr<NOMAD::MadsIteration> madsIteration = std::make_shared<NOMAD::MadsIteration>(this, _k, _mainMesh);
+
 
         OUTPUT_DEBUG_START
         AddOutputDebug("Iteration generated:");
-        AddOutputDebug(madsIteration->getName());
-        NOMAD::ArrayOfDouble meshSize  = madsIteration->getMesh()->getdeltaMeshSize();
-        NOMAD::ArrayOfDouble frameSize = madsIteration->getMesh()->getDeltaFrameSize();
+        AddOutputDebug(_madsIteration->getName());
+        NOMAD::ArrayOfDouble meshSize  = _madsIteration->getMesh()->getdeltaMeshSize();
+        NOMAD::ArrayOfDouble frameSize = _madsIteration->getMesh()->getDeltaFrameSize();
         AddOutputDebug("Mesh size:  " + meshSize.display());
         AddOutputDebug("Frame size: " + frameSize.display());
         OUTPUT_DEBUG_END
 
-        madsIteration->start();
+        _madsIteration->start();
 
-        bool iterSuccessful = madsIteration->run();
+        bool iterSuccessful = _madsIteration->run();
         // Compute MegaIteration success
-        NOMAD::SuccessType iterSuccess = madsIteration->getSuccessType();
+        NOMAD::SuccessType iterSuccess = _madsIteration->getSuccessType();
         if (iterSuccess > bestSuccessYet)
         {
             bestSuccessYet = iterSuccess;
         }
 
-        madsIteration->end();
+        _madsIteration->end();
 
         if (iterSuccessful)
         {

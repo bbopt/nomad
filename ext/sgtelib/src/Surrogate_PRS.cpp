@@ -68,10 +68,17 @@ bool SGTELIB::Surrogate_PRS::build_private ( void ) {
 
   // Get the number of basis functions.
   _q = Surrogate_PRS::get_nb_PRS_monomes(nvar,_param.get_degree());
+    
+    _M = Matrix("M",0,0);
+    _H = Matrix( "H",0,0);
+    _Ai = Matrix( "Ai",0,0    );
+    _alpha = Matrix( "alpha",0,0 );
 
   // If _q is too big or there is not enough points, then quit
-  if (_q>200) return false;
-  if ( (_q>pvar-1) && (_param.get_ridge()==0) ) return false;
+  if (_q>200)
+      return false;
+  if ( (_q>pvar-1) && (_param.get_ridge()==0) )
+      return false;
 
   // Compute the exponents of the basis functions
   _M = get_PRS_monomes(nvar,_param.get_degree());
@@ -80,7 +87,8 @@ bool SGTELIB::Surrogate_PRS::build_private ( void ) {
   _H = compute_design_matrix ( _M , get_matrix_Xs() );
 
   // Compute alpha
-  if ( !  compute_alpha()) return false;
+  if ( !  compute_alpha())
+      return false;
 
   _ready = true; 
   return true;
@@ -114,7 +122,8 @@ const SGTELIB::Matrix SGTELIB::Surrogate_PRS::compute_design_matrix ( const SGTE
     jj=0;
     // Loop on the input variables
     for (j=0 ; j<n ; j++){
-      if (_trainingset.get_X_nbdiff(j)>1){
+      if (_trainingset.get_X_nbdiff(j)>1)
+      {
         exponent = int(Monomes.get(k,jj)); 
         if (exponent>0){
           for (i=0 ; i<p ; i++){
@@ -169,6 +178,33 @@ void SGTELIB::Surrogate_PRS::predict_private ( const SGTELIB::Matrix & XXs,
   check_ready(__FILE__,__FUNCTION__,__LINE__);
   *ZZs = compute_design_matrix(_M,XXs) * _alpha;
 }//
+
+
+// Predict only objectives (used in Surrogate Ensemble Stat)
+void SGTELIB::Surrogate_PRS::predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
+                                                         SGTELIB::Matrix * ZZsurr_around            ) {
+  check_ready(__FILE__,__FUNCTION__,__LINE__);
+
+  const size_t pxx = XXd.size();
+  SGTELIB::Matrix _alpha_obj ("alpha_obj", _q, 1);
+
+  // Get only objectives values is alpha
+  for (int j=0 ; j<_m ; j++){
+    if (_trainingset.get_bbo(j)==SGTELIB::BBO_OBJ){
+      _alpha_obj = _alpha.get_col(j);
+      break;
+    }
+  } // end for j
+
+  // Loop on all pxx points 
+  for (int i=0 ; i<pxx ; i++){
+    // XXd[i] is of dimension nbd * _n
+    ZZsurr_around->set_row( ( compute_design_matrix(_M, *(XXd[i])) * _alpha_obj ).transpose() , i );
+  } // end for i
+
+}
+
+
 
 /*--------------------------------------*/
 /*       compute Zvs                    */

@@ -420,6 +420,157 @@ std::string SGTELIB::test_pxx (const std::string & s , const SGTELIB::Matrix & X
 }//
 
 
+/*----------------------------------------------------*/
+/*       TEST AND PLOT (added by renaud)              */
+/*----------------------------------------------------*/
+std::string SGTELIB::test_and_plot (const int & function_number, const std::string & type, const std::string & s , const SGTELIB::Matrix & X0){
+
+  std::cout << "======================================================\n";
+  std::cout << "SGTELIB::test_and_plot\n";
+  std::cout << s << "\n";
+
+  SGTELIB::Matrix Z0 = test_functions(X0);
+
+  // CONSTRUCT DATA
+  const int n = X0.get_nb_cols();
+  const int p = X0.get_nb_rows();
+  const int m = Z0.get_nb_cols();
+
+  // CONSTRUCT REFERENCE MODEL
+  SGTELIB::TrainingSet C0(X0,Z0);
+  std::string bb_output_type = "";
+  for (int i=0 ; i<6 ; i++){
+    if (i == function_number){
+      bb_output_type += type;
+    }
+    else{
+      bb_output_type += "CON";
+    }
+    if (i<5){
+      bb_output_type += " ";
+    }
+  }
+  C0.set_bbo_type(bb_output_type);
+  SGTELIB::Surrogate * S0;
+  S0 = SGTELIB::Surrogate_Factory(C0,s);
+  bool ready;
+  ready = S0->build();
+
+  if ( !  ready){
+    surrogate_delete(S0);
+    std::cout <<  "test_pxx: model ("+s+") is not ready\n";
+    return        "test_pxx: model ("+s+") is not ready\n";
+  }
+
+  // Init
+  SGTELIB::Matrix XX;
+  int pxx = 1500;
+
+  // Predictions
+  SGTELIB::Matrix * ZZ  = NULL;
+  SGTELIB::Matrix * std = NULL;
+  SGTELIB::Matrix * ei  = NULL;
+  SGTELIB::Matrix * cdf = NULL;
+
+  // TESTING POINT(S)
+  double lb = -10;
+  double ub = 10;
+
+  // Set on grid
+  XX = SGTELIB::Matrix("XX", 1, n);
+  SGTELIB::Matrix new_point;
+  new_point = SGTELIB::Matrix("new_point", 1, n);
+  // Set on grid (work only with dimension 2)
+  for (int i=0 ; i<sqrt(pxx) ; i++) {
+    for (int j=0 ; j<sqrt(pxx) ; j++){
+      new_point.set(0,0, lb + (ub-lb)*i/sqrt(pxx) );
+      new_point.set(0,1, lb + (ub-lb)*j/sqrt(pxx) );
+      XX.add_rows( new_point );
+    }
+  }
+  pxx = XX.get_nb_rows(); // might have changed a bit
+
+
+  // Set randomly
+  //XX = SGTELIB::Matrix("XX", pxx, n);
+  //XX.set_random(lb,ub,false);
+
+  // Output matrices 
+  ZZ  = new SGTELIB::Matrix("ZZ" ,pxx,m);
+  std = new SGTELIB::Matrix("std",pxx,m);
+  ei  = new SGTELIB::Matrix("ei" ,pxx,m);
+  cdf = new SGTELIB::Matrix("cdf",pxx,m);
+
+
+  S0->predict(XX,ZZ,std,ei,cdf);
+
+
+  // Save results
+  std::fstream X0file, Z0file, XXfile, ZZfile, stdfile, eifile, cdffile;
+  X0file.open("X0.txt", std::fstream::out);
+  Z0file.open("Z0.txt", std::fstream::out);
+  XXfile.open("XX.txt", std::fstream::out);
+  ZZfile.open("ZZ.txt", std::fstream::out);
+  stdfile.open("std.txt", std::fstream::out);
+  eifile.open("ei.txt", std::fstream::out);
+  cdffile.open("cdf.txt", std::fstream::out);
+
+  int function_choice = function_number;
+
+  // Save X0 and Z0
+  for (int i=0 ; i<p ; i++){
+
+    // Save X0
+    for (int j=0 ; j<n ; j++){
+      X0file << X0.get(i,j) << "\t";
+    }
+    X0file << std::endl;
+
+    // Save Z0
+    Z0file << Z0.get(i,function_choice) << std::endl;
+  }
+
+  // Save XX, ZZ, std, ei and cdf
+  for (int i=0 ; i<pxx ; i++){
+
+    // Save XX
+    for (int j=0 ; j<n ; j++){
+      XXfile << XX.get(i,j) << "\t";
+    }
+    XXfile << std::endl;
+
+    // Save ZZ
+    ZZfile << ZZ->get(i,function_choice) << std::endl;
+    // Save std
+    stdfile << std->get(i,function_choice) << std::endl;
+    // Save ei
+    eifile << ei->get(i,function_choice) << std::endl;
+    // Save cdf
+    cdffile << cdf->get(i,function_choice) << std::endl;
+
+  }
+
+  X0file.close();
+  Z0file.close();
+  XXfile.close();
+  ZZfile.close();
+  stdfile.close();
+  eifile.close();
+  cdffile.close();
+
+
+  std::cout <<  "Predictions done\n";
+
+  delete ZZ;
+  delete std;
+  delete ei;
+  delete cdf;
+
+  SGTELIB::surrogate_delete(S0);
+
+  return "test_pxx ok\n";
+}//
+
 
 /*----------------------------------------------------*/
 /*       TEST update                                  */
@@ -1312,7 +1463,7 @@ double SGTELIB::test_functions_1D (const double t, const int function_index){
 
   switch (function_index){
     case 0:
-      return 6.0*t*t + t - 1.0; // Quad function
+      return 6.0*t*t + t - 1.0 - 50; // Quad function
     case 1:
       return t/(1.0+fabs(5.0*t)); // Sigmoid
     case 2:

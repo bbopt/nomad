@@ -72,15 +72,6 @@ NOMAD::QuadModelAlgo::~QuadModelAlgo()
 {
 }
 
-
-// Start is executed when QuadModelAlgo is used as an algorithm on its own.
-void NOMAD::QuadModelAlgo::startImp()
-{
-    // Default algorithm start. Manages initialization among other things.
-    NOMAD::Algorithm::startImp();
-}
-
-
 bool NOMAD::QuadModelAlgo::runImp()
 {
     bool success = false;
@@ -91,7 +82,7 @@ bool NOMAD::QuadModelAlgo::runImp()
     {
         // Barrier constructor automatically finds the best points in the cache.
         // Barrier is used for MegaIteration management.
-
+        
         auto barrier = _initialization->getBarrier();
         if (nullptr == barrier)
         {
@@ -101,34 +92,35 @@ bool NOMAD::QuadModelAlgo::runImp()
                                                        NOMAD::EvalType::BB,
                                                        NOMAD::EvcInterface::getEvaluatorControl()->getComputeType());
         }
-
+        
         NOMAD::SuccessType megaIterSuccessType = NOMAD::SuccessType::NOT_EVALUATED;
-
-        // A single megaiteration is done
-
+        
+        // member _megaIteration is used for hot restart (read and write)
+        // Update it here.
+        _refMegaIteration = std::make_shared<NOMAD::QuadModelMegaIteration>(this, k, barrier, megaIterSuccessType);
+        
         // Create an MegaIteration: manage multiple iterations around
         // different frame centers at the same time.
         NOMAD::QuadModelMegaIteration megaIteration(this, k, barrier, megaIterSuccessType);
-        megaIteration.start();
-        bool currentMegaIterSuccess = megaIteration.run();
-        megaIteration.end();
-
-        success = success || currentMegaIterSuccess;
-
-        // Remember these values to construct the next MegaIteration.
-        k       = megaIteration.getK();
-        barrier = megaIteration.getBarrier();
-        megaIterSuccessType = megaIteration.NOMAD::MegaIteration::getSuccessType();
-
-        if (_userInterrupt)
+        
+        while (!_termination->terminate(k))
         {
-            hotRestartOnUserInterrupt();
+            megaIteration.start();
+            bool currentMegaIterSuccess = megaIteration.run();
+            megaIteration.end();
+            
+            success = success || currentMegaIterSuccess;
+            
+            // Remember these values to construct the next MegaIteration.
+            k       = megaIteration.getK();
+            barrier = megaIteration.getBarrier();
+            megaIterSuccessType = megaIteration.NOMAD::MegaIteration::getSuccessType();
+            
+            if (_userInterrupt)
+            {
+                hotRestartOnUserInterrupt();
+            }
         }
-
-        // member _megaIteration is used for hot restart (read and write)
-        // Update it here.
-        _megaIteration = std::make_shared<NOMAD::QuadModelMegaIteration>(this, k, barrier, megaIterSuccessType);
-
     }
 
     _termination->start();
@@ -138,10 +130,4 @@ bool NOMAD::QuadModelAlgo::runImp()
     NOMAD::OutputQueue::Flush();
 
     return success;
-}
-
-
-void NOMAD::QuadModelAlgo::endImp()
-{
-    NOMAD::Algorithm::endImp();
 }

@@ -35,6 +35,8 @@ extern "C"
 
     bool addNomadValParam(NomadProblem nomad_problem, char *keyword, int value);
 
+    bool addNomadDoubleParam(NomadProblem nomad_problem, char *keyword, double value);
+
     bool addNomadBoolParam(NomadProblem nomad_problem, char *keyword, bool value);
 
     bool addNomadStringParam(NomadProblem nomad_problem, char *keyword, char *param_str);

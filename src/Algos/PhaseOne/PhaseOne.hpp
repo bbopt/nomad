@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_PHASE_ONE__
-#define __NOMAD_4_0_PHASE_ONE__
+#ifndef __NOMAD_4_2_PHASE_ONE__
+#define __NOMAD_4_2_PHASE_ONE__
 
 #include "../../Eval/EvalPoint.hpp"
 #include "../../Algos/Algorithm.hpp"
@@ -94,7 +94,7 @@ public:
     virtual bool    runImp()   override;
     virtual void    endImp()   override;
 
-    virtual void readInformationForHotRestart() override;
+    virtual void readInformationForHotRestart() override {}
 
 private:
     /// Helper for constructor
@@ -103,4 +103,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_PHASE_ONE__
+#endif // __NOMAD_4_2_PHASE_ONE__

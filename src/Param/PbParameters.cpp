@@ -592,7 +592,7 @@ void NOMAD::PbParameters::setMinMeshParameters(const std::string &paramName)
     if (!minArray.isDefined())
     {
         // Default values: granularity if it is > 0, epsilon otherwise.
-        minArray = NOMAD::ArrayOfDouble(n, NOMAD::Double::getEpsilon());
+        minArray = NOMAD::ArrayOfDouble(n, 1E-30);  // This is a temporarty criterion.  Use mesh index in the future.
         for (size_t i = 0 ; i < n ; ++i)
         {
             if (0.0 < granularity[i])
@@ -620,11 +620,11 @@ void NOMAD::PbParameters::setMinMeshParameters(const std::string &paramName)
                 throw NOMAD::InvalidParameter(__FILE__, __LINE__, err);
             }
             else if (!minArray[i].isDefined()
-                     || minArray[i].todouble() < NOMAD::Double::getEpsilon()
+                     || minArray[i].todouble() < 1E-30
                      || (0.0 < granularity[i] && minArray[i].todouble() < granularity[i]) )
             {
                 // Set default value
-                minArray[i] = NOMAD::Double::getEpsilon();
+                minArray[i] = 1E-30;
                 if (0.0 < granularity[i])
                 {
                     minArray[i] = granularity[i];

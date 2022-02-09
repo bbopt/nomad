@@ -44,10 +44,11 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_INITIALIZATION__
-#define __NOMAD_4_0_INITIALIZATION__
+#ifndef __NOMAD_4_2_INITIALIZATION__
+#define __NOMAD_4_2_INITIALIZATION__
 
 #include "../Algos/Step.hpp"
+#include "../Algos/TrialPointStats.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -58,8 +59,11 @@
 class Initialization: public Step
 {
 protected:
+    TrialPointStats                        _trialPointStats;   ///< The trial point counters stats for initialization
+    
     std::shared_ptr<Barrier> _barrier;   ///< Barrier constructed from evaluated X0s
 
+    
 public:
     /// Constructor
     /*
@@ -67,6 +71,7 @@ public:
      */
     explicit Initialization(const Step* parentStep)
       : Step(parentStep),
+        _trialPointStats(parentStep),
         _barrier(nullptr)
     {
         init();
@@ -89,10 +94,13 @@ protected:
 public:
     virtual void startImp()    override {}
     virtual bool runImp()      override = 0;
-    virtual void endImp()      override {}
+    virtual void endImp()      override;
 
+private:
+    void incrementCounters () override;
+    
 };
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_INITIALIZATION__
+#endif // __NOMAD_4_2_INITIALIZATION__

@@ -60,8 +60,10 @@ NOMAD::SgtelibModelFilterCache::~SgtelibModelFilterCache()
 
 void NOMAD::SgtelibModelFilterCache::init()
 {
-    //_name = getAlgoName() + "Search Filter";
+
     verifyParentNotNull();
+    setStepType(NOMAD::StepType::UPDATE);
+    
 
     // Find cache points with model evaluation
     NOMAD::CacheInterface cacheInterface(this);

@@ -52,8 +52,8 @@
  \see    Evaluator.cpp
  */
 
-#ifndef __NOMAD_4_0_EVALUATOR__
-#define __NOMAD_4_0_EVALUATOR__
+#ifndef __NOMAD_4_2_EVALUATOR__
+#define __NOMAD_4_2_EVALUATOR__
 
 #include "../Eval/BBOutput.hpp"
 #include "../Eval/EvalPoint.hpp"
@@ -104,8 +104,8 @@ public:
      \param evalXDefined    Flag.
      */
     explicit Evaluator(const std::shared_ptr<EvalParameters> &evalParams,
-                       const EvalType evalType = EvalType::BB,
-                       const EvalXDefined evalXDefined = EvalXDefined::EVAL_BLOCK_DEFINED_BY_USER);
+                       EvalType evalType = EvalType::BB,
+                       EvalXDefined evalXDefined = EvalXDefined::EVAL_BLOCK_DEFINED_BY_USER);
 
     /// Destructor.
     virtual ~Evaluator();
@@ -165,6 +165,8 @@ private:
                                          std::vector<bool> &countEval) const;
 };
 
+typedef std::shared_ptr<Evaluator> EvaluatorPtr;
+
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_EVALUATOR__
+#endif // __NOMAD_4_2_EVALUATOR__

@@ -93,6 +93,98 @@ void NOMAD::EvcInterface::setEvaluatorControl(const std::shared_ptr<NOMAD::Evalu
     verifyEvaluatorControlNotNull();
 }
 
+// For each point, look if it is in the cache.
+// If it is, remove it from the EvalPointSet.
+// If not, add it to EvaluatorControl's points for sort.
+std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::getSortedTrialPoints(const NOMAD::EvalPointSet &trialPoints, bool forceRandom, bool flagTrimIfNotDoEval)
+{
+    // Create EvalPoints and send them to EvaluatorControl
+    if (nullptr == _evaluatorControl)
+    {
+        throw NOMAD::StepException(__FILE__,__LINE__, _step->getName() + ": EvaluatorControl not found", _step);
+    }
+    
+    NOMAD::EvalType evalType = _evaluatorControl->getEvalType();
+    if (NOMAD::EvalType::BB != evalType && NOMAD::EvalType::SURROGATE != evalType)
+    {
+        throw NOMAD::StepException(__FILE__,__LINE__, _step->getName() + ": Not suppose to sort points that are not BB", _step);
+    }
+    if (trialPoints.size() == 0)
+        return std::vector<EvalPoint>();
+    
+    
+    std::vector<EvalPoint> sortedTrialPoints;
+    std::vector<EvalQueuePointPtr> evalPointsPtrToSort;
+    
+    OUTPUT_INFO_START
+    _step->AddOutputInfo("Sort trial points for step " + _step->getName(), true, false);
+    OUTPUT_INFO_END
+    
+    
+    OUTPUT_INFO_START
+    _step->AddOutputInfo(NOMAD::itos(trialPoints.size()) + " points added");
+    OUTPUT_INFO_END
+    
+    for (auto trialPoint : trialPoints)
+    {
+        // Try to insert the trialPoint in the cache.
+        // If it is not in the cache, it will be added.
+        // If the point is already in the cache, depending on its
+        // EvalStatus we might want to evaluate it.
+        
+        // First, convert trial point to full dimension, since we are
+        // now only working with the cache and the EvaluatorControl.
+        trialPoint = trialPoint.makeFullSpacePointFromFixed(_fixedVariable);
+
+        bool doEval = true;
+        if (flagTrimIfNotDoEval && _evaluatorControl->getUseCache())
+        {
+            const int maxNumberEval = 1;
+            doEval = NOMAD::CacheBase::getInstance()->smartInsert(trialPoint, maxNumberEval, evalType);
+            
+        }
+        if (doEval)
+        {
+            evalPointsPtrToSort.push_back(std::make_shared<EvalQueuePoint>(trialPoint,evalType));
+            
+            OUTPUT_DEBUG_START
+            _step->AddOutputDebug("New point added for sorting: " + trialPoint.display());
+            OUTPUT_DEBUG_END
+            
+        }
+        else
+        {
+            // Point already evaluated
+            OUTPUT_DEBUG_START
+            _step->AddOutputDebug("Point already evaluated, trimmed from sorted eval points: " + trialPoint.display());
+            OUTPUT_DEBUG_END
+        }
+    }
+    
+    OUTPUT_INFO_START
+    _step->AddOutputDebug("Trial points sorted, before trim: " + std::to_string(trialPoints.size()) + " after trim: " + std::to_string(evalPointsPtrToSort.size()));
+    OUTPUT_INFO_END
+    
+    if (evalPointsPtrToSort.size() > 0)
+    {
+        // Sort un-trimmed trial points
+        _evaluatorControl->sort(evalPointsPtrToSort, forceRandom);
+        
+        for (auto evalPointPtr: evalPointsPtrToSort )
+        {
+            sortedTrialPoints.insert(sortedTrialPoints.begin(),evalPointPtr->makeSubSpacePointFromFixed(_fixedVariable));
+        }
+    }
+    
+    OUTPUT_INFO_START
+    _step->AddOutputInfo("Sort trial points for step " + _step->getName(), false, true);
+    NOMAD::OutputQueue::Flush();
+    OUTPUT_INFO_END
+        
+    
+    return sortedTrialPoints;
+}
+
 
 // For each point, look if it is in the cache.
 // If it is, remove it from the EvalPointSet.
@@ -120,11 +212,11 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
     if (trialPoints.size() > 0)
     {
         OUTPUT_INFO_START
-        _step->AddOutputInfo("Add points to eval queue for step " + _step->getName(), true, false);
+        _step->AddOutputInfo("Add points (full space) to eval queue for step " + _step->getName(), true, false);
         OUTPUT_INFO_END
-        OUTPUT_DEBUG_START
-        _step->AddOutputDebug(NOMAD::itos(trialPoints.size()) + " points to add to eval queue");
-        OUTPUT_DEBUG_END
+        OUTPUT_INFO_START
+        _step->AddOutputInfo(NOMAD::itos(trialPoints.size()) + " points added");
+        OUTPUT_INFO_END
     }
 
     for (auto trialPoint : trialPoints)
@@ -151,9 +243,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
         }
         else
         {
-            // smartInsert would have taken care of updating tag, but since
-            // cache is not used, update tag here.
-            trialPoint.updateTag();
+
             // Look in EvaluatorControl's Barrier if the point is already evaluated.
             // Only do this when EvalType is BB. If it is MODEL, always reevaluate.
             if (NOMAD::EvalType::BB == evalType)
@@ -192,8 +282,12 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
             }
 
             evalQueuePoint->addGenStep(_step->getStepType());
-            // Additional info
-            evalQueuePoint->addGenStep(_step->getRootAlgorithm()->getStepType());
+            // Additional infos
+            auto algo = _step->getParentOfType<NOMAD::Algorithm*>();
+            if (nullptr != algo && algo->getParentStep()->isAnAlgorithm())
+            {
+                evalQueuePoint->addGenStep(algo->getParentStep()->getStepType());
+            }
 
             if (_evaluatorControl->addToQueue(evalQueuePoint))
             {
@@ -217,7 +311,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
         }
     }
 
-    OUTPUT_DEBUG_START
+    OUTPUT_INFO_START
     size_t evcNbPoints = _evaluatorControl->getQueueSize();
     if (evcNbPoints > 0)
     {
@@ -225,12 +319,12 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
         // There could be leftover points to evaluate from previous evaluations.
         _step->AddOutputDebug("Eval queue now has " + NOMAD::itos(evcNbPoints) + " points.");
     }
-    OUTPUT_DEBUG_END
+    OUTPUT_INFO_END
 
     OUTPUT_INFO_START
     if (trialPoints.size() > 0)
     {
-        _step->AddOutputInfo("Add points to eval queue for step " + _step->getName(), false, true);
+        _step->AddOutputInfo("Add points (full space) to eval queue for step " + _step->getName(), false, true);
     }
 
     NOMAD::OutputQueue::Flush();
@@ -319,7 +413,7 @@ std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::retrieveAllEvaluatedPoints()
 NOMAD::SuccessType NOMAD::EvcInterface::startEvaluation()
 {
     OUTPUT_INFO_START
-    _step->AddOutputInfo("Evaluate points for " + _step->getName(), true, false);
+    _step->AddOutputInfo("Evaluate points (full space) for " + _step->getName(), true, false);
     OUTPUT_INFO_END
 
     std::shared_ptr<NOMAD::AllStopReasons> stopReasons = _step->getAllStopReasons();
@@ -338,7 +432,7 @@ NOMAD::SuccessType NOMAD::EvcInterface::startEvaluation()
     OUTPUT_INFO_START
     NOMAD::OutputQueue::Flush();
 
-    _step->AddOutputInfo("Evaluate points for " + _step->getName(), false, true);
+    _step->AddOutputInfo("Evaluate points (full space) for " + _step->getName(), false, true);
     OUTPUT_INFO_END
 
     return success;

@@ -20,7 +20,7 @@ target_link_libraries(nomadCInterface PUBLIC nomadAlgos nomadUtils nomadEval)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(nomadCInterface PUBLIC OpenMP::OpenMP_CXX)
 endif()
-set_target_properties(nomadCInterface PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set_target_properties(nomadCInterface PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 
 # 
 # Install binary and header

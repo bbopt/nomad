@@ -51,8 +51,8 @@
  \date   September 2018
  \see    BBOutput.hpp
  */
-#ifndef __NOMAD_4_0_BB_OUTPUT_TYPE__
-#define __NOMAD_4_0_BB_OUTPUT_TYPE__
+#ifndef __NOMAD_4_2_BB_OUTPUT_TYPE__
+#define __NOMAD_4_2_BB_OUTPUT_TYPE__
 
 #include <string>
 #include <sstream>
@@ -160,4 +160,4 @@ std::istream& operator>>(std::istream& is, BBOutputTypeList& bbOutputTypeList);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_BB_OUTPUT_TYPE__
+#endif // __NOMAD_4_2_BB_OUTPUT_TYPE__

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_NMREFLECTIVE__
-#define __NOMAD_4_0_NMREFLECTIVE__
+#ifndef __NOMAD_4_2_NMREFLECTIVE__
+#define __NOMAD_4_2_NMREFLECTIVE__
 
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
 #include "../../Algos/Step.hpp"
@@ -84,8 +84,6 @@ public:
       : Step(parentStep),
         NMIterationUtils(parentStep)
     {
-
-
         init();
     }
     virtual ~NMReflective() {}
@@ -96,7 +94,7 @@ public:
 
      The point is snapped to bounds and projected on the mesh.
      */
-    void generateTrialPoints() override;
+    void generateTrialPointsImp() override;
 
     /// Set the parameters for a given step type.
     /**
@@ -193,4 +191,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_NMREFLECTIVE__
+#endif // __NOMAD_4_2_NMREFLECTIVE__

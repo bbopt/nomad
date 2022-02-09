@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_QUAD_MODEL_OPTIMIZE__
-#define __NOMAD_4_0_QUAD_MODEL_OPTIMIZE__
+#ifndef __NOMAD_4_2_QUAD_MODEL_OPTIMIZE__
+#define __NOMAD_4_2_QUAD_MODEL_OPTIMIZE__
 
 #include "../../Algos/Step.hpp"
 #include "../../Algos/QuadModel/QuadModelIterationUtils.hpp"
@@ -76,14 +76,17 @@ private:
     std::shared_ptr<RunParameters>      _optRunParams; ///< run parameters for model optimization
     std::shared_ptr<PbParameters>       _optPbParams; ///< pb parameters for model optimization
 
+    bool _optWithScaledBounds;
 
+    
 public:
     /// Constructor
     /* Parent must explicitely be a (pointer to a) QuadModelAlgo.
      * Run parameters will be recomputed for model optimization.
      */
     explicit QuadModelOptimize(const Step* parentStep,
-                               const std::shared_ptr<PbParameters>               refPbParams )
+                               const std::shared_ptr<PbParameters>               refPbParams,
+                               bool optWithScaledBounds)
       : Step(parentStep),
       QuadModelIterationUtils (parentStep),
         _displayLevel(OutputLevel::LEVEL_INFO),
@@ -93,7 +96,8 @@ public:
         _modelCenter(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _refPbParams(refPbParams),
         _optRunParams(nullptr),
-        _optPbParams(nullptr)
+        _optPbParams(nullptr),
+        _optWithScaledBounds(optWithScaledBounds)
     {
         init();
     }
@@ -108,9 +112,9 @@ public:
      - Perform start, run and end tasks on Mads.
      - best feasible and best infeasible (if available) are inserted as trial points.
      */
-    void generateTrialPoints() override;
-
-
+    void generateTrialPointsImp() override;
+        
+    
 private:
     void init();
 
@@ -127,4 +131,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_QUAD_MODEL_OPTIMIZE__
+#endif // __NOMAD_4_2_QUAD_MODEL_OPTIMIZE__
