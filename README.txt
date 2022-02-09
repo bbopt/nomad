@@ -86,6 +86,14 @@ On Linux, Unix, Windows and Mac OS X, NOMAD can be compiled using CMake.
 The minimum version of CMake is 3.14. Older versions will trigger
 an error. A recent C++ compiler is also required.
 
+Before starting the procedure we recommend to set the environment variable 
+$NOMAD_HOME with the path where NOMAD has been copied. For Linux and OSX,
+
+export NOMAD_HOME=/home/myUserName/PathToNomad
+
+For Windows, add an environment variable %NOMAD_HOME% containing the path.
+The remaining text uses the $NOMAD_HOME environment variable.
+
 The procedure is the following. On the command line in the
  $NOMAD_HOME directory:
 
@@ -93,14 +101,14 @@ cmake -S . -B build/release
     ---> Create the CMake files and directories for building (-B) in build/release.
          The source (-S) CMakeLists.txt file is in the $NOMAD_HOME directory.
 
-         To enable time stats build:
-              cmake -DTIME_STATS=ON -S . -B build/release
+         To deactivate compilation with OpenMP:
+              cmake -DTEST_OPENMP=OFF -S . -B build/release
 
-         To enable C interface building:
+         To enable *C interface* building:
               cmake -DBUILD_INTERFACE_C=ON -S . -B build/release
 
-         To enable Matlab interface building:
-              cmake -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release
+         To enable *Matlab* interface building:
+              cmake -DBUILD_INTERFACE_MATLAB=ON  -DTEST_OPENMP=OFF -S . -B build/release
               ! Compiler version and Matlab version need to be compatible;
               ! Check https://www.mathworks.com/support/requirements/supported-compilers.html
                
@@ -109,7 +117,7 @@ cmake -S . -B build/release
               ! An extra addpath Matlab command must be done to have access 
               to nomad Mex binaries. 
 
-         To enable Python interface (PyNomad) building:
+         To enable *Python* interface (PyNomad) building:
               cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release
              
               ! Building requires to have Cython. Cython can be obtained with
@@ -117,9 +125,6 @@ cmake -S . -B build/release
   
               ! On *Windows*, using Visual Studio, see the user guide to properly
               manage X86/X64 building of binaries. 
-
-         To deactivate compilation with OpenMP:
-              cmake -DTEST_OPENMP=OFF -S . -B build/release
 
 
 cmake --build build/release     
