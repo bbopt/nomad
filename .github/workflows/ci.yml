@@ -3,8 +3,8 @@ name: CI
 
 # Controls when the action will run.
 on:
-  # push:
-  #  branches: [ develop ]
+  push:
+    branches: [ develop ]
   pull_request:
     types: [opened, synchronize, reopened]
 
