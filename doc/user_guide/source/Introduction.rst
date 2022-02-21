@@ -128,7 +128,7 @@ to the project during Summer internships, and to Anthony Guillou and Dominique O
 
 A special thank to Maud Bay, Eve Bélisle, Vincent Garnier, Michal Kvasnička, Alexander Lutz, Rosa-Maria Torres-Calderon, Yuri Vilmanis, Martin Posch, Etienne Duclos, Emmanuel Bigeon, Walid Zghal, Jerawan Armstrong, Stéphane Alarie and Klaus Truemper for their feedbacks and tests that significantly contributed to improve NOMAD. Some features of NOMAD have been developed under the impulsion of enthusiastic users/developers: Andrea Ianni, Florian Chambon, Mohamed Sylla, Quentin Reynaud, Amina Ihaddadene, Bastien Talgorn, Nadir Amaioua and Catherine Poissant.
 We also wish to thank Pascal Côté for his contribution in the development of the Python interface pyNomad and Jonathan Currie for the development of the foundations for a strong NOMAD interface for MATLAB.
-Another special thank to Jean-Max Redonnet for pushing the development of the Java Swig interface. 
+Another special thank to Jean-Max Redonnet for pushing the development of the Java Swig interface.
 
 The contributions of  Miguel Anjos, Romain Couderc, Miguel Diago Martinez, Solène Kojtych, Guillaume Lameynardie, Wim Lavrijsen, Alexis Montoison, Caroline Rocha, Ludovic Salomon, Renaud Saltet and Yassine Diouri was highly appreciated during the development and testing of NOMAD 4.
 
