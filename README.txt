@@ -125,6 +125,9 @@ cmake -S . -B build/release
   
               ! On *Windows*, using Visual Studio, see the user guide to properly
               manage X86/X64 building of binaries. 
+              
+         To enable *Java* interface building (with Swig):
+              cmake -DBUILD_INTERFACE_JAVA=ON -S . -B build/release
 
 
 cmake --build build/release     
