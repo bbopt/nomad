@@ -129,22 +129,21 @@ cmake -S . -B build/release
          To enable *Java* interface building (with Swig):
               cmake -DBUILD_INTERFACE_JAVA=ON -S . -B build/release
 
-
-cmake --build build/release     
+cmake --build build/release --config Release (for *Windows*)
+or
+cmake --build build/release (for *OSX* and *Linux*)
     ---> Build all the libraries and applications
     
          Option --parallel xx can be added for faster build.
 
-         Option --config Release should be used on *Windows* to build only
+         The option --config Release should be used on *Windows* to build only
          Release configuration. The default configuration is Debug.
 
-
-cmake --install build/release   
+cmake --install build/release --config Release (for *Windows*)
+or
+cmake --install build/release (for *OSX* and *Linux*)
     ---> Copy binaries and headers in build/release/[bin, include, lib]
          and in the examples/tests directories.
-
-         Option --config Release should be used on *Windows* to install 
-         Release configuration. The default configuration is Debug.
 
 By default, the executable "nomad" will installed into the directory:
 build/release/bin/  (build/debug/bin/ when in debug mode). A symbolic link
@@ -164,18 +163,20 @@ The procedure to build the debug version is the following.
 On the command line in the $NOMAD_HOME directory:
 
 cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
-    ---> On Windows, all 4 configurations are always build
+    ---> On *Windows*, all 4 configurations are configured
          (Debug, RelWithDebugInfo, MinSizeRel, Release); flag 
          CMAKE_BUILD_TYPE is ignored.
 
-cmake --build build/debug     
+cmake --build build/debug --config Debug (for *Windows*)
+or
+cmake --build build/debug (for *OSX* and *Linux*)   
     ---> Build the libraries and applications
          
          Option --parallel xx can be added for faster build.
 
-         On *Windows*, the default configuration is Debug.
-
-make --install build/debug   
+cmake --install build/debug --config Debug (for *Windows*)
+or
+cmake --install build/debug  (for *OSX* and *Linux*)
     ---> Copy binaries and headers in build/debug/[bin, include, lib]
          and in the examples/tests directories
 
