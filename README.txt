@@ -129,22 +129,22 @@ cmake -S . -B build/release
          To enable *Java* interface building (with Swig):
               cmake -DBUILD_INTERFACE_JAVA=ON -S . -B build/release
 
-
-cmake --build build/release     
+cmake --build build/release --config (for *Windows*)
+or
+cmake --build build/release (for OSX and Linux)
     ---> Build all the libraries and applications
     
          Option --parallel xx can be added for faster build.
 
-         Option --config Release should be used on *Windows* to build only
+         The option --config Release should be used on *Windows* to build only
          Release configuration. The default configuration is Debug.
 
 
-cmake --install build/release   
+cmake --install build/release --config Release (for *Windows*)
+or
+cmake --install build/release (for OSX and Linux)
     ---> Copy binaries and headers in build/release/[bin, include, lib]
          and in the examples/tests directories.
-
-         Option --config Release should be used on *Windows* to install 
-         Release configuration. The default configuration is Debug.
 
 By default, the executable "nomad" will installed into the directory:
 build/release/bin/  (build/debug/bin/ when in debug mode). A symbolic link
