@@ -129,7 +129,7 @@ cmake -S . -B build/release
          To enable *Java* interface building (with Swig):
               cmake -DBUILD_INTERFACE_JAVA=ON -S . -B build/release
 
-cmake --build build/release --config (for *Windows*)
+cmake --build build/release --config Release (for *Windows*)
 or
 cmake --build build/release (for *OSX* and *Linux*)
     ---> Build all the libraries and applications
