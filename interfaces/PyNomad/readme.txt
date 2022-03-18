@@ -8,6 +8,15 @@ KNOWN ISSUES
 ************
 If NOMAD has been compiled with gcc 9.1, running PyNomad may fail.
 
+On OSX with ARM64 and X86 architectures.
+There might be incompatibility between the Python API binaries and
+the binaries obtained when building Nomad. When importing PyNomad in
+a python shell, this can result in a message like :
+ImportError: dlopen(xxxx/PyNomad.cpython-39-darwin.so, 0x0002) .... 
+(mach-o file, but is an incompatible architecture (have 'arm64', need 'x86_64'))
+This issue can be resolved by forcing the architecture when configuring 
+the build with a flag like -DCMAKE_OSX_ARCHITECTURES=x86_64.
+
 ************************
 HOW TO BUILD AND INSTALL
 ************************
