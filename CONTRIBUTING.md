@@ -19,7 +19,7 @@ Make sure to include these informations:
 * It may be useful to have a trace of the output with the parameter `DISPLAY_DEGREE 4`
 
 ### Features / Enhancements
-If the feature is already in the list of issues, input should be added to that issue. Otherwise, a new issue may be opened. Please check the [roadmap](https://github.com/bbopt/nomad/ROADMAP.md) for upcoming features.
+If the feature is already in the list of issues, input should be added to that issue. Otherwise, a new issue may be opened. Please check the [roadmap](https://github.com/bbopt/nomad/blob/master/ROADMAP.md) for upcoming features.
 
 ### Pull requests
 We will review carefully pull requests, but we will not merge them directly. Our current development path involves a private repository that we may update with the suggested changes before updating the public repository.
