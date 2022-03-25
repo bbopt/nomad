@@ -15,7 +15,9 @@ a python shell, this can result in a message like :
 ImportError: dlopen(xxxx/PyNomad.cpython-39-darwin.so, 0x0002) .... 
 (mach-o file, but is an incompatible architecture (have 'arm64', need 'x86_64'))
 This issue can be resolved by forcing the architecture when configuring 
-the build with a flag like -DCMAKE_OSX_ARCHITECTURES=x86_64.
+the build with a flag like -DCMAKE_OSX_ARCHITECTURES=x86_64. The
+build directory and the PyNomad.cpython-39-darwin.so in 
+$NOMAD_HOME/interfaces/PyNomad must be removed.
 
 ************************
 HOW TO BUILD AND INSTALL
