@@ -116,6 +116,9 @@ cmake -S . -B build/release
 
               ! An extra addpath Matlab command must be done to have access 
               to nomad Mex binaries. 
+              
+              ! Extra flags might be required to prevent CMake errors. See details 
+              in User Guide (Section Matlab interface).
 
          To enable *Python* interface (PyNomad) building:
               cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release
