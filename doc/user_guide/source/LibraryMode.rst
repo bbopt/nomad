@@ -359,6 +359,8 @@ Some examples and source codes are provided in ``$NOMAD_HOME/interface/Matlab_ME
 To enable the building of the interface, option ``-DBUILD_INTERFACE_MATLAB=ON`` must be
 set when configuring for building NOMAD, as such: ``cmake -DTEST_OPENMP=OFF -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release``.
 
+.. warning:: In some occasions, CMake cannot find Matlab installation directory. The option ``-DMatlab_ROOT_DIR=/Path/To/Matlab/Install/Dir`` must be passed during configuration.
+
 .. warning:: Building the Matlab MEX interface is disabled when NOMAD uses OpenMP. Hence, the option ``-DTEST_OPENMP=OFF`` must be passed during configuration.
 
 The command ``cmake --build build/release`` (or ``cmake --build build/release --config Release`` for Windows) is used for building the selected configuration.
