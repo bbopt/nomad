@@ -6,6 +6,17 @@ Building the interface requires compatibility of the versions of Matlab and
 
 https://www.mathworks.com/support/requirements/supported-compilers.html
 
+************************
+KNOWN ISSUES
+************************
+
+On Apple OSX computer with ARM64 and X86 architectures.
+There might be incompatibility between the Matlab API binaries and
+the binaries obtained when building Nomad. When build Nomad Mex interface 
+this can result in a message like :
+Undefined symbols for architecture arm64:
+This issue can be resolved by forcing the architecture when configuring 
+the build with a flag like -DCMAKE_OSX_ARCHITECTURES=x86_64.
 
 ************************
 HOW TO BUILD AND INSTALL
