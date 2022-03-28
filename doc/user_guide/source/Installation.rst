@@ -88,7 +88,8 @@ The command can be modified to enable/disable some options (see side bar).
 
 *OpenMP* is used for parallelization of evaluations. *CMake* will detect if *OpenMP* is available by default. To forcefully deactivate compilation with *OpenMP*, see option in side bar.
 
-.. warning:: Sometimes, additional options must be passed during configuration to prevent CMake errors for interfaces. See details in the interface section. 
+.. warning:: Sometimes, additional options must be passed during configuration to prevent CMake errors for interfaces. See details in :ref:`library_mode`.
+
 
 
 2- Build
