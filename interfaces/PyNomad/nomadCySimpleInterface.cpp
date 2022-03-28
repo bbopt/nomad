@@ -190,6 +190,7 @@ static void printPyNomadInfo()
 static void printNomadHelp(std::string about)
 {
     NOMAD::AllParameters allParameters;
+    NOMAD::toupper( about );
     allParameters.displayHelp(about, false, std::cout);
 }
 
