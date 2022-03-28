@@ -85,7 +85,7 @@ Minimally, users must accomplish several tasks to solve their own optimization p
 
 Users can find several examples provided in the installation package and described in this user guide to perform customization for their problems.
 The installation procedure is given in :ref:`installation`. New users should refer to :ref:`getting_started`.
-The most important instructions to use NOMAD are in :ref:'basic_nomad_usage'.
+The most important instructions to use NOMAD are in :ref:`basic_nomad_usage`.
 In addition, tricks that may help solving specific problems and improve NOMAD efficiency are presented in :ref:`tricks_of_the_trade`.
 Advanced parameters and functionalities are presented in :ref:`advanced_functionalities`.
 
