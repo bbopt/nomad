@@ -782,6 +782,7 @@ int checkInputs(const mxArray *prhs[], int nrhs, mxArray *plhs[], int nlhs)
         {
             field = mxGetFieldNameByNumber(prhs[0],i);
             string st(field);
+	    NOMAD::toupper(st);
             mainStep.displayHelp(st);
         }
         return 0;
@@ -821,7 +822,9 @@ int checkInputs(const mxArray *prhs[], int nrhs, mxArray *plhs[], int nlhs)
             char *w = strtok(str,toks) ;
             for ( w = strtok(NULL,toks) ; w != NULL ; w = strtok(NULL,toks) )
             {
-                mainStep.displayHelp(w);
+                std::string st(w);
+                NOMAD::toupper(st);
+                mainStep.displayHelp(st);
             }
 
             return 0;
