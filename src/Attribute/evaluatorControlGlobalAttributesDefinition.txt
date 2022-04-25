@@ -135,7 +135,8 @@ INF
 \( Stopping criterion on the number of blackbox evaluations \)
 \(
 
-. Maximum number of blackbox evaluations
+. Maximum number of blackbox evaluations. When OpenMP is activated, this budget
+maybe exceeded due to parallel evaluations.
 
 . Argument: one positive integer
 
