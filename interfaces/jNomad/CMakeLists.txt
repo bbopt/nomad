@@ -21,6 +21,7 @@ ${CMAKE_CURRENT_BINARY_DIR}/AllParameters.java
 ${CMAKE_CURRENT_BINARY_DIR}/ArrayOfDouble.java
 ${CMAKE_CURRENT_BINARY_DIR}/Double.java
 ${CMAKE_CURRENT_BINARY_DIR}/EvalPoint.java
+${CMAKE_CURRENT_BINARY_DIR}/EvalParameters.java
 ${CMAKE_CURRENT_BINARY_DIR}/EvalType.java
 ${CMAKE_CURRENT_BINARY_DIR}/Evaluator.java
 ${CMAKE_CURRENT_BINARY_DIR}/EvalXDefined.java
@@ -33,7 +34,7 @@ ${CMAKE_CURRENT_BINARY_DIR}/Step.java
 ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_NOMAD_4_1__EvalParameters.java
 ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_bool_t.java
 ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_double_t.java
-${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_std__shared_ptrT_NOMAD_4_1__EvalPoint_t_t.java
+${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_std__shared_ptrT_${NOMAD_SRC_TEMPLATE}__EvalPoint_t_t.java
 )
 add_jar(jNomad_jar SOURCES ${SWIG_JAVA_FILES} OUTPUT_NAME "jNomad")
 
