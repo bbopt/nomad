@@ -8,6 +8,9 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 # name of the project
 project (Nomad VERSION 4.2.0)
 
+# Nomad src template (copy of template defined in src/nomad_version.hpp, used by jNomad) 
+set(NOMAD_SRC_TEMPLATE NOMAD_4_2)
+
 # use standard compilers parameters for c++14
 SET(CMAKE_CXX_STANDARD 14 )
 SET(CMAKE_CXX_STANDARD_REQUIRED ON )
