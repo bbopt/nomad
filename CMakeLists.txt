@@ -66,7 +66,9 @@ list(APPEND CMAKE_MESSAGE_INDENT "  ")
 #
 # Modify the install prefix if not specified on the command
 #
-set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR} CACHE PATH "..." FORCE) 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR} CACHE PATH "..." FORCE) 
+endif()
 message(STATUS "  Installation prefix set to ${CMAKE_INSTALL_PREFIX}")
 
 #
