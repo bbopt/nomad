@@ -187,14 +187,15 @@ def optimize(f, pX0, pLB, pUB, params):
     cdef double fReturn = float("inf")
     cdef double hReturn = float("inf")
     xReturn = []
+    eParams = []
 
     cdef size_t nbParams = len(params)
     for i in range(nbParams):
-         params[i] = params[i].encode(u"ascii")
+         eParams.append(params[i].encode(u"ascii"))
 
     runStatus = runNomad(cb, cbL, <void*> f, <vector[double]&> pX0,
                          <vector[double]&> pLB, <vector[double]&> pUB,
-                         <vector[string]&> params,
+                         <vector[string]&> eParams,
                          uFeas.c_ep_ptr,
                          uInfeas.c_ep_ptr,
                          nbEvals, nbIters)
