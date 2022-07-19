@@ -54,7 +54,7 @@
 #ifndef __NOMAD400_MICROSLEEP__
 #define __NOMAD400_MICROSLEEP__
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #include <chrono>
 #include <thread>
 
