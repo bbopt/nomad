@@ -1187,7 +1187,7 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
                 warningShown = true;
             }
             OUTPUT_INFO_END
-            usleep(10);
+            usleep(10u);
 
             // Update stopReason in case we found a success
             if (getOpportunisticEval(threadNum)
