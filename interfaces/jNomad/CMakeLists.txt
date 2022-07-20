@@ -4,7 +4,7 @@ include(UseJava)
 set(CMAKE_SWIG_FLAGS -package jNomad)
 set_property(SOURCE jNomad.i PROPERTY CPLUSPLUS ON)
 swig_add_library(jNomad TYPE SHARED LANGUAGE java SOURCES jNomad.i)
-target_include_directories(jNomad PRIVATE ${JNI_INCLUDE_DIRS})
+target_include_directories(jNomad PRIVATE ${JNI_INCLUDE_DIRS} PRIVATE ${JNI_INCLUDE_DIRS}/darwin)
 
 #
 # Build
