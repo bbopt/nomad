@@ -190,6 +190,12 @@ endif()
 #
 option(BUILD_INTERFACE_JAVA "Option to build Java Swig interface to Nomad" OFF)
 if(BUILD_INTERFACE_JAVA MATCHES ON)
+   
+   # The following lines maybe required. See issue #83
+   #set(JAVA_INCLUDE_PATH "$ENV{JAVA_HOME}/Contents/Home/include")
+   #set(JAVA_INCLUDE_PATH2 "$ENV{JAVA_HOME}/Contents/Home/include")
+   #set(JAVA_AWT_INCLUDE_PATH "$ENV{JAVA_HOME}/Contents/Home/include")
+   
    find_package(Java REQUIRED COMPONENTS Runtime Development)
    find_package(SWIG 4.0 REQUIRED COMPONENTS java)
    find_package(JNI REQUIRED)
