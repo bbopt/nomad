@@ -10,6 +10,9 @@ cmake -DBUILD_INTERFACE_JAVA=ON -S . -B build/release
 cmake --build build/release
 cmake --install build/release
 
+Note: Building may require to set JAVA_HOME variable and uncomment 
+lines in root CMakeLists.txt (issue #83)
+
 How to run the example ?
 ========================
 
