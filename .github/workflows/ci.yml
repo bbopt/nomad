@@ -23,12 +23,12 @@ jobs:
             name: "Windows -- MSVC", artifact: "Windows-MSVC.tar.xz",
             os: windows-latest,
             build_type: "Release", cc: "cl", cxx: "cl",
-            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+            environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           }
         - {
             name: "Windows -- MinGW", artifact: "Windows-MinGW.tar.xz",
             os: windows-latest,
-            build_type: "Release", cc: "gcc", cxx: "g++"
+            build_type: "Release", cc: "x86_64-w64-mingw32-gcc", cxx: "x86_64-w64-mingw32-g++"
           }
         - {
             name: "Ubuntu", artifact: "Linux.tar.xz",
@@ -71,17 +71,24 @@ jobs:
           mkdir instdir
           mkdir build
           cd build
-          cmake \
-            -DCMAKE_CC_COMPILER=${{matrix.config.cc}} \
-            -DCMAKE_CXX_COMPILER=${{matrix.config.cxx}} \
-            -DTEST_OPENMP=OFF \
-            -DCMAKE_INSTALL_PREFIX=../instdir \
-            ..
+          if [[ "${{matrix.config.name}}" == "Windows -- MinGW" ]]; then
+            cmake -G "MinGW Makefiles" \
+              -DTEST_OPENMP=OFF \
+              -DBUILD_INTERFACE_C=ON \
+              -DCMAKE_INSTALL_PREFIX=../instdir \
+              ..
+          else
+            cmake \
+              -DTEST_OPENMP=OFF \
+              -DBUILD_INTERFACE_C=ON \
+              -DCMAKE_INSTALL_PREFIX=../instdir \
+              ..
+          fi
 
       - name: Build
         shell: bash
         run: |
-          cmake --build build --parallel 8 --config ${{matrix.config.build_type}}
+          cmake --build build --parallel --config ${{matrix.config.build_type}}
 
       - name: Install
         shell: bash
@@ -94,7 +101,7 @@ jobs:
           export PATH=`pwd`/build/bin:$PATH
           echo $PATH
           cd build
-          ctest -C ${{matrix.config.build_type}} --parallel 8
+          ctest -C ${{matrix.config.build_type}} --parallel
 
       - name: Upload
         uses: actions/upload-artifact@v2

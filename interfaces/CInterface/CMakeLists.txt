@@ -24,6 +24,11 @@ target_link_libraries(nomadCInterface PUBLIC nomadAlgos nomadUtils nomadEval)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(nomadCInterface PUBLIC OpenMP::OpenMP_CXX)
 endif()
+if (WIN32)
+else()    
+    target_link_libraries(nomadCInterface PRIVATE m)
+endif()
+
 set_target_properties(nomadCInterface PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 
 # 
