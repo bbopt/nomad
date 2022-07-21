@@ -21,9 +21,10 @@ message(STATUS "    Add example library #2")
 
 # Can run this test after install
 if (WIN32)
-    add_test(NAME Example2BasicLib
-	    COMMAND ./example2_lib.exe # Let ctest detect error. Not sure it can!
-	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+# Todo Find a way to detect error
+#    add_test(NAME Example2BasicLib
+#	    COMMAND ./example2_lib.exe # Let ctest detect error. Not sure it can!
+#	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 else()
     add_test(NAME Example2BasicLib
 	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./example2_lib.exe
