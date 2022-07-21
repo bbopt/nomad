@@ -30,12 +30,13 @@ message(STATUS "    Add example library tests using Suggest And Observe")
 
 # Can run this test after install
 if (WIN32)
-    add_test(NAME ExampleAdvancedSuggestAndObserve
-	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./suggestAndObserve.exe
-	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-    add_test(NAME ExampleAdvancedLoopSuggestAndObserve
-	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./loopSuggestAndObserve.exe
-	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+# Todo Find a way to detect error
+#    add_test(NAME ExampleAdvancedSuggestAndObserve
+#	    COMMAND ./suggestAndObserve.exe # Let ctest detect error. Not sure it can!
+#	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+#    add_test(NAME ExampleAdvancedLoopSuggestAndObserve
+#	    COMMAND ./loopSuggestAndObserve.exe # Let ctest detect error. Not sure it can!
+#	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 else()
     add_test(NAME ExampleAdvancedSuggestAndObserve
 	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./suggestAndObserve.exe
