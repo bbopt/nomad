@@ -23,7 +23,7 @@ if(BUILD_TESTS MATCHES ON)
     # Can run this test after install
     if (WIN32)
         add_test(NAME ExampleAdvancedRestart
-	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./restart.exe
+	    COMMAND ./restart.exe # Let ctest detect error. Not sure it can!
 	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
         )
     else()

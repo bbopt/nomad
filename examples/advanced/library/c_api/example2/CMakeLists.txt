@@ -25,7 +25,7 @@ if(BUILD_TESTS MATCHES ON)
 
     if (WIN32)
         add_test(NAME ExampleAdvancedC-API2
-	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./example2_c_api.exe
+	    COMMAND ./example2_c_api.exe # Let ctest detect error. Not sure it can!
 	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
         )
     else()
