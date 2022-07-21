@@ -9,6 +9,7 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 project (Nomad VERSION 4.2.0)
 
 # Nomad src template (copy of template defined in src/nomad_version.hpp, used by jNomad) 
+# Need to update when version changes
 set(NOMAD_SRC_TEMPLATE NOMAD_4_2)
 
 # use standard compilers parameters for c++14
@@ -194,7 +195,6 @@ if(BUILD_INTERFACE_JAVA MATCHES ON)
    #set(JAVA_INCLUDE_PATH "$ENV{JAVA_HOME}/Contents/Home/include")
    #set(JAVA_INCLUDE_PATH2 "$ENV{JAVA_HOME}/Contents/Home/include")
    #set(JAVA_AWT_INCLUDE_PATH "$ENV{JAVA_HOME}/Contents/Home/include")
-
    find_package(Java REQUIRED COMPONENTS Runtime Development)
    find_package(SWIG 4.0 REQUIRED COMPONENTS java)
    find_package(JNI REQUIRED)

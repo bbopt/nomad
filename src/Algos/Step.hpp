@@ -175,6 +175,12 @@ public:
 
     /// Interruption requested
     static void setUserTerminate() { _userTerminate = true; }
+    
+    /// Reset user terminate (called by mainstep to prevent invalid stop (Python or Matlab interface)
+    static void resetUserTerminate() { _userTerminate = false;  }
+    
+    /// Reset user interrupt (called by mainstep to prevent invalid stop (Python or Matlab interface)
+    static void resetUserInterrupt() { _userInterrupt = false;  }
 
     /// Get the parent step.
     /**
