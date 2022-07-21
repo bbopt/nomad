@@ -60,6 +60,7 @@
 #include <string.h>
 #include <iostream>
 
+
 struct NomadProblemInfo
 {
 
