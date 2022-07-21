@@ -54,16 +54,11 @@
 #ifndef __NOMAD400_MICROSLEEP__
 #define __NOMAD400_MICROSLEEP__
 
-#ifdef _WIN32
 #include <chrono>
 #include <thread>
 
-static inline void usleep(uint64_t usec) {
+static inline void my_usleep(uint64_t usec) {
     std::this_thread::sleep_for(std::chrono::microseconds(usec));
 }
-
-#else
-#include <unistd.h>
-#endif
 
 #endif // __NOMAD400_MICROSLEEP__
