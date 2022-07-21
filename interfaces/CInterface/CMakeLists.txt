@@ -13,8 +13,8 @@ set(INTERFACE_HEADERS
 #
 add_library (nomadCInterface SHARED ${INTERFACE_SOURCES}) 
 target_include_directories(nomadCInterface PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/interfaces/CInterface>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    $<BUILD_INTERFACE: ${CMAKE_BINARY_DIR}/interfaces/CInterface>
+    $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}>
 )
 if (WIN32)
     target_compile_definitions(nomadCInterface PRIVATE -DDLL_ALGO_EXPORTS)
