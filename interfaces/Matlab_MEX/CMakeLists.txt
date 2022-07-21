@@ -5,6 +5,10 @@
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
    matlab_add_mex(NAME nomadOpt SHARED SRC Source/nomadmex.cpp LINK_TO nomadAlgos nomadUtils nomadEval ${Matlab_ROOT_DIR}/extern/lib/win64/microsoft/libut.lib)
+elseif(APPLE)
+   matlab_add_mex(NAME nomadOpt SHARED SRC Source/nomadmex.cpp LINK_TO nomadAlgos nomadUtils nomadEval ${Matlab_ROOT_DIR}/bin/maci64/libut.dylib)
+elseif(LINUX)
+   matlab_add_mex(NAME nomadOpt SHARED SRC Source/nomadmex.cpp LINK_TO nomadAlgos nomadUtils nomadEval ${Matlab_ROOT_DIR}/bin/glnxa64/libut.so)
 else()
    matlab_add_mex(NAME nomadOpt SHARED SRC Source/nomadmex.cpp LINK_TO nomadAlgos nomadUtils nomadEval)
 endif()

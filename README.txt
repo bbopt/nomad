@@ -166,13 +166,14 @@ The procedure to build the debug version is the following.
 On the command line in the $NOMAD_HOME directory:
 
 cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
-    ---> On *Windows*, all 4 configurations are configured
+    ---> On Windows, all 4 configurations are always prepared
          (Debug, RelWithDebugInfo, MinSizeRel, Release); flag 
          CMAKE_BUILD_TYPE is ignored.
 
-cmake --build build/debug --config Debug (for *Windows*)
+cmake --build build/debug --config Debug (for *Windows)
 or
-cmake --build build/debug (for *OSX* and *Linux*)   
+cmake --build build/debug (for *OSX* and *Linux*)
+
     ---> Build the libraries and applications
          
          Option --parallel xx can be added for faster build.

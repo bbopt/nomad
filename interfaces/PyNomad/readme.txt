@@ -17,6 +17,7 @@ ImportError: dlopen(xxxx/PyNomad.cpython-39-darwin.so, 0x0002) ....
 or
 ImportError: dlopen(xxxx/PyNomad.cpython-39-darwin.so, 0x0002): symbol not found 
 in flat namespace '__ZN9NOMAD_4_210Parameters17_typeOfAttributesE'
+
 This issue can be resolved by forcing the architecture when configuring 
 the build with a flag like -DCMAKE_OSX_ARCHITECTURES=x86_64. The
 build directory and the PyNomad.cpython-39-darwin.so in 

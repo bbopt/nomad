@@ -210,7 +210,7 @@ size_t NOMAD::CacheSet::find(const NOMAD::Point& x, NOMAD::EvalPoint &evalPoint,
                        || NOMAD::EvalStatusType::EVAL_NOT_STARTED == evalStatus
                        || NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED == evalStatus))
             {
-                usleep(10);
+                my_usleep(10);
                 evalStatus = it->getEvalStatus(evalType);
             }
         }

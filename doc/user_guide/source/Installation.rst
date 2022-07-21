@@ -91,7 +91,6 @@ The command can be modified to enable/disable some options (see side bar).
 .. warning:: Sometimes, additional options must be passed during configuration to prevent CMake errors for interfaces. See details in :ref:`library_mode`.
 
 
-
 2- Build
 """"""""
 
