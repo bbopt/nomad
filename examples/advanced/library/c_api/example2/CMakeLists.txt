@@ -14,7 +14,7 @@ else()
 endif()
 if (WIN32)
 else()
-    target_link_libraries(example1_c_api.exe PUBLIC m)
+    target_link_libraries(example2_c_api.exe PUBLIC m)
 endif()
 
 # installing executables and libraries
