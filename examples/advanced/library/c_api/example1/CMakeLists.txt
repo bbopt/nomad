@@ -12,6 +12,10 @@ if(OpenMP_CXX_FOUND)
 else()
     target_link_libraries(example1_c_api.exe PUBLIC nomadAlgos nomadUtils nomadEval nomadCInterface)
 endif()
+if (WIN32)
+else()
+    target_link_libraries(example1_c_api.exe PUBLIC m)
+endif()
 
 # installing executables and libraries
 install(TARGETS example1_c_api.exe
