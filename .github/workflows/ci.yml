@@ -87,7 +87,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          cmake --build build --parallel 8 --config ${{matrix.config.build_type}}
+          cmake --build build --parallel --config ${{matrix.config.build_type}}
 
       - name: Install
         shell: bash
@@ -100,7 +100,7 @@ jobs:
           export PATH=`pwd`/build/bin:$PATH
           echo $PATH
           cd build
-          ctest -C ${{matrix.config.build_type}} --parallel 8
+          ctest -C ${{matrix.config.build_type}} --parallel
 
       - name: Upload
         uses: actions/upload-artifact@v2
