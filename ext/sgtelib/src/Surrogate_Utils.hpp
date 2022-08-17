@@ -32,7 +32,7 @@
 #include <sys/stat.h>
 
 // Helpful for compilaton on some platforms
-#ifndef _WIN32
+#ifndef _MSC_VER
 #include <sys/time.h>
 #endif
 
