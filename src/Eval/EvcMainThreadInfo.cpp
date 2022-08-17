@@ -255,7 +255,7 @@ std::vector<NOMAD::EvalPoint> NOMAD::EvcMainThreadInfo::retrieveAllEvaluatedPoin
             warningShown = true;
         }
         OUTPUT_INFO_END
-        my_usleep(10);
+        usleep(10);
     }
 
     allEvaluatedPoints.insert(allEvaluatedPoints.end(),

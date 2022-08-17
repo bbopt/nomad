@@ -104,7 +104,7 @@ void NOMAD::PSDMads::waitForBarrier() const
     // Wait until _barrier is initialized, at the beginning of run.
     while (nullptr == _barrier || 0 == _barrier->getAllPoints().size())
     {
-        my_usleep(10);
+        usleep(10);
     }
 }
 
