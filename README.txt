@@ -185,6 +185,11 @@ cmake --install build/debug (for *OSX* and *Linux*)
          and in the examples/tests directories
 
 
+BINARIES:
+Nomad libraries are available in a Julia package for some plateforms at 
+https://github.com/JuliaBinaryWrappers/NOMAD_jll.jl
+
+
 EXAMPLES OF OPTIMIZATION:
 
 Batch Mode:

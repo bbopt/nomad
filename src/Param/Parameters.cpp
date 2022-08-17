@@ -55,7 +55,7 @@
 #include "../Type/SgtelibModelFeasibilityType.hpp"
 #include "../Type/SgtelibModelFormulationType.hpp"
 #include "../Util/fileutils.hpp"
-#ifdef _WIN32
+#ifdef _MSC_VER
 #include <io.h>    // For _access
 #define access _access
 #define R_OK 04
