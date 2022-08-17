@@ -4,7 +4,7 @@ name: CI
 # Controls when the action will run.
 on:
   push:
-    branches: [ develop ]
+    branches: [master, develop]
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -57,7 +57,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install cmake
           cmake --version
-          gcc --version
 
       - name: Install dependencies on MacOS
         if: startsWith(matrix.config.name, 'MacOS')
@@ -88,7 +87,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          cmake --build build --config ${{matrix.config.build_type}}
+          cmake --build build --parallel 8 --config ${{matrix.config.build_type}}
 
       - name: Install
         shell: bash
@@ -101,7 +100,7 @@ jobs:
           export PATH=`pwd`/build/bin:$PATH
           echo $PATH
           cd build
-          ctest -C ${{matrix.config.build_type}}
+          ctest -C ${{matrix.config.build_type}} --parallel 8
 
       - name: Upload
         uses: actions/upload-artifact@v2
