@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------------#
 #  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                #
 #                                                                                 #
-#  NOMAD - Version 4 has been created by                                          #
+#  NOMAD - Version 4 has been created and developed by                            #
 #                 Viviane Rochon Montplaisir  - Polytechnique Montreal            #
 #                 Christophe Tribes           - Polytechnique Montreal            #
 #                                                                                 #
@@ -142,7 +142,6 @@ cmake --build build/release (for *OSX* and *Linux*)
          The option --config Release should be used on *Windows* to build only
          Release configuration. The default configuration is Debug.
 
-
 cmake --install build/release --config Release (for *Windows*)
 or
 cmake --install build/release (for *OSX* and *Linux*)
@@ -174,13 +173,14 @@ cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
 cmake --build build/debug --config Debug (for *Windows)
 or
 cmake --build build/debug (for *OSX* and *Linux*)
+
     ---> Build the libraries and applications
          
          Option --parallel xx can be added for faster build.
 
-cmake --install build/debug --config Debug (for *Windows)
+cmake --install build/debug --config Debug (for *Windows*)
 or
-cmake --install build/debug (for *OSX* and *Linux*)
+cmake --install build/debug  (for *OSX* and *Linux*)
     ---> Copy binaries and headers in build/debug/[bin, include, lib]
          and in the examples/tests directories
 

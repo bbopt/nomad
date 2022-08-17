@@ -898,6 +898,12 @@ void NOMAD::MainStep::resetComponentsBetweenOptimization()
     // Make sure to clear the cache before the next run
     resetCache();
 
+    // Reset user terminate and interrupt.
+    // Important for Matlab and Python interface
+    // with persistent memory of static variables
+    NOMAD::Step::resetUserTerminate();
+    NOMAD::Step::resetUserInterrupt();
+    
     // Reset static tag counter
     NOMAD::EvalPoint::resetCurrentTag();
 

@@ -57,7 +57,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install cmake
           cmake --version
-          gcc --version
 
       - name: Install dependencies on MacOS
         if: startsWith(matrix.config.name, 'MacOS')
