@@ -29,6 +29,10 @@ The configuration command:
 Building the Matlab MEX interface is disabled when NOMAD uses OpenMP. 
 Hence, the option -DTEST_OPENMP=OFF must be passed during configuration.
 
+It may be required (Windows) to force the use of the 64bit version of the 
+compiler with the command:
+  cmake -DTEST_OPENMP=OFF -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release -A x64
+
 The command 
    cmake --build build/release 
 or cmake --build build/release --config Release (for Windows) 
