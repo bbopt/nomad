@@ -363,6 +363,9 @@ set when configuring for building NOMAD, as such: ``cmake -DTEST_OPENMP=OFF -DBU
 
 .. warning:: Building the Matlab MEX interface is disabled when NOMAD uses OpenMP. Hence, the option ``-DTEST_OPENMP=OFF`` must be passed during configuration.
 
+.. warning:: It may be required (Windows) to force the use of the 64 bits version of the compiler with the command:
+  ``cmake -DTEST_OPENMP=OFF -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release -A x64``
+
 The command ``cmake --build build/release`` (or ``cmake --build build/release --config Release`` for Windows) is used for building the selected configuration.
 The command ``cmake --install build/release`` must be run before using the Matlab ``nomadOpt`` function. Also,
 the Matlab command ``addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib'))`` or ``addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib64'))`` must be executed to have access to the libraries and run the examples.
