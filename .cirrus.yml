@@ -21,4 +21,5 @@ task:
     export PATH=`pwd`/build/bin:$PATH
     echo $PATH
     cd build
+    ls examples
     ctest -C Release --parallel 8
