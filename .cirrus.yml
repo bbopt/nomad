@@ -20,8 +20,6 @@ task:
   test_script: |
     export PATH=`pwd`/build/bin:$PATH
     echo $PATH
-    cd build
-    ls examples
-    chsh -s bash
     ln -s /usr/local/bin/bash /bin/bash
+    cd build
     ctest -C Release --parallel 8
