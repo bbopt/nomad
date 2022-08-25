@@ -23,4 +23,5 @@ task:
     cd build
     ls examples
     chsh -s bash
+    ln -s /usr/local/bin/bash /bin/bash
     ctest -C Release --parallel 8
