@@ -1,6 +1,7 @@
 freebsd_instance:
   image: freebsd-13-0-release-amd64
 task:
+  name: FreeBSD
   dependencies_script: |
     pkg install -y cmake
   configure_script: |
@@ -13,13 +14,10 @@ task:
       -DBUILD_INTERFACE_C=ON \
       -DCMAKE_INSTALL_PREFIX=../instdir \
       ..
+    cd ..
   build_script: |
-    ls
-    cd build
     cmake --build build --parallel 8 --config Release
   build_script: |
-    ls
-    cd build
     cmake --install build --config Release
   test_script: |
     ls
