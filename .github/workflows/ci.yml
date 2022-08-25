@@ -74,12 +74,14 @@ jobs:
             cmake -G "MinGW Makefiles" \
               -DTEST_OPENMP=OFF \
               -DBUILD_INTERFACE_C=ON \
+              -DBUILD_TESTS=ON \
               -DCMAKE_INSTALL_PREFIX=../instdir \
               ..
           else
             cmake \
               -DTEST_OPENMP=OFF \
               -DBUILD_INTERFACE_C=ON \
+              -DBUILD_TESTS=ON \
               -DCMAKE_INSTALL_PREFIX=../instdir \
               ..
           fi
