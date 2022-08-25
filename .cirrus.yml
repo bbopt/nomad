@@ -18,5 +18,7 @@ task:
   install_script: |
     cmake --install build --config Release
   test_script: |
+    export PATH=`pwd`/build/bin:$PATH
+    echo $PATH
     cd build
     ctest -C Release --parallel 8
