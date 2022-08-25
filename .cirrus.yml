@@ -3,7 +3,7 @@ freebsd_instance:
 task:
   name: FreeBSD
   dependencies_script: |
-    pkg install -y cmake
+    pkg install -y cmake bash
   configure_script: |
     mkdir instdir
     mkdir build
