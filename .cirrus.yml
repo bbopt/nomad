@@ -4,6 +4,7 @@ task:
   dependencies_script: |
     pkg install -y cmake
   configure_script: |
+    ls
     mkdir instdir
     mkdir build
     cd build
@@ -13,9 +14,14 @@ task:
       -DCMAKE_INSTALL_PREFIX=../instdir \
       ..
   build_script: |
+    ls
+    cd build
     cmake --build build --parallel 8 --config Release
   build_script: |
+    ls
+    cd build
     cmake --install build --config Release
   test_script: |
+    ls
     cd build
     ctest -C Release --parallel 8
