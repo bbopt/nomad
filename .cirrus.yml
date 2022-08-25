@@ -22,4 +22,5 @@ task:
     echo $PATH
     cd build
     ls examples
+    chsh -s bash
     ctest -C Release --parallel 8
