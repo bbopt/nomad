@@ -481,7 +481,7 @@ public:
          for(i=0;i<(nobj+ncon);i++)
          {
              NOMAD::Double bbo = fvals[i];
-             bboStr += bbo.tostring() ;   
+             bboStr += bbo.tostring() + " " ;   
          }
          x.setBBO(bboStr);
 		 // mexPrintf("Function output: %s\n", bboStr);
