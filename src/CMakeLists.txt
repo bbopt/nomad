@@ -393,7 +393,6 @@ Algos/Mads/Ortho2NPollMethod.cpp
 Algos/Mads/OrthoNPlus1PollMethod.cpp
 Algos/Mads/Poll.cpp
 Algos/Mads/PollMethodBase.cpp
-Algos/Mads/QuadSldSearchMethod.cpp
 Algos/Mads/QuadSearchMethod.cpp
 Algos/Mads/Search.cpp
 Algos/Mads/SearchMethodAlgo.cpp
