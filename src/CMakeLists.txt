@@ -610,8 +610,8 @@ if (WIN32)
     target_compile_definitions(nomadUtils PRIVATE -DDLL_UTIL_EXPORTS)
 endif()
 set_target_properties(nomadUtils PROPERTIES 
-                                 VERSION ${NOMAD_VERSION}
-                                 SOVERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR})
+                                 VERSION "${NOMAD_VERSION}"
+                                 SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}")
 
 # Evals
 add_library (nomadEval SHARED ${CACHE_SOURCES} ${EVAL_SOURCES})
@@ -627,8 +627,8 @@ if (WIN32)
     target_compile_definitions(nomadEval PRIVATE -DDLL_EVAL_EXPORTS)
 endif()
 set_target_properties(nomadEval  PROPERTIES 
-                                 VERSION ${NOMAD_VERSION}
-                                 SOVERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR})
+                                 VERSION "${NOMAD_VERSION}"
+                                 SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}")
 
 
 # Algos
@@ -691,8 +691,8 @@ if(USE_IBEX MATCHES ON)
 	message(CHECK_START " Ready to use IBEX")
 endif()
 set_target_properties(nomadAlgos  PROPERTIES 
-                                 VERSION ${NOMAD_VERSION}
-                                 SOVERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR})
+                                 VERSION "${NOMAD_VERSION}"
+                                 SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}")
 
 
 #
