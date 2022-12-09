@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_0_PSDMADS__
-#define __NOMAD_4_0_PSDMADS__
+#ifndef __NOMAD_4_3_PSDMADS__
+#define __NOMAD_4_3_PSDMADS__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Algorithm.hpp"
@@ -61,7 +61,7 @@ class PSDMads: public Algorithm
 private:
     RandomPickup                _randomPickup;          ///< To manage selection of variables for subproblems. Reset only by pollster.
     std::shared_ptr<MeshBase>   _psdMainMesh;           ///< Base Mesh to create subproblem Mads. Updated only by pollster.
-    std::shared_ptr<Barrier>    _barrier;               ///< Barrier with the latest successful values. Updated by all Mads.
+    std::shared_ptr<BarrierBase>    _barrier;               ///< Barrier with the latest successful values. Updated by all Mads.
 
     std::shared_ptr<MadsMegaIteration> _masterMegaIteration;
     
@@ -73,14 +73,14 @@ public:
     /// Constructor
     /**
      \param parentStep    The parent of this step -- \b IN.
-     \param evaluator     Evaluator to initialize all main threads -- \b IN.
+     \param evaluators     The Evaluators to initialize all main threads -- \b IN.
      \param evalContParams Parameters to initialize all main threads -- \b IN.
      \param stopReasons   The PSD Mads stop reasons -- \b IN/OUT.
      \param runParams     Parameters for algorithm -- \b IN.
      \param refPbParams   Parameters for original optimization problem. PSD-Mads use its own copy -- \b IN.
      */
     explicit PSDMads(const Step* parentStep,
-                     const std::shared_ptr<Evaluator>& evaluator,
+                     const std::vector<EvaluatorPtr>& evaluators,
                      const std::shared_ptr<EvaluatorControlParameters>& evalContParams,
                      std::shared_ptr<AlgoStopReasons<MadsStopType>> stopReasons,
                      const std::shared_ptr<RunParameters>& runParams,
@@ -91,7 +91,7 @@ public:
         _barrier(nullptr),
         _lastMadsSuccessful(false)
     {
-        init(evaluator, evalContParams);
+        init(evaluators, evalContParams);
     }
 
     virtual ~PSDMads()
@@ -112,7 +112,7 @@ public:
 
 private:
     /// Helper for constructor
-    void init(const std::shared_ptr<Evaluator>& evaluator,
+    void init(const std::vector<EvaluatorPtr>& evaluators,
               const std::shared_ptr<EvaluatorControlParameters>& evalContParams);
     /// Helper for destructor
     void destroy();
@@ -129,4 +129,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_0_PSDMADS__
+#endif // __NOMAD_4_3_PSDMADS__

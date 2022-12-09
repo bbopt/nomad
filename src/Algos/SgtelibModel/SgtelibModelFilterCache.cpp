@@ -293,7 +293,7 @@ void NOMAD::SgtelibModelFilterCache::computeInitialValues()
         // simplifications that could be done.
         _hmax[i] = -NOMAD::INF;
         NOMAD::ArrayOfDouble bbo = x.getEval(NOMAD::EvalType::MODEL)->getBBOutput().getBBOAsArrayOfDouble();
-        auto evalParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvalParams();
+        auto evalParams = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalParams();
         const auto bbot = evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
         for (size_t j = 0; j < bbo.size(); j++)
         {

@@ -1,6 +1,5 @@
-/*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.2                                                                      */
+/*  Version 2.0.3                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -180,7 +179,7 @@ void SGTELIB::Surrogate_Kriging::predict_private_objective ( const std::vector<S
 
 
   // Loop on all pxx points 
-  for (int i=0 ; i<pxx ; i++){
+  for (int i=0 ; i<static_cast<int>(pxx) ; i++){
     // *(XXd[i]) is of dimension nbd * _n
     const SGTELIB::Matrix r = compute_covariance_matrix(*(XXd[i])).transpose();
     // Compute only objectives

@@ -59,18 +59,10 @@
 void NOMAD::NMIteration::init()
 {
     setStepType(NOMAD::StepType::NM_ITERATION);
-
-    _bestSuccess = NOMAD::SuccessType::UNSUCCESSFUL;
-
 }
 
 void NOMAD::NMIteration::startImp()
 {
-    // Not used anymore. Displays a MADS Update block!
-    //NOMAD::NMUpdate update( this );
-    //update.start();
-    //update.run();
-    //update.end();
     
     // Create the initial simplex Y if it is empty. Use a center pt and the cache
     NOMAD::NMInitializeSimplex initSimplex ( this );
@@ -82,6 +74,8 @@ void NOMAD::NMIteration::startImp()
     {
         auto nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get ( getAllStopReasons() );
         nmStopReason->set( NOMAD::NMStopType::INITIAL_FAILED );
+        
+        _success = NOMAD::SuccessType::NO_TRIALS;
     }
 }
 
@@ -122,18 +116,18 @@ bool NOMAD::NMIteration::runImp()
         stepType = reflect.getNextNMStepType() ;
 
         // Update the type of success for passing to the MegaIteration
-        NOMAD::SuccessType success = reflect.getSuccessType();
+        NOMAD::SuccessType reflect_success = reflect.getSuccessType();
 
-        if ( success > _bestSuccess )
+        if ( reflect_success > _success )
         {
             // NM Search can be stopped on success
-            if ( success == NOMAD::SuccessType::FULL_SUCCESS && !nmOpt && nmSearchStopOnSuccess )
+            if ( reflect_success == NOMAD::SuccessType::FULL_SUCCESS && !nmOpt && nmSearchStopOnSuccess )
             {
                 auto nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get ( _stopReasons );
                 nmStopReason->set( NOMAD::NMStopType::NM_STOP_ON_SUCCESS );
             }
             iterationSuccess = true; // At least a partial success is obtained
-            _bestSuccess = success;
+            _success = reflect_success;
         }
     }
 
@@ -150,12 +144,11 @@ bool NOMAD::NMIteration::runImp()
         shrink.run();
         shrink.end();
 
-        // Update the type of success for passing to the MegaIteration
-        NOMAD::SuccessType success = shrink.getSuccessType();
-        if ( success > _bestSuccess )
+        // The success type is updated by Step::defaultEnd
+        // Iteration success if at least a partial success is obtained
+        if ( _success >= NOMAD::SuccessType::PARTIAL_SUCCESS )
         {
-            iterationSuccess = true; // At least a partial success is obtained
-            _bestSuccess = success;
+            iterationSuccess = true;
         }
     }
     // Perform SHRINK only for a standalone NM optimization ELSE stop NM
@@ -166,12 +159,7 @@ bool NOMAD::NMIteration::runImp()
         nmStopReason->set( NOMAD::NMStopType::NM_STOP_NO_SHRINK );
 
     }
-    if ( iterationSuccess )
-    {
-        // Update MegaIteration success type with best success found.
-        getParentOfType<NOMAD::MegaIteration*>()->setSuccessType(_bestSuccess);
-    }
-
+    
     // End of the iteration: iterationSuccess is true if we have a success.
     return iterationSuccess;
 

@@ -68,7 +68,6 @@ double NOMAD::MadsIteration::_pollEvalTime = 0.0;
 
 void NOMAD::MadsIteration::init()
 {
-    setStepType(NOMAD::StepType::ITERATION);
     
     // For some testing, it is possible that _runParams is null
     if (nullptr != _runParams && _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
@@ -85,7 +84,6 @@ void NOMAD::MadsIteration::init()
 
 void NOMAD::MadsIteration::startImp()
 {
-    setSuccessType(NOMAD::SuccessType::NOT_EVALUATED);
     
 #ifdef TIME_STATS
     _iterStartTime = NOMAD::Clock::getCPUTime();
@@ -135,24 +133,20 @@ NOMAD::ArrayOfPoint NOMAD::MadsIteration::suggest()
 bool NOMAD::MadsIteration::runImp()
 {
     bool iterationSuccess = false;
-    NOMAD::SuccessType bestSuccessYet = NOMAD::SuccessType::NOT_EVALUATED;
+    
 
     // Parameter Update is handled at the upper level - MegaIteration.
-
     if ( nullptr != _megasearchpoll
         && !_stopReasons->checkTerminate())
     {
         _megasearchpoll->start();
-
         bool successful = _megasearchpoll->run();
-
         _megasearchpoll->end();
 
         if (successful)
         {
-            bestSuccessYet = _megasearchpoll->getSuccessType();
             OUTPUT_DEBUG_START
-            std::string s = getName() + ": new success " + NOMAD::enumStr(bestSuccessYet);
+            std::string s = getName() + ": new success " + NOMAD::enumStr(_success);
             s += " stopReason = " + _stopReasons->getStopReasonAsString() ;
             AddOutputDebug(s);
             OUTPUT_DEBUG_END
@@ -170,12 +164,6 @@ bool NOMAD::MadsIteration::runImp()
         
             _search->start();
             iterationSuccess = _search->run();
-
-            NOMAD::SuccessType success = _search->getSuccessType();
-            if (success > bestSuccessYet)
-            {
-                bestSuccessYet = success;
-            }
             _search->end();
 #ifdef TIME_STATS
             _searchTime += NOMAD::Clock::getCPUTime() - searchStartTime;
@@ -204,12 +192,6 @@ bool NOMAD::MadsIteration::runImp()
                 // a better xInf (partial success or dominating) xInf was found.
                 // See Algorithm 12.2 from DFBO.
                 iterationSuccess = _poll->run();
-
-                NOMAD::SuccessType success = _poll->getSuccessType();
-                if (success > bestSuccessYet)
-                {
-                    bestSuccessYet = success;
-                }
                 _poll->end();
 #ifdef TIME_STATS
                 _pollTime += NOMAD::Clock::getCPUTime() - pollStartTime;
@@ -219,7 +201,6 @@ bool NOMAD::MadsIteration::runImp()
         }
     }
 
-    setSuccessType(bestSuccessYet);
 
     // End of the iteration: iterationSuccess is true iff we have a full success.
     return iterationSuccess;

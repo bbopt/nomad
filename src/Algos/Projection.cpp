@@ -98,8 +98,8 @@ void NOMAD::Projection::init()
     {
         _mesh = iter->getMesh();
         auto barrier = iter->getMegaIterationBarrier();
-        _frameCenter = std::make_shared<NOMAD::EvalPoint>(barrier->getFirstPoint());
-        if (_frameCenter)
+        _frameCenter = barrier->getFirstPoint();
+        if (nullptr != _frameCenter)
         {
             buildIndexSet(_frameCenter->size());
             //_nbProjTrial = 100 * _frameCenter->size();
@@ -147,6 +147,7 @@ bool NOMAD::Projection::runImp()
 {
     bool projectionOk = true;
 
+    // Return value: found better - unused.
     evalTrialPoints(this);
 
     return projectionOk;
@@ -228,7 +229,6 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
     trySet.clear();
     keep.clear();
 
-
 }
 
 
@@ -261,8 +261,6 @@ void NOMAD::Projection::stdProjectedPoint(const NOMAD::EvalPoint& oraclePoint)
     }
     NOMAD::EvalPoint evalPoint(xTry);
 
-    // The goal here is to evaluate points according to the SgtelibModel.
-    // This may not have its place in the Projection class.
     bool doInsert = true;
     if (NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
     {

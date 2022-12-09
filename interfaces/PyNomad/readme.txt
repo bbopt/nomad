@@ -21,7 +21,7 @@ in flat namespace '__ZN9NOMAD_4_210Parameters17_typeOfAttributesE'
 This issue can be resolved by forcing the architecture when configuring 
 the build with a flag like -DCMAKE_OSX_ARCHITECTURES=x86_64. The
 build directory and the PyNomad.cpython-39-darwin.so in 
-$NOMAD_HOME/interfaces/PyNomad must be removed before rebuild.
+$NOMAD_HOME/interfaces/PyNomad MUST BE REMOVED BEFORE REBUILD.
 
 ************************
 HOW TO BUILD AND INSTALL

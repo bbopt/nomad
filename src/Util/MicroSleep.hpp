@@ -51,18 +51,19 @@
  \date   2021-03-24
  \see    MicroSleep.hpp
  */
-#ifndef __NOMAD_4_2_MICROSLEEP__
-#define __NOMAD_4_2_MICROSLEEP__
+#ifndef __NOMAD_4_3_MICROSLEEP__
+#define __NOMAD_4_3_MICROSLEEP__
 
 #ifdef _MSC_VER
 #include <chrono>
 #include <thread>
 
 static inline void usleep(uint64_t usec) {
-	std::this_thread::sleep_for(std::chrono::microseconds(usec));
+    std::this_thread::sleep_for(std::chrono::microseconds(usec));
 }
+
 #else
 #include <unistd.h>
 #endif
 
-#endif // __NOMAD_4_2_MICROSLEEP__
+#endif // __NOMAD_4_3_MICROSLEEP__

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_QUAD_MODEL_MEGAITERATION__
-#define __NOMAD_4_2_QUAD_MODEL_MEGAITERATION__
+#ifndef __NOMAD_4_3_QUAD_MODEL_MEGAITERATION__
+#define __NOMAD_4_3_QUAD_MODEL_MEGAITERATION__
 
 
 #include "../../Algos/MegaIteration.hpp"
@@ -75,7 +75,7 @@ public:
      */
     explicit QuadModelMegaIteration(const Step* parentStep,
                               size_t k,
-                              std::shared_ptr<Barrier> barrier,
+                              std::shared_ptr<BarrierBase> barrier,
                               SuccessType success)
       : MegaIteration(parentStep, k, barrier, success)
     {
@@ -105,4 +105,4 @@ std::istream& operator>>(std::istream& is, QuadModelMegaIteration& megaIteration
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_QUAD_MODEL_MEGAITERATION__
+#endif // __NOMAD_4_3_QUAD_MODEL_MEGAITERATION__

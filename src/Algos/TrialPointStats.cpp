@@ -56,7 +56,7 @@
 #include "../Algos/TrialPointStats.hpp"
 
 #ifdef _OPENMP
-omp_lock_t NOMAD::TrialPointStats::_updateLock;
+omp_lock_t NOMAD::TrialPointStats::_updateLock  ;
 #endif
 
 void NOMAD::TrialPointStats::init()
@@ -68,10 +68,6 @@ void NOMAD::TrialPointStats::init()
     
     initializeMap(_nbTotalTrialPointsGenerated);
     initializeMap(_nbCurrentTrialPointsGenerated);
-    
-#ifdef _OPENMP
-    omp_init_lock(&_updateLock);
-#endif
     
 }
 
@@ -149,6 +145,7 @@ void NOMAD::TrialPointStats::updateParentStats()
         {
             auto iu = dynamic_cast<NOMAD::IterationUtils*>(step);
             #ifdef _OPENMP
+			    omp_init_lock(&_updateLock);
                 omp_set_lock(&_updateLock);
             #endif // _OPENMP
                 iu->updateStats(*this);
@@ -161,6 +158,7 @@ void NOMAD::TrialPointStats::updateParentStats()
         {
             auto algo = dynamic_cast<NOMAD::Algorithm*>(step);
             #ifdef _OPENMP
+			    omp_init_lock(&_updateLock);
                 omp_set_lock(&_updateLock);
             #endif // _OPENMP
                 algo->updateStats(*this);

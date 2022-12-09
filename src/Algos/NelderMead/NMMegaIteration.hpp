@@ -44,11 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_NMMEGAITERATION__
-#define __NOMAD_4_2_NMMEGAITERATION__
+#ifndef __NOMAD_4_3_NMMEGAITERATION__
+#define __NOMAD_4_3_NMMEGAITERATION__
 
 #include "../../Algos/MegaIteration.hpp"
 #include "../../Algos/NelderMead/NMIteration.hpp"
+#include "../../Eval/Barrier.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -80,7 +81,7 @@ public:
      */
     explicit NMMegaIteration(const Step* parentStep,
                               size_t k,
-                              std::shared_ptr<Barrier> barrier,
+                              std::shared_ptr<BarrierBase> barrier,
                               SuccessType success)
       : MegaIteration(parentStep, k,barrier,success), _nmIteration(nullptr)
     {
@@ -122,4 +123,4 @@ std::istream& operator>>(std::istream& is, NMMegaIteration& megaIteration);
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_NMMEGAITERATION__
+#endif // __NOMAD_4_3_NMMEGAITERATION__

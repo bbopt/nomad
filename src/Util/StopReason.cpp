@@ -47,7 +47,7 @@
 #include "../Util/StopReason.hpp"
 
 //// Dictionary funct for BaseStopType
-template<> std::map<NOMAD::BaseStopType,std::string> & NOMAD::StopReason<NOMAD::BaseStopType>::dict() const
+template<> DLL_UTIL_API std::map<NOMAD::BaseStopType,std::string> & NOMAD::StopReason<NOMAD::BaseStopType>::dict() const
 {
     static std::map<NOMAD::BaseStopType,std::string> dictionary= {
         {NOMAD::BaseStopType::STARTED,"Started"},   // Set a the begining of a Step
@@ -64,7 +64,7 @@ template<> std::map<NOMAD::BaseStopType,std::string> & NOMAD::StopReason<NOMAD::
 }
 
 // Returns true only to terminate an algorithm (Mads, ...)
-template<> bool NOMAD::StopReason<NOMAD::BaseStopType>::checkTerminate() const
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::BaseStopType>::checkTerminate() const
 {
     switch ( _stopReason )
     {
@@ -87,14 +87,16 @@ template<> bool NOMAD::StopReason<NOMAD::BaseStopType>::checkTerminate() const
 }
 
 // Dictionary function for MadsStopType
-template<> std::map<NOMAD::MadsStopType,std::string> & NOMAD::StopReason<NOMAD::MadsStopType>::dict() const
+template<> DLL_UTIL_API std::map<NOMAD::MadsStopType,std::string> & NOMAD::StopReason<NOMAD::MadsStopType>::dict() const
 {
     static std::map<NOMAD::MadsStopType,std::string> dictionary = {
         {NOMAD::MadsStopType::STARTED,"Started"},   // Set at the begining of a Step
+        {NOMAD::MadsStopType::MAX_MESH_INDEX_REACHED,"Max mesh index reached"},
+        {NOMAD::MadsStopType::MIN_MESH_INDEX_REACHED,"Min mesh index reached"},
         {NOMAD::MadsStopType::MESH_PREC_REACHED,"Mesh minimum precision reached"},
         {NOMAD::MadsStopType::MIN_MESH_SIZE_REACHED,"Min mesh size reached"},
         {NOMAD::MadsStopType::MIN_FRAME_SIZE_REACHED,"Min frame size reached"},
-        {NOMAD::MadsStopType::PONE_SEARCH_FAILED,"Phase one search did not return a feasible point."},
+        {NOMAD::MadsStopType::PONE_SEARCH_FAILED,"Phase one search did not return a feasible point"},
         {NOMAD::MadsStopType::X0_FAIL,"Problem with starting point evaluation"}
     };
     return dictionary;
@@ -102,11 +104,13 @@ template<> std::map<NOMAD::MadsStopType,std::string> & NOMAD::StopReason<NOMAD::
 
 
 // Returns true only to terminate an algorithm (Mads, ...)
-template<> bool NOMAD::StopReason<NOMAD::MadsStopType>::checkTerminate() const
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::MadsStopType>::checkTerminate() const
 {
     switch ( _stopReason )
     {
         case NOMAD::MadsStopType::MESH_PREC_REACHED:
+        case NOMAD::MadsStopType::MAX_MESH_INDEX_REACHED:
+        case NOMAD::MadsStopType::MIN_MESH_INDEX_REACHED:
         case NOMAD::MadsStopType::MIN_MESH_SIZE_REACHED:
         case NOMAD::MadsStopType::MIN_FRAME_SIZE_REACHED:
         case NOMAD::MadsStopType::PONE_SEARCH_FAILED:
@@ -123,19 +127,19 @@ template<> bool NOMAD::StopReason<NOMAD::MadsStopType>::checkTerminate() const
 }
 
 // Dictionary function for PhaseOneStopType
-template<> std::map<NOMAD::PhaseOneStopType,std::string> & NOMAD::StopReason<NOMAD::PhaseOneStopType>::dict() const
+template<> DLL_UTIL_API std::map<NOMAD::PhaseOneStopType,std::string> & NOMAD::StopReason<NOMAD::PhaseOneStopType>::dict() const
 {
     static std::map<NOMAD::PhaseOneStopType,std::string> dictionary = {
         {NOMAD::PhaseOneStopType::STARTED,"Started"},   // Set a the begining of a Step
         {NOMAD::PhaseOneStopType::NO_FEAS_PT,"No feasible point obtained by PhaseOne search"},
-        {NOMAD::PhaseOneStopType::MADS_FAIL,"Mads has terminated but no feasible point obtained"}
+        {NOMAD::PhaseOneStopType::MADS_FAIL,"Mads has terminated and no feasible point obtained"}
     };
     return dictionary;
 }
 
 
 // Dictionary function for SSDMadsStopType
-template<> std::map<NOMAD::SSDMadsStopType,std::string> & NOMAD::StopReason<NOMAD::SSDMadsStopType>::dict() const
+template<> DLL_UTIL_API std::map<NOMAD::SSDMadsStopType,std::string> & NOMAD::StopReason<NOMAD::SSDMadsStopType>::dict() const
 {
     static std::map<NOMAD::SSDMadsStopType,std::string> dictionary = {
         {NOMAD::SSDMadsStopType::STARTED,"Started"},   // Set a the begining of a Step
@@ -147,7 +151,7 @@ template<> std::map<NOMAD::SSDMadsStopType,std::string> & NOMAD::StopReason<NOMA
 
 
 // Returns true only to terminate an algorithm using PhaseOne (Mads, ...)
-template<> bool NOMAD::StopReason<NOMAD::PhaseOneStopType>::checkTerminate() const
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::PhaseOneStopType>::checkTerminate() const
 {
     switch ( _stopReason )
     {
@@ -165,7 +169,7 @@ template<> bool NOMAD::StopReason<NOMAD::PhaseOneStopType>::checkTerminate() con
 }
 
 
-template<> bool NOMAD::StopReason<NOMAD::SSDMadsStopType>::checkTerminate() const
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::SSDMadsStopType>::checkTerminate() const
 {
     switch ( _stopReason )
     {
@@ -184,7 +188,7 @@ template<> bool NOMAD::StopReason<NOMAD::SSDMadsStopType>::checkTerminate() cons
 
 
 // Dictionary function for LHStopType
-template<> std::map<NOMAD::LHStopType,std::string> & NOMAD::StopReason<NOMAD::LHStopType>::dict() const
+template<> DLL_UTIL_API std::map<NOMAD::LHStopType,std::string> & NOMAD::StopReason<NOMAD::LHStopType>::dict() const
 {
     static std::map<NOMAD::LHStopType,std::string> dictionary = {
         {NOMAD::LHStopType::STARTED,"Started"},   // Set a the begining of an EvaluatorControl Run
@@ -195,7 +199,7 @@ template<> std::map<NOMAD::LHStopType,std::string> & NOMAD::StopReason<NOMAD::LH
 }
 
 // Dictionary function for CSStopType
-template<> std::map<NOMAD::CSStopType,std::string> & NOMAD::StopReason<NOMAD::CSStopType>::dict() const
+template<> DLL_UTIL_API std::map<NOMAD::CSStopType,std::string> & NOMAD::StopReason<NOMAD::CSStopType>::dict() const
 {
     static std::map<NOMAD::CSStopType,std::string> dictionary = {
         {NOMAD::CSStopType::STARTED,"Started"},   // Set a the begining of a Step
@@ -209,7 +213,7 @@ template<> std::map<NOMAD::CSStopType,std::string> & NOMAD::StopReason<NOMAD::CS
 }
 
 // Dictionary function for VNSStopType
-template<> std::map<NOMAD::VNSStopType,std::string> & NOMAD::StopReason<NOMAD::VNSStopType>::dict() const
+template<> DLL_UTIL_API std::map<NOMAD::VNSStopType,std::string> & NOMAD::StopReason<NOMAD::VNSStopType>::dict() const
 {
     static std::map<NOMAD::VNSStopType,std::string> dictionary = {
         {NOMAD::VNSStopType::STARTED,"Started"},   // Set at the begining of a Step
@@ -224,7 +228,7 @@ template<> std::map<NOMAD::VNSStopType,std::string> & NOMAD::StopReason<NOMAD::V
 
 
 // Returns true when Latin Hypercube Sampling is complete, or no points generated
-template<> bool NOMAD::StopReason<NOMAD::LHStopType>::checkTerminate() const
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::LHStopType>::checkTerminate() const
 {
     switch ( _stopReason )
     {
@@ -242,7 +246,7 @@ template<> bool NOMAD::StopReason<NOMAD::LHStopType>::checkTerminate() const
 }
 
 // Returns true when Coordinate Search  is complete, or no points generated
-template<> bool NOMAD::StopReason<NOMAD::CSStopType>::checkTerminate() const
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::CSStopType>::checkTerminate() const
 {
     switch ( _stopReason )
     {
@@ -263,7 +267,7 @@ template<> bool NOMAD::StopReason<NOMAD::CSStopType>::checkTerminate() const
 }
 
 // Dictionary function for NMStopType
-template<> std::map<NOMAD::NMStopType,std::string> & NOMAD::StopReason<NOMAD::NMStopType>::dict() const
+template<> DLL_UTIL_API std::map<NOMAD::NMStopType,std::string> & NOMAD::StopReason<NOMAD::NMStopType>::dict() const
 {
     static std::map<NOMAD::NMStopType,std::string> dictionary = {
         {NOMAD::NMStopType::STARTED,"Started"},   // Set a the begining of an EvaluatorControl Run
@@ -287,7 +291,7 @@ template<> std::map<NOMAD::NMStopType,std::string> & NOMAD::StopReason<NOMAD::NM
 
 
 // Returns true only when Nelder Mead algorithm is complete
-template<> bool NOMAD::StopReason<NOMAD::NMStopType>::checkTerminate() const
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::NMStopType>::checkTerminate() const
 {
 
     switch ( _stopReason )
@@ -315,8 +319,47 @@ template<> bool NOMAD::StopReason<NOMAD::NMStopType>::checkTerminate() const
     return false;
 }
 
+// Dictionary function for RandomAlgoStopType
+template<> DLL_UTIL_API std::map<NOMAD::RandomAlgoStopType,std::string> & NOMAD::StopReason<NOMAD::RandomAlgoStopType>::dict() const
+{
+    static std::map<NOMAD::RandomAlgoStopType,std::string> dictionary = {
+        {NOMAD::RandomAlgoStopType::STARTED,"Started"},   // Set a the begining of an EvaluatorControl Run
+        {NOMAD::RandomAlgoStopType::UNDEFINED_STEP,"Unknown step"},
+        {NOMAD::RandomAlgoStopType::INITIAL_FAILED,"Algo initialization failed"},
+        {NOMAD::RandomAlgoStopType::UPDATE_FAILED,"Algo update of best point failed"},
+        {NOMAD::RandomAlgoStopType::X0_FAILED,"No X0 provided or cannot evaluate X0"},
+        {NOMAD::RandomAlgoStopType::ALL_POINTS_EVALUATED,"All trial points evaluated, budget spent"},
+        {NOMAD::RandomAlgoStopType::SINGLE_PASS_COMPLETED,"A single iteration is completed"}
+    };
+    return dictionary;
+}
+
+// Returns true only when template algorithm (random) is complete
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::RandomAlgoStopType>::checkTerminate() const
+{
+
+    switch ( _stopReason )
+    {
+        case NOMAD::RandomAlgoStopType::ALL_POINTS_EVALUATED:
+        case NOMAD::RandomAlgoStopType::X0_FAILED:
+        case NOMAD::RandomAlgoStopType::INITIAL_FAILED:
+        case NOMAD::RandomAlgoStopType::UPDATE_FAILED:
+        case NOMAD::RandomAlgoStopType::UNDEFINED_STEP:
+        case NOMAD::RandomAlgoStopType::SINGLE_PASS_COMPLETED:
+            return true;
+            break;
+        case NOMAD::RandomAlgoStopType::STARTED:
+            return false;
+            break;
+        default:
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All template algo stop types must be checked for algo terminate");
+    }
+    return false;
+}
+
+
 // Returns true only when VNS Mads algorithm is complete
-template<> bool NOMAD::StopReason<NOMAD::VNSStopType>::checkTerminate() const
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::VNSStopType>::checkTerminate() const
 {
 
     switch ( _stopReason )
@@ -339,7 +382,7 @@ template<> bool NOMAD::StopReason<NOMAD::VNSStopType>::checkTerminate() const
 
 
 // Dictionary function for IterStopType
-template<> std::map<NOMAD::IterStopType,std::string> & NOMAD::StopReason<NOMAD::IterStopType>::dict() const
+template<> DLL_UTIL_API std::map<NOMAD::IterStopType,std::string> & NOMAD::StopReason<NOMAD::IterStopType>::dict() const
 {
     static std::map<NOMAD::IterStopType,std::string> dictionary = {
         {NOMAD::IterStopType::STARTED,"Started"},   // Set a the begining of a Step task
@@ -352,7 +395,7 @@ template<> std::map<NOMAD::IterStopType,std::string> & NOMAD::StopReason<NOMAD::
 
 
 // Returns true only to terminate an algorithm (Mads, ...)
-template<> bool NOMAD::StopReason<NOMAD::IterStopType>::checkTerminate() const
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::IterStopType>::checkTerminate() const
 {
     switch ( _stopReason )
     {
@@ -373,7 +416,7 @@ template<> bool NOMAD::StopReason<NOMAD::IterStopType>::checkTerminate() const
 
 
 // Dictionary function for EvalGlobalStopType
-template<> std::map<NOMAD::EvalGlobalStopType,std::string> & NOMAD::StopReason<NOMAD::EvalGlobalStopType>::dict() const
+template<> DLL_UTIL_API std::map<NOMAD::EvalGlobalStopType,std::string> & NOMAD::StopReason<NOMAD::EvalGlobalStopType>::dict() const
 {
     static std::map<NOMAD::EvalGlobalStopType,std::string> dictionary = {
         {NOMAD::EvalGlobalStopType::STARTED,                  "Started"},   // Set a the begining of an EvaluatorControl Run
@@ -387,13 +430,13 @@ template<> std::map<NOMAD::EvalGlobalStopType,std::string> & NOMAD::StopReason<N
 
 
 // Dictionary function for EvalMainThreadStopType
-template<> std::map<NOMAD::EvalMainThreadStopType,std::string> & NOMAD::StopReason<NOMAD::EvalMainThreadStopType>::dict() const
+template<> DLL_UTIL_API std::map<NOMAD::EvalMainThreadStopType,std::string> & NOMAD::StopReason<NOMAD::EvalMainThreadStopType>::dict() const
 {
     static std::map<NOMAD::EvalMainThreadStopType,std::string> dictionary = {
         {NOMAD::EvalMainThreadStopType::STARTED,                  "Started"},   // Set a the begining of an EvaluatorControl Run
         {NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED,  "Maximum number of blackbox evaluations for a sub algorithm run (lap run)"},
         {NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED,  "Maximum number of blackbox evaluations for a subproblem run"},
-        {NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS,    "Success found and opportunistic strategy is used"},
+        {NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS,    "Success found and opportunistic strategy maybe used (if set)"},
         {NOMAD::EvalMainThreadStopType::EMPTY_LIST_OF_POINTS,     "Tried to eval an empty list"},
         {NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED,     "No more points to evaluate"},
         {NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED,   "Maximum number of model evaluations reached"}
@@ -402,7 +445,7 @@ template<> std::map<NOMAD::EvalMainThreadStopType,std::string> & NOMAD::StopReas
 }
 
 
-template<> bool NOMAD::StopReason<NOMAD::EvalGlobalStopType>::checkTerminate() const
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::EvalGlobalStopType>::checkTerminate() const
 {
     // Returns true only to terminate an algorithm (Mads, ...)
     switch ( _stopReason )
@@ -423,7 +466,7 @@ template<> bool NOMAD::StopReason<NOMAD::EvalGlobalStopType>::checkTerminate() c
 }
 
 
-template<> bool NOMAD::StopReason<NOMAD::EvalMainThreadStopType>::checkTerminate() const
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::EvalMainThreadStopType>::checkTerminate() const
 {
     switch ( _stopReason )
     {
@@ -446,7 +489,7 @@ template<> bool NOMAD::StopReason<NOMAD::EvalMainThreadStopType>::checkTerminate
 
 
 // Dictionary function for ModelStopType
-template<> std::map<NOMAD::ModelStopType,std::string> & NOMAD::StopReason<NOMAD::ModelStopType>::dict() const
+template<> DLL_UTIL_API std::map<NOMAD::ModelStopType,std::string> & NOMAD::StopReason<NOMAD::ModelStopType>::dict() const
 {
     static std::map<NOMAD::ModelStopType,std::string> dictionary = {
         {NOMAD::ModelStopType::STARTED, "Started"},   // Set a the begining of a Step
@@ -466,7 +509,7 @@ template<> std::map<NOMAD::ModelStopType,std::string> & NOMAD::StopReason<NOMAD:
 
 
 // Returns true only to terminate an model based algorithms (sgtelib, quad, ...)
-template<> bool NOMAD::StopReason<NOMAD::ModelStopType>::checkTerminate() const
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::ModelStopType>::checkTerminate() const
 {
     switch ( _stopReason )
     {

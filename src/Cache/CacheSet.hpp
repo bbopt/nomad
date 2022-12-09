@@ -52,8 +52,8 @@
  * \see    CacheSet.cpp
  */
 
-#ifndef __NOMAD_4_2_CACHESET__
-#define __NOMAD_4_2_CACHESET__
+#ifndef __NOMAD_4_3_CACHESET__
+#define __NOMAD_4_3_CACHESET__
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -61,6 +61,7 @@
 #include "../Cache/CacheBase.hpp"
 #include "../Eval/EvalPoint.hpp"
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 
@@ -68,17 +69,17 @@
 /**
 * Uses a set or unordered set of EvalPoint for the cache.
 */
-class CacheSet : public CacheBase {
+class DLL_EVAL_API CacheSet : public CacheBase {
 
 private:
 
     /// Lock for multithreading
 #ifdef _OPENMP
-    DLL_EVAL_API static omp_lock_t  _cacheLock;
+    static omp_lock_t  _cacheLock;
 #endif // _OPENMP
 
-    DLL_EVAL_API static BBOutputTypeList    _bbOutputType;  ///< Corresponds to parameter BB_OUTPUT_TYPE used for this cache
-    DLL_EVAL_API static ArrayOfDouble       _bbEvalFormat;  ///< Used to write cache correctly
+    static BBOutputTypeList    _bbOutputType;  ///< Corresponds to parameter BB_OUTPUT_TYPE used for this cache
+    static ArrayOfDouble       _bbEvalFormat;  ///< Used to write cache correctly
 
     EvalPointSet _cache;  ///< The set of points that constitutes the cache.
 
@@ -290,6 +291,60 @@ public:
                         std::vector<EvalPoint> &evalPointList) const override;
 
 
+    /// Get all non dominated (or equal) best feasible eval points using dominance criterion
+    /// Used for multiobjective optimization
+    /// NB: To use with precaution, computationaly costly (n log n for two objectives).
+    /**
+     \param evalPointList   The best non dominated feasible eval points in a list  -- \b OUT.
+     \param fixedVariable   Searching for a subproblem defined by this point -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
+     \param computeType     Which compute type of the EvalPoint to look at                     -- \b IN.
+     \return                The number of eval points found.
+     */
+    virtual size_t findBestFeas(std::list<EvalPoint> &evalPointList,
+                                const Point& fixedVariable,
+                                EvalType evalType,
+                                ComputeType computeType) const override;
+
+
+    /// Get all non dominated (or equal) best infeasible eval points using dominance criterion
+    /// Used for multiobjective optimization
+    /// NB: To use with precaution, computationaly costly (O(n^2 m) where n is the number
+    /// of points in the cache and m the number of objectives)
+    /**
+     \param evalPointList   The best non dominated feasible eval points in a list  -- \b OUT.
+     \param fixedVariable   Searching for a subproblem defined by this point -- \b IN.
+     \param hMax            Select a point if h <= hMax                                                 -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
+     \param computeType     Which compute type of the EvalPoint to look at                     -- \b IN.
+     \return                The number of eval points found.
+     */
+    virtual size_t findBestInf(std::list<EvalPoint> &evalPointList,
+                               const Double& hMax,
+                               const Point& fixedVariable,
+                               EvalType evalType,
+                               ComputeType computeType) const override;
+
+
+    /// Get all non dominated (or equal) infeasible eval points using dominance criterion
+    /// Used for multiobjective optimization
+    /// NB: To use with precaution, computationaly costly (O(n^2 m) where n is the number
+    /// of points in the cache and m the number of objectives)
+    /**
+     \param evalPointList   The best non dominated feasible eval points in a list  -- \b OUT.
+     \param fixedVariable   Searching for a subproblem defined by this point -- \b IN.
+     \param hMax            Select a point if h <= hMax                                                 -- \b IN.
+     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
+     \param computeType     Which compute type of the EvalPoint to look at                     -- \b IN.
+     \return                The number of eval points found.
+     */
+    virtual size_t findFilterInf(std::list<EvalPoint> &evalPointList,
+                                 const Double& hMax,
+                                 const Point& fixedVariable,
+                                 EvalType evalType,
+                                 ComputeType computeType) const override;
+
+
     /// \brief Update EvalPoint in cache.
     /**
      * Look for Point and update the Eval part.
@@ -300,7 +355,7 @@ public:
      \param evalType        Which eval of the EvalPoint to look at -- \b IN.
      \return                A boolean indicating if update succeeded (\c true), \c false if there was an error.
      */
-    bool update(const EvalPoint& evalPoint, EvalType  evalType) override;
+    bool update(const EvalPoint& evalPoint, EvalType  evalType, const MeshBasePtr mesh) override;
 
     /// Return number of eval points in the cache.
     size_t size() const override { return _cache.size(); }
@@ -385,11 +440,11 @@ private:
 };
 
 /// Display only EvalPoints that have an eval.
-std::ostream& operator<<(std::ostream& os, const CacheSet& cache);
+DLL_EVAL_API std::ostream& operator<<(std::ostream& os, const CacheSet& cache);
 
 /// Get these EvalPoints from stream
-std::istream& operator>>(std::istream& is, CacheSet& cache);
+DLL_EVAL_API std::istream& operator>>(std::istream& is, CacheSet& cache);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_CACHESET__
+#endif // __NOMAD_4_3_CACHESET__

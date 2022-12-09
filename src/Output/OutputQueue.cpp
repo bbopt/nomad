@@ -424,6 +424,7 @@ void NOMAD::OutputQueue::flushStatsToStdout(const NOMAD::StatsInfo *statsInfo)
         throw NOMAD::Exception(__FILE__, __LINE__, "OutputQueue: Display Parameters are NULL");
     }
 
+    bool displayFailed      = _params->getAttributeValue<bool>("DISPLAY_FAILED");
     bool displayInfeasible      = _params->getAttributeValue<bool>("DISPLAY_INFEASIBLE");
     bool displayUnsuccessful    = _params->getAttributeValue<bool>("DISPLAY_UNSUCCESSFUL");
     bool displayAllEval         = _params->getAttributeValue<bool>("DISPLAY_ALL_EVAL");
@@ -434,7 +435,7 @@ void NOMAD::OutputQueue::flushStatsToStdout(const NOMAD::StatsInfo *statsInfo)
         displayHeaderFreq = NOMAD::INF_SIZE_T;
     }
     auto displayStatsFormat     = _params->getAttributeValue<NOMAD::ArrayOfString>("DISPLAY_STATS");
-    bool displayInteresting     = statsInfo->alwaysDisplay(displayInfeasible, displayUnsuccessful, false);
+    bool displayInteresting     = statsInfo->alwaysDisplay(displayFailed, displayInfeasible, displayUnsuccessful, false);
 
     if (displayAllEval || displayInteresting)
     {
@@ -524,9 +525,10 @@ void NOMAD::OutputQueue::flushStatsToStatsFile(const NOMAD::StatsInfo *statsInfo
     // Display this statsInfo (to standard output and to stats file)
     // only if parameter DISPLAY_ALL_EVAL is true, and if it
     // is interesting to display.
+    bool displayFailed          = _params->getAttributeValue<bool>("DISPLAY_FAILED");
     bool displayInfeasible      = _params->getAttributeValue<bool>("DISPLAY_INFEASIBLE");
     bool displayUnsuccessful    = _params->getAttributeValue<bool>("DISPLAY_UNSUCCESSFUL");
-    bool displayInteresting     = statsInfo->alwaysDisplay(displayInfeasible, displayUnsuccessful, true);
+    bool displayInteresting     = statsInfo->alwaysDisplay(displayFailed, displayInfeasible, displayUnsuccessful, true);
     auto n = _params->getAttributeValue<NOMAD::ArrayOfDouble>("SOL_FORMAT").size();
     NOMAD::ArrayOfDouble solFormatStats(n, NOMAD::DISPLAY_PRECISION_FULL);
 

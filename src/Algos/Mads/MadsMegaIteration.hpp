@@ -44,9 +44,10 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_MADSMEGAITERATION__
-#define __NOMAD_4_2_MADSMEGAITERATION__
+#ifndef __NOMAD_4_3_MADSMEGAITERATION__
+#define __NOMAD_4_3_MADSMEGAITERATION__
 
+#include "../../Eval/Barrier.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/MegaIteration.hpp"
 
@@ -93,7 +94,7 @@ public:
      */
     explicit MadsMegaIteration(const Step* parentStep,
                               size_t k,
-                              std::shared_ptr<Barrier> barrier,
+                              std::shared_ptr<BarrierBase> barrier,
                               MeshBasePtr mesh,
                               SuccessType success)
       : MegaIteration(parentStep, k, barrier, success),
@@ -123,7 +124,7 @@ public:
     virtual bool runImp() override;
 
 
-    const MeshBasePtr getMesh() const          { return _mainMesh; }
+    const MeshBasePtr getMesh() const override { return _mainMesh; }
     void setMesh(const MeshBasePtr &mesh)      { _mainMesh = mesh; }
 
     void read(  std::istream& is ) override;
@@ -141,4 +142,4 @@ std::istream& operator>>(std::istream& is, MadsMegaIteration& megaIteration);
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_MADSMEGAITERATION__
+#endif // __NOMAD_4_3_MADSMEGAITERATION__

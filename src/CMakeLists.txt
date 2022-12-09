@@ -55,6 +55,7 @@ Attribute/evaluatorControlAttributesDefinition.txt
 Attribute/evaluatorControlGlobalAttributesDefinition.txt
 Attribute/pbAttributesDefinition.txt
 Attribute/runAttributesDefinition.txt
+Attribute/runAttributesDefinitionIBEX.txt
 Attribute/runAttributesDefinitionNM.txt
 Attribute/runAttributesDefinitionCS.txt
 Attribute/runAttributesDefinitionPSDSSD.txt
@@ -71,6 +72,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evaluatorControlAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evaluatorControlGlobalAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/pbAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinition.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionIBEX.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionNM.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionCS.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionPSDSSD.hpp
@@ -100,6 +102,7 @@ Cache/CacheSet.cpp
 #
 set(EVAL_HEADERS
 Eval/Barrier.hpp
+Eval/BarrierBase.hpp
 Eval/BBInput.hpp
 Eval/BBOutput.hpp
 Eval/ComparePriority.hpp
@@ -109,10 +112,12 @@ Eval/EvalPoint.hpp
 Eval/EvalQueuePoint.hpp
 Eval/Evaluator.hpp
 Eval/EvaluatorControl.hpp
-Eval/EvcMainThreadInfo.hpp)
+Eval/EvcMainThreadInfo.hpp
+Eval/SuccessStats.hpp)
 
 set(EVAL_SOURCES
 Eval/Barrier.cpp
+Eval/BarrierBase.cpp
 Eval/BBInput.cpp
 Eval/BBOutput.cpp
 Eval/ComparePriority.cpp
@@ -123,6 +128,7 @@ Eval/EvalQueuePoint.cpp
 Eval/Evaluator.cpp
 Eval/EvaluatorControl.cpp
 Eval/EvcMainThreadInfo.cpp
+Eval/SuccessStats.cpp
 )
 
 #
@@ -227,6 +233,7 @@ set(TYPE_HEADERS
 Type/BBInputType.hpp
 Type/BBOutputType.hpp
 Type/CallbackType.hpp
+Type/CompareType.hpp
 Type/ComputeType.hpp
 Type/DirectionType.hpp
 Type/EvalSortType.hpp
@@ -242,6 +249,7 @@ set(TYPE_SOURCES
 Type/BBInputType.cpp
 Type/BBOutputType.cpp
 Type/CallbackType.cpp
+Type/CompareType.cpp
 Type/ComputeType.cpp
 Type/DirectionType.cpp
 Type/EvalSortType.cpp
@@ -281,17 +289,6 @@ Util/Uncopyable.cpp
 Util/utils.cpp)
 
 #
-# LH
-#
-set(LH_HEADERS
-Algos/LatinHypercubeSampling/LH.hpp
-)
-
-set(LH_SOURCES
-Algos/LatinHypercubeSampling/LH.cpp
-)
-
-#
 # CS
 #
 set(CS_HEADERS
@@ -314,6 +311,36 @@ Algos/CoordinateSearch/CSMesh.cpp
 Algos/CoordinateSearch/CSPoll.cpp
 Algos/CoordinateSearch/CSPollMethod.cpp
 Algos/CoordinateSearch/CSUpdate.cpp
+)
+
+#
+# LH
+#
+set(LH_HEADERS
+Algos/LatinHypercubeSampling/LH.hpp
+)
+
+set(LH_SOURCES
+Algos/LatinHypercubeSampling/LH.cpp
+)
+
+#
+# DMultiMads
+#
+set(DMULTIMADS_HEADERS
+Algos/DMultiMads/DMultiMads.hpp
+Algos/DMultiMads/DMultiMadsBarrier.hpp
+Algos/DMultiMads/DMultiMadsIteration.hpp
+Algos/DMultiMads/DMultiMadsMegaIteration.hpp
+Algos/DMultiMads/DMultiMadsUpdate.hpp
+)
+
+set(DMULTIMADS_SOURCES
+Algos/DMultiMads/DMultiMads.cpp
+Algos/DMultiMads/DMultiMadsBarrier.cpp
+Algos/DMultiMads/DMultiMadsIteration.cpp
+Algos/DMultiMads/DMultiMadsMegaIteration.cpp
+Algos/DMultiMads/DMultiMadsUpdate.cpp
 )
 
 #
@@ -344,7 +371,10 @@ Algos/Mads/SearchMethodSimple.hpp
 Algos/Mads/SgtelibSearchMethod.hpp
 Algos/Mads/SinglePollMethod.hpp
 Algos/Mads/SpeculativeSearchMethod.hpp
+Algos/Mads/TemplateAlgoSearchMethod.hpp
+Algos/Mads/TemplateSimpleSearchMethod.hpp
 Algos/Mads/UserSearchMethod.hpp
+Algos/Mads/VNSmartSearchMethod.hpp
 Algos/Mads/VNSSearchMethod.hpp
 )
 
@@ -373,7 +403,10 @@ Algos/Mads/SearchMethodSimple.cpp
 Algos/Mads/SgtelibSearchMethod.cpp
 Algos/Mads/SinglePollMethod.cpp
 Algos/Mads/SpeculativeSearchMethod.cpp
+Algos/Mads/TemplateAlgoSearchMethod.cpp
+Algos/Mads/TemplateSimpleSearchMethod.cpp
 Algos/Mads/UserSearchMethod.cpp
+Algos/Mads/VNSmartSearchMethod.cpp
 Algos/Mads/VNSSearchMethod.cpp
 )
 
@@ -460,34 +493,6 @@ Algos/QuadModel/QuadModelSinglePass.cpp
 Algos/QuadModel/QuadModelUpdate.cpp
 )
 
-#
-# QuadModel SLD
-#
-set(QUADMODELSLD_HEADERS
-Algos/QuadModelSLD/QuadModelSld.hpp
-Algos/QuadModelSLD/QuadModelSldAlgo.hpp
-Algos/QuadModelSLD/QuadModelSldEvaluator.hpp
-Algos/QuadModelSLD/QuadModelSldInitialization.hpp
-Algos/QuadModelSLD/QuadModelSldIteration.hpp
-Algos/QuadModelSLD/QuadModelSldIterationUtils.hpp
-Algos/QuadModelSLD/QuadModelSldMegaIteration.hpp
-Algos/QuadModelSLD/QuadModelSldOptimize.hpp
-Algos/QuadModelSLD/QuadModelSldSinglePass.hpp
-Algos/QuadModelSLD/QuadModelSldUpdate.hpp
-)
-
-set(QUADMODELSLD_SOURCES
-Algos/QuadModelSLD/QuadModelSld.cpp
-Algos/QuadModelSLD/QuadModelSldAlgo.cpp
-Algos/QuadModelSLD/QuadModelSldEvaluator.cpp
-Algos/QuadModelSLD/QuadModelSldInitialization.cpp
-Algos/QuadModelSLD/QuadModelSldIteration.cpp
-Algos/QuadModelSLD/QuadModelSldIterationUtils.cpp
-Algos/QuadModelSLD/QuadModelSldMegaIteration.cpp
-Algos/QuadModelSLD/QuadModelSldOptimize.cpp
-Algos/QuadModelSLD/QuadModelSldSinglePass.cpp
-Algos/QuadModelSLD/QuadModelSldUpdate.cpp
-)
 
 #
 # SgtelibModel
@@ -526,6 +531,30 @@ set(SSDMADS_SOURCES
 Algos/SSDMads/SSDMads.cpp
 Algos/SSDMads/SSDMadsMegaIteration.cpp
 )
+
+#
+# Template Algorithm
+# Can be used as an example to create a new algorithm
+#
+set(TEMPLATE_ALGO_HEADERS
+Algos/TemplateAlgo/TemplateAlgo.hpp
+Algos/TemplateAlgo/TemplateAlgoInitialization.hpp
+Algos/TemplateAlgo/TemplateAlgoIteration.hpp
+Algos/TemplateAlgo/TemplateAlgoMegaIteration.hpp
+Algos/TemplateAlgo/TemplateAlgoRandom.hpp
+Algos/TemplateAlgo/TemplateAlgoSinglePass.hpp
+Algos/TemplateAlgo/TemplateAlgoUpdate.hpp
+)
+
+set(TEMPLATE_ALGO_SOURCES
+Algos/TemplateAlgo/TemplateAlgo.cpp
+Algos/TemplateAlgo/TemplateAlgoInitialization.cpp
+Algos/TemplateAlgo/TemplateAlgoIteration.cpp
+Algos/TemplateAlgo/TemplateAlgoMegaIteration.cpp
+Algos/TemplateAlgo/TemplateAlgoRandom.cpp
+Algos/TemplateAlgo/TemplateAlgoSinglePass.cpp
+Algos/TemplateAlgo/TemplateAlgoUpdate.cpp)
+
 
 #
 # VNS
@@ -580,6 +609,9 @@ endif()
 if (WIN32)
     target_compile_definitions(nomadUtils PRIVATE -DDLL_UTIL_EXPORTS)
 endif()
+set_target_properties(nomadUtils PROPERTIES 
+                                 VERSION ${NOMAD_VERSION}
+                                 SOVERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR})
 
 # Evals
 add_library (nomadEval SHARED ${CACHE_SOURCES} ${EVAL_SOURCES})
@@ -594,41 +626,50 @@ endif()
 if (WIN32)
     target_compile_definitions(nomadEval PRIVATE -DDLL_EVAL_EXPORTS)
 endif()
+set_target_properties(nomadEval  PROPERTIES 
+                                 VERSION ${NOMAD_VERSION}
+                                 SOVERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR})
+
 
 # Algos
 if(USE_SGTELIB MATCHES ON)
-    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${CS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${QUADMODEL_SOURCES} ${QUADMODELSLD_SOURCES} ${SGTELIBMODEL_SOURCES} ${SSDMADS_SOURCES} ${VNSMADS_SOURCES})
+    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${CS_SOURCES} ${DMULTIMADS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${QUADMODEL_SOURCES} ${SGTELIBMODEL_SOURCES} ${SSDMADS_SOURCES}  ${TEMPLATE_ALGO_SOURCES} ${VNSMADS_SOURCES})
    target_include_directories(nomadAlgos PUBLIC
       $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Algos
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/CoordinateSearch
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/DMultiMads
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/Mads
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/NelderMead
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PhaseOne
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModel
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModelSLD
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SgtelibModel
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/TemplateAlgo
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads>
       $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}>)
 else()
-    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${CS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${SSDMADS_SOURCES} ${VNSMADS_SOURCES})
+    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${CS_SOURCES} ${DMULTIMADS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${SSDMADS_SOURCES} ${TEMPLATE_ALGO_SOURCES} ${VNSMADS_SOURCES})
     target_include_directories(nomadAlgos PUBLIC
         $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Algos
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/CoordinateSearch
+        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/DMultiMads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/Mads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/NelderMead
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PhaseOne
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads>
+        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/TemplateAlgo
+        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads
+        $ENV{IBEX_ROOT}/src>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 endif()
 if (WIN32)
     target_compile_definitions(nomadAlgos PRIVATE -DDLL_ALGO_EXPORTS)
 endif()
+
 
 #
 # Base libraries + extra library for OpenMP and sgtelib
@@ -639,6 +680,20 @@ endif()
 if(OpenMP_CXX_FOUND)
    target_link_libraries(nomadAlgos PUBLIC OpenMP::OpenMP_CXX)
 endif()
+if(USE_IBEX MATCHES ON)
+        target_link_libraries(nomadAlgos PUBLIC ibex)
+	add_library(ibex SHARED IMPORTED)
+	set_target_properties(ibex PROPERTIES IMPORTED_LOCATION $ENV{IBEX_ROOT}/lib/libibex.so)
+	target_include_directories (ibex INTERFACE
+                "$ENV{IBEX_ROOT}/__build__" 
+		"$ENV{IBEX_ROOT}/include/ibex"
+		"$ENV{IBEX_ROOT}/include/ibex/3rd")
+	message(CHECK_START " Ready to use IBEX")
+endif()
+set_target_properties(nomadAlgos  PROPERTIES 
+                                 VERSION ${NOMAD_VERSION}
+                                 SOVERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR})
+
 
 #
 # Build executables
@@ -710,6 +765,18 @@ install(FILES ${UTIL_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Util
 )
 
+install(FILES ${CS_HEADERS}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/CoordinateSearch
+)
+
+install(FILES ${DMULTIMADS_HEADERS}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/DMultiMads
+)
+
+install(FILES ${LH_HEADERS}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/LatinHypercubeSampling
+)
+
 install(FILES ${MADS_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/Mads
 )
@@ -730,16 +797,16 @@ install(FILES ${QUADMODEL_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/QuadModel
 )
 
-install(FILES ${QUADMODELSLD_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/QuadModelSLD
-)
-
 install(FILES ${SGTELIB_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SgtelibModel
 )
 
 install(FILES ${SSDMADS_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SSDMads
+)
+
+install(FILES ${TEMPLATE_ALGO_HEADERS}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/TemplateAlgo
 )
 
 install(FILES ${VNSMADS_HEADERS}

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_RUNPARAMETERS__
-#define __NOMAD_4_2_RUNPARAMETERS__
+#ifndef __NOMAD_4_3_RUNPARAMETERS__
+#define __NOMAD_4_3_RUNPARAMETERS__
 
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
 #include "../Param/Parameters.hpp"
@@ -60,10 +60,10 @@ The RunParameter are used by other parameters to update their value during sanit
 - Register all parameters during construction.
 - Implement the checkAndComply function for sanity check.
 */
-class RunParameters final : public Parameters
+class DLL_UTIL_API RunParameters final : public Parameters
 {
 private:
-    DLL_UTIL_API static bool _warningUnknownParamShown;
+    static bool _warningUnknownParamShown;
 
 public:
     // Constructor: init() will be called.
@@ -99,4 +99,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_RUNPARAMETERS__
+#endif // __NOMAD_4_3_RUNPARAMETERS__

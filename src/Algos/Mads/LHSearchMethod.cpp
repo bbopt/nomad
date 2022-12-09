@@ -97,15 +97,15 @@ void NOMAD::LHSearchMethod::generateTrialPointsFinal()
     NOMAD::ArrayOfDouble deltaFrameSize = mesh->getDeltaFrameSize();
     NOMAD::Double scaleFactor = sqrt(-log(NOMAD::DEFAULT_EPSILON));
     // Apply Latin Hypercube algorithm (provide frameCenter, deltaFrameSize, and scaleFactor for updating bounds)
-    NOMAD::LHS lhs(n, p, lowerBound, upperBound, frameCenter, deltaFrameSize, scaleFactor);
+    NOMAD::LHS lhs(n, p, lowerBound, upperBound, *frameCenter, deltaFrameSize, scaleFactor);
     auto pointVector = lhs.Sample();
 
     // Insert the point. Projection on mesh and snap to bounds is done in SearchMethod
-    for (auto point : pointVector)
+    for (const auto & point : pointVector)
     {
         // Insert point (if possible)
         NOMAD::EvalPoint evalPoint(point);
-        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+        evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(*frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this)); // !!! Point from is a copy of frame center
         evalPoint.addGenStep(getStepType());
         insertTrialPoint(evalPoint);
     }

@@ -53,8 +53,8 @@
  */
 
 
-#ifndef __NOMAD_4_2_BB_OUTPUT__
-#define __NOMAD_4_2_BB_OUTPUT__
+#ifndef __NOMAD_4_3_BB_OUTPUT__
+#define __NOMAD_4_3_BB_OUTPUT__
 
 #include "../Type/BBOutputType.hpp"
 #include "../Math/ArrayOfDouble.hpp"
@@ -70,7 +70,7 @@
  *  - Is eval ok. This is a boolean indicating that there were no problem during evaluation.
  *  - Scaling (future work)
  */
-class BBOutput {
+class DLL_EVAL_API BBOutput {
 public:
     static const std::string bboStart; ///< Static variable used for field delimitation.
     static const std::string bboEnd; ///< Static variable used for field delimitation.
@@ -78,6 +78,7 @@ public:
 
 private:
     std::string             _rawBBO;    ///< Actual output string
+    ArrayOfDouble           _BBO;       ///< Actual numerical values
     bool                    _evalOk;    ///< Flag for evaluation
 
 public:
@@ -98,17 +99,24 @@ public:
     /* Get/Set */
     /*---------*/
 
-    /// Get the objective from raw blackbox evaluation
+    /// Get the first objective from raw blackbox evaluation
     /**
      \param bbOutputType    The list of blackbox output types -- \b IN.
      \return                The objective value (single objective).
      */
     Double getObjective(const BBOutputTypeList &bbOutputType) const;
 
+    /// Get the objectives from raw blackbox evaluation
+    /**
+     \param bbOutputType    The list of blackbox output types -- \b IN
+     \return                The objectives as an array of values.
+     */
+    ArrayOfDouble getObjectives(const BBOutputTypeList &bbOutputType) const;
+
     /// Get the constraints from raw blackbox evaluation
     /**
      \param bbOutputType    The list of blackbox output types -- \b IN.
-     \return                The constraints as a an array of values.
+     \return                The constraints as an array of values.
      */
     ArrayOfDouble getConstraints(const BBOutputTypeList &bbOutputType) const;
 
@@ -147,7 +155,7 @@ public:
     /**
      \return    An array of double of the blackbox outputs.
      */
-    ArrayOfDouble getBBOAsArrayOfDouble() const;
+    const ArrayOfDouble & getBBOAsArrayOfDouble() const;
 
     /// Display
     void display (std::ostream & out) const;
@@ -164,11 +172,11 @@ public:
 
 
 /// Display, using field delimitors BBOutput::bboStart and BBOutput::bboEnd.
-std::ostream& operator<<(std::ostream& os, const BBOutput &bbo);
+DLL_EVAL_API std::ostream& operator<<(std::ostream& os, const BBOutput &bbo);
 
 /// Read bbo that has been written by BBOutput display operator.
-std::istream& operator>>(std::istream& is, BBOutput &bbo);
+DLL_EVAL_API std::istream& operator>>(std::istream& is, BBOutput &bbo);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_2_BB_OUTPUT__
+#endif // __NOMAD_4_3_BB_OUTPUT__

@@ -72,9 +72,6 @@ void NOMAD::SSDMadsMegaIteration::startImp()
     // Reset the random pickup (put back n to its initial value)
     _randomPickup.reset();
 
-    // Now that update has used the previous MegaIteration success type, reset it
-    setSuccessType(NOMAD::SuccessType::NOT_EVALUATED);
-
     // Verify mesh stop conditions.
     _mainMesh->checkMeshForStopping( _stopReasons );
 
@@ -121,6 +118,10 @@ void NOMAD::SSDMadsMegaIteration::startImp()
         OUTPUT_INFO_START
         AddOutputInfo(getName() + " has " + std::to_string(nbMadsSubproblem) + " subproblem mads.");
         OUTPUT_INFO_END
+        
+        // Default mega iteration start tasks
+        NOMAD::MegaIteration::startImp();
+        
     }
 }
 
@@ -128,8 +129,8 @@ void NOMAD::SSDMadsMegaIteration::startImp()
 
 bool NOMAD::SSDMadsMegaIteration::runImp()
 {
-    NOMAD::SuccessType bestSuccessYet = NOMAD::SuccessType::NOT_EVALUATED;
-    NOMAD::SuccessType subPbSuccess = SuccessType::NOT_EVALUATED;
+
+    NOMAD::SuccessType subPbSuccess = SuccessType::UNDEFINED;
 
     std::string s;
 
@@ -200,7 +201,7 @@ bool NOMAD::SSDMadsMegaIteration::runImp()
                 // Compute success
                 // Get which of newBestFeas and newBestInf is improving
                 // the solution. Check newBestFeas first.
-                NOMAD::ComputeSuccessType computeSuccess(evc->getEvalType(), evc->getComputeType());
+                NOMAD::ComputeSuccessType computeSuccess(evc->getCurrentEvalType(), evc->getComputeType());
                 subPbSuccess = computeSuccess(newBestFeas, refBestFeas);
                 if (subPbSuccess >= NOMAD::SuccessType::PARTIAL_SUCCESS)
                 {
@@ -248,9 +249,9 @@ bool NOMAD::SSDMadsMegaIteration::runImp()
                 }
             }
         }
-        if (subPbSuccess > bestSuccessYet)
+        if (subPbSuccess > _success)
         {
-            bestSuccessYet = subPbSuccess;
+            _success = subPbSuccess;
         }
 
         //
@@ -268,7 +269,7 @@ bool NOMAD::SSDMadsMegaIteration::runImp()
 
         // Set the stop reason for opportunistic success of a subproblem mads
         const bool opportunisticItStop = _runParams->getAttributeValue<bool>("SSD_MADS_ITER_OPPORTUNISTIC");
-        if (opportunisticItStop && (bestSuccessYet == NOMAD::SuccessType::FULL_SUCCESS))
+        if (opportunisticItStop && (_success == NOMAD::SuccessType::FULL_SUCCESS))
         {
             evc->setStopReason(NOMAD::getThreadNum(), NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS);
         }
@@ -290,12 +291,8 @@ bool NOMAD::SSDMadsMegaIteration::runImp()
 
     }
 
-
-    // Set success of the mega iteration
-    setSuccessType(bestSuccessYet);
-
     // return true if we have a partial or full success.
-    return (bestSuccessYet >= NOMAD::SuccessType::PARTIAL_SUCCESS);
+    return (_success >= NOMAD::SuccessType::PARTIAL_SUCCESS);
 }
 
 
@@ -346,6 +343,11 @@ void NOMAD::SSDMadsMegaIteration::setupSubproblemParams ( std::shared_ptr<NOMAD:
 
     // The fixed variables of the subproblem are set to the value of best point, the remaining variables are undefined.
     const auto nbVariablesInSubproblem = _runParams->getAttributeValue<size_t>("SSD_MADS_NB_VAR_IN_SUBPROBLEM"); // Number of variables in Subproblem
+    if (nbVariablesInSubproblem >= bestPoint.size())
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Nb variables in subproblem cannot greater or equal to the overall dimension of the problem.");
+    }
+    
     if (_runParams->getAttributeValue<bool>("SSD_MADS_RESET_VAR_PICKUP_SUBPROBLEM") )
     {
         _randomPickup.reset();

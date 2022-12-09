@@ -53,7 +53,6 @@ void NOMAD::NMUpdate::init()
     verifyParentNotNull();
 }
 
-
 std::string NOMAD::NMUpdate::getName() const
 {
     return getAlgoName() + NOMAD::stepTypeToString(_stepType);

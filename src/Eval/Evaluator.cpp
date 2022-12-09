@@ -79,10 +79,35 @@ NOMAD::Evaluator::Evaluator(
                     const NOMAD::EvalXDefined evalXDefined)
   : _evalParams(evalParams),
     _evalXDefined(evalXDefined),
-    _evalType(evalType)
+    _evalType(evalType),
+    _bbOutputTypeList(_evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE")),
+    _bbEvalFormat(_evalParams->getAttributeValue<NOMAD::ArrayOfDouble>("BB_EVAL_FORMAT"))
 {
+    init();
 }
 
+void NOMAD::Evaluator::init()
+{
+
+    if (EvalXDefined::USE_BB_EVAL == _evalXDefined)
+    {
+        switch (_evalType)
+        {
+            case NOMAD::EvalType::BB:
+                _bbExe = _evalParams->getAttributeValue<std::string>("BB_EXE");
+                break;
+            case NOMAD::EvalType::SURROGATE:
+                _bbExe = _evalParams->getAttributeValue<std::string>("SURROGATE_EXE");
+                break;
+            default:
+                std::string err = "Evaluator: No executable supported for EvalType ";
+                err += NOMAD::evalTypeToString(_evalType);
+                throw NOMAD::Exception(__FILE__,__LINE__,err);
+        }
+    }
+    
+    
+}
 
 NOMAD::Evaluator::~Evaluator()
 {
@@ -242,25 +267,13 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
     std::vector<bool> evalOk(block.size(), false);
 
     // At this point, we are for sure in batch mode.
-    // Verify blackbox executable defined by BB_EXE is available and executable.
-    std::string bbExe;
-    switch (_evalType)
+    // Verify blackbox/surrogate executable is available and executable.
+    if (_bbExe.empty())
     {
-        case NOMAD::EvalType::BB:
-            bbExe = _evalParams->getAttributeValue<std::string>("BB_EXE");
-            break;
-        case NOMAD::EvalType::SURROGATE:
-            bbExe = _evalParams->getAttributeValue<std::string>("SURROGATE_EXE");
-            break;
-        default:
-            std::string err = "Evaluator: No executable supported for EvalType ";
-            err += NOMAD::evalTypeToString(_evalType);
-            throw NOMAD::Exception(__FILE__,__LINE__,err);
-    }
-
-    if (bbExe.empty())
-    {
-        throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: No blackbox executable defined.");
+        std::string err = "Evaluator: No ";
+        err += (_evalType == NOMAD::EvalType::BB) ? "blackbox ": "surrogate ";
+        err += "executable defined.";
+        throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
     const int threadNum = NOMAD::getThreadNum();
@@ -305,7 +318,7 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
     }
     xfile.close();
 
-    std::string cmd = bbExe + " " + tmpfile;
+    std::string cmd = _bbExe + " " + tmpfile;
     std::string s;
     OUTPUT_DEBUG_START
     s = "System command: " + cmd;
@@ -365,12 +378,11 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
                     bbo.erase(bbo.size() - 1);
 
                     // Process blackbox output
-                    auto bbOutputTypeList = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
-                    x->setBBO(bbo, bbOutputTypeList, _evalType);
+                    x->setBBO(bbo, _bbOutputTypeList, _evalType);
                     auto bbOutput = x->getEval(_evalType)->getBBOutput();
 
                     evalOk[index] = bbOutput.getEvalOk();
-                    countEval[index] = bbOutput.getCountEval(bbOutputTypeList);
+                    countEval[index] = bbOutput.getCountEval(_bbOutputTypeList);
 
                     break;
                 }

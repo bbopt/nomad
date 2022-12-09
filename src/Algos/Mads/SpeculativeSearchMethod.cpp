@@ -51,6 +51,7 @@
  \date   2018-03-1
  */
 #include "../../Algos/Mads/SpeculativeSearchMethod.hpp"
+#include "../../Algos/DMultiMads/DMultiMadsBarrier.hpp"
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Output/OutputQueue.hpp"
 
@@ -97,7 +98,29 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsFinal()
     // Generate points starting from all points in the barrier.
     // If FRAME_CENTER_USE_CACHE is false (default), that is the same
     // as using the best feasible and best infeasible points.
-    for (auto frameCenter : barrier->getAllPoints())
+    
+    std::shared_ptr<DMultiMadsBarrier> dMultiMadsBarrier = std::dynamic_pointer_cast<DMultiMadsBarrier>(barrier);
+    
+    std::vector<NOMAD::EvalPoint> frameCenters;
+    
+    // DMultiMadsBarrier may contain too many points. Use only the current incumbents.
+    if (nullptr != dMultiMadsBarrier)
+    {
+        if (dMultiMadsBarrier->nbXFeas() > 0)
+        {
+            frameCenters.push_back(*dMultiMadsBarrier->getCurrentIncumbentFeas());
+        }
+        if (dMultiMadsBarrier->nbXInf() > 0)
+        {
+            frameCenters.push_back(*dMultiMadsBarrier->getCurrentIncumbentInf());
+        }
+    }
+    else
+    {
+        frameCenters = barrier->getAllPoints();
+    }
+    
+    for (const auto & frameCenter : frameCenters)
     {
         bool canGenerate = true;
         // Test that the frame center has a valid generating direction
@@ -114,10 +137,15 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsFinal()
             auto dir = NOMAD::Point::vectorize(*pointFrom, frameCenter);
 
             OUTPUT_INFO_START
+            AddOutputInfo("Frame center: " + frameCenter.display());
             AddOutputInfo("Direction before scaling: " + dir.display());
             OUTPUT_INFO_END
 
             auto nbSearches = _runParams->getAttributeValue<size_t>("SPECULATIVE_SEARCH_MAX");
+            if (nbSearches == NOMAD::INF_SIZE_T)
+            {
+                throw NOMAD::Exception(__FILE__,__LINE__,"SpeculativeSearchMethod: can not have INF for SPECULATIVE_SEARCH_MAX.");
+            }
             for (size_t i = 1; i <= nbSearches; i++)
             {
                 auto diri = dir;

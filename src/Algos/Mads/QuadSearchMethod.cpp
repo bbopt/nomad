@@ -81,8 +81,7 @@ void NOMAD::QuadSearchMethod::init()
     // Check that there is exactly one objective
     if (isEnabled())
     {
-        const auto bbot = NOMAD::QuadModelAlgo::getBBOutputType();
-        auto nbObj = NOMAD::getNbObj(bbot);
+        auto nbObj = NOMAD::Algorithm::getNbObj();
         if (0 == nbObj)
         {
             OUTPUT_INFO_START
@@ -119,7 +118,7 @@ void NOMAD::QuadSearchMethod::generateTrialPointsFinal()
         auto bestXFeas = madsIteration->getMegaIterationBarrier()->getFirstXFeas();
         auto bestXInf  = madsIteration->getMegaIterationBarrier()->getFirstXInf();
 
-        auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+        auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
         auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
         if (nullptr != bestXFeas
             && bestXFeas->getF(evalType, computeType).isDefined()

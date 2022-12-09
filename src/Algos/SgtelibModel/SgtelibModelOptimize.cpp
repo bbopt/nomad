@@ -57,7 +57,7 @@
 
 void NOMAD::SgtelibModelOptimize::init()
 {
-    setStepType(NOMAD::StepType::OPTIMIZE);
+    setStepType(NOMAD::StepType::MODEL_OPTIMIZE);
     verifyParentNotNull();
 
     // Set and verify run parameter values
@@ -78,7 +78,7 @@ void NOMAD::SgtelibModelOptimize::startImp()
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
     s = "SGTELIB_MODEL_MAX_EVAL: " + std::to_string(evcParams->getAttributeValue<size_t>("SGTELIB_MODEL_MAX_EVAL"));
     AddOutputInfo(s, _displayLevel);
-    s = "BBOT: " + NOMAD::BBOutputTypeListToString(NOMAD::SgtelibModel::getBBOutputType());
+    s = "BBOT: " + NOMAD::BBOutputTypeListToString(NOMAD::Algorithm::getBbOutputType());
     AddOutputInfo(s, _displayLevel);
     s = "Formulation: " + NOMAD::SgtelibModelFormulationTypeToString(_runParams->getAttributeValue<NOMAD::SgtelibModelFormulationType>("SGTELIB_MODEL_FORMULATION"));
     AddOutputInfo(s, _displayLevel);
@@ -102,13 +102,14 @@ bool NOMAD::SgtelibModelOptimize::runImp()
     if (NOMAD::SgtelibModelFormulationType::EXTERN == modelFormulation)
     {
         std::string modelDefinition = _runParams->getAttributeValue<std::string>("MODEL_DEFINITION");
-        evc->getEvalParams()->setAttributeValue("BB_EXE", modelDefinition);
+        evc->getCurrentEvalParams()->setAttributeValue("BB_EXE", modelDefinition);
     }
     else
     {
         // Enforce no opportunism and use no cache.
         auto previousOpportunism = evc->getOpportunisticEval();
         auto previousUseCache = evc->getUseCache();
+        auto previousEvalType = evc->getCurrentEvalType();
         evc->setOpportunisticEval(false);
         evc->setUseCache(false);
 
@@ -124,18 +125,13 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         }
 
         auto ev = std::make_shared<NOMAD::SgtelibModelEvaluator>(
-                                                evc->getEvalParams(), _modelAlgo, modelDisplay,
+                                                evc->getCurrentEvalParams(), _modelAlgo, modelDisplay,
                                                 diversification, modelFeasibility, tc,
                                                 NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
 
-        // Replace the EvaluatorControl's evaluator with this one
-        // we just created
-        auto previousEvaluator = evc->setEvaluator(ev);
-        if (nullptr == previousEvaluator)
-        {
-            std::cerr << "Warning: QuadModelOptimize: Could not set MODEL Evaluator" << std::endl;
-            return false;
-        }
+        // If surrogate evaluator exists, it will be replaced with the one we just created
+        // The last added evaluator is automatically selected. Put back to BB once done (see below)
+        evc->addEvaluator(ev);
 
         auto madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
 
@@ -145,12 +141,13 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         _mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams, true /* use local fixed variables */);
         //_mads->setName(_mads->getName() + " (SgtelibModelOptimize)");
         _mads->setEndDisplay(false);
+        
         evc->resetModelEval();
         _mads->start();
         optimizeOk = _mads->run();
         _mads->end();
+        
         evc->resetModelEval();
-        evc->setEvaluator(previousEvaluator);
 
         // Note: No need to check the Mads stop reason: It is not a stop reason
         // for SgtelibModel.
@@ -161,6 +158,7 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         // Reset opportunism to previous values.
         evc->setOpportunisticEval(previousOpportunism);
         evc->setUseCache(previousUseCache);
+        evc->selectCurrentEvaluator(previousEvalType);
     }
 
     if (!optimizeOk)
@@ -185,7 +183,6 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
     // Ensure there is no model used in model optimization.
     _optRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
-    
     _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
 
     // Set direction type to Ortho 2n
@@ -294,7 +291,7 @@ void NOMAD::SgtelibModelOptimize::updateOraclePoints()
 {
     _oraclePoints.clear();
 
-    std::shared_ptr<NOMAD::Barrier> barrier;
+    std::shared_ptr<NOMAD::BarrierBase> barrier = nullptr;
     if (nullptr != _mads && nullptr != _mads->getRefMegaIteration())
     {
         barrier = _mads->getRefMegaIteration()->getBarrier();

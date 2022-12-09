@@ -95,7 +95,7 @@ size_t
   relative. The length equals the include factor multiplied by the frame size.
   Used only if the mesh is defined. See also NM_SIMPLEX_INCLUDE_LENGTH.
 
-. Argument: Positive integer. INF means all points are considered.
+. Argument: Positive integer. 
 
 . Example: NM_SIMPLEX_INCLUDE_FACTOR 10
 

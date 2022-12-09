@@ -118,8 +118,9 @@ void NOMAD::EvaluatorControlParameters::checkAndComply(
         bool isSurrogateOptimization = getAttributeValueProtected<bool>("EVAL_SURROGATE_OPTIMIZATION", false);
         if (isSurrogateOptimization)
         {
-            // If this is a surrogate optimization, it has to have a maximum number of surrogate evaluations.
-            if (NOMAD::INF_SIZE_T == maxSurrogateEval)
+            // If this is a surrogate optimization, it has to have a maximum number of surrogate evaluations or MAX_EVAL < Inf.
+            if (NOMAD::INF_SIZE_T == maxSurrogateEval &&
+                NOMAD::INF_SIZE_T == evaluatorControlGlobalParams->getAttributeValue<size_t>("MAX_EVAL"))
             {
                 throw NOMAD::Exception(__FILE__, __LINE__,
                     "EVAL_SURROGATE_OPTIMIZATION is used. Parameter MAX_SURROGATE_EVAL_OPTIMIZATION should be set.");
@@ -129,7 +130,7 @@ void NOMAD::EvaluatorControlParameters::checkAndComply(
                 throw NOMAD::Exception(__FILE__, __LINE__,
                     "Parameter MAX_BB_EVAL should not be set when EVAL_SURROGATE_OPTIMIZATION is used. Use MAX_SURROGATE_EVAL_OPTIMIZATION instead.");
             }
-            if (NOMAD::EvalSortType::SURROGATE == evaluatorControlGlobalParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT"))
+            if (NOMAD::EvalSortType::SURROGATE == getAttributeValueProtected<NOMAD::EvalSortType>("EVAL_QUEUE_SORT",false))
             {
                 throw NOMAD::InvalidParameter(__FILE__, __LINE__, "Parameter EVAL_QUEUE_SORT cannot be SURROGATE when EVAL_SURROGATE_OPTIMIZATION is set");
             }

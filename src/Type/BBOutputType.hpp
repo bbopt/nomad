@@ -51,13 +51,14 @@
  \date   September 2018
  \see    BBOutput.hpp
  */
-#ifndef __NOMAD_4_2_BB_OUTPUT_TYPE__
-#define __NOMAD_4_2_BB_OUTPUT_TYPE__
+#ifndef __NOMAD_4_3_BB_OUTPUT_TYPE__
+#define __NOMAD_4_3_BB_OUTPUT_TYPE__
 
 #include <string>
 #include <sstream>
 #include <vector>
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 
@@ -84,32 +85,32 @@ typedef BBOutputTypeList::const_iterator BBOutputTypeListIt;
  Convert a string (ex "OBJ", "EB", "PB"...)
  to a BBOutputType.
  */
-BBOutputType stringToBBOutputType(const std::string &s);
+DLL_UTIL_API BBOutputType stringToBBOutputType(const std::string &s);
 
 /// Utility for BBOutputType
 /**
  Convert a string containing multiple BBOutputTypes (ex "OBJ EB PB PB")
  to a BBOutputTypeList.
  */
-BBOutputTypeList stringToBBOutputTypeList(const std::string &s);
+DLL_UTIL_API BBOutputTypeList stringToBBOutputTypeList(const std::string &s);
 
 /// Utility for BBOutputType
 /**
  Convert a BBOutputTypeList into a string
  */
-std::string BBOutputTypeListToString ( const BBOutputTypeList & bbotList );
+DLL_UTIL_API std::string BBOutputTypeListToString ( const BBOutputTypeList & bbotList );
 
 /// Helper to test if a BBOutputType is a constraint (PB, EB, ....)
-bool BBOutputTypeIsConstraint(const BBOutputType & bbotType);
+DLL_UTIL_API bool BBOutputTypeIsConstraint(const BBOutputType & bbotType);
 
 /// Count the number of constraints
-size_t getNbConstraints(const BBOutputTypeList& bbotList);
+DLL_UTIL_API size_t getNbConstraints(const BBOutputTypeList& bbotList);
 
 /// Verify if the BBOutputType defines a constraint
-bool isConstraint(const BBOutputType& bbot);
+DLL_UTIL_API bool isConstraint(const BBOutputType& bbot);
 
 /// Count the number of objectives
-size_t getNbObj(const BBOutputTypeList& bbotList);
+DLL_UTIL_API size_t getNbObj(const BBOutputTypeList& bbotList);
 
 /// Read and interpret BBOutputType
 inline std::ostream& operator<<(std::ostream& os, const BBOutputType &bbot)
@@ -155,9 +156,9 @@ inline std::ostream& operator<<(std::ostream& out, const BBOutputTypeList &bbout
 }
 
 
-std::istream& operator>>(std::istream& is, BBOutputTypeList& bbOutputTypeList);
+DLL_UTIL_API std::istream& operator>>(std::istream& is, BBOutputTypeList& bbOutputTypeList);
 
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_BB_OUTPUT_TYPE__
+#endif // __NOMAD_4_3_BB_OUTPUT_TYPE__

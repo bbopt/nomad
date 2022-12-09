@@ -52,8 +52,8 @@
  \see    ComparePriority.cpp
  */
 
-#ifndef __NOMAD_4_2_COMPAREPRIORITY__
-#define __NOMAD_4_2_COMPAREPRIORITY__
+#ifndef __NOMAD_4_3_COMPAREPRIORITY__
+#define __NOMAD_4_3_COMPAREPRIORITY__
 
 #include "../Eval/EvalQueuePoint.hpp"
 #include "../Math/Direction.hpp"
@@ -187,6 +187,6 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_COMPAREPRIORITY__
+#endif // __NOMAD_4_3_COMPAREPRIORITY__
 
 

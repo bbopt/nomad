@@ -52,8 +52,8 @@
  \see    ArrayOfPoint.cpp
  */
 
-#ifndef __NOMAD_4_2_ARRAY_OF_POINT__
-#define __NOMAD_4_2_ARRAY_OF_POINT__
+#ifndef __NOMAD_4_3_ARRAY_OF_POINT__
+#define __NOMAD_4_3_ARRAY_OF_POINT__
 
 #include <vector>
 #include "../Math/Point.hpp"
@@ -70,4 +70,4 @@ std::istream& operator>>(std::istream& in, ArrayOfPoint& aop);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_2_ARRAY_OF_POINT__
+#endif // __NOMAD_4_3_ARRAY_OF_POINT__

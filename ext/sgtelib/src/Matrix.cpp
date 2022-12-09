@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.2                                                                      */
+/*  Version 2.0.3                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -1579,6 +1579,7 @@ SGTELIB::Matrix SGTELIB::Matrix::ones ( const int nbRows , const int nbCols ) {
 /* rank                      */
 /*---------------------------*/
 SGTELIB::Matrix SGTELIB::Matrix::rank ( void ) const {
+
 
   if ((_nbRows>1) && (_nbCols>1)) 
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Matrix::rank: dimension error" );

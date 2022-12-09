@@ -58,11 +58,12 @@ bool NOMAD::NMSimplexEvalPointCompare::operator()(const NOMAD::EvalPoint& lhs,
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     if (nullptr != evc)
     {
-        evalType = evc->getEvalType();
+        evalType = evc->getCurrentEvalType();
         computeType = evc->getComputeType();
     }
     NOMAD::ComputeSuccessType computeSuccess(evalType, computeType);
 
+    // This could be an inefficient function
     NOMAD::SuccessType success = computeSuccess(std::make_shared<NOMAD::EvalPoint>(lhs),
                                                 std::make_shared<NOMAD::EvalPoint>(rhs));
 

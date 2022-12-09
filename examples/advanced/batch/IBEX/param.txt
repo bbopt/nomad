@@ -1,0 +1,22 @@
+DIMENSION 2
+
+DISPLAY_DEGREE 2
+DISPLAY_STATS BBE ( SOL ) OBJ CONS_H TIME
+
+BB_EXE bb
+BB_OUTPUT_TYPE OBJ PB PB
+
+
+X0 (-1 2)
+
+lower_bound (  -6   -6 )
+upper_bound ( 6 6 )
+
+USE_IBEX true
+SET_FILE true
+SET_FILE_NAME set_anneau.txt
+
+
+MAX_BB_EVAL 500
+
+TMP_DIR /tmp

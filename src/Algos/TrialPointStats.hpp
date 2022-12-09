@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_TRIALPOINTSTATS__
-#define __NOMAD_4_2_TRIALPOINTSTATS__
+#ifndef __NOMAD_4_3_TRIALPOINTSTATS__
+#define __NOMAD_4_3_TRIALPOINTSTATS__
 
 #include <map>
 #ifdef _OPENMP
@@ -67,13 +67,13 @@ Counters are available for trial points generated and points that have been eval
  We have two counters for each eval type: current and total. The current counters are reset at each start of Algorithm and generateTrialPoints of IterationUtils.
  
  */
-class TrialPointStats
+class  DLL_ALGO_API TrialPointStats
 {
 private:
     
         /// Lock for multithreading
     #ifdef _OPENMP
-        DLL_ALGO_API static omp_lock_t  _updateLock;
+        static omp_lock_t _updateLock;
     #endif // _OPENMP
 
     
@@ -142,4 +142,4 @@ std::ostream& operator<<(std::ostream& os, const TrialPointStats& stats);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_TRIALPOINTSTATS__
+#endif // __NOMAD_4_3_TRIALPOINTSTATS__

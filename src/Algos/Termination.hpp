@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_TERMINATION__
-#define __NOMAD_4_2_TERMINATION__
+#ifndef __NOMAD_4_3_TERMINATION__
+#define __NOMAD_4_3_TERMINATION__
 
 #include "../Algos/Step.hpp"
 
@@ -75,7 +75,8 @@ public:
      */
     virtual bool terminate(size_t iteration);
 
-    virtual void    startImp() override; ///< Will update the step name
+    /// No start task is required
+    virtual void    startImp() override {}
 
     /// Implementation for run task of algorithm Termination.
     /**
@@ -97,4 +98,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_TERMINATION__
+#endif // __NOMAD_4_3_TERMINATION__

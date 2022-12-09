@@ -52,8 +52,8 @@
  \see    EvalQueuePoint.cpp
  */
 
-#ifndef __NOMAD_4_2_EVALQUEUEPOINT__
-#define __NOMAD_4_2_EVALQUEUEPOINT__
+#ifndef __NOMAD_4_3_EVALQUEUEPOINT__
+#define __NOMAD_4_3_EVALQUEUEPOINT__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -74,9 +74,6 @@ private:
     SuccessType     _success;           ///< Result of the comparison of evalPoint's eval with barrier
     bool            _relativeSuccess;   ///< Did better than the previous evaluation
 
-    ArrayOfDouble   _meshSize; ///< Remenbers size of mesh that created point.
-    ArrayOfDouble   _frameSize; ///< Remenbers size of frame that created point.
-
     size_t          _k; ///< The number of the iteration that generated this point. For sorting purposes.
 
 public:
@@ -89,10 +86,8 @@ public:
     explicit EvalQueuePoint(const EvalPoint& evalPoint, EvalType evalType)
       : EvalPoint(evalPoint),
         _evalType(evalType),
-        _success(SuccessType::NOT_EVALUATED),
+        _success(SuccessType::UNDEFINED),
         _relativeSuccess(false),
-        _meshSize(),
-        _frameSize(),
         _k(0)
     {}
 
@@ -103,11 +98,6 @@ public:
 
     void setRelativeSuccess(const bool relativeSuccess) { _relativeSuccess = relativeSuccess; }
     bool getRelativeSuccess() const { return _relativeSuccess; }
-
-    void setMeshSize(const ArrayOfDouble& meshSize) { _meshSize = meshSize; };
-    const ArrayOfDouble& getMeshSize() const { return _meshSize; }
-    void setFrameSize(const ArrayOfDouble& frameSize) { _frameSize = frameSize; };
-    const ArrayOfDouble& getFrameSize() const { return _frameSize; }
 
     void setK(const size_t k) { _k = k; };
     size_t getK() const { return _k; }
@@ -122,6 +112,6 @@ typedef std::vector<EvalQueuePointPtr> BlockForEval;
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_EVALQUEUEPOINT__
+#endif // __NOMAD_4_3_EVALQUEUEPOINT__
 
 

@@ -46,13 +46,14 @@
 /*---------------------------------------------------------------------------------*/
 // June 2019
 // Version 1.0 is with NOMAD 3.
-#define NOMAD_PYTHON_VERSION "2.0"
+#define NOMAD_PYTHON_VERSION "2.1"
 
 #include "Algos/EvcInterface.hpp"
 #include "Math/RNG.hpp"
 #include "Nomad/nomad.hpp"
 #include "Param/AllParameters.hpp"
 #include "Cache/CacheBase.hpp"
+#include "Type/EvalType.hpp"
 
 #include <Python.h>
 #include <signal.h>
@@ -60,13 +61,9 @@
 #include <string.h>
 
 typedef int (*Callback)(void * apply,
-                        std::shared_ptr<NOMAD::EvalPoint> x,
-                        bool hasSgte,
-                        bool sgteEval);
+                        std::shared_ptr<NOMAD::EvalPoint> x);
 typedef std::vector<int> (*CallbackL)(void * apply,
-                                      std::shared_ptr<NOMAD::Block> block,
-                                      bool hasSgte,
-                                      bool sgteEval);
+                                      std::shared_ptr<NOMAD::Block> block);
 
 
 static void printPyNomadVersion()
@@ -120,6 +117,7 @@ static void printPyNomadUsage()
     std::cout << "  nb_iters --> * Currently not supported *"                           << std::endl;
     std::cout << "               (would be: Number of iterations of the Mads algorithm)"<< std::endl;
     std::cout << "  exit_status ---> Exit status for Nomad termination criterion"       << std::endl;
+    std::cout << "                   1 -> success, 0 -> fail"                           << std::endl;
     std::cout                                                                           << std::endl;
 
     std::cout << "-----------------------------------------------------------"          << std::endl;
@@ -190,7 +188,7 @@ static void printPyNomadInfo()
 static void printNomadHelp(std::string about)
 {
     NOMAD::AllParameters allParameters;
-    NOMAD::toupper( about );
+    NOMAD::toupper(about);
     allParameters.displayHelp(about, false, std::cout);
 }
 
@@ -202,7 +200,6 @@ private:
     Callback  _cb;
     CallbackL _cbL;
     void*     _apply;
-    bool      _hasSgte;
 
 public:
     // Constructor
@@ -210,18 +207,12 @@ public:
            Callback cb,
            CallbackL cbL,
            void * apply,
-           bool hasSgte = false)
-      : NOMAD::Evaluator(evalParams),
+           NOMAD::EvalType evalType)
+      : NOMAD::Evaluator(evalParams, evalType),
         _cb(cb),
         _cbL(cbL),
-        _apply(apply),
-        _hasSgte(hasSgte)
+        _apply(apply)
     {
-        if (_hasSgte)
-        {
-            std::cerr << "Warning: Surrogate evaluations are not currently supported." << std::endl;
-            _hasSgte = false;
-        }
     }
 
     //Destructor
@@ -235,7 +226,7 @@ public:
         size_t nbPoints = block.size();
         std::vector<bool> evalOk(nbPoints, false);
         countEval.resize(nbPoints, false);
-
+        
         // eval_block is always called.
         // if cbL is NULL, this means that the block must be of size 1, and that
         // cb should be used.
@@ -243,7 +234,7 @@ public:
         {
             NOMAD::EvalPointPtr x_ptr = block[0];
             PyGILState_STATE state = PyGILState_Ensure();
-            evalOk[0] = _cb(_apply, x_ptr, _hasSgte, false);    // false: Nomad eval type is not SGTE - Not supported yet.
+            evalOk[0] = _cb(_apply, x_ptr);
             PyGILState_Release(state);
             countEval[0] = true;   // Always true in Python
         }
@@ -255,7 +246,7 @@ public:
                 // Call callback
                 std::shared_ptr<NOMAD::Block> block_ptr = std::make_shared<NOMAD::Block>(block);
                 PyGILState_STATE state = PyGILState_Ensure();
-                std::vector<int> cblret = _cbL(_apply, block_ptr, _hasSgte, false); // See above
+                std::vector<int> cblret = _cbL(_apply, block_ptr);
                 PyGILState_Release(state);
                 block = *block_ptr;
                 for (size_t i = 0; i < nbPoints; i++)
@@ -424,8 +415,9 @@ static int runNomad(Callback cb,
         {
             cbL = nullptr;
         }
-        std::unique_ptr<PyEval> ev(new PyEval(allParams->getEvalParams(), cb, cbL, apply));
-        TheMainStep.setEvaluator(std::move(ev));
+        
+        auto ev = std::make_unique<PyEval>(allParams->getEvalParams(), cb, cbL, apply, NOMAD::EvalType::BB);
+        TheMainStep.addEvaluator(std::move(ev));
 
         TheMainStep.start();
         stopflag = TheMainStep.run();
@@ -483,3 +475,106 @@ static int runNomad(Callback cb,
     return -1;
 
 }
+
+static int runNomad(Callback cb,
+                    CallbackL cbL,
+                    void * applyBB,
+                    void * applySurrogate,
+                    std::vector<double> X0,
+                    std::vector<double> LB,
+                    std::vector<double> UB,
+                    const std::vector<std::string> &params,
+                    std::shared_ptr<NOMAD::EvalPoint>& bestFeasSol,
+                    std::shared_ptr<NOMAD::EvalPoint>& bestInfeasSol,
+                    size_t &nbEvals,
+                    size_t &nbIters)
+{
+    auto allParams = std::make_shared<NOMAD::AllParameters>();
+    initAllParams(allParams, X0, LB, UB, params);
+    bestFeasSol = nullptr;
+    bestInfeasSol = nullptr;
+
+    std::cout<<"Run nomad with surrogate"<<std::endl;
+    try
+    {
+        int stopflag = 0;
+        Py_BEGIN_ALLOW_THREADS
+
+        NOMAD::MainStep TheMainStep;
+        TheMainStep.setAllParameters(allParams);
+
+        // Set cbL to NULL if blocks are not used.
+        // Set cb to NULL if blocks are used.
+        if (allParams->getEvaluatorControlGlobalParams()->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE") > 1)
+        {
+            // Using blocks
+            cb = nullptr;
+        }
+        else
+        {
+            cbL = nullptr;
+        }
+        
+        auto evBB = std::make_unique<PyEval>(allParams->getEvalParams(), cb, cbL, applyBB, NOMAD::EvalType::BB);
+        TheMainStep.addEvaluator(std::move(evBB));
+
+        auto evSurrogate = std::make_unique<PyEval>(allParams->getEvalParams(), cb, cbL, applySurrogate, NOMAD::EvalType::SURROGATE);
+        TheMainStep.addEvaluator(std::move(evSurrogate));
+        
+        TheMainStep.start();
+        stopflag = TheMainStep.run();
+        TheMainStep.end();
+
+        nbEvals = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
+        nbIters = 0; // Not supported in this version of NOMAD 4
+                     // Keeping the value for compatibility with PyNomad 1
+
+        // Set the best feasible and best infeasible solutions
+        std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
+        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
+
+        if (nbInf > 0)
+        {
+            // Use first infeasible point. This could be generalized to show
+            // all infeasible points.
+            // Smart pointers should also be used.
+            // For now, keep the same logic as with PyNomad 1.
+            // One of the pointer is set to null to identify the type of solution
+            NOMAD::EvalPoint evalPointInf = evalPointInfList[0];
+            bestInfeasSol = std::make_shared<NOMAD::EvalPoint>(evalPointInf);
+            if (0 == nbFeas)
+            {
+                bestFeasSol = nullptr;
+            }
+        }
+        if (nbFeas > 0)
+        {
+            NOMAD::EvalPoint evalPointFeas = evalPointFeasList[0];
+            bestFeasSol = std::make_shared<NOMAD::EvalPoint>(evalPointFeas);
+            bestInfeasSol = nullptr;
+        }
+        if (0 == nbFeas)
+        {
+            bestFeasSol = nullptr;
+        }
+        if(0 == nbInf)
+        {
+            bestInfeasSol = nullptr;
+        }
+
+        NOMAD::MainStep::resetComponentsBetweenOptimization();
+
+        Py_END_ALLOW_THREADS
+        return stopflag;
+    }
+
+    catch(std::exception &e)
+    {
+        printf("NOMAD exception (report to developper):\n%s\n",e.what());
+    }
+
+    return -1;
+
+}
+

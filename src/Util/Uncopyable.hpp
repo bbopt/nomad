@@ -50,8 +50,8 @@
   \author Sebastien Le Digabel
   \date   2010-04-02
 */
-#ifndef __NOMAD_4_2_UNCOPYABLE__
-#define __NOMAD_4_2_UNCOPYABLE__
+#ifndef __NOMAD_4_3_UNCOPYABLE__
+#define __NOMAD_4_3_UNCOPYABLE__
 
 #include "../nomad_nsbegin.hpp"
 
@@ -80,5 +80,5 @@
   };
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_UNCOPYABLE__
+#endif // __NOMAD_4_3_UNCOPYABLE__
 

@@ -104,7 +104,7 @@ std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::getSortedTrialPoints(const NO
         throw NOMAD::StepException(__FILE__,__LINE__, _step->getName() + ": EvaluatorControl not found", _step);
     }
     
-    NOMAD::EvalType evalType = _evaluatorControl->getEvalType();
+    NOMAD::EvalType evalType = _evaluatorControl->getCurrentEvalType();
     if (NOMAD::EvalType::BB != evalType && NOMAD::EvalType::SURROGATE != evalType)
     {
         throw NOMAD::StepException(__FILE__,__LINE__, _step->getName() + ": Not suppose to sort points that are not BB", _step);
@@ -197,7 +197,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
         throw NOMAD::StepException(__FILE__,__LINE__, _step->getName() + ": EvaluatorControl not found", _step);
     }
 
-    NOMAD::EvalType evalType = _evaluatorControl->getEvalType();
+    NOMAD::EvalType evalType = _evaluatorControl->getCurrentEvalType();
 
     // Currently, this method may be used inside an Iteration (Search or Poll, NM, ...),
     // or inside a MegaSearchPoll.
@@ -239,6 +239,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
         const int maxNumberEval = 1;
         if (_evaluatorControl->getUseCache())
         {
+            // Cache is in full space.
             doEval = NOMAD::CacheBase::getInstance()->smartInsert(trialPoint, maxNumberEval, evalType);
         }
         else
@@ -254,7 +255,8 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
                     NOMAD::EvalPoint foundEvalPoint;
                     // Either point is not in barrier, or
                     // point was evaluated, but not with the current eval type.
-                    doEval = !findInList(*trialPoint.getX(), barrier->getAllPoints(), foundEvalPoint)
+                    // Barrier is in full space.
+                    doEval = !barrier->findPoint(*trialPoint.getX(), foundEvalPoint)
                             || (nullptr == foundEvalPoint.getEval(evalType));
                 }
             }
@@ -275,8 +277,10 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
                 auto mesh = iteration->getMesh();
                 if ( mesh != nullptr )
                 {
-                    evalQueuePoint->setMeshSize(mesh->getdeltaMeshSize());
-                    evalQueuePoint->setFrameSize(mesh->getDeltaFrameSize());
+                    if (NOMAD::EvalType::BB == evalType || NOMAD::EvalType::SURROGATE == evalType )
+                    {
+                        evalQueuePoint->setMesh(mesh);
+                    }
                     evalQueuePoint->setK(iteration->getK());
                 }
             }
@@ -284,9 +288,10 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
             evalQueuePoint->addGenStep(_step->getStepType());
             // Additional infos
             auto algo = _step->getParentOfType<NOMAD::Algorithm*>();
-            if (nullptr != algo && algo->getParentStep()->isAnAlgorithm())
+            while ( nullptr != algo)
             {
-                evalQueuePoint->addGenStep(algo->getParentStep()->getStepType());
+                evalQueuePoint->addGenStep(algo->getStepType());
+                algo = algo->getParentOfType<NOMAD::Algorithm*>();
             }
 
             if (_evaluatorControl->addToQueue(evalQueuePoint))
@@ -332,31 +337,30 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
 }
 
 
-void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::Barrier>& subBarrier)
+void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::BarrierBase> subBarrier)
 {
     if (subBarrier == nullptr)
     {
         return;
     }
-
+       
     // Input is the barrier from MegaIteration, which may belong to a subspace.
     // EvaluatorControl's barrier must be in full dimension.
-    auto fullBarrier = std::make_shared<NOMAD::Barrier>(*subBarrier);
+    // Use the clone function to obtain the same type of barrier (Mads Barrier or DMultiMadsBarrier).
+    // Clone returns an empty barrier. Populate the barrier.
+    auto fullBarrier = subBarrier->clone();
 
-    // Clear xFeas and xInf lists and recompute them
-    fullBarrier->clearXFeas();
-    fullBarrier->clearXInf();
-    auto evalType = _evaluatorControl->getEvalType();
-    for (auto xFeas : subBarrier->getAllXFeas())
+
+    auto evalType = _evaluatorControl->getCurrentEvalType();
+
+    std::vector<EvalPoint> evalPointList;
+    for (const auto &x : subBarrier->getAllPointsPtr())
     {
-        auto xFeasFull = xFeas.makeFullSpacePointFromFixed(_fixedVariable);
-        fullBarrier->addXFeas(xFeasFull, evalType, _evaluatorControl->getComputeType());
+        evalPointList.push_back(x->makeFullSpacePointFromFixed(_fixedVariable));
     }
-    for (auto xInf : subBarrier->getAllXInf())
-    {
-        auto xInfFull = xInf.makeFullSpacePointFromFixed(_fixedVariable);
-        fullBarrier->addXInf(xInfFull, evalType);
-    }
+    fullBarrier->updateWithPoints(evalPointList,evalType,_evaluatorControl->getComputeType());
+
+    // Need to transfer Ref best points from subBarrier to full barrier
     auto refBestFeas = subBarrier->getRefBestFeas();
     auto refBestInf  = subBarrier->getRefBestInf();
     if (nullptr != refBestFeas)
@@ -367,6 +371,7 @@ void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::Barrier>& subB
     {
         fullBarrier->setRefBestInf(std::make_shared<NOMAD::EvalPoint>(refBestInf->makeFullSpacePointFromFixed(_fixedVariable)));
     }
+    fullBarrier->setHMax(subBarrier->getHMax());
 
     _evaluatorControl->setBarrier(fullBarrier);
 }
@@ -377,11 +382,12 @@ bool NOMAD::EvcInterface::findInBarrier(const NOMAD::Point& x, NOMAD::EvalPoint&
     bool pointFound = false;
 
     auto barrier = _evaluatorControl->getBarrier();
+    
     if (nullptr != barrier)
     {
         auto xFull = x.makeFullSpacePointFromFixed(_fixedVariable);
         NOMAD::EvalPoint evalPointFull(evalPoint);
-        pointFound = findInList(xFull, barrier->getAllPoints(), evalPointFull);
+        pointFound = barrier->findPoint(xFull, evalPointFull);
         if (pointFound)
         {
             // Put found point back in sub-dimension

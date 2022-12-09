@@ -140,6 +140,26 @@ ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 UNIQUE_ENTRY no
 ################################################################################
+DMULTIMADS_OPTIMIZATION
+bool
+false
+\( A standalone random optimization algo (several iterations) \)
+\(
+
+. Use this random algo as a template to implement a new algo.
+
+. By default this algorithm generates iteratively ramdom points around the
+  best incumbent.
+
+. Argument: bool
+
+. Example: DMULTIMADS_OPTIMIZATION true
+
+\)
+\( advanced template algorithm search dummy random \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
 FRAME_CENTER_USE_CACHE
 bool
 false
@@ -254,7 +274,7 @@ INF
 
 . Maximum number of iterations
 
-. Argument: one positive integer. INF means there is no maximum.
+. Argument: one positive integer.
 
 . Example: MAX_ITERATIONS 1000
 
@@ -270,7 +290,7 @@ INF
 \(
 . Maximum number of Iterations to generate for each MegaIteration.
 
-. Argument: one positive integer. INF means there is no maximum.
+. Argument: one positive integer.
 
 . If there are few points in the barrier, this parameter has no effect.
 
@@ -292,7 +312,7 @@ size_t
 INF
 \( Maximum wall-clock time in seconds \)
 \(
-. Argument: one positive integer. INF means there is no maximum.
+. Argument: one positive integer.
 
 . Example: MAX_TIME 3600 # one hour max
 
@@ -384,13 +404,15 @@ int
 
 . Random seed
 
-. Argument: one nonnegative integer (max UINT32_MAX)
+. Argument: one nonnegative integer (max UINT32_MAX) or -1 to generate a
+  different seed for each run.
 
 . The default value is used for each run if the parameter is not provided.
 
 . The seed is used in the output file names
 
 . Example: SEED 123456
+           SEED -1
 
 \)
 \( advanced seed(s) random number run \)
@@ -442,7 +464,7 @@ size_t
 . Number of points to generate using the MADS speculative search (optimistic
   strategy)
 
-. Argument: one positive integer
+. Argument: one positive integer < INF.
 
 . Example: SPECULATIVE_SEARCH_MAX 2
 
@@ -500,5 +522,83 @@ true
 \)
 \( advanced user(s) callback function(s) \)
 ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+################################################################################
+RANDOM_SIMPLE_SEARCH
+bool
+false
+\( A template for a simple (no iteration) random search step for Mads \)
+\(
+
+. A search step for Mads that generate a trial point from the poll center
+
+. Use this as a template to develop a new search method
+
+. Argument: bool
+
+. Example: RANDOM_SIMPLE_SEARCH true
+
+\)
+\( advanced template simple search dummy \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+RANDOM_ALGO_SEARCH
+bool
+false
+\( A random search step for Mads using an algo (several iterations) \)
+\(
+
+. A random search step for Mads that several trial points from the poll center
+
+. Use this as a template to develop a new search method
+
+. Argument: bool
+
+. Example: RANDOM_ALGO_SEARCH true
+
+\)
+\( advanced template algorithm search dummy \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+RANDOM_ALGO_OPTIMIZATION
+bool
+false
+\( A standalone random optimization algo (several iterations) \)
+\(
+
+. Use this random algo as a template to implement a new algo.
+
+. By default this algorithm generates iteratively ramdom points around the
+  best incumbent.
+
+. Argument: bool
+
+. Example: RANDOM_ALGO_OPTIMIZATION true
+
+\)
+\( advanced template algorithm search dummy random \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+RANDOM_ALGO_DUMMY_FACTOR
+size_t
+1
+\( Dummy factor for random algo (used as template) \)
+\(
+
+. This is dummy factor used by random algo.
+
+. Use this as a template for a parameter controling the behavior of a new search
+  method
+
+. Argument: one positive integer < INF.
+
+. Example: RANDOM_ALGO_DUMMY_FACTOR 2
+
+\)
+\( advanced mads algorithm search template dummy \)
+ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################

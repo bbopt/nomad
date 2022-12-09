@@ -21,10 +21,9 @@ message(STATUS "    Add example library single_obj_parallel")
 
 # Can run this test after install
 if (WIN32)
-    # Todo Find a way to detect error
-    #add_test(NAME SingleObjParallelBasicLib
-    #	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./single_obj_parallel.exe
-    #       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    add_test(NAME SingleObjParallelBasicLib
+	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./single_obj_parallel.exe
+	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 else()
     add_test(NAME SingleObjParallelBasicLib
 	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./single_obj_parallel.exe

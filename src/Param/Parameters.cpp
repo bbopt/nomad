@@ -949,9 +949,10 @@ void NOMAD::Parameters::checkFormatSizeT(const std::shared_ptr<NOMAD::ParameterE
         || !NOMAD::atoi ( *(pe->getValues().begin()), i)
         || i < 0)
     {
-        std::string err = "Invalid format for size_t parameter: ";
+        std::string err = "\n Invalid format for size_t parameter: ";
         err += pe->getName() + " at line " + std::to_string(pe->getLine());
-        throw NOMAD::Exception(__FILE__,__LINE__, err);
+        err += ". This parameter is of type size_t and cannot be given a negative value. To set the value to infinity, uses NOMAD::INF_SIZE_T when in library mode and +INF in batch mode.";
+        throw NOMAD::InvalidParameter(__FILE__,__LINE__, err);
     }
     sz = i;
 }
@@ -961,7 +962,7 @@ void NOMAD::Parameters::checkFormatAllSizeT(const std::shared_ptr<NOMAD::Paramet
 {
     int i;
 
-    for (auto value : pe->getValues())
+    for (const auto & value : pe->getValues())
     {
         if (!NOMAD::atoi(value, i) || i < 0)
         {
@@ -1239,6 +1240,44 @@ void NOMAD::Parameters::display(std::ostream & os, bool helpInfo)
 
 }
 
+void NOMAD::Parameters::insertCSVDoc(std::map<std::string,std::string> &csvdoc) const
+{
+    for (const auto & att : _attributes)
+    {
+        std::string keywords = att->getKeywords();
+        
+        if (keywords.length()==0)
+            continue;
+        
+        std::size_t pos1 = keywords.find(",");
+        
+        std::string value = keywords.substr(1,pos1-1); // Pair (Type,DefaultValue) is the first keyword
+        
+        std::size_t pos2 = keywords.find(")");
+       
+        std::string defaultAttributeValue = keywords.substr(pos1+1,pos2-pos1-1); // Second position in the pair () is the default value
+
+        if (keywords.find("basic") != std::string::npos)
+        {
+            value += ",basic";
+        }
+        else if (keywords.find("advanced") != std::string::npos)
+        {
+            value += ",advanced";
+        }
+        else if (keywords.find("basic") != std::string::npos)
+        {
+            value += ",developer";
+        }
+        else
+            continue;
+
+        value += ",\"" + att->getShortInfo() + "\"," + defaultAttributeValue ;
+
+        csvdoc.insert( std::pair<std::string,std::string>(att->getName(),value));
+    }
+}
+
 
 void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDefinition> & attributeDef )
 {
@@ -1252,6 +1291,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
         bool algoCompatibilityCheck = NOMAD::stringToBool(att._algoCompatibilityCheck);
         bool restartAttribute = NOMAD::stringToBool(att._restartAttribute);
         bool uniqueEntry = NOMAD::stringToBool(att._uniqueEntry);
+        std:: string keywordsPlus = "(" + att._type + "," + att._defaultValue +") " + att._keywords;  // This is for CSV doc (see insertCSVDoc)
         if ( att._type == "int" )
         {
             int defVal;
@@ -1263,7 +1303,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
             }
             registerAttribute<int>(att._name, defVal,
                             algoCompatibilityCheck, restartAttribute, uniqueEntry,
-                            att._shortInfo, att._helpInfo, att._keywords);
+                            att._shortInfo, att._helpInfo, keywordsPlus);
         }
         else if ( att._type == "size_t" )
         {
@@ -1275,7 +1315,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                 throw NOMAD::Exception(__FILE__,__LINE__, err);
             }
             registerAttribute<size_t>(  att._name, defVal, algoCompatibilityCheck , restartAttribute, uniqueEntry,
-                                        att._shortInfo, att._helpInfo, att._keywords);
+                                        att._shortInfo, att._helpInfo, keywordsPlus);
         }
         else if ( att._type== "Double" || att._type== "NOMAD::Double" )
         {
@@ -1284,7 +1324,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
             {
                 registerAttribute<NOMAD::Double>(att._name, defVal,
                             algoCompatibilityCheck, restartAttribute, uniqueEntry,
-                            att._shortInfo, att._helpInfo, att._keywords);
+                            att._shortInfo, att._helpInfo, keywordsPlus);
             }
             else
             {
@@ -1302,7 +1342,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                                     algoCompatibilityCheck,
                                     restartAttribute,
                                     uniqueEntry,
-                                    att._shortInfo, att._helpInfo, att._keywords);
+                                    att._shortInfo, att._helpInfo, keywordsPlus);
         }
         else if ( att._type== "string" || att._type== "std::string" )
         {
@@ -1311,7 +1351,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                                            algoCompatibilityCheck,
                                            restartAttribute,
                                            uniqueEntry,
-                                           att._shortInfo, att._helpInfo, att._keywords);
+                                           att._shortInfo, att._helpInfo, keywordsPlus);
         }
         else if ( att._type== "NOMAD::ArrayOfDouble" || att._type== "ArrayOfDouble"   )
         {
@@ -1325,7 +1365,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                                                     NOMAD::ArrayOfDouble(),
                                                     algoCompatibilityCheck,
                                                     restartAttribute, uniqueEntry,
-                                                    att._shortInfo, att._helpInfo, att._keywords);
+                                                    att._shortInfo, att._helpInfo, keywordsPlus);
         }
         else if ( att._type == "NOMAD::LHSearchType" || att._type == "LHSearchType" )
         {
@@ -1336,7 +1376,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                                                        algoCompatibilityCheck,
                                                        restartAttribute, uniqueEntry,
                                                        att._shortInfo, att._helpInfo,
-                                                       att._keywords);
+                                                       keywordsPlus);
             }
             else
             {
@@ -1344,7 +1384,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                                                        algoCompatibilityCheck,
                                                        restartAttribute, uniqueEntry,
                                                        att._shortInfo, att._helpInfo,
-                                                       att._keywords);
+                                                       keywordsPlus);
             }
 
         }
@@ -1362,7 +1402,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                                             algoCompatibilityCheck,
                                             restartAttribute,
                                             uniqueEntry,
-                                            att._shortInfo, att._helpInfo, att._keywords);
+                                            att._shortInfo, att._helpInfo, keywordsPlus);
         }
         // ARRAYOFPOINTS
         else if (att._type== "NOMAD::ArrayOfPoint" || att._type == "ArrayOfPoint")
@@ -1378,7 +1418,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                                                    algoCompatibilityCheck,
                                                    restartAttribute,
                                                    uniqueEntry,
-                                                   att._shortInfo, att._helpInfo, att._keywords);
+                                                   att._shortInfo, att._helpInfo, keywordsPlus);
         }
         // ARRAYOFSTRING
         else if ( att._type== "NOMAD::ArrayOfString" || att._type=="ArrayOfString" )
@@ -1388,7 +1428,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                               algoCompatibilityCheck,
                               restartAttribute,
                               uniqueEntry,
-                              att._shortInfo, att._helpInfo, att._keywords);
+                              att._shortInfo, att._helpInfo, keywordsPlus);
         }
         // BBInputTypeList
         else if ( att._type== "NOMAD::BBInputTypeList" || att._type== "BBInputTypeList" )
@@ -1396,7 +1436,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
             registerAttribute( att._name,
                               NOMAD::stringToBBInputTypeList(att._defaultValue),
                               algoCompatibilityCheck, restartAttribute, uniqueEntry,
-                              att._shortInfo, att._helpInfo, att._keywords);
+                              att._shortInfo, att._helpInfo, keywordsPlus);
         }
         // BBOutputTypeList
         else if ( att._type== "NOMAD::BBOutputTypeList" || att._type== "BBOutputTypeList" )
@@ -1404,7 +1444,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
             registerAttribute( att._name,
                               NOMAD::stringToBBOutputTypeList(att._defaultValue),
                               algoCompatibilityCheck, restartAttribute, uniqueEntry,
-                              att._shortInfo, att._helpInfo, att._keywords);
+                              att._shortInfo, att._helpInfo, keywordsPlus);
         }
         // SgtelibModelFeasibilityType
         else if (   att._type== "NOMAD::SgtelibModelFeasibilityType"
@@ -1413,7 +1453,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
             registerAttribute( att._name,
                               NOMAD::stringToSgtelibModelFeasibilityType(att._defaultValue),
                               algoCompatibilityCheck, restartAttribute,
-                              uniqueEntry, att._shortInfo , att._helpInfo, att._keywords );
+                              uniqueEntry, att._shortInfo , att._helpInfo, keywordsPlus );
         }
         // SgtelibModelFormulationType
         else if (   att._type== "NOMAD::SgtelibModelFormulationType"
@@ -1422,7 +1462,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
             registerAttribute( att._name,
                               NOMAD::stringToSgtelibModelFormulationType(att._defaultValue),
                               algoCompatibilityCheck , restartAttribute, uniqueEntry,
-                              att._shortInfo , att._helpInfo, att._keywords );
+                              att._shortInfo , att._helpInfo, keywordsPlus );
         }
         // EvalType
         else if (   att._type== "NOMAD::EvalType"
@@ -1431,7 +1471,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
             registerAttribute( att._name,
                               NOMAD::stringToEvalType(att._defaultValue),
                               algoCompatibilityCheck, restartAttribute, uniqueEntry,
-                              att._shortInfo , att._helpInfo, att._keywords );
+                              att._shortInfo , att._helpInfo, keywordsPlus );
         }
         // EvalSortType
         else if (   att._type== "NOMAD::EvalSortType"
@@ -1440,7 +1480,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
             registerAttribute( att._name,
                               NOMAD::stringToEvalSortType(att._defaultValue),
                               algoCompatibilityCheck, restartAttribute, uniqueEntry,
-                              att._shortInfo , att._helpInfo, att._keywords );
+                              att._shortInfo , att._helpInfo, keywordsPlus );
         }
         // DirectionTypeList
         else if (   att._type== "NOMAD::DirectionTypeList"
@@ -1450,7 +1490,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
             registerAttribute( att._name,
                               dirTypeList,
                               algoCompatibilityCheck, restartAttribute, uniqueEntry,
-                              att._shortInfo , att._helpInfo, att._keywords );
+                              att._shortInfo , att._helpInfo, keywordsPlus );
         }
         // ListOfVariableGroup
         else if (att._type== "NOMAD::ListOfVariableGroup" || att._type == "ListOfVariableGroup")
@@ -1466,7 +1506,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                                                    algoCompatibilityCheck,
                                                    restartAttribute,
                                                    uniqueEntry,
-                                                   att._shortInfo, att._helpInfo, att._keywords);
+                                                   att._shortInfo, att._helpInfo, keywordsPlus);
         }
         // Unrecognized type
         else

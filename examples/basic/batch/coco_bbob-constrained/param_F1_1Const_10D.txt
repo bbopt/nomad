@@ -1,0 +1,31 @@
+
+# PROBLEM PARAMETERS
+####################
+
+# Number of variables
+DIMENSION 10
+
+# Black box
+BB_EXE single_bbob-constrained.exe
+BB_OUTPUT_TYPE OBJ PB
+
+# Starting point
+X0 ( +4.6009e+00 +2.0670e+00 +3.5170e+00 -2.4297e+00 -3.6391e+00 +3.6790e+00 -3.9589e+00 +7.8921e-01 -6.5342e-01 +1.1148e+00 ) # Given by coco for instance 1, dim 10, f1
+
+# Bounds are useful to avoid extreme values
+LOWER_BOUND * -5.0
+UPPER_BOUND *  5.0
+
+
+# ALGORITHM PARAMETERS
+######################
+
+# The algorithm terminates after that number black-box evaluations
+# MAX_BB_EVAL 6000
+
+# Parameters for display
+DISPLAY_DEGREE 2 
+#DISPLAY_ALL_EVAL 1
+DISPLAY_STATS BBE OBJ CONS_H
+STATS_FILE stats.txt BBE OBJ CONS_H
+

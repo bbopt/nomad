@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_NMALLREFLECTIVE__
-#define __NOMAD_4_2_NMALLREFLECTIVE__
+#ifndef __NOMAD_4_3_NMALLREFLECTIVE__
+#define __NOMAD_4_3_NMALLREFLECTIVE__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/NelderMead/NMIteration.hpp"
@@ -106,4 +106,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_NMALLREFLECTIVE__
+#endif // __NOMAD_4_3_NMALLREFLECTIVE__

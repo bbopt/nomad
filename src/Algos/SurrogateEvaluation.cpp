@@ -72,13 +72,15 @@ void NOMAD::SurrogateEvaluation::init()
 
 void NOMAD::SurrogateEvaluation::startImp()
 {
-     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    
+
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     if (EvalType::SURROGATE == _evalType)
     {
-        _evaluator = std::make_shared<NOMAD::SurrogateEvaluator>(evc->getEvalParams());
+        // BB evaluator will be selected later, once done with surrogate evaluator. See run function.
+        evc->selectCurrentEvaluator(_evalType);
+        _evaluatorIsReady = true;
     }
-    else if(EvalType::MODEL == _evalType)
+    if(EvalType::MODEL == _evalType)
     {
         auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
 
@@ -89,7 +91,7 @@ void NOMAD::SurrogateEvaluation::startImp()
         AddOutputInfo(s);
         OUTPUT_INFO_END
 
-        _quadModelIteration = std::make_unique<NOMAD::QuadModelIteration>(_parentStep, _frameCenter, 0, nullptr, _trialPoints /* trial points are used for sorting. */);
+        _quadModelIteration = std::make_unique<NOMAD::QuadModelIteration>(_parentStep, nullptr, 0, nullptr, _trialPoints /* trial points are used for sorting. */);
         _quadModelIteration->start();
         
         // No Run of QuadModelIteration in this case.
@@ -98,10 +100,17 @@ void NOMAD::SurrogateEvaluation::startImp()
         auto model = _quadModelIteration->getModel();
         if (nullptr!=model && model->is_ready())
         {
-            _evaluator = std::make_shared<NOMAD::QuadModelEvaluator>(evc->getEvalParams(),
-                                                                     model,
-                                                                     modelDisplay,
-                                                                     fullFixedVar);
+            auto evaluator = std::make_shared<NOMAD::QuadModelEvaluator>(evc->getCurrentEvalParams(),
+                                                            model,
+                                                            modelDisplay,
+                                                            fullFixedVar);
+            // If a quad model evaluator already exists in evc, it will be replaced by this new one. The last added evaluator is used as the currentEvaluator. Once done, BB evaluator must be selected (see below in run).
+            evc->addEvaluator(evaluator);
+            _evaluatorIsReady = true;
+        }
+        else
+        {
+            _evaluatorIsReady = false;
         }
         _quadModelIteration->end();
         
@@ -114,22 +123,18 @@ void NOMAD::SurrogateEvaluation::startImp()
 bool NOMAD::SurrogateEvaluation::runImp()
 {
     // Evaluation using static surrogate or model. The evaluation will be used for sorting afterwards.
-    // Setup evaluation for SURROGATE or MODEL:
+    // Setup evaluation for SURROGATE or MODEL (if model is ready):
     //  - Set opportunistic evaluation to false
     //  - Set the Evaluator to SURROGATE or MODEL
     //  - The point's evalType will be set to SURROGATE or MODEL in evalTrialPoints().
     // Evaluate the points using the surrogate or model
     // Reset for BB:
     //  - Reset opportunism
-    //  - Reset Evaluator
+    //  - Reset Evaluator to BB
     // And proceed - the sort using surrogate or model will be done afterwards.
     
-    if(nullptr == _evaluator)
+    if (!_evaluatorIsReady)
     {
-        OUTPUT_INFO_START
-        std::string s = "Evaluator is not ready for evaluation";
-        AddOutputInfo(s);
-        OUTPUT_INFO_END
         return false;
     }
     
@@ -140,16 +145,7 @@ bool NOMAD::SurrogateEvaluation::runImp()
     auto previousOpportunism = evc->getOpportunisticEval();
     evc->setOpportunisticEval(false);
     
-    // Replace the EvaluatorControl's evaluator with this one
-    // we just created
-    auto previousEvaluator = evc->setEvaluator(_evaluator);
-    if (nullptr == previousEvaluator)
-    {
-        std::cerr << "Warning: Could not set " << evalTypeToString(_evalType) << " Evaluator" << std::endl;
-        return false;
-    }
-    
-    // No barrier need for surrogate (MODEL or SURROGATE) evaluations for sort because not comparison is neeeded to detect success
+    // No barrier need for surrogate (MODEL or SURROGATE) evaluations for sort because no comparison is neeeded to detect success
     evc->setBarrier(nullptr);
     
     evc->lockQueue();
@@ -195,9 +191,8 @@ bool NOMAD::SurrogateEvaluation::runImp()
         _trialPoints = evalPointSet;
     }
     
-    
-    evc->setEvaluator(previousEvaluator);
     evc->setOpportunisticEval(previousOpportunism);
+    evc->selectCurrentEvaluator(NOMAD::EvalType::BB);
     
     // Points are now all evaluated using SURROGATE or MODEL.
     // Points are still in the parent step's trial points. There is no update to do here.

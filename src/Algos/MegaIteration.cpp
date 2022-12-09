@@ -51,7 +51,7 @@
 // Constructor
 NOMAD::MegaIteration::MegaIteration(const Step* parentStep,
                               size_t k,
-                              std::shared_ptr<Barrier> barrier,
+                              std::shared_ptr<BarrierBase> barrier,
                               SuccessType success)
   : Step(parentStep),
     _barrier(barrier),
@@ -64,6 +64,19 @@ NOMAD::MegaIteration::MegaIteration(const Step* parentStep,
     }
 
     init();
+}
+
+void NOMAD::MegaIteration::startImp()
+{
+    if (_runParams->getAttributeValue<bool>("USER_CALLS_ENABLED"))
+    {
+        bool stop = false;
+        runCallback(NOMAD::CallbackType::MEGA_ITERATION_START, *this, stop);
+        if (!_stopReasons->checkTerminate() && stop)
+        {
+            _stopReasons->set(NOMAD::BaseStopType::USER_STOPPED);
+        }
+    }
 }
 
 

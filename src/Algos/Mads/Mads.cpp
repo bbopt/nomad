@@ -64,21 +64,26 @@ void NOMAD::Mads::init(bool barrierInitializedFromCache)
 
     // Instantiate Mads initialization class
     _initialization = std::make_unique<NOMAD::MadsInitialization>( this , barrierInitializedFromCache);
-
+    
+    // We can accept Mads with more than one objective when doing a PhaseOneSearch of DMultiMads optimization.
+    if (!_runParams->getAttributeValue<bool>("DMULTIMADS_OPTIMIZATION") && NOMAD::Algorithm::getNbObj() > 1)
+    {
+        throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Mads solves single objective problems. To handle several objectives please use DMultiMads: DMULTIMADS_OPTIMIZATION yes");
+    }
+    
 }
 
 
 NOMAD::ArrayOfPoint NOMAD::Mads::suggest()
 {
-    NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
 
     _initialization->start();
     _initialization->run();
     _initialization->end();
 
-    std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
-    std::shared_ptr<NOMAD::Barrier> barrier = _initialization->getBarrier();
-    NOMAD::MadsMegaIteration megaIteration(this, 1, barrier, mesh, megaIterSuccess);
+    std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams,_runParams);
+    std::shared_ptr<NOMAD::BarrierBase> barrier = _initialization->getBarrier();
+    NOMAD::MadsMegaIteration megaIteration(this, 1, barrier, mesh, NOMAD::SuccessType::UNDEFINED);
 
     OUTPUT_INFO_START
     AddOutputInfo("Mega Iteration generated:");
@@ -92,7 +97,8 @@ NOMAD::ArrayOfPoint NOMAD::Mads::suggest()
 
 void NOMAD::Mads::observe(const std::vector<NOMAD::EvalPoint>& evalPointList)
 {
-    auto mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+    
+    auto mesh = std::make_shared<NOMAD::GMesh>(_pbParams, _runParams);
     mesh->setEnforceSanityChecks(false);
     mesh->setDeltas(_pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_MESH_SIZE"),
                     _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_FRAME_SIZE"));
@@ -118,8 +124,8 @@ void NOMAD::Mads::observe(const std::vector<NOMAD::EvalPoint>& evalPointList)
         barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::Point(n));
     }
 
-    NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
-    NOMAD::MadsMegaIteration megaIteration(this, 0, barrier, mesh, megaIterSuccess);
+
+    NOMAD::MadsMegaIteration megaIteration(this, 0, barrier, mesh, NOMAD::SuccessType::UNDEFINED);
 
     OUTPUT_INFO_START
     AddOutputInfo("Mega Iteration generated: ");
@@ -144,14 +150,13 @@ void NOMAD::Mads::observe(const std::vector<NOMAD::EvalPoint>& evalPointList)
 bool NOMAD::Mads::runImp()
 {
     size_t k = 0;   // Iteration number (incremented at start)
-    NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
-
-    bool successFound = false;
+    
+    NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::UNDEFINED;
 
     if (!_termination->terminate(k))
     {
         std::shared_ptr<NOMAD::MeshBase> mesh;
-        std::shared_ptr<NOMAD::Barrier> barrier;
+        std::shared_ptr<NOMAD::BarrierBase> barrier;
 
         if (nullptr != _refMegaIteration)
         {
@@ -162,6 +167,7 @@ bool NOMAD::Mads::runImp()
             // Downcast from MegaIteration to MadsMegaIteration
             mesh    = (std::dynamic_pointer_cast<NOMAD::MadsMegaIteration> (_refMegaIteration ))->getMesh();
             megaIterSuccess = _refMegaIteration->getSuccessType();
+            _success = megaIterSuccess;
         }
         else
         {
@@ -186,11 +192,10 @@ bool NOMAD::Mads::runImp()
             
             // Counter is incremented when calling mega iteration end()
             k       = megaIteration.getK();
-            megaIterSuccess = megaIteration.getSuccessType();
             
-            if (!successFound && megaIterSuccess >= NOMAD::SuccessType::FULL_SUCCESS)
+            if (!_algoSuccessful && megaIteration.getSuccessType() >= NOMAD::SuccessType::FULL_SUCCESS)
             {
-                successFound = true;
+                _algoSuccessful = true;
             }
 
             if (_userInterrupt)
@@ -204,7 +209,7 @@ bool NOMAD::Mads::runImp()
     _termination->run();
     _termination->end();
 
-    return successFound;
+    return _algoSuccessful;
 }
 
 
@@ -231,7 +236,8 @@ void NOMAD::Mads::hotRestartOnUserInterrupt()
         ss << *mesh;
         // Reset pointer
         mesh.reset();
-        mesh = std::make_shared<NOMAD::GMesh>(iteration->getPbParams());
+        
+        mesh = std::make_shared<NOMAD::GMesh>(iteration->getPbParams(),iteration->getRunParams());
         // Get old mesh values
         ss >> *mesh;
     }
@@ -265,9 +271,10 @@ void NOMAD::Mads::readInformationForHotRestart()
             // by istream is.
             // NOTE: Working in full dimension
             auto barrier = std::make_shared<NOMAD::Barrier>(NOMAD::INF, NOMAD::Point(_pbParams->getAttributeValue<size_t>("DIMENSION")), NOMAD::EvalType::BB);
-            std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+            
+            std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams,_runParams);
 
-            _refMegaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, 0, barrier, mesh, NOMAD::SuccessType::NOT_EVALUATED);
+            _refMegaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, 0, barrier, mesh, NOMAD::SuccessType::UNDEFINED);
 
             // Here we use Algorithm::operator>>
             NOMAD::read<NOMAD::Mads>(*this, hotRestartFile);

@@ -51,9 +51,14 @@ bool NOMAD::SearchMethodSimple::runImp()
 {
 
     bool foundBetter = false;
-    if ( ! _stopReasons->checkTerminate() )
+    if ( ! _stopReasons->checkTerminate() && _trialPoints.size() > 0 )
     {
         foundBetter = evalTrialPoints(this);
+    }
+    else
+    {
+        // Stop reason is triggered. Step is unsuccessful
+        _success = NOMAD::SuccessType::UNSUCCESSFUL;
     }
 
     return foundBetter;
@@ -62,8 +67,6 @@ bool NOMAD::SearchMethodSimple::runImp()
 
 void NOMAD::SearchMethodSimple::startImp()
 {
-    // Reset success
-    _success = SuccessType::NOT_EVALUATED;
     
     // Reset the current counters. The total counters are not reset (done only once when constructor is called).
     _trialPointStats.resetCurrentStats();
@@ -72,5 +75,8 @@ void NOMAD::SearchMethodSimple::startImp()
     {
         // Create EvalPoints and snap to bounds and snap on mesh
         generateTrialPoints();
+        
+        // Complete trial points information to get ready for sorting and evaluation
+        completeTrialPointsInformation();
     }
 }

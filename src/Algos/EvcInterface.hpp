@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_2_EVCINTERFACE__
-#define __NOMAD_4_2_EVCINTERFACE__
+#ifndef __NOMAD_4_3_EVCINTERFACE__
+#define __NOMAD_4_3_EVCINTERFACE__
 
 #include "../Algos/Step.hpp"
 #include "../Eval/EvaluatorControl.hpp"
@@ -105,7 +105,7 @@ public:
      Transform from subBarrier to fullBarrier, that is transform points in sub-space to full-space.
      Set the barrier to a full space barrier.
      */
-    void setBarrier(const std::shared_ptr<Barrier>& subBarrier);
+    void setBarrier(const std::shared_ptr<BarrierBase> subBarrier);
 
     /// Look for a point in the EvaluatorControl Barrier.
     /**
@@ -188,4 +188,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_EVCINTERFACE__
+#endif // __NOMAD_4_3_EVCINTERFACE__

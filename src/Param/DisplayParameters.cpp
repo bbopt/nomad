@@ -95,6 +95,14 @@ void NOMAD::DisplayParameters::checkAndComply(
         setAttributeValue("DISPLAY_ALL_EVAL", true);
     }
 
+    // If display all eval, force change to dependant parameters
+    if(getAttributeValueProtected<bool>("DISPLAY_ALL_EVAL",false))
+    {
+        // Force display all eval.
+        setAttributeValue("DISPLAY_INFEASIBLE", true);
+        setAttributeValue("DISPLAY_UNSUCCESSFUL", true);
+    }
+    
     // Verify DISPLAY_HEADER is positive
     if (0 == getAttributeValueProtected<size_t>("DISPLAY_HEADER",false))
     {

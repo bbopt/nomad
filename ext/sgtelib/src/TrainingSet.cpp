@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.2                                                                      */
+/*  Version 2.0.3                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -444,7 +444,7 @@ bool SGTELIB::TrainingSet::check_singular_data ( void ){
     for ( j = 0 ; j < _n ; j++ ) {
         for ( i = 0 ; i < _p ; i++ ) {
             if ( ! isdef(_X.get(i,j))){
-                std::cout << "_X(" << i << "," << j << ") = " << _X.get(i,j) << "\n";
+                // std::cout << "_X(" << i << "," << j << ") = " << _X.get(i,j) << "\n";
                 e = true;
             }
         }

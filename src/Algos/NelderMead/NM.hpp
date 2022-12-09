@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_NM__
-#define __NOMAD_4_2_NM__
+#ifndef __NOMAD_4_3_NM__
+#define __NOMAD_4_3_NM__
 
 
 #include "../../Algos/Algorithm.hpp"
@@ -100,4 +100,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_NM__
+#endif // __NOMAD_4_3_NM__

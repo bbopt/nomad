@@ -8,8 +8,13 @@
 # cmake version : the latest one
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
+set(SGTELIB_VERSION_MAJOR 2)
+set(SGTELIB_VERSION_MINOR 0)
+set(SGTELIB_VERSION_PATCH 3)
+set(SGTELIB_VERSION ${SGTELIB_VERSION_MAJOR}.${SGTELIB_VERSION_MINOR}.${SGTELIB_VERSION_PATCH})
+
 # name of the project
-project (sgtelib LANGUAGES CXX VERSION 2.0.2)
+project (sgtelib LANGUAGES CXX VERSION ${SGTELIB_VERSION})
 
 # Disable in-source builds to prevent source tree corruption.
 if(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -117,6 +122,9 @@ target_include_directories(sgtelib_main PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>
 )
 target_link_libraries(sgtelib_main PUBLIC sgtelib)
+set_target_properties(sgtelib  PROPERTIES 
+                               VERSION ${SGTELIB_VERSION}
+                               SOVERSION ${SGTELIB_VERSION_MAJOR}.${SGTELIB_VERSION_MINOR})
 
 # installing executables and libraries
 install(TARGETS sgtelib_main sgtelib 

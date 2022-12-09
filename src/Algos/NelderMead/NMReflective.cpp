@@ -232,11 +232,11 @@ void NOMAD::NMReflective::generateTrialPointsImp()
     {
         xt[k] = yc[k] + d[k];
     }
-    std::shared_ptr<NOMAD::EvalPoint> pointFrom = nullptr;
+    NOMAD::EvalPointPtr pointFrom = nullptr;
     auto barrier = getMegaIterationBarrier();
     if (nullptr != barrier)
     {
-        pointFrom = std::make_shared<NOMAD::EvalPoint>(barrier->getFirstPoint());
+        pointFrom = std::make_shared<NOMAD::EvalPoint>(*barrier->getFirstPoint()); // !!!! Do not use directly barrier EvalPoint Ptr. Instead, make a copy.
         xt.setPointFrom(pointFrom, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
     }
 
@@ -557,7 +557,7 @@ void NOMAD::NMReflective::setAfterInsideContract ( void )
 
 bool NOMAD::NMReflective::insertInYBest(const NOMAD::EvalPoint& x1, const NOMAD::EvalPoint& x2)
 {
-    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
 
     if (nullptr == x1.getEval(evalType))
     {
@@ -758,7 +758,7 @@ bool NOMAD::NMReflective::insertInYBest(const NOMAD::EvalPoint& x1, const NOMAD:
 
 bool NOMAD::NMReflective::insertInY(const NOMAD::EvalPoint& x)
 {
-    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
 
     if (x.getEvalStatus(evalType) != NOMAD::EvalStatusType::EVAL_OK)
     {
@@ -848,7 +848,7 @@ bool NOMAD::NMReflective::insertInY(const NOMAD::EvalPoint& x)
 bool NOMAD::NMReflective::pointDominatesY0( const NOMAD::EvalPoint & xt ) const
 {
     auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
-    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
     std::string s;
 
     if ( _nmY0.size()==0 )
@@ -884,7 +884,7 @@ bool NOMAD::NMReflective::pointDominatesY0( const NOMAD::EvalPoint & xt ) const
 bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
 {
     auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
-    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
 
     if (_nmYn.size() == 0)
     {
@@ -942,7 +942,7 @@ bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
 bool NOMAD::NMReflective::pointDominatesPtsInY(const NOMAD::EvalPoint& xt, size_t nbPointsToDominate) const
 {
     auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
-    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
 
     if (nullptr == xt.getEval(evalType))
     {
@@ -982,7 +982,7 @@ bool NOMAD::NMReflective::pointDominatesPtsInY(const NOMAD::EvalPoint& xt, size_
 bool NOMAD::NMReflective::makeListY0 ()
 {
     auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
-    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
 
     _nmY0.clear();
 
@@ -1034,7 +1034,7 @@ bool NOMAD::NMReflective::makeListY0 ()
 bool NOMAD::NMReflective::makeListYn ()
 {
     auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
-    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
     _nmYn.clear();
 
     auto ity = _nmY->begin();

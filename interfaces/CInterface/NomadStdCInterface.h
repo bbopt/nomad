@@ -19,7 +19,7 @@ extern "C"
     // To pass other informations required in the blackbox (can be useful for other interfaces)
     typedef void *NomadUserDataPtr;
 
-    // Blackbox functions types (TODO add for blackbox block evaluation functions ?)
+    // Blackbox functions types
     typedef bool (*Callback_BB_single)(int, double *, int, double *, bool *, NomadUserDataPtr);
 
 	DLL_ALGO_API NomadProblem createNomadProblem(
@@ -44,8 +44,6 @@ extern "C"
 	DLL_ALGO_API bool addNomadStringParam(NomadProblem nomad_problem, char *keyword, char *param_str);
 
 	DLL_ALGO_API bool addNomadArrayOfDoubleParam(NomadProblem nomad_problem, char *keyword, double *array_param);
-
-    // TODO precise a return status, i.e. a stop reason
 
     // For the moment, do not allow the warm start
 	DLL_ALGO_API bool solveNomadProblem(NomadProblem nomad_problem,

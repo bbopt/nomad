@@ -14,11 +14,11 @@ if(BUILD_TESTS MATCHES ON)
 
     if (WIN32)
         add_test(NAME ExampleAdvancedBatchFixedVariables
-        COMMAND bash.exe runFixedWin.sh
+        COMMAND bash.exe runFixedWin.sh ${CMAKE_INSTALL_PREFIX}/bin/nomad.exe
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
     else()
         add_test(NAME ExampleAdvancedBatchFixedVariables
-        COMMAND ./runFixed.sh
+        COMMAND ./runFixed.sh ${CMAKE_INSTALL_PREFIX}/bin/nomad
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
     endif()
 endif()

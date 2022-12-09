@@ -49,6 +49,7 @@
 /*--------------------------------------------*/
 #include "Nomad/nomad.hpp"
 #include "Type/DirectionType.hpp"
+#include "Type/EvalSortType.hpp"
 
 const size_t N = 50;
 
@@ -88,8 +89,7 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
         f += pow ( 10 * (x[2*i-1].todouble() - pow(x[2*i-2].todouble(),2) ) , 2 );
         f += pow ( 1 - x[2*i-2].todouble() , 2 );
     }
-    NOMAD::BBOutputTypeList bbOutputTypes ={NOMAD::BBOutputType::OBJ};
-    x.setBBO(std::to_string(f), bbOutputTypes);
+    x.setBBO(std::to_string(f), {NOMAD::BBOutputType::OBJ});
 
     countEval = true; // count a black-box evaluation
 
@@ -117,7 +117,7 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->setAttributeValue("PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE",NOMAD::Double(0.0));
     allParams->setAttributeValue("PSD_MADS_SUBPROBLEM_MAX_BB_EVAL",10);
     allParams->setAttributeValue("NB_THREADS_OPENMP",4);
-    
+
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes = {NOMAD::BBOutputType::OBJ};
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
@@ -144,8 +144,9 @@ int main ( int argc , char ** argv )
     initAllParams(params);
     TheMainStep.setAllParameters(params);
 
-    std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
-    TheMainStep.setEvaluator(std::move(ev));
+    // Custom Evaluator
+    auto ev = std::make_unique<My_Evaluator>(params->getEvalParams());
+    TheMainStep.addEvaluator(std::move(ev));
 
     try
     {

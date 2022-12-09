@@ -48,6 +48,7 @@
 #include "../Math/RNG.hpp"  // for setSeed()
 #include "../Param/RunParameters.hpp"
 #include "../Type/DirectionType.hpp"
+#include "../Type/BBOutputType.hpp"
 #include "../Util/fileutils.hpp"
 
 #include "../nomad_version.hpp"
@@ -66,6 +67,9 @@ void NOMAD::RunParameters::init()
     try
     {
         #include "../Attribute/runAttributesDefinition.hpp"
+        registerAttributes( _definition );
+        
+        #include "../Attribute/runAttributesDefinitionIBEX.hpp"
         registerAttributes( _definition );
 
         #include "../Attribute/runAttributesDefinitionLH.hpp"
@@ -159,9 +163,9 @@ void NOMAD::RunParameters::checkAndComply(
     auto problemDir = getAttributeValueProtected<std::string>("PROBLEM_DIR", false);
 
     auto seed = getAttributeValueProtected<int>("SEED" ,false);
-    if ( seed < 0)
+    if ( seed < 0 && seed != -1)
     {
-        throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: SEED must be non-negative" );
+        throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: SEED must be non-negative (-1 is ok)" );
     }
 
     auto version_number = getAttributeValueProtected<std::string>("NOMAD_VERSION", false);
@@ -172,7 +176,7 @@ void NOMAD::RunParameters::checkAndComply(
     }
 
     auto anisotropyFactor = getAttributeValueProtected<NOMAD::Double>("ANISOTROPY_FACTOR", false);
-    if ( anisotropyFactor <= 0)
+    if ( anisotropyFactor < 0)
     {
         throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: ANISOTROPY_FACTOR must be positive" );
     }
@@ -296,7 +300,19 @@ void NOMAD::RunParameters::checkAndComply(
         }
     }
     
-    
+    // Test for DMultiMads
+    bool useAlgoDMultiMads = getAttributeValueProtected<bool>("DMULTIMADS_OPTIMIZATION", false) ;
+    if (useAlgoDMultiMads)
+    {
+        for (auto primaryDirType : primaryDirTypes)
+        {
+            if (  NOMAD::DirectionType::ORTHO_NP1_QUAD == primaryDirType)
+            {
+                err = "Direction_Type for DMultiMads Optimization do not support ORTHO_NP1_QUAD. To deactivate, set DIRECTION_TYPE ORTHO 2N or DIRECTION_TYPE ORTHO N+1 NEG.";
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
+            }
+        }
+    }
     
 
     // Precisions on MEGA_SEARCH_POLL
@@ -396,7 +412,39 @@ void NOMAD::RunParameters::checkAndComply(
             }
         }
     }
-
+    
+    // DMultiMads optimization can enabled/disabled automatically in future versions.
+    if (useAlgoDMultiMads)
+    {
+    
+        // Case where QUAD_MODEL_SEARCH is explicitely set by user -> exception
+        if ( isSetByUser("QUAD_MODEL_SEARCH") &&
+            getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH",false) )
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"DMultiMads cannot currently use quad model search. Please deactivate: QUAD_MODEL_SEARCH no.");
+        }
+        // Case where default is used -> change to false with message
+        if ( getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH",false) )
+        {
+            setAttributeValue("QUAD_MODEL_SEARCH", false);
+            // Warn the user
+            std::cerr << "Warning: QUAD_MODEL_SEARCH is deactivated when enabling DMultiMads optimization" <<  std::endl;
+        }
+        // Case where QUAD_MODEL_SLD_SEARCH is explicitely set by user -> exception
+        if ( isSetByUser("QUAD_MODEL_SLD_SEARCH") &&
+            getAttributeValueProtected<bool>("QUAD_MODEL_SLD_SEARCH",false) )
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"DMultiMads cannot currently use quad model sld search. Please deactivate: QUAD_MODEL_SLD_SEARCH no.");
+        }
+        // Case where default is used -> change to false with message
+        if ( getAttributeValueProtected<bool>("QUAD_MODEL_SLD_SEARCH",false) )
+        {
+            setAttributeValue("QUAD_MODEL_SLD_SEARCH", false);
+            // Warn the user
+            std::cerr << "Warning: QUAD_MODEL_SLD_SEARCH is deactivated when enabling DMultiMads optimization" <<  std::endl;
+        }
+    }
+        
     // Algorithm parameters: use an algorithm other than MADS.
     // They are mutually-exclusive.
     bool useAlgoLH = (getAttributeValueProtected<size_t>("LH_EVAL", false) > 0);
@@ -404,7 +452,7 @@ void NOMAD::RunParameters::checkAndComply(
     bool useAlgoQuadOpt = getAttributeValueProtected<bool>("QUAD_MODEL_OPTIMIZATION", false);
     bool useAlgoSgtelibModel = getAttributeValueProtected<bool>("SGTELIB_MODEL_EVAL", false);
     int totalAlgoSet = (int)useAlgoLH + (int)useAlgoCS +(int)useAlgoNM + (int)useAlgoQuadOpt
-                       + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoSSDMads;
+                       + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoSSDMads + (int)useAlgoDMultiMads;
 
     if (totalAlgoSet >= 2)
     {

@@ -52,6 +52,7 @@
  \see    ArrayOfDouble.hpp
  */
 #include "../Math/ArrayOfDouble.hpp"
+#include <algorithm>
 #include <iomanip>  // For std::setprecision, std::setw
 
 // Initialize static variables
@@ -268,11 +269,11 @@ void NOMAD::ArrayOfDouble::snapToBounds(const NOMAD::ArrayOfDouble &lowerBound,
 
     for (size_t i = 0; i < n; ++i)
     {
-        if (lowerBound.isDefined() && lowerBound[i].isDefined() && _array[i] < lowerBound[i])
+        if (lowerBound.isDefined() && lowerBound[i].isDefined() && _array[i].todouble() < lowerBound[i].todouble())
         {
             _array[i] = lowerBound[i]; // True snap, ignore mesh
         }
-        if (upperBound.isDefined() && upperBound[i].isDefined() && upperBound[i] < _array[i])
+        if (upperBound.isDefined() && upperBound[i].isDefined() && upperBound[i].todouble() < _array[i].todouble())
         {
             _array[i] = upperBound[i]; // True snap, ignore mesh
         }
@@ -904,11 +905,55 @@ void NOMAD::ArrayOfDouble::compare(const NOMAD::ArrayOfDouble& arrayOfDouble,
 }
 
 
+/*---------------------------------------------------------------------------------*/
+/* Comparison function 'lexicographical_tmp': it is used to sort objective vectors */
+/* into the barrier                                                                */
+/*---------------------------------------------------------------------------------*/
+bool NOMAD::ArrayOfDouble::lexicographicalCmp(const NOMAD::ArrayOfDouble &coords) const
+{
+    verifySizesMatch(_n, coords._n, __FILE__, __LINE__);
+
+    size_t currentInd = 0;
+    bool isLexBetter = false;
+    for (size_t i = 0; i < _n; i++)
+    {
+        currentInd = i;
+        if (!_array[i].isDefined() || !coords[i].isDefined())
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__,
+                                   "ArrayOfDouble lexicographic comparison: Undefined value in array");
+        }
+        if (_array[i] < coords[i])
+        {
+            isLexBetter = true;
+            break;
+        }
+        if (_array[i] > coords[i])
+        {
+            isLexBetter = false;
+            break;
+        }
+    }
+
+    // Check that the remaining indices are well-defined.
+    for (size_t i = currentInd+1; i < _n ;++i)
+    {
+        if (!_array[i].isDefined() || !coords[i].isDefined())
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__,
+                                   "ArrayOfDouble lexicographic comparison: Undefined value in array");
+        }
+    }
+    return isLexBetter;
+}
+
+
 /*---------------*/
 /*    display    */
 /*---------------*/
-std::string NOMAD::ArrayOfDouble::display(const NOMAD::ArrayOfDouble &precision) const
+std::string NOMAD::ArrayOfDouble::display(const NOMAD::ArrayOfDouble &precision, const std::string & doubleFormat) const
 {
+
     std::ostringstream oss;
     // Fixed
     oss.setf(std::ios::fixed, std::ios::floatfield);
@@ -920,12 +965,19 @@ std::string NOMAD::ArrayOfDouble::display(const NOMAD::ArrayOfDouble &precision)
             oss << " ";
         }
 
-        int prec = -1;
-        if (precision.isDefined() && precision[i].isDefined())
+        if (doubleFormat.empty())
         {
-            prec = static_cast<int>(precision[i].round());
+            int prec = -1;
+            if (precision.isDefined() && precision[i].isDefined())
+            {
+                prec = static_cast<int>(precision[i].round());
+            }
+            oss << ((*this)[i]).display(prec);
         }
-        oss << ((*this)[i]).display(prec);
+        else
+        {
+            oss << ((*this)[i]).display(doubleFormat);
+        }
 
     }
 

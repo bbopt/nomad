@@ -51,8 +51,8 @@
  * \date   February 2018
  */
 
-#ifndef __NOMAD_4_2_STATSINFO__
-#define __NOMAD_4_2_STATSINFO__
+#ifndef __NOMAD_4_3_STATSINFO__
+#define __NOMAD_4_3_STATSINFO__
 
 #include <memory>   // For unique_ptr
 #include <vector>
@@ -60,6 +60,7 @@
 #include "../Math/Point.hpp"
 #include "../Util/ArrayOfString.hpp"
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 
@@ -120,10 +121,11 @@ typedef ArrayOfString DisplayStatsTypeList;
 /**
  Also holds information about stats file.
  */
-class StatsInfo
+class DLL_UTIL_API StatsInfo
 {
 private:
     // Stats infos
+    bool            _failedEval;
     Double          _obj;
     Double          _consH;
     Double          _hMax;
@@ -173,6 +175,7 @@ public:
 public:
 
     // Get/Set
+    void setFailEval (bool fail)                    { _failedEval = fail;}
     void setObj(const Double& obj)                  { _obj = obj; }
     void setConsH(const Double consH)               { _consH = consH; }
     void setHMax(const Double hMax)                 { _hMax = hMax; }
@@ -208,7 +211,8 @@ public:
     void setSuccessType(const SuccessType& success) { _success = success; }
 
     // Should this stats be printed even if DISPLAY_ALL_EVAL is false
-    bool alwaysDisplay(const bool displayInfeasible,
+    bool alwaysDisplay(const bool displayFailed,
+                       const bool displayInfeasible,
                        const bool displayUnsuccessful,
                        const bool forStatsFile) const;
 
@@ -245,4 +249,4 @@ inline std::ostream& operator<< (std::ostream& os, const DisplayStatsType& displ
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_STATSINFO__
+#endif // __NOMAD_4_3_STATSINFO__

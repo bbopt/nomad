@@ -69,9 +69,6 @@ void NOMAD::CSMegaIteration::startImp()
     update.run();
     update.end();
 
-    // Now that update has used the previous MegaIteration success type, reset it
-    setSuccessType(NOMAD::SuccessType::NOT_EVALUATED);
-
     // Verify mesh stop conditions.
     _mainMesh->checkMeshForStopping( _stopReasons );
 
@@ -82,7 +79,6 @@ void NOMAD::CSMegaIteration::startImp()
 
 bool NOMAD::CSMegaIteration::runImp()
 {
-    NOMAD::SuccessType bestSuccessYet = NOMAD::SuccessType::NOT_EVALUATED;
 
     std::string s;
 
@@ -114,21 +110,13 @@ bool NOMAD::CSMegaIteration::runImp()
         OUTPUT_DEBUG_END
 
         _csIteration->start();
-
         bool iterSuccessful = _csIteration->run();
-        // Compute MegaIteration success
-        NOMAD::SuccessType iterSuccess = _csIteration->getSuccessType();
-        if (iterSuccess > bestSuccessYet)
-        {
-            bestSuccessYet = iterSuccess;
-        }
-
         _csIteration->end();
 
         if (iterSuccessful)
         {
             OUTPUT_DEBUG_START
-            s = getName() + ": new success " + NOMAD::enumStr(iterSuccess);
+            s = getName() + ": new success " + NOMAD::enumStr(_success);
             AddOutputDebug(s);
             OUTPUT_DEBUG_END
         }
@@ -153,10 +141,9 @@ bool NOMAD::CSMegaIteration::runImp()
     // MegaIteration is a success if either a better xFeas or
     // a dominating or partial success for xInf was found.
     // See Algorithm 12.2 from DFBO.
-    setSuccessType(bestSuccessYet);
 
     // return true if we have a partial or full success.
-    return (bestSuccessYet >= NOMAD::SuccessType::PARTIAL_SUCCESS);
+    return (_success >= NOMAD::SuccessType::PARTIAL_SUCCESS);
 }
 
 void NOMAD::CSMegaIteration::display(std::ostream& os) const

@@ -51,8 +51,8 @@
   \date   2010-04-05
   \see    ParameterEntry.cpp
 */
-#ifndef __NOMAD_4_2_ParameterEntry__
-#define __NOMAD_4_2_ParameterEntry__
+#ifndef __NOMAD_4_3_ParameterEntry__
+#define __NOMAD_4_3_ParameterEntry__
 
 #include "../Util/utils.hpp"
 
@@ -64,7 +64,7 @@
     - Describes the data relative to a parameter in a parameters file.
     - Objects of this class are stored in a ParameterEntries object.
 */
-class ParameterEntry {
+class DLL_UTIL_API ParameterEntry {
 
 private:
 
@@ -233,4 +233,4 @@ inline std::ostream& operator<< (std::ostream &out,
 #include "../nomad_nsend.hpp"
 
 
-#endif  // __NOMAD_4_2_ParameterEntry__
+#endif  // __NOMAD_4_3_ParameterEntry__
