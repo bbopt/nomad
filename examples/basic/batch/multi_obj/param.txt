@@ -33,7 +33,7 @@ QUAD_MODEL_SEARCH no
 #NM_SEARCH no
 SPECULATIVE_SEARCH no
 
-DISPLAY_DEGREE 3
+DISPLAY_DEGREE 2
 DISPLAY_STATS BBE ( SOL ) BBO  # Display the number of evaluation (BBE),
 		     		  # the current solution ( SOL ) and the objectives
 
