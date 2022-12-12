@@ -387,7 +387,7 @@ int main ( int argc , char ** argv )
                 if ( i > 0 )
                 {
                     // Seuil compteur dynamique
-                    stopConsFailures = 3.0*std::ceil(i/5.0);
+                    stopConsFailures = static_cast<int>(3*std::ceil(i/5.0));
                     
                     // Desactivate VNS MADS search
                     params->getRunParams()->setAttributeValue("VNS_MADS_SEARCH", false);
@@ -420,7 +420,7 @@ int main ( int argc , char ** argv )
             else  // MADS default + VNS for 1 mega iteration only
             {
                 // Update thresholds for the stopping criterion
-                stopConsFailures = 3.0*std::ceil(i/5.0);
+                stopConsFailures = static_cast<int>(3*std::ceil(i/5.0));
 
                 TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_START, userMegaIterationStartForVNS);
                 nbBbeBeforeVNS = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval(); // Keeps the number of blackbox evaluations before using VNS
