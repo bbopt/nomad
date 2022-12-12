@@ -49,17 +49,6 @@
 /* enables to restart from current state with different parameter settings (here VNS) */
 /*------------------------------------------------------------------------------------*/
 
-//
-// CT
-// Do not keep for Nomad 4 deliverable.
-// This approach is more flexible than the VNSSmart search method (for example stopConsFailures = 3*std::ceil(i/5.0);)
-// The pb is that the cache is cleared after each "iteration" (during MainStep.start()).
-// Cannot be used with the Runner. When comparing with runs using VNS search method it seems not as good but Quad Model cannot be built efficiently.
-// Could serve as a basis for a Super Algorithm.
-//
-
-
-
 #include "Nomad/nomad.hpp"
 #include "Algos/EvcInterface.hpp"
 #include "Algos/Mads/MadsMegaIteration.hpp"
@@ -146,7 +135,9 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams, const size_t
         // RASTRIGIN
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
     allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj"));
-        // COCO
+    
+	
+	// COCO
     /*
     bbOutputTypes.push_back(NOMAD::BBOutputType::PB);
     bbOutputTypes.push_back(NOMAD::BBOutputType::PB);
@@ -190,7 +181,7 @@ void userMegaIterationStart(const NOMAD::Step& step,
     
     if (nullptr != megaIter)
     {
-        std::cout << std::endl << "On commence une méga itération!" << std::endl;
+        // std::cout << std::endl << "Start mega itération!" << std::endl;
         ++nbIteration;
         // We use the success of the previous megaIteration. The success is reset to UNDEFINED at the defaultStart before this callback function is called.
         auto success = megaIter->getSuccessType(); //NOT_TRIALS, UNSUCCESSFUL, PARTIAL_SUCCESS, FULL_SUCCESS ou UNDEFINED
@@ -204,14 +195,14 @@ void userMegaIterationStart(const NOMAD::Step& step,
         }
         else if (NOMAD::SuccessType::UNDEFINED == success) // no event case
         {
-            std::cout << "Default type set at start" << std::endl;
+            //std::cout << "Default type set at start" << std::endl;
         }
         else // update if unsuccessful or no trial points
         {
             //std::cout << "UNSUCCESSFUL OR NO_TRIALS" << std::endl;
             ++compteur;
         }
-        std::cout << "Nombre d'échecs successifs : " << compteur << std::endl;
+        // std::cout << "Nb consecutive fails:" << compteur << std::endl;
         
         // We can also have access to this information through nomad statistics
         // auto nbConsecutiveFail = megaIter->getConstSuccessStats().getStatsNbConsecutiveFail();
@@ -220,21 +211,21 @@ void userMegaIterationStart(const NOMAD::Step& step,
         if (i > 0) {
             // Keep information about the value of mesh index from the previous run
             NOMAD::ArrayOfDouble oldMeshIndices = mesh->getMeshIndex();
-            std::cout << "old mesh indices : " << oldMeshIndices << std::endl;
+            //std::cout << "old mesh indices : " << oldMeshIndices << std::endl;
             
             // Let's pass the mesh
-            std::cout << std::endl << "Informations sur le mesh :" << std::endl;
+            //std::cout << std::endl << "Mesh :" << std::endl;
             mesh = megaIter->getMesh();
-            std::cout << *mesh << std::endl;
+            //std::cout << *mesh << std::endl;
             
             // Set the mesh index value
             mesh->setMeshIndex(oldMeshIndices);
         }
         else {
             // Let's pass the mesh
-            std::cout << std::endl << "Informations sur le mesh :" << std::endl;
+            //std::cout << std::endl << Mesh :" << std::endl;
             mesh = megaIter->getMesh();
-            std::cout << *mesh << std::endl;
+            //std::cout << *mesh << std::endl;
         }
         
         // Let's print a parameter on MAX_BB_EVAL
@@ -245,17 +236,15 @@ void userMegaIterationStart(const NOMAD::Step& step,
         // Collect mesh index information
         NOMAD::ArrayOfDouble meshIndices = mesh->getMeshIndex();
         NOMAD::ArrayOfDouble meshIndexStop(meshIndices.size(), stopMeshIndex);
-        std::cout << "mesh indices : " << meshIndices << std::endl;
-        std::cout << "mesh stop indices : " << meshIndexStop << std::endl;
+        //std::cout << "mesh indices: " << meshIndices << std::endl;
+       // std::cout << "mesh stop indices: " << meshIndexStop << std::endl;
         
         // Reinitialize the iteration state
         iterationSucess = false;
 
         // Stopping conditions:
-        // NOMAD::SuccessType::UNSUCCESSFUL == success && bbe > 10
-        // (compteur >= stopConsFailures) && (meshIndices <= meshIndexStop)
         stopCondition = (compteur >= stopConsFailures);
-        std::cout << std::endl << "Condition d'arrêt : " << stopCondition << std::endl;
+        //std::cout << std::endl << "Stopping condition: " << stopCondition << std::endl;
         
         if (stopCondition) // Stop motivated by user conditions
         {
@@ -273,16 +262,16 @@ void userMegaIterationStartForVNS(const NOMAD::Step& step,
 {
     auto megaIter = dynamic_cast<const NOMAD::MadsMegaIteration*>(&step);
     auto bbe = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval(); // Récupère le nombre de blackbox evaluations
-    //std::cout << "CallBack START VNS " << std::endl;
     
+ 
     stop = false;
     
     if (nullptr != megaIter)
     {
-        std::cout << "On commence une méga itération!" << std::endl;
+    
         ++nbEnterMegaIter;
         ++nbIteration;
-        std::cout << std::endl << "Nombre entrée méga itération : " << nbEnterMegaIter << std::endl;
+        // std::cout << std::endl << "Nb mega iter: " << nbEnterMegaIter << std::endl;
         // We use the success of the previous megaIteration. The success is reset to UNDEFINED at the defaultStart before this callback function is called.
         auto success = megaIter->getSuccessType(); //NO_TRIALS, UNSUCCESSFUL, PARTIAL_SUCCESS, FULL_SUCCESS ou UNDEFINED
         
@@ -300,20 +289,17 @@ void userMegaIterationStartForVNS(const NOMAD::Step& step,
         {
             ++compteur;
         }
-        std::cout << "Nombre d'échecs successifs : " << compteur << std::endl;
-        
-        // We can also have access to this information through nomad statistics
-        // auto nbConsecutiveFail = megaIter->getConstSuccessStats().getStatsNbConsecutiveFail();
-        // std::cout << "Compteur NOMAD : " << nbConsecutiveFail << std::endl;
+        //std::cout << "Number of successive fails: " << compteur << std::endl;
+     
         
         // Keep information about the value of mesh index from the previous run
         NOMAD::ArrayOfDouble oldMeshIndices = mesh->getMeshIndex();
-        std::cout << "old mesh indices : " << oldMeshIndices << std::endl;
+        // std::cout << "old mesh indices: " << oldMeshIndices << std::endl;
         
         // Let's pass the mesh
-        std::cout << std::endl << "Informations sur le mesh :" << std::endl;
+        //std::cout << std::endl << "Mesh :" << std::endl;
         mesh = megaIter->getMesh();
-        std::cout << *mesh << std::endl;
+        //std::cout << *mesh << std::endl;
         
         // Set the mesh index value
         mesh->setMeshIndex(oldMeshIndices);
@@ -321,22 +307,21 @@ void userMegaIterationStartForVNS(const NOMAD::Step& step,
         // Collect mesh index information
         NOMAD::ArrayOfDouble meshIndices = mesh->getMeshIndex();
         NOMAD::ArrayOfDouble meshIndexStop(meshIndices.size(), stopMeshIndex);
-        std::cout << "mesh indices : " << meshIndices << std::endl;
-        std::cout << "mesh stop indices : " << meshIndexStop << std::endl;
+        //std::cout << "mesh indices : " << meshIndices << std::endl;
+        //std::cout << "mesh stop indices : " << meshIndexStop << std::endl;
         
         iterationSucess = false;
         
         // Stopping conditions:
         stopCondition = (compteur >= stopConsFailures);
-        std::cout << std::endl << "Condition d'arrêt : " << stopCondition << std::endl;
+        // std::cout << std::endl << "Stopping condition: " << stopCondition << std::endl;
         
         // Stop motivated by user conditions : after one megaiteration
-        if (NOMAD::SuccessType::UNDEFINED != success && nbEnterMegaIter > 1) // (bbe > nbBbeBeforeVNS + 200) // (NOMAD::SuccessType::UNDEFINED != success)
+        if (NOMAD::SuccessType::UNDEFINED != success && nbEnterMegaIter > 1) 
         {
             stop = true;
             nbEnterMegaIter = 0;
             nbBbeWithVNS += (bbe - nbBbeBeforeVNS);
-            std::cout << "Nombre total d'évaluations avec VNS : " << nbBbeWithVNS << std::endl;
         }
     }
 }
@@ -393,11 +378,8 @@ int main ( int argc , char ** argv )
             params->setAttributeValue("HISTORY_FILE", std::string(historyFile));
             
             // Set callbacks
-            //std::cout << std::endl << "Condition d'arrêt DANS BOUCLE RUN : " << stopCondition << std::endl;
+    
             if (!stopCondition) // MADS default without VNS
-            // std::cout << std::endl << "Numéro itération : " << nbIteration << std::endl;
-            // std::cout << std::endl << "Décision random forest : " << L[nbIteration] << std::endl;
-            // if (L[nbIteration] == 0)
             {
                 std::cout << "MADS default no VNS" << std::endl;
                 TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_START, userMegaIterationStart);
@@ -405,10 +387,7 @@ int main ( int argc , char ** argv )
                 if ( i > 0 )
                 {
                     // Seuil compteur dynamique
-                    stopConsFailures = 3*std::ceil(i/5.0);
-                    //stopMeshIndex = -2*i;
-                    //std::cout << "Seuil compteur : " << stopConsFailures << std::endl;
-                    //std::cout << "Seuil index : " << stopMeshIndex << std::endl;
+                    stopConsFailures = 3.0*std::ceil(i/5.0);
                     
                     // Desactivate VNS MADS search
                     params->getRunParams()->setAttributeValue("VNS_MADS_SEARCH", false);
@@ -441,16 +420,10 @@ int main ( int argc , char ** argv )
             else  // MADS default + VNS for 1 mega iteration only
             {
                 // Update thresholds for the stopping criterion
-                stopConsFailures = 3*std::ceil(i/5.0);
-                //stopMeshIndex = -2*i;
-                //std::cout << "Seuil compteur : " << stopConsFailures << std::endl;
-                //std::cout << "Seuil index : " << stopMeshIndex << std::endl;
+                stopConsFailures = 3.0*std::ceil(i/5.0);
 
-                std::cout << "MADS default with VNS : 1 seule mega itération" << std::endl;
                 TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_START, userMegaIterationStartForVNS);
                 nbBbeBeforeVNS = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval(); // Keeps the number of blackbox evaluations before using VNS
-                std::cout << "Nombre de blackbox evaluations avant VNS : " << nbBbeBeforeVNS << std::endl;
-
                 
                 // Activate VNS MADS serach
                 params->getRunParams()->setAttributeValue("VNS_MADS_SEARCH", true);
@@ -489,9 +462,8 @@ int main ( int argc , char ** argv )
             stopLoop = algoStopReason->testIf(NOMAD::MadsStopType::MESH_PREC_REACHED) || algoStopReason->testIf(NOMAD::MadsStopType::MIN_MESH_INDEX_REACHED) ; // Test si le stop reason correspond MESH_PREC_REACHED
             std::cout << algoStopReason->getStopReasonAsString() << std::endl; // Juste affiche le stop reason.
             
-            //auto baseStopReason = NOMAD::StopReason<NOMAD::BaseStopType>::get(TheMainStep.getAllStopReasons());
             stopReasonIsCallback = (algoStopReason->getStopReasonAsString() == "User-stopped in a callback function (Base)");
-            std::cout << "Est-ce que la raison de l'arrêt est un callback ? " << stopReasonIsCallback << std::endl;
+       
 
             bf.clear();
             bi.clear();
@@ -501,8 +473,8 @@ int main ( int argc , char ** argv )
             ++i;
             
         } while (!stopLoop); // run until one NOMAD termination criterion is met
-        std::cout << "Nombre final d'évaluations avec VNS : " << nbBbeWithVNS << std::endl;
-    }
+       
+}
 
     catch(std::exception &e)
     {
