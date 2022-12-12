@@ -231,8 +231,6 @@ NOMAD::SuccessType NOMAD::Barrier::getSuccessTypeOfPoints(const EvalPointPtr xFe
 {
     NOMAD::SuccessType successType = SuccessType::UNSUCCESSFUL;
     NOMAD::SuccessType successType2 = SuccessType::UNSUCCESSFUL;
-    NOMAD::SuccessType successType3 = SuccessType::UNSUCCESSFUL;
-    NOMAD::SuccessType successType4 = SuccessType::UNSUCCESSFUL;
 
     NOMAD::EvalPointPtr newBestFeas,newBestInf;
 
