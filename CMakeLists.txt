@@ -5,12 +5,18 @@
 # cmake version : the latest one
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
+set(NOMAD_VERSION_MAJOR 4)
+set(NOMAD_VERSION_MINOR 3)
+set(NOMAD_VERSION_PATCH 0)  
+set(NOMAD_VERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}.${NOMAD_VERSION_PATCH})
+
 # name of the project
-project (Nomad VERSION 4.2.0)
+# Need to update when version changes
+project (Nomad VERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR})
 
 # Nomad src template (copy of template defined in src/nomad_version.hpp, used by jNomad) 
 # Need to update when version changes
-set(NOMAD_SRC_TEMPLATE NOMAD_4_2)
+set(NOMAD_SRC_TEMPLATE NOMAD_${NOMAD_VERSION_MAJOR}_${NOMAD_VERSION_MINOR})
 
 # use standard compilers parameters for c++14
 SET(CMAKE_CXX_STANDARD 14 )
@@ -44,11 +50,9 @@ else()
     message(WARNING "You are using an unsupported compiler. Compilation has only been tested with Clang, GCC, and MSVC.")
 endif()
 
-#options
-
-
-# choose to build with benchmarks
-# option(BUILD_BENCHMARKS "Build benchmark tests" OFF)
+##########
+# Options
+##########
 
 # Load some modules
 include(GNUInstallDirs)
@@ -66,9 +70,7 @@ list(APPEND CMAKE_MESSAGE_INDENT "  ")
 #
 # Modify the install prefix if not specified on the command
 #
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR} CACHE PATH "..." FORCE) 
-endif()
+set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR} CACHE PATH "..." FORCE) 
 message(STATUS "  Installation prefix set to ${CMAKE_INSTALL_PREFIX}")
 
 #
@@ -109,6 +111,7 @@ if(REDUCED_DISPLAY_TEST MATCHES ON)
    add_compile_definitions(REDUCED_DISPLAY_TEST)
 endif()
 
+
 #
 # Test openMP package
 #
@@ -139,11 +142,10 @@ else()
    message(STATUS "  Examples NOT built")
 endif()
 
-
 #
 # Choose to build the C interface
 #
-option(BUILD_INTERFACE_C "Option to build C interfaces to Nomad" OFF)
+option(BUILD_INTERFACE_C "Option to build C interface to Nomad" OFF)
 if(BUILD_INTERFACE_C MATCHES ON)
    message(CHECK_START "  Configuring build for C interface")
    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/CInterface)
@@ -157,9 +159,14 @@ endif()
 #
 option(BUILD_INTERFACE_PYTHON "Option to build Python interface to Nomad" OFF)
 if(BUILD_INTERFACE_PYTHON MATCHES ON)
-   message(CHECK_START "  Configuring build for Python interface")
-   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/PyNomad)
-   message(CHECK_PASS " done")
+   if(OpenMP_FOUND)
+       message(STATUS "  Warning: Cannot build Python interface with OpenMP enabled")
+   else()
+       find_package(Python 3.6...<3.20 QUIET REQUIRED)
+       message(CHECK_START "  Configuring build for Python interface")
+       add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/PyNomad)
+       message(CHECK_PASS " done")
+   endif()
 else()
    message(STATUS "  Python interface to Nomad NOT built")
 endif()
@@ -172,11 +179,10 @@ if(BUILD_INTERFACE_MATLAB MATCHES ON)
    if(OpenMP_FOUND)
        message(STATUS "  Warning: Cannot build Matlab interface with OpenMP enabled")
    else()
-       message(CHECK_START "  Configuring build for Matlab interface")
        find_package(Matlab QUIET REQUIRED COMPONENTS MEX_COMPILER)
        if(MATLAB_FOUND)
+          message(CHECK_START "  Configuring build for Matlab interface")
           add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/Matlab_MEX)
-          message(CHECK_PASS " done")
        else()
           message(STATUS "  Matlab no found... interface not built")
        endif()
@@ -191,10 +197,11 @@ endif()
 option(BUILD_INTERFACE_JAVA "Option to build Java Swig interface to Nomad" OFF)
 if(BUILD_INTERFACE_JAVA MATCHES ON)
 
-   # The following lines maybe required. See issue #83
+   # The following lines maybe required.
    #set(JAVA_INCLUDE_PATH "$ENV{JAVA_HOME}/Contents/Home/include")
    #set(JAVA_INCLUDE_PATH2 "$ENV{JAVA_HOME}/Contents/Home/include")
    #set(JAVA_AWT_INCLUDE_PATH "$ENV{JAVA_HOME}/Contents/Home/include")
+
    find_package(Java REQUIRED COMPONENTS Runtime Development)
    find_package(SWIG 4.0 REQUIRED COMPONENTS java)
    find_package(JNI REQUIRED)
@@ -202,6 +209,7 @@ if(BUILD_INTERFACE_JAVA MATCHES ON)
        if(NOT SWIG_java_FOUND)
            message(WARNING "   SWIG java bindings cannot be generated")
        else()
+           message(CHECK_START "  Configuring build for Java Swig interface")
            add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/jNomad)
        endif()
    else()
@@ -212,6 +220,21 @@ else()
    message(STATUS "  Java Swig interface to Nomad NOT built")
 endif()
 
+
+option(USE_IBEX "Option to use IBEX" OFF)
+if(USE_IBEX MATCHES ON)
+   message(CHECK_START "  Enabling Ibex use.")
+   if(NOT DEFINED ENV{IBEX_ROOT})
+        message(FATAL_ERROR "FATAL: Ibex root environment variable IBEX_ROOT is not defined")     
+   endif()
+   If (NOT EXISTS "$ENV{IBEX_ROOT}")
+        message(FATAL_ERROR "FATAL: Ibex root dir $ENV{IBEX_ROOT} is not present")      
+   endif()
+   message(STATUS "  Ibex root: $ENV{IBEX_ROOT}")
+   set(USE_IBEX ON)
+else()
+   message(STATUS "  Use of Ibex for projecting NOT enabled")
+endif()
 
 #
 # Custom options final message
