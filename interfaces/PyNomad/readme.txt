@@ -49,9 +49,10 @@ The command
    cmake --install build/release
 must be run before using the PyNomad module.
 
+Also, for *Windows*, the path to $NOMAD_HOME/build/release/bin directory MUST 
+be added to the %PATH% environment variable. This will allow PyNomad to find
+the Nomad libraries.
 
-The next release of NOMAD will provide installation through pip using 
-a wheel.
 
 **********
 HOW TO USE

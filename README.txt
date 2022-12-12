@@ -152,7 +152,7 @@ cmake --install build/release (for *OSX* and *Linux*)
 
 By default, the executable "nomad" will installed into the directory:
 build/release/bin/  (build/debug/bin/ when in debug mode). A symbolic link
-is added in the bin directory.
+is added in the bin directory for OSX and Linux. 
 
 It is possible to build only a single application in its working directory:
 (with NOMAD_HOME environment variable properly set)
