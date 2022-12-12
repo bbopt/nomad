@@ -70,6 +70,7 @@ else:
 
 setup(
     name='PyNomad',
+    version=nomad_version,
     ext_modules = cythonize(Extension(
            "PyNomad", # extension name
            sources = ["PyNomad.pyx"], # Cython source and interface
