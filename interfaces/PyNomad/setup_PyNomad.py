@@ -71,6 +71,11 @@ else:
 setup(
     name='PyNomad',
     version=nomad_version,
+    author='Christophe Tribes',
+    author_email='christophe.tribes@polymtl.ca',
+    license='LGPL',
+    description='Python interface to Nomad for blackbox optimization',
+    url='gerad.ca/nomad or github/bbot/nomad',
     ext_modules = cythonize(Extension(
            "PyNomad", # extension name
            sources = ["PyNomad.pyx"], # Cython source and interface
