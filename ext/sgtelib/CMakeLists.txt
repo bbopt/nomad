@@ -115,19 +115,20 @@ if (WIN32)
     target_compile_definitions(sgtelib PRIVATE -DDLL_EXPORTS)
 endif()
 
-add_executable (sgtelib_main ${SGTELIB_MAIN_SOURCE})
-set_target_properties(sgtelib_main PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-target_include_directories(sgtelib_main PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>
-)
-target_link_libraries(sgtelib_main PUBLIC sgtelib)
+#add_executable (sgtelib_main ${SGTELIB_MAIN_SOURCE})
+#set_target_properties(sgtelib_main PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+#target_include_directories(sgtelib_main PUBLIC
+#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+#    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>
+#)
+#target_link_libraries(sgtelib_main PUBLIC sgtelib)
+
 set_target_properties(sgtelib  PROPERTIES 
                                VERSION ${SGTELIB_VERSION}
                                SOVERSION ${SGTELIB_VERSION_MAJOR}.${SGTELIB_VERSION_MINOR})
 
 # installing executables and libraries
-install(TARGETS sgtelib_main sgtelib 
+install(TARGETS sgtelib 
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
