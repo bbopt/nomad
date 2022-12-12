@@ -96,8 +96,6 @@ jobs:
 
       - name: Tests
         shell: bash
-        with:
-          fail-on-error: false
         run: |
           export PATH=`pwd`/build/bin:$PATH
           echo $PATH
