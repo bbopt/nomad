@@ -430,19 +430,6 @@ void NOMAD::RunParameters::checkAndComply(
             // Warn the user
             std::cerr << "Warning: QUAD_MODEL_SEARCH is deactivated when enabling DMultiMads optimization" <<  std::endl;
         }
-        // Case where QUAD_MODEL_SLD_SEARCH is explicitely set by user -> exception
-        if ( isSetByUser("QUAD_MODEL_SLD_SEARCH") &&
-            getAttributeValueProtected<bool>("QUAD_MODEL_SLD_SEARCH",false) )
-        {
-            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"DMultiMads cannot currently use quad model sld search. Please deactivate: QUAD_MODEL_SLD_SEARCH no.");
-        }
-        // Case where default is used -> change to false with message
-        if ( getAttributeValueProtected<bool>("QUAD_MODEL_SLD_SEARCH",false) )
-        {
-            setAttributeValue("QUAD_MODEL_SLD_SEARCH", false);
-            // Warn the user
-            std::cerr << "Warning: QUAD_MODEL_SLD_SEARCH is deactivated when enabling DMultiMads optimization" <<  std::endl;
-        }
     }
         
     // Algorithm parameters: use an algorithm other than MADS.
