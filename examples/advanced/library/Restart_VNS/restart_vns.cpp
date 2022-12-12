@@ -321,7 +321,7 @@ void userMegaIterationStartForVNS(const NOMAD::Step& step,
         {
             stop = true;
             nbEnterMegaIter = 0;
-            nbBbeWithVNS += (bbe - nbBbeBeforeVNS);
+            nbBbeWithVNS += (static_cast<int>(bbe) - nbBbeBeforeVNS);
         }
     }
 }
@@ -423,7 +423,7 @@ int main ( int argc , char ** argv )
                 stopConsFailures = static_cast<int>(3*std::ceil(i/5.0));
 
                 TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_START, userMegaIterationStartForVNS);
-                nbBbeBeforeVNS = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval(); // Keeps the number of blackbox evaluations before using VNS
+                nbBbeBeforeVNS = static_cast<int>(NOMAD::EvcInterface::getEvaluatorControl()->getBbEval()); // Keeps the number of blackbox evaluations before using VNS
                 
                 // Activate VNS MADS serach
                 params->getRunParams()->setAttributeValue("VNS_MADS_SEARCH", true);
