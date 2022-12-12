@@ -199,7 +199,7 @@ private:
     DLL_UTIL_API static uint32_t x_def, y_def, z_def;    ///< Initial values for the random number generator
 	DLL_UTIL_API static uint32_t _x, _y, _z;             ///< Current values for the random number generator
 
-    static int _s;
+	DLL_UTIL_API static int _s;
 
 
 };
