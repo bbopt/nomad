@@ -29,13 +29,15 @@ HOW TO BUILD AND INSTALL
 The interface build is managed by CMake that can be run at NOMAD root. 
 
 The configuration command:
-   cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release 
+   cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release 
 must be performed with Cython available (that can be done within a Conda 
-environment: conda activate ... or activate ...).
+environment: conda activate ... or activate ...). 
+Please note that the Python interface do not support OpenMP.
 
 For Windows, the default Anaconda is Win64. Visual Studio can support both 
 Win32 and Win64 compilations. The configuration must be forced to use Win64:
-   cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release -G"Visual Studio 15 2017 Win64". 
+   cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release -G"Visual Studio 15 2017 Win64". 
+
 The Visual Studio version must be adapted.
 
 The command 
