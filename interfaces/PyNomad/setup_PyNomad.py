@@ -60,9 +60,9 @@ elif sys.platform.startswith("win"):
 
 # For building/linking the interface, the libraries build directory is used.
 if sys.platform.startswith("win"):
-    link_args.append(build_lib_dir + "/Release/nomadUtils." + nomad_version +"." + lib_extension)
-    link_args.append(build_lib_dir + "/Release/nomadEval." + nomad_version +"."+ lib_extension)
-    link_args.append(build_lib_dir+ "/Release/nomadAlgos." + nomad_version +"."+ lib_extension)
+    link_args.append(build_lib_dir + "/Release/nomadUtils." + lib_extension)
+    link_args.append(build_lib_dir + "/Release/nomadEval." + lib_extension)
+    link_args.append(build_lib_dir+ "/Release/nomadAlgos." + lib_extension)
 else:
     link_args.append(build_lib_dir + "/libnomadUtils." + nomad_version +"."+ lib_extension)
     link_args.append(build_lib_dir + "/libnomadEval." + nomad_version +"."+ lib_extension)
