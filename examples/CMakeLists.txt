@@ -5,21 +5,19 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/example4)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/single_obj_parallel)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/COCO)
 
-# Issue #491
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/exampleForCustomHComputation)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/FixedVariable)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/NMonly)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/Restart)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/Restart_VNS)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/exampleSuggestAndObserve)
-if(OpenMP_CXX_FOUND)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/PSDMads)
-endif()
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/NMonly)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/Restart)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/Restart_VNS)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/exampleSuggestAndObserve)
+#if(OpenMP_CXX_FOUND)
+#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/PSDMads)
+#endif()
 
-if (BUILD_INTERFACE_C MATCHES ON)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/c_api/example1)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/c_api/example2)
-endif()
+#if (BUILD_INTERFACE_C MATCHES ON)
+#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/c_api/example1)
+#    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/c_api/example2)
+#endif()
 
 # For running the tests on the batch examples we need to build the blackbox
 # AND install
