@@ -425,3 +425,8 @@ NOMAD parameters are provided via these functions:
     bool addNomadArrayOfDoubleParam(NomadProblem nomad_problem, char *keyword, double *array_param);
 
 See examples that are proposed in the ``$NOMAD_HOME/examples/advanced/library/c_api`` directory.
+
+Julia interface
+-----------
+
+A Julia interface for NOMAD called  `NOMAD.jl <https://github.com/bbopt/NOMAD.jl/>`_ is available as an official Julia package.
