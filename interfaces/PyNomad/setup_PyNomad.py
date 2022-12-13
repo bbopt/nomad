@@ -64,9 +64,9 @@ if sys.platform.startswith("win"):
     link_args.append(build_lib_dir + "/Release/nomadEval." + lib_extension)
     link_args.append(build_lib_dir+ "/Release/nomadAlgos." + lib_extension)
 else:
-    link_args.append(build_lib_dir + "/libnomadUtils." + nomad_version +"."+ lib_extension)
-    link_args.append(build_lib_dir + "/libnomadEval." + nomad_version +"."+ lib_extension)
-    link_args.append(build_lib_dir+ "/libnomadAlgos." + nomad_version +"."+ lib_extension)
+    link_args.append(build_lib_dir + "/libnomadUtils."+ lib_extension)
+    link_args.append(build_lib_dir + "/libnomadEval." +  lib_extension)
+    link_args.append(build_lib_dir+ "/libnomadAlgos." + lib_extension)
 
 setup(
     name='PyNomad',
