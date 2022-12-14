@@ -110,7 +110,7 @@ bool NOMAD::NM::runImp()
             k       = megaIteration.getK();
             megaIterSuccess = megaIteration.getSuccessType();
 
-            if (_userInterrupt)
+            if (getUserInterrupt())
             {
                 hotRestartOnUserInterrupt();
             }

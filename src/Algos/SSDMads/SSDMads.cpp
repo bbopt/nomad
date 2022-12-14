@@ -93,7 +93,7 @@ bool NOMAD::SSDMads::runImp()
             k       = ssdMegaIteration.getK();
             megaIterSuccess = ssdMegaIteration.getSuccessType();
 
-            if (_userInterrupt)
+            if (getUserInterrupt())
             {
                 hotRestartOnUserInterrupt();
             }

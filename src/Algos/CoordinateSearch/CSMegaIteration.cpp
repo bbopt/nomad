@@ -132,7 +132,7 @@ bool NOMAD::CSMegaIteration::runImp()
 
         // Note: Delta (frame size) will be updated in the Update step next time it is called. not sure if kept
 
-        if (_userInterrupt)
+        if (getUserInterrupt())
         {
             hotRestartOnUserInterrupt();
         }

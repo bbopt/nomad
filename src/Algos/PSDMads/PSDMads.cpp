@@ -225,7 +225,7 @@ bool NOMAD::PSDMads::runImp()
             _masterMegaIteration->setK(k++);
         }
 
-        if (_userInterrupt)
+        if (getUserInterrupt())
         {
             hotRestartOnUserInterrupt();
         }

@@ -113,7 +113,7 @@ bool NOMAD::TemplateAlgo::runImp()
                 algoStopReason->set( NOMAD::RandomAlgoStopType::SINGLE_PASS_COMPLETED ); // This will stop iterations.
             }
             
-            if (_userInterrupt)
+            if (getUserInterrupt())
             {
                 hotRestartOnUserInterrupt();
             }

@@ -119,7 +119,7 @@ bool NOMAD::QuadModelAlgo::runImp()
             barrier = megaIteration.getBarrier();
             megaIterSuccessType = megaIteration.NOMAD::MegaIteration::getSuccessType();
             
-            if (_userInterrupt)
+            if (getUserInterrupt())
             {
                 hotRestartOnUserInterrupt();
             }

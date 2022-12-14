@@ -120,7 +120,7 @@ bool NOMAD::CS::runImp()
                 successFound = true;
             }
             
-            if (_userInterrupt)
+            if (getUserInterrupt())
             {
                 hotRestartOnUserInterrupt();
             }
