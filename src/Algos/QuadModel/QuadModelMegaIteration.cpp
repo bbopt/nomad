@@ -159,7 +159,7 @@ bool NOMAD::QuadModelMegaIteration::runImp()
                 AddOutputDebug(s);
             }
 
-            if (_userInterrupt)
+            if (getUserInterrupt())
             {
                 hotRestartOnUserInterrupt();
             }

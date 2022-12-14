@@ -105,7 +105,7 @@ bool NOMAD::DMultiMads::runImp()
                 _algoSuccessful = true;
             }
             
-//            if (_userInterrupt)
+//            if (getUserInterrupt())
 //            {
 //                hotRestartOnUserInterrupt();
 //            }

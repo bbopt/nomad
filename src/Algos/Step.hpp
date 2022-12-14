@@ -69,10 +69,12 @@ typedef std::function<void(std::vector<std::string>& paramLines)> HotRestartCbFu
 /// Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,...).
 class DLL_ALGO_API Step
 {
-
-protected:
+private:
 	static bool _userInterrupt; ///< Interrupt NOMAD if Ctrl-C is pressed.
 	static bool _userTerminate; ///< Terminate NOMAD if Ctrl-C is pressed again.
+
+protected:
+	
 
 	const Step* _parentStep;    ///< The parent of this step.
 	//std::string         _name;  ///< The name of this step.

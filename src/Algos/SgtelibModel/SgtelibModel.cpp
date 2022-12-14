@@ -339,7 +339,7 @@ bool NOMAD::SgtelibModel::runImp()
             k       = megaIteration.getK();
             megaIterSuccess = megaIteration.NOMAD::MegaIteration::getSuccessType();
 
-            if (_userInterrupt)
+            if (getUserInterrupt())
             {
                 hotRestartOnUserInterrupt();
             }

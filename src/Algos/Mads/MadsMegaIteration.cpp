@@ -187,7 +187,7 @@ bool NOMAD::MadsMegaIteration::runImp()
 
         // Note: Delta (frame size) will be updated in the Update step next time it is called.
 
-        if (_userInterrupt)
+        if (getUserInterrupt())
         {
             hotRestartOnUserInterrupt();
         }

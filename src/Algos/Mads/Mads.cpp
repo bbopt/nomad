@@ -198,7 +198,7 @@ bool NOMAD::Mads::runImp()
                 _algoSuccessful = true;
             }
 
-            if (_userInterrupt)
+            if (getUserInterrupt())
             {
                 hotRestartOnUserInterrupt();
             }

@@ -125,7 +125,7 @@ bool NOMAD::TemplateAlgoMegaIteration::runImp()
             OUTPUT_DEBUG_END
         }
             
-        if (_userInterrupt)
+        if (getUserInterrupt())
         {
             hotRestartOnUserInterrupt();
         }
