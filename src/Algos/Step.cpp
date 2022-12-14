@@ -622,3 +622,33 @@ void NOMAD::Step::updateParentSuccess()
         
 }
 
+bool NOMAD::Step::getUserTerminate()
+{ 
+	return _userTerminate; 
+}
+
+void NOMAD::Step::setUserTerminate()
+{ 
+	_userTerminate = true; 
+}
+
+void NOMAD::Step::resetUserTerminate()
+{
+	_userTerminate = false;
+}
+
+bool NOMAD::Step::getUserInterrupt()
+{
+	return _userInterrupt;
+}
+
+void  NOMAD::Step::resetUserInterrupt() 
+{ 
+	_userInterrupt = false; 
+}
+
+
+void NOMAD::Step::disableWarnings() 
+{ 
+	_showWarnings = false;
+}
