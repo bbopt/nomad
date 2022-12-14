@@ -253,7 +253,7 @@ public:
 
     /**
      Try readParamLine for each class of parameters until it works.
-     If the parameter is not found, throw an exception.
+     If the parameter is not found display a message. 
      */
     void readParamLine(const std::string &line);
 
