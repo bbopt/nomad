@@ -960,7 +960,7 @@ void NOMAD::MainStep::hotRestartOnUserInterrupt()
 
     hotRestartBeginHelper();
 
-    if (!_userTerminate)
+    if (!getUserTerminate())
     {
         std::cout << "Hot restart" ;
 
@@ -985,7 +985,7 @@ void NOMAD::MainStep::hotRestartOnUserInterrupt()
             {
                 _allParams->readParamLine(line);
                 // Continue reading parameters
-                while(!_userTerminate && std::getline(std::cin, line))
+                while(!getUserTerminate() && std::getline(std::cin, line))
                 {
                     // Read parameter
                     _allParams->readParamLine(line);
