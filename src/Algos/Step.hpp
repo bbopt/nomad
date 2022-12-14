@@ -67,12 +67,12 @@ typedef std::function<void(const Step& step, bool &stop)> StepCbFunc;  ///< Type
 typedef std::function<void(std::vector<std::string>& paramLines)> HotRestartCbFunc; ///< Type definitions for callback functions for hot restart.
 
 /// Base class of all types of steps (Iteration, Termination, Initialization, Poll, Mads,...).
-class Step
+class DLL_ALGO_API Step
 {
 
 protected:
-	DLL_ALGO_API static bool _userInterrupt; ///< Interrupt NOMAD if Ctrl-C is pressed.
-	DLL_ALGO_API static bool _userTerminate; ///< Terminate NOMAD if Ctrl-C is pressed again.
+	static bool _userInterrupt; ///< Interrupt NOMAD if Ctrl-C is pressed.
+	static bool _userTerminate; ///< Terminate NOMAD if Ctrl-C is pressed again.
 
 	const Step* _parentStep;    ///< The parent of this step.
 	//std::string         _name;  ///< The name of this step.
