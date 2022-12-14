@@ -32,6 +32,7 @@ import static java.lang.Math.pow;
 import jNomad.AllParameters;
 import jNomad.Double;
 import jNomad.EvalPoint;
+import jNomad.EvalType;
 import jNomad.Evaluator;
 import jNomad.MainStep;
 
@@ -66,7 +67,7 @@ public class Rosenbrock {
 
 	public class My_Evaluator extends Evaluator {
 		public My_Evaluator(AllParameters p) {
-			super(p.getEvalParams(), EvalType::BB);
+			super(p.getEvalParams(), EvalType.BB);
 		}
 
 		public boolean eval_x(EvalPoint x, Double h_max, boolean[] count_eval) {

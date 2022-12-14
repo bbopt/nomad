@@ -12,12 +12,21 @@
 
 * Coordinate search algorithm
 
-### v4.3 - July 2022
-
-These are the features we consider for 4.3:
-
-* Periodic variables
+### v4.3 - December 2022 - DONE
 
 * Implement control on precision for display
 
-* Functionality to interrupt the resolution to show the current best solution, and then resume
+* DMultiMads for multi-objective problems
+
+* Static surrogate in library mode
+
+### v4.4 - July 2023
+
+These are the features we consider for 4.4:
+
+* Periodic variables
+
+* Mads with stochastic evaluations (StoMads)
+
+* Detection of discontinuities (DiscoMads)
+
