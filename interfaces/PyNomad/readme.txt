@@ -62,6 +62,7 @@ is up and running.
 
 Import PyNomad as a module and run PyNomad.info() to obtain the interface 
 usage. To obtain help on a Nomad parameter, run PyNomad.help("keyword").
+To list all attributes and functions, execute dir(PyNomad).
 
 NOMAD parameters are provided in a list of strings using the same syntax 
 as used in the NOMAD parameter files. Several tests and examples are 
