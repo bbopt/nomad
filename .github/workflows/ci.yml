@@ -30,16 +30,16 @@ jobs:
             os: windows-latest,
             build_type: "Release", cc: "x86_64-w64-mingw32-gcc", cxx: "x86_64-w64-mingw32-g++"
           }
- #       - {
- #           name: "Ubuntu", artifact: "Linux.tar.xz",
- #           os: ubuntu-latest,
- #           build_type: "Release", cc: "gcc", cxx: "g++"
- #         }
- #       - {
- #           name: "MacOS", artifact: "macOS.tar.xz",
- #           os: macos-latest,
- #           build_type: "Release", cc: "clang", cxx: "clang++"
- #         }
+        - {
+            name: "Ubuntu", artifact: "Linux.tar.xz",
+            os: ubuntu-latest,
+            build_type: "Release", cc: "gcc", cxx: "g++"
+          }
+        - {
+            name: "MacOS", artifact: "macOS.tar.xz",
+            os: macos-latest,
+            build_type: "Release", cc: "clang", cxx: "clang++"
+          }
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       # Usually this is always needed
