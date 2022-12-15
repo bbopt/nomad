@@ -73,6 +73,10 @@ private:
 	static bool _userInterrupt; ///< Interrupt NOMAD if Ctrl-C is pressed.
 	static bool _userTerminate; ///< Terminate NOMAD if Ctrl-C is pressed again.
 
+    // By default, always show warnings.
+	// Some warnings do not need to be shown in some cases, ex. unit tests.
+	static bool _showWarnings; 
+
 protected:
 	
 
@@ -94,9 +98,7 @@ protected:
     static StepCbFunc    _cbMegaIterationStart;
     static HotRestartCbFunc _cbHotRestart;
 
-	// By default, always show warnings.
-	// Some warnings do not need to be shown in some cases, ex. unit tests.
-	static bool _showWarnings;
+
     
     
     /**
@@ -189,16 +191,16 @@ public:
 	/**
 	 Called by pressing Ctrl-C.
 	 */
-	static bool getUserTerminate() { return _userTerminate; }
+	static bool getUserTerminate(); // not inline (dll pb)
 
 	/// Interruption requested
-	static void setUserTerminate() { _userTerminate = true; }
+	static void setUserTerminate(); // not inline (dll pb)
 
 	/// Reset user terminate (called by mainstep to prevent invalid stop (Python or Matlab interface)
-	static void resetUserTerminate() { _userTerminate = false;  }
+	static void resetUserTerminate(); // not inline (dll pb)
     
     /// Reset user interrupt (called by mainstep to prevent invalid stop (Python or Matlab interface)
-    static void resetUserInterrupt() { _userInterrupt = false;  }
+	static void resetUserInterrupt(); // not inline (dll pb)
     
 
     /// Get the parent step.
@@ -236,7 +238,7 @@ public:
     static void userInterrupt(int signalValue);
     static void debugSegFault(int signalValue);
 
-    static bool getUserInterrupt() { return _userInterrupt; }
+	static bool getUserInterrupt();  // not inline (dll pb)
 
     /// \brief Set user callback
     void addCallback(const CallbackType& callbackType,
@@ -251,7 +253,7 @@ public:
     static void runCallback(CallbackType callbackType,
                             std::vector<std::string>& paramLines);
 
-    static void disableWarnings() { _showWarnings = false; }
+	static void disableWarnings(); // Force not inline (dll pb)
 
     /// \brief display output
     void AddOutputInfo(const std::string& s, bool isBlockStart, bool isBlockEnd) const;
