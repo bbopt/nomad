@@ -363,13 +363,13 @@ RESTART_ATTRIBUTE no
 ################################################################################
 REJECT_UNKNOWN_PARAMETERS
 bool
-false
+true
 \( Flag to reject unknown parameters when checking validity of parameters \)
 \(
 
-. If true, when reading a parameters file, NOMAD will ignore unknown parameters.
+. If false, when reading a parameters file, NOMAD will ignore unknown parameters.
 
-. If false, when reading a parameters file, NOMAD will exit if unknown
+. If true, when reading a parameters file, NOMAD will exit if unknown
   parameters are present.
 
 \)
