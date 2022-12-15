@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_2_CSPOLL__
-#define __NOMAD_4_2_CSPOLL__
+#ifndef __NOMAD_4_3_CSPOLL__
+#define __NOMAD_4_3_CSPOLL__
 
 #include "../../Algos/Mads/Poll.hpp"
 
@@ -78,7 +78,7 @@ public:
 
 protected:
     /// Helper for start: create CS poll method
-    void createPollMethods(const bool isPrimary, const EvalPoint & frameCenter) override;
+    void createPollMethods(const bool isPrimary, const EvalPointPtr frameCenter) override;
     
     virtual void setMeshPrecisionStopType() override;
     
@@ -89,6 +89,6 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_CSPOLL__
+#endif // __NOMAD_4_3_CSPOLL__
 
 

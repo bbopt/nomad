@@ -57,7 +57,7 @@
 #pragma warning(disable:4251)
 #endif
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #ifdef DLL_UTIL_EXPORTS
 # define DLL_UTIL_API __declspec(dllexport)
 #else

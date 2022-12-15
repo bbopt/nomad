@@ -61,4 +61,10 @@ values using the same syntax as used in NOMAD parameter files.
 For example, 
    params = struct('initial_mesh_size','* 10','MAX_BB_EVAL','100');
 
+*******************
+COMPATIBILITY ISSUE
+*******************
+Even if the building process works smoothly, when running the nomadOpt() command in Matlab you may obtain an error such as "Invalid MEX_file .... libstdc++.so.6: version `GLIBCXX_3.4.26' not found" (example obtained on linux-Ubuntu). This is an indication that the versions of Matlab and the compiler may not be compatible (See in the preamble the web site to check compatibility).
+
+
 

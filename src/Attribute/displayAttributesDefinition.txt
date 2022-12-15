@@ -95,17 +95,21 @@ RESTART_ATTRIBUTE yes
 ###############################################################################
 DISPLAY_INFEASIBLE
 bool
-false
+true
 \( Flag to display infeasible \)
 \(
 
-. When true, do display iterations for which constraints are violated.
+. When true, do display iterations (standard output and stats file) for which
+  constraints are infeasible.
 
-. When false, only display iterations where the point is feasible.
+. When false, only display iterations where the point is feasible. Except
+the initial point that is always displayed.
+
+. Adjust this parameter to your needs along with DISPLAY_UNSUCCESSFUL.
 
 . Argument: one boolean
 
-. Example: DISPLAY_INFEASIBLE true
+. Example: DISPLAY_INFEASIBLE false
 
 \)
 \( advanced display(s) infeasible \)
@@ -172,12 +176,46 @@ BBE OBJ
     TIME       : real time in seconds
     TOTAL_MODEL_EVAL: total number of quad or sgtelib model evaluations
     USER       : user-defined string
+    
+. All outputs may be formatted using C style
+  (%f, %e, %E, %g, %G, %i, %d with the possibility to specify the display width
+  and the precision)
+  example: %5.2Ef displays f in 5 columns and 2 decimals in scientific notation
+. Do not use quotes
+. The '%' character may be explicitly indicated with '\%'
 
 . Example:
     DISPLAY_STATS BBE EVAL ( SOL ) OBJ CONS_H
+    DISPLAY_STATS \%5.2obj
+    # for LaTeX tables:
+    DISPLAY_STATS $BBE$ & ( $%12.5SOL, ) & $OBJ$ \\
 
 \)
 \( basic display(s) output(s) stat(s) success(es) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE yes
+###############################################################################
+DISPLAY_FAILED
+bool
+false
+\( Flag to display failed evaluation \)
+\(
+
+. When true, display evaluations that are not ok (failed).
+
+. Such evaluations will be displayed as INF value for f and h, but blackbox
+  outputs can be displayed as obtained.
+  
+. This option can be used to show failed evaluations for debugging. By default,
+  failed evaluations are not displayed in stats file.
+  
+. Argument: one boolean ('yes' or 'no')
+
+. Example: DISPLAY_FAILED yes
+
+
+\)
+\( advanced display(s) success(es) failed failure(s) fail(s) \)
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE yes
 ###############################################################################
@@ -216,7 +254,7 @@ NOMAD::ArrayOfString
 . The seed is added to the file name if
   ADD_SEED_TO_FILE_NAMES=\'yes\' (default)
 
-. Example: STATS_FILE log.txt BBE SOL f=%.2EOBJ
+. Example: STATS_FILE log.txt BBE SOL %.2fOBJ
 
 \)
 \( basic stat(s) file(s) name display(s) output(s) \)

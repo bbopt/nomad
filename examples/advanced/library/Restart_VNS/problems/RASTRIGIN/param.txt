@@ -1,0 +1,20 @@
+DIMENSION      12
+BB_EXE         bb.exe
+TMP_DIR         /tmp
+BB_OUTPUT_TYPE OBJ
+X0             * -5.12
+
+# LOWER_BOUND    * -5.12
+# UPPER_BOUND    *  5.12
+
+# MAX_BB_EVAL 500
+
+#VNS_MADS_SEARCH true
+#VNS_MADS_SEARCH_TRIGGER 0.75
+
+DISPLAY_STATS   bbe ( sol ) obj
+DISPLAY_DEGREE  2
+DISPLAY_ALL_EVAL true
+STATS_FILE ./STATS/stats.txt bbe ( sol ) obj
+EVAL_STATS_FILE ./STATS/detailedStats.txt
+HISTORY_FILE ./STATS/historyFile.txt

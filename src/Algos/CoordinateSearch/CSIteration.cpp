@@ -88,7 +88,6 @@ void NOMAD::CSIteration::startImp()
 bool NOMAD::CSIteration::runImp()
 {
     bool iterationSuccess = false;
-    NOMAD::SuccessType bestSuccessYet = NOMAD::SuccessType::NOT_EVALUATED;
     
     OUTPUT_INFO_START
     std::string s = "No search method called by Coordinate Search algorithm.";
@@ -107,21 +106,13 @@ bool NOMAD::CSIteration::runImp()
         // a better xInf (partial success or dominating) xInf was found.
         // See Algorithm 12.2 from DFBO.
         iterationSuccess = _csPoll->run();
-        
-        NOMAD::SuccessType success = _csPoll->getSuccessType();
-        if (success > bestSuccessYet)
-        {
-            bestSuccessYet = success;
-        }
         _csPoll->end();
+        
 #ifdef TIME_STATS
         _pollTime += NOMAD::Clock::getCPUTime() - pollStartTime;
         _pollEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - pollEvalStartTime;
 #endif // TIME_STATS
     }
-    
-    
-    setSuccessType(bestSuccessYet);
     
     // End of the iteration: iterationSuccess is true iff we have a full success.
     return iterationSuccess;

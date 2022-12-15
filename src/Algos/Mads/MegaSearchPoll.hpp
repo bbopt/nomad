@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_MEGASEARCHPOLL__
-#define __NOMAD_4_2_MEGASEARCHPOLL__
+#ifndef __NOMAD_4_3_MEGASEARCHPOLL__
+#define __NOMAD_4_3_MEGASEARCHPOLL__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/Mads/Search.hpp"
@@ -116,4 +116,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_MEGASEARCHPOLL__
+#endif // __NOMAD_4_3_MEGASEARCHPOLL__

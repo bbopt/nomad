@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_VNSSEARCHMETHOD__
-#define __NOMAD_4_2_VNSSEARCHMETHOD__
+#ifndef __NOMAD_4_3_VNSSEARCHMETHOD__
+#define __NOMAD_4_3_VNSSEARCHMETHOD__
 
 #include <string>
 
@@ -64,6 +64,8 @@ private:
         
     double _trigger; ///< Evaluation ratio (vns evals vs all evals) to trigger vns search
 
+    bool _useSurrogate; ///< Flag for surrogate or bb use.
+    
     /**
         The algorithm used by the search method.
      */
@@ -86,6 +88,7 @@ public:
     explicit VNSSearchMethod(const Step* parentStep)
       : SearchMethodAlgo(parentStep),
         _displayLevel(OutputLevel::LEVEL_NORMAL),
+        _useSurrogate(false),
         _vnsAlgo(nullptr)
     {
         init();
@@ -110,5 +113,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_VNSSEARCHMETHOD__
+#endif // __NOMAD_4_3_VNSSEARCHMETHOD__
 

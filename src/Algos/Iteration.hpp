@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_ITERATION__
-#define __NOMAD_4_2_ITERATION__
+#ifndef __NOMAD_4_3_ITERATION__
+#define __NOMAD_4_3_ITERATION__
 
 #include "../Algos/Step.hpp"
 
@@ -125,4 +125,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_ITERATION__
+#endif // __NOMAD_4_3_ITERATION__

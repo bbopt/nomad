@@ -73,7 +73,7 @@ void NOMAD::CSPoll::startImp()
     }
     
     // Compute primary and secondary poll centers
-    std::vector<NOMAD::EvalPoint> primaryCenters, secondaryCenters;
+    std::vector<NOMAD::EvalPointPtr> primaryCenters, secondaryCenters;
     computePrimarySecondaryPollCenters(primaryCenters, secondaryCenters);
 
     // Add poll methods for primary polls
@@ -91,11 +91,10 @@ void NOMAD::CSPoll::startImp()
     
 }
 
-void NOMAD::CSPoll::createPollMethods(const bool isPrimary, const EvalPoint & frameCenter)
+void NOMAD::CSPoll::createPollMethods(const bool isPrimary, const EvalPointPtr frameCenter)
 {
-    auto frameCenterPtr = std::make_shared<NOMAD::EvalPoint>(frameCenter);
-    _frameCenters.push_back(frameCenterPtr);
-    auto pollMethod = std::make_shared<NOMAD::CSPollMethod>(this, frameCenterPtr);
+    _frameCenters.push_back(frameCenter);
+    auto pollMethod = std::make_shared<NOMAD::CSPollMethod>(this, frameCenter);
     _pollMethods.push_back(pollMethod);
 }
 

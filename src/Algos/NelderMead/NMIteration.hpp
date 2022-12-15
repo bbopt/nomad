@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_NMITERATION__
-#define __NOMAD_4_2_NMITERATION__
+#ifndef __NOMAD_4_3_NMITERATION__
+#define __NOMAD_4_3_NMITERATION__
 
 #include "../../Algos/Iteration.hpp"
 #include "../../Algos/MeshBase.hpp"
@@ -83,7 +83,7 @@ private:
      */
     const MeshBasePtr _madsMesh;
 
-    SuccessType _bestSuccess; ///< The best success obtained during the Nelder Mead iterations.
+    
 
 public:
     /// Constructor
@@ -136,4 +136,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_NMITERATION__
+#endif // __NOMAD_4_3_NMITERATION__

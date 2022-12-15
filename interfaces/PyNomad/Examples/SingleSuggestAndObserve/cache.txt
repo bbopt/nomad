@@ -1,9 +1,0 @@
-CACHE_HITS 2
-BB_OUTPUT_TYPE OBJ
-(  -1                        0                        1                      ) EVAL_OK ( 0 )
-(  -0.5                     -1                        0                      ) EVAL_OK ( -1.5 )
-(  -0.5                     -1                        1                      ) EVAL_OK ( -0.5 )
-(  -0.5                      0                        0                      ) EVAL_OK ( -0.5 )
-(  -0.5                      1                        0.5                    ) EVAL_OK ( 1 )
-(   0                        0                        1                      ) EVAL_OK ( 3 )
-(   0.5                     -1                        1                      ) EVAL_OK ( 0.5 )

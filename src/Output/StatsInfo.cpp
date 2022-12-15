@@ -88,16 +88,21 @@ NOMAD::StatsInfo::StatsInfo()
     _relativeSuccess(false),
     _comment(""),
     _genStep(""),
-    _success(NOMAD::SuccessType::NOT_EVALUATED)
+    _success(NOMAD::SuccessType::UNDEFINED)
 {
 }
 
 
-bool NOMAD::StatsInfo::alwaysDisplay(const bool displayInfeasible,
+bool NOMAD::StatsInfo::alwaysDisplay(const bool displayFailed,
+                                     const bool displayInfeasible,
                                      const bool displayUnsuccessful,
                                      const bool forStatsFile) const
 {
     bool doDisplay = false;
+    if (_failedEval)
+    {
+        return displayFailed;
+    }
     if (!_obj.isDefined())
     {
         doDisplay = false;
@@ -525,7 +530,7 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
         {
             // Here, use displayNoPar() to have the same output as NOMAD 3
             // (no additional parenthesis).
-            out += _sol.displayNoPar(solFormat);
+            out += _sol.displayNoPar(solFormat,doubleFormat);
         }
         else if (NOMAD::DisplayStatsType::DS_SURROGATE_EVAL == statsType)
         {

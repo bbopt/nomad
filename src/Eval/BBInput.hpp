@@ -58,8 +58,8 @@
 //
 // Note: As of September 2019, this class is not used by NOMAD.
 
-#ifndef __NOMAD_4_2_BB_INPUT__
-#define __NOMAD_4_2_BB_INPUT__
+#ifndef __NOMAD_4_3_BB_INPUT__
+#define __NOMAD_4_3_BB_INPUT__
 
 
 #include "../Math/Point.hpp"
@@ -69,7 +69,7 @@
 
 
 /// Class for the representation of the input to a blackbox evaluation.
-class BBInput
+class DLL_EVAL_API BBInput
 {
     //std::string             _rawBBI;        // Actual input string (currently not implemented).
 
@@ -110,4 +110,4 @@ inline std::ostream& operator<<(std::ostream& out, const BBInput &bbinput)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_2_BB_INPUT__
+#endif  // __NOMAD_4_3_BB_INPUT__

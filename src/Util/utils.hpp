@@ -51,13 +51,14 @@
  \date   March 2017
  \see    utils.cpp
  */
-#ifndef __NOMAD_4_2_UTILS__
-#define __NOMAD_4_2_UTILS__
+#ifndef __NOMAD_4_3_UTILS__
+#define __NOMAD_4_3_UTILS__
 
 #include <list>
 
 #include "../Util/defines.hpp"
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 /// Transform an integer into a string.
@@ -65,7 +66,7 @@
  \param i The integer -- \b IN.
  \return  The string.
  */
-std::string itos ( const int i );
+DLL_UTIL_API std::string itos ( const int i );
 
 
 /// Transform a unsigned long (size_t) into a string.
@@ -73,22 +74,22 @@ std::string itos ( const int i );
  \param i The unsigned long -- \b IN.
  \return  The string.
  */
-std::string itos ( const size_t i );
+DLL_UTIL_API std::string itos ( const size_t i );
 
 /// Put a string into upper cases.
 /**
  \param s The string -- \b IN/OUT.
  */
-void toupper ( std::string & s );
+DLL_UTIL_API void toupper ( std::string & s );
 
 /// Put a list of strings into upper cases.
 /**
  \param ls The list of strings -- \b IN/OUT.
  */
-void toupper  ( std::list<std::string> & ls );
+DLL_UTIL_API void toupper  ( std::list<std::string> & ls );
 
 /// Trim extra spaces at the beginning and end of a string.
-void trim(std::string &s);
+DLL_UTIL_API void trim(std::string &s);
 
 /// Convert a string into an integer.
 /**
@@ -96,7 +97,7 @@ void trim(std::string &s);
  \param i The integer -- \b OUT.
  \return  A boolean equal to \c true if the conversion was possible.
  */
-bool atoi(const std::string &s, int &i);
+DLL_UTIL_API bool atoi(const std::string &s, int &i);
 
 /// Convert a character into an integer.
 /**
@@ -104,7 +105,7 @@ bool atoi(const std::string &s, int &i);
  \param i The integer   -- \b OUT.
  \return  A boolean equal to \c true if the conversion was possible.
  */
-bool atoi(const char c, int &i);
+DLL_UTIL_API bool atoi(const char c, int &i);
 
 /// Convert a string into a size_t.
 /**
@@ -112,7 +113,7 @@ bool atoi(const char c, int &i);
  \param st  The size_t -- \b OUT.
  \return    A boolean equal to \c true if the conversion was possible.
  */
-bool atost(const std::string &s, size_t &st);
+DLL_UTIL_API bool atost(const std::string &s, size_t &st);
 
 /// Convert a string with format "i-j" into two size_t i and j.
 /**
@@ -124,30 +125,30 @@ bool atost(const std::string &s, size_t &st);
  -- \b IN -- \b optional (default = \c true).
  \return A boolean equal to \c true if the conversion was possible.
  */
-bool stringToIndexRange ( const std::string & s                  ,
+DLL_UTIL_API bool stringToIndexRange ( const std::string & s                  ,
                           int               & i                  ,
                           int               & j                  ,
                           bool                check_order = true   );
 
 
 /// Convert a success type to a string.
-std::string enumStr(SuccessType success);
+DLL_UTIL_API std::string enumStr(SuccessType success);
 
 /// Convert a string in {"YES","NO","Y","N","0","1","TRUE","FALSE"} to a boolean.
-bool stringToBool(const std::string &string);
+DLL_UTIL_API bool stringToBool(const std::string &string);
 
 /// Convert a bool to "true" or "false"
-std::string boolToString(bool boolean);
+DLL_UTIL_API std::string boolToString(bool boolean);
 
 /// Return the number of decimals of a string representing a double.
-std::size_t nbDecimals(const std::string& s);
+DLL_UTIL_API std::size_t nbDecimals(const std::string& s);
 
 
 /**
  Given a string s with precision prec after the decimal point,
 return the suggested width and the string padding needed for alignment.
  */
-void getFormat(const std::string &s,
+DLL_UTIL_API void getFormat(const std::string &s,
                const size_t prec,
                size_t &width,
                size_t &spacePadding);
@@ -163,14 +164,14 @@ void getFormat(const std::string &s,
  *
  \return \c true if a valid format was found, \c false otherwise.
  */
-bool separateFormat(const std::string &s, std::string &format, std::string &tag);
+DLL_UTIL_API bool separateFormat(const std::string &s, std::string &format, std::string &tag);
 
-bool validFormat(std::string &s);
+DLL_UTIL_API bool validFormat(std::string &s);
 
 // For OpenMP threads
-int getThreadNum();
+DLL_UTIL_API int getThreadNum();
 
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_UTILS__
+#endif // __NOMAD_4_3_UTILS__

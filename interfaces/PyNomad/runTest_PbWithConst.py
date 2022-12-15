@@ -17,7 +17,7 @@ def bb(x):
     return 1 # 1: success 0: failed evaluation
 
 X0 = [0, 0, 0, 0, 0]
-params = ["DIMENSION 5","BB_OUTPUT_TYPE OBJ PB EB", "MAX_BB_EVAL 100", "X0 * 0" , "LOWER_BOUND * -6" , "DISPLAY_DEGREE 2", "DISPLAY_ALL_EVAL false", "DISPLAY_STATS BBE OBJ"]
+params = ["DIMENSION 5","BB_OUTPUT_TYPE OBJ EB EB", "MAX_BB_EVAL 100", "X0 * 0" , "LOWER_BOUND * -6" , "DISPLAY_DEGREE 2", "DISPLAY_ALL_EVAL false", "DISPLAY_STATS BBE OBJ"]
 
 result = PyNomad.optimize(bb, X0, [] , [], params)
 

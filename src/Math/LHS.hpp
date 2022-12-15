@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_2_LHS__
-#define __NOMAD_4_2_LHS__
+#ifndef __NOMAD_4_3_LHS__
+#define __NOMAD_4_3_LHS__
 
 #include <vector>
 #include "../Math/Point.hpp"
@@ -66,7 +66,7 @@ using namespace std;
  * Output:
  *  p points of dimension n, distributed in the l x u hyper-rectangle of R^n
  */
-class LHS
+class DLL_UTIL_API LHS
 {
 private:
     size_t _n;  ///< dimension
@@ -133,4 +133,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_LHS__
+#endif // __NOMAD_4_3_LHS__

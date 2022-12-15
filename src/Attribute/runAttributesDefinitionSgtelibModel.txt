@@ -140,7 +140,7 @@ size_t
 \(
 . Max number of sgtelib model search failures before going to the poll step.
 
-. Argument: one positive integer
+. Argument: a positive integer.
 
 . Note: The minimum between this parameter and MAX_ITERATION_PER_MEGAITERATION
   will be used.
@@ -273,7 +273,7 @@ size_t
 . Defines the minimum number of valid points beyond which no model will
   be build
 
-. Arguments: one positive integer
+. Argument: a positive integer < INF.
 
 . Example: SGTELIB_MIN_POINTS_FOR_MODEL 5
 
@@ -290,7 +290,7 @@ size_t
 . Defines the maximum number of valid points kept to build a model.
   Extra points too far from center are ignored.
 
-. Arguments: one positive integer
+. Arguments: one positive integer. 
 
 . Example: SGTELIB_MAX_POINTS_FOR_MODEL 96
 

@@ -51,12 +51,13 @@
  \date   July 2019
  \see    SgtelibModel.hpp
  */
-#ifndef __NOMAD_4_2_SGTELIB_MODEL_FEASIBILITY_TYPE__
-#define __NOMAD_4_2_SGTELIB_MODEL_FEASIBILITY_TYPE__
+#ifndef __NOMAD_4_3_SGTELIB_MODEL_FEASIBILITY_TYPE__
+#define __NOMAD_4_3_SGTELIB_MODEL_FEASIBILITY_TYPE__
 
 #include <string>
 #include <sstream>
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 // Feasibility types for sgtelib model Search
@@ -72,9 +73,9 @@ enum class SgtelibModelFeasibilityType
 
 // Convert a string (ex "C", "H", "B"...)
 // to a SgtelibModelFeasibilityType.
-SgtelibModelFeasibilityType stringToSgtelibModelFeasibilityType(const std::string &s);
+DLL_UTIL_API SgtelibModelFeasibilityType stringToSgtelibModelFeasibilityType(const std::string &s);
 
-std::string SgtelibModelFeasibilityTypeToString(const SgtelibModelFeasibilityType &smft);
+DLL_UTIL_API std::string SgtelibModelFeasibilityTypeToString(const SgtelibModelFeasibilityType &smft);
 
 inline std::ostream& operator<<(std::ostream& os, const SgtelibModelFeasibilityType &smft)
 {
@@ -104,4 +105,4 @@ inline std::ostream& operator<<(std::ostream& os, const SgtelibModelFeasibilityT
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_SGTELIB_MODEL_FEASIBILITY_TYPE__
+#endif // __NOMAD_4_3_SGTELIB_MODEL_FEASIBILITY_TYPE__

@@ -1,0 +1,6 @@
+Variables
+	x[2] in [-6,6];
+Constraints
+	x[0]^2 + x[1]^2 <= 36;
+	x[0]^2 + x[1]^2 >= 25;
+end

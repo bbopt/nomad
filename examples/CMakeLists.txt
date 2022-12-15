@@ -1,14 +1,14 @@
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/example1)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/example2)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/example3)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/example4)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/single_obj_parallel)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/library/COCO)
 
-
-# Issue #491
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/exampleForCustomHComputation)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/FixedVariable)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/NMonly)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/Restart)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/Restart_VNS)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/exampleSuggestAndObserve)
 if(OpenMP_CXX_FOUND)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/PSDMads)
@@ -23,8 +23,12 @@ endif()
 # AND install
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/example1)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/example2)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/example3)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/single_obj)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/multi_obj)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/multi_obj2)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/surrogate_sort)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/coco_bbob-constrained)
 if(OpenMP_CXX_FOUND)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/single_obj_parallel)
 endif()
@@ -44,7 +48,9 @@ FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tmp/runExampleTest.sh
         param_file =$2  
     fi
     echo \"Running Example test $executable\"
+    set -o pipefail 
     $executable $param_file | tee runTestLog.txt
+    set -o pipefail
     if [ $? != 0 ]
     then
         exit 1

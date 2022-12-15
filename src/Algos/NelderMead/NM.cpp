@@ -73,13 +73,11 @@ bool NOMAD::NM::runImp()
 {
     _algoSuccessful = false;
 
-    _algoBestSuccess = NOMAD::SuccessType::NOT_EVALUATED;
-
     if ( ! _stopReasons->checkTerminate() )
     {
         size_t k = 0;   // Iteration number
 
-        std::shared_ptr<NOMAD::Barrier> barrier = nullptr;
+        std::shared_ptr<NOMAD::BarrierBase> barrier = nullptr;
 
         if (_runParams->getAttributeValue<bool>("NM_OPTIMIZATION"))
         {
@@ -88,15 +86,15 @@ bool NOMAD::NM::runImp()
         }
         else
         {
-            // Get barrier from upper MadsMegaIteration, if available.
-            auto madsMegaIter = getParentOfType<NOMAD::MadsMegaIteration*>(false);
-            if (nullptr != madsMegaIter)
+            // Get barrier from upper MegaIteration, if available.
+            auto megaIter = getParentOfType<NOMAD::MegaIteration*>(false);
+            if (nullptr != megaIter)
             {
-                barrier = madsMegaIter->getBarrier();
+                barrier = megaIter->getBarrier();
             }
         }
 
-        NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
+        NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::UNDEFINED;
         
         // Create a MegaIteration: manage multiple iterations.
         NOMAD::NMMegaIteration megaIteration(this, k, barrier, megaIterSuccess);
@@ -108,15 +106,11 @@ bool NOMAD::NM::runImp()
 
             _algoSuccessful = _algoSuccessful || currentMegaIterSuccess;
 
+            // For passing to _refMegaIteration
             k       = megaIteration.getK();
             megaIterSuccess = megaIteration.getSuccessType();
 
-            if ( megaIterSuccess > _algoBestSuccess )
-            {
-                _algoBestSuccess = megaIterSuccess;
-            }
-
-            if (_userInterrupt)
+            if (getUserInterrupt())
             {
                 hotRestartOnUserInterrupt();
             }
@@ -155,9 +149,11 @@ void NOMAD::NM::readInformationForHotRestart()
             // Issue #372: Fix potential bug with Hot Restart
             // Note: Assuming the barrier read is in the same subspace as the current subspace.
             // This could be fixed if we write and read the barrier in full subspace.
+            
+            // Create a single objective barrier
             auto barrier = std::make_shared<NOMAD::Barrier>();
             int k = 0;
-            NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
+            NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
 
 
             _refMegaIteration = std::make_shared<NOMAD::NMMegaIteration>(this, k, barrier, success);

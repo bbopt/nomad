@@ -88,7 +88,7 @@ int main (int argc, char ** argv)
             // Display info and usage if option '-i' has been specified
             else if (option == "-I" || option == "-INFO" || option == "--INFO")
             {
-                NOMAD::OutputQueue::getInstance()->setDisplayDegree(1);
+                NOMAD::OutputQueue::getInstance()->setDisplayDegree(2);
                 TheMainStep->displayInfo();
                 TheMainStep->displayUsage(argv[0]);
             }
@@ -123,6 +123,11 @@ int main (int argc, char ** argv)
                 }
                 TheMainStep->displayHelp(helpSubject, true);
             }
+            // Display CSV documentation if option '-d' has been specified
+            else if (option == "-CD" || option == "-CSVDOC" || option == "--CSVDOC")
+            {
+                TheMainStep->displayCSVDoc ( );
+            }
             else
             {
                 NOMAD::OutputQueue::getInstance()->setDisplayDegree(1);
@@ -147,6 +152,8 @@ int main (int argc, char ** argv)
                 }
                 else
                 {
+                    TheMainStep->displayInfo();
+                    
                     TheMainStep->setParamFileName(paramfilename);
 
                     // Reads parameters

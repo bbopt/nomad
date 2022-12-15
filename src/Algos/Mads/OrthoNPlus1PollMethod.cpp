@@ -52,7 +52,6 @@
 #include "../../Algos/QuadModel/QuadModelSinglePass.hpp"
 #endif
 #include "../../Algos/SubproblemManager.hpp"
-#include "../../Algos/SurrogateEvaluation.hpp"
 #include "../../Math/Direction.hpp"
 #include "../../Output/OutputQueue.hpp"
 
@@ -153,10 +152,14 @@ void NOMAD::OrthoNPlus1PollMethod::trialPointsReduction()
     // First step: sort the trial points. Put them into a vector.
     NOMAD::EvcInterface evcInterface(this);
     
-
+    // Complete trial points information with MODEL or SURROGATE eval
+    completeTrialPointsInformation();
+    
 
     // If the mesh is finest we don't want to order the direction based on some informed rule. Some informed ordering can select always the same directions.
     // Forcing random will ensure that the Ortho n+1 direction will grows asymptotically dense
+    // NOTE: With GMesh the mesh is refined less frequently then with XMesh (the Ortho N+1 paper was based on XMesh). So we more frequently force a random ordering. The quad model ordering is beneficial when opportunistic. Using the Frame size to decide is also not pertinent. When the mesh index is available we should use it instead of the mesh size.
+    // bool forceRandom = meshIsFinest();
     bool forceRandom = false;
     std::vector<EvalPoint> sortedEvalPoints=evcInterface.getSortedTrialPoints(_trialPoints,forceRandom);
     
@@ -240,8 +243,8 @@ bool NOMAD::OrthoNPlus1PollMethod::optimizeQuadModel(const std::vector<NOMAD::Di
     
     // The trial points are generated for the frame center.
     
-    auto madsIteration = getParentOfType<MadsIteration*>();
-    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+    auto madsIteration = getParentOfType<Iteration*>();
+    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
 
     
     if (nullptr != _frameCenter

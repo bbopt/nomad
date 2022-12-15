@@ -75,12 +75,15 @@ std::string NOMAD::MadsUpdate::getName() const
 
 bool NOMAD::MadsUpdate::runImp()
 {
+    // NOTE: update use success determined from barrier to update mesh
+    // The success of parent mega iter is not considered.
+    
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     NOMAD::EvalType evalType = NOMAD::EvalType::BB;
     NOMAD::ComputeType computeType = NOMAD::ComputeType::STANDARD;
     if (nullptr != evc)
     {
-        evalType = evc->getEvalType();
+        evalType = evc->getCurrentEvalType();
         computeType = evc->getComputeType();
     }
     // megaIter barrier is already in subproblem.
@@ -94,8 +97,11 @@ bool NOMAD::MadsUpdate::runImp()
     OUTPUT_DEBUG_START
     s = "Running " + getName() + ". Barrier: ";
     AddOutputDebug(s);
-    s = barrier->display(4);
-    AddOutputDebug(s);
+    std::vector<std::string> vs = barrier->display(4);
+    for (const auto & si : vs)
+    {
+        AddOutputDebug(si);
+    }
     OUTPUT_DEBUG_END
 
     // Barrier is already updated from previous steps.
@@ -133,16 +139,15 @@ bool NOMAD::MadsUpdate::runImp()
                     throw NOMAD::Exception(__FILE__,__LINE__,"Error: Cannot set the point at the origin of newBest (feasible)");
             }
             OUTPUT_DEBUG_START
-            // Output Warning: When using '\n', the computed indentation for the
-            // Step will be ignored. Leaving it like this for now. Using an
-            // OutputInfo with AddMsg() would resolve the output layout.
-            s = "Update: improving feasible point";
             if (refBestFeas)
             {
-                s += " from\n    " + refBestFeas->display() + "\n";
+                s = "Update: improving feasible point";
+                AddOutputDebug(s);
+                s = " from " + refBestFeas->display();
+                AddOutputDebug(s);
+                s = " to " + newBestFeas->display();
+                AddOutputDebug(s);
             }
-            s += " to " + newBestFeas->display();
-            AddOutputDebug(s);
             OUTPUT_DEBUG_END
         }
         else
@@ -169,13 +174,15 @@ bool NOMAD::MadsUpdate::runImp()
                         throw NOMAD::Exception(__FILE__,__LINE__,"Error: Cannot set the point at the origin of newBest (infeasible)");
                 }
                 OUTPUT_DEBUG_START
-                s = "Update: improving infeasible point";
                 if (refBestInf)
                 {
-                    s+= " from\n    " + refBestInf->display() + "\n";
+                    s = "Update: improving infeasible point ";
+                    AddOutputDebug(s);
+                    s = " from " + refBestInf->display();
+                    AddOutputDebug(s);
+                    s = " to " + newBestInf->display();
+                    AddOutputDebug(s);
                 }
-                s += " to " + newBestInf->display();
-                AddOutputDebug(s);
                 OUTPUT_DEBUG_END
             }
         }
@@ -198,7 +205,7 @@ bool NOMAD::MadsUpdate::runImp()
         {
             clearEvalQueue = evc->getEvaluatorControlGlobalParams()->getAttributeValue<bool>("EVAL_QUEUE_CLEAR");
         }
-        const bool megaIterEvaluated = (NOMAD::SuccessType::NOT_EVALUATED != megaIter->getSuccessType());
+        const bool megaIterEvaluated = (NOMAD::SuccessType::UNDEFINED != megaIter->getSuccessType());
         if (!clearEvalQueue && megaIterEvaluated && (success != megaIter->getSuccessType()))
         {
             s = "Warning: MegaIteration success type: ";
@@ -265,11 +272,7 @@ bool NOMAD::MadsUpdate::runImp()
 
             if (success >= NOMAD::SuccessType::FULL_SUCCESS)
             {
-                // Update frame size for main mesh
-                auto anisotropyFactor = _runParams->getAttributeValue<NOMAD::Double>("ANISOTROPY_FACTOR");
-                bool anistropicMesh = _runParams->getAttributeValue<bool>("ANISOTROPIC_MESH");
-
-                if (mesh->enlargeDeltaFrameSize(*newBest->getDirection(), anisotropyFactor, anistropicMesh))
+                if (mesh->enlargeDeltaFrameSize(*newBest->getDirection()))
                 {
                     OUTPUT_INFO_START
                     AddOutputInfo("Last Iteration Successful. Delta is enlarged.");

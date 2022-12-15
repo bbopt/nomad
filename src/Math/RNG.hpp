@@ -52,15 +52,16 @@
  \see    RNG.cpp
  */
 
-#ifndef __NOMAD_4_2_RNG__
-#define __NOMAD_4_2_RNG__
+#ifndef __NOMAD_4_3_RNG__
+#define __NOMAD_4_3_RNG__
 
-#include "../nomad_platform.hpp"
+
 #include "../Util/defines.hpp"
 #include "../Util/Exception.hpp"
 
 using namespace std;
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 
@@ -97,7 +98,7 @@ public:
     /**
      \return    An integer in the interval [0,UINT32_MAX].
      */
-    static result_type rand();
+	DLL_UTIL_API static result_type rand();
 
     /// Functor to get a random integer
     /**
@@ -111,7 +112,7 @@ public:
      \param b   Upper bound  -- \b IN.
      \return    A double in the interval [a,b].
      */
-    static double rand(double a, double b)
+	static double rand(double a, double b)
     {
         return a+((b-a)*RNG::rand())/UINT32_MAX;
     }
@@ -196,9 +197,9 @@ public:
 private:
 
     DLL_UTIL_API static uint32_t x_def, y_def, z_def;    ///< Initial values for the random number generator
-    DLL_UTIL_API static uint32_t _x, _y, _z;             ///< Current values for the random number generator
+	DLL_UTIL_API static uint32_t _x, _y, _z;             ///< Current values for the random number generator
 
-    DLL_UTIL_API static int _s;
+	DLL_UTIL_API static int _s;
 
 
 };
@@ -206,4 +207,4 @@ private:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_2_RNG__
+#endif // __NOMAD_4_3_RNG__

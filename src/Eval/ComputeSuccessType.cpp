@@ -57,17 +57,18 @@
 /* Class ComputeSuccessType */
 /*--------------------------*/
 NOMAD::SuccessType NOMAD::ComputeSuccessType::defaultComputeSuccessType(
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
+                                const NOMAD::EvalPointPtr evalPoint1,
+                                const NOMAD::EvalPointPtr evalPoint2,
                                 const NOMAD::Double& hMax)
 {
-    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
+    NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
 
     if (nullptr != evalPoint1)
     {
         if (nullptr == evalPoint2)
         {
-            if (evalPoint1->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD) > hMax)
+            NOMAD::Double h = evalPoint1->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+            if (h > hMax || h == NOMAD::INF)
             {
                 // Even if evalPoint2 is NULL, this case is still
                 // not a success.
@@ -98,11 +99,11 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::defaultComputeSuccessType(
 
 
 NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypePhaseOne(
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
+                                const NOMAD::EvalPointPtr evalPoint1,
+                                const NOMAD::EvalPointPtr evalPoint2,
                                 const NOMAD::Double& hMax)
 {
-    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
+    NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
 
     if (nullptr != evalPoint1)
     {
@@ -124,11 +125,11 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypePhaseOne(
 
 
 NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypePhaseOneSurrogate(
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
+                                const NOMAD::EvalPointPtr evalPoint1,
+                                const NOMAD::EvalPointPtr evalPoint2,
                                 const NOMAD::Double& hMax)
 {
-    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
+    NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
 
     if (nullptr != evalPoint1)
     {
@@ -150,16 +151,17 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypePhaseOneSurrogat
 
 
 NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeModel(
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
+                                const NOMAD::EvalPointPtr evalPoint1,
+                                const NOMAD::EvalPointPtr evalPoint2,
                                 const NOMAD::Double& hMax)
 {
-    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
+    NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
     const NOMAD::EvalType evalTypeModel = NOMAD::EvalType::MODEL;
 
     if (nullptr != evalPoint1)
     {
-        if (evalPoint1->getH(evalTypeModel, NOMAD::ComputeType::STANDARD) > hMax)
+        NOMAD::Double h = evalPoint1->getH(evalTypeModel, NOMAD::ComputeType::STANDARD);
+        if (!h.isDefined() || h > hMax || h == NOMAD::INF)
         {
             success = NOMAD::SuccessType::UNSUCCESSFUL;
         }
@@ -181,17 +183,18 @@ NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeModel(
 
 
 NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeSurrogate(
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint1,
-                                const std::shared_ptr<NOMAD::EvalPoint>& evalPoint2,
+                                const NOMAD::EvalPointPtr evalPoint1,
+                                const NOMAD::EvalPointPtr evalPoint2,
                                 const NOMAD::Double& hMax)
 {
-    NOMAD::SuccessType success = NOMAD::SuccessType::NOT_EVALUATED;
+    NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
 
     if (nullptr != evalPoint1)
     {
         if (nullptr == evalPoint2)
         {
-            if (evalPoint1->getH(NOMAD::EvalType::SURROGATE, NOMAD::ComputeType::STANDARD) > hMax)
+            NOMAD::Double h = evalPoint1->getH(NOMAD::EvalType::SURROGATE, NOMAD::ComputeType::STANDARD);
+            if (!h.isDefined() || h > hMax || h == NOMAD::INF)
             {
                 // Even if evalPoint2 is NULL, this case is still
                 // not a success.
@@ -236,6 +239,7 @@ void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(NOMAD::EvalType ev
         }
         else
         {
+
         }
     }
     else if (NOMAD::EvalType::SURROGATE == evalType)
@@ -250,6 +254,7 @@ void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(NOMAD::EvalType ev
         }
         else
         {
+            
         }
     }
     else if (NOMAD::EvalType::MODEL == evalType)
@@ -264,8 +269,8 @@ void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(NOMAD::EvalType ev
 }
 
 
-NOMAD::SuccessType NOMAD::ComputeSuccessType::operator()(const NOMAD::EvalPointPtr& p1,
-                                                         const NOMAD::EvalPointPtr& p2,
+NOMAD::SuccessType NOMAD::ComputeSuccessType::operator()(const NOMAD::EvalPointPtr p1,
+                                                         const NOMAD::EvalPointPtr p2,
                                                          const NOMAD::Double& hMax)
 {
     return _computeSuccessType(p1, p2, hMax);

@@ -44,14 +44,13 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_DISPLAYPARAMETERS__
-#define __NOMAD_4_2_DISPLAYPARAMETERS__
+#ifndef __NOMAD_4_3_DISPLAYPARAMETERS__
+#define __NOMAD_4_3_DISPLAYPARAMETERS__
 
 
 #include "../Param/Parameters.hpp"
 #include "../Param/RunParameters.hpp"
 #include "../Param/PbParameters.hpp"
-
 
 #include "../nomad_nsbegin.hpp"
 
@@ -60,7 +59,7 @@
 - Register all parameters during construction.
 - Implement the checkAndComply function for sanity check.
 */
-class DisplayParameters final : public Parameters
+class DLL_UTIL_API DisplayParameters final : public Parameters
 {
 public:
 
@@ -91,5 +90,5 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_DISPLAYPARAMETERS__
+#endif // __NOMAD_4_3_DISPLAYPARAMETERS__
 

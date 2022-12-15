@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_SEARCHMETHODALGO__
-#define __NOMAD_4_2_SEARCHMETHODALGO__
+#ifndef __NOMAD_4_3_SEARCHMETHODALGO__
+#define __NOMAD_4_3_SEARCHMETHODALGO__
 
 #include "../../Algos/Mads/SearchMethodBase.hpp"
 
@@ -71,9 +71,6 @@ public:
     {
         // Reset the current counters. The total counters are not reset (done only once when constructor is called.
         _trialPointStats.resetCurrentStats();
-        
-        // Reset success
-        _success = SuccessType::NOT_EVALUATED;
     }
 
     /**
@@ -91,5 +88,5 @@ public:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_SEARCHMETHODALGO__
+#endif // __NOMAD_4_3_SEARCHMETHODALGO__
 

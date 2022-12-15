@@ -60,7 +60,6 @@
 #include <string.h>
 #include <iostream>
 
-
 struct NomadProblemInfo
 {
 
@@ -76,9 +75,6 @@ struct NomadProblemInfo
     // must return true if works, otherwise false.
     // WARNING: all arrays must be allocated before and deallocated after.
     Callback_BB_single bb_single;
-
-    // TODO function of blocks of inputs
-    // bool* (*bb_multiple)(int, int, double**, int double**)
 
     int nb_inputs;  // number of inputs
     int nb_outputs; // number of outputs
@@ -218,7 +214,7 @@ public:
                    int nbOutputs,
                    bool hasSgte,
                    NomadUserDataPtr user_data_ptr)
-        : NOMAD::Evaluator(evalParams),
+        : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB),
           _bb_single(bb_single),
           _nbInputs(nbInputs),
           _nbOutputs(nbOutputs),
@@ -256,15 +252,12 @@ public:
             eval_ok = _bb_single(_nbInputs, bb_inputs, _nbOutputs, bb_outputs, &countEval, _data_user_ptr);
 
             // collect outputs parameters
-            auto bbOutputType = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
             std::string bbo("");
             for (size_t i = 0; i < (size_t)_nbOutputs; ++i)
             {
                 bbo += std::to_string(bb_outputs[i]) + " ";
             }
-
-            const NOMAD::EvalType &evalType = getEvalType();
-            x.setBBO(bbo, bbOutputType, evalType);
+            x.setBBO(bbo,_bbOutputTypeList, _evalType);
         }
         catch (std::exception &e)
         {
@@ -315,10 +308,7 @@ bool solveNomadProblem(NomadProblem nomad_problem,
         nomad_problem->p->setAttributeValue<NOMAD::ArrayOfPoint>("X0", start_x0s);
     }
 
-    // TODO : for the moment allow only one blackbox call.
     nomad_problem->p->getEvaluatorControlGlobalParams()->setAttributeValue<size_t>("BB_MAX_BLOCK_SIZE", 1);
-
-    // TODO: For the moment, let these attributes
     nomad_problem->p->getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
     nomad_problem->p->getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
     nomad_problem->p->setAttributeValue("HOT_RESTART_ON_USER_INTERRUPT", false);
@@ -343,19 +333,19 @@ bool solveNomadProblem(NomadProblem nomad_problem,
         // Must perform check and comply before creating the evaluator
         nomad_problem->p->checkAndComply();
 
-        std::unique_ptr<CInterfaceEval> ev(new CInterfaceEval(nomad_problem->p->getEvalParams(),
-                                                              nomad_problem->bb_single,
-                                                              nomad_problem->nb_inputs,
-                                                              nomad_problem->nb_outputs,
-                                                              false,
-                                                              data_user_ptr));
-        TheMainStep.setEvaluator(std::move(ev));
+        auto ev = std::make_unique<CInterfaceEval>(nomad_problem->p->getEvalParams(),
+                                                   nomad_problem->bb_single,
+                                                   nomad_problem->nb_inputs,
+                                                   nomad_problem->nb_outputs,
+                                                   false,
+                                                   data_user_ptr);
+        TheMainStep.addEvaluator(std::move(ev));
 
         TheMainStep.start();
         stopflag = TheMainStep.run();
         TheMainStep.end();
 
-        // Set the best feasible and best infeasible solutions ; TODO maybe change
+        // Set the best feasible and best infeasible solutions
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
         const NOMAD::EvalType &evalType = NOMAD::EvalType::BB;
         auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), evalType, NOMAD::ComputeType::STANDARD, nullptr);

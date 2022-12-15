@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_QUAD_MODEL_EVALUATION__
-#define __NOMAD_4_2_QUAD_MODEL_EVALUATION__
+#ifndef __NOMAD_4_3_QUAD_MODEL_EVALUATION__
+#define __NOMAD_4_3_QUAD_MODEL_EVALUATION__
 
 #include "../../Eval/Evaluator.hpp"
 #include "../../Output/OutputInfo.hpp"
@@ -98,4 +98,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_QUAD_MODEL_EVALUATION__
+#endif // __NOMAD_4_3_QUAD_MODEL_EVALUATION__

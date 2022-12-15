@@ -150,9 +150,9 @@ int main (int argc, char **argv)
     
     TheMainStep->setAllParameters(params);
 
-    std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
-    
-    TheMainStep->setEvaluator(std::move(ev));
+    // Custom Evaluator
+    auto ev = std::make_unique<My_Evaluator>(params->getEvalParams());
+    TheMainStep->addEvaluator(std::move(ev));
     
     try
     {

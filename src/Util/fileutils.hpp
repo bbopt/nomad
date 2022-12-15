@@ -51,8 +51,8 @@
  \date   June 2017
  \see    fileutils.cpp
  */
-#ifndef __NOMAD_4_2_FILEUTILS__
-#define __NOMAD_4_2_FILEUTILS__
+#ifndef __NOMAD_4_3_FILEUTILS__
+#define __NOMAD_4_3_FILEUTILS__
 
 // use of 'access' or '_access', and getpid() or _getpid():
 #ifdef _MSC_VER
@@ -64,6 +64,7 @@
 
 #include <fstream>
 
+#include "../nomad_platform.hpp"
 #include "../Util/defines.hpp"
 
 #include "../nomad_nsbegin.hpp"
@@ -74,7 +75,7 @@
  \param filename  A string corresponding to a file name -- \b IN.
  \return          A boolean equal to \c true if the file is executable.
  */
-bool checkExeFile(const std::string &filename);
+DLL_UTIL_API bool checkExeFile(const std::string &filename);
 
 
 /// Check if a file exists and is readable.
@@ -82,7 +83,7 @@ bool checkExeFile(const std::string &filename);
  \param filename  A string corresponding to a file name -- \b IN.
  \return          A boolean equal to \c true if the file exists and is readable.
  */
-bool checkReadFile(const std::string &filename);
+DLL_UTIL_API bool checkReadFile(const std::string &filename);
 
 
 /// Check if a file exists and is writable.
@@ -90,53 +91,53 @@ bool checkReadFile(const std::string &filename);
  \param filename  A string corresponding to a file name -- \b IN.
  \return          A boolean equal to \c true if the file exists and is writable.
  */
-bool checkWriteFile(const std::string &filename);
+DLL_UTIL_API bool checkWriteFile(const std::string &filename);
 
 
 // Get current directory
-std::string curdir();
+DLL_UTIL_API std::string curdir();
 
 
 // Extract directory from the given filename.
 // If there is no directory, return ".".
-std::string dirname(const std::string &filename);
+DLL_UTIL_API std::string dirname(const std::string &filename);
 
 // Extract file root from the given filename.
 // Ex. "/path/toto.txt" returns "toto"
-std::string rootname(const std::string &filename);
+DLL_UTIL_API std::string rootname(const std::string &filename);
 
 // Extract extension from the given filename.
 // Ex. "/path/toto.txt" returns ".txt"
-std::string extension(const std::string &filename);
+DLL_UTIL_API std::string extension(const std::string &filename);
 
 // If filename has a path, leave it.
 // If it doesn't, add dirname() to it.
-std::string fullpath(const std::string &filename);
+DLL_UTIL_API std::string fullpath(const std::string &filename);
 
 
 // Return true if a filename is absolute, i.e., starts with '/' (DIR_SEP).
 // Return false otherwise (filename is relative, or filename is file only).
-bool isAbsolute(const std::string &filename);
+DLL_UTIL_API bool isAbsolute(const std::string &filename);
 
 
 // Add a '/' (DIR_SEP) at the end of the dirname if it does not end with one.
-void ensureDirPath(std::string &dirname);
+DLL_UTIL_API void ensureDirPath(std::string &dirname);
 
 
 // Input a line (from a parameters file).
 // Remove comments starting with '#'.
 // Replace tabs by spaces.
 // Trim extra spaces.
-void removeComments(std::string &line);
+DLL_UTIL_API void removeComments(std::string &line);
 
 // Add problemDir to filename.
 // Add seed if desired.
-void completeFileName(std::string &filename,
+DLL_UTIL_API void completeFileName(std::string &filename,
                       const std::string &problemDir,
                       bool addSeed = false,
                       int seed = 0);
 
-void addSeedToFileName(size_t nSeed,
+DLL_UTIL_API void addSeedToFileName(size_t nSeed,
                        const std::string& sSeed,
                        std::string& filename);
 
@@ -226,9 +227,9 @@ bool read(T &info, const std::string &filename)
 
 
 // Read all file and store it in string info.
-bool readAllFile(std::string &info, const std::string &filename);
+DLL_UTIL_API bool readAllFile(std::string &info, const std::string &filename);
 
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_FILEUTILS__
+#endif // __NOMAD_4_3_FILEUTILS__

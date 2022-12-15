@@ -46,8 +46,8 @@
 /*---------------------------------------------------------------------------------*/
 
 
-#ifndef __NOMAD_4_2_CSMESH__
-#define __NOMAD_4_2_CSMESH__
+#ifndef __NOMAD_4_3_CSMESH__
+#define __NOMAD_4_3_CSMESH__
 
 #include "../../Algos/MeshBase.hpp"
 
@@ -83,7 +83,11 @@ public:
         init();
     }
 
-
+    // Clone a CSMesh and return a pointer to MeshBase
+    std::unique_ptr<MeshBase> clone() const override {
+      return std::make_unique<CSMesh>(*this);
+    }
+    
     /*-----------*/
     /* Get / Set */
     /*-----------*/
@@ -106,9 +110,7 @@ public:
      \copydoc MeshBase::enlargeDeltaFrameSize
      \note This implementation relies on CSMesh::_frameSize,  and CSMesh::_granularity.
      */
-    bool enlargeDeltaFrameSize(const Direction& direction,
-                               const Double& anisotropyFactor = 0,
-                               bool anisotropicMesh = false) override;
+    bool enlargeDeltaFrameSize(const Direction& direction) override;
 
     /**
      \copydoc MeshBase::refineDeltaFrameSize
@@ -192,5 +194,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_GMESH__
+#endif // __NOMAD_4_3_GMESH__
 

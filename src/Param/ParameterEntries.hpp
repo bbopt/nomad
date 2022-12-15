@@ -51,14 +51,15 @@
  \date   2010-04-05
  \see    ParameterEntries.cpp
  */
-#ifndef __NOMAD_4_2_PARAMETERENTRIES__
-#define __NOMAD_4_2_PARAMETERENTRIES__
+#ifndef __NOMAD_4_3_PARAMETERENTRIES__
+#define __NOMAD_4_3_PARAMETERENTRIES__
 
 #include <set>
 #include <vector>
 #include "../Param/ParameterEntry.hpp"
 #include "../Util/Uncopyable.hpp"
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 /// Store and manage ParameterEntry.
@@ -66,7 +67,7 @@
  - All the ParameterEntry objects are stored as a multiset with a comparison operator based on name.
  - ParameterEntries stores all the parameters provided in a file.
  */
-class ParameterEntries : private Uncopyable {
+class DLL_UTIL_API ParameterEntries : private Uncopyable {
 
 private:
 
@@ -138,4 +139,4 @@ inline std::ostream& operator<< (std::ostream &out,
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_PARAMETERENTRIES__
+#endif // __NOMAD_4_3_PARAMETERENTRIES__

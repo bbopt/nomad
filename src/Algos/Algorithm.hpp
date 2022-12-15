@@ -45,9 +45,10 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_2_ALGORITHM__
-#define __NOMAD_4_2_ALGORITHM__
+#ifndef __NOMAD_4_3_ALGORITHM__
+#define __NOMAD_4_3_ALGORITHM__
 
+#include "../Algos/EvcInterface.hpp"
 #include "../Algos/Initialization.hpp"
 #include "../Algos/MegaIteration.hpp"
 #include "../Algos/Step.hpp"
@@ -69,6 +70,9 @@
  */
 class Algorithm: public Step
 {
+private:
+    bool _isSubAlgo;
+
 protected:
 
     std::unique_ptr<Initialization>  _initialization;   ///< To initialize the algorithm (X0)
@@ -76,8 +80,6 @@ protected:
     std::shared_ptr<MegaIteration>   _refMegaIteration; ///< MegaIteration used to pass information between two algorithm runs
 
     bool                             _endDisplay;
-
-    SuccessType                      _algoBestSuccess ; ///< The best succes type of the algorithm (cannot always get this information from _megaIteration).
 
     bool                             _algoSuccessful;
 
@@ -106,6 +108,7 @@ public:
                        const std::shared_ptr<PbParameters>& pbParams ,
                        bool useLocalFixedVariables = false)
       : Step(parentStep, stopReasons, runParams, pbParams),
+        _isSubAlgo(false),
         _initialization(nullptr),
         _termination(nullptr),
         _refMegaIteration(nullptr),
@@ -133,7 +136,19 @@ public:
     void setEndDisplay( bool endDisplay ) { _endDisplay = endDisplay; }
     
     void updateStats(TrialPointStats & trialPointStats); /// Update the trial point counter stats
-
+    
+    // Utility function to get BB_OUTPUT_TYPE parameter, which is buried in Evaluator.
+    static BBOutputTypeList getBbOutputType()
+    {
+        if (nullptr == EvcInterface::getEvaluatorControl())
+        {
+            // Do not trigger an exception. Simply return an empty vector.
+            return NOMAD::BBOutputTypeList();
+        }
+        return EvcInterface::getEvaluatorControl()->getCurrentBBOutputTypeList();
+    }
+    static size_t getNbObj();
+    
 protected:
 
 
@@ -174,8 +189,8 @@ public:
     /**
      Sub-algo: an algorithm can be part of an algorithm.
      */
-    bool isSubAlgo() const;
-    bool isRootAlgo() const { return !isSubAlgo(); }
+    bool isSubAlgo() const { return _isSubAlgo; };
+    bool isRootAlgo() const { return !_isSubAlgo; }
 
     /*---------*/
     /* Others  */
@@ -198,7 +213,7 @@ private:
     private:
     
     /// Implementation to increment the nb of calls counter
-    virtual void incrementCounters() override { _trialPointStats.incrementNbCalls() ;}
+    virtual void incrementCounters() override { _trialPointStats.incrementNbCalls() ; }
 
 };
 
@@ -211,4 +226,4 @@ std::istream& operator>>(std::istream& is, Algorithm& algo);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_ALGORITHM__
+#endif // __NOMAD_4_3_ALGORITHM__

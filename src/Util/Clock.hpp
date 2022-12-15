@@ -51,8 +51,8 @@
  \date   2010-04-02
  \see    Clock.cpp
  */
-#ifndef __NOMAD_4_2_CLOCK__
-#define __NOMAD_4_2_CLOCK__
+#ifndef __NOMAD_4_3_CLOCK__
+#define __NOMAD_4_3_CLOCK__
 
 #include <ctime>
 
@@ -107,4 +107,4 @@ public:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_2_CLOCK__
+#endif // __NOMAD_4_3_CLOCK__

@@ -60,8 +60,9 @@
 bool NOMAD::Step::_userInterrupt = false;
 bool NOMAD::Step::_userTerminate = false;
 
-NOMAD::StepEndCbFunc NOMAD::Step::_cbIterationEnd = defaultStepEnd;
-NOMAD::StepEndCbFunc NOMAD::Step::_cbMegaIterationEnd = defaultStepEnd;
+NOMAD::StepCbFunc NOMAD::Step::_cbIterationEnd = defaultStepCB;
+NOMAD::StepCbFunc NOMAD::Step::_cbMegaIterationEnd = defaultStepCB;
+NOMAD::StepCbFunc NOMAD::Step::_cbMegaIterationStart = defaultStepCB;
 NOMAD::HotRestartCbFunc NOMAD::Step::_cbHotRestart = defaultHotRestart;
 
 bool NOMAD::Step::_showWarnings = true;
@@ -108,6 +109,8 @@ void NOMAD::Step::debugSegFault(int signalValue)
 
 void NOMAD::Step::init()
 {
+    _success = NOMAD::SuccessType::UNDEFINED;
+    
     if (nullptr != _parentStep)
     {
         // If the parent is ROOT the params will be null
@@ -130,15 +133,17 @@ NOMAD::Step::~Step()
 
 
 void NOMAD::Step::addCallback(const NOMAD::CallbackType& callbackType,
-                              const NOMAD::StepEndCbFunc& stepEndCbFunc)
+                              const NOMAD::StepCbFunc& stepCbFunc)
 {
     switch (callbackType)
     {
         case NOMAD::CallbackType::ITERATION_END:
-            _cbIterationEnd = stepEndCbFunc;
+            _cbIterationEnd = stepCbFunc;
             break;
+        case NOMAD::CallbackType::MEGA_ITERATION_START:
+            _cbMegaIterationStart = stepCbFunc;
         case NOMAD::CallbackType::MEGA_ITERATION_END:
-            _cbMegaIterationEnd = stepEndCbFunc;
+            _cbMegaIterationEnd = stepCbFunc;
             break;
         default:
             break;
@@ -164,6 +169,9 @@ void NOMAD::Step::runCallback(NOMAD::CallbackType callbackType,
     {
         case NOMAD::CallbackType::ITERATION_END:
             _cbIterationEnd(step, stop);
+            break;
+        case NOMAD::CallbackType::MEGA_ITERATION_START:
+            _cbMegaIterationStart(step, stop);
             break;
         case NOMAD::CallbackType::MEGA_ITERATION_END:
             _cbMegaIterationEnd(step, stop);
@@ -252,8 +260,8 @@ void NOMAD::Step::start()
 
 void NOMAD::Step::end()
 {
-    endImp();
     defaultEnd();
+    endImp();
 }
 
 
@@ -273,6 +281,10 @@ void NOMAD::Step::observe(const std::vector<NOMAD::EvalPoint>& evalPointList)
 void NOMAD::Step::defaultStart()
 {
     
+    _success = NOMAD::SuccessType::UNDEFINED;
+    
+    _successStats.resetCurrentStats();
+    
     // Increment counters
     incrementCounters();
     
@@ -288,6 +300,10 @@ void NOMAD::Step::defaultStart()
 
 void NOMAD::Step::defaultEnd()
 {
+
+    updateParentSuccess();
+    updateParentSuccessStats();
+
     AddOutputInfo("End step " + getName(), false, true);
     
     // Flush because the step is done.
@@ -385,9 +401,9 @@ const std::shared_ptr<NOMAD::MeshBase> NOMAD::Step::getIterationMesh() const
 
 
 // Get Barrier from the MegaIteration ancestor.
-const std::shared_ptr<NOMAD::Barrier> NOMAD::Step::getMegaIterationBarrier() const
+const std::shared_ptr<NOMAD::BarrierBase> NOMAD::Step::getMegaIterationBarrier() const
 {
-    std::shared_ptr<NOMAD::Barrier> barrier = nullptr;
+    std::shared_ptr<NOMAD::BarrierBase> barrier = nullptr;
     NOMAD::MegaIteration* megaIter = nullptr;
 
     if (isAnAlgorithm())
@@ -427,9 +443,9 @@ bool NOMAD::Step::solHasFeas() const
         auto barrier = getMegaIterationBarrier();
         if (nullptr != barrier)
         {
-            for (auto xFeas : barrier->getAllXFeas())
+            for (const auto & xFeas : barrier->getAllXFeas())
             {
-                if (xFeas.isEvalOk(NOMAD::EvalType::BB) && xFeas.isFeasible(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD))
+                if (xFeas->isEvalOk(NOMAD::EvalType::BB) && xFeas->isFeasible(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD))
                 {
                     hasFeas = true;
                     break;
@@ -445,42 +461,35 @@ bool NOMAD::Step::solHasFeas() const
 bool NOMAD::Step::hasPhaseOneSolution() const
 {
     bool hasPhaseOneSol = false;
-
+    
     // A phase one solution has a PHASE_ONE Eval with f = 0.
-    std::vector<NOMAD::EvalPoint> evalPointList;
-    NOMAD::CacheBase::getInstance()->find(NOMAD::EvalPoint::isPhaseOneSolution, evalPointList);
-
-    // Points have to verify hMax.
+    // Use only barrier to detect phase one solution.
+    // If a SUB-ALGO initial point is EB infeasible, a phase one search is required.
+    
+    // If this step has a barrier, use it
     auto barrier = getMegaIterationBarrier();
+    // Otherwise, use the Algo parent to get one
+    if ( nullptr == barrier)
+    {
+        // PhaseOne solution is obtained with an algo.
+        auto constAlgo = getParentOfType<NOMAD::Algorithm*>();
+        // Get barrier of the algo.
+        barrier = constAlgo->getMegaIterationBarrier();
+    }
+    
     NOMAD::Double hMax = (nullptr != barrier) ? barrier->getHMax() : _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-    for (auto evalPoint : evalPointList)
+    // No feasible point in cache, but possibly in MegaIteration ancestor's barrier.
+    if (nullptr != barrier)
     {
-        NOMAD::Double h;
-        if (NOMAD::EvalStatusType::EVAL_OK == evalPoint.getEvalStatus(NOMAD::EvalType::BB))
+        auto xFeas = barrier->getFirstXFeas();
+        if (nullptr != xFeas && NOMAD::EvalStatusType::EVAL_OK == xFeas->getEvalStatus(NOMAD::EvalType::BB))
         {
-            h = evalPoint.getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
-        }
-        if (h.isDefined() && h <= hMax)
-        {
-            hasPhaseOneSol = true;
-            break;
+            NOMAD::Double h = xFeas->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+            hasPhaseOneSol = NOMAD::EvalPoint::isPhaseOneSolution(*xFeas) && (h <= hMax);
         }
     }
-
-    if (!hasPhaseOneSol)
-    {
-        // No feasible point in cache, but possibly in MegaIteration ancestor's barrier.
-        if (nullptr != barrier)
-        {
-            auto xFeas = barrier->getFirstXFeas();
-            if (nullptr != xFeas && NOMAD::EvalStatusType::EVAL_OK == xFeas->getEvalStatus(NOMAD::EvalType::BB))
-            {
-                NOMAD::Double h = xFeas->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
-                hasPhaseOneSol = NOMAD::EvalPoint::isPhaseOneSolution(*xFeas) && (h <= hMax);
-            }
-        }
-    }
-
+    
+    
     return hasPhaseOneSol;
 }
 
@@ -558,4 +567,88 @@ void NOMAD::Step::debugShowCallStack() const
     std::cout << std::endl;
 }
 
+void NOMAD::Step::updateParentSuccessStats()
+{
+    // Main step has no parent step.
+    if (nullptr == _parentStep)
+        return;
+    
+    // Update this stats from evaluated trial points
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    
+    NOMAD::EvalType evalType;
+    if (nullptr != evc)
+    {
+        evalType = evc->getCurrentEvalType();
+    }
+    else
+    {
+        return;
+    }
+    
+    
+    // Update this stats for BB eval only
+    if (NOMAD::EvalType::BB == evalType)
+    {
+        
+        // Update this stats from step successs
+        _successStats.updateStats(_success, _stepType);
+        
+        // Propagate to parent stats
+        if (_successStats.hasStatsForPropagation())
+        {
+            // Update parent stats with this stats
+            Step* parentStep = const_cast<Step*>(_parentStep);
+            NOMAD::SuccessStats & parentStats = parentStep->getSuccessStats();
+            
+            parentStats.updateStats(_successStats);
+        }
+    }
+        
+}
 
+void NOMAD::Step::updateParentSuccess()
+{
+    // Main step has no parent step.
+    if (nullptr == _parentStep)
+        return;
+    
+    // Update parent success if improving
+    Step* parentStep = const_cast<Step*>(_parentStep);
+    if (_success > parentStep->getSuccessType())
+    {
+        parentStep->setSuccessType(_success);
+    }
+        
+}
+
+bool NOMAD::Step::getUserTerminate()
+{ 
+	return _userTerminate; 
+}
+
+void NOMAD::Step::setUserTerminate()
+{ 
+	_userTerminate = true; 
+}
+
+void NOMAD::Step::resetUserTerminate()
+{
+	_userTerminate = false;
+}
+
+bool NOMAD::Step::getUserInterrupt()
+{
+	return _userInterrupt;
+}
+
+void  NOMAD::Step::resetUserInterrupt() 
+{ 
+	_userInterrupt = false; 
+}
+
+
+void NOMAD::Step::disableWarnings() 
+{ 
+	_showWarnings = false;
+}

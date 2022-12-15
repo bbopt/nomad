@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_SURROGATE_EVALUATION__
-#define __NOMAD_4_2_SURROGATE_EVALUATION__
+#ifndef __NOMAD_4_3_SURROGATE_EVALUATION__
+#define __NOMAD_4_3_SURROGATE_EVALUATION__
 
 #include "../Algos/IterationUtils.hpp"
 #include "../Algos/QuadModel/QuadModelIteration.hpp"
@@ -58,9 +58,9 @@ class SurrogateEvaluation : public Step
 {
 private:
     EvalType _evalType;
-    EvalPointPtr _frameCenter;
-    EvaluatorPtr _evaluator;
     std::unique_ptr<QuadModelIteration> _quadModelIteration;
+    
+    bool _evaluatorIsReady ;
     
     EvalPointSet & _trialPoints;
     
@@ -68,14 +68,12 @@ public:
     /// Constructor
     explicit SurrogateEvaluation(const Step* parentStep,
                                  EvalPointSet & trialPoints,
-                                 EvalPointPtr frameCenter = nullptr,
                                  EvalType evalType = EvalType::SURROGATE)
       : Step(parentStep),
        _trialPoints(trialPoints),
-       _frameCenter(frameCenter),
        _evalType(evalType),
-       _evaluator(nullptr),
-       _quadModelIteration(nullptr)
+       _quadModelIteration(nullptr),
+       _evaluatorIsReady(false)
     {
         init();
     }
@@ -91,4 +89,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_SURROGATE_EVALUATION__
+#endif // __NOMAD_4_3_SURROGATE_EVALUATION__

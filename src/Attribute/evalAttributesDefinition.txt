@@ -123,6 +123,9 @@ std::string
 
 . Surrogate executable must have the same number of outputs as blackbox 
     executable, defined by BB_OUTPUT_TYPE.
+    
+. Static surrogate evaluations can be used for sorting trial points before
+  blackbox evaluation OR for VNS_SEARCH.
 
 . Example
     SURROGATE_EXE surrogate.exe     # surrogate.exe is a static surrogate executable

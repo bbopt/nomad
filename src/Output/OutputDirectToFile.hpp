@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_OUTPUTDIRECTTOFILE__
-#define __NOMAD_4_2_OUTPUTDIRECTTOFILE__
+#ifndef __NOMAD_4_3_OUTPUTDIRECTTOFILE__
+#define __NOMAD_4_3_OUTPUTDIRECTTOFILE__
 
 #include <vector>
 #ifdef _OPENMP
@@ -60,6 +60,7 @@
 #include "../Output/OutputInfo.hpp"
 #include "../Output/StatsInfo.hpp"
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 /// Direct output of info to file (history, solution,...).
@@ -67,7 +68,7 @@
  The output is a singleton. Some info can be written into files. \n
  The format of output is fixed. The parameters (DisplayParameters) are attributes of the class provided by calling OutputDirectToFile::initParameters. New files to receive output must be  registered in this function.\n
  */
-class OutputDirectToFile
+class DLL_UTIL_API OutputDirectToFile
 {
 private:
     /// Private constructor
@@ -122,16 +123,16 @@ private:
     // NOTE It does not seem relevant for the lock to be static,
     // because OutputDirectToFile is a singleton anyway. If staticity causes problems,
     // we could remove the static keyword.
-    DLL_UTIL_API static omp_lock_t  _s_output_lock;
+    static omp_lock_t  _s_output_lock;
 #endif // _OPENMP
 
     /// Helper for init
     void initHistoryFile();
 
-    DLL_UTIL_API static bool        _hasBeenInitialized;    ///< Flag for initialization (initialization cannot be performed more than once).
+    static bool        _hasBeenInitialized;    ///< Flag for initialization (initialization cannot be performed more than once).
 
 
-    DLL_UTIL_API static std::unique_ptr<OutputDirectToFile> _single;    ///< The singleton
+    static std::unique_ptr<OutputDirectToFile> _single;    ///< The singleton
 
     size_t                          _outputSize;
 
@@ -154,4 +155,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_OUTPUTDIRECTTOFILE__
+#endif // __NOMAD_4_3_OUTPUTDIRECTTOFILE__

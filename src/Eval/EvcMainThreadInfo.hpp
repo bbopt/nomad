@@ -52,15 +52,16 @@
  \see    EvcMainThreadInfo.cpp
  */
 
-#ifndef __NOMAD_4_2_EVCMAINTHREADINFO__
-#define __NOMAD_4_2_EVCMAINTHREADINFO__
+#ifndef __NOMAD_4_3_EVCMAINTHREADINFO__
+#define __NOMAD_4_3_EVCMAINTHREADINFO__
 
 #include <atomic>   // for atomic
 
-#include "../Eval/Barrier.hpp"
+#include "../Eval/BarrierBase.hpp"
 #include "../Eval/ComputeSuccessType.hpp"
 #include "../Eval/Evaluator.hpp"
 #include "../Param/EvaluatorControlParameters.hpp"
+#include "../Type/EvalSortType.hpp"
 #include "../Util/AllStopReasons.hpp"
 
 #include "../nomad_nsbegin.hpp"
@@ -70,12 +71,16 @@
 class EvcMainThreadInfo
 {
 private:
-    EvaluatorPtr      _evaluator;         ///< The Evaluator for either blackbox or model evaluations.
+    std::vector<EvaluatorPtr>      _evaluators;         ///< The Evaluators for either blackbox, surrogate or model evaluations.
+    
+    EvaluatorPtr                   _currentEvaluator;
+
+    
     const std::unique_ptr<EvaluatorControlParameters> _evalContParams;  ///< The parameters controlling the behavior of EvaluatorControl for this main thread
     std::atomic<size_t>             _nbPointsInQueue;   ///< Number of points in the evaluation queue for this main thread
     bool                            _doneWithEval;      ///< All evaluations done for this main thread
-    std::shared_ptr<Barrier>        _barrier;
-    EvalPointPtr      _bestIncumbent;     ///< Temporary value useful for display only
+    std::shared_ptr<BarrierBase>    _barrier;
+    EvalPointPtr                    _bestIncumbent;     ///< Temporary value useful for display only. The best feasible if available, otherwise, the best infeasible.
     std::vector<EvalPoint>          _evaluatedPoints;   ///< Where evaluated points are put temporarily
     SuccessType                     _success;           ///< Success type of the last run
     std::atomic<size_t>             _currentlyRunning;  ///< Count number of evaluations currently running.
@@ -87,16 +92,17 @@ private:
     std::shared_ptr<Direction>      _lastSuccessfulFeasDir; ///< Direction of last success for feasible points. May be used to sort points before evaluation.
     std::shared_ptr<Direction>      _lastSuccessfulInfDir; ///< Direction of last success for infeasible points. May be used to sort points before evaluation.
     StopReason<EvalMainThreadStopType> _stopReason;
+    
+    // For convenience. See getCurrentBBOutputTypeList function.
+    BBOutputTypeList _emptyBBOutputTypeList;
 
 public:
     /// Constructor
     /**
-     \param evaluator       The Evaluator for either blackbox or model evaluations-- \b IN.
      \param evalContParams  The parameters controlling how the EvaluatorControl behaves for this main thread-- \b IN.
      */
-    explicit EvcMainThreadInfo(EvaluatorPtr evaluator,
-                               std::unique_ptr<EvaluatorControlParameters> evalContParams)
-      : _evaluator(evaluator),
+    explicit EvcMainThreadInfo(std::unique_ptr<EvaluatorControlParameters> evalContParams)
+      :_currentEvaluator(nullptr),
         _evalContParams(std::move(evalContParams)),
         _nbPointsInQueue(0),
         _doneWithEval(false),
@@ -114,18 +120,35 @@ public:
         _lastSuccessfulInfDir(nullptr),
         _stopReason()
     {
-        init();
     }
 
-    /// Set Evaluator and return old Evaluator.
+    /// Test if evalType evaluator exists in _evaluators.
     /**
-     \param evaluator       The Evaluator for either blackbox or model evaluations-- \b IN.
-     \return                The previous Evaluator.
+     \param evalType       The evaluator type (real blackbox, surrogate blackbox or model evaluations)-- \b IN.
      */
-    EvaluatorPtr setEvaluator(EvaluatorPtr evaluator);
-    const Evaluator* getEvaluator() { return _evaluator.get(); }
-    std::shared_ptr<EvalParameters> getEvalParams() const;
-    EvalType getEvalType() const;
+    bool hasEvaluator(EvalType evalType ) const;
+    
+    /// Select current evaluator from evaluator type.
+    /**
+     \param evalType       The evaluator type (real blackbox, surrogate blackbox or model evaluations)-- \b IN.
+     */
+    void selectCurrentEvaluator(EvalType evalType );
+    
+    /// Set the evaluator from a given evaluator
+    /*
+     The given evaluator will replace an existing evaluator of the same type.
+     */
+    /**
+     \param evaluator       The evaluator for blackbox, surrogate blackbox or model evaluations)-- \b IN.
+     */
+    void addEvaluator(EvaluatorPtr evaluator );
+
+    const Evaluator* getEvaluator(EvalType evalType)
+    { selectCurrentEvaluator(evalType) ; return _currentEvaluator.get() ; }
+    const Evaluator* getCurrentEvaluator() { return _currentEvaluator.get(); }
+    std::shared_ptr<EvalParameters> getCurrentEvalParams() const;
+    const BBOutputTypeList & getCurrentBBOutputTypeList() const;
+    EvalType getCurrentEvalType() const;
 
     size_t getNbPointsInQueue() const { return _nbPointsInQueue; }
     void incNbPointsInQueue();
@@ -136,6 +159,8 @@ public:
     void setDoneWithEval(const bool doneWithEval) { _doneWithEval = doneWithEval; }
 
     // Get and set parameters
+    EvalSortType getEvalSortType() const;
+    void setEvalSortType(EvalSortType evalSortType);
     bool getOpportunisticEval() const;
     void setOpportunisticEval(const bool opportunisticEval);
     bool getUseCache() const;
@@ -159,13 +184,13 @@ public:
     void incBbEvalInSubproblem(const size_t countEval) { _subBbEval += countEval; }
     void resetBbEvalInSubproblem();
 
-    const std::shared_ptr<Barrier>& getBarrier() const { return _barrier; }
-    void setBarrier(const std::shared_ptr<Barrier>& barrier) { _barrier = barrier; }
+    const std::shared_ptr<BarrierBase> getBarrier() const { return _barrier; }
+    void setBarrier(const std::shared_ptr<BarrierBase> barrier) { _barrier = barrier; }
 
     const EvalPointPtr getBestIncumbent() const;
     void setBestIncumbent(const EvalPointPtr bestIncumbent);
     void resetBestIncumbent() { _bestIncumbent = nullptr; }
-
+    
     std::vector<EvalPoint> retrieveAllEvaluatedPoints();
     void addEvaluatedPoint(const EvalPoint& evaluatedPoint);
     bool remainsEvaluatedPoints() const { return !_evaluatedPoints.empty(); }
@@ -193,12 +218,9 @@ public:
     bool testIf(const EvalMainThreadStopType& s) const { return s == _stopReason.get(); }
     bool checkEvalTerminate() const { return _stopReason.checkTerminate(); }
 
-private:
-    /// Helper for constructor
-    void init();
 };
 
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_EVCMAINTHREADINFO__
+#endif // __NOMAD_4_3_EVCMAINTHREADINFO__

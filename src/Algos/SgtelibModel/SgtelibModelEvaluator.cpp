@@ -109,9 +109,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     OUTPUT_INFO_END
 
     size_t n = x.size();
-    const auto bbot = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
-
-    size_t nbConstraints = NOMAD::getNbConstraints(bbot);
+    size_t nbConstraints = NOMAD::getNbConstraints(_bbOutputTypeList);
     size_t nbModels = NOMAD::SgtelibModel::getNbModels(_modelFeasibility, nbConstraints);
     // Init the matrices for prediction
     SGTELIB::Matrix   M_predict (  "M_predict", 1, static_cast<int>(nbModels));
@@ -160,8 +158,8 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
         // Note: Currently NOMAD cannot set a bbo value by index, so we have to
         // work around by constructing a suitable string.
         // Note: Why set some default values on bbo?
-        NOMAD::ArrayOfString defbbo(bbot.size(), "-1");
-        x.setBBO(defbbo.display(), bbot, NOMAD::EvalType::MODEL);
+        NOMAD::ArrayOfString defbbo(_bbOutputTypeList.size(), "-1");
+        x.setBBO(defbbo.display(), _bbOutputTypeList, _evalType);
 
         // ------------------------- //
         //   Objective Prediction    //
@@ -357,7 +355,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     // Application of the formulation         //
     // ====================================== //
     NOMAD::Double obj;
-    NOMAD::ArrayOfDouble newbbo(bbot.size(), -1);
+    NOMAD::ArrayOfDouble newbbo(_bbOutputTypeList.size(), -1);
     int k = 0;
     switch (formulation)
     {
@@ -365,9 +363,9 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             // Define obj
             obj = f - _diversification*sigma_f;
             // Set constraints
-            for (size_t i = 0; i < bbot.size(); i++)
+            for (size_t i = 0; i < _bbOutputTypeList.size(); i++)
             {
-                if (bbot[i] != NOMAD::BBOutputType::OBJ)
+                if (_bbOutputTypeList[i] != NOMAD::BBOutputType::OBJ)
                 {
                     newbbo[i] = M_predict.get(0,k+1) - _diversification*STD_predict.get(0,k+1);
                     k++;
@@ -379,9 +377,9 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             // Define obj
             obj = f - _diversification*sigma_f;
             // Set constraints
-            for (size_t i = 0; i < bbot.size(); i++)
+            for (size_t i = 0; i < _bbOutputTypeList.size(); i++)
             {
-                if (bbot[i] != NOMAD::BBOutputType::OBJ)
+                if (_bbOutputTypeList[i] != NOMAD::BBOutputType::OBJ)
                 {
                     newbbo[i] = 0.5 - pf;
                 }
@@ -392,9 +390,9 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             // Define obj
             obj = - ei - _diversification*sigma_f;
             // Set constraints
-            for (size_t i = 0; i < bbot.size(); i++)
+            for (size_t i = 0; i < _bbOutputTypeList.size(); i++)
             {
-                if ( bbot[i] != NOMAD::BBOutputType::OBJ )
+                if ( _bbOutputTypeList[i] != NOMAD::BBOutputType::OBJ )
                 {
                     newbbo[i] = M_predict.get(0,k+1) - _diversification*STD_predict.get(0,k+1);
                     k++;
@@ -454,14 +452,14 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     // ------------------------- //
     //   Set obj and BBO         //
     // ------------------------- //
-    for (size_t i = 0; i < bbot.size(); i++)
+    for (size_t i = 0; i < _bbOutputTypeList.size(); i++)
     {
-        if (bbot[i] == NOMAD::BBOutputType::OBJ)
+        if (_bbOutputTypeList[i] == NOMAD::BBOutputType::OBJ)
         {
             newbbo[i] = obj;
         }
     }
-    x.setBBO(newbbo.display(), bbot, NOMAD::EvalType::MODEL);
+    x.setBBO(newbbo.display(), _bbOutputTypeList, NOMAD::EvalType::MODEL);
 
     // ================== //
     //       DISPLAY      //

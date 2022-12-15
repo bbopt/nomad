@@ -50,6 +50,8 @@
 #include "../../Algos/CoordinateSearch/CSIteration.hpp"
 #include "../../Algos/CoordinateSearch/CSUpdate.hpp"
 #include "../../Algos/CoordinateSearch/CSMegaIteration.hpp"
+#include "../../Eval/Barrier.hpp"
+
 
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Output/OutputQueue.hpp"
@@ -68,72 +70,68 @@ void NOMAD::CS::init(bool barrierInitializedFromCache)
 
 }
 
-
-
-
-
-
 bool NOMAD::CS::runImp()
 {
-size_t k = 1;   // Iteration number
-NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
-
-bool successFound = false;
-
-if (!_termination->terminate(k))
-{
-    std::shared_ptr<NOMAD::MeshBase> mesh;
-    std::shared_ptr<NOMAD::Barrier> barrier;
-
-    if (nullptr != _refMegaIteration)
+    size_t k = 1;   // Iteration number
+    
+    bool successFound = false;
+    
+    NOMAD::SuccessType megaIterSuccess;
+    
+    if (!_termination->terminate(k))
     {
-        // Case hot restart
-        k       = _refMegaIteration->getK();
-        barrier = _refMegaIteration->getBarrier();
-
-        // Downcast from MegaIteration to CSMegaIteration
-        mesh    = (std::dynamic_pointer_cast<NOMAD::CSMegaIteration> (_refMegaIteration ))->getMesh();
-        megaIterSuccess = _refMegaIteration->getSuccessType();
-    }
-    else
-    {
-        mesh = dynamic_cast<NOMAD::CSInitialization*>(_initialization.get())->getMesh();
-        barrier = _initialization->getBarrier();
-    }
-
-    // Mads member _megaIteration is used for hot restart (read and write),
-    // as well as to keep values used in CS::end(), and may be used for _termination.
-    // Update it here.
-    _refMegaIteration = std::make_shared<NOMAD::CSMegaIteration>(this, k, barrier, mesh, megaIterSuccess);
-
-    NOMAD::CSMegaIteration megaIteration(this, k, barrier, mesh, megaIterSuccess);
-    while (!_termination->terminate(k))
-    {
-        megaIteration.start();
-        megaIteration.run();
-        megaIteration.end();
+        std::shared_ptr<NOMAD::MeshBase> mesh;
+        std::shared_ptr<NOMAD::BarrierBase> barrier;
         
-        // Counter is incremented when calling mega iteration end()
-        k       = megaIteration.getK();
-        megaIterSuccess = megaIteration.getSuccessType();
-        
-        if (!successFound && megaIterSuccess >= NOMAD::SuccessType::FULL_SUCCESS)
+        if (nullptr != _refMegaIteration)
         {
-            successFound = true;
+            // Case hot restart
+            k       = _refMegaIteration->getK();
+            barrier = _refMegaIteration->getBarrier();
+            
+            // Downcast from MegaIteration to CSMegaIteration
+            mesh    = (std::dynamic_pointer_cast<NOMAD::CSMegaIteration> (_refMegaIteration ))->getMesh();
+            megaIterSuccess = _refMegaIteration->getSuccessType();
         }
-
-        if (_userInterrupt)
+        else
         {
-            hotRestartOnUserInterrupt();
+            mesh = dynamic_cast<NOMAD::CSInitialization*>(_initialization.get())->getMesh();
+            barrier = _initialization->getBarrier();
+        }
+        
+        // Mads member _megaIteration is used for hot restart (read and write),
+        // as well as to keep values used in CS::end(), and may be used for _termination.
+        // Update it here.
+        _refMegaIteration = std::make_shared<NOMAD::CSMegaIteration>(this, k, barrier, mesh, megaIterSuccess);
+        
+        NOMAD::CSMegaIteration megaIteration(this, k, barrier, mesh, megaIterSuccess);
+        while (!_termination->terminate(k))
+        {
+            megaIteration.start();
+            megaIteration.run();
+            megaIteration.end();
+            
+            // Counter is incremented when calling mega iteration end()
+            k       = megaIteration.getK();
+            megaIterSuccess = megaIteration.getSuccessType();
+            
+            if (!successFound && megaIterSuccess >= NOMAD::SuccessType::FULL_SUCCESS)
+            {
+                successFound = true;
+            }
+            
+            if (getUserInterrupt())
+            {
+                hotRestartOnUserInterrupt();
+            }
         }
     }
-}
-
-_termination->start();
-_termination->run();
-_termination->end();
-
-return successFound;
+    
+    _termination->start();
+    _termination->run();
+    _termination->end();
+    
+    return successFound;
 }
 
 
@@ -197,7 +195,7 @@ void NOMAD::CS::readInformationForHotRestart()
             auto barrier = std::make_shared<NOMAD::Barrier>(NOMAD::INF, NOMAD::Point(_pbParams->getAttributeValue<size_t>("DIMENSION")), NOMAD::EvalType::BB);
             std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::CSMesh>(_pbParams);
 
-            _refMegaIteration = std::make_shared<NOMAD::CSMegaIteration>(this, 0, barrier, mesh, NOMAD::SuccessType::NOT_EVALUATED);
+            _refMegaIteration = std::make_shared<NOMAD::CSMegaIteration>(this, 0, barrier, mesh, NOMAD::SuccessType::UNDEFINED);
 
             // Here we use Algorithm::operator>>
             NOMAD::read<NOMAD::CS>(*this, hotRestartFile);

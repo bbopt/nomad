@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_ALLPARAMETERS__
-#define __NOMAD_4_2_ALLPARAMETERS__
+#ifndef __NOMAD_4_3_ALLPARAMETERS__
+#define __NOMAD_4_3_ALLPARAMETERS__
 
 
 #include "../Param/CacheParameters.hpp"
@@ -59,6 +59,7 @@
 #include "../Type/BBInputType.hpp"
 #include "../Type/BBOutputType.hpp"
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 /// Container class for all NOMAD parameters.
@@ -74,7 +75,7 @@
 
 \todo add the NOMAD parameters in a container and use foreach. This should prevent many modifications in the header when add a new type of NOMAD parameter.
  */
-class AllParameters
+class DLL_UTIL_API AllParameters
 {
 private:
 
@@ -234,6 +235,9 @@ public:
     const std::shared_ptr<PbParameters>&                getPbParams() const { return _pbParams; }
     const std::shared_ptr<RunParameters>&               getRunParams() const { return _runParams; }
 
+    /// Access to several attributes
+    bool mayUseSurrogate() const;
+    
 
     /// Perform checkAndComply() on all parameters.
     void checkAndComply();
@@ -249,7 +253,7 @@ public:
 
     /**
      Try readParamLine for each class of parameters until it works.
-     If the parameter is not found, throw an exception.
+     If the parameter is not found display a message. 
      */
     void readParamLine(const std::string &line);
 
@@ -268,6 +272,9 @@ public:
 
     /// Display all attributes
     void displayHelp(const std::string &helpSubject , bool devHelp, std::ostream &os);
+    
+    /// Display all atttributes in CSV format for doc
+    void displayCSVDoc(std::ostream &os);
 
     // Include set and get methods from NOMAD 3 for backwards compatibility
     #include "../Param/ParametersNomad3.hpp"
@@ -277,4 +284,4 @@ public:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_2_ALLPARAMETERS__
+#endif // __NOMAD_4_3_ALLPARAMETERS__

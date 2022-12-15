@@ -21,7 +21,7 @@ in flat namespace '__ZN9NOMAD_4_210Parameters17_typeOfAttributesE'
 This issue can be resolved by forcing the architecture when configuring 
 the build with a flag like -DCMAKE_OSX_ARCHITECTURES=x86_64. The
 build directory and the PyNomad.cpython-39-darwin.so in 
-$NOMAD_HOME/interfaces/PyNomad must be removed before rebuild.
+$NOMAD_HOME/interfaces/PyNomad MUST BE REMOVED BEFORE REBUILD.
 
 ************************
 HOW TO BUILD AND INSTALL
@@ -29,13 +29,15 @@ HOW TO BUILD AND INSTALL
 The interface build is managed by CMake that can be run at NOMAD root. 
 
 The configuration command:
-   cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release 
+   cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release 
 must be performed with Cython available (that can be done within a Conda 
-environment: conda activate ... or activate ...).
+environment: conda activate ... or activate ...). 
+Please note that the Python interface do not support OpenMP.
 
 For Windows, the default Anaconda is Win64. Visual Studio can support both 
 Win32 and Win64 compilations. The configuration must be forced to use Win64:
-   cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release -G"Visual Studio 15 2017 Win64". 
+   cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release -G"Visual Studio 15 2017 Win64". 
+
 The Visual Studio version must be adapted.
 
 The command 
@@ -47,9 +49,10 @@ The command
    cmake --install build/release
 must be run before using the PyNomad module.
 
+Also, for *Windows*, the path to $NOMAD_HOME/build/release/bin directory MUST 
+be added to the %PATH% environment variable. This will allow PyNomad to find
+the Nomad libraries.
 
-The next release of NOMAD will provide installation through pip using 
-a wheel.
 
 **********
 HOW TO USE
@@ -59,6 +62,7 @@ is up and running.
 
 Import PyNomad as a module and run PyNomad.info() to obtain the interface 
 usage. To obtain help on a Nomad parameter, run PyNomad.help("keyword").
+To list all attributes and functions, execute dir(PyNomad).
 
 NOMAD parameters are provided in a list of strings using the same syntax 
 as used in the NOMAD parameter files. Several tests and examples are 

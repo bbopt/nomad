@@ -52,19 +52,21 @@
  \see    StepType.cpp
  */
 
-#ifndef __NOMAD_4_2_STEP_TYPE__
-#define __NOMAD_4_2_STEP_TYPE__
+#ifndef __NOMAD_4_3_STEP_TYPE__
+#define __NOMAD_4_3_STEP_TYPE__
 
 #include <map>
 #include <sstream>
 #include <vector>
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 enum class StepType
 {
     ALGORITHM_LH,               ///< Algorithm Latin Hypercube
     ALGORITHM_CS,               ///< Algorithm Coordinate Search
+    ALGORITHM_DMULTIMADS,       ///< Algorithm DmultiMads
     ALGORITHM_MADS,             ///< Algorithm Mads
     ALGORITHM_NM,               ///< Algorithm Nelder-Mead
     ALGORITHM_PHASE_ONE,        ///< Phase One
@@ -73,6 +75,7 @@ enum class StepType
     ALGORITHM_QUAD_MODEL,       ///< Algorithm Quad Model
     ALGORITHM_SGTELIB_MODEL,    ///< Algorithm Quad Model
     ALGORITHM_SSD_MADS,         ///< Algorithm SSD-Mads
+    ALGORITHM_RANDOM,           ///< Algorithm random (to be used as a template example for a new algorithm)
     ALGORITHM_VNS_MADS,         ///< Algorithm VNS-Mads
     INITIALIZATION,             ///< Initialization step
     ITERATION,                  ///< Iteration step
@@ -94,7 +97,7 @@ enum class StepType
     NM_SHRINK,                  ///< NM Shrink
     NM_UNSET,                   ///< NM step type not set
 
-    OPTIMIZE,                   ///< Sub-optimization
+    MODEL_OPTIMIZE,                   ///<  model sub-optimization
     POLL,                       ///< Mads Poll
     CS_POLL,                    ///< Coordinate Search poll
     POLL_METHOD_DOUBLE,         ///< Double poll method
@@ -105,14 +108,17 @@ enum class StepType
     POLL_METHOD_UNI_NPLUS1,     ///< Uniform N+1 poll method
     CS_POLL_METHOD,             ///< Coordinate Search poll method
     SEARCH,                     ///< Search
+    SEARCH_METHOD_ALGO_RANDOM,///< Template for a search method using an algo (iterations)
     SEARCH_METHOD_LH,           ///< Latin hypercube search method
     SEARCH_METHOD_NM,           ///< Nelder-Mead search method
     SEARCH_METHOD_QUAD_MODEL,   ///< Quadratic model search method
     SEARCH_METHOD_QUAD_MODEL_SLD,///< Quadratic model (SLD) search method
     SEARCH_METHOD_SGTELIB_MODEL,///< Sgtelib model search method
+    SEARCH_METHOD_SIMPLE_RANDOM,///< Template for a simple (no iteration) search method
     SEARCH_METHOD_SPECULATIVE,  ///< Speculative search method
     SEARCH_METHOD_USER,         ///< User-defined search method
     SEARCH_METHOD_VNS_MADS,     ///< VNS Mads search method
+    SEARCH_METHOD_VNSMART_MADS, ///< VNS Mads smart search method
     SURROGATE_EVALUATION,       ///< Evaluating trial points using static surrogate
     MODEL_EVALUATION,           ///< Evaluating trial points using dynamic model
     QUAD_MODEL_SORT,           ///< Build quad model to sort trial points
@@ -126,15 +132,15 @@ enum class StepType
 typedef std::vector<StepType> StepTypeList;
 
 /// Helper to test if a StepType represents an Algorithm (ALGORITHM_MADS, etc).
-bool isAlgorithm(const StepType& stepType);
+DLL_UTIL_API bool isAlgorithm(const StepType& stepType);
 
-std::map<StepType, std::string>& dictStepType();
+DLL_UTIL_API std::map<StepType, std::string>& dictStepType();
 
 // Convert an StepType to a string
-std::string stepTypeToString(const StepType& stepType);
+DLL_UTIL_API std::string stepTypeToString(const StepType& stepType);
 
 // Convert a StepTypeList to a string; show only pertinent information.
-std::string StepTypeListToString(const StepTypeList& stepTypeList);
+DLL_UTIL_API std::string StepTypeListToString(const StepTypeList& stepTypeList);
 
 
 inline std::ostream& operator<<(std::ostream& out, const StepType &stepType)
@@ -145,4 +151,4 @@ inline std::ostream& operator<<(std::ostream& out, const StepType &stepType)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_2_STEP_TYPE__
+#endif  // __NOMAD_4_3_STEP_TYPE__

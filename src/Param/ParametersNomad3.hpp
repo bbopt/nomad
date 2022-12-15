@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_PARAMETERSNOMAD3__
-#define __NOMAD_4_2_PARAMETERSNOMAD3__
+#ifndef __NOMAD_4_3_PARAMETERSNOMAD3__
+#define __NOMAD_4_3_PARAMETERSNOMAD3__
 
 // File to support backwards compatibility for older Parameters functions.
 // Ex. set_DISPLAY_DEGREE(), get_display_degree().
@@ -78,6 +78,7 @@ public:
 
     /// Set the \c MAX_BB_EVAL parameter (compatibility NOMAD 3).
     void set_MAX_BB_EVAL(int bbe);
+    void set_MAX_BB_EVAL(size_t bbe);
 
     /// Set the \c MAX_EVAL parameter (compatibility NOMAD 3).
     void set_MAX_EVAL(int maxEval);
@@ -284,4 +285,4 @@ public:
     /// Get ADD_SEED_TO_FILE_NAMES (compatibility NOMAD 3)
     bool get_add_seed_to_file_names() const;
 
-#endif // __NOMAD_4_2_PARAMETERSNOMAD3__
+#endif // __NOMAD_4_3_PARAMETERSNOMAD3__

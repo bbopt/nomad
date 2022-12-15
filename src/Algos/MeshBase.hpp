@@ -51,8 +51,8 @@
  * \date   November 2017
  */
 
-#ifndef __NOMAD_4_2_MESHBASE__
-#define __NOMAD_4_2_MESHBASE__
+#ifndef __NOMAD_4_3_MESHBASE__
+#define __NOMAD_4_3_MESHBASE__
 
 #include <memory>   // for shared_ptr
 
@@ -76,7 +76,7 @@
  * Functions for delta: MeshBase::getdeltaMeshSize, MeshBase::updatedeltaMeshSize
  * Functions for Delta: MeshBase::getDeltaFrameSize, MeshBase::enlargeDeltaFrameSize, MeshBase::refineDeltaFrameSize
  */
-class MeshBase
+class DLL_ALGO_API MeshBase
 {
 protected:
     const size_t _n;     ///< Dimension
@@ -88,7 +88,25 @@ protected:
     const ArrayOfDouble _lowerBound;
     const ArrayOfDouble _upperBound;
     
+    /*
+     The mesh index is a compact indicator of the level of mesh refinement/coarsening.
+     A default stopping criterion on mesh index is available for GMesh. With this criterion, there is no need to set a default min mesh size.
+     Warning: The algebric relation between mesh/frame size and mesh index is not always maintained. When updating mesh/frame size (success/failure), the mesh index is  updated. However, when forcing values of mesh/frame size (set functions), the mesh index is not updated. Also, when forcing the mesh index, the mesh/frame size is not updated.
+     */
+    ArrayOfDouble    _r; ///< Mesh index per coordinate.
+    ArrayOfDouble    _rMin; ///< Lowest mesh index reached per coordinate.
+    ArrayOfDouble    _rMax; ///< Highest mesh index reached per coordinate.
+    
+    
+    /* The limit mesh indices are hardcoded (no parameters). This can trigger a stopping criterion (MIN_MESH_INDEX_REACHED) indicative of the cumulative number of mesh refinements regardless of the initial mesh size. There is a symmetric for mesh coarsening.
+       It is possible to change those criterions programmatically with
+     setLimitMeshIndices function.
+   */
+    int _limitMinMeshIndex; ///< The min limit of mesh index (smaller index -> finer mesh)
+    int _limitMaxMeshIndex; ///< The max limit of mesh index (larger index -> coarser mesh)
+    
     bool _isFinest;
+    
 
 
 public:
@@ -96,8 +114,12 @@ public:
     /// Constructor From [mesh] parameters
     /**
      \param pbParams    The mesh parameters are taken from problem parameters -- \b IN.
+     \param limitMinMeshIndex    The min limit of mesh index  -- \b IN.
+     \param limitMaxMeshIndex    The max limit of mesh index  -- \b IN.
      */
-    explicit MeshBase(std::shared_ptr<PbParameters> pbParams);
+    explicit MeshBase(std::shared_ptr<PbParameters> pbParams,
+                      int limitMinMeshIndex = M_INF_INT ,
+                      int limitMaxMeshIndex = P_INF_INT );
 
     /**
      Virtual destructor needed to avoid compilation warning:
@@ -106,6 +128,11 @@ public:
      */
     virtual ~MeshBase() {}
 
+    /**
+     Pure virtual function. A derived calss must implement a clone function to return a pointer to MeshBase
+     */
+    virtual std::unique_ptr<MeshBase> clone() const = 0;
+    
     /*-----------------------------------------------------*/
     /* Get / Set                                           */
     /* Set removed for members because they are all const. */
@@ -134,13 +161,9 @@ public:
      * The successful direction is used to ensure integrity of the mesh (no variable collapse).
 
      \param direction          The direction of success of the iteration       -- \b IN.
-     \param anisotropyFactor   Control the development of anisotropy of the mesh (if anisotropicMesh is \c true) -- \b IN.
-     \param anisotropicMesh    Flag to enable or not anisotropic mesh  -- \b IN.
      \return                   \c true if the mesh has changed, \c false otherwise.
      */
-    virtual bool enlargeDeltaFrameSize(const Direction& direction,
-                                       const Double& anisotropyFactor = 0.1,
-                                       bool anisotropicMesh = true) = 0;
+    virtual bool enlargeDeltaFrameSize(const Direction& direction) = 0;
 
     /// Refine frame size.
     /**
@@ -166,6 +189,19 @@ public:
      */
     virtual ArrayOfDouble getRho() const;
 
+    
+    /// Access to the mesh indices.
+    /**
+     \return        The mesh indices.
+     */
+    virtual ArrayOfDouble getMeshIndex() const { return _r;}
+    
+    /// Set the mesh indices.
+    /**
+     \param r      The mesh indices to set (no update of mesh/frame size -- \b IN.
+     */
+    virtual void setMeshIndex(const ArrayOfDouble &r  ) { _r=r;}
+    
     /// Access to the mesh size parameter delta^k.
     /**
      \param i       Index of the dimension of interest -- \b IN.
@@ -248,7 +284,14 @@ public:
     
     /// Return if mesh is finest
     bool isFinest() const {return _isFinest ;}
-     
+    
+    
+    /// Set the limit mesh indices
+    /**
+    \param limitMinMeshIndex   The limit min mesh index          -- \b IN.
+    \param limitMaxMeshIndex   The limit max mesh index          -- \b IN.
+    */
+    void setLimitMeshIndices(int limitMinMeshIndex, int limitMaxMeshIndex);
     
 private:
     /// Helper for constructor.
@@ -264,12 +307,12 @@ protected:
 typedef std::shared_ptr<MeshBase> MeshBasePtr;
 
 ///   Display useful values so that a new mesh could be constructed using these values.
-std::ostream& operator<<(std::ostream& os, const MeshBase& mesh);
+DLL_ALGO_API std::ostream& operator<<(std::ostream& os, const MeshBase& mesh);
 
 /// Get the mesh values from stream
-std::istream& operator>>(std::istream& is, MeshBase& mesh);
+DLL_ALGO_API std::istream& operator>>(std::istream& is, MeshBase& mesh);
 
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_MESHBASE__
+#endif // __NOMAD_4_3_MESHBASE__

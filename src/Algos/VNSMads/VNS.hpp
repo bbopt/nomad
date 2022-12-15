@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_VNS__
-#define __NOMAD_4_2_VNS__
+#ifndef __NOMAD_4_3_VNS__
+#define __NOMAD_4_3_VNS__
 
 
 #include "../../Algos/Algorithm.hpp"
@@ -61,7 +61,7 @@ private:
     
     std::shared_ptr<AlgoStopReasons<MadsStopType>>    _madsStopReasons;
     
-    std::shared_ptr<Barrier>    _barrier;
+    std::shared_ptr<BarrierBase>    _barrier;
     
     std::shared_ptr<RunParameters>      _optRunParams; ///< run parameters for Mads sub optimization
     std::shared_ptr<PbParameters>       _optPbParams; ///< pb parameters for mads sub optimization
@@ -100,7 +100,7 @@ public:
 
     virtual void readInformationForHotRestart() override {}
 
-    std::shared_ptr<Barrier> getBarrier() {return _barrier; }
+    std::shared_ptr<BarrierBase> getBarrier() {return _barrier; }
     
     /// The frame center is used as initial point for the sub-obptimization
     void setFrameCenter(const EvalPointPtr frameCenter);
@@ -140,4 +140,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_VNS__
+#endif // __NOMAD_4_3_VNS__

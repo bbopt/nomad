@@ -65,7 +65,7 @@ size_t
 
 . Number of variables
 
-. Argument: one positive integer
+. Argument: one positive integer.
 
 . Example: DIMENSION 3
 
@@ -136,7 +136,7 @@ NOMAD::ArrayOfDouble
 providing both is not allowed.
 
 . Examples
-. INITIAL_FRAME_SIZE 1.0          # for all variables
+. INITIAL_FRAME_SIZE * 1.0          # for all variables
 . INITIAL_FRAME_SIZE 1 0.5        # for variable 1 only
 . INITIAL_FRAME_SIZE 2-4 0.25     # for variable 2 to 4
 
@@ -159,7 +159,7 @@ NOMAD::ArrayOfDouble
 . Initial frame size is determined from initial mesh size when provided
 
 . Examples:
-    . INITIAL_MESH_SIZE 1.0          # for all variables
+    . INITIAL_MESH_SIZE * 1.0          # for all variables
     . INITIAL_MESH_SIZE 1 0.5        # for variable 1 only
     . INITIAL_MESH_SIZE 2-4 0.25     # for variables 2 to 4
 
@@ -276,8 +276,12 @@ NOMAD::ArrayOfPoint
 
 . Arguments: text file name or DIMENSION reals
 
-. More than one starting point can be defined. All points are evaluated:
-  X0 evaluations are not opportunistic.
+. More than one starting point can be defined in a separate text file
+  (X0 x0s.txt) with one point per line. A single point can be provided in the
+  parameter file: X0 (0 0 0).
+
+. All points are evaluated: X0 evaluations are not opportunistic.
+  Initial LH_SEARCH points are handled as X0s (no opportunism for evaluation).
 
 . May be infeasible
 

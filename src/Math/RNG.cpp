@@ -55,6 +55,13 @@
 #include "../Math/RNG.hpp"
 #include <math.h>
 
+#ifdef _MSC_VER
+#include <io.h>
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
+
 // Default values for the provided number seed
 int NOMAD::RNG::_s = 0;
 
@@ -68,14 +75,22 @@ uint32_t NOMAD::RNG::_z = z_def;
 
 void NOMAD::RNG::setSeed(int s)
 {
-    if (s <= INT_MAX && s >= 0)
+    if (s == -1)
+    {
+#ifdef _MSC_VER
+        _s = _getpid();
+#else
+        _s = getpid();
+#endif
+    }
+    else if (s <= INT_MAX && s >= 0)
     {
         _s = s;
     }
     else
     {
         throw NOMAD::Exception (__FILE__, __LINE__,
-                                "NOMAD::RNG::setSeed(): invalid seed. Seed should be in [0,INT_MAX]");
+                                "NOMAD::RNG::setSeed(): invalid seed. Seed should be in [0,INT_MAX] U {-1}");
     }
 
     // Always reset the private seed to default values

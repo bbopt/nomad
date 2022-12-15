@@ -60,7 +60,7 @@
 
 void NOMAD::QuadModelOptimize::init()
 {
-    setStepType(NOMAD::StepType::OPTIMIZE);
+    setStepType(NOMAD::StepType::MODEL_OPTIMIZE);
     verifyParentNotNull();
 
     if (nullptr == _iterAncestor )
@@ -83,7 +83,7 @@ void NOMAD::QuadModelOptimize::startImp()
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
     s = "QUAD_MODEL_MAX_EVAL: " + std::to_string(evcParams->getAttributeValue<size_t>("QUAD_MODEL_MAX_EVAL"));
     AddOutputInfo(s, _displayLevel);
-    s = "BBOT: " + NOMAD::BBOutputTypeListToString(NOMAD::QuadModelAlgo::getBBOutputType());
+    s = "BBOT: " + NOMAD::BBOutputTypeListToString(NOMAD::Algorithm::getBbOutputType());
     AddOutputInfo(s, _displayLevel);
     OUTPUT_INFO_END
 
@@ -112,8 +112,8 @@ bool NOMAD::QuadModelOptimize::runImp()
         // Update barrier
         postProcessing();
 
-        // If the oracle point cannot be evaluated the optimization has failed.
-        if (_success==NOMAD::SuccessType::NOT_EVALUATED)
+        // If the oracle point cannot be evaluated, the optimization has failed.
+        if (_success==NOMAD::SuccessType::NO_TRIALS)
         {
             auto qmsStopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get ( getAllStopReasons() );
             qmsStopReason->set( NOMAD::ModelStopType::NO_NEW_POINTS_FOUND);
@@ -146,10 +146,7 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
     _optRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("NM_SEARCH", false);
     _optRunParams->setAttributeValue("SPECULATIVE_SEARCH", true);
-    
-    // IMPORTANT: if VNS_MADS_SEARCH is changed to yes, the static members of VNSSearchMethod must be managed correctly
     _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
-    
     _optRunParams->setAttributeValue("ANISOTROPIC_MESH", false);
 
     // Set direction type to Ortho 2n
@@ -181,6 +178,9 @@ void NOMAD::QuadModelOptimize::setupPbParameters()
     // Use default min mesh and frame sizes
     _optPbParams->resetToDefaultValue("MIN_MESH_SIZE");
     _optPbParams->resetToDefaultValue("MIN_FRAME_SIZE");
+    
+    // Use the default point format. This reduces the dimension
+    _optPbParams->resetToDefaultValue("POINT_FORMAT");
     
 
     // Granularity is set to 0 and bb_input_type is set to all continuous variables. Candidate points are projected on the mesh before evaluation.
@@ -226,49 +226,60 @@ void NOMAD::QuadModelOptimize::generateTrialPointsImp()
     // Enforce no opportunism and use no cache.
     auto previousOpportunism = evc->getOpportunisticEval();
     auto previousUseCache = evc->getUseCache();
+    auto previousEvalType = evc->getCurrentEvalType();
+    auto previousEvalSortType = evc->getEvalSortType();
     
     evc->setOpportunisticEval(true);
     evc->setUseCache(false);
+    evc->setEvalSortType(NOMAD::EvalSortType::DIR_LAST_SUCCESS);
     
-    // Enforce specific sort type
-    auto evcParams = evc->getEvaluatorControlGlobalParams();
-    auto previousEvalSortType = evcParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT");
-    evcParams->setAttributeValue("EVAL_QUEUE_SORT", NOMAD::EvalSortType::DIR_LAST_SUCCESS);
-    evcParams->checkAndComply();
-    
-
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
-
-    OUTPUT_INFO_START
-    std::string s = "Create QuadModelEvaluator with fixed variable = ";
-    s += _modelFixedVar.display();
-    AddOutputInfo(s);
-    OUTPUT_INFO_END
-
-    // Evaluations are in the quad model (local) full space: fixed variables detected when creating the training set (lb==ub) are not modified by the optimizer but evaluator receives points in local full space. The "local full space" is used because fixed variables from the parent problem are not seen/considered.
-    // We send an empty Point for fixed variables to indicate that the evaluation are done in local full space.
-    auto ev = std::make_shared<NOMAD::QuadModelEvaluator>(evc->getEvalParams(),
-                                                          _model,
-                                                          modelDisplay,
-                                                          NOMAD::Point());
-
-    // Replace the EvaluatorControl's evaluator with this one
-    // we just created
-    auto previousEvaluator = evc->setEvaluator(ev);
-    if (nullptr == previousEvaluator)
-    {
-        std::cerr << "Warning: QuadModelOptimize: Could not set MODEL Evaluator" << std::endl;
-        return;
-    }
-
-    auto madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
-
-
     // Setup Pb parameters just before optimization.
     setupPbParameters();
 
     // Set and verify run parameter values
     setupRunParameters();
+    
+    // Transform EB constraint to PB.
+    // Needed when initial point of sub-opt is infeasible. If EB constraint is used, the barrier is empty -> exception. No phase one is done for this optimization.
+    auto evalParams = std::make_shared<NOMAD::EvalParameters>(*(evc->getCurrentEvalParams()));
+    
+    auto bbot = evc->getCurrentEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
+    
+    for (auto & sbbot : bbot)
+    {
+        if (sbbot == NOMAD::BBOutputType::EB)
+        {
+            sbbot = NOMAD::BBOutputType::PB;
+        }
+    }
+    evalParams->setAttributeValue("BB_OUTPUT_TYPE", bbot);
+    evalParams->setAttributeValue("BB_EXE", std::string(""));  // No bb is used for sub optimization
+    evalParams->setAttributeValue("SURROGATE_EXE", std::string(""));  // No surrogate is used for sub optimization
+    evalParams->setAttributeValue("BB_EXE", std::string(""));  // No bb is used for sub optimization
+    
+    evalParams->checkAndComply(_optRunParams, _optPbParams, evc->getEvaluatorControlGlobalParams(),  evc->getEvaluatorControlParams());
+
+    auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
+    
+    OUTPUT_INFO_START
+    std::string s = "Create QuadModelEvaluator with fixed variable = ";
+    s += _modelFixedVar.display();
+    AddOutputInfo(s);
+    OUTPUT_INFO_END
+    
+    // Evaluations are in the quad model (local) full space: fixed variables detected when creating the training set (lb==ub) are not modified by the optimizer but evaluator receives points in local full space. The "local full space" is used because fixed variables from the parent problem are not seen/considered.
+    // We send an empty Point for fixed variables to indicate that the evaluation are done in local full space.
+    auto ev = std::make_shared<NOMAD::QuadModelEvaluator>(evalParams,
+                                                          _model,
+                                                          modelDisplay,
+                                                          NOMAD::Point());
+
+    // Add evaluator to EvaluatorControl
+    // If an evaluator with the same eval type exists, it will be replaced
+    evc->addEvaluator(ev);
+    evc->selectCurrentEvaluator(NOMAD::EvalType::MODEL);
+
+    auto madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
 
     OUTPUT_INFO_START
     std::ostringstream oss;
@@ -286,12 +297,12 @@ void NOMAD::QuadModelOptimize::generateTrialPointsImp()
     auto mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams, true /* use local fixed variables */);
     
     evc->resetModelEval();
+    
     mads->start();
     runOk = mads->run();
     mads->end();
 
     evc->resetModelEval();
-    evc->setEvaluator(previousEvaluator);
 
     // Note: No need to check the Mads stop reason: It is not a stop reason
     // for QuadModel.
@@ -299,11 +310,9 @@ void NOMAD::QuadModelOptimize::generateTrialPointsImp()
     // Reset opportunism to previous values.
     evc->setOpportunisticEval(previousOpportunism);
     evc->setUseCache(previousUseCache);
+    evc->selectCurrentEvaluator(previousEvalType);
+    evc->setEvalSortType(previousEvalSortType);
     
-    // Reset eval sort type to previous values
-    evcParams->setAttributeValue("EVAL_QUEUE_SORT", previousEvalSortType);
-    evcParams->checkAndComply();
-
     if (!runOk)
     {
         auto modelStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);

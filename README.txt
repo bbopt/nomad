@@ -121,11 +121,13 @@ cmake -S . -B build/release
               in User Guide (Section Matlab interface).
 
          To enable *Python* interface (PyNomad) building:
-              cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release
+              cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release
              
               ! Building requires to have Cython. Cython can be obtained with
               Anaconda distribution platform.
-  
+
+              ! The Python interface will not be built if OpenMP is enabled.  
+
               ! On *Windows*, using Visual Studio, see the user guide to properly
               manage X86/X64 building of binaries. 
               
@@ -150,7 +152,7 @@ cmake --install build/release (for *OSX* and *Linux*)
 
 By default, the executable "nomad" will installed into the directory:
 build/release/bin/  (build/debug/bin/ when in debug mode). A symbolic link
-is added in the bin directory.
+is added in the bin directory for OSX and Linux. 
 
 It is possible to build only a single application in its working directory:
 (with NOMAD_HOME environment variable properly set)

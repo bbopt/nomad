@@ -73,6 +73,11 @@ int NOMAD::AllParameters::get_max_bb_eval() const
 }
 
 
+void NOMAD::AllParameters::set_MAX_BB_EVAL(size_t bbe)
+{
+    setAttributeValue("MAX_BB_EVAL", bbe );
+}
+
 void NOMAD::AllParameters::set_MAX_BB_EVAL(int bbe)
 {
     // -1 is the old way for INF

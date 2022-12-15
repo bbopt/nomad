@@ -12,13 +12,17 @@ if(OpenMP_CXX_FOUND)
 else()
     target_link_libraries(example1_c_api.exe PUBLIC nomadAlgos nomadUtils nomadEval nomadCInterface)
 endif()
+if (WIN32)
+else()
+    target_link_libraries(example1_c_api.exe PUBLIC m)
+endif()
 
 # installing executables and libraries
 install(TARGETS example1_c_api.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example
-if(BUILD_TESTS MATCHES ON)
+if(BUILD_EXAMPLES MATCHES ON)
     message(STATUS "    Add example test for c-api 1") 
     # Can run this test after install
 

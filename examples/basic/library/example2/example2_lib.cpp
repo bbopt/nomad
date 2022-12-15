@@ -84,13 +84,20 @@ public:
                 // to compute than the function itself.
                 countEval = false;
                 std::string bbo = f.tostring() + " " + c1.tostring() + " " + c2.tostring();
-                x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"), getEvalType());
+
+                // Simple way to set the BBO
+                x.setBBO(bbo);
+                // This way to set BBO maybe slightly faster
+                // x.setBBO(bbo, _bbOutputTypeList, _evalType);
             }
             else
             {
                 f = x[n-1];
                 std::string bbo = f.tostring() + " " + c1.tostring() + " " + c2.tostring();
-                x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"), getEvalType());
+                // Simple way to set the BBO
+                x.setBBO(bbo);
+                // This way to set BBO maybe slightly faster
+                // x.setBBO(bbo, _bbOutputTypeList, _evalType);
                 countEval = true; // count a black-box evaluation
             }
         }
@@ -154,8 +161,8 @@ int main (int argc, char **argv)
     TheMainStep->setAllParameters(params);
 
     // Custom evaluator creation
-    std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
-    TheMainStep->setEvaluator(std::move(ev));
+    auto ev = std::make_unique<My_Evaluator>(params->getEvalParams());
+    TheMainStep->addEvaluator(std::move(ev));
 
     try
     {

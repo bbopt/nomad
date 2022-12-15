@@ -9,8 +9,7 @@ DIMENSION 10
 BB_EXE bb1.exe
 BB_OUTPUT_TYPE OBJ PB PB PB
 
-# Starting point
-X0 ( 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 )
+# No starting point (provided by initial LH search)
 
 # Bounds for variables
 LOWER_BOUND * -10

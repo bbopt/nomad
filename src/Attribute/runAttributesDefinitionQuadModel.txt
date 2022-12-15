@@ -50,25 +50,6 @@ true
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ###############################################################################
-QUAD_MODEL_SLD_SEARCH
-bool
-false
-\( Quad model (SLD) search \)
-\(
-
-. MADS model search, using Sébastien Le Digabel quad models
-
-. Argument: one boolean ('yes' or 'no')
-
-. Disabled for more than 50 variables
-
-. Example: QUAD_MODEL_SLD_SEARCH yes
-
-\)
-\( basic mads quad model search model_search \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
 QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR
 NOMAD::Double
 1

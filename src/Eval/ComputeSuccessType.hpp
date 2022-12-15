@@ -52,23 +52,21 @@
  \see    ComputeSuccessType.cpp
  */
 
-#ifndef __NOMAD_4_2_COMPUTESUCCESSTYPE__
-#define __NOMAD_4_2_COMPUTESUCCESSTYPE__
+#ifndef __NOMAD_4_3_COMPUTESUCCESSTYPE__
+#define __NOMAD_4_3_COMPUTESUCCESSTYPE__
 
 #include "../Eval/EvalPoint.hpp"
-#include "../nomad_platform.hpp"
-
 
 #include "../nomad_nsbegin.hpp"
 /// Definition for compute success type function.
 /**
  A function of this type compares two EvalPoints, and returns the SuccessType resulting from the comparison. The function is a member of ComputeSuccessType class and set using ComputeSuccessType::setComputeSuccessTypeFunction. \n For example, computing success type is changed when optimizing a model instead of blackbox.
 */
-typedef std::function<SuccessType(const EvalPointPtr &p1,
-                                  const EvalPointPtr &p2,
+typedef std::function<SuccessType(const EvalPointPtr p1,
+                                  const EvalPointPtr p2,
                                   const Double& hMax)> ComputeSuccessFunction;
 
-class ComputeSuccessType
+class DLL_EVAL_API ComputeSuccessType
 {
 private:
     /** The function to compute success type
@@ -90,8 +88,8 @@ public:
      \param hMax    Max acceptable infeasibility to keep point in barrier -- \b IN.
      \return        Success type of p1 over p2, considering hMax
      */
-    SuccessType operator()(const EvalPointPtr& p1,
-                           const EvalPointPtr& p2,
+    SuccessType operator()(const EvalPointPtr p1,
+                           const EvalPointPtr p2,
                            const Double& hMax = INF);
 
 
@@ -102,8 +100,8 @@ public:
      \param hMax       Max acceptable infeasibility to keep point in barrier   -- \b IN.
      \return           Success type.
      */
-    static SuccessType defaultComputeSuccessType(const EvalPointPtr& evalPoint1,
-                                                 const EvalPointPtr& evalPoint2,
+    static SuccessType defaultComputeSuccessType(const EvalPointPtr evalPoint1,
+                                                 const EvalPointPtr evalPoint2,
                                                  const Double& hMax = INF);
 
     /// Function to compute success type for a model evaluation.
@@ -113,13 +111,13 @@ public:
      \param hMax        Max acceptable infeasibility to keep point in barrier   -- \b IN.
      \return            Success type.
      */
-    static SuccessType computeSuccessTypeModel(const EvalPointPtr& evalPoint1,
-                                              const EvalPointPtr& evalPoint2,
+    static SuccessType computeSuccessTypeModel(const EvalPointPtr evalPoint1,
+                                              const EvalPointPtr evalPoint2,
                                               const Double& hMax = INF);
 
     /// Similar to defaultComputeSuccessType, but using SURROGATE for EvalType
-    static SuccessType computeSuccessTypeSurrogate(const EvalPointPtr& evalPoint1,
-                                                 const EvalPointPtr& evalPoint2,
+    static SuccessType computeSuccessTypeSurrogate(const EvalPointPtr evalPoint1,
+                                                 const EvalPointPtr evalPoint2,
                                                  const Double& hMax = INF);
 
     /// Function to compute success type in phase one.
@@ -129,8 +127,8 @@ public:
      \param hMax               Unused
      \return            Success type.
      */
-    static SuccessType computeSuccessTypePhaseOne(const EvalPointPtr& evalPoint1,
-                                              const EvalPointPtr& evalPoint2,
+    static SuccessType computeSuccessTypePhaseOne(const EvalPointPtr evalPoint1,
+                                              const EvalPointPtr evalPoint2,
                                               const Double& NOMAD_UNUSED(hMax));
 
     /// Similar to computeSuccessTypePhaseOne, but using SURROGATE for EvalType
@@ -140,8 +138,8 @@ public:
      \param hMax               Unused
      \return            Success type.
      */
-    static SuccessType computeSuccessTypePhaseOneSurrogate(const EvalPointPtr& evalPoint1,
-                                              const EvalPointPtr& evalPoint2,
+    static SuccessType computeSuccessTypePhaseOneSurrogate(const EvalPointPtr evalPoint1,
+                                              const EvalPointPtr evalPoint2,
                                               const Double& NOMAD_UNUSED(hMax));
 
 private:
@@ -152,4 +150,4 @@ private:
 };
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_COMPUTESUCCESSTYPE__
+#endif // __NOMAD_4_3_COMPUTESUCCESSTYPE__

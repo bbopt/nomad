@@ -56,12 +56,6 @@ void NOMAD::Termination::init()
     verifyParentNotNull();
 }
 
-
-void NOMAD::Termination::startImp()
-{
-}
-
-
 bool NOMAD::Termination::runImp()
 {
     return _stopReasons->checkTerminate() ;
@@ -123,7 +117,12 @@ void NOMAD::Termination::endImp()
     const NOMAD::Algorithm* currentAlgo = getParentOfType<NOMAD::Algorithm*>();
     NOMAD::OutputLevel outputLevel = currentAlgo->isSubAlgo() ? NOMAD::OutputLevel::LEVEL_INFO
                                                               : NOMAD::OutputLevel::LEVEL_HIGH;
-
+    // Early out
+    if ( ! NOMAD::OutputQueue::GoodLevel(outputLevel) )
+    {
+        return;
+    }
+    
     if (_stopReasons->checkTerminate())
     {
         std::string terminationInfo = "A termination criterion is reached: ";

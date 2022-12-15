@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.2                                                                      */
+/*  Version 2.0.3                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -262,7 +262,7 @@ void SGTELIB::Surrogate_LOWESS::predict_private_objective ( const std::vector<SG
   double v = 0;
 
   // Loop on all pxx points 
-  for (int i=0 ; i<pxx ; i++){
+  for (int i=0 ; i<static_cast<int>(pxx) ; i++){
     // XXd[i] is of dimension nbd * _n
 
     if (nbd>1){

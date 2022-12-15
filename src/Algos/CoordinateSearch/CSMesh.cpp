@@ -157,8 +157,7 @@ void NOMAD::CSMesh::updatedeltaMeshSize()
 
 // In the CS algorithm, the mesh is never enlarged.
 // Return value: always false because the mesh never changes.
-bool NOMAD::CSMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction,const Double& anisotropyFactor ,
-                                          bool anisotropicMesh)
+bool NOMAD::CSMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction)
 {
     return false;
 }

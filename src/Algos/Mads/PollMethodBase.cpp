@@ -47,7 +47,6 @@
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/PollMethodBase.hpp"
 #include "../../Algos/SubproblemManager.hpp"
-#include "../../Algos/SurrogateEvaluation.hpp"
 #include "../../Output/OutputQueue.hpp"
 #include "../../Type/EvalSortType.hpp"
 
@@ -317,48 +316,3 @@ void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs, s
     }
 }
 
-// Complete trial points information for sorting before evaluation
-void NOMAD::PollMethodBase::completeTrialPointsInformation()
-{
-    
-    // Send trial EvalPoints to EvaluatorControl
-    NOMAD::EvcInterface evcInterface(this);
-    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    
-    
-    std::unique_ptr<NOMAD::SurrogateEvaluation> surrogateEvaluation = nullptr;
-
-    // If sort type is MODEL, but Evaluator type is not MODEL,
-    // start by evaluating points using the surrogate (MODEL) Evaluator.
-    // No need to sort if not opportunistic
-    if ( NOMAD::EvalSortType::QUADRATIC_MODEL == evc->getEvaluatorControlGlobalParams()->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT")
-        && NOMAD::EvalType::MODEL != evc->getEvalType()
-        && _trialPoints.size() > 1
-        && evc->getOpportunisticEval())
-    {
-        // Reset the counter (otherwise the cumulative model evals for sorting may exceed the limit MODEL_MAX_EVAL)
-        evc->resetModelEval();
-        
-        // Construction of quadratic model
-        surrogateEvaluation = std::make_unique<NOMAD::SurrogateEvaluation>(this,
-                                                                                _trialPoints,
-                                                                                _frameCenter,
-                                                                                NOMAD::EvalType::MODEL);
-    }
-    // If sort type is SURROGATE, but Evaluator type is not SURROGATE,
-    // start by evaluating points using the surrogate Evaluator.
-    else if ( NOMAD::EvalSortType::SURROGATE == evc->getEvaluatorControlGlobalParams()->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT")
-        && NOMAD::EvalType::SURROGATE != evc->getEvalType()
-        && _trialPoints.size() > 1
-        && evc->getOpportunisticEval())
-    {
-        surrogateEvaluation = std::make_unique<NOMAD::SurrogateEvaluation>(this,_trialPoints, nullptr, NOMAD::EvalType::SURROGATE);
-    }
-    
-    if (nullptr != surrogateEvaluation)
-    {
-        surrogateEvaluation->start(); // start sets the eval type to MODEL or SURROGATE, perform MODEL construction if it is its eval type
-        surrogateEvaluation->run(); // Perform MODEL or SURROGATE evaluations on the trial points
-        surrogateEvaluation->end();
-    }
-}

@@ -58,7 +58,7 @@
 omp_lock_t NOMAD::PSDMads::_psdMadsLock;
 
 
-void NOMAD::PSDMads::init(const std::shared_ptr<NOMAD::Evaluator>& evaluator,
+void NOMAD::PSDMads::init(const std::vector<NOMAD::EvaluatorPtr> & evaluators,
                           const std::shared_ptr<NOMAD::EvaluatorControlParameters>& evalContParams)
 {
     setStepType(NOMAD::StepType::ALGORITHM_PSD_MADS);
@@ -82,9 +82,19 @@ void NOMAD::PSDMads::init(const std::shared_ptr<NOMAD::Evaluator>& evaluator,
     for (int mainThreadNum = 1; mainThreadNum < (int)nbMainThreads; mainThreadNum++)
     {
         auto evalStopReason = std::make_shared<NOMAD::StopReason<NOMAD::EvalMainThreadStopType>>();
-        auto subProblemEvalContParams = std::unique_ptr<NOMAD::EvaluatorControlParameters>(new NOMAD::EvaluatorControlParameters(*evalContParams));
+        auto subProblemEvalContParams = std::make_unique<NOMAD::EvaluatorControlParameters>(*evalContParams);
         subProblemEvalContParams->checkAndComply();
-        evc->addMainThread(mainThreadNum, evalStopReason, evaluator, std::move(subProblemEvalContParams));
+        
+        // add a main thread
+        evc->addMainThread(mainThreadNum, evalStopReason, std::move(subProblemEvalContParams));
+        // Add evaluators to the main thread
+        for (const auto & ev: evaluators )
+        {
+            // The same evaluators are used by all mainThreads (no move(ev)).
+            evc->addEvaluator(ev,mainThreadNum);
+        }
+        // Select BB evaluator. Otherwise the last one added is used.
+        evc->selectCurrentEvaluator(NOMAD::EvalType::BB, mainThreadNum);
     }
 
     _randomPickup.reset();
@@ -112,27 +122,20 @@ void NOMAD::PSDMads::waitForBarrier() const
 void NOMAD::PSDMads::startImp()
 {
     NOMAD::Algorithm::startImp();
-
-    if (0 == NOMAD::getThreadNum())
-    {
-        // Initializations that are run in thread 0 only
-        size_t k = 0;
-        _psdMainMesh = dynamic_cast<NOMAD::MadsInitialization*>(_initialization.get())->getMesh();
-        _barrier = _initialization->getBarrier();   // Initialization was run in Algorithm::startImp()
-        _masterMegaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, k, _barrier, _psdMainMesh, NOMAD::SuccessType::NOT_EVALUATED);
-    }
-    else
-    {
-        // Other threads must wait for thread 0 to initialize _barrier.
-        waitForBarrier();
-    }
+    
+    
+    // Initializations that are run in thread 0 only
+    size_t k = 0;
+    _psdMainMesh = dynamic_cast<NOMAD::MadsInitialization*>(_initialization.get())->getMesh();
+    _barrier = _initialization->getBarrier();   // Initialization was run in Algorithm::startImp()
+    _masterMegaIteration = std::make_shared<NOMAD::MadsMegaIteration>(this, k, _barrier, _psdMainMesh, NOMAD::SuccessType::UNDEFINED);
 }
 
 
 bool NOMAD::PSDMads::runImp()
 {
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    const NOMAD::EvalType evalType = evc->getEvalType();
+    const NOMAD::EvalType evalType = evc->getCurrentEvalType();
     const NOMAD::ComputeType computeType = evc->getComputeType();
     std::string s;
 
@@ -148,6 +151,7 @@ bool NOMAD::PSDMads::runImp()
         // Lock psd mads before accessing barrier.
         omp_set_lock(&_psdMadsLock);
         auto bestEvalPoint = _barrier->getAllPoints()[0];
+        auto barrier = _barrier->clone();
         omp_unset_lock(&_psdMadsLock);
         NOMAD::Point fixedVariable(_pbParams->getAttributeValue<size_t>("DIMENSION"));
         if (!isPollster)
@@ -161,13 +165,13 @@ bool NOMAD::PSDMads::runImp()
         // the bracket ends.
         {
             omp_set_lock(&_psdMadsLock);
-            NOMAD::PSDMadsMegaIteration psdMegaIteration(this, k, _barrier,
+            NOMAD::PSDMadsMegaIteration psdMegaIteration(this, k, barrier,
                                         _psdMainMesh, _masterMegaIteration->getSuccessType(),
                                         bestEvalPoint, fixedVariable);
             omp_unset_lock(&_psdMadsLock);
             psdMegaIteration.start();
             bool madsSuccessful = psdMegaIteration.run();    // One Mads (on pollster or subproblem) is run per PSDMadsMegaIteration.
-
+            
             omp_set_lock(&_psdMadsLock);
             if (madsSuccessful)
             {
@@ -180,6 +184,7 @@ bool NOMAD::PSDMads::runImp()
                 _lastMadsSuccessful = !isPollster;  // Ignore pollster for this flag
                 auto evalPointList = madsOnSubPb->getMegaIterationBarrier()->getAllPoints();
                 NOMAD::convertPointListToFull(evalPointList, fixedVariable);
+                
                 _barrier->updateWithPoints(evalPointList,
                                        evalType,
                                        computeType,
@@ -220,7 +225,7 @@ bool NOMAD::PSDMads::runImp()
             _masterMegaIteration->setK(k++);
         }
 
-        if (_userInterrupt)
+        if (getUserInterrupt())
         {
             hotRestartOnUserInterrupt();
         }
@@ -297,6 +302,11 @@ void NOMAD::PSDMads::generateSubproblem(NOMAD::Point &fixedVariable)
 
     // The fixed variables of the subproblem are set to the value of best point, the remaining variables are undefined.
     const auto nbVariablesInSubproblem = _runParams->getAttributeValue<size_t>("PSD_MADS_NB_VAR_IN_SUBPROBLEM");
+    if (nbVariablesInSubproblem >= fixedVariable.size())
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "PSD-Mads: NB var in subproblem cannot be greater or equal to the overall dimension.");
+    }
+    
     omp_set_lock(&_psdMadsLock);
     {
         for (size_t k = 0; k < nbVariablesInSubproblem; k++)

@@ -51,12 +51,13 @@
  \date   July 2019
  \see    SgtelibModel.hpp
  */
-#ifndef __NOMAD_4_2_SGTELIB_MODEL_FORMULATION_TYPE__
-#define __NOMAD_4_2_SGTELIB_MODEL_FORMULATION_TYPE__
+#ifndef __NOMAD_4_3_SGTELIB_MODEL_FORMULATION_TYPE__
+#define __NOMAD_4_3_SGTELIB_MODEL_FORMULATION_TYPE__
 
 #include <string>
 #include <sstream>
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 
@@ -79,9 +80,9 @@ enum class SgtelibModelFormulationType
 
 // Convert a string (ex "FS", "EIS", "FSP"...)
 // to a SgtelibModelFormulationType.
-SgtelibModelFormulationType stringToSgtelibModelFormulationType(const std::string &s);
+DLL_UTIL_API SgtelibModelFormulationType stringToSgtelibModelFormulationType(const std::string &s);
 
-std::string SgtelibModelFormulationTypeToString(const SgtelibModelFormulationType &smft);
+DLL_UTIL_API std::string SgtelibModelFormulationTypeToString(const SgtelibModelFormulationType &smft);
 
 
 inline std::ostream& operator<<(std::ostream& os, const SgtelibModelFormulationType &smft)
@@ -130,4 +131,4 @@ inline std::ostream& operator<<(std::ostream& os, const SgtelibModelFormulationT
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_SGTELIB_MODEL_FORMULATION_TYPE__
+#endif // __NOMAD_4_3_SGTELIB_MODEL_FORMULATION_TYPE__
