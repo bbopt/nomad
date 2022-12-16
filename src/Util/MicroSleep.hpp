@@ -59,11 +59,11 @@
 #include <thread>
 
 static inline void usleep(uint64_t usec) {
-    std::this_thread::sleep_for(std::chrono::microseconds(usec));
+	std::this_thread::sleep_for(std::chrono::microseconds(usec));	
 }
-
 #else
 #include <unistd.h>
 #endif
 
 #endif // __NOMAD_4_3_MICROSLEEP__
+

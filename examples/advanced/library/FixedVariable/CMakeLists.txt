@@ -24,10 +24,11 @@ if(BUILD_TESTS MATCHES ON)
     # Can run this test after install
 
     if (WIN32)
-        add_test(NAME ExampleAdvancedFixedVariables
-	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./fixedVariable.exe
-	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-        )
+# Todo Find a way to detect error
+#        add_test(NAME ExampleAdvancedFixedVariables
+#	    COMMAND ./fixedVariable.exe # Let ctest detect error. Not sure it can!
+#	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+#        )
     else()
         add_test(NAME ExampleAdvancedFixedVariables
 	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./fixedVariable.exe

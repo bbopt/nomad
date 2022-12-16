@@ -1,0 +1,26 @@
+freebsd_instance:
+  image: freebsd-13-0-release-amd64
+task:
+  name: FreeBSD
+  dependencies_script: |
+    pkg install -y cmake bash
+  configure_script: |
+    mkdir instdir
+    mkdir build
+    cd build
+    cmake \
+      -DTEST_OPENMP=OFF \
+      -DBUILD_INTERFACE_C=ON \
+      -DBUILD_TESTS=ON \
+      -DCMAKE_INSTALL_PREFIX=../instdir \
+      ..
+  build_script: |
+    cmake --build build --parallel 8 --config Release
+  install_script: |
+    cmake --install build --config Release
+  test_script: |
+    export PATH=`pwd`/build/bin:$PATH
+    echo $PATH
+    ln -s /usr/local/bin/bash /bin/bash
+    cd build
+    ctest -C Release --parallel 8

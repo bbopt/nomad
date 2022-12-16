@@ -8,15 +8,13 @@ install(TARGETS uu.exe
 
 # Add a test for this example
 if(BUILD_TESTS MATCHES ON)
-
-    message(STATUS "    Add example batch fixed variables") 
-    # Test run in working directory AFTER install of bb executable
-
     if (WIN32)
         add_test(NAME ExampleAdvancedBatchFixedVariables
         COMMAND bash.exe runFixedWin.sh ${CMAKE_INSTALL_PREFIX}/bin/nomad.exe
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
     else()
+        message(STATUS "    Add example batch fixed variables")
+
         add_test(NAME ExampleAdvancedBatchFixedVariables
         COMMAND ./runFixed.sh ${CMAKE_INSTALL_PREFIX}/bin/nomad
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )

@@ -190,6 +190,11 @@ BINARIES:
 Nomad libraries are available in a Julia package for some plateforms at 
 https://github.com/JuliaBinaryWrappers/NOMAD_jll.jl/tree/main
 
+BINARIES:
+Nomad libraries are available in a Julia package for some plateforms at 
+https://github.com/JuliaBinaryWrappers/NOMAD_jll.jl/tree/main
+
+
 EXAMPLES OF OPTIMIZATION:
 
 Batch Mode:

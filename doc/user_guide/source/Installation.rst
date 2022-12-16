@@ -110,7 +110,7 @@ Copy binaries and headers in build/release/[bin, include, lib] and in the exampl
 
 Option --config Release should be used on Windows to install Release configuration.
 
-The executable ``nomad`` will installed into the directory::
+The executable ``nomad`` will be installed into the directory::
 
   $NOMAD_HOME/build/release/bin/
 

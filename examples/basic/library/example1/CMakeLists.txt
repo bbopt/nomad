@@ -23,7 +23,7 @@ message(STATUS "    Add example library #1")
 if (WIN32)
     # Todo Find a way to detect error
     # add_test(NAME Example1BasicLib
-    #	    COMMAND ./example1_lib.exe 
+    #	    COMMAND ./example1_lib.exe # Let ctest detect error. Not sure it can!
     #	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 else()
     add_test(NAME Example1BasicLib
