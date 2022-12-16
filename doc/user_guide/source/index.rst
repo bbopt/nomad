@@ -57,7 +57,7 @@ A complete introduction to derivative-free and blackbox optimization can be foun
 
 .. toctree::
    :maxdepth: 2
-   :caption: First NOMAD steps:
+   :caption: Utilization:
 
    GettingStarted
    HowToUseNomad

@@ -315,6 +315,21 @@ The user still has room for 50 more evaluations.
 The parameter file may be changed with value ``MAX_BB_EVAL 150``, and the second run of
 NOMAD will start where it was, with evaluation 101.
 
+Adding an algorithm
+"""""""""""""""""""
+
+Adding its own code for optimization into NOMAD is possible. The license of NOMAD allows it. Please note that C++ object oriented programming skills are required for this task. NOMAD libraries offers many functionalities and classes to make this process less difficult.
+
+We make the distinction between a method to generate trial points based on an iterative algorithm (like Nelder Mead for example) or a single pass method to generate new points (like Latin Hypercube sampling).
+
+NOMAD allows this new method to be used as a Mads search method or as a standalone optimization strategy (without Mads). A template algorithm is provided in ``$NOMAD_HOME/src/Algos/TemplateAlgo``. Both utilization (search method or standalone optimization) are illustrated. The modifications to implement a new algorithm span over several classes and files. To control a new algorithm, several new parameters maybe added in ``$NOMAD_HOME/src/Attribute/runAttributesDefinition.txt``.
+
+In complement of Mads poll step, a new algorithm within Mads search step can help provide diversity and exploration of the design space. To obtain a diversity of trial points from different algorithms one must restrain the evaluation budget given to a new algorithm. Enabling a new Mads search method, requires to add it in the list of available search methods (see in ``NOMAD::Search::init()`` function).
+
+To run standalone new optimization algorithm, it must be enabled in the ``$NOMAD_HOME/src/Algos/MainStep.cpp`` (see in ``NOMAD::MainStep::start()`` function for examples).
+
+
+
 Doxygen
 -------
 
