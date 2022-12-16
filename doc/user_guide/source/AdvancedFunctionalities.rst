@@ -316,7 +316,7 @@ The parameter file may be changed with value ``MAX_BB_EVAL 150``, and the second
 NOMAD will start where it was, with evaluation 101.
 
 Adding an algorithm
-"""""""""""""""""""
+-------------------
 
 Adding its own code for optimization into NOMAD is possible. The license of NOMAD allows it. Please note that C++ object oriented programming skills are required for this task. NOMAD libraries offers many functionalities and classes to make this process less difficult.
 
