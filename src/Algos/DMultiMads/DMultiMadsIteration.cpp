@@ -101,19 +101,10 @@ bool NOMAD::DMultiMadsIteration::runImp()
     // 1. Search
     if ( nullptr != _search && ! _stopReasons->checkTerminate() )
     {
-#ifdef TIME_STATS
-        double searchStartTime = NOMAD::Clock::getCPUTime();
-        double searchEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
-#endif // TIME_STATS
     
         _search->start();
         iterationSuccess = _search->run();
         _search->end();
-        
-#ifdef TIME_STATS
-        _searchTime += NOMAD::Clock::getCPUTime() - searchStartTime;
-        _searchEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - searchEvalStartTime;
-#endif // TIME_STATS
         
         if (iterationSuccess)
         {
@@ -130,10 +121,6 @@ bool NOMAD::DMultiMadsIteration::runImp()
     {
         if (! iterationSuccess)
         {
-#ifdef TIME_STATS
-            double pollStartTime = NOMAD::Clock::getCPUTime();
-        double pollEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
-#endif // TIME_STATS
 
             // 2. Poll
             _poll->start();
@@ -142,10 +129,6 @@ bool NOMAD::DMultiMadsIteration::runImp()
             // a better xInf (partial success or dominating) xInf was found.
             // See Algorithm 12.2 from DFBO.
             iterationSuccess = _poll->run();
-#ifdef TIME_STATS
-            _pollTime += NOMAD::Clock::getCPUTime() - pollStartTime;
-            _pollEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - pollEvalStartTime;
-#endif // TIME_STATS
             _poll->end();
             
             // Update MegaIteration best success type with success found.

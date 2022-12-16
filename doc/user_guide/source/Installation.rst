@@ -69,14 +69,6 @@ On the command line, in the ``$NOMAD_HOME`` directory::
 
         cmake -DBUILD_INTERFACE_C=ON -S . -B build/release
 
-     To enable Matlab interface building::
-
-        cmake -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release
-
-     To enable Python interface (PyNomad) building::
-
-        cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release
-
      To disable *OpenMP* compilation::
 
        cmake -DTEST_OPENMP=OFF -S . -B build/release
@@ -88,7 +80,7 @@ The command can be modified to enable/disable some options (see side bar).
 
 *OpenMP* is used for parallelization of evaluations. *CMake* will detect if *OpenMP* is available by default. To forcefully deactivate compilation with *OpenMP*, see option in side bar.
 
-.. warning:: Sometimes, additional options must be passed during configuration to prevent CMake errors for interfaces. See details in :ref:`library_mode`.
+.. warning:: Additional options for interfaces (*Python* and *Matlab*) are available in :ref:`library_mode`.
 
 
 2- Build
@@ -102,7 +94,7 @@ For Windows, the default configuration is Debug. To obtain the Release version::
 
   cmake --build build/release --config Release
 
-Option ``--parallel xx`` can be added for faster build
+Option ``--parallel`` can be added for faster build.
 
 It is possible to build only a single application in its working directory::
 
@@ -170,5 +162,5 @@ By default the examples are built and can be tested::
 
 For Windows, the configuration must be provided: ``ctest -C Release``.
 
-Please note that the tests will take several minutes. Option ``--parallel xx`` can be added for faster execution.
+Please note that the tests will take several minutes. Option ``--parallel`` can be added for faster execution.
 The log of the tests can be found in ``$NOMAD_HOME/build/release/Testing/Temporary``.

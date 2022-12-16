@@ -94,13 +94,6 @@ As a first task, you can create a ``CMakeLists.txt`` for your source code(s) bas
   # installing executables and libraries
   install(TARGETS example1_lib.exe  RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
-  # Add a test for this example
-  if(BUILD_TESTS MATCHES ON)
-     message(STATUS "    Add example library test 1")
-
-     # Can run this test after install
-     add_test(NAME Example1BasicLib COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./example1_lib.exe WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-  endif()
 
 If you include your problem into the ``$NOMAD_HOME/examples`` directories, you just need to copy
 the example ``CMakeLists.txt`` into your own problem directory (for example ``$NOMAD_HOME/examples/basic/library/myPb``),
@@ -145,7 +138,7 @@ The blackbox evaluation is programmed in a user-defined class that will  be auto
   {
   public:
       My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
-      : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
+      : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB) // Evaluator for true blackbox evaluations only
       {}
 
       ~My_Evaluator() {}
@@ -194,7 +187,6 @@ The blackbox evaluation is programmed in a user-defined class that will  be auto
               }
 
               NOMAD::Double c2000 = -f-2000;
-              auto bbOutputType = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
               std::string bbo = g1.tostring();
               bbo += " " + g2.tostring();
               bbo += " " + f.tostring();
@@ -235,7 +227,7 @@ Finally, note that the call to ``eval_x()`` inside the NOMAD code  is inserted i
 This means that if an error is detected inside the ``eval_x()`` function,  an exception should be thrown.
 The choice for the type of this exception is left to the user, but  ``NOMAD::Exception`` is available.
 If an exception is thrown by the user-defined function, then the associated evaluation  is tagged as a failure
-and not counted unless the user explicitely set the flag ``countEval`` to ``true``.
+and not counted unless the user explicitly set the flag ``countEval`` to ``true``.
 
 
 Setting parameters
@@ -258,7 +250,7 @@ so it is recommended that you put your code into a ``try`` block.
       initAllParams(params);
       TheMainStep.setAllParameters(params);
 
-      std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
+      auto ev = std::make_unique<My_Evaluator>(params->getEvalParams());
       TheMainStep.setEvaluator(std::move(ev));
 
       try
@@ -321,12 +313,6 @@ For the example, the parameters are set in
       allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
       allParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_2N);
       allParams->setAttributeValue("DISPLAY_DEGREE", 2);
-      allParams->setAttributeValue("DISPLAY_ALL_EVAL", false);
-      allParams->setAttributeValue("DISPLAY_UNSUCCESSFUL", false);
-
-      allParams->getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
-      allParams->getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
-
 
       // Parameters validation
       allParams->checkAndComply();
@@ -349,6 +335,8 @@ To access the best feasible and infeasible points, use
 
 ** More stats will be available in future version. **
 
+.. _matlab_interface:
+
 Matlab interface
 -----------------
 
@@ -357,7 +345,9 @@ Matlab interface
 The Matlab MEX interface allows to run NOMAD within the command line of Matlab.
 Some examples and source codes are provided in ``$NOMAD_HOME/interface/Matlab_MEX``.
 To enable the building of the interface, option ``-DBUILD_INTERFACE_MATLAB=ON`` must be
-set when configuring for building NOMAD, as such: ``cmake -DTEST_OPENMP=OFF -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release``.
+set when configuring for building NOMAD, as such::
+
+  cmake -DTEST_OPENMP=OFF -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release
 
 .. warning:: In some occasions, CMake cannot find Matlab installation directory. The option ``-DMatlab_ROOT_DIR=/Path/To/Matlab/Install/Dir`` must be passed during configuration.
 
@@ -367,7 +357,7 @@ The command ``cmake --build build/release`` (or ``cmake --build build/release --
 The command ``cmake --install build/release`` must be run before using the Matlab ``nomadOpt`` function. Also,
 the Matlab command ``addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib'))`` or ``addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib64'))`` must be executed to have access to the libraries and run the examples.
 
-All functionalities of NOMAD are available in ``nomadOpt``.
+All functionalities of NOMAD that do not depend on OpenMP are available in ``nomadOpt``.
 NOMAD parameters are provided in a Matlab structure with keywords and values using the same syntax as used in the NOMAD parameter
 files. For example, ``params = struct('initial_mesh_size','* 10','MAX_BB_EVAL','100');``
 
@@ -386,7 +376,7 @@ set when configuring for building NOMAD. The configuration command ``cmake -DBUI
 
 For Windows, the default Anaconda is Win64. Visual Studio can support both Win32 and Win64 compilations.
 The configuration must be forced to use Win64 with a command such as ``cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release -G"Visual Studio 15 2017 Win64"``.
-The Visual Studio version must be adapted.
+The Visual Studio version must be adapted to your case.
 
 The command ``cmake --build build/release`` (or ``cmake --build build/release --config Release`` for Windows) is used for building the selected configuration.
 
