@@ -25,9 +25,9 @@ NOMAD is a blackbox optimization software. A general presentation of NOMAD is gi
 
 Please cite NOMAD 4 with reference:
 
-.. [AuLeRoTr2021] C. Audet, S. Le Digabel, V. Rochon Montplaisir, and C. Tribes.
+.. [AuLeRoTr2022] C. Audet, S. Le Digabel, V. Rochon Montplaisir, and C. Tribes.
    NOMAD version 4: Nonlinear optimization with the MADS algorithm.
-   Submitted.
+   *ACM Transactions on Mathematical Software* 48 (3), Paper no: 35, 1–22, 2022
 
 .. sidebar:: Reference book
 

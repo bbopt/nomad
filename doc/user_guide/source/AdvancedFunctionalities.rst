@@ -10,6 +10,15 @@ Advanced parameters are intended to setup optimization problems, algorithmic and
 Only a few advanced parameters are presented below; all advanced parameters can be obtained with ``$NOMAD_HOME -h advanced``.
 Also a complete list of parameters and a short description is available in :ref:`appendix_parameters`.
 
+.. _dmultimads:
+
+``DMULTIMADS_OPTIMIZATION``
+"""""""""""""""""""""""""""
+
+When ``BB_OUTPUT_TYPE`` contains more than one objective, the DMultiMads algorithm (see [BiLedSa2020]_) must be explicitly enabled to solve for multiobjective optimization problems.
+In the current version, it is recommended to output all evaluation points into a file such as ``HISTORY_FILE``. The user must do some post-processing for these results to obtain the approximation of the pareto front. Future version will have the option to output the pareto front in a file.
+
+
 .. _eval_queue_sort:
 
 ``EVAL_QUEUE_SORT``
@@ -126,8 +135,6 @@ The possible syntaxes to specify the granularity of the variables are as follows
 ``SURROGATE_EXE``
 """""""""""""""""
 
-Static surrogate executable.
-
 A static surrogate, or static surrogate function, is a cheaper blackbox function that is used, at least partially, to drive the optimization.
 
 .. figure:: ../figs/surrogate.png
@@ -139,8 +146,9 @@ A static surrogate, or static surrogate function, is a cheaper blackbox function
 
 The current version of NOMAD can use a static surrogate, provided by the user, which is not updated during the algorithm. See [BoDeFrSeToTr99a]_ for a survey on surrogate optimization, and [AuCM2019]_ about using static surrogate evaluations. This surrogate may be used for sorting points before evaluation. This sorting strategy is obtained by setting the parameter :ref:`eval_queue_sort` to ``SURROGATE``.
 
-In batch mode, the parameter ``SURROGATE_EXE`` associates a static surrogate executable with the blackbox executable given by parameter ``BB_EXE``. The surrogate must display the same input and output types as its associated blackbox, given by parameters ``BB_INPUT_TYPE`` and ``BB_OUTPUT_TYPE``. In library mode, if a surrogate function is to be used, then its Evaluator should be of type ``EvalType::SURROGATE`` (see Section :ref:`library_mode`).
+In batch mode, the parameter ``SURROGATE_EXE`` associates a static surrogate executable with the blackbox executable given by parameter ``BB_EXE``. The surrogate must display the same input and output types as its associated blackbox, given by parameters ``BB_INPUT_TYPE`` and ``BB_OUTPUT_TYPE``.
 
+In library mode, if a surrogate function is to be used, then an Evaluator of type ``EvalType::SURROGATE`` must be provided. Please refer to ``$NOMAD_HOME/examples/basic/library/example4`` for an example on how to manage both ``BB`` and ``SURROGATE`` evaluation types.
 
 .. _block_evaluations:
 
@@ -326,6 +334,10 @@ A local doxygen documentation can be created by running the ``doxygen`` command 
   .. [AuDeLe07] C. Audet, J.E. Dennis, Jr., and S. Le Digabel.
     Parallel space decomposition of the mesh adaptive direct search algorithm.
     *SIAM Journal on Optimization*, 19(3):1150–1170, 2008.
+
+  .. [BiLedSa2020] J. Bigeon and S. Le Digabel and L. Salomon.
+    DMulti-MADS: Mesh adaptive direct multisearch for bound-constrained blackbox multiobjective optimization.
+    *Computational Optimization and Applications*, 79(2):301--338, 2021.
 
   .. [BoDeFrSeToTr99a] A.J. Booker, J.E. Dennis, Jr., P.D. Frank, D.B. Serafini, V. Torczon, and M.W. Trosset.
     A Rigorous Framework for Optimization of Expensive Functions by Surrogates.

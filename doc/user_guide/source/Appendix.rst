@@ -9,7 +9,7 @@ A set of parameters is available in the table below for fine tuning algorithmic 
    :file: ../source/allParameters.csv
    :widths: 20,3,10,50,10
 
-.. toctree::
-  :hidden:
-
-  ListOfParameters
+//.. toctree::
+//  :hidden:
+//
+//  ListOfParameters

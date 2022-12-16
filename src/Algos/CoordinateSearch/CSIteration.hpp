@@ -65,16 +65,6 @@ private:
     const MeshBasePtr  _mesh;        ///< Mesh on which the points are
 
     std::unique_ptr<CSPoll> _csPoll;
-    
-#ifdef TIME_STATS
-    /// Time counters
-    DLL_ALGO_API static double  _iterTime;          ///< Total time spent running this class
-    DLL_ALGO_API static double  _searchTime;        ///< Total time spent running searches
-    DLL_ALGO_API static double  _searchEvalTime;    ///< Total time spent evaluating search points
-    DLL_ALGO_API static double  _pollTime;          ///< Total time spent running polls
-    DLL_ALGO_API static double  _pollEvalTime;      ///< Total time spent evaluating poll points
-    double                      _iterStartTime;     ///< Time at which the start method was called
-#endif // TIME_STATS
 
 public:
     /// Constructor
@@ -88,9 +78,6 @@ public:
                            const MeshBasePtr mesh)
       : Iteration(parentStep, k),
         _mesh(mesh)
-#ifdef TIME_STATS
-        ,_iterStartTime(0.0)
-#endif // TIME_STATS
     {
         init();
     }
@@ -104,13 +91,6 @@ public:
      \remark Used by Step::getIterationMesh() to pass the mesh whenever needed
      */
     const MeshBasePtr getMesh() const override { return _mesh; }
-
-#ifdef TIME_STATS
-    /// Time stats
-    static double getIterTime()         { return _iterTime; }
-    static double getPollTime()         { return _pollTime; }
-    static double getPollEvalTime()     { return _pollEvalTime; }
-#endif // TIME_STATS
 
     /*---------------------*/
     /* Other class methods */
@@ -129,9 +109,6 @@ private:
      */
     virtual bool runImp() override;
 
-#ifdef TIME_STATS
-    virtual void endImp() override;
-#endif // TIME_STATS
 };
 
 #include "../../nomad_nsend.hpp"
