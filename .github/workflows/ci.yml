@@ -25,21 +25,21 @@ jobs:
             build_type: "Release", cc: "cl", cxx: "cl",
             environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           }
-#        - {
-#            name: "Windows -- MinGW", artifact: "Windows-MinGW.tar.xz",
-#            os: windows-latest,
-#            build_type: "Release", cc: "x86_64-w64-mingw32-gcc", cxx: "x86_64-w64-mingw32-g++"
-#          }
-#        - {
-#            name: "Ubuntu", artifact: "Linux.tar.xz",
-#            os: ubuntu-latest,
-#            build_type: "Release", cc: "gcc", cxx: "g++"
-#          }
-#        - {
-#            name: "MacOS", artifact: "macOS.tar.xz",
-#            os: macos-latest,
-#            build_type: "Release", cc: "clang", cxx: "clang++"
-#          }
+        - {
+            name: "Windows -- MinGW", artifact: "Windows-MinGW.tar.xz",
+            os: windows-latest,
+            build_type: "Release", cc: "x86_64-w64-mingw32-gcc", cxx: "x86_64-w64-mingw32-g++"
+          }
+        - {
+            name: "Ubuntu", artifact: "Linux.tar.xz",
+            os: ubuntu-latest,
+            build_type: "Release", cc: "gcc", cxx: "g++"
+          }
+        - {
+            name: "MacOS", artifact: "macOS.tar.xz",
+            os: macos-latest,
+            build_type: "Release", cc: "clang", cxx: "clang++"
+          }
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       # Usually this is always needed
@@ -73,13 +73,13 @@ jobs:
           if [[ "${{matrix.config.name}}" == "Windows -- MinGW" ]]; then
             cmake -G "MinGW Makefiles" \
               -DTEST_OPENMP=OFF \
-              -DBUILD_INTERFACE_C=OFF \
+              -DBUILD_INTERFACE_C=ON \
               -DCMAKE_INSTALL_PREFIX=../instdir \
               ..
           else
             cmake \
               -DTEST_OPENMP=OFF \
-              -DBUILD_INTERFACE_C=OFF \
+              -DBUILD_INTERFACE_C=ON \
               -DCMAKE_INSTALL_PREFIX=../instdir \
               ..
           fi

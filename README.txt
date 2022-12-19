@@ -210,3 +210,23 @@ Nomad application. The problems may be resolved by execution,
 for instance:
 
 ./example_lib.exe
+
+
+NOTE:
+
+We recommend to download the complete NOMAD source files and examples and build the project for your platform. For users who do not follow this recommendation, a compact version with binaries (zipped) are available for Windows, Mac-OSX and Linux Ubuntu in the Assets section of the Release. 
+
+For OSX: After download and unzip, the binaries must be de-quarantined (OSX will not let you run the executables)
+To remove the quarantine:
+         xattr -d com.apple.quarantine ./bin/nomad 
+         xattr -d com.apple.quarantine ./lib/libnomadUtils.4.3.0.dylib
+         xattr -d com.apple.quarantine ./lib/libnomadEval.4.3.0.dylib
+         xattr -d com.apple.quarantine ./lib/libnomadAlgos.4.3.0.dylib
+         xattr -d com.apple.quarantine ./lib/libsgtelib.2.0.3.dylib
+The rpath needs also to be changed:
+         install_name_tool -rpath /Users/runner/work/nomad/nomad/instdir/lib @loader_path/../lib ./bin/nomad
+
+
+For Linux, due to different compiler versions and available standard libraries, the binaries will most likely not be executable. If they are, you may still need to change the LD_LIBRARY_PATH variable to find the nomad shared object libraries (lib/libnomad*.so.*).
+
+For Windows, you may want to update the %PATH% environment variable to add the directory where the executable and the dll have been put (for example: C:\Users\Unknown\Downloads\windows-latest\bin).
