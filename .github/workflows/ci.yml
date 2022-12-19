@@ -94,22 +94,26 @@ jobs:
         run: |
           cmake --install build --config ${{matrix.config.build_type}}
 
-#      - name: Tests
+
+#      - name: Run tests
 #        shell: bash
 #        run: |
 #          export PATH=`pwd`/build/bin:$PATH
 #          echo $PATH
 #          cd build
 #          ctest -C ${{matrix.config.build_type}} --output-on-failure
-#          cd ..
+
+      - name: Prepare upload
+        shell: bash
+        run: |
+          mv README.txt instdir/.
+          mv LICENSE instdir/.
+          cd instdir
+          zip -ry NOMAD_${{matrix.config.os}}.zip *
 
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.config.os }}
-          path:  |
-             instdir/bin
-             instdir/lib
-             instdir/include
-             LICENSE
-             README.txt
+          name: ${{matrix.config.os}}
+          path:  instdir/NOMAD4_${{matrix.config.os}}.zip
+          
