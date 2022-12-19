@@ -102,15 +102,19 @@ jobs:
           export PATH=`pwd`/build/bin:$PATH
           echo $PATH
           cd build
-          ctest -C ${{matrix.config.build_type}} --parallel 8
+          ctest -C ${{matrix.config.build_type}} --parallel
+          
+      - name: PushFile
+        shell: bash
+        run: echo hello > build/bin/world.txt
 
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.config.os }}
           path:  |
-             build/bin
-             build/lib
+             build/bin/*
+             build/lib/*
              LICENSE
              README.txt
              examples
