@@ -52,11 +52,12 @@
  \see    EvalSortType.cpp
  */
 
-#ifndef __NOMAD_4_2_EVAL_SORT_TYPE__
-#define __NOMAD_4_2_EVAL_SORT_TYPE__
+#ifndef __NOMAD_4_3_EVAL_SORT_TYPE__
+#define __NOMAD_4_3_EVAL_SORT_TYPE__
 
 #include <sstream>
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 // Evaluator type
@@ -72,10 +73,10 @@ enum class EvalSortType
 
 // Convert a string (ex "DIR_LAST_SUCCESS", "LEXICOGRAPHICAL")
 // to an EvalSortType.
-EvalSortType stringToEvalSortType(const std::string &s);
+DLL_UTIL_API EvalSortType stringToEvalSortType(const std::string &s);
 
 // Convert an EvalSortType to a string
-std::string evalSortTypeToString(const EvalSortType& evalSortType);
+DLL_UTIL_API std::string evalSortTypeToString(const EvalSortType& evalSortType);
 
 
 inline std::ostream& operator<<(std::ostream& out, EvalSortType evalSortType)
@@ -86,4 +87,4 @@ inline std::ostream& operator<<(std::ostream& out, EvalSortType evalSortType)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_2_EVAL_SORT_TYPE__
+#endif  // __NOMAD_4_3_EVAL_SORT_TYPE__

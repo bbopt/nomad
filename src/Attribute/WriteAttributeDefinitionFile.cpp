@@ -60,7 +60,7 @@
 #include <string>
 
 // Registered attribute definition names
-const std::string attributeDefinitionNames[15] = { "deprecatedAttributesDefinition",
+const std::string attributeDefinitionNames[16] = { "deprecatedAttributesDefinition",
     "displayAttributesDefinition",
     "evalAttributesDefinition",
     "cacheAttributesDefinition",
@@ -68,6 +68,7 @@ const std::string attributeDefinitionNames[15] = { "deprecatedAttributesDefiniti
     "evaluatorControlGlobalAttributesDefinition",
     "pbAttributesDefinition",
     "runAttributesDefinition",
+    "runAttributesDefinitionIBEX",
     "runAttributesDefinitionLH",
     "runAttributesDefinitionCS",
     "runAttributesDefinitionNM",
@@ -256,8 +257,8 @@ int main(int argc, char *argv[])
         oss << "//////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////" << std::endl;
         oss << "//////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////" << std::endl << std::endl;
 
-        oss << "#ifndef __NOMAD_4_2_"<< UpperAttDefName << "__" << std::endl;
-        oss << "#define __NOMAD_4_2_"<< UpperAttDefName << "__" << std::endl << std::endl;
+        oss << "#ifndef __NOMAD_4_3_"<< UpperAttDefName << "__" << std::endl;
+        oss << "#define __NOMAD_4_3_"<< UpperAttDefName << "__" << std::endl << std::endl;
         oss << "_definition = {" ;
 
         bool flagInFile;

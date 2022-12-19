@@ -85,7 +85,6 @@ std::string NOMAD::QuadModelUpdate::getName() const
     }
 }
 
-
 // Update the SGTELIB::TrainingSet and SGTELIB::Surrogate contained in the
 // ancestor QuadModel (modelAlgo).
 //
@@ -107,7 +106,7 @@ bool NOMAD::QuadModelUpdate::runImp()
     }
     
     auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
-    const auto bbot = NOMAD::QuadModelAlgo::getBBOutputType();
+    const auto bbot = NOMAD::Algorithm::getBbOutputType();
     size_t nbConstraints = NOMAD::getNbConstraints(bbot);
     size_t nbModels = nbConstraints+1; /// Constraint plus a single objective
 
@@ -170,15 +169,13 @@ bool NOMAD::QuadModelUpdate::runImp()
         {
             
             // Case of Quad Model used for SEARCH
-            
-            if (nullptr == iter->getModelCenter() )
+            _modelCenter = *iter->getRefCenter()->getX();
+            if (! _modelCenter.isComplete() )
             {
                 throw NOMAD::Exception(__FILE__,__LINE__,"Update must have a model center.");
             }
             
-            // Model center is the frame center from the QuadModelIteration
             // Box size is the current frame size
-            _modelCenter = *iter->getModelCenter()->getX();
             _boxSize = iter->getMesh()->getDeltaFrameSize();
 
             NOMAD::Double boxFactor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_SEARCH_BOX_FACTOR");
@@ -196,12 +193,13 @@ bool NOMAD::QuadModelUpdate::runImp()
         }
         else
         {
-           if (nullptr == iter->getModelCenter() )
+            _modelCenter = *iter->getRefCenter()->getX();
+           if (! _modelCenter.isComplete() )
            {
                throw NOMAD::Exception(__FILE__,__LINE__,"Update must have a model center.");
            }
             _boxSize = NOMAD::ArrayOfDouble(n,NOMAD::INF);
-            _modelCenter = *iter->getModelCenter()->getX();
+            
             OUTPUT_INFO_START
             AddOutputInfo("Box size set to infinity. All evaluated points in cache will be used for update.");
             OUTPUT_INFO_END
@@ -240,6 +238,11 @@ bool NOMAD::QuadModelUpdate::runImp()
 
     // Minimum and maximum number of valid points to build a model
     const size_t minNbPoints = _runParams->getAttributeValue<size_t>("SGTELIB_MIN_POINTS_FOR_MODEL");
+    if (minNbPoints == NOMAD::INF_SIZE_T)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"SGTELIB_MIN_POINTS_FOR_MODEL cannot be infinite.");
+    }
+    
     const size_t maxNbPoints = _runParams->getAttributeValue<size_t>("SGTELIB_MAX_POINTS_FOR_MODEL");
 
     size_t nbValidPoints = evalPointList.size();
@@ -434,7 +437,7 @@ bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint)
     bool validPoint = true;
     NOMAD::ArrayOfDouble bbo;
 
-    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getEvalType();
+    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
     auto eval = evalPoint.getEval(evalType);
     if (NOMAD::EvalType::BB != evalType)
     {

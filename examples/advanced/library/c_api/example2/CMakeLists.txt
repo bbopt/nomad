@@ -23,7 +23,7 @@ install(TARGETS example2_c_api.exe
 
 
 # Add a test for this example
-if(BUILD_TESTS MATCHES ON)
+if(BUILD_EXAMPLES MATCHES ON)
     message(STATUS "    Add example test for c-api 2") 
     # Can run this test after install
 

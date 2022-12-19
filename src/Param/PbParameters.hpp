@@ -44,11 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_PBPARAMETERS__
-#define __NOMAD_4_2_PBPARAMETERS__
+#ifndef __NOMAD_4_3_PBPARAMETERS__
+#define __NOMAD_4_3_PBPARAMETERS__
 
 #include "../Param/Parameters.hpp"
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 /// The class for the parameters defining the optimization problem.
@@ -56,7 +57,7 @@
 - Register all parameters during construction.
 - Implement the checkAndComply function for sanity check.
 */
-class PbParameters final : public Parameters
+class DLL_UTIL_API PbParameters final : public Parameters
 {
 private:
     bool _showWarningMeshSizeRedefined;
@@ -117,5 +118,5 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_PBPARAMETERS__
+#endif // __NOMAD_4_3_PBPARAMETERS__
 

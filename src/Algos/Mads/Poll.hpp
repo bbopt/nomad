@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_POLL__
-#define __NOMAD_4_2_POLL__
+#ifndef __NOMAD_4_3_POLL__
+#define __NOMAD_4_3_POLL__
 
 #include <set>
 
@@ -69,7 +69,7 @@ private:
 protected:
     std::vector<std::shared_ptr<PollMethodBase>> _pollMethods;  ///< Unlike for Search, Poll methods generate all their points and only then they are evaluated.
 
-    std::vector<EvalPointPtr> _frameCenters;  ///< The frame centers (primary and secondary) of the poll methods. 
+    std::vector<EvalPointPtr> _frameCenters;  ///< The frame centers (primary and secondary) of the poll methods. See createPollMethods.
     
 public:
     /// Constructor
@@ -102,10 +102,10 @@ public:
 
 protected:
     /// Helper for start: get lists of Primary and Secondary Polls
-    void computePrimarySecondaryPollCenters(std::vector<EvalPoint> &primaryCenters, std::vector<EvalPoint> &secondaryCenters) const;
+    void computePrimarySecondaryPollCenters(std::vector<EvalPointPtr> &primaryCenters, std::vector<EvalPointPtr> &secondaryCenters) const;
     
     /// Helper for start: create poll methods
-    virtual void createPollMethods(const bool isPrimary, const EvalPoint & frameCenter);
+    virtual void createPollMethods(const bool isPrimary, const EvalPointPtr frameCenter);
     
     /// Helper for generateTrialPoints
     ///  Set the stop type for the Algorithm (can be reimplemented, for example CS)
@@ -152,4 +152,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_POLL__
+#endif // __NOMAD_4_3_POLL__

@@ -74,15 +74,15 @@ NOMAD::Point& NOMAD::Point::operator=(const NOMAD::ArrayOfDouble &aod)
 // ( 3.46 6.85 5.72 5.85 )
 // displayNoPar() ditches the parenthesis. Ex:
 // 3.46 6.85 5.72 5.85
-std::string NOMAD::Point::display(const NOMAD::ArrayOfDouble &prec) const
+std::string NOMAD::Point::display(const NOMAD::ArrayOfDouble &prec, const std::string & doubleFormat) const
 {
-    return NOMAD::ArrayOfDouble::pStart + " " + NOMAD::ArrayOfDouble::display(prec) + " " + NOMAD::ArrayOfDouble::pEnd;
+    return NOMAD::ArrayOfDouble::pStart + " " + NOMAD::ArrayOfDouble::display(prec,doubleFormat) + " " + NOMAD::ArrayOfDouble::pEnd;
 }
 
 
-std::string NOMAD::Point::displayNoPar(const NOMAD::ArrayOfDouble &format) const
+std::string NOMAD::Point::displayNoPar(const NOMAD::ArrayOfDouble &format, const std::string & doubleFormat ) const
 {
-    return NOMAD::ArrayOfDouble::display(format);
+    return NOMAD::ArrayOfDouble::display(format, doubleFormat);
 }
 
 

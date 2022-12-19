@@ -50,6 +50,36 @@ false
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################
+VNSMART_MADS_SEARCH
+bool
+false
+\( VNS Mads search under condition of consecutive fails \)
+\(
+. VNS Mads optimization used as a search step for Mads under condition
+  on the number of consecutive fails
+. Variable Neighborhood Search + Mads optimization as a search step for Mads
+. Criterion: threshold on the number of consecutive fails
+. Argument: bool
+. Example: VNSMART_MADS_SEARCH true
+\)
+\( advanced global mads search vns neighborhood\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+VNSMART_MADS_SEARCH_THRESHOLD
+int
+3
+\( Threshold for VNS (SMART) Mads search \)
+\(
+. Number of consecutive fails to enable VNS Mads search step
+. Variable Neighborhood Search + Mads optimization as a search step for Mads
+. Argument: int
+. Example: VNSMART_MADS_SEARCH_THRESHOLD 5
+\)
+\( advanced global mads search vns neighborhood\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
 VNS_MADS_SEARCH
 bool
 false
@@ -87,6 +117,27 @@ NOMAD::Double
 
 \)
 \( advanced global mads search vns neighborhood ratio \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+VNS_MADS_SEARCH_WITH_SURROGATE
+bool
+false
+\( VNS Mads search with surrogate\)
+\(
+
+. VNS search can use static surrogate evaluations for optimization instead of
+  blackbox evaluation.
+  
+. If enabled and a static surrogate (batch mode or library mode) is not
+  available, an exception is triggered.
+  
+. Argument: bool
+
+. Example: VNS_MADS_SEARCH_WITH_SURROGATE true
+
+\)
+\( advanced global mads search vns neighborhood ratio surrogate \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################

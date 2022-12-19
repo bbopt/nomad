@@ -1,0 +1,17 @@
+This file explains how to use the binary files "create_set" and "create_set_with_volume".
+
+First, you have to create the file that corresponds to the problem you want to solve with NOMAD.
+It's a file containing the variables, the constraints, the domain, etc...
+http://www.ibex-lib.org/doc/minibex.html provides more explanation on the syntax.
+
+Once this file is created, you can use it with the file param.txt. It corresponds to the attribute SYSTEM_FILE_NAME.
+
+But you can use it directly to create the file that allow us to know the feasible domain, thanks to the binary file "create_set" or "create_set_with_volume". To use these files, the SYSTEM_FILE_NAME has to be "system.txt". Then you can call these binary files, with one argument witch is the precision of the domaine (float). The less the precision is, the more accurate the domain will be but the longer it will be to create the file.
+
+For exemple :  ./create_set 1 or ./create_set_with_volume 0.1
+
+Once the Set file is created, you can use it with the file param.txt, it corresponds to the attribute SET_FILE_NAME.
+
+The binary file create_set_with_volume create another file with gives information on if the precision used is pertinent. It gives the percentage of the volume of the boundary boxes compared to the box that defines the feasible domain.
+If this percentage equals from 50% to 90%, then you have to decrease the precision.
+A precision is good between 0 and 20%.

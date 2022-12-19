@@ -45,8 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 #include "../Algos/MeshBase.hpp"
+#include "../Type/BBInputType.hpp"
 
-NOMAD::MeshBase::MeshBase(const std::shared_ptr<NOMAD::PbParameters> pbParams)
+NOMAD::MeshBase::MeshBase(const std::shared_ptr<NOMAD::PbParameters> pbParams, int limitMinMeshIndex, int limitMaxMeshIndex)
       : _n(pbParams->getAttributeValue<size_t>("DIMENSION")),
         _pbParams(pbParams),
         _initialMeshSize(pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_MESH_SIZE")),
@@ -55,7 +56,12 @@ NOMAD::MeshBase::MeshBase(const std::shared_ptr<NOMAD::PbParameters> pbParams)
         _minFrameSize(pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("MIN_FRAME_SIZE")),
         _lowerBound(pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND")),
         _upperBound(pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND")),
-        _isFinest(true)
+        _isFinest(true),
+        _r(NOMAD::ArrayOfDouble(_n,0)),
+        _rMin(NOMAD::ArrayOfDouble(_n,0)),
+        _rMax(NOMAD::ArrayOfDouble(_n,0)),
+        _limitMinMeshIndex(limitMinMeshIndex),
+        _limitMaxMeshIndex(limitMaxMeshIndex)
 {
     init();
 }
@@ -227,3 +233,13 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::MeshBase& mesh)
 
 }
 
+
+void NOMAD::MeshBase::setLimitMeshIndices(int limitMinMeshIndex, int limitMaxMeshIndex)
+{
+    _limitMaxMeshIndex = limitMaxMeshIndex;
+    _limitMinMeshIndex = limitMinMeshIndex;
+    
+    // Not yet defined for MeshBase.
+    throw NOMAD::Exception(__FILE__, __LINE__, "setLimitMeshIndices not yet implemented.");
+    
+}

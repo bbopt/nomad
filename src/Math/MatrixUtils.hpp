@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_MATRIXUTILS__
-#define __NOMAD_4_2_MATRIXUTILS__
+#ifndef __NOMAD_4_3_MATRIXUTILS__
+#define __NOMAD_4_3_MATRIXUTILS__
 
 #include <string>
 #include "../Util/defines.hpp"
@@ -55,6 +55,7 @@ const double SVD_EPS      = 1e-13;      ///< Epsilon for SVD
 const int    SVD_MAX_MPN  = 1500;       ///< Matrix maximal size (\c m+n )
 const double SVD_MAX_COND = NOMAD::INF; ///< Max. acceptable cond. number
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 /// Utilities for matrix.
@@ -76,7 +77,7 @@ const double SVD_MAX_COND = NOMAD::INF; ///< Max. acceptable cond. number
  (Opt) (default = \c 1500).
  \return          \c true if the decomposition worked.
  */
-bool SVD_decomposition(std::string& error_msg,
+DLL_UTIL_API bool SVD_decomposition(std::string& error_msg,
                        double ** M,
                        double  * W,
                        double ** V,
@@ -95,7 +96,7 @@ bool SVD_decomposition(std::string& error_msg,
  \param max_mpn   Maximum allowed value for \c n; ignored if \c <=0 -- \b IN.
  \return          \c true if the decomposition worked.
  */
-bool LU_decomposition(std::string & error_msg,
+DLL_UTIL_API bool LU_decomposition(std::string & error_msg,
                        double ** M,
                        int       n,
                        double&   d,
@@ -110,7 +111,7 @@ bool LU_decomposition(std::string & error_msg,
  \param eps       Precision to detect rank from W                       -- \b IN.
  \return          The rank>0 if the decomposition worked else 0.
  */
-int getRank(double ** M,
+DLL_UTIL_API int getRank(double ** M,
             size_t    m,
             size_t    n,
             double    eps = SVD_EPS);
@@ -123,11 +124,11 @@ int getRank(double ** M,
  \param det       The determinant of the matrix M -- \b OUT.
  \return True/False if success or not.
  */
-bool getDeterminant(double **M,
+DLL_UTIL_API bool getDeterminant(double **M,
                     double & det,
                     size_t n);
 
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_2_MATRIXUTILS__
+#endif // __NOMAD_4_3_MATRIXUTILS__

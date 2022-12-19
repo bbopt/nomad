@@ -66,6 +66,14 @@ NOMAD::BBOutput::BBOutput(const std::string &rawBBO, const bool evalOk)
   : _rawBBO(rawBBO),
     _evalOk(evalOk)
 {
+    NOMAD::ArrayOfString array(_rawBBO);
+    _BBO =  ArrayOfDouble( array.size() );
+    for (size_t i = 0; i < array.size(); i++)
+    {
+        NOMAD::Double d;
+        d.atof(array[i]);
+        _BBO[i] = d;
+    }
 }
 
 
@@ -73,19 +81,26 @@ void NOMAD::BBOutput::setBBO(const std::string &bbOutputString, const bool evalO
 {
     _rawBBO = bbOutputString;
     _evalOk = evalOk;
+    NOMAD::ArrayOfString array(_rawBBO);
+    _BBO =  ArrayOfDouble( array.size() );
+    for (size_t i = 0; i < array.size(); i++)
+    {
+        NOMAD::Double d;
+        d.atof(array[i]);
+        _BBO[i] = d;
+    }
 }
 
 
 bool NOMAD::BBOutput::getCountEval(const BBOutputTypeList &bbOutputType) const
 {
     bool countEval = true;
-    NOMAD::ArrayOfString array(_rawBBO);
 
-    for (size_t i = 0; i < array.size(); i++)
+    for (size_t i = 0; i < _BBO.size(); i++)
     {
         if (NOMAD::BBOutputType::CNT_EVAL == bbOutputType[i])
         {
-            countEval = NOMAD::stringToBool(array[i]);
+            countEval = (bool) _BBO[i].todouble();
         }
     }
 
@@ -95,19 +110,16 @@ bool NOMAD::BBOutput::getCountEval(const BBOutputTypeList &bbOutputType) const
 
 bool NOMAD::BBOutput::isComplete(const NOMAD::BBOutputTypeList &bbOutputType) const
 {
-    NOMAD::ArrayOfString array(_rawBBO);
     bool itIsComplete = true;
     if (!bbOutputType.empty() && checkSizeMatch(bbOutputType))
     {
-        for (size_t i = 0; i < array.size(); i++)
+        for (size_t i = 0; i < _BBO.size(); i++)
         {
             if (NOMAD::BBOutputType::OBJ == bbOutputType[i]
                 || NOMAD::BBOutputType::PB == bbOutputType[i]
                 || NOMAD::BBOutputType::EB == bbOutputType[i])
             {
-                NOMAD::Double outValue;
-                outValue.atof(array[i]);
-                if (!outValue.isDefined())
+                if (!_BBO[i].isDefined())
                 {
                     itIsComplete = false;
                     break;
@@ -130,17 +142,36 @@ NOMAD::Double NOMAD::BBOutput::getObjective(const NOMAD::BBOutputTypeList &bbOut
 
     if (_evalOk && !bbOutputType.empty() && checkSizeMatch(bbOutputType))
     {
-        NOMAD::ArrayOfString array(_rawBBO);
-        for (size_t i = 0; i < array.size(); i++)
+        for (size_t i = 0; i < _BBO.size(); i++)
         {
             if (NOMAD::BBOutputType::OBJ == bbOutputType[i])
             {
-                obj.atof(array[i]);
+                obj = _BBO[i];
                 break;
             }
         }
     }
     return obj;
+}
+
+NOMAD::ArrayOfDouble NOMAD::BBOutput::getObjectives(const NOMAD::BBOutputTypeList &bbOutputType) const
+{
+    NOMAD::ArrayOfDouble objectives;
+
+    if (_evalOk && !bbOutputType.empty() && checkSizeMatch(bbOutputType))
+    {
+        for (size_t i = 0; i < _BBO.size(); i++)
+        {
+            if ( NOMAD::BBOutputType::OBJ == bbOutputType[i])
+            {
+                size_t objSize = objectives.size();
+                objectives.resize(objSize + 1);
+                objectives[objSize] = _BBO[i];
+            }
+        }
+    }
+
+    return objectives;
 }
 
 
@@ -150,16 +181,13 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getConstraints(const NOMAD::BBOutputTypeLi
 
     if (_evalOk && !bbOutputType.empty() && checkSizeMatch(bbOutputType))
     {
-        NOMAD::ArrayOfString array(_rawBBO);
-        for (size_t i = 0; i < array.size(); i++)
+        for (size_t i = 0; i < _BBO.size(); i++)
         {
             if ( NOMAD::BBOutputTypeIsConstraint(bbOutputType[i]) )
             {
-                NOMAD::Double d;
-                d.atof(array[i]);
                 size_t constrSize = constraints.size();
                 constraints.resize(constrSize + 1);
-                constraints[constrSize] = d;
+                constraints[constrSize] = _BBO[i];
             }
         }
     }
@@ -168,18 +196,9 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getConstraints(const NOMAD::BBOutputTypeLi
 }
 
 
-NOMAD::ArrayOfDouble NOMAD::BBOutput::getBBOAsArrayOfDouble() const
+const NOMAD::ArrayOfDouble & NOMAD::BBOutput::getBBOAsArrayOfDouble() const
 {
-    NOMAD::ArrayOfString array(_rawBBO);
-    NOMAD::ArrayOfDouble bbo ( array.size() );
-
-    for (size_t i = 0; i < array.size(); i++)
-    {
-        NOMAD::Double d;
-        d.atof(array[i]);
-        bbo[i] = d;
-    }
-    return bbo;
+    return _BBO;
 }
 
 
@@ -189,9 +208,8 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getBBOAsArrayOfDouble() const
 bool NOMAD::BBOutput::checkSizeMatch(const NOMAD::BBOutputTypeList &bbOutputType) const
 {
     bool ret = true;
-    NOMAD::ArrayOfString array(_rawBBO);
 
-    if (bbOutputType.size() != array.size())
+    if (bbOutputType.size() != _BBO.size())
     {
         /*
         std::string err = "Error: Parameter BB_OUTPUT_TYPE has " + NOMAD::itos(bbOutputType.size());

@@ -51,6 +51,7 @@
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelInitialization.hpp"
 #include "../../Cache/CacheBase.hpp"
+#include "../../Eval/Barrier.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 void NOMAD::SgtelibModelInitialization::init()
@@ -204,7 +205,7 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
         }
         else
         {
-            AddOutputError("X0 evaluation failed for X0 = " + x0.display());
+            AddOutputError("Evaluation failed for X0 = " + x0.display());
         }
     }
 
@@ -214,7 +215,9 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
         _barrier = std::make_shared<NOMAD::Barrier>(hMax,
                                 NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
-                                evc->getEvalType(), evc->getComputeType(), evalPointList);
+                                evc->getCurrentEvalType(),
+                                evc->getComputeType(),
+                                evalPointList);
     }
     else
     {

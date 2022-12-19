@@ -52,8 +52,8 @@
  \date   2010-04-02
  \see    Double.cpp
  */
-#ifndef __NOMAD_4_2_DOUBLE__
-#define __NOMAD_4_2_DOUBLE__
+#ifndef __NOMAD_4_3_DOUBLE__
+#define __NOMAD_4_3_DOUBLE__
 
 #include <cmath>
 
@@ -70,16 +70,16 @@
      - Deals with undefined values.
      - Use \c todouble() to access the true double value.
      */
-    class Double {
+    class DLL_UTIL_API Double {
 
     private:
         double        _value;   ///< Value of the number.
         bool          _defined; ///< \c true if the number has a defined value.
 
         // \todo Make these local static objects
-        DLL_UTIL_API static double      _epsilon;    ///< Desired precision on comparisons.
-        DLL_UTIL_API static std::string _infStr;     ///< Infinity string.
-        DLL_UTIL_API static std::string _undefStr;   ///< Undefined value string.
+        static double      _epsilon;    ///< Desired precision on comparisons.
+        static std::string _infStr;     ///< Infinity string.
+        static std::string _undefStr;   ///< Undefined value string.
 
     public:
 
@@ -421,7 +421,7 @@
         \param os  Reference to stream -- \b IN.
         \return    Reference to stream.
         */
-        friend std::ostream& operator<< ( std::ostream& os, const Double& d );
+        DLL_UTIL_API friend std::ostream& operator<< ( std::ostream& os, const Double& d );
 
         /// Display with a precision.
         /**
@@ -473,7 +473,7 @@
      \param d       The double object to be read -- \b OUT.
      \return        The modified \c std::istream object.
      */
-    std::istream & operator >> ( std::istream & in , Double & d );
+    DLL_UTIL_API std::istream & operator >> ( std::istream & in , Double & d );
 
     /// Inverse operator.
     /**
@@ -534,7 +534,7 @@
      \param d2  Second element -- \b IN.
      \return    Ratio of the first element by second element.
      */
-    const Double operator / ( const Double & d1 , const Double & d2 );
+    DLL_UTIL_API const Double operator / ( const Double & d1 , const Double & d2 );
 
     /// Comparison operator \c ==.
     /**
@@ -636,4 +636,4 @@
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_2_DOUBLE__
+#endif // __NOMAD_4_3_DOUBLE__

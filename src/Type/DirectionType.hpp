@@ -52,13 +52,14 @@
  \see    DirectionType.cpp
  */
 
-#ifndef __NOMAD_4_2_DIRECTION_TYPE__
-#define __NOMAD_4_2_DIRECTION_TYPE__
+#ifndef __NOMAD_4_3_DIRECTION_TYPE__
+#define __NOMAD_4_3_DIRECTION_TYPE__
 
 #include <list>
 #include <sstream>
 #include <vector>
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 // Direction type
@@ -90,15 +91,15 @@ enum class DirectionType
 typedef std::vector<DirectionType> DirectionTypeList;
 
 /// Convert a list of strings (ex "ORTHO 2N", "ORTHO NP1") to a DirectionType.
-DirectionType stringToDirectionType(const std::list<std::string> & ls);
+DLL_UTIL_API DirectionType stringToDirectionType(const std::list<std::string> & ls);
 
 /// Convert a string (ex "ORTHO 2N", "ORTHO NP1") to a DirectionType.
-DirectionType stringToDirectionType(const std::string & s);
+DLL_UTIL_API DirectionType stringToDirectionType(const std::string & s);
 
 /// Convert an DirectionType to a string
-std::string directionTypeToString(DirectionType dT);
+DLL_UTIL_API std::string directionTypeToString(DirectionType dT);
 /// Convert a DirectionTypeList to a string
-std::string directionTypeListToString(const DirectionTypeList& dirTypeList);
+DLL_UTIL_API std::string directionTypeListToString(const DirectionTypeList& dirTypeList);
 
 inline std::ostream& operator<<(std::ostream& out, DirectionType directionType)
 {
@@ -115,4 +116,4 @@ inline std::ostream& operator<<(std::ostream& out, const DirectionTypeList &dirT
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_2_DIRECTION_TYPE__
+#endif  // __NOMAD_4_3_DIRECTION_TYPE__

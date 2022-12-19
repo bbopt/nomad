@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------------#
 #  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                #
 #                                                                                 #
-#  NOMAD - Version 4 has been created by                                          #
+#  NOMAD - Version 4 has been created and developed by                            #
 #                 Viviane Rochon Montplaisir  - Polytechnique Montreal            #
 #                 Christophe Tribes           - Polytechnique Montreal            #
 #                                                                                 #
@@ -121,11 +121,13 @@ cmake -S . -B build/release
               in User Guide (Section Matlab interface).
 
          To enable *Python* interface (PyNomad) building:
-              cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release
+              cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release
              
               ! Building requires to have Cython. Cython can be obtained with
               Anaconda distribution platform.
-  
+
+              ! The Python interface will not be built if OpenMP is enabled.  
+
               ! On *Windows*, using Visual Studio, see the user guide to properly
               manage X86/X64 building of binaries. 
               
@@ -142,7 +144,6 @@ cmake --build build/release (for *OSX* and *Linux*)
          The option --config Release should be used on *Windows* to build only
          Release configuration. The default configuration is Debug.
 
-
 cmake --install build/release --config Release (for *Windows*)
 or
 cmake --install build/release (for *OSX* and *Linux*)
@@ -151,7 +152,7 @@ cmake --install build/release (for *OSX* and *Linux*)
 
 By default, the executable "nomad" will installed into the directory:
 build/release/bin/  (build/debug/bin/ when in debug mode). A symbolic link
-is added in the bin directory.
+is added in the bin directory for OSX and Linux. 
 
 It is possible to build only a single application in its working directory:
 (with NOMAD_HOME environment variable properly set)
@@ -174,16 +175,20 @@ cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
 cmake --build build/debug --config Debug (for *Windows)
 or
 cmake --build build/debug (for *OSX* and *Linux*)
+
     ---> Build the libraries and applications
          
          Option --parallel xx can be added for faster build.
 
-cmake --install build/debug --config Debug (for *Windows)
+cmake --install build/debug --config Debug (for *Windows*)
 or
-cmake --install build/debug (for *OSX* and *Linux*)
+cmake --install build/debug  (for *OSX* and *Linux*)
     ---> Copy binaries and headers in build/debug/[bin, include, lib]
          and in the examples/tests directories
 
+BINARIES:
+Nomad libraries are available in a Julia package for some plateforms at 
+https://github.com/JuliaBinaryWrappers/NOMAD_jll.jl/tree/main
 
 BINARIES:
 Nomad libraries are available in a Julia package for some plateforms at 
@@ -210,3 +215,23 @@ Nomad application. The problems may be resolved by execution,
 for instance:
 
 ./example_lib.exe
+
+
+NOTE:
+
+We recommend to download the complete NOMAD source files and examples and build the project for your platform. For users who do not follow this recommendation, a compact version with binaries (zipped) are available for Windows, Mac-OSX and Linux Ubuntu in the Assets section of the Release. 
+
+For OSX: After download and unzip, the binaries must be de-quarantined (OSX will not let you run the executables)
+To remove the quarantine:
+         xattr -d com.apple.quarantine ./bin/nomad 
+         xattr -d com.apple.quarantine ./lib/libnomadUtils.4.3.0.dylib
+         xattr -d com.apple.quarantine ./lib/libnomadEval.4.3.0.dylib
+         xattr -d com.apple.quarantine ./lib/libnomadAlgos.4.3.0.dylib
+         xattr -d com.apple.quarantine ./lib/libsgtelib.2.0.3.dylib
+The rpath needs also to be changed:
+         install_name_tool -rpath /Users/runner/work/nomad/nomad/instdir/lib @loader_path/../lib ./bin/nomad
+
+
+For Linux, due to different compiler versions and available standard libraries, the binaries will most likely not be executable. If they are, you may still need to change the LD_LIBRARY_PATH variable to find the nomad shared object libraries (lib/libnomad*.so.*).
+
+For Windows, you may want to update the %PATH% environment variable to add the directory where the executable and the dll have been put (for example: C:\Users\Unknown\Downloads\windows-latest\bin).

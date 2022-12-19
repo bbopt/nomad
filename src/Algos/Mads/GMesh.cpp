@@ -59,6 +59,16 @@ void NOMAD::GMesh::init()
     
     // Compute finest mesh size once init frame size is set
     _finestMeshSize = getdeltaMeshSize();
+    
+    // Set _allGranular
+    for (size_t i = 0; i < _n; i++)
+    {
+        if (0.0 == _granularity[i])
+        {
+            _allGranular = false;
+            break;
+        }
+    }
 
     // Expecting _minMeshSize to be fully defined.
     if (!_minMeshSize.isComplete())
@@ -75,6 +85,7 @@ void NOMAD::GMesh::init()
             checkDeltasGranularity(i, getdeltaMeshSize(i), getDeltaFrameSize(i));
         }
     }
+    
 }
 
 
@@ -84,37 +95,48 @@ void NOMAD::GMesh::init()
 
 void NOMAD::GMesh::checkMeshForStopping( std::shared_ptr<NOMAD::AllStopReasons> stopReasons ) const
 {
-    bool stop = true;
+
 
     // GMesh is the mesh for Mads
     // stopReasons must be AlgoStopReasons<MadsStopType>
     auto madsStopReasons = NOMAD::AlgoStopReasons<NOMAD::MadsStopType>::get( stopReasons );
 
-
-    // General case, when min mesh size is reached, stop reason
-    // MIN_MESH_SIZE_REACHED is set.
-    // Special case: if all variables are granular, MAX_EVAL is automatically
-    // set. Always continue looking, even if the min mesh size is reached,
-    // but only for a finite number of iterations.
-    bool allGranular = true;
-
-    for (size_t i = 0; i < _n; i++)
-    {
-        if (0.0 == _granularity[i])
-        {
-            allGranular = false;
-            break;
-        }
-    }
-    if (allGranular)
-    {
-        stop = false;
-    }
-    else
+    // Coarse mesh stopping criterion. Stop if a single mesh index exceed limitMaxMeshIndex.
+    bool stop = true;
+    if (_limitMaxMeshIndex < NOMAD::P_INF_INT)
     {
         for (size_t i = 0; i < _n; i++)
         {
-            if (getdeltaMeshSize(i).todouble() >= _minMeshSize[i].todouble() && _granularity[i] ==0) // Do not stop if a non-granular variable has its mesh coarser than the minMeshSize
+            if (_r[i] <= _limitMaxMeshIndex)
+            {
+                stop = false;
+                break;
+            }
+        }
+        if (stop)
+        {
+            madsStopReasons->set ( NOMAD::MadsStopType::MAX_MESH_INDEX_REACHED );
+            return;
+        }
+    }
+
+    
+    stop = true;
+    
+    // General case, when min mesh size is reached, stop reason
+    // MIN_MESH_SIZE_REACHED is set.
+    // Special case: if all variables are granular, MAX_EVAL is
+    // automatically set. Always continue looking, even if the min mesh size is reached,
+    // but only for a finite number of iterations.
+    if (_allGranular)
+    {
+        stop = false;
+    }
+    else if (_minMeshSize.isDefined())
+    {
+        for (size_t i = 0; i < _n; i++)
+        {
+            if (getdeltaMeshSize(i).todouble() >= _minMeshSize[i].todouble() && _granularity[i] == 0) // Do not stop if a non-granular variable has its mesh coarser than the minMeshSize
             {
                 stop = false;
                 break;
@@ -124,9 +146,9 @@ void NOMAD::GMesh::checkMeshForStopping( std::shared_ptr<NOMAD::AllStopReasons> 
     if (stop)
     {
         madsStopReasons->set ( NOMAD::MadsStopType::MIN_MESH_SIZE_REACHED );
+        return;
     }
-
-    if (!stop && !allGranular && _minFrameSize.isDefined())
+    if (!stop && !_allGranular && _minFrameSize.isDefined())
     {
         // Reset stop
         stop = true;
@@ -144,6 +166,34 @@ void NOMAD::GMesh::checkMeshForStopping( std::shared_ptr<NOMAD::AllStopReasons> 
         }
     }
 
+    
+    // Fine mesh stopping criterion. Do not apply when all variables have granularity.
+    // To trigger this stopping criterion:
+    //  - All mesh indices must be < _limitMinMeshIndex for all continuous variables (granularity==0), and
+    //  - All mesh size must be <= _granulartiy for all granular variables (granularity > 0)
+    if (!stop && !_allGranular && _limitMinMeshIndex > NOMAD::M_INF_INT)
+    {
+        stop = true;
+        for (size_t i = 0; i < _n; i++)
+        {
+            // Do not stop if the mesh size of a variable is strictly larger than its granularity
+            if ( _granularity[i] > 0 && getdeltaMeshSize(i) > _granularity[i] )
+            {
+                stop = false;
+                break;
+            }
+            
+            if (_r[i] >= _limitMinMeshIndex && _granularity[i] == 0)
+            {
+                stop = false;
+                break;
+            }
+        }
+        if (stop)
+        {
+            madsStopReasons->set ( NOMAD::MadsStopType::MIN_MESH_INDEX_REACHED );
+        }
+    }
 }
 
 
@@ -158,9 +208,7 @@ void NOMAD::GMesh::updatedeltaMeshSize()
 // In GMesh, big Delta and small delta are updated simultaneously as a
 // result of the implementation.
 // Return value: true if the mesh changed, false otherwise.
-bool NOMAD::GMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction,
-                                         const NOMAD::Double& anisotropyFactor,
-                                         bool anisotropicMesh)
+bool NOMAD::GMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction)
 {
     bool oneFrameSizeChanged = false;
 
@@ -178,14 +226,18 @@ bool NOMAD::GMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction,
 
         bool frameSizeIChanged = false;
         // Test for producing anisotropic mesh
-        if ( ! anisotropicMesh
-        || ( direction[i].abs() / getdeltaMeshSize(i) / getRho(i) > anisotropyFactor )
+        if ( ! _anisotropicMesh
+        || ( direction[i].abs() / getdeltaMeshSize(i) / getRho(i) > _anisotropyFactor )
         || ( _granularity[i] == 0  && _frameSizeExp[i] < _initFrameSizeExp[i] && getRho(i) > minRho*minRho )
         )
         {
             getLargerMantExp(_frameSizeMant[i], _frameSizeExp[i]);
             frameSizeIChanged = true;
             oneFrameSizeChanged = true;
+            
+            // update the mesh index
+            ++_r[i];
+            _rMax[i]=NOMAD::max(_r[i],_rMax[i]);
         }
 
         // Sanity checks
@@ -224,10 +276,28 @@ void NOMAD::GMesh::refineDeltaFrameSize()
         NOMAD::Double olddeltaMeshSize = getdeltaMeshSize(_frameSizeExp[i], _initFrameSizeExp[i], _granularity[i]);
         if (_minMeshSize[i] <= olddeltaMeshSize)
         {
+            // update mesh index
+            if (_granularity[i] == 0)
+            {
+                --_r[i];
+            }
+            else
+            {
+                // Update mesh index if not already at the min limit. When refining the frame, if mantissa and exponent stay the same, the min limit is reached (do not decrease).
+                if ( !(_frameSizeMant[i] == frameSizeMant && _frameSizeExp[i] == frameSizeExp))
+                {
+                    --_r[i];
+                }
+            }
+            // Update the minimal mesh index reached so far
+            _rMin[i]=NOMAD::min(_r[i],_rMin[i]);
+            
             // We can go lower
             _frameSizeMant[i] = frameSizeMant;
             _frameSizeExp[i] = frameSizeExp;
+            
         }
+
 
         // Sanity checks
         if (_enforceSanityChecks)
@@ -266,8 +336,9 @@ void NOMAD::GMesh::refineDeltaFrameSize(NOMAD::Double &frameSizeMant,
     {
         frameSizeMant = 2;
     }
-
-    if (granularity > 0 && frameSizeExp <= 0 && frameSizeMant != 1)
+    
+    // When the mesh reaches granularity (exp = 1, mant = 1), make sure to remove the refinement
+    if (granularity > 0 && frameSizeExp < 0 && frameSizeMant == 5)
     {
         frameSizeExp = 0;
         frameSizeMant = 1;

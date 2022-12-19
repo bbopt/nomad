@@ -44,17 +44,18 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_SEARCHMETHODSIMPLE__
-#define __NOMAD_4_2_SEARCHMETHODSIMPLE__
+#ifndef __NOMAD_4_3_SEARCHMETHODSIMPLE__
+#define __NOMAD_4_3_SEARCHMETHODSIMPLE__
 
 #include "../../Algos/Mads/SearchMethodBase.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
-/// Class for generic search method of MADS. Run by Search.
+/// Class for simple search methods (no iterations) of MADS. Run by Search.
 /**
  - Pure virtual class. Final class derived of this must implement ::generateTrialPointsImp.
- - The evaluation of derived class is performed when ::runImp is called.
+  - The trial points information is completed (model or surrogate evals used for sorting) is completed before evaluation.
+ - The trial points evaluation (derived classes) are performed when ::runImp is called.
  - Projection on mesh and bounds is performed after ::generateTrialPointsImp is called by the base class SearchMethodBase.
  */
 class SearchMethodSimple: public SearchMethodBase
@@ -72,6 +73,7 @@ public:
     /// Intermediate function called to generate the trial points
     /**
      - Call for the intermediate base SearchMethodBase::generateTrialPoints (call generateTrialPointsImp, snap on bounds and mesh).
+     - Complete trial points information (sorting is done before evaluation)
      - Sanity check on generated trial points
      - Update the points with frame center
      */
@@ -89,5 +91,5 @@ public:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_SEARCHMETHODSIMPLE__
+#endif // __NOMAD_4_3_SEARCHMETHODSIMPLE__
 

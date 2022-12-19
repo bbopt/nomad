@@ -234,7 +234,7 @@ void NOMAD::SgtelibModelMegaIteration::runIterationsAndSetTrialPoints()
 
         _k++;   // Count one more iteration.
 
-        if (_userInterrupt)
+        if (getUserInterrupt())
         {
             hotRestartOnUserInterrupt();
         }

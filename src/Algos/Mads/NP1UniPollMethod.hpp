@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_NP1UNIPOLLMETHOD__
-#define __NOMAD_4_2_NP1UNIPOLLMETHOD__
+#ifndef __NOMAD_4_3_NP1UNIPOLLMETHOD__
+#define __NOMAD_4_3_NP1UNIPOLLMETHOD__
 
 #include "../../Algos/Mads/PollMethodBase.hpp"
 #include "../../nomad_nsbegin.hpp"
@@ -84,4 +84,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_ORTHONP1UNIPOLLMETHOD__
+#endif // __NOMAD_4_3_ORTHONP1UNIPOLLMETHOD__

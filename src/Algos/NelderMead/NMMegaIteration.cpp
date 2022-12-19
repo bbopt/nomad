@@ -54,11 +54,11 @@ void NOMAD::NMMegaIteration::init()
 {
     setStepType(NOMAD::StepType::MEGA_ITERATION);
 
-    // Get barrier from upper MadsMegaIteration, if available.
-    auto madsMegaIter = getParentOfType<NOMAD::MadsMegaIteration*>(false);
-    if (nullptr != madsMegaIter)
+    // Get barrier from upper MegaIteration, if available.
+    auto megaIter = getParentOfType<NOMAD::MegaIteration*>(false);
+    if (nullptr != megaIter)
     {
-        _barrier = madsMegaIter->getBarrier();
+        _barrier = megaIter->getBarrier();
     }
 }
 
@@ -76,14 +76,14 @@ void NOMAD::NMMegaIteration::startImp()
         auto bestXInf  = _barrier->getFirstXInf();
 
         // Note: getParentOfType with argument "false" gets over the "Algorithm" parents.
-        // Here, we are looking for a MadsMegaIteration which would be ancestor of
+        // Here, we are looking for a MegaIteration which would be ancestor of
         // the NM (Algorithm) parent.
-        auto madsMegaIter = getParentOfType<NOMAD::MadsMegaIteration*>(false);
+        auto megaIter = getParentOfType<NOMAD::MegaIteration*>(false);
         std::shared_ptr<NOMAD::MeshBase> mesh = nullptr;
 
-        if ( madsMegaIter != nullptr )
+        if ( megaIter != nullptr )
         {
-            mesh = madsMegaIter->getMesh();
+            mesh = megaIter->getMesh();
         }
 
         if (nullptr != bestXFeas)
@@ -109,6 +109,9 @@ void NOMAD::NMMegaIteration::startImp()
         auto previousSimplexCenter = simplexCenter->getPointFrom();
         AddOutputDebug("Previous simplex center: " + (previousSimplexCenter ? previousSimplexCenter->display() : "NULL"));
         OUTPUT_DEBUG_END
+        
+        // Default mega iteration start tasks
+        NOMAD::MegaIteration::startImp();
     }
 }
 
@@ -132,16 +135,16 @@ bool NOMAD::NMMegaIteration::runImp()
         throw NOMAD::Exception(__FILE__, __LINE__, "No iteration to run");
     }
 
+
     const size_t maxIter = (size_t)NOMAD::D_INT_MAX; // Could be a parameter.
     size_t nbMegaIter = 0;
     while ( ! _stopReasons->checkTerminate() && nbMegaIter < maxIter )
     {
         _nmIteration->start();
-
         bool iterSuccessful = _nmIteration->run();          // Is this iteration successful
-        successful = iterSuccessful || successful;  // Is the whole MegaIteration successful
-
         _nmIteration->end();
+        
+        successful = iterSuccessful || successful;  // Is the whole MegaIteration successful
 
         if (iterSuccessful)
         {
@@ -151,7 +154,7 @@ bool NOMAD::NMMegaIteration::runImp()
             OUTPUT_DEBUG_END
         }
 
-        if (_userInterrupt)
+        if (getUserInterrupt())
         {
             hotRestartOnUserInterrupt();
         }
@@ -166,7 +169,7 @@ bool NOMAD::NMMegaIteration::runImp()
     // MegaIteration is a success if either a better xFeas or
     // a dominating or partial success for xInf was found.
     // See Algorithm 12.2 from DFBO.
-
+    
     // return true if we have a partial or full success.
     return successful;
 }

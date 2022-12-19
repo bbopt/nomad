@@ -169,7 +169,7 @@ namespace NOMAD{
   class DLL_EVAL_API Evaluator {
     public:
       Evaluator ( const std::shared_ptr<NOMAD::EvalParameters> & p,
-                  NOMAD::EvalType evalType = EvalType::BB,
+                  NOMAD::EvalType evalType,
                   NOMAD::EvalXDefined evalXDefined = EvalXDefined::EVAL_BLOCK_DEFINED_BY_USER );
 
       virtual ~Evaluator();
@@ -222,7 +222,7 @@ namespace NOMAD{
 
       void setAllParameters(const std::shared_ptr<AllParameters> & allParams);
 
-      void setEvaluator(std::shared_ptr<Evaluator> ev);
+      void addEvaluator(std::shared_ptr<Evaluator> ev);
 
       void displayHelp(const std::string& helpSubject = "all", bool devHelp = false);
 

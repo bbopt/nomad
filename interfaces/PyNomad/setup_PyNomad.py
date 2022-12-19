@@ -6,18 +6,22 @@ import sys
 
 
     
-if (len(sys.argv) != 4 and len(sys.argv) != 2):
-    print("The script ", str(sys.argv[0]), " requires 3 arguments (building in place) or 1 arguments (installing). When building in place, arguments 1 is for passing Nomad path.")
+if (len(sys.argv) != 5 and len(sys.argv) != 3):
+    print("The script ", str(sys.argv[0]), " requires 4 arguments (building in place) or 1 arguments (installing). When building in place, arguments 1 is for passing Nomad path.")
+    print("Sys argv: " + str(sys.argv))
     exit()
 
 root_build_dir=""
 os_include_dirs=""
-if (len(sys.argv) == 4):
-    #print("original sys argv: " + str(sys.argv))
+nomad_version=""
+if (len(sys.argv) == 5):
+    # print("original sys argv: " + str(sys.argv))
     root_build_dir = str(sys.argv[1])   # Argument 1 is to path to find libraries and headers
+    nomad_version = str(sys.argv[2]) # Argument 2 is the nomad version
     os_include_dirs = [root_build_dir + "/../../src"]
     del sys.argv[1]
-    # print("new sys argv: " + str(sys.argv))
+    del sys.argv[1]
+    #print("new sys argv: " + str(sys.argv))
 
 build_lib_dir = root_build_dir + "/src"
 installed_lib_dir1 = root_build_dir + "/lib"
@@ -60,12 +64,18 @@ if sys.platform.startswith("win"):
     link_args.append(build_lib_dir + "/Release/nomadEval." + lib_extension)
     link_args.append(build_lib_dir+ "/Release/nomadAlgos." + lib_extension)
 else:
-    link_args.append(build_lib_dir + "/libnomadUtils." + lib_extension)
-    link_args.append(build_lib_dir + "/libnomadEval." + lib_extension)
+    link_args.append(build_lib_dir + "/libnomadUtils."+ lib_extension)
+    link_args.append(build_lib_dir + "/libnomadEval." +  lib_extension)
     link_args.append(build_lib_dir+ "/libnomadAlgos." + lib_extension)
 
 setup(
     name='PyNomad',
+    version=nomad_version,
+    author='Christophe Tribes',
+    author_email='christophe.tribes@polymtl.ca',
+    license='LGPL',
+    description='Python interface to Nomad for blackbox optimization',
+    url='gerad.ca/nomad or github/bbot/nomad',
     ext_modules = cythonize(Extension(
            "PyNomad", # extension name
            sources = ["PyNomad.pyx"], # Cython source and interface

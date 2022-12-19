@@ -63,6 +63,7 @@ bool NOMAD::isAlgorithm(const StepType& stepType)
     {
         case NOMAD::StepType::ALGORITHM_LH:
         case NOMAD::StepType::ALGORITHM_CS:
+        case NOMAD::StepType::ALGORITHM_DMULTIMADS:
         case NOMAD::StepType::ALGORITHM_MADS:
         case NOMAD::StepType::ALGORITHM_NM:
         case NOMAD::StepType::ALGORITHM_PHASE_ONE:
@@ -72,6 +73,7 @@ bool NOMAD::isAlgorithm(const StepType& stepType)
         case NOMAD::StepType::ALGORITHM_SSD_MADS:
         case NOMAD::StepType::ALGORITHM_QUAD_MODEL:
         case NOMAD::StepType::ALGORITHM_VNS_MADS:
+        case NOMAD::StepType::ALGORITHM_RANDOM:
             return true;
         default:
             return false;
@@ -85,6 +87,7 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
     static std::map<NOMAD::StepType,std::string> dictionary = {
         {NOMAD::StepType::ALGORITHM_LH, "Latin Hypercube"},
         {NOMAD::StepType::ALGORITHM_CS, "Coordinate Search"},
+        {NOMAD::StepType::ALGORITHM_DMULTIMADS, "DMultiMADS"},
         {NOMAD::StepType::ALGORITHM_MADS, "MADS"},
         {NOMAD::StepType::ALGORITHM_NM, "Nelder-Mead"},
         {NOMAD::StepType::ALGORITHM_PHASE_ONE, "Phase One"},
@@ -92,6 +95,7 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::ALGORITHM_PSD_MADS, "PSD-Mads"},
         {NOMAD::StepType::ALGORITHM_SGTELIB_MODEL, "Sgtelib Model"},
         {NOMAD::StepType::ALGORITHM_SSD_MADS, "SSD-Mads"},
+        {NOMAD::StepType::ALGORITHM_RANDOM, "Random algorithm"},
         {NOMAD::StepType::ALGORITHM_QUAD_MODEL, "Quad Model"},
         {NOMAD::StepType::ALGORITHM_VNS_MADS, "VNS Mads"},
         {NOMAD::StepType::INITIALIZATION, "Initialization"},
@@ -114,7 +118,7 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::NM_SHRINK, "NM Shrink"},
         {NOMAD::StepType::NM_UNSET, "NM step type not set"},
 
-        {NOMAD::StepType::OPTIMIZE, "Optimize"},
+        {NOMAD::StepType::MODEL_OPTIMIZE, "Model optimize"},
         {NOMAD::StepType::POLL, "Poll"},
         {NOMAD::StepType::CS_POLL, "Coordinate Search Poll"},
         {NOMAD::StepType::POLL_METHOD_DOUBLE, "Double Poll Method"},
@@ -125,14 +129,17 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::POLL_METHOD_UNI_NPLUS1, "Uniform N+1 Poll Method"},
         {NOMAD::StepType::CS_POLL_METHOD, "Coordinate Search Poll Method"},
         {NOMAD::StepType::SEARCH, "Search"},
+        {NOMAD::StepType::SEARCH_METHOD_ALGO_RANDOM, "Search method using a random algorithm (iteration)"},
         {NOMAD::StepType::SEARCH_METHOD_LH, "Latin Hypercube Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_NM, "Nelder-Mead Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_QUAD_MODEL, "Quadratic Model Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_QUAD_MODEL_SLD, "Quadratic Model (SLD) Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_SGTELIB_MODEL, "Sgtelib Model Search Method"},
+        {NOMAD::StepType::SEARCH_METHOD_SIMPLE_RANDOM, "Simple (no iter.) random search method"},
         {NOMAD::StepType::SEARCH_METHOD_SPECULATIVE, "Speculative Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_USER, "User-Defined Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_VNS_MADS, "VNS Mads Search Method"},
+        {NOMAD::StepType::SEARCH_METHOD_VNSMART_MADS, "VNSmart Mads Search Method"},
         {NOMAD::StepType::SURROGATE_EVALUATION, "Points evaluated using static surrogate"},
         {NOMAD::StepType::MODEL_EVALUATION, "Points evaluated using dynamic model"},
         {NOMAD::StepType::QUAD_MODEL_SORT, "Build dynamic model for sorting points"},

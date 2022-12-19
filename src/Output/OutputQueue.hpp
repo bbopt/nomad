@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_OUTPUTQUEUE__
-#define __NOMAD_4_2_OUTPUTQUEUE__
+#ifndef __NOMAD_4_3_OUTPUTQUEUE__
+#define __NOMAD_4_3_OUTPUTQUEUE__
 
 #include <vector>
 #ifdef _OPENMP
@@ -84,20 +84,20 @@ public:
      virtual ~OutputQueue();
 
     /// Access to singleton
-    static std::unique_ptr<OutputQueue>& getInstance();
+	DLL_UTIL_API static std::unique_ptr<OutputQueue>& getInstance();
 
-    void initParameters(const std::shared_ptr<DisplayParameters>& params);
+	DLL_UTIL_API void initParameters(const std::shared_ptr<DisplayParameters>& params);
 
     /// Flush and close stats file (called by initParameters) if OutputQueue has been already  initialized
     void reset();
 
-    void add(OutputInfo outputInfo);
+	DLL_UTIL_API void add(OutputInfo outputInfo);
     static void Add(OutputInfo outputInfo)
     {
         getInstance()->add(std::move(outputInfo));
     }
 
-    void add(const std::string& s,
+	DLL_UTIL_API void add(const std::string& s,
              OutputLevel outputLevel = OutputLevel::LEVEL_INFO);
     static void Add(const std::string& s,
                     OutputLevel outputLevel = OutputLevel::LEVEL_INFO)
@@ -138,7 +138,7 @@ public:
     size_t getMaxStepLevel() const { return _maxStepLevel; }
     void setMaxStepLevel(const size_t maxStepLevel) { _maxStepLevel = maxStepLevel; }
 
-    bool goodLevel(const OutputLevel& outputLevel) const;
+	DLL_UTIL_API bool goodLevel(const OutputLevel& outputLevel) const;
     static bool GoodLevel(const OutputLevel& outputLevel)
     {
         return getInstance()->goodLevel(outputLevel);
@@ -154,7 +154,7 @@ public:
 #define OUTPUT_DEBUG_END }
 #define OUTPUT_DEBUGDEBUG_END }
 
-    void setDisplayDegree(const int displayDegree);
+	DLL_UTIL_API void setDisplayDegree(const int displayDegree);
     void setMaxOutputLevel(OutputLevel outputLevel) { _maxOutputLevel = outputLevel; }
     
     OutputLevel getMaxOutputLevel() { return _maxOutputLevel ;}
@@ -229,7 +229,7 @@ private:
 
     void startBlock();
     void endBlock();
-    void flush();
+	DLL_UTIL_API void flush();
     void flushBlock(const OutputInfo &outputInfo);
     void flushStatsToStatsFile(const StatsInfo *statsInfo);
     void flushStatsToStdout(const StatsInfo *statsInfo);
@@ -238,4 +238,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_OUTPUTQUEUE__
+#endif // __NOMAD_4_3_OUTPUTQUEUE__

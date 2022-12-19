@@ -52,23 +52,73 @@
 /*-------------------------*/
 /* Class EvcMainThreadInfo */
 /*-------------------------*/
-void NOMAD::EvcMainThreadInfo::init()
+
+bool NOMAD::EvcMainThreadInfo::hasEvaluator(NOMAD::EvalType evalType) const
 {
+    if (_evaluators.size() == 0)
+    {
+        return false;
+    }
+    
+    auto it = std::find_if(_evaluators.begin(),_evaluators.end(), [evalType](NOMAD::EvaluatorPtr e){ return e->getEvalType() == evalType; });
+    
+    if ( _evaluators.end() == it )
+    {
+        return false;
+    }
+    return true;
+}
+
+void NOMAD::EvcMainThreadInfo::selectCurrentEvaluator(NOMAD::EvalType evalType)
+{
+    if (_evaluators.size() == 0)
+    {
+        std::string s = "Error in EvaluatorControl main thread management: no evaluator is registered.";
+        throw NOMAD::Exception(__FILE__, __LINE__, s);
+    }
+    
+    auto it = std::find_if(_evaluators.begin(),_evaluators.end(), [evalType](NOMAD::EvaluatorPtr e){ return e->getEvalType() == evalType; });
+    
+    if ( _evaluators.end() == it )
+    {
+        std::string s = "Error in EvaluatorControl main thread management: evaluator with EvalType = " + NOMAD::evalTypeToString(evalType);
+        s += " is not available";
+        throw NOMAD::Exception(__FILE__, __LINE__, s);
+    }
+    _currentEvaluator = *it;
+    
+    
+}
+
+void NOMAD::EvcMainThreadInfo::addEvaluator(NOMAD::EvaluatorPtr evaluator)
+{
+    if ( nullptr == evaluator )
+    {
+        std::string s = "Error in EvaluatorControl main thread management: cannot assign nullptr.";
+        throw NOMAD::Exception(__FILE__, __LINE__, s);
+    }
+    
+    auto evalType = evaluator->getEvalType();
+    
+    auto it = std::find_if(_evaluators.begin(),_evaluators.end(), [evalType](NOMAD::EvaluatorPtr e){ return e->getEvalType() == evalType; });
+    
+    if ( _evaluators.end() != it )
+    {
+        _evaluators.erase(it);
+    }
+    _evaluators.push_back(evaluator);
+    _currentEvaluator = evaluator;
+}
+
+std::shared_ptr<NOMAD::EvalParameters> NOMAD::EvcMainThreadInfo::getCurrentEvalParams() const
+{
+    return (nullptr == _currentEvaluator) ? nullptr : _currentEvaluator->getEvalParams();
 }
 
 
-std::shared_ptr<NOMAD::Evaluator> NOMAD::EvcMainThreadInfo::setEvaluator(std::shared_ptr<NOMAD::Evaluator> evaluator)
+const NOMAD::BBOutputTypeList & NOMAD::EvcMainThreadInfo::getCurrentBBOutputTypeList() const
 {
-    auto previousEvaluator = _evaluator;
-    _evaluator = evaluator;
-
-    return previousEvaluator;
-}
-
-
-std::shared_ptr<NOMAD::EvalParameters> NOMAD::EvcMainThreadInfo::getEvalParams() const
-{
-    return (nullptr == _evaluator) ? nullptr : _evaluator->getEvalParams();
+    return (nullptr == _currentEvaluator) ? _emptyBBOutputTypeList : _currentEvaluator->getBBOutputTypeList();
 }
 
 
@@ -89,9 +139,31 @@ void NOMAD::EvcMainThreadInfo::decNbPointsInQueue()
 }
 
 
-NOMAD::EvalType NOMAD::EvcMainThreadInfo::getEvalType() const
+NOMAD::EvalType NOMAD::EvcMainThreadInfo::getCurrentEvalType() const
 {
-    return (nullptr == _evaluator) ? NOMAD::EvalType::UNDEFINED : _evaluator->getEvalType();
+    return (nullptr == _currentEvaluator) ? NOMAD::EvalType::UNDEFINED : _currentEvaluator->getEvalType();
+}
+
+NOMAD::EvalSortType NOMAD::EvcMainThreadInfo::getEvalSortType() const
+{
+    while (true)
+    {
+        try
+        {
+            return _evalContParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT");
+        }
+        catch (NOMAD::ParameterToBeChecked&)
+        {
+            // Exception due to parameters being in process of checkAndComply().
+            // While will loop - Retry
+        }
+    }
+}
+
+void NOMAD::EvcMainThreadInfo::setEvalSortType(EvalSortType evalSortType)
+{
+    _evalContParams->setAttributeValue("EVAL_QUEUE_SORT", evalSortType);
+    _evalContParams->checkAndComply();
 }
 
 
@@ -229,13 +301,8 @@ const NOMAD::EvalPointPtr NOMAD::EvcMainThreadInfo::getBestIncumbent() const
 
 void NOMAD::EvcMainThreadInfo::setBestIncumbent(const NOMAD::EvalPointPtr bestIncumbent)
 {
-    NOMAD::ComputeSuccessType computeSuccess(_evaluator->getEvalType(), _computeType);
-    if (computeSuccess(bestIncumbent, _bestIncumbent) >= NOMAD::SuccessType::PARTIAL_SUCCESS)
-    {
         _bestIncumbent = bestIncumbent;
-    }
 }
-
 
 std::vector<NOMAD::EvalPoint> NOMAD::EvcMainThreadInfo::retrieveAllEvaluatedPoints()
 {

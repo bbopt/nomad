@@ -172,11 +172,13 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
     if ( s == "LT" )
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "LT direction type not yet supported");
+
     }
 
     // GPS:
     if ( s == "GPS" )
     {
+
         throw NOMAD::Exception(__FILE__, __LINE__, "GPS direction type not yet supported");
     }
 

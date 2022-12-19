@@ -80,8 +80,7 @@ void NOMAD::SgtelibSearchMethod::init()
     // Check that there is exactly one objective
     if (isEnabled())
     {
-        const auto bbot = NOMAD::SgtelibModel::getBBOutputType();
-        auto nbObj = NOMAD::getNbObj(bbot);
+        auto nbObj = NOMAD::Algorithm::getNbObj();
         if (0 == nbObj)
         {
             OUTPUT_INFO_START
@@ -149,14 +148,10 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsFinal()
         NOMAD::OutputQueue::Flush();
         OUTPUT_INFO_END
 
-        // Here, NOMAD 3 uses parameter SGTELIB_MODEL_TRIALS: Max number of
-        // sgtelib model search failures before going to the poll step.
-        // Not used.
-        //const size_t kkmax = _runParams->getAttributeValue<size_t>("SGTELIB_MODEL_SEARCH_TRIALS");
         /*----------------*/
         /*  oracle points */
         /*----------------*/
-        
+
         _modelAlgo->start();
         
         oraclePoints = _modelAlgo->createOraclePoints();
@@ -193,7 +188,7 @@ void NOMAD::SgtelibSearchMethod::getBestProjection(const NOMAD::Point& incumbent
                                     const NOMAD::ArrayOfDouble& deltaMeshSize,
                                     std::shared_ptr<NOMAD::Point> x)
 {
-    // Issue #383: Use Projection class
+    // Not implemented
 }
 
 

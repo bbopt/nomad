@@ -51,12 +51,13 @@
  * \date   November 2017
  */
 
-#ifndef __NOMAD_4_2_GMESH__
-#define __NOMAD_4_2_GMESH__
+#ifndef __NOMAD_4_3_GMESH__
+#define __NOMAD_4_3_GMESH__
 
 #include "../../Algos/MeshBase.hpp"
-
+#include "../../Param/RunParameters.hpp"
 #include "../../nomad_nsbegin.hpp"
+
 
 /// Class for the granular mesh of Mads.
 /**
@@ -78,25 +79,41 @@ class GMesh: public MeshBase
     const ArrayOfDouble  _granularity;  ///< The fixed granularity of the mesh
     bool                 _enforceSanityChecks;   ///< Should we enforce sanity checks?
     
+    bool                 _allGranular;  ///< _all_granular is true if all variables are granular; fixed variables are not considered.
+    
+    Double               _anisotropyFactor;  ///<   Control the development of anisotropy of the mesh (if anisotropicMesh is true).
+    bool                 _anisotropicMesh;  ///<    Flag to enable or not anisotropic mesh
+    
+    
 public:
 
     /// Constructor
     /**
      \param parameters  The problem parameters attributes control the mesh mechanics -- \b IN.
+     \param runParams The parameters to set mesh anisotropy factor --  \b IN.
      */
-    explicit GMesh(std::shared_ptr<PbParameters> parameters)
-      : MeshBase(parameters),
-        _initFrameSizeExp(ArrayOfDouble()),
-        _frameSizeMant(ArrayOfDouble()),
-        _frameSizeExp(ArrayOfDouble()),
-        _finestMeshSize(ArrayOfDouble()),
-        _granularity(parameters->getAttributeValue<ArrayOfDouble>("GRANULARITY")),
-        _enforceSanityChecks(true)
+    explicit GMesh(std::shared_ptr<PbParameters> parameters, std::shared_ptr<RunParameters> runParams)
+      : MeshBase(parameters,
+                 GMESH_LIMIT_MIN_MESH_INDEX, /* Limit Min mesh index */
+                 -GMESH_LIMIT_MIN_MESH_INDEX), /* Limit Max mesh index */
+                _initFrameSizeExp(ArrayOfDouble()),
+                _frameSizeMant(ArrayOfDouble()),
+                _frameSizeExp(ArrayOfDouble()),
+                _finestMeshSize(ArrayOfDouble()),
+                _granularity(parameters->getAttributeValue<ArrayOfDouble>("GRANULARITY")),
+                _enforceSanityChecks(true),
+                _allGranular(true),
+                _anisotropyFactor(runParams->getAttributeValue<NOMAD::Double>("ANISOTROPY_FACTOR")),
+                _anisotropicMesh(runParams->getAttributeValue<bool>("ANISOTROPIC_MESH"))
     {
         init();
     }
 
-
+    // Clone a GMesh and return a pointer to MeshBase
+    std::unique_ptr<MeshBase> clone() const override {
+      return std::make_unique<GMesh>(*this);
+    }
+    
     /*-----------*/
     /* Get / Set */
     /*-----------*/
@@ -123,9 +140,7 @@ public:
      \copydoc MeshBase::enlargeDeltaFrameSize
      \note This implementation relies on GMesh::_frameSizeExp, GMesh::_frameSizeMant and GMesh::_granularity.
      */
-    bool enlargeDeltaFrameSize(const Direction& direction,
-                               const Double& anisotropyFactor = 0.1,
-                               bool anisotropicMesh = true) override;
+    bool enlargeDeltaFrameSize(const Direction& direction) override;
 
     /**
      \copydoc MeshBase::refineDeltaFrameSize
@@ -244,4 +259,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_GMESH__
+#endif // __NOMAD_4_3_GMESH__

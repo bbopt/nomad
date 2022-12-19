@@ -46,6 +46,7 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../Param/AllParameters.hpp"
+#include "../Type/EvalSortType.hpp"
 #include "../Util/fileutils.hpp"
 
 // Do we need to call checkAndComply() ?
@@ -245,6 +246,39 @@ void NOMAD::AllParameters::displayHelp(const std::string &helpSubject , bool dev
         }
     }
 }
+
+void NOMAD::AllParameters::displayCSVDoc(std::ostream & os )
+{
+    std::map<std::string,std::string> csvdoc;
+    
+    _pbParams->insertCSVDoc(csvdoc);
+    _evaluatorControlGlobalParams->insertCSVDoc(csvdoc);
+    _runParams->insertCSVDoc(csvdoc);
+    _evaluatorControlParams->insertCSVDoc(csvdoc);
+    _evalParams->insertCSVDoc(csvdoc);
+    _cacheParams->insertCSVDoc(csvdoc);
+    _dispParams->insertCSVDoc(csvdoc);
+    
+    for (const auto & singleEntry : csvdoc )
+    {
+        os << singleEntry.first << "," << singleEntry.second << std::endl;
+    }
+    
+}
+
+bool NOMAD::AllParameters::mayUseSurrogate() const
+{
+    if (toBeChecked())
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"Parameters are not checked");
+    }
+    bool sortWithSurrogate = (_evaluatorControlParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT") == NOMAD::EvalSortType::SURROGATE);
+    bool vnsUseSurrogate = _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH") && _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE");
+    
+    
+    return sortWithSurrogate || vnsUseSurrogate;
+}
+
 
 /*----------------------------------------*/
 /*            check the parameters        */

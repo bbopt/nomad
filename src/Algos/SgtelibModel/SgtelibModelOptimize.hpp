@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_SGTELIB_MODEL_OPTIMIZE__
-#define __NOMAD_4_2_SGTELIB_MODEL_OPTIMIZE__
+#ifndef __NOMAD_4_3_SGTELIB_MODEL_OPTIMIZE__
+#define __NOMAD_4_3_SGTELIB_MODEL_OPTIMIZE__
 
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/Step.hpp"
@@ -59,8 +59,7 @@ class SgtelibModelOptimize : public Step
 private:
     const SgtelibModel*                     _modelAlgo;
     OutputLevel                             _displayLevel;
-    //const Point &                        _incumbent;
-    //std::vector<std::shared_ptr<EvalPoint>> _x0s;
+
     std::shared_ptr<Mads>                   _mads;
     EvalPointSet                            _oraclePoints;
 
@@ -121,4 +120,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_SGTELIB_MODEL_OPTIMIZE__
+#endif // __NOMAD_4_3_SGTELIB_MODEL_OPTIMIZE__

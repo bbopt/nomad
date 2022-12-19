@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_POLLMETHODBASE__
-#define __NOMAD_4_2_POLLMETHODBASE__
+#ifndef __NOMAD_4_3_POLLMETHODBASE__
+#define __NOMAD_4_3_POLLMETHODBASE__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/Step.hpp"
@@ -117,12 +117,6 @@ public:
     
     
     
-    /// Add evaluation information from static surrogate or model to trial points
-    /*
-     This is used for sorting. Sorting can be used to reduce the number of trial points and also to prioritize the evaluations.
-     */
-    virtual void completeTrialPointsInformation();
-    
     /// Reduce the number of trial points
     /*
      This is currently used only by Ortho Mads n+1. 
@@ -187,5 +181,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_POLLMETHODBASE__
+#endif // __NOMAD_4_3_POLLMETHODBASE__
 

@@ -39,7 +39,7 @@ size_t
 
 . Latin-Hypercube sampling (evaluations)
 
-. Argument: A positive integer p < INF
+. Argument: A positive integer p < INF. 
 
 . p: number of LH points
 
@@ -63,14 +63,13 @@ NOMAD::LHSearchType
 
 . Latin-Hypercube sampling (search)
 
-. Arguments: two size_t p0 and pi
+. Arguments: two size_t p0 and pi < INF.
 
-. p0: number of initial LH search points
+. p0: number of initial LH search points. These points are handled as X0s
+  (no opportunism for evaluation).
 
-. pi: LH search points at each iteration
-
-. The search can be opportunistic or not
-  (parameter EVAL_OPPORTUNISTIC)
+. pi: LH search points at each iteration. The iteration search can be
+  opportunistic or not (parameter EVAL_OPPORTUNISTIC).
 
 . Example: LH_SEARCH 100 0
 

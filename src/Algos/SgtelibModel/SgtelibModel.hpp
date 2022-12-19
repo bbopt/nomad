@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_SGTELIB_MODEL__
-#define __NOMAD_4_2_SGTELIB_MODEL__
+#ifndef __NOMAD_4_3_SGTELIB_MODEL__
+#define __NOMAD_4_3_SGTELIB_MODEL__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Algorithm.hpp"
@@ -80,7 +80,7 @@ class SgtelibModel: public Algorithm
 {
 private:
     // Barrier from upper step, if it exists
-    std::shared_ptr<Barrier>                _barrierForX0s;
+    std::shared_ptr<BarrierBase>                _barrierForX0s;
 
     std::shared_ptr<SGTELIB::TrainingSet>   _trainingSet;
     std::shared_ptr<SGTELIB::Surrogate>     _model;
@@ -99,7 +99,7 @@ public:
     /// Constructor
     explicit SgtelibModel(const Step* parentStep,
                           std::shared_ptr<AlgoStopReasons<ModelStopType>> stopReasons,
-                          std::shared_ptr<Barrier> barrier,
+                          std::shared_ptr<BarrierBase> barrier,
                           const std::shared_ptr<RunParameters>& runParams,
                           const std::shared_ptr<PbParameters>& pbParams,
                           const MeshBasePtr& mesh)
@@ -145,19 +145,6 @@ public:
     MeshBasePtr getMesh() const { return _mesh; }
     Double getDeltaMNorm() const;
 
-
-    // Utility function to get BB_OUTPUT_TYPE parameter, which is buried in Evaluator.
-    static BBOutputTypeList getBBOutputType()
-    {
-        if (nullptr == EvcInterface::getEvaluatorControl()
-            || nullptr == EvcInterface::getEvaluatorControl()->getEvalParams())
-        {
-            throw Exception(__FILE__, __LINE__, "Error in SgtelibModel::getBBOutputType()");
-        }
-        return EvcInterface::getEvaluatorControl()->getEvalParams()->getAttributeValue<BBOutputTypeList>("BB_OUTPUT_TYPE");
-    }
-
-
     // Basic methods
     bool isReady() const;
     void update();
@@ -185,5 +172,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_SGTELIB_MODEL__
+#endif // __NOMAD_4_3_SGTELIB_MODEL__
 

@@ -52,20 +52,23 @@
  \see    EvaluatorControl.cpp
  */
 
-#ifndef __NOMAD_4_2_EVALUATORCONTROL__
-#define __NOMAD_4_2_EVALUATORCONTROL__
+#ifndef __NOMAD_4_3_EVALUATORCONTROL__
+#define __NOMAD_4_3_EVALUATORCONTROL__
 
-#include "../Eval/Barrier.hpp"
+#include "../Eval/BarrierBase.hpp"
+#include "../Eval/SuccessStats.hpp"
 #include "../Eval/ComparePriority.hpp"
 #include "../Eval/EvalQueuePoint.hpp"
 #include "../Eval/EvcMainThreadInfo.hpp"
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
+#include "../Type/EvalSortType.hpp"
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif  // _OPENMP
 #include <time.h>
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 
@@ -73,10 +76,12 @@
 /**
  * \todo Complete the description.
  */
-class EvaluatorControl {
+class DLL_EVAL_API EvaluatorControl {
 private:
     std::shared_ptr<EvaluatorControlGlobalParameters> _evalContGlobalParams;  ///< The parameters controlling the behavior of the class
 
+    std::shared_ptr<EvaluatorControlParameters> _evalContParams;
+    
     std::set<int> _mainThreads;     // Thread numbers of main threads
 
     mutable std::map<int, EvcMainThreadInfo> _mainThreadInfo;  ///< Info about main threads
@@ -185,21 +190,22 @@ private:
 
     bool _allDoneWithEval;     ///< All evaluations done. The queue can be destroyed.
 
+    SuccessStats _successStats; ///< Collect stats for SuccessType and trial point generating step type.
+    
 #ifdef TIME_STATS
     double _evalTime;  ///< Total time spent running evaluations
 #endif // TIME_STATS
 
 public:
-    /// Constructor
+    /// Constructor 
     /**
-     \param evaluator       The blackbox evaluator -- \b IN.
      \param evalContGlobalParams  The parameters controlling how the class works -- \b IN.
      \param evalContParams  The parameters for main threads -- \b IN.
      */
-    explicit EvaluatorControl(EvaluatorPtr evaluator,
-                              const std::shared_ptr<EvaluatorControlGlobalParameters>& evalContGlobalParams,
+    explicit EvaluatorControl(const std::shared_ptr<EvaluatorControlGlobalParameters>& evalContGlobalParams,
                               const std::shared_ptr<EvaluatorControlParameters>& evalContParams)
       : _evalContGlobalParams(evalContGlobalParams),
+        _evalContParams(evalContParams),
         _mainThreads(),
         _mainThreadInfo(),
         _evalPointQueue(),
@@ -220,14 +226,58 @@ public:
         _nbEvalSentToEvaluator(0),
         _nbRelativeSuccess(0),
         _nbPhaseOneSuccess(0),
-        _allDoneWithEval(false)
+        _allDoneWithEval(false),
+        _successStats()
 #ifdef TIME_STATS
         ,_evalTime(0.0)
 #endif // TIME_STATS
     {
-        init(evaluator, evalContParams);
+        init(evalContParams);
     }
 
+    /// Constructor #2
+    /**
+     \param evaluator       A single blackbox evaluator -- \b IN.
+     \param evalContGlobalParams  The parameters controlling how the class works -- \b IN.
+     \param evalContParams  The parameters for main threads -- \b IN.
+     */
+    explicit EvaluatorControl(const EvaluatorPtr evaluator,
+                              const std::shared_ptr<EvaluatorControlGlobalParameters>& evalContGlobalParams,
+                              const std::shared_ptr<EvaluatorControlParameters>& evalContParams)
+      : _evalContGlobalParams(evalContGlobalParams),
+        _evalContParams(evalContParams),
+        _mainThreads(),
+        _mainThreadInfo(),
+        _evalPointQueue(),
+        _userCompMethod(nullptr),
+#ifdef _OPENMP
+        _evalQueueLock(),
+#endif // _OPENMP
+        _bbEval(0),
+        _bbEvalNotOk(0),
+        _feasBBEval(0),
+        _infBBEval(0),
+        _surrogateEval(0),
+        _totalModelEval(0),
+        _blockEval(0),
+        _indexSuccBlockEval(0),
+        _indexBestFeasEval(0),
+        _indexBestInfeasEval(0),
+        _nbEvalSentToEvaluator(0),
+        _nbRelativeSuccess(0),
+        _nbPhaseOneSuccess(0),
+        _allDoneWithEval(false),
+        _successStats()
+#ifdef TIME_STATS
+        ,_evalTime(0.0)
+#endif // TIME_STATS
+    {
+        init(evalContParams);
+        addEvaluator(evaluator);
+    }
+
+    
+    
     /// Destructor.
     virtual ~EvaluatorControl()
     {
@@ -239,14 +289,17 @@ public:
     /*---------------*/
     void addMainThread(const int threadNum,
                        const std::shared_ptr<StopReason<EvalMainThreadStopType>> evalMainThreadStopReason,
-                       const EvaluatorPtr evaluator,
                        const std::shared_ptr<EvaluatorControlParameters> evalContParams);
     bool isMainThread(const int threadNum) const { return (_mainThreads.end() != _mainThreads.find(threadNum)); }
 
     const std::set<int>& getMainThreads() const { return _mainThreads; }
     int getNbMainThreads() const { return int(_mainThreads.size()); }
 
-    EvaluatorPtr setEvaluator(EvaluatorPtr evaluator);
+    bool hasEvaluator(EvalType evalType) const ;
+    void selectCurrentEvaluator(EvalType evalType);
+    void selectCurrentEvaluator(EvalType evalType, const int mainThreadNum);
+    void addEvaluator(EvaluatorPtr evaluator);
+    void addEvaluator(EvaluatorPtr evaluator, const int mainThreadNum);
 
     /// Get the number of blackbox evaluations.
     size_t getBbEval() const { return _bbEval; }
@@ -265,6 +318,7 @@ public:
 
     /// Get the number of surrogate evaluations.
     size_t getSurrogateEval() const { return _surrogateEval; }
+    size_t getLapSurrogateEval() const { return 0; } // Not yet implemented. 
 
     size_t getModelEval(const int mainThreadNum = -1) const;
     void resetModelEval(const int mainThreadNum = -1);
@@ -318,13 +372,15 @@ public:
     bool getDoneWithEval(const int mainThreadNum) const;
     void setDoneWithEval(const int mainThreadNum, const bool doneWithEval);
 
-    void setBarrier(const std::shared_ptr<Barrier>& barrier);
-    const std::shared_ptr<Barrier>& getBarrier(const int threadNum = -1) const;
+    void setBarrier(const std::shared_ptr<BarrierBase> barrier);
+    const std::shared_ptr<BarrierBase> getBarrier(const int threadNum = -1) const;
 
     void setBestIncumbent(const int mainThreadNum, const EvalPointPtr bestIncumbent);
     void resetBestIncumbent(const int mainThreadNum);
     const EvalPointPtr getBestIncumbent(const int mainThreadNum) const;
 
+
+    
     void setUserCompMethod(const std::shared_ptr<ComparePriorityMethod>& compMethod) { _userCompMethod = compMethod; }
 
     void setComputeType(ComputeType computeType);
@@ -357,17 +413,38 @@ public:
     Double getHMax(const int threadNum) const;
 
     /// Get the global parameters for \c *this
-    const std::shared_ptr<EvaluatorControlGlobalParameters>& getEvaluatorControlGlobalParams() const { return _evalContGlobalParams; }
+    const std::shared_ptr<EvaluatorControlGlobalParameters> getEvaluatorControlGlobalParams() const { return _evalContGlobalParams; }
+    
+    /// Get the specific parameters for \c *this
+    const std::shared_ptr<EvaluatorControlParameters> getEvaluatorControlParams() const { return _evalContParams; }
 
-    /// Get the Evaluator's parameters.
-    std::shared_ptr<EvalParameters> getEvalParams(const int threadNum = -1) const;
+    /// Get the Evaluator's eval params
+    std::shared_ptr<NOMAD::EvalParameters> getCurrentEvalParams(const int threadNum = -1) const;
+    
+    /// Get the Evaluator's BB_OUTPUT_TYPE
+    const BBOutputTypeList & getCurrentBBOutputTypeList(const int threadNum = -1) const;
 
-    /// Get or Set the value of some parameters
+    /// Access to collected success type stats
+    const SuccessStats & getSuccessStats() const { return _successStats; }
+    
+    /// Reset success stats (done once transferred to Step success stats)
+    void resetSuccessStats()
+    {
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+        _successStats.resetCurrentStats();
+    }
+    
+    
+    /// Get or Set the value of some parameters (those are associated to a Main Thread)
+    EvalSortType getEvalSortType(const int mainThreadNum =-1) const;
+    void setEvalSortType(EvalSortType evalSortType);
     bool getOpportunisticEval(const int mainThreadNum = -1) const;
     void setOpportunisticEval(const bool opportunistic);
     bool getUseCache(const int mainThreadNum = -1) const;
     void setUseCache(const bool usecache);
-    EvalType getEvalType(const int mainThreadNum = -1) const;
+    EvalType getCurrentEvalType(const int mainThreadNum = -1) const;
     size_t getMaxBbEvalInSubproblem(const int mainThreadNum = -1) const;
     void setMaxBbEvalInSubproblem(const size_t maxBbEval);
     bool getSurrogateOptimization(const int mainThreadNum = -1) const;
@@ -513,9 +590,9 @@ public:
 
 private:
 
-    /// Helper for constructor
-    void init(EvaluatorPtr evaluator,
-              const std::shared_ptr<EvaluatorControlParameters>& evalContParams);
+    /// Helper for constructor #1
+    void init(const std::shared_ptr<EvaluatorControlParameters>& evalContParams);
+    
     /// Helper for destructor
     void destroy();
 
@@ -533,11 +610,9 @@ private:
 
      \param evalQueuePoint The queue point of interest -- \b IN/OUT.
      \param evalOk         Flag to specific if evaluation was OK -- \b IN.
-     \param hMax           The max infeasibility to keep a point in barrier -- \b IN.
      */
     void computeSuccess(EvalQueuePointPtr evalQueuePoint,
-                        const bool evalOk,
-                        const Double& hMax);
+                        const bool evalOk);
 
     /// Helper for EvalType: BB OR (SURROGATE and EVAL_AS_SURROGATE)
     bool evalTypeAsBB(EvalType evalType, const int mainThreadNum) const;
@@ -560,7 +635,7 @@ private:
     void displayDebugWaitingInfo(time_t &lastDisplayed) const;
 
     /// Stats Output
-    void addStatsInfo(const BlockForEval& block) const;
+    void addStatsInfo(const BlockForEval& block) ;
 
     /// History and Solution file output
     void addDirectToFileInfo(EvalQueuePointPtr evalQueuePoint) const;
@@ -574,4 +649,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_EVALUATORCONTROL__
+#endif // __NOMAD_4_3_EVALUATORCONTROL__

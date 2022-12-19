@@ -53,6 +53,8 @@
 class My_Evaluator : public NOMAD::Evaluator
 {
 public:
+    
+    // Create a EvalType::BB evaluator.
     My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
         : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
@@ -81,7 +83,7 @@ public:
 
             f = x[n-1];
             std::string bbo = f.tostring() + " " + c1.tostring() + " " + c2.tostring();
-            x.setBBO(bbo, _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"), getEvalType());
+            x.setBBO(bbo);
             eval_ok = true;
         }
         catch (std::exception &e)
@@ -185,9 +187,9 @@ int main (int argc, char **argv)
     initParams(*params);
     TheMainStep->setAllParameters(params);
 
-    // Custom evaluator creation
-    std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
-    TheMainStep->setEvaluator(std::move(ev));
+    // Custom Evaluator creation
+    auto ev = std::make_unique<My_Evaluator>(params->getEvalParams());
+    TheMainStep->addEvaluator(std::move(ev));
 
     try
     {

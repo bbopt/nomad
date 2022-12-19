@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_NMINITIALIZESIMPLEX__
-#define __NOMAD_4_2_NMINITIALIZESIMPLEX__
+#ifndef __NOMAD_4_3_NMINITIALIZESIMPLEX__
+#define __NOMAD_4_3_NMINITIALIZESIMPLEX__
 
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
 
@@ -77,7 +77,7 @@ private:
     /// Helper for constructor
     void init();
 
-    /// No start task is required.
+    /// No start task is required
     virtual void    startImp() override {}
 
     /// Implementation of the run task for simplex initialization.
@@ -86,7 +86,7 @@ private:
      */
     virtual bool    runImp() override ;
 
-    /// No start task is required
+    /// No end task is required
     virtual void    endImp() override {}
 
     /// Helper for run
@@ -102,4 +102,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_NMINITIALIZESIMPLEX__
+#endif // __NOMAD_4_3_NMINITIALIZESIMPLEX__

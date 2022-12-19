@@ -52,16 +52,17 @@
  \see    ArrayOfString.cpp
  */
 
-#ifndef __NOMAD_4_2_ARRAYOFSTRING__
-#define __NOMAD_4_2_ARRAYOFSTRING__
+#ifndef __NOMAD_4_3_ARRAYOFSTRING__
+#define __NOMAD_4_3_ARRAYOFSTRING__
 
 #include <string>
 #include <vector>
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 /// Class for the representation of an array of n strings.
-class ArrayOfString {
+class DLL_UTIL_API ArrayOfString {
 protected:
     /*---------*/
     /* Members */
@@ -179,8 +180,8 @@ private:
 
 };
 
-std::ostream& operator<< (std::ostream& out,
+DLL_UTIL_API std::ostream& operator<< (std::ostream& out,
                           const ArrayOfString& arrayOfString);
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_2_ARRAYOFSTRING__
+#endif // __NOMAD_4_3_ARRAYOFSTRING__

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_STOPREASON__
-#define __NOMAD_4_2_STOPREASON__
+#ifndef __NOMAD_4_3_STOPREASON__
+#define __NOMAD_4_3_STOPREASON__
 
 #include <map>
 #include "../Util/Exception.hpp"
@@ -69,11 +69,13 @@ enum class BaseStopType : int
     LAST
 };
 
-/// Stop type that can happend during MADS
+/// Stop type that can happen during MADS
 enum class MadsStopType : int
 {
     STARTED                 ,  ///< Started (no stop)
     MESH_PREC_REACHED       ,  ///< Mesh minimum precision stop criterion
+    MAX_MESH_INDEX_REACHED   ,  ///< Max mesh index stop criterion (large index->large mesh size)
+    MIN_MESH_INDEX_REACHED   ,  ///< Min mesh index stop criterion (small index->small mesh size)
     MIN_MESH_SIZE_REACHED   ,  ///< Min mesh size stop criterion
     MIN_FRAME_SIZE_REACHED   , ///< Min frame size stop criterion
     X0_FAIL                 ,  ///< Problem with starting point evaluation
@@ -158,6 +160,22 @@ enum class NMStopType : int
     NM_SINGLE_COMPLETED         ,
     NM_STOP_ON_SUCCESS          ,
     NM_STOP_NO_SHRINK           ,
+    LAST
+};
+
+/// Stop type for Template Algorithm
+/**
+ \todo check the stop type
+ */
+enum class RandomAlgoStopType : int
+{
+    STARTED                     ,  ///< Started (no stop)
+    UNDEFINED_STEP              ,
+    INITIAL_FAILED              ,   ///< Algo initialization failed
+    UPDATE_FAILED              ,   ///< Algo initialization failed
+    X0_FAILED                   ,
+    ALL_POINTS_EVALUATED        ,  ///< No more points to evaluate
+    SINGLE_PASS_COMPLETED       ,  ///< A single pass has been completed
     LAST
 };
 
@@ -345,4 +363,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_STOPREASON__
+#endif // __NOMAD_4_3_STOPREASON__

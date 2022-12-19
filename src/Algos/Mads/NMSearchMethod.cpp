@@ -114,8 +114,9 @@ void NOMAD::NMSearchMethod::generateTrialPointsFinal()
 
     auto madsIteration = getParentOfType<MadsIteration*>();
 
+    // Use first point of barrier as simplex center.
     NOMAD::NMAllReflective allReflective(this,
-                            std::make_shared<NOMAD::EvalPoint>(getMegaIterationBarrier()->getFirstPoint()),
+                            getMegaIterationBarrier()->getFirstPoint(),
                             madsIteration->getMesh());
     allReflective.start();
     allReflective.end();

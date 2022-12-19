@@ -76,13 +76,13 @@ void NOMAD::PhaseOne::startImp()
 
     // Setup Mads
     _madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
-    _mads = std::make_shared<NOMAD::Mads>(this, _madsStopReasons, _runParams, _pbParams);
+    _mads = std::make_shared<NOMAD::Mads>(this, _madsStopReasons, _runParams, _pbParams, false /*false: barrier is not initialized from cache*/);
 }
 
 
 bool NOMAD::PhaseOne::runImp()
 {
-    bool ret = false;
+    bool madsSuccess = false;
 
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
 
@@ -91,20 +91,29 @@ bool NOMAD::PhaseOne::runImp()
 
     // Run Mads on Phase One.
     _mads->start();
-    ret = _mads->run();
+    madsSuccess = _mads->run();
     _mads->end();
 
     evc->setComputeType(previousComputeType);
-    
     evc->resetBestIncumbent(-1); // Reset for display (-1 for all main threads)
-
-    if (!hasPhaseOneSolution())
+    // Update PhaseOne stop reasons
+    if ( !_mads->hasPhaseOneSolution())
     {
         auto phaseOneStopReasons = NOMAD::AlgoStopReasons<NOMAD::PhaseOneStopType>::get(_stopReasons);
-        phaseOneStopReasons->set(NOMAD::PhaseOneStopType::MADS_FAIL);
+        if (!madsSuccess)
+        {
+            phaseOneStopReasons->set(NOMAD::PhaseOneStopType::MADS_FAIL);
+        }
+        else
+        {
+            phaseOneStopReasons->set(NOMAD::PhaseOneStopType::NO_FEAS_PT);
+        }
+        
+        // Phase one has failed to get a solution with EB constraints feasible.
+        return false;
     }
-
-    return ret;
+    
+    return true;
 }
 
 
@@ -134,20 +143,6 @@ void NOMAD::PhaseOne::endImp()
             info.setSol(*(evalPointList[0].getX()));
 
             NOMAD::OutputDirectToFile::Write(info,true,false); // Write in solution (if solution_file exists) but not in history file
-        }
-    }
-
-    // Update PhaseOne stop reasons
-    auto phaseOneStopReasons = NOMAD::AlgoStopReasons<NOMAD::PhaseOneStopType>::get(_stopReasons);
-    if (!hasPhaseOneSolution())
-    {
-        if (_madsStopReasons->checkTerminate())
-        {
-            phaseOneStopReasons->set(NOMAD::PhaseOneStopType::MADS_FAIL);
-        }
-        else
-        {
-            phaseOneStopReasons->set(NOMAD::PhaseOneStopType::NO_FEAS_PT);
         }
     }
 }

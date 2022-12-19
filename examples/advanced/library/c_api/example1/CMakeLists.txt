@@ -22,7 +22,7 @@ install(TARGETS example1_c_api.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example
-if(BUILD_TESTS MATCHES ON)
+if(BUILD_EXAMPLES MATCHES ON)
     message(STATUS "    Add example test for c-api 1") 
     # Can run this test after install
 

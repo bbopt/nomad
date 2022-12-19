@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_QUAD_MODEL_SINGLE_PASS__
-#define __NOMAD_4_2_QUAD_MODEL_SINGLE_PASS__
+#ifndef __NOMAD_4_3_QUAD_MODEL_SINGLE_PASS__
+#define __NOMAD_4_3_QUAD_MODEL_SINGLE_PASS__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/QuadModel/QuadModelIteration.hpp"
@@ -111,4 +111,4 @@ public:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_QUAD_MODEL_SINGLE_PASS__
+#endif // __NOMAD_4_3_QUAD_MODEL_SINGLE_PASS__

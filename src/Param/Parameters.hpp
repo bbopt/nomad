@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_PARAMETERS__
-#define __NOMAD_4_2_PARAMETERS__
+#ifndef __NOMAD_4_3_PARAMETERS__
+#define __NOMAD_4_3_PARAMETERS__
 
 #include <algorithm>
 #include <fstream>
@@ -137,7 +137,7 @@ public:
 
  After calling one of specific checkAndComply functions, an attribute value can be obtained using the templated Parameters::getAttributeValue with the name as argument. \n
  */
-class Parameters
+class DLL_UTIL_API Parameters
 {
 private:
 
@@ -149,7 +149,7 @@ protected:
     /*---------*/
     /* Members */
     /*---------*/
-    DLL_UTIL_API static ParameterEntries _paramEntries; ///< The set of entries obtained when reading a parameter file.
+    static ParameterEntries _paramEntries; ///< The set of entries obtained when reading a parameter file.
 
     std::string _typeName; ///< The type of parameters: ex. Problem, Run
 
@@ -165,7 +165,7 @@ protected:
      Map of attribute names and type name as string.
      Static to the class.
      */
-    DLL_UTIL_API static std::map<std::string,std::string> _typeOfAttributes;
+    static std::map<std::string,std::string> _typeOfAttributes;
 
     /// Constructors
     /**
@@ -286,6 +286,8 @@ public:
                      bool devHelp,
                      std::ostringstream & ossBasic,
                      std::ostringstream & ossAdvanced ) ;
+    
+    void insertCSVDoc(std::map<std::string,std::string> &csvdoc) const;
 
 
 
@@ -709,8 +711,14 @@ public:
         {
             // Special case: Attribute type is a size_t, but user sets
             // an int.
-            // If the int is negative, use INF.
-            size_t st = (value < 0) ? INF_SIZE_T : size_t(value);
+            // If the int is negative, trigger an exception.
+            if (value < 0)
+            {
+                std::string err = "setAttributeValue: the attribute " + name;
+                err += " is of type size_t and cannot be given a negative value. To set the value to infinity, uses NOMAD::INF_SIZE_T when in library mode and +INF in batch mode.";
+                throw InvalidParameter(__FILE__,__LINE__, err);
+            }
+            size_t st = size_t(value);
             setSpValue(name, st);
         }
         else
@@ -781,4 +789,4 @@ protected:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_2_PARAMETERS__
+#endif // __NOMAD_4_3_PARAMETERS__

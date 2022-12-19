@@ -61,7 +61,7 @@ size_t
 . When using Parallel Space Decomposition (PSD) MADS algorithm, select the
   number of variables in Mads subproblems.
 
-. Argument: size_t
+. Argument: a positive integer < INF.
 
 . Description: Size of subproblems in PSD-Mads.
 
@@ -84,7 +84,7 @@ INF
   Mads subproblems. By default (INF), the number of subproblems is adjusted to
   cover all variables.
 
-. Argument: size_t
+. Argument: a positive integer.
 
 . This attribute is used only when PSD-Mads optimization is active.
 
@@ -192,7 +192,7 @@ size_t
 . When using Sequential Space Decomposition (SSD) MADS algorithm, select the
   number of variables in Mads subproblems.
 
-. Argument: size_t
+. Argument: a positive integer < INF.
 
 . Description: Size of subproblems in SSD-Mads.
 
@@ -215,7 +215,7 @@ INF
   Mads subproblems. By default (INF), the number of subproblems is adjusted to
   cover all variables.
 
-. Argument: size_t
+. Argument: a positive integer. 
 
 . This attribute is used only when SSD-Mads optimization is active.
 

@@ -52,11 +52,12 @@
  \see    ComputeType.cpp
  */
 
-#ifndef __NOMAD_4_2_COMPUTE_TYPE__
-#define __NOMAD_4_2_COMPUTE_TYPE__
+#ifndef __NOMAD_4_3_COMPUTE_TYPE__
+#define __NOMAD_4_3_COMPUTE_TYPE__
 
 #include <sstream>
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 // Evaluator type
@@ -76,10 +77,10 @@ enum class ComputeType
 
 // Convert a string (ex "STANDARD", "PHASE_ONE")
 // to an ComputeType.
-ComputeType stringToComputeType(const std::string &s);
+DLL_UTIL_API ComputeType stringToComputeType(const std::string &s);
 
 // Convert an ComputeType to a string
-std::string computeTypeToString (ComputeType computeType);
+DLL_UTIL_API std::string computeTypeToString (ComputeType computeType);
 
 
 inline std::ostream& operator<<(std::ostream& out, ComputeType computeType)
@@ -90,4 +91,4 @@ inline std::ostream& operator<<(std::ostream& out, ComputeType computeType)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_2_COMPUTE_TYPE__
+#endif  // __NOMAD_4_3_COMPUTE_TYPE__

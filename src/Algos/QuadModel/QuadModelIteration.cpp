@@ -56,7 +56,7 @@ void NOMAD::QuadModelIteration::init()
 {
 
     // Count the number of constraints
-    const auto bbot = NOMAD::QuadModelAlgo::getBBOutputType();
+    const auto bbot = NOMAD::Algorithm::getBbOutputType();
     size_t nbConstraints = NOMAD::getNbConstraints(bbot);
 
     // Init the TrainingSet
@@ -65,7 +65,7 @@ void NOMAD::QuadModelIteration::init()
     SGTELIB::Matrix empty_Z("empty_Z", 0, static_cast<int>(nbConstraints+1));
     _trainingSet = std::make_shared<SGTELIB::TrainingSet>(empty_X, empty_Z);
 
-    // The quadratic model uses Sgtelib
+    // The quadratic model is from Sgtelib
     _model = std::shared_ptr<SGTELIB::Surrogate>(SGTELIB::Surrogate_Factory(*_trainingSet, "TYPE PRS"));
     
     if (_trialPoints.size() > 0)
@@ -73,6 +73,7 @@ void NOMAD::QuadModelIteration::init()
         _useForSortingTrialPoints = true;
         setStepType(NOMAD::StepType::QUAD_MODEL_SORT);
     }
+    
 
 }
 
@@ -128,9 +129,9 @@ bool NOMAD::QuadModelIteration::runImp()
     }
 
     // Update MegaIteration success type
-    NOMAD::SuccessType success = optimize.getSuccessType();
+    _success = optimize.getTrialPointsSuccessType();
     auto megaIter = getParentOfType<NOMAD::MegaIteration*>();
-    megaIter->setSuccessType(success);
+    megaIter->setSuccessType(_success);
 
     // End of the iteration: iterationSuccess is true if we have a success.
     return iterationSuccess;

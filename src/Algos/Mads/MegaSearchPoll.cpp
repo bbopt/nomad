@@ -86,9 +86,6 @@ bool NOMAD::MegaSearchPoll::runImp()
         foundBetter = evalTrialPoints(this);
     }
 
-    // Update MegaIteration success type with best success found.
-    _megaIterAncestor->setSuccessType(_success);
-
     return foundBetter;
 }
 
@@ -129,5 +126,8 @@ void NOMAD::MegaSearchPoll::generateTrialPointsImp()
     {
         insertTrialPoint(point);
     }
+    
+    // Complete trial points information for sorting before eval
+    completeTrialPointsInformation();
 
 }

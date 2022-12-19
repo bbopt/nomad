@@ -44,12 +44,11 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_2_QUAD_MODEL_ALGO__
-#define __NOMAD_4_2_QUAD_MODEL_ALGO__
+#ifndef __NOMAD_4_3_QUAD_MODEL_ALGO__
+#define __NOMAD_4_3_QUAD_MODEL_ALGO__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Algorithm.hpp"
-#include "../../Algos/EvcInterface.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -87,17 +86,6 @@ public:
 
     virtual ~QuadModelAlgo();
 
-    // Utility function to get BB_OUTPUT_TYPE parameter, which is buried in Evaluator.
-    static BBOutputTypeList getBBOutputType()
-    {
-        if (nullptr == EvcInterface::getEvaluatorControl()
-            || nullptr == EvcInterface::getEvaluatorControl()->getEvalParams())
-        {
-            throw Exception(__FILE__, __LINE__, "Error in QuadModel::getBBOutputType()");
-        }
-        return EvcInterface::getEvaluatorControl()->getEvalParams()->getAttributeValue<BBOutputTypeList>("BB_OUTPUT_TYPE");
-    }
-
     void readInformationForHotRestart() override {}
 
 private:
@@ -109,5 +97,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_QUAD_MODEL_ALGO__
+#endif // __NOMAD_4_3_QUAD_MODEL_ALGO__
 

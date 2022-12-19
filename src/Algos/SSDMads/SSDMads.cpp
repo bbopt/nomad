@@ -63,7 +63,7 @@ void NOMAD::SSDMads::init()
 bool NOMAD::SSDMads::runImp()
 {
     size_t k = 0;   // Iteration number
-    NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::NOT_EVALUATED;
+    NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::UNDEFINED;
 
     bool runOk = true;
 
@@ -93,7 +93,7 @@ bool NOMAD::SSDMads::runImp()
             k       = ssdMegaIteration.getK();
             megaIterSuccess = ssdMegaIteration.getSuccessType();
 
-            if (_userInterrupt)
+            if (getUserInterrupt())
             {
                 hotRestartOnUserInterrupt();
             }

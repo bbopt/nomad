@@ -53,12 +53,13 @@
  */
 
 
-#ifndef __NOMAD_4_2_BB_INPUT_TYPE__
-#define __NOMAD_4_2_BB_INPUT_TYPE__
+#ifndef __NOMAD_4_3_BB_INPUT_TYPE__
+#define __NOMAD_4_3_BB_INPUT_TYPE__
 
 #include <sstream>
 #include <vector>
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 /// Enum for blackbox input type
@@ -86,7 +87,7 @@ typedef std::vector<BBInputType>::const_iterator BBInputTypeListIt;
 /**
  Convert a string ("R", "*R", "I", "*I", "B", "*B") to a blackbox input type.
  */
-BBInputType stringToBBInputType(const std::string &s);
+DLL_UTIL_API BBInputType stringToBBInputType(const std::string &s);
 
 /// Utility for BBInputTypes
 /**
@@ -95,7 +96,7 @@ BBInputType stringToBBInputType(const std::string &s);
  *\todo Support the syntax 1-4 I
  *
  */
-BBInputTypeList stringToBBInputTypeList(const std::string &s);
+DLL_UTIL_API BBInputTypeList stringToBBInputTypeList(const std::string &s);
 
 
 inline std::ostream& operator<<(std::ostream& out, const BBInputType &bbinputtype)
@@ -136,4 +137,4 @@ inline std::ostream& operator<<(std::ostream& out, const BBInputTypeList &bbinpu
 }
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_2_BB_INPUT_TYPE__
+#endif  // __NOMAD_4_3_BB_INPUT_TYPE__

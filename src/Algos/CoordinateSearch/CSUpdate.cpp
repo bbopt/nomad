@@ -73,6 +73,7 @@ std::string NOMAD::CSUpdate::getName() const
     return getAlgoName() + NOMAD::stepTypeToString(_stepType);
 }
 
+
 bool NOMAD::CSUpdate::runImp()
 {
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
@@ -80,7 +81,7 @@ bool NOMAD::CSUpdate::runImp()
     NOMAD::ComputeType computeType = NOMAD::ComputeType::STANDARD;
     if (nullptr != evc)
     {
-        evalType = evc->getEvalType();
+        evalType = evc->getCurrentEvalType();
         computeType = evc->getComputeType();
     }
     // megaIter barrier is already in subproblem.
@@ -94,8 +95,11 @@ bool NOMAD::CSUpdate::runImp()
     OUTPUT_DEBUG_START
     s = "Running " + getName() + ". Barrier: ";
     AddOutputDebug(s);
-    s = barrier->display(4);
-    AddOutputDebug(s);
+    std::vector<std::string> vs = barrier->display(4);
+    for (const auto & si : vs)
+    {
+        AddOutputDebug(si);
+    }
     OUTPUT_DEBUG_END
 
     // Barrier is already updated from previous steps.
@@ -115,7 +119,7 @@ bool NOMAD::CSUpdate::runImp()
         // Get which of newBestFeas and newBestInf is improving
         // the solution. Check newBestFeas first.
         NOMAD::ComputeSuccessType computeSuccess(evalType, computeType);
-        std::shared_ptr<NOMAD::EvalPoint> newBest;
+        NOMAD::EvalPointPtr newBest;
         NOMAD::SuccessType success = computeSuccess(newBestFeas, refBestFeas);
         
         if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
@@ -189,7 +193,7 @@ bool NOMAD::CSUpdate::runImp()
         {
             clearEvalQueue = evc->getEvaluatorControlGlobalParams()->getAttributeValue<bool>("EVAL_QUEUE_CLEAR");
         }
-        const bool megaIterEvaluated = (NOMAD::SuccessType::NOT_EVALUATED != megaIter->getSuccessType());
+        const bool megaIterEvaluated = (NOMAD::SuccessType::UNDEFINED != megaIter->getSuccessType());
         if (!clearEvalQueue && megaIterEvaluated && (success != megaIter->getSuccessType()))
         {
             s = "Warning: MegaIteration success type: ";

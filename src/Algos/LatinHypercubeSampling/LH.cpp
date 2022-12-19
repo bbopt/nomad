@@ -112,7 +112,7 @@ void NOMAD::LH::generateTrialPointsImp()
 
     // Create a mesh and project points on this mesh. It will ensure that parameters
     // BB_INPUT_TYPE and GRANULARITY are satisfied.
-    auto mesh = std::make_shared<NOMAD::GMesh>(_pbParams);
+    auto mesh = std::make_shared<NOMAD::GMesh>(_pbParams, _runParams);
     mesh->setEnforceSanityChecks(false);
     // Modify mesh so it is the finest possible.
     // Note: GRANULARITY is already adjusted with regards to BB_INPUT_TYPE.
@@ -171,7 +171,7 @@ bool NOMAD::LH::runImp()
     auto evalType = NOMAD::EvalType::BB;
     if (nullptr != evc)
     {
-        evalType = evc->getEvalType();
+        evalType = evc->getCurrentEvalType();
     }
     for (auto trialPoint : _trialPoints)
     {

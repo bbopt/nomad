@@ -49,9 +49,12 @@
 /*--------------------------------------------------------------------------*/
 #include "Nomad/nomad.hpp"
 #include "Algos/EvcInterface.hpp"
-#include "Algos/MegaIteration.hpp"
+#include "Algos/Mads/MadsMegaIteration.hpp"
 #include "Cache/CacheBase.hpp"
 #include "Type/LHSearchType.hpp"
+
+
+std::shared_ptr<NOMAD::MeshBase> mesh;
 
 /*----------------------------------------*/
 /*               The problem              */
@@ -61,8 +64,8 @@ class My_Evaluator : public NOMAD::Evaluator
 private:
 
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
-    : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
+    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams, NOMAD::EvalType evalType)
+    : NOMAD::Evaluator(evalParams, evalType)
     {}
 
     ~My_Evaluator() {}
@@ -145,13 +148,21 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams, const size_t
 void userMegaIterationEnd(const NOMAD::Step& step,
                           bool &stop)
 {
-    auto megaIter = dynamic_cast<const NOMAD::MegaIteration*>(&step);
-    auto bbe = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
-    auto success = megaIter->getSuccessType();
-    if (NOMAD::SuccessType::UNSUCCESSFUL == success && bbe > 10)
+    auto megaIter = dynamic_cast<const NOMAD::MadsMegaIteration*>(&step);
+    // auto bbe = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
+    
+    if (nullptr != megaIter)
     {
-        // Stop motivated by user conditions
-        stop = true;
+        // Let's pass the mesh
+        mesh = megaIter->getMesh();
+    
+        auto nbConsecutiveFail = megaIter->getConstSuccessStats().getStatsNbConsecutiveFail();
+        
+        if (nbConsecutiveFail >= 2 )
+        {
+            // Stop motivated by user conditions
+            stop = true;
+        }
     }
 }
 
@@ -186,8 +197,8 @@ int main ( int argc , char ** argv )
             std::cout << std::endl << "MADS run #" + NOMAD::itos(i) << std::endl;
 
             // Custom Evaluator
-            std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
-            TheMainStep.setEvaluator(std::move(ev));
+            auto ev = std::make_unique<My_Evaluator>(params->getEvalParams(),NOMAD::EvalType::BB);
+            TheMainStep.addEvaluator(std::move(ev));
 
             // not for the first run:
             if ( i > 0 )
@@ -206,6 +217,9 @@ int main ( int argc , char ** argv )
                     x0s.push_back(bi[0]);
                 }
                 params->getPbParams()->setAttributeValue("X0", x0s);
+                
+                // Set the initial frame size to the stopping state
+                params->getPbParams()->setAttributeValue("INITIAL_FRAME_SIZE",mesh->getDeltaFrameSize());
 
                 // at least one evaluation is conducted if points bf and bi are null
                 std::string lhSearchStr = (bf.empty() && bi.empty())  ? " 1 0" : "0 0";

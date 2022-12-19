@@ -50,8 +50,8 @@
  \author Sebastien Le Digabel, modified by Viviane Rochon Montplaisir
  \date   March 2017
  */
-#ifndef __NOMAD_4_2_DEFINES__
-#define __NOMAD_4_2_DEFINES__
+#ifndef __NOMAD_4_3_DEFINES__
+#define __NOMAD_4_3_DEFINES__
 
 #include <string>
 #include <iostream>
@@ -108,6 +108,10 @@ const int MAX_DIMENSION = 1000;
  */
 const double DEFAULT_EPSILON = 1e-13;
 
+/// Default limit min mesh index for GMesh
+const int GMESH_LIMIT_MIN_MESH_INDEX = -50;         ///< Limits for the gmesh index values
+
+
 /// Default infinity string used by Double
 /** Use Parameters::set_INF_STR(), or parameter INF_STR,
  or Double::setInfStr() to change it
@@ -148,12 +152,18 @@ const double MODEL_MAX_OUTPUT = 1E10;
 // Related to MADS algorithm
 // -------------------------
 
-/// Success type of an iteration.
-//  Order is important.
+/// Success type of a step.
+/*  Success type is associated with trial point evaluation.
+    If step cannot produce trial point -> UNDEFINED
+    If step can produce trial points but none is produced -> NO_TRIALS.
+    If trials points are evaluated but none is at least a partial success -> UNSUCCESSFUL.
+    Order is important.
+ */
 enum class SuccessType
 {
-    NOT_EVALUATED,      ///< Not evaluated yet
-    UNSUCCESSFUL,       ///< Failure
+    UNDEFINED,          ///< Default type set at start
+    NO_TRIALS,          ///< No trial points produced
+    UNSUCCESSFUL,       ///< Trial point is not a success
     PARTIAL_SUCCESS,    ///< Partial success (improving). Found an infeasible
     ///< solution with a better h. f is worse.
     FULL_SUCCESS        ///< Full success (dominating)
@@ -162,4 +172,4 @@ enum class SuccessType
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_2_DEFINES__
+#endif // __NOMAD_4_3_DEFINES__

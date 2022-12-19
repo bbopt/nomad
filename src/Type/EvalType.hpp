@@ -52,11 +52,12 @@
  \see    EvalType.cpp
  */
 
-#ifndef __NOMAD_4_2_EVAL_TYPE__
-#define __NOMAD_4_2_EVAL_TYPE__
+#ifndef __NOMAD_4_3_EVAL_TYPE__
+#define __NOMAD_4_3_EVAL_TYPE__
 
 #include <sstream>
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 // Evaluator type
@@ -75,10 +76,10 @@ enum class EvalType
 
 // Convert a string (ex "BB", "MODEL")
 // to an EvalType.
-EvalType stringToEvalType(const std::string &s);
+DLL_UTIL_API EvalType stringToEvalType(const std::string &s);
 
 // Convert an EvalType to a string
-std::string evalTypeToString(EvalType evalType);
+DLL_UTIL_API std::string evalTypeToString(EvalType evalType);
 
 
 inline std::ostream& operator<<(std::ostream& out, EvalType evalType)
@@ -89,4 +90,4 @@ inline std::ostream& operator<<(std::ostream& out, EvalType evalType)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_2_EVAL_TYPE__
+#endif  // __NOMAD_4_3_EVAL_TYPE__

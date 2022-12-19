@@ -9,14 +9,14 @@ install(TARGETS uu.exe
 # Add a test for this example
 if(BUILD_TESTS MATCHES ON)
     if (WIN32)
-        # add_test(NAME ExampleAdvancedBatchFixedVariables
-        # COMMAND bash.exe runFixedWin.sh
-        # WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+        add_test(NAME ExampleAdvancedBatchFixedVariables
+        COMMAND bash.exe runFixedWin.sh ${CMAKE_INSTALL_PREFIX}/bin/nomad.exe
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
     else()
         message(STATUS "    Add example batch fixed variables")
 
         add_test(NAME ExampleAdvancedBatchFixedVariables
-        COMMAND bash -c "pwd; rm -f cache.txt ; ${CMAKE_INSTALL_PREFIX}/bin/nomad param1.txt ; ${CMAKE_INSTALL_PREFIX}/bin/nomad param2.txt ; ${CMAKE_INSTALL_PREFIX}/bin/nomad param3.txt ; ${CMAKE_INSTALL_PREFIX}/bin/nomad param10.txt"
+        COMMAND ./runFixed.sh ${CMAKE_INSTALL_PREFIX}/bin/nomad
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
     endif()
 endif()

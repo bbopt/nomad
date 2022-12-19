@@ -51,8 +51,8 @@
  \date   2021-03-24
  \see    MicroSleep.hpp
  */
-#ifndef __NOMAD400_MICROSLEEP__
-#define __NOMAD400_MICROSLEEP__
+#ifndef __NOMAD_4_3_MICROSLEEP__
+#define __NOMAD_4_3_MICROSLEEP__
 
 #ifdef _MSC_VER
 #include <chrono>
@@ -65,5 +65,5 @@ static inline void usleep(uint64_t usec) {
 #include <unistd.h>
 #endif
 
+#endif // __NOMAD_4_3_MICROSLEEP__
 
-#endif // __NOMAD400_MICROSLEEP__

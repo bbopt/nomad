@@ -47,7 +47,7 @@ size_t
 . When this parameter is greater than one, the number of evaluations
   may exceed the MAX_BB_EVAL stopping criterion.
 
-. Argument: integer > 0
+. Argument: integer > 0.
 
 . Example: BB_MAX_BLOCK_SIZE 3
            The blackbox executable receives blocks of
@@ -80,32 +80,6 @@ true
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 #################################################################################
-EVAL_QUEUE_SORT
-NOMAD::EvalSortType
-QUADRATIC_MODEL
-\( How to sort points before evaluation \)
-\(
-. Argument: One of DIR_LAST_SUCCESS, LEXICOGRAPHICAL, RANDOM, SURROGATE,
-  QUADRATIC_MODEL
-
-. DIR_LAST_SUCCESS: Points that are generated in a direction similar to the
-  last direction that provided a successful point are evaluated first.
-
-. LEXICOGRAPHICAL: Points are sorted in lexicographical order before evaluation.
-
-. RANDOM: Mix points randomly before evaluation, instead of sorting them.
-
-. SURROGATE: Sort points using values given by static surrogate. See parameter SURROGATE_EXE.
-
-. QUADRATIC_MODEL: Sort points using values given by dynamic quadratic models.
-
-. Example: EVAL_QUEUE_SORT LEXICOGRAPHICAL
-
-\)
-\( advanced \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
 EVAL_SURROGATE_COST
 size_t
 INF
@@ -138,7 +112,7 @@ INF
 . Maximum number of blackbox evaluations. When OpenMP is activated, this budget
 maybe exceeded due to parallel evaluations.
 
-. Argument: one positive integer
+. Argument: one positive integer.
 
 . An INF value serves to disable the stopping criterion.
 
@@ -159,7 +133,7 @@ INF
 
 . Maximum number of blocks evaluations
 
-. Argument: one positive integer
+. Argument: one positive integer.
 
 . An INF value serves to disable the stopping criterion.
 
@@ -179,7 +153,7 @@ INF
 . Maximum number of evaluations, including evaluations taken in the cache
   (cache hits)
 
-. Argument: one positive integer
+. Argument: one positive integer.
 
 . An INF value serves to disable the stopping criterion.
 
@@ -198,7 +172,7 @@ INF
 
 . Maximum number of static surrogate evaluations
 
-. Argument: one positive integer
+. Argument: one positive integer.
 
 . An INF value serves to disable the stopping criterion.
 
@@ -248,7 +222,7 @@ INF
 . When this parameter is greater than one, the number of evaluations
   may exceed the QUAD_MODEL_MAX_EVAL stopping criterion.
 
-. Argument: integer > 0
+. Argument: integer > 0.
 
 . Example: QUAD_MODEL_MAX_BLOCK_SIZE 100
            The blackbox executable receives blocks of
@@ -266,7 +240,7 @@ size_t
 \(
 . Max number of model evaluations for each optimization of the quad model problem.
 
-. Argument: one integer > 0
+. Argument: one integer > 0.
 
 . The number of evaluations may exceed this parameter when parameter QUAD_MODEL_MAX_BLOCK_SIZE
   is greater than one.
@@ -291,7 +265,7 @@ INF
 . When this parameter is greater than one, the number of evaluations
   may exceed the SGTELIB_MODEL_MAX_EVAL stopping criterion.
 
-. Argument: integer > 0
+. Argument: integer > 0.
 
 . Example: SGTELIB_MODEL_MAX_BLOCK_SIZE 100
            The blackbox executable receives blocks of
@@ -309,7 +283,7 @@ size_t
 \(
 . Max number of model evaluations for each optimization of the sgtelib model problem.
 
-. Argument: one integer > 0
+. Argument: one integer > 0. 
 
 . The number of evaluations may exceed this parameter when parameter SGTELIB_MODEL_MAX_BLOCK_SIZE
   is greater than one.
@@ -331,6 +305,8 @@ std::string
 . Argument: one string indicating a directory
 
 . Improved performance with a local temporary directory
+
+. Default is empty. Input/output files are put in problem directory
 
 . Example: TMP_DIR /tmp
 

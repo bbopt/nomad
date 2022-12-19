@@ -93,11 +93,9 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
     if (isAttributeDefaultValue<std::string>("TMP_DIR"))
     {
 #ifdef WINDOWS
-	TCHAR tempPathBuffer[MAX_PATH];
-	GetTempPath(MAX_PATH, tempPathBuffer);
-        setAttributeValue("TMP_DIR", std::string(tempPathBuffer));
+        setAttributeValue("TMP_DIR", std::string(".\\"));
 #else
-        setAttributeValue("TMP_DIR", std::string("/tmp/"));
+        setAttributeValue("TMP_DIR", std::string("./"));
 #endif
     }
 

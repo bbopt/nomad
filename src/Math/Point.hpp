@@ -52,8 +52,8 @@
  \see    Point.cpp
  */
 
-#ifndef __NOMAD_4_2_POINT__
-#define __NOMAD_4_2_POINT__
+#ifndef __NOMAD_4_3_POINT__
+#define __NOMAD_4_3_POINT__
 
 #include <numeric>
 #include "../Math/ArrayOfDouble.hpp"
@@ -66,7 +66,7 @@
  A point is defined by its size and its coordinates from ArrayOfDouble. Addition and comparison (< and weak less) operators are provided.
  A point can be converted from a sub space to a full space and the reverse (Point::makeFullSpacePointFromFixed and Point::makeSubSpacePointFromFixed).
 */
-class Point : public ArrayOfDouble
+class DLL_UTIL_API Point : public ArrayOfDouble
 {
 public:
     /*--------------*/
@@ -93,6 +93,14 @@ public:
      */
     Point(const Point &pt)
       : ArrayOfDouble(pt)
+    {}
+    
+    /// Copy constructors.
+    /**
+     \param aod The array of double to copy -- \b IN.
+     */
+    Point(const ArrayOfDouble &aod)
+      : ArrayOfDouble(aod)
     {}
 
     /// Assignment operator
@@ -121,7 +129,7 @@ public:
      \param prec Precision for display -- \b IN
      \return     Formated string.
      */
-    std::string display(const ArrayOfDouble &prec = ArrayOfDouble()) const override;
+    std::string display(const ArrayOfDouble &prec = ArrayOfDouble(), const std::string & doubleFormat = std::string()) const override;
     //void display(std::ostream& out) const override;
 
     /// Formated point display.
@@ -131,7 +139,7 @@ public:
      \param prec Precision for display -- \b IN.
      \return     Formated string.
      */
-    std::string displayNoPar(const ArrayOfDouble &prec = ArrayOfDouble()) const;
+    std::string displayNoPar(const ArrayOfDouble &prec = ArrayOfDouble(), const std::string & doubleFormat = std::string()) const;
 
 
     /*------------*/
@@ -244,7 +252,7 @@ public:
  \param out  An output stream -- \b IN.
  \return     Reference to the modified output stream
  */
-std::ostream& operator<<(std::ostream& out, const Point& pt);
+DLL_UTIL_API std::ostream& operator<<(std::ostream& out, const Point& pt);
 
 
 /// Input.
@@ -254,9 +262,9 @@ std::ostream& operator<<(std::ostream& out, const Point& pt);
  \param pt      A point object to be read -- \b OUT.
  \return        The modified \c std::istream object.
  */
-std::istream& operator>>(std::istream& in, Point& pt);
+DLL_UTIL_API std::istream& operator>>(std::istream& in, Point& pt);
 
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_2_POINT__
+#endif // __NOMAD_4_3_POINT__

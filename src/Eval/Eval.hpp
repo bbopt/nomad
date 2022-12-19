@@ -52,14 +52,15 @@
  \see    Eval.cpp
  */
 
-#ifndef __NOMAD_4_2_EVAL__
-#define __NOMAD_4_2_EVAL__
+#ifndef __NOMAD_4_3_EVAL__
+#define __NOMAD_4_3_EVAL__
 
 #include <functional>   // For std::function
 
 #include "../Eval/BBOutput.hpp"
 #include "../Param/EvalParameters.hpp"
 #include "../Type/ComputeType.hpp"
+#include "../Type/CompareType.hpp"
 
 #include "../nomad_nsbegin.hpp"
 
@@ -93,14 +94,14 @@ enum class EvalStatusType
 
 
 /// Utility to convert an eval status to a string.
-std::string enumStr(const EvalStatusType evalStatus);
+DLL_EVAL_API std::string enumStr(const EvalStatusType evalStatus);
 
 
 /// Class for the representation of an evaluation at a point.
 /**
  * \note We have a separate Eval from EvalPoint so that a Point can have multiple evaluations.
  */
-class Eval {
+class DLL_EVAL_API Eval {
 
 private:
     EvalStatusType _evalStatus;         ///< The evaluation status.
@@ -141,6 +142,7 @@ public:
 
     // f and h are always recomputed.
     Double getF(ComputeType = ComputeType::STANDARD) const;
+    ArrayOfDouble getFs(ComputeType = ComputeType::STANDARD) const;
     Double getH(ComputeType = ComputeType::STANDARD) const;
 
     EvalStatusType getEvalStatus() const { return _evalStatus; }
@@ -210,7 +212,7 @@ public:
 
     /// Dominance
     /**
-     Dominace as by definition 12.3 in the Book of Audet and Hare, Derivative-Free and Blackbox Optimization,
+     Dominance as by definition 12.3 in the Book of Audet and Hare, Derivative-Free and Blackbox Optimization,
      https://doi.org/10.1007/978-3-319-68913-5
      * The feasible point x dominates the feasible point y \n
        when f(x) < f(y).
@@ -223,6 +225,17 @@ public:
      \return     A boolean equal to \c true if  \c *this \c dominates \c eval.
      */
     bool dominates(const Eval& eval, ComputeType computeType = ComputeType::STANDARD) const;
+
+    /// Comparison of multiobjective vectors
+    /**
+     \param eval The right-hand side object -- \b IN.
+     \param onlyfvalues Flag which indicates if h-value must be taken into account. By default, set to false -- \b IN.
+     \param computeType How to compute f and h -- \b IN
+     \return A compareType flag which can take the following value: "EQUAL", "INDIFFERENT", "DOMINATED", "DOMINATING", "UNDEFINED"
+     */ 
+    NOMAD::CompareType compMO(const Eval& eval,
+                              bool onlyfvalues = false,
+                              ComputeType computeType = ComputeType::STANDARD) const;
 
     /// Comparison of 2 evaluations.
     /**
@@ -309,4 +322,4 @@ std::istream& operator>>(std::istream& is, EvalStatusType &evalStatus);
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_2_EVAL__
+#endif  // __NOMAD_4_3_EVAL__

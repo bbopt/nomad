@@ -52,25 +52,26 @@
  \see    ArrayOfDouble.cpp
  */
 
-#ifndef __NOMAD_4_2_ARRAYOFDOUBLE__
-#define __NOMAD_4_2_ARRAYOFDOUBLE__
+#ifndef __NOMAD_4_3_ARRAYOFDOUBLE__
+#define __NOMAD_4_3_ARRAYOFDOUBLE__
 
 #include <numeric>
 #include "../Math/Double.hpp"
 #include "../Util/ArrayOfString.hpp"
 
+#include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
 /// \brief Class for the representation of an array of n values.
 /**
  An array of n values is defined by its size and its coordinates.
 */
-class ArrayOfDouble {
+class DLL_UTIL_API ArrayOfDouble {
 
 public:
 
-    DLL_UTIL_API static const std::string pStart; ///< Static variable used for array delimitation.
-    DLL_UTIL_API static const std::string pEnd; ///< Static variable used for array delimitation.
+    static const std::string pStart; ///< Static variable used for array delimitation.
+    static const std::string pEnd; ///< Static variable used for array delimitation.
 
 protected:
     /*---------*/
@@ -310,9 +311,17 @@ public:
      */
     virtual bool operator< (const ArrayOfDouble &coords) const;
 
-    /// Display with a given precision
-    virtual std::string display(const ArrayOfDouble &prec = ArrayOfDouble()) const;
+    /// Lexicographic comparison
+    /**
+     * Throws an exception if the sizes do not match.
+     \param coords  The right-hand side object -- \b IN.
+     \return        A \c bool equal to \c true if \c *this is lexicographically inferior to coords
+     */
+    virtual bool lexicographicalCmp (const ArrayOfDouble &coords) const;
 
+    /// Display with a given precision
+    virtual std::string display(const ArrayOfDouble &prec = ArrayOfDouble() ,const std::string & doubleFormat = std::string()) const;
+    
 protected:
     //
 
@@ -338,7 +347,7 @@ protected:
  \param out   An output stream -- \b IN.
  \return      Reference to the modified output stream
  */
-std::ostream& operator<<(std::ostream& out, const ArrayOfDouble& aod);
+DLL_UTIL_API std::ostream& operator<<(std::ostream& out, const ArrayOfDouble& aod);
 
 /// Input.
 /**
@@ -347,7 +356,7 @@ std::ostream& operator<<(std::ostream& out, const ArrayOfDouble& aod);
  \param aod     The \c ArrayOfDouble object to be read -- \b OUT.
  \return        The modified \c std::istream object.
  */
-std::istream& operator>>(std::istream& in, ArrayOfDouble& aod);
+DLL_UTIL_API std::istream& operator>>(std::istream& in, ArrayOfDouble& aod);
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_2_ARRAYOFDOUBLE__
+#endif // __NOMAD_4_3_ARRAYOFDOUBLE__
