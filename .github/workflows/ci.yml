@@ -105,16 +105,17 @@ jobs:
           
       - name: SeePwd
         shell: bash
-        run: pwd
+        run: echo `pwd` > instdir/PWD.txt
 
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.config.os }}
           path:  |
-             instdir/build/bin/*
-             instdir/build/lib/*
-             instdir/LICENSE
-             instdir/README.txt
-             instdir/examples/**
+             instdir/PWD.txt
+             instdir/build/bin
+             instdir/build/lib
+             LICENSE
+             README.txt
+             examples
              
