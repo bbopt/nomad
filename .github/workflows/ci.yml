@@ -111,5 +111,5 @@ jobs:
              instdir/bin
              instdir/lib
              instdir/include
-             instdir/../LICENSE
-             instdir/../README.txt
+             LICENSE
+             README.txt
