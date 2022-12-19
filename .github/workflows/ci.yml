@@ -35,7 +35,7 @@ jobs:
             os: ubuntu-latest,
             build_type: "Release", cc: "gcc", cxx: "g++"
           }
-       - {
+        - {
             name: "MacOS", artifact: "macOS.tar.xz",
             os: macos-latest,
             build_type: "Release", cc: "clang", cxx: "clang++"
@@ -115,5 +115,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{matrix.config.os}}
-          path:  NOMAD4_${{matrix.config.os}}.zip
+          path:  NOMAD_${{matrix.config.os}}.zip
           
