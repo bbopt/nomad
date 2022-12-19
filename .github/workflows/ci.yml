@@ -73,15 +73,13 @@ jobs:
           if [[ "${{matrix.config.name}}" == "Windows -- MinGW" ]]; then
             cmake -G "MinGW Makefiles" \
               -DTEST_OPENMP=OFF \
-              -DBUILD_INTERFACE_C=ON \
-              -DBUILD_TESTS=ON \
+             # -DBUILD_INTERFACE_C=ON \
               -DCMAKE_INSTALL_PREFIX=../instdir \
               ..
           else
             cmake \
               -DTEST_OPENMP=OFF \
-              -DBUILD_INTERFACE_C=ON \
-              -DBUILD_TESTS=ON \
+             # -DBUILD_INTERFACE_C=ON \
               -DCMAKE_INSTALL_PREFIX=../instdir \
               ..
           fi
@@ -103,10 +101,11 @@ jobs:
           echo $PATH
           cd build
           ctest -C ${{matrix.config.build_type}} --parallel
+          cd ..
           
       - name: PushFile
         shell: bash
-        run: echo hello > build/bin/world.txt
+        run: pwd
 
       - name: Upload
         uses: actions/upload-artifact@v3
@@ -117,5 +116,5 @@ jobs:
              build/lib/*
              LICENSE
              README.txt
-             examples
+             examples/**
              
