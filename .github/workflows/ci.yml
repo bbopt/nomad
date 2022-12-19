@@ -94,28 +94,22 @@ jobs:
         run: |
           cmake --install build --config ${{matrix.config.build_type}}
 
-      - name: Tests
-        shell: bash
-        run: |
-          export PATH=`pwd`/build/bin:$PATH
-          echo $PATH
-          cd build
-          ctest -C ${{matrix.config.build_type}} --output-on-failure
-          cd ..
-          
-      - name: SeePwd
-        shell: bash
-        run: echo `pwd` > instdir/PWD.txt
+#      - name: Tests
+#        shell: bash
+#        run: |
+#          export PATH=`pwd`/build/bin:$PATH
+#          echo $PATH
+#          cd build
+#          ctest -C ${{matrix.config.build_type}} --output-on-failure
+#          cd ..
 
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.config.os }}
           path:  |
-             instdir/PWD.txt
-             instdir/build/bin
-             instdir/build/lib
-             LICENSE
-             README.txt
-             examples
-             
+             instdir/bin
+             instdir/lib
+             instdir/include
+             instdir/../LICENSE
+             instdir/../README.txt
