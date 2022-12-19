@@ -43,7 +43,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       # Usually this is always needed
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install dependencies on Windows
         if: startsWith(matrix.config.name, 'Windows')
@@ -94,7 +94,8 @@ jobs:
         run: |
           cmake --install build --config ${{matrix.config.build_type}}
 
-      - name: Tests
+
+      - name: Run tests
         shell: bash
         run: |
           export PATH=`pwd`/build/bin:$PATH
@@ -102,14 +103,17 @@ jobs:
           cd build
           ctest -C ${{matrix.config.build_type}} --output-on-failure
 
+      - name: Prepare upload
+        shell: bash
+        run: |
+          mv README.txt instdir/.
+          mv LICENSE instdir/.
+          cd instdir
+          tar -cf NOMAD_${{matrix.config.os}}.tar *
+
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.config.os }}
-          path:  |
-             build/bin
-             build/lib
-             LICENSE
-             README.txt
-             examples
-             
+          name: ${{matrix.config.os}}
+          path:  instdir/NOMAD_${{matrix.config.os}}.tar
+          
