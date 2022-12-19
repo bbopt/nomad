@@ -27,6 +27,7 @@ NOMAD  is a ``C++`` implementation of the  **Mesh Adaptive Direct Search (MADS)*
 
 where the feasible set :math:`\Omega = \{ x \in X : c_j(x) \leq 0, j \in J\} \subset \mathbb{R}^n`, :math:`f, c_j : X \rightarrow \mathbb{R} \cup \{ \infty \}` for  all :math:`j \in J= \{ 1,2,\ldots,m \}`, and where :math:`X` is a subset of :math:`\mathbb{R}^n`.
 
+NONAD also implements the  **DMultiMads** algorithm (see references [BiLedSa2020]_ and :ref:`advanced_functionalities`) for solving multiobjective optimization problems.
 
 .. Preface
 
