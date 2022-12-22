@@ -49,8 +49,8 @@
 
 #include "../../Algos/CoordinateSearch/CSPoll.hpp"
 #include "../../Algos/Iteration.hpp"
-#include "../../Algos/MeshBase.hpp"
 #include "../../Eval/EvalPoint.hpp"
+#include "../../Eval/MeshBase.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 

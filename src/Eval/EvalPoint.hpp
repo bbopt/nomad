@@ -61,8 +61,8 @@
 #include <set>
 #endif
 
-#include "../Algos/Mads/GMesh.hpp"
 #include "../Eval/Eval.hpp"
+#include "../Eval/MeshBase.hpp"
 #include "../Math/Point.hpp"
 #include "../Type/ComputeType.hpp"
 #include "../Type/EvalType.hpp"

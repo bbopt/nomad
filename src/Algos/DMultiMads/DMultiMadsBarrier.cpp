@@ -46,10 +46,10 @@
 /*---------------------------------------------------------------------------------*/
 #include "../../Algos/DMultiMads/DMultiMadsBarrier.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
-#include "../../Algos/MeshBase.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Cache/CacheSet.hpp"
 #include "../../Eval/ComputeSuccessType.hpp"
+#include "../../Eval/MeshBase.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 // Initialization from cache
