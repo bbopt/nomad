@@ -70,7 +70,7 @@ jobs:
           mkdir instdir
           mkdir build
           cd build
-          if [[ "${{matrix.config.name}}" == "Windows -- MinGW" ]]; then
+          if [[ "${{matrix.config.name}}" == "Windows--MinGW" ]]; then
             cmake -G "MinGW Makefiles" \
               -DTEST_OPENMP=OFF \
               -DBUILD_INTERFACE_C=ON \
