@@ -76,7 +76,7 @@
  * Functions for delta: MeshBase::getdeltaMeshSize, MeshBase::updatedeltaMeshSize
  * Functions for Delta: MeshBase::getDeltaFrameSize, MeshBase::enlargeDeltaFrameSize, MeshBase::refineDeltaFrameSize
  */
-class DLL_ALGO_API MeshBase
+class DLL_EVAL_API MeshBase
 {
 protected:
     const size_t _n;     ///< Dimension
@@ -307,10 +307,10 @@ protected:
 typedef std::shared_ptr<MeshBase> MeshBasePtr;
 
 ///   Display useful values so that a new mesh could be constructed using these values.
-DLL_ALGO_API std::ostream& operator<<(std::ostream& os, const MeshBase& mesh);
+DLL_EVAL_API std::ostream& operator<<(std::ostream& os, const MeshBase& mesh);
 
 /// Get the mesh values from stream
-DLL_ALGO_API std::istream& operator>>(std::istream& is, MeshBase& mesh);
+DLL_EVAL_API std::istream& operator>>(std::istream& is, MeshBase& mesh);
 
 
 #include "../nomad_nsend.hpp"
