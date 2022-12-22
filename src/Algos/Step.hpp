@@ -48,7 +48,7 @@
 #ifndef __NOMAD_4_3_STEP__
 #define __NOMAD_4_3_STEP__
 
-#include "../Algos/MeshBase.hpp"
+#include "../Eval/MeshBase.hpp"
 #include "../Eval/SuccessStats.hpp"
 #include "../Eval/BarrierBase.hpp"
 #include "../Output/OutputInfo.hpp"

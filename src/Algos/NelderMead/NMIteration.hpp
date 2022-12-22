@@ -48,8 +48,8 @@
 #define __NOMAD_4_3_NMITERATION__
 
 #include "../../Algos/Iteration.hpp"
-#include "../../Algos/MeshBase.hpp"
 #include "../../Algos/NelderMead/NMSimplexEvalPoint.hpp"
+#include "../../Eval/MeshBase.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 

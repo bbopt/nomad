@@ -49,7 +49,7 @@
 #ifndef __NOMAD_4_3_CSMESH__
 #define __NOMAD_4_3_CSMESH__
 
-#include "../../Algos/MeshBase.hpp"
+#include "../../Eval/MeshBase.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
