@@ -109,11 +109,11 @@ jobs:
           mv README.txt instdir/.
           mv LICENSE instdir/.
           cd instdir
-          tar -cf NOMAD_${{matrix.config.os}}.tar *
+          tar -cf NOMAD_${{matrix.config.name}}.tar *
 
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: ${{matrix.config.os}}
-          path:  instdir/NOMAD_${{matrix.config.os}}.tar
+          name: ${{matrix.config.name}}
+          path:  instdir/NOMAD_${{matrix.config.name}}.tar
           
