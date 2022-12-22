@@ -13,7 +13,6 @@ Algos/Iteration.hpp
 Algos/IterationUtils.hpp
 Algos/MainStep.hpp
 Algos/MegaIteration.hpp
-Algos/MeshBase.hpp
 Algos/Projection.hpp
 Algos/Step.hpp
 Algos/Subproblem.hpp
@@ -34,7 +33,6 @@ Algos/Iteration.cpp
 Algos/IterationUtils.cpp
 Algos/MainStep.cpp
 Algos/MegaIteration.cpp
-Algos/MeshBase.cpp
 Algos/Projection.cpp
 Algos/Step.cpp
 Algos/Subproblem.cpp
@@ -113,6 +111,7 @@ Eval/EvalQueuePoint.hpp
 Eval/Evaluator.hpp
 Eval/EvaluatorControl.hpp
 Eval/EvcMainThreadInfo.hpp
+Eval/MeshBase.hpp
 Eval/SuccessStats.hpp)
 
 set(EVAL_SOURCES
@@ -128,6 +127,7 @@ Eval/EvalQueuePoint.cpp
 Eval/Evaluator.cpp
 Eval/EvaluatorControl.cpp
 Eval/EvcMainThreadInfo.cpp
+Eval/MeshBase.cpp
 Eval/SuccessStats.cpp
 )
 

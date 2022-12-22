@@ -48,10 +48,9 @@
 #define __NOMAD_4_3_TEMPLATEALGOITERATION__
 
 #include "../../Algos/Iteration.hpp"
-#include "../../Algos/MeshBase.hpp"
 #include "../../Algos/TemplateAlgo/TemplateAlgoRandom.hpp"
 #include "../../Algos/TemplateAlgo/TemplateAlgoUpdate.hpp"
-
+#include "../../Eval/MeshBase.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 

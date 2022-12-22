@@ -51,8 +51,8 @@
 #include "../../Algos/Mads/MegaSearchPoll.hpp"
 #include "../../Algos/Mads/Poll.hpp"
 #include "../../Algos/Mads/Search.hpp"
-#include "../../Algos/MeshBase.hpp"
 #include "../../Eval/EvalPoint.hpp"
+#include "../../Eval/MeshBase.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 

@@ -20,13 +20,13 @@ jobs:
       matrix:
         config:
         - {
-            name: "Windows -- MSVC", artifact: "Windows-MSVC.tar.xz",
+            name: "Windows--MSVC", artifact: "Windows-MSVC.tar.xz",
             os: windows-latest,
             build_type: "Release", cc: "cl", cxx: "cl",
             environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           }
         - {
-            name: "Windows -- MinGW", artifact: "Windows-MinGW.tar.xz",
+            name: "Windows--MinGW", artifact: "Windows-MinGW.tar.xz",
             os: windows-latest,
             build_type: "Release", cc: "x86_64-w64-mingw32-gcc", cxx: "x86_64-w64-mingw32-g++"
           }
@@ -70,7 +70,7 @@ jobs:
           mkdir instdir
           mkdir build
           cd build
-          if [[ "${{matrix.config.name}}" == "Windows -- MinGW" ]]; then
+          if [[ "${{matrix.config.name}}" == "Windows--MinGW" ]]; then
             cmake -G "MinGW Makefiles" \
               -DTEST_OPENMP=OFF \
               -DBUILD_INTERFACE_C=ON \
@@ -109,11 +109,11 @@ jobs:
           mv README.txt instdir/.
           mv LICENSE instdir/.
           cd instdir
-          tar -cf NOMAD_${{matrix.config.os}}.tar *
+          tar -cf NOMAD4.tar *
 
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: ${{matrix.config.os}}
-          path:  instdir/NOMAD_${{matrix.config.os}}.tar
+          name: ${{matrix.config.name}}
+          path:  instdir/NOMAD4.tar
           

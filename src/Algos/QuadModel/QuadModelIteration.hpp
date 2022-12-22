@@ -48,8 +48,8 @@
 #define __NOMAD_4_3_QUAD_MODEL_ITERATION__
 
 #include "../../Algos/Iteration.hpp"
-#include "../../Algos/MeshBase.hpp"
 #include "../../Eval/EvalPoint.hpp"
+#include "../../Eval/MeshBase.hpp"
 #include "../../../ext/sgtelib/src/Surrogate.hpp"
 #include "../../../ext/sgtelib/src/TrainingSet.hpp"
 
