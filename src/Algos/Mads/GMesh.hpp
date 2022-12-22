@@ -54,7 +54,7 @@
 #ifndef __NOMAD_4_3_GMESH__
 #define __NOMAD_4_3_GMESH__
 
-#include "../../Algos/MeshBase.hpp"
+#include "../../Eval/MeshBase.hpp"
 #include "../../Param/RunParameters.hpp"
 #include "../../nomad_nsbegin.hpp"
 

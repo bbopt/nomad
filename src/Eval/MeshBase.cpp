@@ -44,7 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#include "../Algos/MeshBase.hpp"
+#include "../Eval/MeshBase.hpp"
 #include "../Type/BBInputType.hpp"
 
 NOMAD::MeshBase::MeshBase(const std::shared_ptr<NOMAD::PbParameters> pbParams, int limitMinMeshIndex, int limitMaxMeshIndex)
