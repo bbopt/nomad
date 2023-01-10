@@ -240,8 +240,12 @@ protected:
     /// Helper for start
     ArrayOfPoint suggestFromLH(const size_t nbPoints) const;
     
- 
-
+    /// Get the run status of the execution
+    /**
+     Must be called after run()
+     */
+    int getRunStatus() const;
+    
 private:
     /// Helper for constructor
     void init();

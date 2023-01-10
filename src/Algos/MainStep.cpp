@@ -1237,3 +1237,68 @@ void NOMAD::MainStep::setEvaluator(const EvaluatorPtr ev)
     addEvaluator(ev);
 }
 
+int NOMAD::MainStep::getRunStatus() const
+{
+    NOMAD::Point bf,bi;
+    
+    bool hasFeas = NOMAD::CacheBase::getInstance()->hasFeas(NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD);
+    bool hasInfeas = NOMAD::CacheBase::getInstance()->hasInfeas(NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD); // hasFeas and hasInfeas can be both false. Maybe cache contains no valid BB evaluations.
+    
+    bool initializationError = AllStopReasons::testIf(BaseStopType::INITIALIZATION_FAILED);
+    bool stopByUser = (
+                     AllStopReasons::testIf(BaseStopType::CTRL_C) ||
+                     AllStopReasons::testIf(BaseStopType::USER_STOPPED));
+    bool nomadError = (
+                       AllStopReasons::testIf(BaseStopType::ERROR) ||
+                       AllStopReasons::testIf(BaseStopType::UNKNOWN_STOP_REASON));
+    bool stopOnEvalCrit =  (
+                            AllStopReasons::testIf(EvalGlobalStopType::MAX_EVAL_REACHED) ||
+                            AllStopReasons::testIf(EvalGlobalStopType::MAX_BB_EVAL_REACHED) ||
+                            AllStopReasons::testIf(EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED) ||
+                            AllStopReasons::testIf(EvalGlobalStopType::MAX_SURROGATE_EVAL_OPTIMIZATION_REACHED));
+    
+    bool stopOnTimeLimit =  ( AllStopReasons::testIf(NOMAD::BaseStopType::MAX_TIME_REACHED));
+    
+    bool stopOnMeshCrit = false;
+//    bool stopOnMeshCrit =  (
+//                            AllStopReasons::testIf(MadsStopType::MESH_PREC_REACHED) ||
+//                            AllStopReasons::testIf(MadsStopType::MIN_MESH_INDEX_REACHED) ||
+//                            AllStopReasons::testIf(MadsStopType::MIN_MESH_SIZE_REACHED) );
+    
+    bool targetReachedCrit = false; // Stop when matching target not yet implemented
+    
+    
+    
+    int runStatus = -3 ;
+    if (stopByUser) {
+        runStatus = -5;
+    }
+    else if (nomadError) {
+        runStatus = -3;
+    }
+    else if (stopOnTimeLimit) {
+        runStatus = -4;
+    }
+    else if (initializationError) {
+        runStatus = -3;
+    }
+    else if (hasFeas && stopOnMeshCrit) {
+        runStatus = 1;
+    }
+    else if (hasFeas && stopOnEvalCrit) {
+        runStatus = 0;
+    }
+    else if (hasInfeas && stopOnMeshCrit) {
+        runStatus = -1;
+    }
+    else if (hasInfeas && stopOnEvalCrit) {
+        runStatus = -2;
+    }
+    else
+    {
+      // Something else must have happened.
+        runStatus = -3;
+    }
+    
+    return runStatus;
+}
