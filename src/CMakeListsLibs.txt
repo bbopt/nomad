@@ -112,6 +112,7 @@ target_include_directories(
   nomadEvalObject 
   PUBLIC
     $<BUILD_INTERFACE: 
+      $<TARGET_PROPERTY:nomadUtilsObject,INTERFACE_INCLUDE_DIRECTORIES>
       ${CMAKE_CURRENT_SOURCE_DIR}/Cache 
       ${CMAKE_CURRENT_SOURCE_DIR}/Eval
     >
@@ -120,11 +121,11 @@ target_include_directories(
     >
 )
 
-target_link_libraries(
-  nomadEvalObject 
-  PUBLIC 
-    nomadUtilsObject
-)
+# target_link_libraries(
+#   nomadEvalObject 
+#   PUBLIC 
+#     nomadUtilsObject
+# )
 
 if(OpenMP_CXX_FOUND)
   target_link_libraries(
@@ -168,6 +169,7 @@ target_link_libraries(
   nomadEvalShared
   PUBLIC
     nomadEvalObject
+    nomadUtilsShared
 )
 
 set_target_properties(
@@ -210,6 +212,7 @@ target_include_directories(
   nomadAlgosObject 
   PUBLIC
     $<BUILD_INTERFACE: 
+      $<TARGET_PROPERTY:nomadEvalObject,INTERFACE_INCLUDE_DIRECTORIES>
       $<TARGET_PROPERTY:nomadUtilsObject,INTERFACE_INCLUDE_DIRECTORIES>
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/CoordinateSearch

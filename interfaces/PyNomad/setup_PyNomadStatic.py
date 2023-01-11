@@ -45,6 +45,7 @@ link_args.append('-l:libnomadAlgos.a')
 link_args.append('-l:libnomadEval.a')
 link_args.append('-l:libnomadUtils.a')
 link_args.append('-l:libsgtelib.a')
+link_args.append('-lgomp')
 
 setuptools.setup(
     name = 'PyNomad',
@@ -57,7 +58,6 @@ setuptools.setup(
     ext_modules = cythonize(setuptools.Extension(
         'PyNomad',
         sources  =  [ 'PyNomad.pyx' ],
-        libraries = [ 'gomp' ],
         include_dirs  =  [ nomad_include_path ],
         extra_compile_args  =  compile_args,
         extra_link_args  =  link_args,
