@@ -180,7 +180,7 @@ def observe(params,points,evals,udpatedCacheFileName):
 def optimize(fBB, pX0, pLB, pUB, params, fSurrogate=None):
     cdef PyNomadEvalPoint uFeas = PyNomadEvalPoint()
     cdef PyNomadEvalPoint uInfeas = PyNomadEvalPoint()
-    cdef int runStatus = 0
+    cdef int runFlag = 0
     cdef size_t nbEvals = 0
     cdef size_t nbIters = 0
     cdef double fReturn = float("inf")
@@ -193,14 +193,14 @@ def optimize(fBB, pX0, pLB, pUB, params, fSurrogate=None):
          eParams.append(params[i].encode(u"ascii"))
 
     if fSurrogate is None:
-        runStatus = runNomad(cb, cbL, <void*> fBB, <vector[double]&> pX0,
+        runFlag = runNomad(cb, cbL, <void*> fBB, <vector[double]&> pX0,
                          <vector[double]&> pLB, <vector[double]&> pUB,
                          <vector[string]&> eParams,
                          uFeas.c_ep_ptr,
                          uInfeas.c_ep_ptr,
                          nbEvals, nbIters)
     else:
-        runStatus = runNomad(cb, cbL, <void*> fBB,  <void*> fSurrogate,
+        runFlag = runNomad(cb, cbL, <void*> fBB,  <void*> fSurrogate,
                          <vector[double]&> pX0,
                          <vector[double]&> pLB, <vector[double]&> pUB,
                          <vector[string]&> eParams,
@@ -220,7 +220,7 @@ def optimize(fBB, pX0, pLB, pUB, params, fSurrogate=None):
         for i in xrange(uInfeas.size()):
             xReturn.append(uInfeas.get_coord(i))
 
-    return {'x_best': xReturn, 'f_best': fReturn, 'h_best': hReturn, 'nb_evals': nbEvals, 'nb_iters': nbIters, 'exit_status': runStatus}
+    return {'x_best': xReturn, 'f_best': fReturn, 'h_best': hReturn, 'nb_evals': nbEvals, 'nb_iters': nbIters, 'run_flag': runFlag}
 
 cdef extern from "Algos/MainStep.hpp" namespace "NOMAD":
     cdef cppclass MainStep:

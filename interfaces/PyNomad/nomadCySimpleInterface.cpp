@@ -395,10 +395,12 @@ static int runNomad(Callback cb,
     initAllParams(allParams, X0, LB, UB, params);
     bestFeasSol = nullptr;
     bestInfeasSol = nullptr;
+    int runFlag = -3;
 
     try
     {
-        int stopflag = 0;
+        
+        
         Py_BEGIN_ALLOW_THREADS
 
         NOMAD::MainStep TheMainStep;
@@ -420,7 +422,7 @@ static int runNomad(Callback cb,
         TheMainStep.addEvaluator(std::move(ev));
 
         TheMainStep.start();
-        stopflag = TheMainStep.run();
+        TheMainStep.run();
         TheMainStep.end();
 
         nbEvals = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
@@ -461,10 +463,12 @@ static int runNomad(Callback cb,
             bestInfeasSol = nullptr;
         }
 
+        runFlag = TheMainStep.getRunFlag();
+        
         NOMAD::MainStep::resetComponentsBetweenOptimization();
-
+        
         Py_END_ALLOW_THREADS
-        return stopflag;
+        return runFlag;
     }
 
     catch(std::exception &e)
@@ -472,7 +476,7 @@ static int runNomad(Callback cb,
         printf("NOMAD exception (report to developper):\n%s\n",e.what());
     }
 
-    return -1;
+    return runFlag; // Default is for Nomad error
 
 }
 
@@ -493,11 +497,12 @@ static int runNomad(Callback cb,
     initAllParams(allParams, X0, LB, UB, params);
     bestFeasSol = nullptr;
     bestInfeasSol = nullptr;
+    
+    int runFlag = -3 ;
 
     std::cout<<"Run nomad with surrogate"<<std::endl;
     try
     {
-        int stopflag = 0;
         Py_BEGIN_ALLOW_THREADS
 
         NOMAD::MainStep TheMainStep;
@@ -522,7 +527,7 @@ static int runNomad(Callback cb,
         TheMainStep.addEvaluator(std::move(evSurrogate));
         
         TheMainStep.start();
-        stopflag = TheMainStep.run();
+        TheMainStep.run();
         TheMainStep.end();
 
         nbEvals = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
@@ -564,9 +569,11 @@ static int runNomad(Callback cb,
         }
 
         NOMAD::MainStep::resetComponentsBetweenOptimization();
+        
+        runFlag = TheMainStep.getRunFlag();
 
         Py_END_ALLOW_THREADS
-        return stopflag;
+        return runFlag;
     }
 
     catch(std::exception &e)
@@ -574,7 +581,7 @@ static int runNomad(Callback cb,
         printf("NOMAD exception (report to developper):\n%s\n",e.what());
     }
 
-    return -1;
+    return runFlag;
 
 }
 

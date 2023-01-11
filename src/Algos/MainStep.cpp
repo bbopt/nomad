@@ -1237,68 +1237,85 @@ void NOMAD::MainStep::setEvaluator(const EvaluatorPtr ev)
     addEvaluator(ev);
 }
 
-int NOMAD::MainStep::getRunStatus() const
+int NOMAD::MainStep::getRunFlag() const
 {
-    NOMAD::Point bf,bi;
     
     bool hasFeas = NOMAD::CacheBase::getInstance()->hasFeas(NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD);
-    bool hasInfeas = NOMAD::CacheBase::getInstance()->hasInfeas(NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD); // hasFeas and hasInfeas can be both false. Maybe cache contains no valid BB evaluations.
+    bool hasInfeas = NOMAD::CacheBase::getInstance()->hasInfeas(NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD); // hasFeas and hasInfeas can be both false. Maybe cache contains no valid BB evaluations -> initialization error
     
     bool initializationError = AllStopReasons::testIf(BaseStopType::INITIALIZATION_FAILED);
+    if (initializationError && !(hasFeas || hasInfeas))
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Failed initialization detected but cache contains a valid evaluation point.");
+    }
+    
+    if (nullptr == _stopReasons)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Stop reasons is null. The function getRunFlag must be called after MainStep::end.");
+    }
+    
     bool stopByUser = (
                      AllStopReasons::testIf(BaseStopType::CTRL_C) ||
                      AllStopReasons::testIf(BaseStopType::USER_STOPPED));
     bool nomadError = (
                        AllStopReasons::testIf(BaseStopType::ERROR) ||
                        AllStopReasons::testIf(BaseStopType::UNKNOWN_STOP_REASON));
-    bool stopOnEvalCrit =  (
+    
+    bool maxIterReached = false;
+    bool stopOnEvalIterCrit =  (
                             AllStopReasons::testIf(EvalGlobalStopType::MAX_EVAL_REACHED) ||
                             AllStopReasons::testIf(EvalGlobalStopType::MAX_BB_EVAL_REACHED) ||
                             AllStopReasons::testIf(EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED) ||
-                            AllStopReasons::testIf(EvalGlobalStopType::MAX_SURROGATE_EVAL_OPTIMIZATION_REACHED));
+                            _stopReasons->testIf(IterStopType::MAX_ITER_REACHED) );
     
     bool stopOnTimeLimit =  ( AllStopReasons::testIf(NOMAD::BaseStopType::MAX_TIME_REACHED));
     
-    bool stopOnMeshCrit = false;
-//    bool stopOnMeshCrit =  (
-//                            AllStopReasons::testIf(MadsStopType::MESH_PREC_REACHED) ||
-//                            AllStopReasons::testIf(MadsStopType::MIN_MESH_INDEX_REACHED) ||
-//                            AllStopReasons::testIf(MadsStopType::MIN_MESH_SIZE_REACHED) );
+    bool stopOnFeasible = _stopReasons->testIf(IterStopType::STOP_ON_FEAS);
+        
+    auto madsStopReason = NOMAD::AlgoStopReasons<NOMAD::MadsStopType>::get (_stopReasons);
+    bool madsStopOnMeshCrit = false;
+    if (nullptr != madsStopReason)
+    {
+      madsStopOnMeshCrit = ( madsStopReason->testIf(NOMAD::MadsStopType::MESH_PREC_REACHED) ||
+                             madsStopReason->testIf(NOMAD::MadsStopType::MIN_MESH_INDEX_REACHED) ||
+                             madsStopReason->testIf(NOMAD::MadsStopType::MIN_MESH_SIZE_REACHED));
+    }
     
     bool targetReachedCrit = false; // Stop when matching target not yet implemented
     
-    
-    
-    int runStatus = -3 ;
-    if (stopByUser) {
-        runStatus = -5;
+    int runFlag = -3 ;
+    if (stopByUser) {  // CTRL-C or User stopped (callback function)
+        runFlag = -5;
     }
-    else if (nomadError) {
-        runStatus = -3;
+    else if (nomadError) { // Error
+        runFlag = -3;
     }
-    else if (stopOnTimeLimit) {
-        runStatus = -4;
+    else if (stopOnTimeLimit) {  // Time limit reached (user option)
+        runFlag = -4;
     }
-    else if (initializationError) {
-        runStatus = -3;
+    else if (stopOnFeasible) {  // Stop on feasible point (user option)
+        runFlag = -6;
     }
-    else if (hasFeas && stopOnMeshCrit) {
-        runStatus = 1;
+    else if (initializationError) { // Initial point failed to evaluate
+        runFlag = -3;
     }
-    else if (hasFeas && stopOnEvalCrit) {
-        runStatus = 0;
+    else if (targetReachedCrit || (hasFeas && madsStopOnMeshCrit)) { // Objective target reached OR Mads converged (mesh criterion) to a feasible point. The true problem is considered (outputs from blackbox evaluations, not surrogate).
+        runFlag = 1;
     }
-    else if (hasInfeas && stopOnMeshCrit) {
-        runStatus = -1;
+    else if (hasFeas && stopOnEvalIterCrit) { // At least one feasible point obtained and evaluation budget (single bb or block of bb) spent or max iteration (user option) reached.
+        runFlag = 0;
     }
-    else if (hasInfeas && stopOnEvalCrit) {
-        runStatus = -2;
+    else if (hasInfeas && madsStopOnMeshCrit) { // Mads mesh converged but no feasible point obtained (only infeasible). The true problem is considered (outputs from blackbox evaluations, not surrogate).
+        runFlag = -1;
+    }
+    else if (hasInfeas && stopOnEvalIterCrit) { // No feasible point obtained (only infeasible) and evaluation budget (single bb or block of bb) spent or max iteration (user option) reached
+        runFlag = -2;
     }
     else
     {
       // Something else must have happened.
-        runStatus = -3;
+        runFlag = -3;
     }
     
-    return runStatus;
+    return runFlag;
 }

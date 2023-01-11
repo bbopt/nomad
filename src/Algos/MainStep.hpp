@@ -137,6 +137,22 @@ public:
      The evaluators are shared between main threads. Set a single evaluator. To add more, use addEvaluator (see above).
      */
     void setEvaluator(const EvaluatorPtr ev);
+    
+    
+    /// Get the run flag of the execution (success or type of fail)
+    /**
+     Must be called after run()
+     Run flags:
+     %       1 - Objective target reached OR Mads converged (mesh criterion) to a feasible point (true problem).
+     %       0 - At least one feasible point obtained and evaluation budget (single bb or block of bb) spent or max iteration (user option) reached.
+     %      -1 - Mads mesh converged but no feasible point obtained (only infeasible) for the true problem.
+     %      -2 - No feasible point obtained (only infeasible) and evaluation budget (single bb or block of bb) spent or max iteration (user option) reached
+     %      -3 - Initial point failed to evaluate
+     %      -4 - Time limit reached (user option)
+     %      -5 - CTRL-C or user stopped (callback function)
+     %      -6 - Stop on feasible point (user option)
+     */
+    int getRunFlag() const;
 
     /*---------*/
     /* Others  */
@@ -240,11 +256,6 @@ protected:
     /// Helper for start
     ArrayOfPoint suggestFromLH(const size_t nbPoints) const;
     
-    /// Get the run status of the execution
-    /**
-     Must be called after run()
-     */
-    int getRunStatus() const;
     
 private:
     /// Helper for constructor
