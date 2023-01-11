@@ -504,6 +504,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          mexEvalString("drawnow;"); //flush draw buffer
     }
 
+    int mainStepRunFlag = -3;
+    
     //Create evaluator and run mads based on number of objectives
     try
     {
@@ -525,6 +527,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mainStep.start();
         mainStep.run();
         mainStep.end();
+        
+        mainStepRunFlag = mainStep.getRunFlag();
     
     }
     catch(exception &e)
@@ -543,7 +547,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	double *x= mxGetPr(plhs[0]);
 	double *fval = mxGetPr(plhs[1]);
 	double *hinf = mxGetPr(plhs[2]);
-    double *exitflag = mxGetPr(plhs[3]);
+    double *runflag = mxGetPr(plhs[3]);
     double *nfval = mxGetPr(plhs[4]);
 
     std::vector<NOMAD::EvalPoint> bf, bi ;
@@ -557,7 +561,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         if (nbBestInf == 0)
         { 
 			mexPrintf("NO solution obtained\n");
-            *exitflag = -1; //No solution
+            *runflag = double(mainStepRunFlag) ;
 			*fval = 0;
 			*hinf = 1;
 			for (i = 0; i < ndec; i++)
@@ -587,8 +591,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     //Save hinf
     *hinf = sol.getH().todouble();
 
-    //Save Status & Iterations
-    *exitflag = 0;
+    //Run flag
+    *runflag = double(mainStepRunFlag);
 
 	*nfval = (double) NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
 
