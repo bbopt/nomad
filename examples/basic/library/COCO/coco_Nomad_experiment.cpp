@@ -206,8 +206,7 @@ public:
                     //bbo += std::to_string(bb_constraint_outputs[i]) + " ";
                 }
             }
-            const NOMAD::EvalType &evalType = getEvalType();
-            x.setBBO(bbo, bbOutputType, evalType);
+            x.setBBO(bbo);
         }
         catch (std::exception &e)
         {
@@ -397,6 +396,7 @@ void nomadOpt(evaluate_function_t evaluate_func,
     p->setAttributeValue("MAX_BB_EVAL",max_budget);
     // p->setAttributeValue("VNS_MADS_SEARCH", true);
 
+    p->checkAndComply();
     
     // The main step algorithm
     NOMAD::MainStep TheMainStep;
