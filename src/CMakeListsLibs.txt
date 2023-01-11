@@ -1,0 +1,379 @@
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+# export all symbols on Windows
+if (WIN32)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
+# Build libraries
+#
+
+# (1.0) Utils
+#
+
+add_library(
+  nomadUtilsObject 
+  OBJECT
+    ${MATH_SOURCES} 
+    ${OUTPUT_SOURCES} 
+    ${PARAM_SOURCES} 
+    ${TYPE_SOURCES} 
+    ${UTIL_SOURCES} 
+    ${ATTRIBUTE_HEADERS}
+)
+
+target_include_directories(
+  nomadUtilsObject 
+  PUBLIC
+    $<BUILD_INTERFACE: 
+      ${CMAKE_SOURCE_DIR}/src/Attribute 
+      ${CMAKE_SOURCE_DIR}/src/Math 
+      ${CMAKE_SOURCE_DIR}/src/Output
+      ${CMAKE_SOURCE_DIR}/src/Param 
+      ${CMAKE_SOURCE_DIR}/src/Type 
+      ${CMAKE_SOURCE_DIR}/src/Util
+    >
+    $<INSTALL_INTERFACE: 
+      ${CMAKE_INSTALL_INCLUDEDIR}
+    >
+)
+
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(
+    nomadUtilsObject 
+    PUBLIC 
+      OpenMP::OpenMP_CXX
+  )
+endif()
+
+# (1.1) Utils, the static library
+#
+
+add_library(
+  nomadUtilsStatic
+  STATIC
+)
+ 
+target_link_libraries(
+  nomadUtilsStatic
+  PUBLIC
+    nomadUtilsObject
+)
+
+set_target_properties(
+  nomadUtilsStatic 
+  PROPERTIES 
+    VERSION "${NOMAD_VERSION}"
+    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
+    OUTPUT_NAME nomadUtils
+)
+
+# (1.2) Utils, the shared library
+
+add_library(
+  nomadUtilsShared
+  SHARED
+)
+ 
+target_link_libraries(
+  nomadUtilsShared
+  PUBLIC
+    nomadUtilsObject
+)
+
+if (WIN32)
+  target_compile_definitions(
+    nomadUtilsShared
+    PRIVATE 
+      -DDLL_UTIL_EXPORTS
+  )
+endif()
+
+set_target_properties(
+  nomadUtilsShared
+  PROPERTIES 
+    VERSION "${NOMAD_VERSION}"
+    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
+    OUTPUT_NAME nomadUtils
+)
+
+# (2.0) Evals
+#
+
+add_library(
+  nomadEvalObject 
+  OBJECT 
+    ${CACHE_SOURCES} 
+    ${EVAL_SOURCES}
+)
+
+target_include_directories(
+  nomadEvalObject 
+  PUBLIC
+    $<BUILD_INTERFACE: 
+      ${CMAKE_CURRENT_SOURCE_DIR}/Cache 
+      ${CMAKE_CURRENT_SOURCE_DIR}/Eval
+    >
+    $<INSTALL_INTERFACE: 
+      ${CMAKE_INSTALL_INCLUDEDIR}
+    >
+)
+
+target_link_libraries(
+  nomadEvalObject 
+  PUBLIC 
+    nomadUtilsObject
+)
+
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(
+    nomadEvalObject 
+    PUBLIC 
+      OpenMP::OpenMP_CXX
+  )
+endif()
+
+# (2.1) Evals, static
+#
+
+add_library(
+  nomadEvalStatic
+  STATIC
+)
+ 
+target_link_libraries(
+  nomadEvalStatic
+  PUBLIC
+    nomadEvalObject
+)
+
+set_target_properties(
+  nomadEvalStatic
+  PROPERTIES 
+    VERSION "${NOMAD_VERSION}"
+    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
+    OUTPUT_NAME nomadEval
+)
+
+# (2.2) Evals, shared
+#
+
+add_library(
+  nomadEvalShared
+  SHARED
+)
+ 
+target_link_libraries(
+  nomadEvalShared
+  PUBLIC
+    nomadEvalObject
+)
+
+set_target_properties(
+  nomadEvalShared
+  PROPERTIES 
+    VERSION "${NOMAD_VERSION}"
+    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
+    OUTPUT_NAME nomadEval
+)
+
+if(WIN32)
+  target_compile_definitions(
+    nomadEvalShared 
+    PRIVATE 
+      -DDLL_EVAL_EXPORTS
+  )
+endif()
+
+
+# (3.0) Algos
+#
+
+add_library (
+  nomadAlgosObject
+  OBJECT
+    ${ALGOS_SOURCES} 
+    ${CS_SOURCES} 
+    ${DMULTIMADS_SOURCES} 
+    ${MADS_SOURCES} 
+    ${LH_SOURCES} 
+    ${NM_SOURCES} 
+    ${PHASEONE_SOURCES} 
+    ${PSDMADS_SOURCES} 
+    ${SSDMADS_SOURCES}
+    ${TEMPLATE_ALGO_SOURCES} 
+    ${VNSMADS_SOURCES}
+)
+
+target_include_directories(
+  nomadAlgosObject 
+  PUBLIC
+    $<BUILD_INTERFACE: 
+      $<TARGET_PROPERTY:nomadUtilsObject,INTERFACE_INCLUDE_DIRECTORIES>
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/CoordinateSearch
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/DMultiMads
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/Mads
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/NelderMead
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PhaseOne
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/TemplateAlgo
+      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads
+    >
+    $<INSTALL_INTERFACE: 
+      ${CMAKE_INSTALL_INCLUDEDIR}
+    >
+)
+
+if(USE_SGTELIB MATCHES ON)
+  target_sources(
+    nomadAlgosObject
+    PRIVATE
+      ${QUADMODEL_SOURCES} 
+      ${SGTELIBMODEL_SOURCES} 
+  )
+
+  target_include_directories(
+    nomadAlgosObject 
+    PRIVATE
+      $<BUILD_INTERFACE: 
+        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModel
+        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SgtelibModel
+      >
+  )
+else()
+  target_include_directories(
+    nomadAlgosObject 
+    PRIVATE
+      $<BUILD_INTERFACE: 
+        $ENV{IBEX_ROOT}/src
+      >
+  )
+endif()
+
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(
+    nomadAlgosObject 
+    PUBLIC 
+      OpenMP::OpenMP_CXX
+  )
+endif()
+
+if(USE_IBEX MATCHES ON)
+  target_link_libraries(
+    nomadAlgosObject 
+    PUBLIC 
+      ibex
+  )
+
+	add_library(
+    ibex 
+    SHARED 
+    IMPORTED
+  )
+
+	set_target_properties(
+    ibex 
+    PROPERTIES 
+      IMPORTED_LOCATION 
+        $ENV{IBEX_ROOT}/lib/libibex.so
+  )
+	target_include_directories(
+    ibex 
+    INTERFACE
+      "$ENV{IBEX_ROOT}/__build__" 
+  		"$ENV{IBEX_ROOT}/include/ibex"
+	  	"$ENV{IBEX_ROOT}/include/ibex/3rd"
+  )
+	message(CHECK_START " Ready to use IBEX")
+endif()
+
+# (3.1) Algos, static
+#
+
+add_library(
+  nomadAlgosStatic
+  STATIC
+)
+ 
+target_link_libraries(
+  nomadAlgosStatic
+  PUBLIC
+    nomadAlgosObject
+)
+
+set_target_properties(
+  nomadAlgosStatic
+  PROPERTIES 
+    VERSION "${NOMAD_VERSION}"
+    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
+    OUTPUT_NAME nomadAlgos
+)
+
+if(USE_SGTELIB MATCHES ON)
+  target_link_libraries(
+    nomadAlgosStatic
+    PUBLIC 
+      sgtelibStatic
+  )
+endif()
+
+# (3.2) Algos, shared
+# 
+
+add_library(
+  nomadAlgosShared
+  SHARED
+)
+ 
+target_link_libraries(
+  nomadAlgosShared
+  PUBLIC
+    nomadEvalShared
+    nomadUtilsShared
+    nomadAlgosObject
+)
+
+if(USE_SGTELIB MATCHES ON)
+  target_link_libraries(
+    nomadAlgosShared
+    PUBLIC 
+      sgtelibShared
+  )
+endif()
+
+set_target_properties(
+  nomadAlgosShared
+  PROPERTIES 
+    VERSION "${NOMAD_VERSION}"
+    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
+    OUTPUT_NAME nomadAlgos
+)
+
+if(WIN32)
+  target_compile_definitions(
+    nomadAlgosShared 
+    PRIVATE 
+      -DDLL_ALGO_EXPORTS
+  )
+endif()
+
+# Installing the libraries and their header files
+
+install(
+  TARGETS 
+    nomadEvalShared
+    nomadEvalStatic
+    nomadAlgosShared
+    nomadAlgosStatic
+    nomadUtilsShared
+    nomadUtilsStatic 
+  LIBRARY DESTINATION 
+    ${CMAKE_INSTALL_LIBDIR}
+  PUBLIC_HEADER DESTINATION 
+    ${CMAKE_INSTALL_INCLUDEDIR}/
+)
+

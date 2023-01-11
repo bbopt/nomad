@@ -7,9 +7,9 @@ set_target_properties(single_obj_parallel.exe PROPERTIES INSTALL_RPATH "${CMAKE_
 
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(single_obj_parallel.exe PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
+    target_link_libraries(single_obj_parallel.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared OpenMP::OpenMP_CXX)
 else()
-    target_link_libraries(single_obj_parallel.exe PUBLIC nomadAlgos nomadUtils nomadEval)
+    target_link_libraries(single_obj_parallel.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared)
 endif()
 
 # installing executables and libraries

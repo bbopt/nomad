@@ -103,42 +103,15 @@ set(SGTELIB_MAIN_SOURCE src/sgtelib.cpp)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-# build shared library sgtelib
-add_library (sgtelib SHARED ${SGTELIB_SOURCES})
-target_include_directories(sgtelib PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>
-    )
+# Build libraries (modified for shared and static variants)
+include(./CMakeListsLibs.txt)
 
-# export symbols on Windows
-if (WIN32)
-    target_compile_definitions(sgtelib PRIVATE -DDLL_EXPORTS)
-endif()
-
-#add_executable (sgtelib_main ${SGTELIB_MAIN_SOURCE})
-#set_target_properties(sgtelib_main PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-#target_include_directories(sgtelib_main PUBLIC
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-#    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>
-#)
-#target_link_libraries(sgtelib_main PUBLIC sgtelib)
-
-set_target_properties(sgtelib  PROPERTIES 
-                               VERSION ${SGTELIB_VERSION}
-                               SOVERSION ${SGTELIB_VERSION_MAJOR}.${SGTELIB_VERSION_MINOR})
-
-# installing executables and libraries
-install(TARGETS sgtelib 
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
-    )
-
-# install header files
-install(FILES ${SGTELIB_HEADERS}
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
-    )
-
-
+# Install header files
+install(
+  FILES 
+    ${SGTELIB_HEADERS}
+  DESTINATION
+    ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
+)
 
 

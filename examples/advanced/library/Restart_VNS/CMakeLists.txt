@@ -7,9 +7,9 @@ set_target_properties(restart_vns.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_
 
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(restart_vns.exe PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
+    target_link_libraries(restart_vns.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared OpenMP::OpenMP_CXX)
 else()
-    target_link_libraries(restart_vns.exe PUBLIC nomadAlgos nomadUtils nomadEval)
+    target_link_libraries(restart_vns.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared)
 endif()
 
 # installing executables and libraries

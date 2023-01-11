@@ -582,145 +582,28 @@ add_custom_command(
   DEPENDS ${ATTRIBUTE_TEXT}
 )
 
-#
-# Build libraries
-#
+# Build libraries (modified for shared static variants)
+include(./CMakeListsLibs.txt)
 
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-# export all symbols on Windows
-if (WIN32)
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif()
-
-# Utils
-add_library (nomadUtils SHARED ${MATH_SOURCES} ${OUTPUT_SOURCES} ${PARAM_SOURCES} ${TYPE_SOURCES} ${UTIL_SOURCES} ${ATTRIBUTE_HEADERS})
-target_include_directories(nomadUtils PUBLIC
-    $<BUILD_INTERFACE: ${CMAKE_SOURCE_DIR}/src/Attribute ${CMAKE_SOURCE_DIR}/src/Math ${CMAKE_SOURCE_DIR}/src/Output
-    ${CMAKE_SOURCE_DIR}/src/Param ${CMAKE_SOURCE_DIR}/src/Type ${CMAKE_SOURCE_DIR}/src/Util>
-    $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}>
-)
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(nomadUtils PUBLIC OpenMP::OpenMP_CXX)
-endif()
-if (WIN32)
-    target_compile_definitions(nomadUtils PRIVATE -DDLL_UTIL_EXPORTS)
-endif()
-set_target_properties(nomadUtils PROPERTIES 
-                                 VERSION "${NOMAD_VERSION}"
-                                 SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}")
-
-# Evals
-add_library (nomadEval SHARED ${CACHE_SOURCES} ${EVAL_SOURCES})
-target_include_directories(nomadEval PUBLIC
-    $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Cache ${CMAKE_CURRENT_SOURCE_DIR}/Eval>
-    $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}>
-)
-target_link_libraries(nomadEval PUBLIC nomadUtils)
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(nomadEval PUBLIC OpenMP::OpenMP_CXX)
-endif()
-if (WIN32)
-    target_compile_definitions(nomadEval PRIVATE -DDLL_EVAL_EXPORTS)
-endif()
-set_target_properties(nomadEval  PROPERTIES 
-                                 VERSION "${NOMAD_VERSION}"
-                                 SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}")
-
-
-# Algos
-if(USE_SGTELIB MATCHES ON)
-    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${CS_SOURCES} ${DMULTIMADS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${QUADMODEL_SOURCES} ${SGTELIBMODEL_SOURCES} ${SSDMADS_SOURCES}  ${TEMPLATE_ALGO_SOURCES} ${VNSMADS_SOURCES})
-   target_include_directories(nomadAlgos PUBLIC
-      $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Algos
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/CoordinateSearch
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/DMultiMads
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/Mads
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/NelderMead
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PhaseOne
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModel
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SgtelibModel
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/TemplateAlgo
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads>
-      $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}>)
-else()
-    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${CS_SOURCES} ${DMULTIMADS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${SSDMADS_SOURCES} ${TEMPLATE_ALGO_SOURCES} ${VNSMADS_SOURCES})
-    target_include_directories(nomadAlgos PUBLIC
-        $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Algos
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/CoordinateSearch
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/DMultiMads
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/Mads
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/NelderMead
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PhaseOne
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/TemplateAlgo
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads
-        $ENV{IBEX_ROOT}/src>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-endif()
-if (WIN32)
-    target_compile_definitions(nomadAlgos PRIVATE -DDLL_ALGO_EXPORTS)
-endif()
-
-
-#
-# Base libraries + extra library for OpenMP and sgtelib
-target_link_libraries(nomadAlgos PUBLIC nomadUtils nomadEval)
-if(USE_SGTELIB MATCHES ON)
-       target_link_libraries(nomadAlgos PUBLIC sgtelib)
-endif()
-if(OpenMP_CXX_FOUND)
-   target_link_libraries(nomadAlgos PUBLIC OpenMP::OpenMP_CXX)
-endif()
-if(USE_IBEX MATCHES ON)
-        target_link_libraries(nomadAlgos PUBLIC ibex)
-	add_library(ibex SHARED IMPORTED)
-	set_target_properties(ibex PROPERTIES IMPORTED_LOCATION $ENV{IBEX_ROOT}/lib/libibex.so)
-	target_include_directories (ibex INTERFACE
-                "$ENV{IBEX_ROOT}/__build__" 
-		"$ENV{IBEX_ROOT}/include/ibex"
-		"$ENV{IBEX_ROOT}/include/ibex/3rd")
-	message(CHECK_START " Ready to use IBEX")
-endif()
-set_target_properties(nomadAlgos  PROPERTIES 
-                                 VERSION "${NOMAD_VERSION}"
-                                 SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}")
-
-
-#
-# Build executables
-#
-
-add_executable (nomad ${NOMAD_SOURCES})
-set_target_properties(nomad PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-target_include_directories(nomad PUBLIC
-    $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/
-    ${CMAKE_CURRENT_SOURCE_DIR}/Nomad>
-    $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}/Nomad>
-)
-
-target_link_libraries(nomad PUBLIC nomadAlgos nomadUtils nomadEval)
-if(OpenMP_CXX_FOUND)
-       target_link_libraries(nomad PUBLIC OpenMP::OpenMP_CXX)
-endif()
+# Build executables (modified for shared and static linking)
+include(./CMakeListsExes.txt)
 
 
 #
 # Install executable, libraries and headers
 #
 
-# installing executables and libraries
-install(TARGETS nomad nomadUtils nomadEval nomadAlgos
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/
-)
+# installing executables
+# install(
+#   TARGETS 
+#     nomad 
+#   RUNTIME DESTINATION 
+#     ${CMAKE_INSTALL_BINDIR}
+#   LIBRARY DESTINATION 
+#     ${CMAKE_INSTALL_LIBDIR}
+#   PUBLIC_HEADER DESTINATION 
+#     ${CMAKE_INSTALL_INCLUDEDIR}/
+# )
 
 # install header files
 install(FILES ${ALGOS_HEADERS}

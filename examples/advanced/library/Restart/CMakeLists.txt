@@ -7,9 +7,9 @@ set_target_properties(restart.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREF
 
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(restart.exe PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
+    target_link_libraries(restart.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared OpenMP::OpenMP_CXX)
 else()
-    target_link_libraries(restart.exe PUBLIC nomadAlgos nomadUtils nomadEval)
+    target_link_libraries(restart.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared)
 endif()
 
 # installing executables and libraries

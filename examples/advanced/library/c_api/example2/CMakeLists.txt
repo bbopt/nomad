@@ -8,9 +8,9 @@ set_target_properties(example2_c_api.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTA
 
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(example2_c_api.exe PUBLIC nomadAlgos nomadUtils nomadEval nomadCInterface OpenMP::OpenMP_CXX)
+    target_link_libraries(example2_c_api.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared nomadCInterface OpenMP::OpenMP_CXX)
 else()
-    target_link_libraries(example2_c_api.exe PUBLIC nomadAlgos nomadUtils nomadEval nomadCInterface)
+    target_link_libraries(example2_c_api.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared nomadCInterface)
 endif()
 if (WIN32)
 else()

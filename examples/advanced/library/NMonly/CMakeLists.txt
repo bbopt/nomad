@@ -7,9 +7,9 @@ set_target_properties(NMOpt.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX
 
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(NMOpt.exe PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
+    target_link_libraries(NMOpt.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared OpenMP::OpenMP_CXX)
 else()
-    target_link_libraries(NMOpt.exe PUBLIC nomadAlgos nomadUtils nomadEval)
+    target_link_libraries(NMOpt.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared)
 endif()
 
 # installing executables and libraries

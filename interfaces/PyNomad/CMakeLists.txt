@@ -17,7 +17,7 @@ add_custom_command(
 # target pynomad is always built
 add_custom_target(pynomad ALL
     COMMAND echo "IMPORTANT: need to run cmake --install before using PyNomad module"
-    DEPENDS PyNomad.${NOMAD_VERSION}.so nomadUtils nomadEval nomadAlgos
+    DEPENDS PyNomad.${NOMAD_VERSION}.so nomadUtilsShared nomadEvalShared nomadAlgosShared
     VERBATIM
 )
 

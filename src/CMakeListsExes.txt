@@ -1,0 +1,96 @@
+# Build executables (modified for shared and static linking)
+#
+
+add_library(
+  nomadObject
+  OBJECT
+    ${NOMAD_SOURCES}
+)
+set_target_properties(
+  nomadObject
+  PROPERTIES 
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
+)
+target_include_directories(
+  nomadObject
+  PUBLIC
+    $<BUILD_INTERFACE: 
+      ${CMAKE_CURRENT_SOURCE_DIR}/
+      ${CMAKE_CURRENT_SOURCE_DIR}/Nomad
+    >
+    $<INSTALL_INTERFACE: 
+      ${CMAKE_INSTALL_INCLUDEDIR}/Nomad
+    >
+)
+
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(
+    nomadObject 
+    PUBLIC 
+      OpenMP::OpenMP_CXX
+  )
+endif()
+
+# NOMAD, the variant using shared libraries
+
+add_executable(
+  nomadExecutableShared
+  $<TARGET_OBJECTS:nomadObject>
+)
+
+target_link_libraries(
+  nomadExecutableShared
+  PUBLIC 
+    nomadObject
+    nomadAlgosShared
+    nomadUtilsShared 
+    nomadEvalShared
+)
+
+set_target_properties(
+  nomadExecutableShared
+  PROPERTIES 
+    VERSION "${NOMAD_VERSION}"
+    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
+    OUTPUT_NAME nomad
+)
+
+# Static NOMAD
+
+add_executable(
+  nomadExecutableStatic
+  $<TARGET_OBJECTS:nomadObject>
+)
+
+target_link_libraries(
+  nomadExecutableStatic
+  PUBLIC 
+    nomadObject
+    nomadAlgosStatic
+    nomadUtilsStatic 
+    nomadEvalStatic
+)
+
+set_target_properties(
+  nomadExecutableStatic
+  PROPERTIES 
+    VERSION "${NOMAD_VERSION}"
+    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
+    OUTPUT_NAME nomad.static
+)
+
+# Install executables
+#
+
+install(
+  TARGETS 
+    nomadExecutableShared
+    nomadExecutableStatic
+  RUNTIME DESTINATION 
+    ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION 
+    ${CMAKE_INSTALL_LIBDIR}
+  PUBLIC_HEADER DESTINATION 
+    ${CMAKE_INSTALL_INCLUDEDIR}/
+)
+

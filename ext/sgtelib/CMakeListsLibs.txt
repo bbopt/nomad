@@ -1,0 +1,89 @@
+# Build the object first. 
+#
+# It will be built only once, then linked twice to make the shared and the
+# static variant of the library.
+
+add_library(
+  sgtelibObject
+  OBJECT 
+    ${SGTELIB_SOURCES}
+)
+
+target_include_directories(
+  sgtelibObject
+  PUBLIC
+    $<BUILD_INTERFACE: 
+      ${CMAKE_CURRENT_SOURCE_DIR}/src
+    >
+    $<INSTALL_INTERFACE:
+      ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
+    >
+)
+
+# Build the static variant.
+#
+
+add_library(
+  sgtelibStatic
+  STATIC
+)
+
+target_link_libraries(
+  sgtelibStatic
+  PUBLIC
+    sgtelibObject
+)
+
+set_target_properties(
+  sgtelibStatic
+  PROPERTIES 
+    VERSION ${SGTELIB_VERSION}
+    SOVERSION ${SGTELIB_VERSION_MAJOR}.${SGTELIB_VERSION_MINOR}
+    OUTPUT_NAME sgtelib
+)
+
+# Build the shared variant.
+#
+
+add_library(
+  sgtelibShared
+  SHARED
+)
+
+target_link_libraries(
+  sgtelibShared
+  PUBLIC
+    sgtelibObject
+)
+
+if (WIN32)
+  target_compile_definitions(
+    sgtelibShared 
+    PRIVATE 
+      -DDLL_EXPORTS
+  )
+endif()
+
+set_target_properties(
+  sgtelibShared
+  PROPERTIES 
+    VERSION ${SGTELIB_VERSION}
+    SOVERSION ${SGTELIB_VERSION_MAJOR}.${SGTELIB_VERSION_MINOR}
+    OUTPUT_NAME sgtelib
+)
+
+# Install both variants of the library.
+#
+
+install(
+  TARGETS 
+    sgtelibShared 
+    sgtelibStatic
+  RUNTIME DESTINATION 
+    ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION 
+    ${CMAKE_INSTALL_LIBDIR}
+  PUBLIC_HEADER DESTINATION 
+    ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
+)
+

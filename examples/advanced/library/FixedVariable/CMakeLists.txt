@@ -9,9 +9,9 @@ set_target_properties(ufl.exe PROPERTIES SUFFIX "")
 
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(fixedVariable.exe PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
+    target_link_libraries(fixedVariable.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared OpenMP::OpenMP_CXX)
 else()
-    target_link_libraries(fixedVariable.exe PUBLIC nomadAlgos nomadUtils nomadEval)
+    target_link_libraries(fixedVariable.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared)
 endif()
 
 # installing executables and libraries
