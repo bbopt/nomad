@@ -4,6 +4,36 @@ ${CMAKE_CURRENT_SOURCE_DIR}/PyNomad.pyx
 ${CMAKE_CURRENT_SOURCE_DIR}/setup_PyNomad.py
 )
 
+if (WITH_STATIC_BUILD MATCHES ON)
+
+  # Modern-ish approach that does not (openly) complain about being deprecated.
+  # The build process supports both GCC and MSVC.
+  #
+  # NOTES
+  # - Uses 'python -m pip wheel' which requires 'setup.py' to exist. 
+  # - Since we use 'setup_PyNomadStatic.py' instead, we must make a copy first.
+
+  set(PyNomadStatic_MSVC_VIA "")
+
+  if (MSVC)
+    set(PyNomadStatic_MSVC_VIA "YES")
+  endif()
+
+  add_custom_target(
+    PyNomadStatic 
+    COMMAND
+      ${CMAKE_COMMAND} -E copy ./setup_PyNomadStatic.py setup.py
+    COMMAND
+      ${CMAKE_COMMAND} -E env "NOMAD_INSTALL=${CMAKE_BINARY_DIR}" "NOMAD_VERSION=${NOMAD_VERSION}" "NOMAD_VIAMSVC=${PyNomadStatic_MSVC_VIA}" python -m pip wheel -w dist -- .
+    DEPENDS 
+      nomadStatic
+      ${PYNOMAD_SOURCE}
+    WORKING_DIRECTORY 
+      ${CMAKE_CURRENT_SOURCE_DIR}
+    VERBATIM
+)
+
+else()
 
 # Command to create PyNomad interface
 add_custom_command(
@@ -20,4 +50,5 @@ add_custom_target(pynomad ALL
     DEPENDS PyNomad.${NOMAD_VERSION}.so nomadUtils nomadEval nomadAlgos
     VERBATIM
 )
+endif()
 

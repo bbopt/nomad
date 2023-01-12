@@ -9,9 +9,7 @@ add_executable(
 target_link_libraries(
   nomadExecutableStatic
   PUBLIC 
-    nomadAlgosStatic
-    nomadEvalStatic
-    nomadUtilsStatic
+    nomadStatic
 )
 
 target_include_directories(
@@ -25,14 +23,6 @@ target_include_directories(
       ${CMAKE_INSTALL_INCLUDEDIR}/Nomad
     >
 )
-
-if(OpenMP_CXX_FOUND)
-  target_link_libraries(
-    nomadExecutableStatic
-    PUBLIC 
-      OpenMP::OpenMP_CXX
-  )
-endif()
 
 set_target_properties(
   nomadExecutableStatic

@@ -9,7 +9,7 @@ endif()
 #
 
 add_library(
-  nomadUtilsStatic
+  nomadStatic
   STATIC
     ${MATH_SOURCES} 
     ${OUTPUT_SOURCES} 
@@ -17,106 +17,10 @@ add_library(
     ${TYPE_SOURCES} 
     ${UTIL_SOURCES} 
     ${ATTRIBUTE_HEADERS}
-)
 
-target_include_directories(
-  nomadUtilsStatic
-  PUBLIC
-    $<BUILD_INTERFACE: 
-      ${CMAKE_SOURCE_DIR}/src/Attribute 
-      ${CMAKE_SOURCE_DIR}/src/Math 
-      ${CMAKE_SOURCE_DIR}/src/Output
-      ${CMAKE_SOURCE_DIR}/src/Param 
-      ${CMAKE_SOURCE_DIR}/src/Type 
-      ${CMAKE_SOURCE_DIR}/src/Util
-    >
-    $<INSTALL_INTERFACE: 
-      ${CMAKE_INSTALL_INCLUDEDIR}
-    >
-)
-
-if(OpenMP_CXX_FOUND)
-  target_link_libraries(
-    nomadUtilsStatic
-    PUBLIC 
-      OpenMP::OpenMP_CXX
-  )
-endif()
-
-set_target_properties(
-  nomadUtilsStatic 
-  PROPERTIES 
-    VERSION "${NOMAD_VERSION}"
-    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
-    OUTPUT_NAME nomadUtilsStatic
-)
-
-if (WIN32)
-  target_compile_definitions(
-    nomadUtilsStatic
-    PRIVATE 
-      -DNOMAD_STATIC_BUILD
-  )
-endif()
-
-# (2) Eval
-#
-
-add_library(
-  nomadEvalStatic
-  STATIC
     ${CACHE_SOURCES} 
     ${EVAL_SOURCES}
-)
 
-target_include_directories(
-  nomadEvalStatic
-  PUBLIC
-    $<BUILD_INTERFACE: 
-      ${CMAKE_CURRENT_SOURCE_DIR}/Cache 
-      ${CMAKE_CURRENT_SOURCE_DIR}/Eval
-    >
-    $<INSTALL_INTERFACE: 
-      ${CMAKE_INSTALL_INCLUDEDIR}
-    >
-)
-
-target_link_libraries(
-  nomadEvalStatic
-  PUBLIC 
-    nomadUtilsStatic
-)
-
-if(OpenMP_CXX_FOUND)
-  target_link_libraries(
-    nomadEvalStatic
-    PUBLIC 
-      OpenMP::OpenMP_CXX
-  )
-endif()
-
-set_target_properties(
-  nomadEvalStatic
-  PROPERTIES 
-    VERSION "${NOMAD_VERSION}"
-    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
-    OUTPUT_NAME nomadEvalStatic
-)
-
-if(WIN32)
-  target_compile_definitions(
-    nomadEvalStatic
-    PRIVATE 
-      -DNOMAD_STATIC_BUILD
-  )
-endif()
-
-# (3) Algos
-#
-
-add_library (
-  nomadAlgosStatic
-  STATIC
     ${ALGOS_SOURCES} 
     ${CS_SOURCES} 
     ${DMULTIMADS_SOURCES} 
@@ -131,9 +35,19 @@ add_library (
 )
 
 target_include_directories(
-  nomadAlgosStatic
+  nomadStatic
   PUBLIC
     $<BUILD_INTERFACE: 
+      ${CMAKE_SOURCE_DIR}/src/Attribute 
+      ${CMAKE_SOURCE_DIR}/src/Math 
+      ${CMAKE_SOURCE_DIR}/src/Output
+      ${CMAKE_SOURCE_DIR}/src/Param 
+      ${CMAKE_SOURCE_DIR}/src/Type 
+      ${CMAKE_SOURCE_DIR}/src/Util
+
+      ${CMAKE_CURRENT_SOURCE_DIR}/Cache 
+      ${CMAKE_CURRENT_SOURCE_DIR}/Eval
+
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/CoordinateSearch
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/DMultiMads
@@ -151,43 +65,63 @@ target_include_directories(
     >
 )
 
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(
+    nomadStatic
+    PUBLIC 
+      OpenMP::OpenMP_CXX
+  )
+endif()
+
+set_target_properties(
+  nomadStatic 
+  PROPERTIES 
+    VERSION "${NOMAD_VERSION}"
+    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
+    OUTPUT_NAME nomadStatic
+)
+
+if (WIN32)
+  target_compile_definitions(
+    nomadStatic
+    PRIVATE 
+      -DNOMAD_STATIC_BUILD
+  )
+endif()
+
+# (3) Algos
+#
+
 if(USE_SGTELIB MATCHES ON)
   target_sources(
-    nomadAlgosStatic
+    nomadStatic
     PRIVATE
       ${QUADMODEL_SOURCES} 
       ${SGTELIBMODEL_SOURCES} 
   )
 
   target_include_directories(
-    nomadAlgosStatic
+    nomadStatic
     PUBLIC
       $<BUILD_INTERFACE: 
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModel
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SgtelibModel
       >
   )
+
 else()
   target_include_directories(
-    nomadAlgosStatic
-    PRIVATE
+    nomadStatic
+    PUBLIC
       $<BUILD_INTERFACE: 
         $ENV{IBEX_ROOT}/src
       >
   )
 endif()
 
-if(OpenMP_CXX_FOUND)
-  target_link_libraries(
-    nomadAlgosStatic
-    PUBLIC 
-      OpenMP::OpenMP_CXX
-  )
-endif()
-
 if(USE_IBEX MATCHES ON)
   target_link_libraries(
-    nomadAlgosStatic
+    nomadStatic
     PUBLIC 
       ibex
   )
@@ -214,44 +148,20 @@ if(USE_IBEX MATCHES ON)
 	message(CHECK_START " Ready to use IBEX")
 endif()
 
-target_link_libraries(
-  nomadAlgosStatic
-  PUBLIC
-    nomadEvalStatic
-    nomadUtilsStatic
-)
-
 if(USE_SGTELIB MATCHES ON)
   target_link_libraries(
-    nomadAlgosStatic
+    nomadStatic
     PUBLIC 
       sgtelibStatic
   )
 endif()
 
-set_target_properties(
-  nomadAlgosStatic
-  PROPERTIES 
-    VERSION "${NOMAD_VERSION}"
-    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
-    OUTPUT_NAME nomadAlgosStatic
-)
-
-if(WIN32)
-  target_compile_definitions(
-    nomadAlgosStatic
-    PRIVATE 
-      -DNOMAD_STATIC_BUILD
-  )
-endif()
 
 # Installing the libraries and their header files
 
 install(
   TARGETS 
-    nomadEvalStatic
-    nomadAlgosStatic
-    nomadUtilsStatic 
+    nomadStatic
   LIBRARY DESTINATION 
     ${CMAKE_INSTALL_LIBDIR}
 )
