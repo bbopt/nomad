@@ -69,7 +69,7 @@
 typedef std::shared_ptr<Attribute> SPtrAtt;
 
 /// Comparator of shared_ptr<Attribute>
-struct lessThanAttribute : public std::binary_function<SPtrAtt, SPtrAtt, bool>
+struct lessThanAttribute 
 {
     bool operator()(SPtrAtt lhs, SPtrAtt rhs) const
     {
