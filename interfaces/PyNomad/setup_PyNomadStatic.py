@@ -41,10 +41,10 @@ nomad_library_path = os.path.join(nomad_install, 'lib')
 
 link_args = []
 link_args.append('-L{}'.format(nomad_library_path))
-link_args.append('-l:libnomadAlgos.a')
-link_args.append('-l:libnomadEval.a')
-link_args.append('-l:libnomadUtils.a')
-link_args.append('-l:libsgtelib.a')
+link_args.append('-l:libnomadAlgosStatic.a')
+link_args.append('-l:libnomadEvalStatic.a')
+link_args.append('-l:libnomadUtilsStatic.a')
+link_args.append('-l:libsgtelibStatic.a')
 link_args.append('-lgomp')
 
 setuptools.setup(
