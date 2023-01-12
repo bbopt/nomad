@@ -9,8 +9,8 @@ endif()
 #
 
 add_library(
-  nomadUtils
-  SHARED
+  nomadUtilsStatic
+  STATIC
     ${MATH_SOURCES} 
     ${OUTPUT_SOURCES} 
     ${PARAM_SOURCES} 
@@ -20,7 +20,7 @@ add_library(
 )
 
 target_include_directories(
-  nomadUtils
+  nomadUtilsStatic
   PUBLIC
     $<BUILD_INTERFACE: 
       ${CMAKE_SOURCE_DIR}/src/Attribute 
@@ -37,25 +37,25 @@ target_include_directories(
 
 if(OpenMP_CXX_FOUND)
   target_link_libraries(
-    nomadUtils
+    nomadUtilsStatic
     PUBLIC 
       OpenMP::OpenMP_CXX
   )
 endif()
 
 set_target_properties(
-  nomadUtils
+  nomadUtilsStatic 
   PROPERTIES 
     VERSION "${NOMAD_VERSION}"
     SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
-    OUTPUT_NAME nomadUtils
+    OUTPUT_NAME nomadUtilsStatic
 )
 
 if (WIN32)
   target_compile_definitions(
-    nomadUtils
+    nomadUtilsStatic
     PRIVATE 
-      -DDLL_UTIL_EXPORTS
+      -DNOMAD_BUILD_STATIC
   )
 endif()
 
@@ -63,14 +63,14 @@ endif()
 #
 
 add_library(
-  nomadEval
-  SHARED
+  nomadEvalStatic
+  STATIC
     ${CACHE_SOURCES} 
     ${EVAL_SOURCES}
 )
 
 target_include_directories(
-  nomadEval
+  nomadEvalStatic
   PUBLIC
     $<BUILD_INTERFACE: 
       ${CMAKE_CURRENT_SOURCE_DIR}/Cache 
@@ -82,41 +82,41 @@ target_include_directories(
 )
 
 target_link_libraries(
-  nomadEval
+  nomadEvalStatic
   PUBLIC 
-    nomadUtils
+    nomadUtilsStatic
 )
 
 if(OpenMP_CXX_FOUND)
   target_link_libraries(
-    nomadEval
+    nomadEvalStatic
     PUBLIC 
       OpenMP::OpenMP_CXX
   )
 endif()
 
 set_target_properties(
-  nomadEval
+  nomadEvalStatic
   PROPERTIES 
     VERSION "${NOMAD_VERSION}"
     SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
-    OUTPUT_NAME nomadEval
+    OUTPUT_NAME nomadEvalStatic
 )
 
 if(WIN32)
   target_compile_definitions(
-    nomadEval
+    nomadEvalStatic
     PRIVATE 
-      -DDLL_EVAL_EXPORTS
+      -DNOMAD_BUILD_STATIC
   )
 endif()
 
 # (3) Algos
 #
 
-add_library(
-  nomadAlgos
-  SHARED
+add_library (
+  nomadAlgosStatic
+  STATIC
     ${ALGOS_SOURCES} 
     ${CS_SOURCES} 
     ${DMULTIMADS_SOURCES} 
@@ -131,7 +131,7 @@ add_library(
 )
 
 target_include_directories(
-  nomadAlgos
+  nomadAlgosStatic
   PUBLIC
     $<BUILD_INTERFACE: 
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos
@@ -153,14 +153,14 @@ target_include_directories(
 
 if(USE_SGTELIB MATCHES ON)
   target_sources(
-    nomadAlgos
+    nomadAlgosStatic
     PUBLIC
       ${QUADMODEL_SOURCES} 
       ${SGTELIBMODEL_SOURCES} 
   )
 
   target_include_directories(
-    nomadAlgos
+    nomadAlgosStatic
     PUBLIC
       $<BUILD_INTERFACE: 
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModel
@@ -169,7 +169,7 @@ if(USE_SGTELIB MATCHES ON)
   )
 else()
   target_include_directories(
-    nomadAlgos
+    nomadAlgosStatic
     PRIVATE
       $<BUILD_INTERFACE: 
         $ENV{IBEX_ROOT}/src
@@ -179,7 +179,7 @@ endif()
 
 if(OpenMP_CXX_FOUND)
   target_link_libraries(
-    nomadAlgos
+    nomadAlgosStatic
     PUBLIC 
       OpenMP::OpenMP_CXX
   )
@@ -187,7 +187,7 @@ endif()
 
 if(USE_IBEX MATCHES ON)
   target_link_libraries(
-    nomadAlgos
+    nomadAlgosStatic
     PUBLIC 
       ibex
   )
@@ -215,33 +215,33 @@ if(USE_IBEX MATCHES ON)
 endif()
 
 target_link_libraries(
-  nomadAlgos
+  nomadAlgosStatic
   PUBLIC
-    nomadEval
-    nomadUtils
+    nomadEvalStatic
+    nomadUtilsStatic
 )
 
 if(USE_SGTELIB MATCHES ON)
   target_link_libraries(
-    nomadAlgos
+    nomadAlgosStatic
     PUBLIC 
-      sgtelib
+      sgtelibStatic
   )
 endif()
 
 set_target_properties(
-  nomadAlgos
+  nomadAlgosStatic
   PROPERTIES 
     VERSION "${NOMAD_VERSION}"
     SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
-    OUTPUT_NAME nomadAlgos
+    OUTPUT_NAME nomadAlgosStatic
 )
 
 if(WIN32)
   target_compile_definitions(
-    nomadAlgos
+    nomadAlgosStatic
     PRIVATE 
-      -DDLL_ALGO_EXPORTS
+      -DNOMAD_BUILD_STATIC
   )
 endif()
 
@@ -249,12 +249,10 @@ endif()
 
 install(
   TARGETS 
-    nomadEval
-    nomadAlgos
-    nomadUtils
+    nomadEvalStatic
+    nomadAlgosStatic
+    nomadUtilsStatic 
   LIBRARY DESTINATION 
     ${CMAKE_INSTALL_LIBDIR}
-  PUBLIC_HEADER DESTINATION 
-    ${CMAKE_INSTALL_INCLUDEDIR}/
 )
 

@@ -4,13 +4,13 @@
 # static variant of the library.
 
 add_library(
-  sgtelib
-  SHARED
+  sgtelibStatic
+  STATIC
     ${SGTELIB_SOURCES}
 )
 
 target_include_directories(
-  sgtelib
+  sgtelibStatic
   PUBLIC
     $<BUILD_INTERFACE: 
       ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -21,18 +21,18 @@ target_include_directories(
 )
 
 set_target_properties(
-  sgtelib
+  sgtelibStatic
   PROPERTIES 
     VERSION ${SGTELIB_VERSION}
     SOVERSION ${SGTELIB_VERSION_MAJOR}.${SGTELIB_VERSION_MINOR}
-    OUTPUT_NAME sgtelib
+    OUTPUT_NAME sgtelibStatic
 )
 
 if (WIN32)
   target_compile_definitions(
-    sgtelib
+    sgtelibStatic
     PRIVATE 
-      -DDLL_EXPORTS
+      -DNOMAD_STATIC_BUILD
   )
 endif()
 
@@ -41,7 +41,7 @@ endif()
 
 install(
   TARGETS 
-    sgtelib
+    sgtelibStatic
   RUNTIME DESTINATION 
     ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION 

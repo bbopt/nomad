@@ -20,7 +20,7 @@ if (WIN32)
     target_compile_definitions(nomadCInterface PRIVATE -DDLL_ALGO_EXPORTS)
 endif()
 
-target_link_libraries(nomadCInterface PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared)
+target_link_libraries(nomadCInterface PUBLIC nomadAlgos nomadUtils nomadEval)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(nomadCInterface PUBLIC OpenMP::OpenMP_CXX)
 endif()

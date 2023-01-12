@@ -57,7 +57,7 @@
 #pragma warning(disable:4251)
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(NOMAD_STATIC_BUILD)
 #ifdef DLL_UTIL_EXPORTS
 # define DLL_UTIL_API __declspec(dllexport)
 #else

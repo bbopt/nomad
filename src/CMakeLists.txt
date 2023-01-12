@@ -582,12 +582,17 @@ add_custom_command(
   DEPENDS ${ATTRIBUTE_TEXT}
 )
 
-# Build libraries (modified for shared static variants)
+# Build libraries 
 include(./CMakeListsLibs.txt)
 
-# Build executables (modified for shared and static linking)
+# Build executables 
 include(./CMakeListsExes.txt)
 
+# Build static libraries and executables
+if (WITH_STATIC_BUILD)
+  include(./CMakeListsLibsStatic.txt)
+  include(./CMakeListsExesStatic.txt)
+endif()
 
 #
 # Install executable, libraries and headers

@@ -106,6 +106,10 @@ include(CMakePackageConfigHelpers)
 # Build libraries (modified for shared and static variants)
 include(./CMakeListsLibs.txt)
 
+if (WITH_STATIC_BUILD MATCHES ON)
+  include(./CMakeListsLibsStatic.txt)
+endif()
+
 # Install header files
 install(
   FILES 
