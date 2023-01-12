@@ -42,6 +42,14 @@ set_target_properties(
     OUTPUT_NAME nomad.static
 )
 
+if (WIN32)
+  target_compile_definitions(
+    nomadExecutableStatic
+    PRIVATE 
+      -DNOMAD_STATIC_BUILD
+  )
+endif()
+
 # Install executables
 #
 

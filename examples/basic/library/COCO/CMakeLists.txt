@@ -24,9 +24,9 @@ add_executable(coco_Nomad_experiment.exe coco_Nomad_experiment.cpp)
 set_target_properties(coco_Nomad_experiment.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" SUFFIX "")
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(coco_Nomad_experiment.exe PUBLIC coco nomadAlgosShared nomadUtilsShared nomadEvalShared OpenMP::OpenMP_CXX)
+    target_link_libraries(coco_Nomad_experiment.exe PUBLIC coco nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
 else()
-    target_link_libraries(coco_Nomad_experiment.exe PUBLIC coco nomadAlgosShared nomadUtilsShared nomadEvalShared)    
+    target_link_libraries(coco_Nomad_experiment.exe PUBLIC coco nomadAlgos nomadUtils nomadEval)    
 endif()
 
 if(MATH_LIBRARY)

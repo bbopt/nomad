@@ -589,7 +589,7 @@ include(./CMakeListsLibs.txt)
 include(./CMakeListsExes.txt)
 
 # Build static libraries and executables
-if (WITH_STATIC_BUILD)
+if (WITH_STATIC_BUILD MATCHES ON)
   include(./CMakeListsLibsStatic.txt)
   include(./CMakeListsExesStatic.txt)
 endif()

@@ -12,11 +12,11 @@ set_target_properties(loopSuggestAndObserve.exe PROPERTIES INSTALL_RPATH "${CMAK
 
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(suggestAndObserve.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared OpenMP::OpenMP_CXX)
-    target_link_libraries(loopSuggestAndObserve.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared OpenMP::OpenMP_CXX)
+    target_link_libraries(suggestAndObserve.exe PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
+    target_link_libraries(loopSuggestAndObserve.exe PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
 else()
-    target_link_libraries(suggestAndObserve.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared)
-    target_link_libraries(loopSuggestAndObserve.exe PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared)
+    target_link_libraries(suggestAndObserve.exe PUBLIC nomadAlgos nomadUtils nomadEval)
+    target_link_libraries(loopSuggestAndObserve.exe PUBLIC nomadAlgos nomadUtils nomadEval)
 endif()
 
 # installing executables and libraries

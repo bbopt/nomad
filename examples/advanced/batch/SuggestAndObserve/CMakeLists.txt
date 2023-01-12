@@ -10,13 +10,13 @@ set_target_properties(observe.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREF
 set_target_properties(bbr.exe PROPERTIES SUFFIX "")
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(utils PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared OpenMP::OpenMP_CXX)
-    target_link_libraries(suggest.exe PUBLIC utils nomadAlgosShared nomadUtilsShared nomadEvalShared OpenMP::OpenMP_CXX)
-    target_link_libraries(observe.exe PUBLIC utils nomadAlgosShared nomadUtilsShared nomadEvalShared OpenMP::OpenMP_CXX)
+    target_link_libraries(utils PUBLIC nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
+    target_link_libraries(suggest.exe PUBLIC utils nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
+    target_link_libraries(observe.exe PUBLIC utils nomadAlgos nomadUtils nomadEval OpenMP::OpenMP_CXX)
 else()
-    target_link_libraries(utils PUBLIC nomadAlgosShared nomadUtilsShared nomadEvalShared)
-    target_link_libraries(suggest.exe PUBLIC utils nomadAlgosShared nomadUtilsShared nomadEvalShared)
-    target_link_libraries(observe.exe PUBLIC utils nomadAlgosShared nomadUtilsShared nomadEvalShared)
+    target_link_libraries(utils PUBLIC nomadAlgos nomadUtils nomadEval)
+    target_link_libraries(suggest.exe PUBLIC utils nomadAlgos nomadUtils nomadEval)
+    target_link_libraries(observe.exe PUBLIC utils nomadAlgos nomadUtils nomadEval)
 endif()
 
 # installing executables and libraries

@@ -154,7 +154,7 @@ target_include_directories(
 if(USE_SGTELIB MATCHES ON)
   target_sources(
     nomadAlgos
-    PUBLIC
+    PRIVATE
       ${QUADMODEL_SOURCES} 
       ${SGTELIBMODEL_SOURCES} 
   )
@@ -170,10 +170,25 @@ if(USE_SGTELIB MATCHES ON)
 else()
   target_include_directories(
     nomadAlgos
-    PRIVATE
+    PUBLIC
       $<BUILD_INTERFACE: 
         $ENV{IBEX_ROOT}/src
       >
+  )
+endif()
+
+target_link_libraries(
+  nomadAlgos
+  PUBLIC
+    nomadUtils
+    nomadEval
+)
+
+if(USE_SGTELIB MATCHES ON)
+  target_link_libraries(
+    nomadAlgos
+    PUBLIC 
+      sgtelib
   )
 endif()
 
@@ -212,21 +227,6 @@ if(USE_IBEX MATCHES ON)
 	  	"$ENV{IBEX_ROOT}/include/ibex/3rd"
   )
 	message(CHECK_START " Ready to use IBEX")
-endif()
-
-target_link_libraries(
-  nomadAlgos
-  PUBLIC
-    nomadEval
-    nomadUtils
-)
-
-if(USE_SGTELIB MATCHES ON)
-  target_link_libraries(
-    nomadAlgos
-    PUBLIC 
-      sgtelib
-  )
 endif()
 
 set_target_properties(
