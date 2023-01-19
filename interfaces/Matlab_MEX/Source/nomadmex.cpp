@@ -50,7 +50,7 @@
 // Another change compared with previous versions: the parameters are passed as a list of strings (in the form struct('KEYWORD','value',...)). The keyword and value follow exactly the Nomad syntax.
 
 // The GERAD interface is now:
-//      [x,fval,exitflag,iter] = nomadOPt(fun,x0,lb,ub,params,callbackFun)
+//      [x,fval,hinf,runflag,nfval] = nomadOPt(fun,x0,lb,ub,params,callbackFun)
 
 
 #include "mex.h"
@@ -114,7 +114,6 @@ void printSolverInfo();
 int checkInputs(const mxArray *prhs[], int nrhs, mxArray *plhs[], int nlhs);
 void setNomadParams(const std::shared_ptr<NOMAD::AllParameters> p, const mxArray *params);
 void lower(char *str);
-double getStatus(int stat);
 
 int counter_eval = 0;
 
@@ -544,9 +543,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     plhs[3] = mxCreateDoubleMatrix(1,1, mxREAL);
     plhs[4] = mxCreateDoubleMatrix(1,1, mxREAL);
     
-	double *x= mxGetPr(plhs[0]);
-	double *fval = mxGetPr(plhs[1]);
-	double *hinf = mxGetPr(plhs[2]);
+    double *x= mxGetPr(plhs[0]);
+    double *fval = mxGetPr(plhs[1]);
+    double *hinf = mxGetPr(plhs[2]);
     double *runflag = mxGetPr(plhs[3]);
     double *nfval = mxGetPr(plhs[4]);
 
@@ -594,7 +593,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     //Run flag
     *runflag = double(mainStepRunFlag);
 
-	*nfval = (double) NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
+    *nfval = (double) NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
 
     // Clean up of fun
     mxDestroyArray(fun.prhs[fun.xrhs]);
@@ -775,47 +774,6 @@ void setNomadParams(const std::shared_ptr<NOMAD::AllParameters> p, const mxArray
 }
 
 
-double getStatus(int stat)
-{
-
-    switch((int)stat)
-    {
-        case 5:         //mesh minimum
-        case 8:         //min mesh size
-        case 9:         //min poll size
-        case 20:        //ftarget reached
-        case 19:        //feas reached
-            return 1;
-            break;
-        case 12:        //max time
-        case 13:        //max bb eval
-        case 14:        //max sur eval
-        case 15:        //max evals
-        case 16:        //max sim bb evals
-        case 17:        //max iter
-        case 23:        //max multi bb evals
-        case 24:        //max mads runs
-            return 0;
-            break;
-        case 10:        //max mesh index
-        case 11:        //mesh index limits
-        case 18:        //max consec fails
-        case 25:        //stagnation
-        case 26:        //no pareto
-        case 27:        //max cache memory
-            return -1;
-        case 6:         //x0 fail
-        case 7:         //p1_fail
-            return -2;
-        case 2:         //Unknown stop reason
-            return -3;
-        case 3:         //Ctrl-C
-        case 4:         //User-stopped
-            return -5;
-        default:        //Not assigned flag
-            return -3;
-    }
-}
 
 //Print Solver Information
 void printSolverInfo()
