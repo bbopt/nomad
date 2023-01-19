@@ -16,19 +16,21 @@
 %       cbFun - callback function handle (optional). When present, the function is called after calling fun. The user must provide a function that receives three input arguments: count_eval, fevals and x. Count_eval is the number of times fun has been called. Fevals and x are respectively the outputs returned by fun and its inputs. The function returns a boolean. If cbFun returns true, the optimization stops prematurely.
 %
 %   Return arguments:
-%       x - solution vector
-%       fval - objective value at the solution
-%       exitflag - exit status (see below)
-%       iter - number of iterations taken by the solver
+%       x - Best point
+%       fval - objective value at the best point
+%       hinf - Infeasibility at best point
+%       runflag - Nomad run termination flag  (see below)
 %       nfval - number of function evaluations taken by the solver
 %
-%   Return Status:
-%       1 - converged / target reached
-%       0 - maximum iterations / function evaluations exceeded
-%      -1 - infeasible / mesh limit reached
-%      -2 - initialization error
-%      -3 - nomad error
-%      -5 - user exit
+%   Run flags:
+%       1 - Objective target reached OR Mads converged (mesh criterion) to a feasible point (true problem).
+%       0 - At least one feasible point obtained and evaluation budget (single bb or block of bb) spent or max iteration (user option) reached.
+%      -1 - Mads mesh converged but no feasible point obtained (only infeasible) for the true problem.
+%      -2 - No feasible point obtained (only infeasible) and evaluation budget (single bb or block of bb) spent or max iteration (user option) reached
+%      -3 - Initial point failed to evaluate
+%      -4 - Time limit reached (user option)
+%      -5 - CTRL-C or user stopped (callback function)
+%      -6 - Stop on feasible point (user option)
 %
 %
 %   NOMAD is released under the Lesser GNU Public License (LGPL).

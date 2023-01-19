@@ -77,20 +77,17 @@ static void printPyNomadVersion()
 
 static void printPyNomadUsage()
 {
-    std::cout << "--------------------------------------------------------------"          << std::endl;
+    std::cout << "--------------------------------------------------------------"       << std::endl;
     std::cout << " PyNomad interface usage"                                             << std::endl;
-    std::cout << "--------------------------------------------------------------"          << std::endl;
-    std::cout << "  Run NOMAD : result = PyNomad.optimize(bb, x0, lb, ub, param)"                              << std::endl;
-    std::cout << "--------------------------------------------------------------"          << std::endl;
+    std::cout << "--------------------------------------------------------------"       << std::endl;
+    std::cout << "  Run NOMAD : result = PyNomad.optimize(bb, x0, lb, ub, param)"       << std::endl;
+    std::cout << "--------------------------------------------------------------"       << std::endl;
     std::cout << "    Info    : PyNomad.info()"                                         << std::endl;
     std::cout << "    Help    : PyNomad.help(\"keywords\") or PyNomad.help()"           << std::endl;
     std::cout << "    Version : PyNomad.version()"                                      << std::endl;
     std::cout << "    Usage   : PyNomad.usage()"                                        << std::endl;
-    std::cout << "--------------------------------------------------------------"          << std::endl;
+    std::cout << "--------------------------------------------------------------"       << std::endl;
     std::cout                                                                           << std::endl;
-
-    //std::cout << " Run NOMAD : [x_best, f_best, h_best, nb_evals, nb_iters, exit_status] = ";
-    //std::cout << "PyNomad.optimize(bb, x0, lb, ub, param)"                            << std::endl;
     std::cout << " PyNomad.optimize input parameters:"                                  << std::endl;
     std::cout                                                                           << std::endl;
     std::cout << "  bb      ---> name of the blackbox function - mandatory"             << std::endl;
@@ -116,8 +113,7 @@ static void printPyNomadUsage()
     std::cout << "  nb_evals --> Number of blackbox evaluations"                        << std::endl;
     std::cout << "  nb_iters --> * Currently not supported *"                           << std::endl;
     std::cout << "               (would be: Number of iterations of the Mads algorithm)"<< std::endl;
-    std::cout << "  exit_status ---> Exit status for Nomad termination criterion"       << std::endl;
-    std::cout << "                   1 -> success, 0 -> fail"                           << std::endl;
+    std::cout << "  run_flag ---> Run flag for Nomad termination (see details below) "  << std::endl;
     std::cout                                                                           << std::endl;
 
     std::cout << "-----------------------------------------------------------"          << std::endl;
@@ -156,10 +152,27 @@ static void printPyNomadUsage()
     std::cout << "         evalOk[k] = True"                                            << std::endl;
     std::cout << "     # return a list where 1 is success, 0 is a failed evaluation"    << std::endl;
     std::cout << "     return evalOk"                                                   << std::endl;
-
-
     std::cout                                                                           << std::endl;
     std::cout << "-----------------------------------------------------------"          << std::endl;
+    
+    std::cout << "-----------------------------------------------------------"          << std::endl;
+    std::cout << " Nomad termination run flags"                                         << std::endl;
+    std::cout                                                                           << std::endl;
+    std::cout << "   1 - Objective target reached OR Mads converged (mesh criterion) "  << std::endl;
+    std::cout << "       to a feasible point (true problem)."                           << std::endl;
+    std::cout << "   0 - At least one feasible point obtained and evaluation budget "   << std::endl;
+    std::cout << "       (single bb or block of bb) spent or max iteration (user "      << std::endl;
+    std::cout << "       option) reached."                                              << std::endl;
+    std::cout << "  -1 - Mads mesh converged but no feasible point obtained (only      "<< std::endl;
+    std::cout << "       infeasible) for the true problem."                             << std::endl;
+    std::cout << "  -2 - No feasible point obtained (only infeasible) and evaluation"   << std::endl;
+    std::cout << "       budget (single bb or block of bb) spent or max iteration (user"<< std::endl;
+    std::cout << "       option) reached"                                               << std::endl;
+    std::cout << "  -3 - Initial point failed to evaluate"                              << std::endl;
+    std::cout << "  -4 - Time limit reached (user option)"                              << std::endl;
+    std::cout << "  -5 - CTRL-C or user stopped (callback function)"                    << std::endl;
+    std::cout << "  -6 - Stop on feasible point (user option)"                          << std::endl;
+    
 }
 
 
@@ -395,10 +408,12 @@ static int runNomad(Callback cb,
     initAllParams(allParams, X0, LB, UB, params);
     bestFeasSol = nullptr;
     bestInfeasSol = nullptr;
+    int runFlag = -3;
 
     try
     {
-        int stopflag = 0;
+        
+        
         Py_BEGIN_ALLOW_THREADS
 
         NOMAD::MainStep TheMainStep;
@@ -420,7 +435,7 @@ static int runNomad(Callback cb,
         TheMainStep.addEvaluator(std::move(ev));
 
         TheMainStep.start();
-        stopflag = TheMainStep.run();
+        TheMainStep.run();
         TheMainStep.end();
 
         nbEvals = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
@@ -461,10 +476,12 @@ static int runNomad(Callback cb,
             bestInfeasSol = nullptr;
         }
 
+        runFlag = TheMainStep.getRunFlag();
+        
         NOMAD::MainStep::resetComponentsBetweenOptimization();
-
+        
         Py_END_ALLOW_THREADS
-        return stopflag;
+        return runFlag;
     }
 
     catch(std::exception &e)
@@ -472,7 +489,7 @@ static int runNomad(Callback cb,
         printf("NOMAD exception (report to developper):\n%s\n",e.what());
     }
 
-    return -1;
+    return runFlag; // Default is for Nomad error
 
 }
 
@@ -493,11 +510,12 @@ static int runNomad(Callback cb,
     initAllParams(allParams, X0, LB, UB, params);
     bestFeasSol = nullptr;
     bestInfeasSol = nullptr;
+    
+    int runFlag = -3 ;
 
     std::cout<<"Run nomad with surrogate"<<std::endl;
     try
     {
-        int stopflag = 0;
         Py_BEGIN_ALLOW_THREADS
 
         NOMAD::MainStep TheMainStep;
@@ -522,7 +540,7 @@ static int runNomad(Callback cb,
         TheMainStep.addEvaluator(std::move(evSurrogate));
         
         TheMainStep.start();
-        stopflag = TheMainStep.run();
+        TheMainStep.run();
         TheMainStep.end();
 
         nbEvals = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
@@ -564,9 +582,11 @@ static int runNomad(Callback cb,
         }
 
         NOMAD::MainStep::resetComponentsBetweenOptimization();
+        
+        runFlag = TheMainStep.getRunFlag();
 
         Py_END_ALLOW_THREADS
-        return stopflag;
+        return runFlag;
     }
 
     catch(std::exception &e)
@@ -574,7 +594,7 @@ static int runNomad(Callback cb,
         printf("NOMAD exception (report to developper):\n%s\n",e.what());
     }
 
-    return -1;
+    return runFlag;
 
 }
 

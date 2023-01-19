@@ -233,6 +233,14 @@ public:
      */
     bool hasFeas(EvalType evalType,
                  ComputeType computeType = ComputeType::STANDARD) const override;
+    
+    /// Test if cache contains an infeasible point.
+    /**
+     \return \c true if the cache contains at least one infeasible point, \c false otherwise.
+     */
+    bool hasInfeas(EvalType evalType,
+                 ComputeType computeType = ComputeType::STANDARD) const override;
+    
 
     /// Find best infeasible points, with h <= hMax, using operator<.
     /**

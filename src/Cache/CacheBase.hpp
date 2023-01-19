@@ -346,6 +346,13 @@ public:
     virtual bool hasFeas(EvalType evalType = EvalType::BB,
                          ComputeType computeType = ComputeType::STANDARD) const = 0;
 
+    /// Test if cache contains an infeasible points.
+    /**
+      \return \c true if the cache contains at least one infeasible point, \c false otherwise.
+     */
+    virtual bool hasInfeas(EvalType evalType = EvalType::BB,
+                         ComputeType computeType = ComputeType::STANDARD) const = 0;
+    
     /// Find best infeasible points, with h <= hMax, using operator< (pure virtual).
     /**
      \param evalPointList   The best infeasible eval points in a list                                   -- \b OUT.

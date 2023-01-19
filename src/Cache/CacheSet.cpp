@@ -493,6 +493,34 @@ bool NOMAD::CacheSet::hasFeas(NOMAD::EvalType evalType, NOMAD::ComputeType compu
     return ret;
 }
 
+bool NOMAD::CacheSet::hasInfeas(NOMAD::EvalType evalType, NOMAD::ComputeType computeType) const
+{
+    bool ret = false;
+
+#ifdef _OPENMP
+    omp_set_lock(&_cacheLock);
+#endif // _OPENMP
+    for (auto it = _cache.begin(); it != _cache.end(); ++it)
+    {
+        const NOMAD::Eval* eval = (*it).getEval(evalType);
+        if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
+        {
+            continue;
+        }
+        if (!eval->isFeasible(computeType))
+        {
+            ret = true;
+            break;
+        }
+    }
+#ifdef _OPENMP
+    omp_unset_lock(&_cacheLock);
+#endif // _OPENMP
+
+    return ret;
+}
+
+
 
 size_t NOMAD::CacheSet::findBestInf(std::vector<NOMAD::EvalPoint> &evalPointList,
                                     const NOMAD::Double& hMax,
