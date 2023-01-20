@@ -20,11 +20,11 @@ if (WITH_STATIC_BUILD MATCHES ON)
   endif()
 
   add_custom_target(
-    PyNomadStatic 
+    PyNomadStatic ALL
     COMMAND
       ${CMAKE_COMMAND} -E copy ./setup_PyNomadStatic.py setup.py
     COMMAND
-      ${CMAKE_COMMAND} -E env "NOMAD_INSTALL=${CMAKE_BINARY_DIR}" "NOMAD_VERSION=${NOMAD_VERSION}" "NOMAD_VIAMSVC=${PyNomadStatic_MSVC_VIA}" python -m pip wheel -w dist -- .
+      ${CMAKE_COMMAND} -E env "NOMAD_SRC=${CMAKE_SOURCE_DIR}/src" "NOMAD_BUILD_DIR=${CMAKE_BINARY_DIR}" "NOMAD_VERSION=${NOMAD_VERSION}" "NOMAD_VIAMSVC=${PyNomadStatic_MSVC_VIA}" python -m pip wheel -w dist -- .
     DEPENDS 
       nomadStatic
       ${PYNOMAD_SOURCE}
