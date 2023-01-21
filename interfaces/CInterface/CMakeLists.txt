@@ -13,7 +13,7 @@ set(INTERFACE_HEADERS
 #
 
 if(WIN32)
-  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  #  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
 add_library(
@@ -44,6 +44,7 @@ if (WIN32)
     nomadCInterface 
     PRIVATE 
       -DNOMAD_STATIC_BUILD
+      -DNOMAD_INTERFACE_C_DLL
   )
 endif()
 

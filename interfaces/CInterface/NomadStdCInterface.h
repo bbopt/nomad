@@ -1,6 +1,15 @@
 #ifndef _NOMADSTDCINTERFACE_H_
 #define _NOMADSTDCINTERFACE_H_
 
+#ifdef _MSC_VER
+  #ifdef NOMAD_INTERFACE_C_DLL
+    #define DLL_EXPORT_API __declspec(dllexport)
+  #else
+    #define DLL_EXPORT_API __declspec(dllimport)
+  #endif
+#else
+  #define DLL_EXPORT_API
+#endif
 
 #include "nomad_platform.hpp"
 // strongly inspired by Ipopt C interface
@@ -22,31 +31,31 @@ extern "C"
     // Blackbox functions types
     typedef bool (*Callback_BB_single)(int, double *, int, double *, bool *, NomadUserDataPtr);
 
-	DLL_ALGO_API NomadProblem createNomadProblem(
+	DLL_EXPORT_API NomadProblem createNomadProblem(
         Callback_BB_single bb_single, // black box function
         int nb_inputs,                // number of inputs
         int nb_outputs                // number of outputs
     );
 
-	DLL_ALGO_API void freeNomadProblem(NomadProblem nomad_problem);
+	DLL_EXPORT_API void freeNomadProblem(NomadProblem nomad_problem);
 
 
 
     // parameters settings
-	DLL_ALGO_API bool addNomadParam(NomadProblem nomad_problem, char *keyword_value_pair);
+	DLL_EXPORT_API bool addNomadParam(NomadProblem nomad_problem, char *keyword_value_pair);
 
-	DLL_ALGO_API bool addNomadValParam(NomadProblem nomad_problem, char *keyword, int value);
+	DLL_EXPORT_API bool addNomadValParam(NomadProblem nomad_problem, char *keyword, int value);
 
-	DLL_ALGO_API bool addNomadDoubleParam(NomadProblem nomad_problem, char *keyword, double value);
+	DLL_EXPORT_API bool addNomadDoubleParam(NomadProblem nomad_problem, char *keyword, double value);
 
-	DLL_ALGO_API bool addNomadBoolParam(NomadProblem nomad_problem, char *keyword, bool value);
+	DLL_EXPORT_API bool addNomadBoolParam(NomadProblem nomad_problem, char *keyword, bool value);
 
-	DLL_ALGO_API bool addNomadStringParam(NomadProblem nomad_problem, char *keyword, char *param_str);
+	DLL_EXPORT_API bool addNomadStringParam(NomadProblem nomad_problem, char *keyword, char *param_str);
 
-	DLL_ALGO_API bool addNomadArrayOfDoubleParam(NomadProblem nomad_problem, char *keyword, double *array_param);
+	DLL_EXPORT_API bool addNomadArrayOfDoubleParam(NomadProblem nomad_problem, char *keyword, double *array_param);
 
     // For the moment, do not allow the warm start
-	DLL_ALGO_API bool solveNomadProblem(NomadProblem nomad_problem,
+	DLL_EXPORT_API bool solveNomadProblem(NomadProblem nomad_problem,
                            int nb_starting_points,          // number of starting points
                            double *x0s,                     // starting points
                            bool *exists_feas_sol,           // indicates if the algorithm finds a feasible solution
