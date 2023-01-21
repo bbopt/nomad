@@ -566,7 +566,6 @@ set(VNSMADS_SOURCES
 Algos/VNSMads/VNS.cpp
 )
 
-
 #
 # Generate Attribute headers
 #
@@ -582,17 +581,25 @@ add_custom_command(
   DEPENDS ${ATTRIBUTE_TEXT}
 )
 
-# Build libraries 
+#
+# Build libraries and executables
+#
+
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+if (WIN32)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
+# Build shared libraries (nomadUtils, nomadEval, nomadAlgos)
 include(./CMakeListsLibs.txt)
 
-# Build executables 
-include(./CMakeListsExes.txt)
+# Build static libraries (nomadStatic)
+include(./CMakeListsLibsStatic.txt)
 
-# Build static libraries and executables
-if (WITH_STATIC_BUILD MATCHES ON)
-  include(./CMakeListsLibsStatic.txt)
-  include(./CMakeListsExesStatic.txt)
-endif()
+# Build statically linked executables (nomad)
+include(./CMakeListsExesStatic.txt)
 
 #
 # Install executable, libraries and headers

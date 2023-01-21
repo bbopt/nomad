@@ -103,12 +103,11 @@ set(SGTELIB_MAIN_SOURCE src/sgtelib.cpp)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-# Build libraries (modified for shared and static variants)
+# Build shared libraries (sgtelib)
 include(./CMakeListsLibs.txt)
 
-if (WITH_STATIC_BUILD MATCHES ON)
-  include(./CMakeListsLibsStatic.txt)
-endif()
+# Build static libraries (sgtelibStatic)
+include(./CMakeListsLibsStatic.txt)
 
 # Install header files
 install(

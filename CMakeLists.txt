@@ -238,15 +238,6 @@ else()
    message(STATUS "  Use of Ibex for projecting NOT enabled")
 endif()
 
-# Static build
-
-option(WITH_STATIC_BUILD "Option to include static build." OFF)
-if (WITH_STATIC_BUILD MATCHES ON)
-  message(STATUS "  Static build enabled.")
-else()
-  message(STATUS "  Static build NOT enabled.")
-endif()
-
 #
 # Custom options final message
 #
