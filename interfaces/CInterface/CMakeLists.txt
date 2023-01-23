@@ -12,10 +12,6 @@ set(INTERFACE_HEADERS
 # Build 
 #
 
-if(WIN32)
-  #  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif()
-
 add_library(
   nomadCInterface 
   SHARED 

@@ -1,11 +1,4 @@
-# set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-# set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-# 
-# if (WIN32)
-#     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-# endif()
-
-# (1) Utils
+# Static library
 #
 
 add_library(
@@ -65,33 +58,6 @@ target_include_directories(
     >
 )
 
-if(OpenMP_CXX_FOUND)
-  target_link_libraries(
-    nomadStatic
-    PUBLIC 
-      OpenMP::OpenMP_CXX
-  )
-endif()
-
-set_target_properties(
-  nomadStatic 
-  PROPERTIES 
-    VERSION "${NOMAD_VERSION}"
-    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
-    OUTPUT_NAME nomadStatic
-)
-
-if (WIN32)
-  target_compile_definitions(
-    nomadStatic
-    PRIVATE 
-      -DNOMAD_STATIC_BUILD
-  )
-endif()
-
-# (3) Algos
-#
-
 if(USE_SGTELIB MATCHES ON)
   target_sources(
     nomadStatic
@@ -109,6 +75,11 @@ if(USE_SGTELIB MATCHES ON)
       >
   )
 
+  target_link_libraries(
+    nomadStatic
+    PUBLIC 
+      sgtelibStatic
+  )
 else()
   target_include_directories(
     nomadStatic
@@ -116,6 +87,14 @@ else()
       $<BUILD_INTERFACE: 
         $ENV{IBEX_ROOT}/src
       >
+  )
+endif()
+
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(
+    nomadStatic
+    PUBLIC 
+      OpenMP::OpenMP_CXX
   )
 endif()
 
@@ -148,16 +127,24 @@ if(USE_IBEX MATCHES ON)
 	message(CHECK_START " Ready to use IBEX")
 endif()
 
-if(USE_SGTELIB MATCHES ON)
-  target_link_libraries(
+set_target_properties(
+  nomadStatic 
+  PROPERTIES 
+    VERSION "${NOMAD_VERSION}"
+    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
+    OUTPUT_NAME nomadStatic
+)
+
+if (WIN32)
+  target_compile_definitions(
     nomadStatic
-    PUBLIC 
-      sgtelibStatic
+    PRIVATE 
+      -DNOMAD_STATIC_BUILD
   )
 endif()
 
-
-# Installing the libraries and their header files
+# Install the library
+#
 
 install(
   TARGETS 

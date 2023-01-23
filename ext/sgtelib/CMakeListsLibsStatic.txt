@@ -1,7 +1,5 @@
-# Build the object first. 
+# Static library
 #
-# It will be built only once, then linked twice to make the shared and the
-# static variant of the library.
 
 add_library(
   sgtelibStatic
@@ -36,7 +34,7 @@ if (WIN32)
   )
 endif()
 
-# Install both variants of the library.
+# Install the library
 #
 
 install(

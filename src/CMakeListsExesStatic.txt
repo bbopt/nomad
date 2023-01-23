@@ -1,4 +1,4 @@
-# Build executables (modified for shared and static linking)
+# Static executable (nomad)
 #
 
 add_executable(
@@ -24,6 +24,14 @@ target_include_directories(
     >
 )
 
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(
+    nomadExecutableStatic
+    PUBLIC 
+      OpenMP::OpenMP_CXX
+  )
+endif()
+
 set_target_properties(
   nomadExecutableStatic
   PROPERTIES 
@@ -40,7 +48,7 @@ if (WIN32)
   )
 endif()
 
-# Install executables
+# Install executable
 #
 
 install(
