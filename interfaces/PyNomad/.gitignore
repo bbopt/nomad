@@ -1,6 +1,5 @@
 PyNomad.cpp
 *.so
 *.pyd
-build
 *.obj
-
+dist
