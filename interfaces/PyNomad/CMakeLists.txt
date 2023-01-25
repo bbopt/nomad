@@ -13,8 +13,43 @@ set(PYNOMAD_SOURCE
 
 set(PyNomad_MSVC_VIA "")
 
-if (MSVC)
-  set(PyNomad_MSVC_VIA "YES")
+
+  if (MSVC)
+    set(PyNomadStatic_MSVC_VIA "YES")
+  endif()
+
+  add_custom_target(
+    PyNomadStatic ALL
+    COMMAND
+      ${CMAKE_COMMAND} -E copy ./setup_PyNomadStatic.py setup.py
+    COMMAND
+      ${CMAKE_COMMAND} -E env "NOMAD_SRC=${CMAKE_SOURCE_DIR}/src" "NOMAD_BUILD_DIR=${CMAKE_BINARY_DIR}" "NOMAD_VERSION=${NOMAD_VERSION}" "NOMAD_VIAMSVC=${PyNomadStatic_MSVC_VIA}" python -m pip wheel -w dist -- .
+    DEPENDS 
+      nomadStatic
+      ${PYNOMAD_SOURCE}
+    WORKING_DIRECTORY 
+      ${CMAKE_CURRENT_SOURCE_DIR}
+    VERBATIM
+)
+
+else()
+
+# Command to create PyNomad interface
+add_custom_command(
+    OUTPUT PyNomad.${NOMAD_VERSION}.so # Test without it (not plateform indep.)
+    COMMAND python setup_PyNomad.py ${CMAKE_BINARY_DIR} ${NOMAD_VERSION} build_ext --inplace
+    COMMAND python setup_PyNomad.py ${CMAKE_BINARY_DIR} ${NOMAD_VERSION} install --user
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DEPENDS ${PYNOMAD_SOURCE}
+)
+
+# target pynomad is always built
+add_custom_target(pynomad ALL
+    COMMAND echo "IMPORTANT: need to run cmake --install before using PyNomad module"
+    DEPENDS PyNomad.${NOMAD_VERSION}.so nomadUtils nomadEval nomadAlgos
+    VERBATIM
+)
+
 endif()
 
 add_custom_target(
