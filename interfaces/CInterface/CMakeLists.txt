@@ -32,14 +32,15 @@ target_include_directories(
 target_link_libraries(
   nomadCInterface 
   PRIVATE
-    nomadStatic 
+    nomadUtils
+    nomadEval
+    nomadAlgos
 )
 
 if (WIN32)
   target_compile_definitions(
     nomadCInterface 
     PRIVATE 
-      -DNOMAD_STATIC_BUILD
       -DNOMAD_INTERFACE_C_DLL
   )
 endif()
