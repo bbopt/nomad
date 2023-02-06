@@ -49,11 +49,13 @@ jobs:
       # Usually this is always needed
       - uses: actions/checkout@v3
 
-      - name: Set up Python ${{ matrix.python-version }} x64
-        uses: actions/setup-python@v2
+      - name: Set up Python ${{ matrix.config.python-version }} x64
+        uses: actions/setup-python@v3
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.config.python-version }}
           architecture: x64
+        run: |
+          python --version 
 
       - name: Install Python package dependencies
         run: pip install cython wheel
@@ -87,7 +89,6 @@ jobs:
             cmake -G "MinGW Makefiles" \
               -DTEST_OPENMP=OFF \
               -DBUILD_INTERFACE_C=ON \
-              -DBUILD_INTERFACE_PYTHON=ON \
               -DCMAKE_INSTALL_PREFIX=../instdir \
               ..
           else
