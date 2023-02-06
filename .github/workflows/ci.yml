@@ -53,9 +53,7 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.config.python-version }}
-          architecture: x64
-        run: |
-          python --version 
+          architecture: x64 
 
       - name: Install Python package dependencies
         run: pip install cython wheel
@@ -65,6 +63,7 @@ jobs:
         run: |
           choco install cmake
           cmake --version
+          python --version
 
       - name: Install dependencies for building on Ubuntu
         if: startsWith(matrix.config.name, 'Ubuntu')
@@ -72,12 +71,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install cmake
           cmake --version
+          python --version
 
       - name: Install dependencies for building on MacOS
         if: startsWith(matrix.config.name, 'MacOS')
         run: |
           brew install cmake
           cmake --version
+          python --version
 
       - name: Configure
         shell: bash
