@@ -30,7 +30,7 @@ macos_instance:
 task:
   name: MacOS M1
   dependencies_script: |
-    brew install cmake
+    /opt/homebrew/bin/brew install cmake
   configure_script: |
     mkdir instdir
     mkdir build
