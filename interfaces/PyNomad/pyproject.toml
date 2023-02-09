@@ -1,0 +1,11 @@
+[build-system]
+requires = [
+  'setuptools', 
+  'cython',
+  'wheel'
+]
+
+[tool.cibuildwheel]
+test-requires = 'pytest'
+test-command = 'pytest {package}/tests'
+

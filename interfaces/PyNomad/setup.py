@@ -59,10 +59,10 @@ else:
     setup_compile_args.append('-pthread')
 
     # Use GCC on non-MSVC builds.
-    if (os.environ.get("CC") == ""):
-       os.environ["CC"] = "gcc"
-    if (os.environ.get("CXX") == ""):
-       os.environ["CXX"] = "g++"
+    #if (os.environ.get("CC") == ""):
+    #   os.environ["CC"] = "gcc"
+    #if (os.environ.get("CXX") == ""):
+    #   os.environ["CXX"] = "g++"
 
 # MSVC linker automagically resolves static libraries
 # by their base names if given apropriate search paths.
@@ -114,6 +114,8 @@ setuptools.setup(
     author_email = 'christophe.tribes@polymtl.ca',
     license = 'LGPL',
     description = 'Python interface to Nomad for blackbox optimization',
+    long_description = 'Python interface to Nomad for blackbox optimization. A longer, more complete description, eh?',
+    long_description_content_type = 'text/plain',
     url = 'https://github.com/bbopt/nomad',
     ext_modules = cythonize(setuptools.Extension(
         'PyNomad',
