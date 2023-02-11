@@ -1,0 +1,78 @@
+name: Continuous integration, next version.
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - name: Windows
+            os: windows-latest
+          - name: Ubuntu
+            os: ubuntu-latest
+          - name: macOS
+            os: macos-latest
+        feature:
+          - name: with PyNomad enabled
+            python: true
+            option: >-
+              -DTEST_OPENMP=OFF 
+              -DBUILD_INTERFACE_PYTHON=ON 
+              -DBUILD_INTERFACE_C=ON
+              -DBUILD_EXAMPLES=ON 
+          - name: with OpenMP enabled
+            python: false
+            option: >-
+              -DTEST_OPENMP=ON
+              -DBUILD_INTERFACE_PYTHON=OFF
+              -DBUILD_INTERFACE_C=ON
+              -DBUILD_EXAMPLES=ON 
+
+    name: ${{ matrix.target.name }} ${{ matrix.feature.name }}
+    runs-on: ${{ matrix.target.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # Prepare environment
+
+      - name: Prepare Python environment
+        run: >-
+          pip install setuptools wheel cython pytest
+        if: ${{ matrix.feature.python }}
+
+      # Configure, build and install NOMAD
+
+      - name: Configure
+        run: >-
+          cmake ${{ matrix.feature.option }} -B build -S . 
+
+      - name: Build 
+        run: >-
+          cmake --build build --config Release --clean-first --parallel 2 
+
+      - name: Install
+        run: >-
+          cmake --install build
+
+      # Execute tests
+
+      - name: Test (standard examples)
+        run: >-
+          ctest -C Release --test-dir build
+
+      - name: Test (PyNomad wheel)
+        shell: bash
+        run: |-
+          cd interfaces/PyNomad
+          pip install --force-reinstall dist/*.whl
+          pytest
+        if: ${{ matrix.feature.python }}
+
