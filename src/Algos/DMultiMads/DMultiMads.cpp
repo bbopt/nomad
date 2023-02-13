@@ -127,5 +127,5 @@ bool NOMAD::DMultiMads::runImp()
 
 void NOMAD::DMultiMads::readInformationForHotRestart()
 {
-    throw NOMAD::Exception(__FILE__,__LINE__,"DMultiMads does not currently support hot restart.");
+    // Todo
 }
