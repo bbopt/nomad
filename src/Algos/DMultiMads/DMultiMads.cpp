@@ -105,10 +105,10 @@ bool NOMAD::DMultiMads::runImp()
                 _algoSuccessful = true;
             }
             
-//            if (getUserInterrupt())
-//            {
-//                hotRestartOnUserInterrupt();
-//            }
+            if (getUserInterrupt())
+            {
+                hotRestartOnUserInterrupt();
+            }
         }
 
 //        // _refMegaIteration is used for hot restart (read
@@ -126,5 +126,5 @@ bool NOMAD::DMultiMads::runImp()
 
 void NOMAD::DMultiMads::readInformationForHotRestart()
 {
-    // Not implemented
+    throw NOMAD::Exception(__FILE__,__LINE__,"DMultiMads does not currently support hot restart.");
 }
