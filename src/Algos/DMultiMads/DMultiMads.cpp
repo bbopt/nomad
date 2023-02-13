@@ -107,7 +107,8 @@ bool NOMAD::DMultiMads::runImp()
             
             if (getUserInterrupt())
             {
-                hotRestartOnUserInterrupt();
+                std::cout << "Hot restart not implemented for DMultiMads. Let's continue." << std::endl;
+                // hotRestartOnUserInterrupt();
             }
         }
 
