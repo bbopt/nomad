@@ -16,7 +16,7 @@ def constraint_two (point):
 def blackbox (eval_point):
     eval_f0 = objective(eval_point)
     eval_g0 = constraint_one(eval_point)
-    eval_g1 = constraint_one(eval_point)
+    eval_g1 = constraint_two(eval_point)
 
     eval_point.setBBO(f'{eval_f0} {eval_g0} {eval_g1}'.encode('utf-8'))
     return True
@@ -37,7 +37,7 @@ def test_single_constraint ():
     result = PyNomad.optimize(blackbox, x0, [], [], params)
 
     x_result = result['x_best']
-    x_expect = [ -0.22, 1.53, 2.66, 1.52, -3.41 ]
+    x_expect = [ 0.24, 2.51, 1.30, 1.55, -3.50 ]
 
     assert result['exit_status'] == 1
     for result_value, expect_value in zip(x_result, x_expect):
