@@ -95,6 +95,7 @@ OBJ
     . CSTR      : same as 'PB'
     . EB        : constraint <= 0 treated with Extreme Barrier (EB)
     . F         : constraint <= 0 treated with Filter
+    . CNT_EVAL  : 0 or 1 output: count or not the evaluation
     . NOTHING   : this output is ignored
     . EXTRA_O   : same as 'NOTHING'
     .  -        : same as 'NOTHING'
