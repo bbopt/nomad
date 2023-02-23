@@ -179,9 +179,6 @@ public:
         fun->prhs[fun->xrhs] = mxCreateDoubleMatrix(m, n, mxREAL); //x
         double *List_x = mxGetPr(fun->prhs[fun->xrhs]);
         
-        double *xm, *fvals;
-        mxLogical *sur;
-        
         size_t j=0;
         for (size_t j = 0 ; j < block.size() ; j++)
         {
@@ -192,6 +189,7 @@ public:
         }
         
         //Add a flag if surrogate eval
+        mxLogical *sur;
         if( NOMAD::EvalType::SURROGATE == _evalType )
         {
             sur=mxGetLogicals(fun->prhs[fun->xrhs+1]);
@@ -272,10 +270,11 @@ public:
         }
 #endif
         
-        
-        //Assign bb output
-        fvals = mxGetPr(fun->plhs[0]);
-        j=0;
+        // Update the MatlabEvaluator counter
+        counter_eval += m;
+
+                //Assign bb output
+        double *fvals = mxGetPr(fun->plhs[0]);
         for (size_t j =0 ; j < block.size() ; j++)
         {
 #ifdef BLACKBOX_COUNT_EVAL
@@ -296,13 +295,34 @@ public:
         //Iteration Callback
         if (nullptr != callbackF && callbackF->enabled)
         {
-            mexPrintf("Callback function not yet implemented when using block of points for evaluation. Let's continue...\n\n");
-            //        //Check for iterfun stop
-            //        if (stop)
-            //        {
-            //            mexPrintf("\nUser evaluation callback called for a stop. Exiting NOMAD with a CTRL-C signal ...\n\n");
-            //            NOMAD::Step::setUserTerminate();
-            //        }
+            callbackF->plhs[0] = nullptr;
+            
+            callbackF->prhs[1] = mxCreateNumericMatrix(1, 1, mxINT32_CLASS, mxREAL);
+            callbackF->prhs[2] = mxCreateDoubleMatrix(m, (nobj + ncon), mxREAL);
+            callbackF->prhs[3] = mxCreateDoubleMatrix(m, n, mxREAL);
+            
+            memcpy(mxGetData(callbackF->prhs[1]), &counter_eval, sizeof(int));
+            memcpy(mxGetPr(callbackF->prhs[2]), fvals, m*(nobj + ncon) * sizeof(double));
+            memcpy(mxGetPr(callbackF->prhs[3]), List_x, m*n * sizeof(double));
+            try {
+                mexCallMATLAB(1, callbackF->plhs, 4, callbackF->prhs, callbackF->f);
+            }
+            catch (...)
+            {
+                mexPrintf("Unrecoverable error from user eval callback. Callback function [stop] = cbFun(eval_counter,fevals,x) must be provided. Exiting NOMAD...\n\n");
+                //Force exit
+                NOMAD::Step::setUserTerminate();
+                return evalOk;
+            }
+            
+            //Collect return argument
+            bool stop = *(bool*)mxGetData(callbackF->plhs[0]);
+            //Check for iterfun stop
+            if (stop)
+            {
+                mexPrintf("\nUser evaluation callback called for a stop. Exiting NOMAD with a CTRL-C signal ...\n\n");
+                NOMAD::Step::setUserTerminate();
+            }
         }
         
         // Clean up LHS Fun Ptr
@@ -437,7 +457,7 @@ public:
 
 			 callbackF->prhs[1] = mxCreateNumericMatrix(1, 1, mxINT32_CLASS, mxREAL);
 			 callbackF->prhs[2] = mxCreateDoubleMatrix(1, (nobj + ncon), mxREAL);
-			 callbackF->prhs[3] = mxCreateDoubleMatrix(n, 1, mxREAL);
+			 callbackF->prhs[3] = mxCreateDoubleMatrix(1, n, mxREAL);
 
 			 memcpy(mxGetData(callbackF->prhs[1]), &counter_eval, sizeof(int));
 			 memcpy(mxGetPr(callbackF->prhs[2]), fvals, (nobj + ncon) * sizeof(double));
