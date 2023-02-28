@@ -5,7 +5,3 @@ requires = [
   'wheel'
 ]
 
-[tool.cibuildwheel]
-test-requires = 'pytest'
-test-command = 'pytest {package}/tests'
-

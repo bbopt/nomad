@@ -51,6 +51,10 @@ jobs:
             build
           CIBW_BUILD_VERBOITY: >-
             3
+          CIBW_TEST_COMMAND: >-
+            python -m pytest -s -- {package}/tests
+          CIBW_TEST_REQUIRES: >-
+            pytest
         with:
           output-dir: wheelhouse
           package-dir: interfaces/PyNomad
