@@ -8,7 +8,7 @@ set(PYNOMAD_SOURCE
 # The build process supports both GCC and MSVC.
 
 add_custom_target(
-    PyNomadStatic ALL
+    PyNomad ALL
     COMMAND
     ${CMAKE_COMMAND} -E env "NOMAD_SRC=${CMAKE_SOURCE_DIR}/src" "NOMAD_BUILD_DIR=${CMAKE_BINARY_DIR}" "NOMAD_MSVC_FLAG=${MSVC}" "NOMAD_MSVC_CONF=$<CONFIG>" python -m pip wheel -w dist -- .
     DEPENDS 
@@ -18,5 +18,4 @@ add_custom_target(
       ${CMAKE_CURRENT_SOURCE_DIR}
     VERBATIM
 )
-
 
