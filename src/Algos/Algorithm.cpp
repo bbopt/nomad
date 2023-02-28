@@ -110,7 +110,9 @@ void NOMAD::Algorithm::init()
      * \todo Propage interruption to all threads, for all parallel evaluations of blackbox.
      */
     signal(SIGINT, userInterrupt);
-    signal(SIGSEGV, debugSegFault);
+    // This signal handling is problematic with Matlab.
+    // Let's test without it.
+    // signal(SIGSEGV, debugSegFault);
 
 }
 

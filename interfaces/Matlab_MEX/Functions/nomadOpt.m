@@ -36,4 +36,4 @@
 %   NOMAD is released under the Lesser GNU Public License (LGPL).
 %   Type nomadOpt('-info') to see license and author details.
 %
-%   MEX Interface for GERAD version by C. Tribes
+%   MEX Interface by C. Tribes
