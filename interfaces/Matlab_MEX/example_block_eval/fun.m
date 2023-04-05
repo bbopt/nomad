@@ -18,7 +18,7 @@ for m=1:nb_points
 end
 
 % Unlike in the standard nomad version, a point cannot be
-% rejected in the matlab version.
+% rejected in the block version of the blackbox evaluation.
 % If some points cannot be evaluated, objective and constraints must be set
 % to Inf, otherwise the nomad evaluator for block of evaluations cannot
 % continue. 
