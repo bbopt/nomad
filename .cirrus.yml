@@ -31,13 +31,13 @@ task:
     else
       brew install cmake gcc
     fi
-    export CC=${cc}
-    export CXX=${cxx}
   configure_script: |
     mkdir instdir
     mkdir build
     cd build
     cmake \
+      -DCMAKE_C_COMPILER=$cc \
+      -DCMAKE_CXX_COMPILER=$cxx \
       -DTEST_OPENMP=OFF \
       -DBUILD_INTERFACE_C=ON \
       -DBUILD_TESTS=ON \
