@@ -4,28 +4,40 @@ task:
       freebsd_instance:
         image: freebsd-13-1-release-amd64
       env:
-        cc: gcc
-        cxx: g++
+        cc: gcc12
+        cxx: g++12
+    - name: FreeBSD -- clang | clang++
+      freebsd_instance:
+        image: freebsd-13-1-release-amd64
+      env:
+        cc: clang
+        cxx: clang++
     - name: MacOS M1 -- gcc | g++
       macos_instance:
         image: ghcr.io/cirruslabs/macos-monterey-base:latest
       env:
-        cc: gcc
-        cxx: g++
+        cc: gcc-12
+        cxx: g++-12
+    - name: MacOS M1 -- clang | clang++
+      macos_instance:
+        image: ghcr.io/cirruslabs/macos-monterey-base:latest
+      env:
+        cc: clang
+        cxx: clang++
   dependencies_script: |
     echo $(uname)
     if [ "$(uname)" = "FreeBSD" ]; then
-      pkg install -y cmake bash
+      pkg install -y cmake bash gcc12
     else
-      brew install cmake
+      brew install cmake gcc
     fi
+    export CC=${cc}
+    export CXX=${cxx}
   configure_script: |
     mkdir instdir
     mkdir build
     cd build
     cmake \
-      -DCMAKE_C_COMPILER=$cc \
-      -DCMAKE_CXX_COMPILER=$cxx \
       -DTEST_OPENMP=OFF \
       -DBUILD_INTERFACE_C=ON \
       -DBUILD_TESTS=ON \
