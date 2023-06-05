@@ -85,14 +85,14 @@ jobs:
           cmake --version
 
       - name: Install GNU C and Fortran compilers
-        if: matrix.compiler == 'gnu'
+        if: matrix.config.compiler == 'gnu'
         uses: awvwgk/setup-fortran@main
         with:
           compiler: gcc
           version: 12
 
       - name: Install Intel OpenAPI C and Fortran compilers
-        if: matrix.compiler == 'intel'
+        if: matrix.config.compiler == 'intel'
         uses: modflowpy/install-intelfortran-action@v1
 
       - name: Configure
