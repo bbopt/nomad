@@ -101,7 +101,7 @@ jobs:
           mkdir instdir
           mkdir build
           cd build
-          ${cxx} -v
+          echo "CXX=$cxx" >> $GITHUB_ENV
           if [[ "${{matrix.config.name}}" == "Windows--MinGW" ]]; then
             cmake -G "MinGW Makefiles" \
               -DCMAKE_C_COMPILER=$cc \
