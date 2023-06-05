@@ -13,7 +13,7 @@ jobs:
   # This workflow contains a single job called "nomad"
   nomad:
     # The type of runner that the job will run on
-    name: ${{ matrix.config.name }}
+    name: ${{ matrix.config.name }} -- ${{ matrix.config.cc }} | ${{ matrix.config.cxx }}
     runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
@@ -21,24 +21,44 @@ jobs:
         config:
         - {
             name: "Windows--MSVC", artifact: "Windows-MSVC.tar.xz",
-            os: windows-latest,
+            os: windows-latest, compiler: msvc,
             build_type: "Release", cc: "cl", cxx: "cl",
             environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           }
         - {
             name: "Windows--MinGW", artifact: "Windows-MinGW.tar.xz",
-            os: windows-latest,
-            build_type: "Release", cc: "x86_64-w64-mingw32-gcc", cxx: "x86_64-w64-mingw32-g++"
+            os: windows-latest, compiler: gnu,
+            build_type: "Release", cc: "gcc", cxx: "g++"
+          }
+        - {
+            name: "Windows", artifact: "Windows-MinGW.tar.xz",
+            os: windows-latest, compiler: intel,
+            build_type: "Release", cc: "icl", cxx: "icl"
           }
         - {
             name: "Ubuntu", artifact: "Linux.tar.xz",
-            os: ubuntu-latest,
+            os: ubuntu-latest, compiler: gnu,
+            build_type: "Release", cc: "gcc", cxx: "g++"
+          }
+        - {
+            name: "Ubuntu", artifact: "Linux.tar.xz",
+            os: ubuntu-latest, compiler: intel,
+            build_type: "Release", cc: "icc", cxx: "icpc"
+          }
+        - {
+            name: "MacOS", artifact: "macOS.tar.xz",
+            os: macos-latest, compiler: clang,
+            build_type: "Release", cc: "clang", cxx: "clang++"
+          }
+        - {
+            name: "MacOS", artifact: "macOS.tar.xz",
+            os: macos-latest, compiler: gnu,
             build_type: "Release", cc: "gcc", cxx: "g++"
           }
         - {
             name: "MacOS", artifact: "macOS.tar.xz",
-            os: macos-latest,
-            build_type: "Release", cc: "clang", cxx: "clang++"
+            os: macos-latest, compiler: intel,
+            build_type: "Release", cc: "icc", cxx: "icpc"
           }
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -64,6 +84,17 @@ jobs:
           brew install cmake
           cmake --version
 
+      - name: Install GNU C and Fortran compilers
+        if: matrix.compiler == 'gnu'
+        uses: awvwgk/setup-fortran@main
+        with:
+          compiler: gcc
+          version: 12
+
+      - name: Install Intel OpenAPI C and Fortran compilers
+        if: matrix.compiler == 'intel'
+        uses: modflowpy/install-intelfortran-action@v1
+
       - name: Configure
         shell: bash
         run: |
@@ -72,12 +103,16 @@ jobs:
           cd build
           if [[ "${{matrix.config.name}}" == "Windows--MinGW" ]]; then
             cmake -G "MinGW Makefiles" \
+              -DCMAKE_C_COMPILER=$cc \
+              -DCMAKE_CXX_COMPILER=$cxx \
               -DTEST_OPENMP=OFF \
               -DBUILD_INTERFACE_C=ON \
               -DCMAKE_INSTALL_PREFIX=../instdir \
               ..
           else
             cmake \
+              -DCMAKE_C_COMPILER=$cc \
+              -DCMAKE_CXX_COMPILER=$cxx \
               -DTEST_OPENMP=OFF \
               -DBUILD_INTERFACE_C=ON \
               -DCMAKE_INSTALL_PREFIX=../instdir \
