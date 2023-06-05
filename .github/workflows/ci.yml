@@ -88,7 +88,7 @@ jobs:
         if: matrix.config.compiler == 'gnu'
         uses: awvwgk/setup-fortran@main
         with:
-          compiler: gcc
+          compiler: [gcc, g++]
           version: 12
 
       - name: Install Intel OpenAPI C and Fortran compilers
