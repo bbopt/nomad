@@ -302,7 +302,7 @@ namespace NOMAD{
   }
 }
 
-%extend NOMAD::EvalPoint {
+%extend NOMAD::ArrayOfDouble {
   NOMAD::Double & get(size_t i) {
     return (*($self))[i];
   }
