@@ -42,13 +42,17 @@
 #include "Type/BBOutputType.hpp"
 #include "Type/DirectionType.hpp"
 #include "Type/EvalType.hpp"
+#include "Cache/CacheBase.hpp"
 #include <locale.h>
 %}
-
 
 %shared_ptr(NOMAD::AllParameters)
 %shared_ptr(NOMAD::EvalParameters)
 %shared_ptr(NOMAD::Evaluator)
+
+%template(EvalPointVector) std::vector<NOMAD::EvalPoint>;
+%template(EvalPointList) std::list<NOMAD::EvalPoint>;
+
 namespace NOMAD{
 
   class DLL_UTIL_API Double {
@@ -71,6 +75,19 @@ namespace NOMAD{
       explicit Point ( const size_t n = 0 , const NOMAD::Double & d = NOMAD::Double() ) : ArrayOfDouble (n, d);
       explicit Point ( const std::vector<double> & v) : ArrayOfDouble (v);
       void set ( size_t j , const NOMAD::Double & v, bool relative = false, const NOMAD::Double & lb = NOMAD::Double(), const NOMAD::Double & ub = NOMAD::Double() );
+  };
+
+  enum class DLL_UTIL_API ComputeType
+  {
+      STANDARD,           ///< f is OBJ. h is the squared sum of violations of
+                          ///< all constraints. EB constraint violation result
+                          ///< in h being INF.
+      PHASE_ONE,          ///< f is computed based on the violation of EB
+                          ///< constraints only. h is always 0. OBJ and PB
+                          ///< constraints are ignored.
+      USER,               ///< f and h are computed by a user-provided function.
+      UNDEFINED           ///< Undefined: This value may be used when the
+                          ///< ComputeType is not mandatory
   };
 
 //  enum class DLL_UTIL_API BBOutputType
@@ -148,6 +165,11 @@ namespace NOMAD{
     USE_BB_EVAL                 ///< Neither eval_x() nor eval_block() were redefined by library mode. An external executable is provided.
   };
 
+  class DLL_EVAL_API Eval {
+    public:
+      explicit Eval();
+  };
+
   class DLL_EVAL_API EvalPoint : public NOMAD::Point {
     public:
 
@@ -158,8 +180,10 @@ namespace NOMAD{
                   NOMAD::EvalType evalType = NOMAD::EvalType::BB,
                   const bool evalOk = true);
 
+      Eval* getEval(EvalType evalType) const;
+
   };
-  
+
   class DLL_UTIL_API EvalParameters : public NOMAD::Parameters {
     public:
 
@@ -233,9 +257,14 @@ namespace NOMAD{
 
   };
 
+    class DLL_ALGO_API CacheBase
+    {
+    private:
+      CacheBase();
+      ~CacheBase();
+    };
 
 }
-
 
 %extend NOMAD::Evaluator {
   std::vector<bool> eval_block(std::vector<std::shared_ptr<NOMAD::EvalPoint>> &block,
@@ -256,15 +285,81 @@ namespace NOMAD{
   }
 }
 
+%extend NOMAD::Eval {
+  Double getObjective() const
+  {
+    return (*($self)).getBBOutput().getObjective((*($self)).getBBOutputTypeList());
+  }
+
+  ArrayOfDouble getObjectives() const
+  {
+    return (*($self)).getBBOutput().getObjectives((*($self)).getBBOutputTypeList());
+  }
+
+  ArrayOfDouble getConstraints() const
+  {
+    return (*($self)).getBBOutput().getConstraints((*($self)).getBBOutputTypeList());
+  }
+}
+
 %extend NOMAD::EvalPoint {
-    NOMAD::Double & get(size_t i) {
-        return (*($self))[i];
-    }
+  NOMAD::Double & get(size_t i) {
+    return (*($self))[i];
+  }
 }
 
 %extend NOMAD::MainStep {
-    void init() {
-       setlocale(LC_ALL,"C");
-       NOMAD::MainStep::resetComponentsBetweenOptimization();
-    }
+  void init() {
+    setlocale(LC_ALL,"C");
+    NOMAD::MainStep::resetComponentsBetweenOptimization();
+  }
 }
+
+%extend NOMAD::CacheBase {
+  static const CacheBase& getInstance()
+  {
+    return *NOMAD::CacheBase::getInstance();
+  }
+
+  size_t findBestFeas(
+    std::vector<EvalPoint> &evalPointList,
+    const Point& fixedVariable,
+    EvalType evalType,
+    ComputeType computeType,
+    Eval * refEval
+  ) const {
+    return $self->findBestFeas(evalPointList, fixedVariable, evalType, computeType, refEval);
+  }
+
+  size_t findBestFeas(
+    std::list<EvalPoint> &evalPointList,
+    const Point& fixedVariable,
+    EvalType evalType,
+    ComputeType computeType
+  ) const {
+    return $self->findBestFeas(evalPointList, fixedVariable, evalType, computeType);
+  }
+
+  size_t findBestInf(
+    std::vector<EvalPoint> &evalPointList,
+    const Double& hMax,
+    const Point& fixedVariable,
+    EvalType evalType,
+    ComputeType computeType,
+    Eval * refEval
+  ) const {
+    return $self->findBestInf(evalPointList, hMax, fixedVariable, evalType, computeType, refEval);
+  }
+
+  size_t findBestInf(
+    std::list<EvalPoint> &evalPointList,
+    const Double& hMax,
+    const Point& fixedVariable,
+    EvalType evalType,
+    ComputeType computeType
+  ) const {
+    return $self->findBestInf(evalPointList, hMax, fixedVariable, evalType, computeType);
+  }
+}
+
+
