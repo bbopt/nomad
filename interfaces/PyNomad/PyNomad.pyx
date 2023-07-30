@@ -193,14 +193,16 @@ def optimize(fBB, pX0, pLB, pUB, params, fSurrogate=None):
          eParams.append(params[i].encode(u"ascii"))
 
     if fSurrogate is None:
-        runStatus = runNomad(cb, cbL, <void*> fBB, <vector[double]&> pX0,
+        runStatus = runNomad(<Callback> cb, <CallbackL> cbL, 
+                         <void*> fBB, <vector[double]&> pX0,
                          <vector[double]&> pLB, <vector[double]&> pUB,
                          <vector[string]&> eParams,
                          uFeas.c_ep_ptr,
                          uInfeas.c_ep_ptr,
                          nbEvals, nbIters)
     else:
-        runStatus = runNomad(cb, cbL, <void*> fBB,  <void*> fSurrogate,
+        runStatus = runNomad(<Callback> cb, <CallbackL> cbL, 
+                         <void*> fBB,  <void*> fSurrogate,
                          <vector[double]&> pX0,
                          <vector[double]&> pLB, <vector[double]&> pUB,
                          <vector[string]&> eParams,
