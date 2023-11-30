@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -114,7 +114,7 @@ void NOMAD::NMSearchMethod::generateTrialPointsFinal()
 
     auto madsIteration = getParentOfType<MadsIteration*>();
 
-    // Use first point of barrier as simplex center.
+    // Note: Use first point of barrier as simplex center.
     NOMAD::NMAllReflective allReflective(this,
                             getMegaIterationBarrier()->getFirstPoint(),
                             madsIteration->getMesh());

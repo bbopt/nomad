@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -265,6 +265,10 @@ NOMAD::DisplayStatsType NOMAD::StatsInfo::stringToDisplayStatsType(const std::st
     {
         ret = NOMAD::DisplayStatsType::DS_TOTAL_MODEL_EVAL;
     }
+    else if (s == "TAG")
+    {
+        ret = NOMAD::DisplayStatsType::DS_TAG;
+    }
     else
     {
         // Don't throw an exception.
@@ -349,6 +353,8 @@ std::string NOMAD::StatsInfo::displayStatsTypeToString(const NOMAD::DisplayStats
             return "SURROGATE_EVAL";
         case NOMAD::DisplayStatsType::DS_TOTAL_MODEL_EVAL:
             return "TOTAL_MODEL_EVAL";
+        case NOMAD::DisplayStatsType::DS_TAG:
+            return "TAG";    
         case NOMAD::DisplayStatsType::DS_USER:
             return "USER";
         case NOMAD::DisplayStatsType::DS_UNDEFINED:
@@ -555,6 +561,10 @@ std::string NOMAD::StatsInfo::display(const NOMAD::DisplayStatsTypeList& format,
         else if (NOMAD::DisplayStatsType::DS_TOTAL_MODEL_EVAL == statsType)
         {
             out += NOMAD::itos(_totalModelEval);
+        }
+        else if (NOMAD::DisplayStatsType::DS_TAG == statsType)
+        {
+            out +=  NOMAD::itos(_tag);
         }
         else if (NOMAD::DisplayStatsType::DS_USER == statsType)
         {

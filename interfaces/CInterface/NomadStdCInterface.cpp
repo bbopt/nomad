@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -75,6 +75,9 @@ struct NomadProblemInfo
     // must return true if works, otherwise false.
     // WARNING: all arrays must be allocated before and deallocated after.
     Callback_BB_single bb_single;
+
+    // TODO function of blocks of inputs
+    // bool* (*bb_multiple)(int, int, double**, int double**)
 
     int nb_inputs;  // number of inputs
     int nb_outputs; // number of outputs
@@ -308,7 +311,10 @@ bool solveNomadProblem(NomadProblem nomad_problem,
         nomad_problem->p->setAttributeValue<NOMAD::ArrayOfPoint>("X0", start_x0s);
     }
 
+    // TODO : for the moment allow only one blackbox call.
     nomad_problem->p->getEvaluatorControlGlobalParams()->setAttributeValue<size_t>("BB_MAX_BLOCK_SIZE", 1);
+
+    // TODO: For the moment, let these attributes
     nomad_problem->p->getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
     nomad_problem->p->getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
     nomad_problem->p->setAttributeValue("HOT_RESTART_ON_USER_INTERRUPT", false);
@@ -345,32 +351,38 @@ bool solveNomadProblem(NomadProblem nomad_problem,
         stopflag = TheMainStep.run();
         TheMainStep.end();
 
-        // Set the best feasible and best infeasible solutions
+        // Set the best feasible and best infeasible solutions ; TODO maybe change
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
         const NOMAD::EvalType &evalType = NOMAD::EvalType::BB;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), evalType, NOMAD::ComputeType::STANDARD, nullptr);
-        auto nbInf = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), evalType, NOMAD::ComputeType::STANDARD, nullptr);
+        size_t nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), evalType, NOMAD::ComputeType::STANDARD);
+        size_t nbInf = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), evalType, NOMAD::ComputeType::STANDARD);
 
-        if (nbInf > 0)
-        {
-            // Use first infeasible point. This could be generalized to show
-            // all infeasible points.
-            // Smart pointers should also be used.
-            // For now, keep the same logic as with PyNomad 1.
-            // One of the pointer is set to null to identify the type of solution
-            NOMAD::EvalPoint evalPointInf = evalPointInfList[0];
-            bestInfEvalPoint = std::make_shared<NOMAD::EvalPoint>(evalPointInf);
-            if (0 == nbFeas)
-            {
-                bestFeasEvalPoint = nullptr;
-            }
-        }
+        // For now
+        // If nbFeas > 0 we return a single best feasible point (no infeasible point)
+        // Else (if nbFeas == 0) we return the least infeasible point with the smallest f (index 0, see findBestInf)
+        // Maybe this could be generalized to show the best feasible point and all undominated infeasible points.
+        // The same logic for Nomad C and Matlab interfaces and for PyNomad.
         if (nbFeas > 0)
         {
             NOMAD::EvalPoint evalPointFeas = evalPointFeasList[0];
             bestFeasEvalPoint = std::make_shared<NOMAD::EvalPoint>(evalPointFeas);
             bestInfEvalPoint = nullptr;
         }
+        else if (nbFeas == 0)
+        {
+            bestFeasEvalPoint = nullptr;
+            if (nbInf > 0)
+            {
+                // One of the pointer is set to null to identify the type of solution
+                NOMAD::EvalPoint evalPointInf = evalPointInfList[0];
+                bestInfEvalPoint = std::make_shared<NOMAD::EvalPoint>(evalPointInf);
+            }
+            else if (nbInf == 0)
+            {
+                bestInfEvalPoint = nullptr;
+            }
+        }
+
 
         if (bestInfEvalPoint != nullptr)
         {

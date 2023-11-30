@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -53,6 +53,7 @@
 
 void NOMAD::QuadModelSinglePass::generateTrialPointsImp ()
 {
+    
     // Select the sample points to construct the model. Use a center pt and the cache
     NOMAD::QuadModelUpdate update(this,_scalingDirections,emptyEvalPointSet /* No trial points -> for search */);
         

@@ -1,3 +1,25 @@
+************************
+************************
+NOMAD and Matlab
+************************
+************************
+
+NOMAD and Matlab can be used in combination. There are two ways to perform
+optimization using objective and constraint function evaluated as Matlab code.
+
+The simplest way is to run Matlab as a blackbox in batch mode to evaluate each 
+given point. An example is provided in $NOMAD_HOME/examples/basic/batch/MatlabBB.
+
+Another way is to build the Matlab MEX interface for NOMAD as described in what 
+follows. 
+
+
+******************************
+******************************
+NOMAD and Matlab MEX interface
+******************************
+******************************
+
 The Matlab MEX interface allows to run NOMAD within the command line of Matlab.
 
 Creating the Matlab MEX Interface to NOMAD requires to build source codes.
@@ -74,6 +96,3 @@ command in Matlab you may obtain an error such as
 (example obtained on linux-Ubuntu). This is an indication that the versions
  of Matlab and the compiler may not be compatible (See in the preamble 
 the web site to check compatibility).
-
-
-

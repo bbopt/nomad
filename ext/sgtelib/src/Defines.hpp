@@ -36,7 +36,7 @@
 #include <limits.h>
 
 // CASE Visual Studio C++ compiler
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(NOMAD_STATIC_BUILD)
 #pragma warning(disable:4251)
 #ifdef DLL_EXPORTS
 #define DLL_API __declspec(dllexport) 

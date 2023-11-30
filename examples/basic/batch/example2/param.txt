@@ -3,17 +3,17 @@
 ####################
 
 # Number of variables
-DIMENSION 10
+DIMENSION 5
 
 # Black box
 BB_EXE bb2.exe
 BB_OUTPUT_TYPE OBJ PB EB
 
 # Starting point
-X0 ( 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 )
+X0 ( 5.0 5.0 5.0 5.0 5.0  )
 
 # Some variables are integer, others are multiple of 0.5
-GRANULARITY ( 1 1 0.5 1 1 1 1 0.5 1 1 )
+GRANULARITY ( 1 1 0.5 1 0.5 )
 
 
 # ALGORITHM PARAMETERS
@@ -22,7 +22,11 @@ GRANULARITY ( 1 1 0.5 1 1 1 1 0.5 1 1 )
 # The algorithm terminates after that number black-box evaluations
 MAX_BB_EVAL 1000
 
-MEGA_SEARCH_POLL true
+MEGA_SEARCH_POLL true # Generate search and poll steps trial points before starting evaluation
+
+NB_THREADS_OPENMP 4  # Number of threads to perform blackbox evaluation
+                     # This requires to have Nomad built with OpenMP (see $NOMAD_HOME/README.txt)
+                     # With this parameter, the default thread number (1) is replaced.
 
 # The algorithm terminates after that total number of evaluations,
 # including cache hits

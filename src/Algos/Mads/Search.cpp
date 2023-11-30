@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -47,8 +47,10 @@
 
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/Search.hpp"
+#include "../../Algos/Mads/QPSolverAlgoSearchMethod.hpp"
 #include "../../Algos/Mads/QuadSearchMethod.hpp"
 #include "../../Algos/Mads/SgtelibSearchMethod.hpp"
+#include "../../Algos/Mads/SimpleLineSearchMethod.hpp"
 #include "../../Algos/Mads/SpeculativeSearchMethod.hpp"
 #include "../../Algos/Mads/TemplateAlgoSearchMethod.hpp"
 #include "../../Algos/Mads/TemplateSimpleSearchMethod.hpp"
@@ -63,9 +65,9 @@
 #include "../../Util/Clock.hpp"
 
 // Initialize static variables
-// 8 search methods are available
-std::vector<double> NOMAD::Search::_searchTime(8, 0.0);
-std::vector<double> NOMAD::Search::_searchEvalTime(8, 0.0);
+// 11 search methods are available
+std::vector<double> NOMAD::Search::_searchTime(11, 0.0);
+std::vector<double> NOMAD::Search::_searchEvalTime(11, 0.0);
 #endif // TIME_STATS
 
 void NOMAD::Search::init()
@@ -74,12 +76,14 @@ void NOMAD::Search::init()
     verifyParentNotNull();
 
     auto speculativeSearch      = std::make_shared<NOMAD::SpeculativeSearchMethod>(this);
+    auto simpleLineSearch       = std::make_shared<NOMAD::SimpleLineSearchMethod>(this);
     auto userSearch             = std::make_shared<NOMAD::UserSearchMethod>(this);
+    auto qpsolverSearch         = std::make_shared<NOMAD::QPSolverAlgoSearchMethod>(this);
     auto quadSearch             = std::make_shared<NOMAD::QuadSearchMethod>(this);
     auto sgtelibSearch          = std::make_shared<NOMAD::SgtelibSearchMethod>(this);
     auto lhSearch               = std::make_shared<NOMAD::LHSearchMethod>(this);
     auto nmSearch               = std::make_shared<NOMAD::NMSearchMethod>(this);
-    auto vnsmartSearch = std::make_shared<NOMAD::VNSmartAlgoSearchMethod>(this);
+    auto vnsmartSearch          = std::make_shared<NOMAD::VNSmartAlgoSearchMethod>(this);
     auto vnsSearch              = std::make_shared<NOMAD::VNSSearchMethod>(this);
     auto templateSimpleSearch   = std::make_shared<NOMAD::TemplateSimpleSearchMethod>(this);
     auto templateAlgoSearch     = std::make_shared<NOMAD::TemplateAlgoSearchMethod>(this);
@@ -89,6 +93,7 @@ void NOMAD::Search::init()
     // as they are inserted.
     // This is the order for NOMAD 3:
     // 1. speculative search
+    // 1b. simple line search
     // 2. user search
     // 3. trend matrix basic line search
     // 4. cache search
@@ -101,11 +106,13 @@ void NOMAD::Search::init()
     // 10. Template Algo search (dummy iterative random search). Can be used as a TEMPLATE example to develop a new search method (iterative with creation/evaluation of trial points).
 
     _searchMethods.push_back(speculativeSearch);    // 1. speculative search
+    _searchMethods.push_back(simpleLineSearch);    // 1b. speculative search
     _searchMethods.push_back(userSearch);           // 2. user search
-    _searchMethods.push_back(quadSearch);           // 5a. Quad Model Searches
-    _searchMethods.push_back(sgtelibSearch);        // 5b. Model Searches
-    _searchMethods.push_back(vnsSearch);
-    _searchMethods.push_back(vnsmartSearch);        // VNSmart algo search
+    _searchMethods.push_back(quadSearch);           // 5a. Quad Model Search
+    _searchMethods.push_back(sgtelibSearch);        // 5b. Sgtelib Model Search
+    _searchMethods.push_back(qpsolverSearch);       // 5c. QP solver on quad Model
+    _searchMethods.push_back(vnsSearch);            // 6a. VNS Search
+    _searchMethods.push_back(vnsmartSearch);        // 6b. VNSmart algo search
     _searchMethods.push_back(lhSearch);             // 7. Latin-Hypercube (LH) search
     _searchMethods.push_back(nmSearch);             // 8. NelderMead (NM) search
     _searchMethods.push_back(templateSimpleSearch); // 9. Template simple (no iteration) search (order of search method is important; a new search method copied from this template should be carefully positioned in the list)
@@ -150,6 +157,14 @@ bool NOMAD::Search::runImp()
     OUTPUT_DEBUG_END
     for (size_t i = 0; !searchSuccessful && i < _searchMethods.size(); i++)
     {
+ 
+        // A local user stop is requested. Do not perform remaining search methods. Stop type reset is done at the end of iteration/megaiteration and algorithm.
+        if (_stopReasons->testIf(NOMAD::IterStopType::USER_ITER_STOP) || _stopReasons->testIf(NOMAD::IterStopType::USER_ALGO_STOP) ||
+            _stopReasons->testIf(NOMAD::EvalGlobalStopType::CUSTOM_GLOBAL_STOP)) // C.T : I think we should test NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_STOP as the others are not yet triggered
+        {
+            break;
+        }
+        
         auto searchMethod = _searchMethods[i];
         bool enabled = searchMethod->isEnabled();
         OUTPUT_DEBUG_START
@@ -158,7 +173,13 @@ bool NOMAD::Search::runImp()
         
         AddOutputDebug(s);
         OUTPUT_DEBUG_END
-        if (!enabled) { continue; }
+        
+        if (!enabled)
+        {
+            continue;
+        }
+        
+        
 #ifdef TIME_STATS
         double searchStartTime = NOMAD::Clock::getCPUTime();
         double searchEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();

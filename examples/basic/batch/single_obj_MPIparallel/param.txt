@@ -4,8 +4,10 @@ BB_EXE         '$/opt/homebrew/bin/mpirun $-np $4 bb4.exe'   # WARNING Adjust th
                                                           # or mpiexec according to your setup.
                                                          
 
-BB_MAX_BLOCK_SIZE 20 
-MEGA_SEARCH_POLL yes
+BB_MAX_BLOCK_SIZE 20    # At most, 20 points are put in a block for evaluation
+MEGA_SEARCH_POLL yes    # Generate search and poll trial points before evaluation
+                        # Max points put in box. Without this option, single point
+                        # can be passed in a block for evaluation creating a bottleneck.
 
 
 BB_OUTPUT_TYPE OBJ PB PB

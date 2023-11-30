@@ -1,0 +1,41 @@
+
+# PROBLEM PARAMETERS
+####################
+
+# Number of variables
+DIMENSION 10
+
+# Black box
+BB_EXE bb_cache.exe
+BB_OUTPUT_TYPE OBJ PB PB PB
+
+# Starting point
+X0 ( 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 )
+
+# Bounds are useful to avoid extreme values
+LOWER_BOUND * -20.0
+UPPER_BOUND *  20.0
+
+
+
+# ALGORITHM PARAMETERS
+######################
+
+# The algorithm terminates after that number black-box evaluations
+MAX_BB_EVAL 100
+
+# If cache.txt exits it will be used.
+# Possible Use Case:
+#     - first run (no cache file) with max_bb_eval 100. Cache file is created
+#     - increase max_bb_eval to 150.
+#     - second run uses the first 100 in the cache file and continues with real bb evals to reach 150
+USE_CACHE_FILE_FOR_RERUN true
+CACHE_FILE cache.txt
+
+# Parameters for display
+DISPLAY_DEGREE 2
+DISPLAY_ALL_EVAL 1
+DISPLAY_STATS BBE ( SOL ) OBJ CONS_H
+
+
+

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_3_ALGORITHM__
-#define __NOMAD_4_3_ALGORITHM__
+#ifndef __NOMAD_4_4_ALGORITHM__
+#define __NOMAD_4_4_ALGORITHM__
 
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Initialization.hpp"
@@ -91,7 +91,10 @@ protected:
 
     TrialPointStats                        _trialPointStats;   ///< The trial point counters stats for algo execution
     
-    bool _useLocalFixedVariables ; ///< This flag is to force an algo to use local fixed variable. This is usefull when we change the design space like when doing quad model search. The evaluation of the quad model are only in the sub space.
+    bool _useOnlyLocalFixedVariables ; ///< When this flag is true, we force an algo to use only local fixed variable. The original problem fixed variables are not considered. This is usefull when we change the design space like when doing quad model search. The evaluation of the quad model are only in the sub space and maybe there are some local fixed variables.
+    
+    bool _evalOpportunistic;  ///< This flag is used to force non opportunistic eval for some algo. The evaluator control function setOpportunisticEval is called with this flag. The parameter EVAL_OPPORTUNISTIC can be temporarily superceeded (example, LH_EVAL + MADS)
+    
     
 public:
     /// Constructor
@@ -100,13 +103,13 @@ public:
      \param stopReasons         The stop reasons of this algo -- \b IN.
      \param runParams             The run parameters that control the algorithm -- \b IN.
      \param pbParams               The problem parameters that control the algorithm -- \b IN.
-     \param useLocalFixedVariables Flag is to force an algo to use local fixed variable  -- \b IN.
+     \param useOnlyLocalFixedVariables Flag is to force an algo to consider only local fixed variables, not the ones from the original pb  -- \b IN.
      */
     explicit Algorithm(const Step* parentStep,
                        std::shared_ptr<AllStopReasons> stopReasons,
                        const std::shared_ptr<RunParameters>& runParams,
                        const std::shared_ptr<PbParameters>& pbParams ,
-                       bool useLocalFixedVariables = false)
+                       bool useOnlyLocalFixedVariables = false)
       : Step(parentStep, stopReasons, runParams, pbParams),
         _isSubAlgo(false),
         _initialization(nullptr),
@@ -119,7 +122,8 @@ public:
         _totalCPUAlgoTime(0.0),
 #endif // TIME_STATS
         _trialPointStats(parentStep),
-        _useLocalFixedVariables(useLocalFixedVariables)
+        _useOnlyLocalFixedVariables(useOnlyLocalFixedVariables),
+        _evalOpportunistic(true)
     {
         init();
     }
@@ -148,6 +152,9 @@ public:
         return EvcInterface::getEvaluatorControl()->getCurrentBBOutputTypeList();
     }
     static size_t getNbObj();
+    
+    void setEvalOpportunistic(bool evalOpportunistic) { _evalOpportunistic = evalOpportunistic ;}
+    bool getEvalOpportunistic() const { return _evalOpportunistic; }
     
 protected:
 
@@ -226,4 +233,4 @@ std::istream& operator>>(std::istream& is, Algorithm& algo);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_ALGORITHM__
+#endif // __NOMAD_4_4_ALGORITHM__

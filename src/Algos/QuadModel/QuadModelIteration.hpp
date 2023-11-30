@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_QUAD_MODEL_ITERATION__
-#define __NOMAD_4_3_QUAD_MODEL_ITERATION__
+#ifndef __NOMAD_4_4_QUAD_MODEL_ITERATION__
+#define __NOMAD_4_4_QUAD_MODEL_ITERATION__
 
 #include "../../Algos/Iteration.hpp"
 #include "../../Eval/EvalPoint.hpp"
@@ -61,6 +61,7 @@ class QuadModelIteration: public Iteration
 private:
 
     void init();
+
 
     /**
      - The reference center point
@@ -79,10 +80,12 @@ private:
      */
     const MeshBasePtr _madsMesh;
 
+    bool _useForSortingTrialPoints;
+    
+protected:
     std::shared_ptr<SGTELIB::TrainingSet>   _trainingSet; ///<
     std::shared_ptr<SGTELIB::Surrogate>     _model;
 
-    bool _useForSortingTrialPoints;
     
 public:
     /// Constructor
@@ -154,4 +157,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_QUAD_MODEL_ITERATION__
+#endif // __NOMAD_4_4_QUAD_MODEL_ITERATION__

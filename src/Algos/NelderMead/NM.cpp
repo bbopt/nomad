@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -47,6 +47,7 @@
 
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
+#include "../../Eval/ProgressiveBarrier.hpp"
 #include "../../Util/fileutils.hpp"
 
 // NM specific
@@ -56,13 +57,7 @@
 
 void NOMAD::NM::init()
 {
-    /*
-    _name = "NM";
-    if ( _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL") )
-    {
-        _name += " One Iteration";
-    }
-    */
+
     setStepType(NOMAD::StepType::ALGORITHM_NM);
 
     // Instantiate NM initialization class
@@ -147,11 +142,11 @@ void NOMAD::NM::readInformationForHotRestart()
             // Create a GMesh and a MegaIteration with default values, to be filled
             // by istream is.
             // Issue #372: Fix potential bug with Hot Restart
-            // Note: Assuming the barrier read is in the same subspace as the current subspace.
-            // This could be fixed if we write and read the barrier in full subspace.
+            // Note: Assuming the progessive barrier read is in the same subspace as the current subspace.
+            // This could be fixed if we write and read the progressive barrier in full subspace.
             
             // Create a single objective barrier
-            auto barrier = std::make_shared<NOMAD::Barrier>();
+            auto barrier = std::make_shared<NOMAD::ProgressiveBarrier>();
             int k = 0;
             NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
 

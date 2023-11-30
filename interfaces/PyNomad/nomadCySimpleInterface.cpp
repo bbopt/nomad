@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -46,7 +46,7 @@
 /*---------------------------------------------------------------------------------*/
 // June 2019
 // Version 1.0 is with NOMAD 3.
-#define NOMAD_PYTHON_VERSION "2.1"
+#define NOMAD_PYTHON_VERSION "2.2"
 
 #include "Algos/EvcInterface.hpp"
 #include "Math/RNG.hpp"
@@ -77,20 +77,17 @@ static void printPyNomadVersion()
 
 static void printPyNomadUsage()
 {
-    std::cout << "--------------------------------------------------------------"          << std::endl;
+    std::cout << "--------------------------------------------------------------"       << std::endl;
     std::cout << " PyNomad interface usage"                                             << std::endl;
-    std::cout << "--------------------------------------------------------------"          << std::endl;
-    std::cout << "  Run NOMAD : result = PyNomad.optimize(bb, x0, lb, ub, param)"                              << std::endl;
-    std::cout << "--------------------------------------------------------------"          << std::endl;
+    std::cout << "--------------------------------------------------------------"       << std::endl;
+    std::cout << "  Run NOMAD : result = PyNomad.optimize(bb, x0, lb, ub, param)"       << std::endl;
+    std::cout << "--------------------------------------------------------------"       << std::endl;
     std::cout << "    Info    : PyNomad.info()"                                         << std::endl;
     std::cout << "    Help    : PyNomad.help(\"keywords\") or PyNomad.help()"           << std::endl;
     std::cout << "    Version : PyNomad.version()"                                      << std::endl;
     std::cout << "    Usage   : PyNomad.usage()"                                        << std::endl;
-    std::cout << "--------------------------------------------------------------"          << std::endl;
+    std::cout << "--------------------------------------------------------------"       << std::endl;
     std::cout                                                                           << std::endl;
-
-    //std::cout << " Run NOMAD : [x_best, f_best, h_best, nb_evals, nb_iters, exit_status] = ";
-    //std::cout << "PyNomad.optimize(bb, x0, lb, ub, param)"                            << std::endl;
     std::cout << " PyNomad.optimize input parameters:"                                  << std::endl;
     std::cout                                                                           << std::endl;
     std::cout << "  bb      ---> name of the blackbox function - mandatory"             << std::endl;
@@ -108,16 +105,16 @@ static void printPyNomadUsage()
 
     std::cout << " PyNomad.optimize output parameters:"                                 << std::endl;
     std::cout                                                                           << std::endl;
-    std::cout << "  x_best  ---> list of values for the best feasible or infeasible"    << std::endl;
+    std::cout << "  x_best    ---> list of values for the best feasible or infeasible"  << std::endl;
     std::cout << "               points at the end of Nomad optimization"               << std::endl;
-    std::cout << "  f_best  ---> Objective function value for the best point obtained"  << std::endl;
-    std::cout << "  h_best  ---> Infeasibility measure value for best point obtained"   << std::endl;
+    std::cout << "  f_best    ---> Objective function value for the best point obtained"<< std::endl;
+    std::cout << "  h_best    ---> Infeasibility measure value for best point obtained" << std::endl;
     std::cout << "               (0 if feasible)"                                       << std::endl;
-    std::cout << "  nb_evals --> Number of blackbox evaluations"                        << std::endl;
-    std::cout << "  nb_iters --> * Currently not supported *"                           << std::endl;
+    std::cout << "  nb_evals   --> Number of blackbox evaluations"                      << std::endl;
+    std::cout << "  nb_iters   --> * Currently not supported *"                         << std::endl;
     std::cout << "               (would be: Number of iterations of the Mads algorithm)"<< std::endl;
-    std::cout << "  exit_status ---> Exit status for Nomad termination criterion"       << std::endl;
-    std::cout << "                   1 -> success, 0 -> fail"                           << std::endl;
+    std::cout << "  run_flag   --> Run flag for Nomad termination (see details below) " << std::endl;
+    std::cout << "  stop_reason -> Nomad termination stop reason "                      << std::endl;
     std::cout                                                                           << std::endl;
 
     std::cout << "-----------------------------------------------------------"          << std::endl;
@@ -156,10 +153,27 @@ static void printPyNomadUsage()
     std::cout << "         evalOk[k] = True"                                            << std::endl;
     std::cout << "     # return a list where 1 is success, 0 is a failed evaluation"    << std::endl;
     std::cout << "     return evalOk"                                                   << std::endl;
-
-
     std::cout                                                                           << std::endl;
     std::cout << "-----------------------------------------------------------"          << std::endl;
+    
+    std::cout << "-----------------------------------------------------------"          << std::endl;
+    std::cout << " Nomad termination run flags"                                         << std::endl;
+    std::cout                                                                           << std::endl;
+    std::cout << "   1 - Objective target reached OR Mads converged (mesh criterion) "  << std::endl;
+    std::cout << "       to a feasible point (true problem)."                           << std::endl;
+    std::cout << "   0 - At least one feasible point obtained and evaluation budget "   << std::endl;
+    std::cout << "       (single bb or block of bb) spent or max iteration (user "      << std::endl;
+    std::cout << "       option) reached."                                              << std::endl;
+    std::cout << "  -1 - Mads mesh converged but no feasible point obtained (only      "<< std::endl;
+    std::cout << "       infeasible) for the true problem."                             << std::endl;
+    std::cout << "  -2 - No feasible point obtained (only infeasible) and evaluation"   << std::endl;
+    std::cout << "       budget (single bb or block of bb) spent or max iteration (user"<< std::endl;
+    std::cout << "       option) reached"                                               << std::endl;
+    std::cout << "  -3 - Initial point failed to evaluate"                              << std::endl;
+    std::cout << "  -4 - Time limit reached (user option)"                              << std::endl;
+    std::cout << "  -5 - CTRL-C or user stopped (callback function)"                    << std::endl;
+    std::cout << "  -6 - Stop on feasible point (user option)"                          << std::endl;
+    
 }
 
 
@@ -389,16 +403,20 @@ static int runNomad(Callback cb,
                     std::shared_ptr<NOMAD::EvalPoint>& bestFeasSol,
                     std::shared_ptr<NOMAD::EvalPoint>& bestInfeasSol,
                     size_t &nbEvals,
-                    size_t &nbIters)
+                    size_t &nbIters,
+                    std::string & stopReason)
 {
     auto allParams = std::make_shared<NOMAD::AllParameters>();
     initAllParams(allParams, X0, LB, UB, params);
     bestFeasSol = nullptr;
     bestInfeasSol = nullptr;
+    int runFlag = -3;
+    stopReason ="No stop reason";
 
     try
     {
-        int stopflag = 0;
+        
+        
         Py_BEGIN_ALLOW_THREADS
 
         NOMAD::MainStep TheMainStep;
@@ -420,59 +438,60 @@ static int runNomad(Callback cb,
         TheMainStep.addEvaluator(std::move(ev));
 
         TheMainStep.start();
-        stopflag = TheMainStep.run();
+        TheMainStep.run();
         TheMainStep.end();
 
         nbEvals = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
         nbIters = 0; // Not supported in this version of NOMAD 4
-                     // Keeping the value for compatibility with PyNomad 1
-
+        // Keeping the value for compatibility with PyNomad 1
+        
         // Set the best feasible and best infeasible solutions
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
-        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
-
-        if (nbInf > 0)
-        {
-            // Use first infeasible point. This could be generalized to show
-            // all infeasible points.
-            // Smart pointers should also be used.
-            // For now, keep the same logic as with PyNomad 1.
-            // One of the pointer is set to null to identify the type of solution
-            NOMAD::EvalPoint evalPointInf = evalPointInfList[0];
-            bestInfeasSol = std::make_shared<NOMAD::EvalPoint>(evalPointInf);
-            if (0 == nbFeas)
-            {
-                bestFeasSol = nullptr;
-            }
-        }
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+        
+        // For now
+        // If nbFeas > 0 we return a single best feasible point (no infeasible point)
+        // Else (if nbFeas == 0) we return the least infeasible point with the smallest f (index 0, see findBestInf)
+        // Maybe this could be generalized to show the best feasible point and all undominated infeasible points.
+        // The same logic for Nomad C and Matlab interfaces and for PyNomad.
         if (nbFeas > 0)
         {
             NOMAD::EvalPoint evalPointFeas = evalPointFeasList[0];
             bestFeasSol = std::make_shared<NOMAD::EvalPoint>(evalPointFeas);
             bestInfeasSol = nullptr;
         }
-        if (0 == nbFeas)
+        else if (0 == nbFeas)
         {
             bestFeasSol = nullptr;
-        }
-        if(0 == nbInf)
-        {
-            bestInfeasSol = nullptr;
+            if (nbInf > 0)
+            {
+                // One of the pointer is set to null to identify the type of solution
+                NOMAD::EvalPoint evalPointInf = evalPointInfList[0];
+                bestInfeasSol = std::make_shared<NOMAD::EvalPoint>(evalPointInf);
+            }
+            else if(0 == nbInf)
+            {
+                bestInfeasSol = nullptr;
+            }
         }
 
+        runFlag = TheMainStep.getRunFlag();
+        
+        stopReason = TheMainStep.getAllStopReasons()->getStopReasonAsString();
+        
         NOMAD::MainStep::resetComponentsBetweenOptimization();
-
+        
         Py_END_ALLOW_THREADS
-        return stopflag;
+        return runFlag;
     }
 
     catch(std::exception &e)
     {
-        printf("NOMAD exception (report to developper):\n%s\n",e.what());
+        printf("NOMAD exception (report to developer):\n%s\n",e.what());
     }
 
-    return -1;
+    return runFlag; // Default is for Nomad error
 
 }
 
@@ -487,17 +506,20 @@ static int runNomad(Callback cb,
                     std::shared_ptr<NOMAD::EvalPoint>& bestFeasSol,
                     std::shared_ptr<NOMAD::EvalPoint>& bestInfeasSol,
                     size_t &nbEvals,
-                    size_t &nbIters)
+                    size_t &nbIters,
+                    std::string & stopReason)
 {
     auto allParams = std::make_shared<NOMAD::AllParameters>();
     initAllParams(allParams, X0, LB, UB, params);
     bestFeasSol = nullptr;
     bestInfeasSol = nullptr;
+    stopReason = "No stop reason";
+    
+    int runFlag = -3 ;
 
     std::cout<<"Run nomad with surrogate"<<std::endl;
     try
     {
-        int stopflag = 0;
         Py_BEGIN_ALLOW_THREADS
 
         NOMAD::MainStep TheMainStep;
@@ -522,7 +544,7 @@ static int runNomad(Callback cb,
         TheMainStep.addEvaluator(std::move(evSurrogate));
         
         TheMainStep.start();
-        stopflag = TheMainStep.run();
+        TheMainStep.run();
         TheMainStep.end();
 
         nbEvals = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
@@ -531,42 +553,43 @@ static int runNomad(Callback cb,
 
         // Set the best feasible and best infeasible solutions
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
-        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
 
-        if (nbInf > 0)
-        {
-            // Use first infeasible point. This could be generalized to show
-            // all infeasible points.
-            // Smart pointers should also be used.
-            // For now, keep the same logic as with PyNomad 1.
-            // One of the pointer is set to null to identify the type of solution
-            NOMAD::EvalPoint evalPointInf = evalPointInfList[0];
-            bestInfeasSol = std::make_shared<NOMAD::EvalPoint>(evalPointInf);
-            if (0 == nbFeas)
-            {
-                bestFeasSol = nullptr;
-            }
-        }
+        // For now
+        // If nbFeas > 0 we return a single best feasible point (no infeasible point)
+        // Else (if nbFeas == 0) we return the least infeasible point with the smallest f (index 0, see findBestInf)
+        // Maybe this could be generalized to show the best feasible point and all undominated infeasible points.
+        // The same logic for Nomad C and Matlab interfaces and for PyNomad.
         if (nbFeas > 0)
         {
             NOMAD::EvalPoint evalPointFeas = evalPointFeasList[0];
             bestFeasSol = std::make_shared<NOMAD::EvalPoint>(evalPointFeas);
             bestInfeasSol = nullptr;
         }
-        if (0 == nbFeas)
+        else if (0 == nbFeas)
         {
             bestFeasSol = nullptr;
-        }
-        if(0 == nbInf)
-        {
-            bestInfeasSol = nullptr;
+            if (nbInf > 0)
+            {
+                // One of the pointer is set to null to identify the type of solution
+                NOMAD::EvalPoint evalPointInf = evalPointInfList[0];
+                bestInfeasSol = std::make_shared<NOMAD::EvalPoint>(evalPointInf);
+            }
+            else if(0 == nbInf)
+            {
+                bestInfeasSol = nullptr;
+            }
         }
 
         NOMAD::MainStep::resetComponentsBetweenOptimization();
+        
+        runFlag = TheMainStep.getRunFlag();
+        
+        stopReason = TheMainStep.getAllStopReasons()->getStopReasonAsString();
 
         Py_END_ALLOW_THREADS
-        return stopflag;
+        return runFlag;
     }
 
     catch(std::exception &e)
@@ -574,7 +597,6 @@ static int runNomad(Callback cb,
         printf("NOMAD exception (report to developper):\n%s\n",e.what());
     }
 
-    return -1;
+    return runFlag;
 
 }
-

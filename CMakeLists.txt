@@ -3,12 +3,14 @@
 # ----------------------------------------------------------------------------
 
 # cmake version : the latest one
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14...3.14)
 
+# Warning. This must be consistent with src/nomad_version.hpp
 set(NOMAD_VERSION_MAJOR 4)
-set(NOMAD_VERSION_MINOR 3)
-set(NOMAD_VERSION_PATCH 1)  
+set(NOMAD_VERSION_MINOR 4)
+set(NOMAD_VERSION_PATCH 0)  
 set(NOMAD_VERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}.${NOMAD_VERSION_PATCH})
+
 
 # name of the project
 # Need to update when version changes
@@ -50,9 +52,6 @@ else()
     message(WARNING "You are using an unsupported compiler. Compilation has only been tested with Clang, GCC, and MSVC.")
 endif()
 
-##########
-# Options
-##########
 
 # Load some modules
 include(GNUInstallDirs)
@@ -70,9 +69,7 @@ list(APPEND CMAKE_MESSAGE_INDENT "  ")
 #
 # Modify the install prefix if not specified on the command
 #
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR} CACHE PATH "..." FORCE) 
-endif()
+set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR} CACHE PATH "..." FORCE) 
 message(STATUS "  Installation prefix set to ${CMAKE_INSTALL_PREFIX}")
 
 #
@@ -104,15 +101,6 @@ if(TIME_STATS MATCHES ON)
    add_compile_definitions(TIME_STATS)
 endif()
 
-#
-# Choose to disable display degree tests for faster code
-#
-option(REDUCED_DISPLAY_TEST "Option to disable display tests for faster run" OFF)
-if(REDUCED_DISPLAY_TEST MATCHES ON)
-   message(CHECK_START "  Disable display test for build")
-   add_compile_definitions(REDUCED_DISPLAY_TEST)
-endif()
-
 
 #
 # Test openMP package
@@ -132,7 +120,7 @@ endif()
 #
 # Choose to build the examples/tests using batch and library mode 
 #
-option(BUILD_EXAMPLES "Option to build library mode examples" ON)
+option(BUILD_EXAMPLES "Option to build examples (library and batch)" ON)
 if(BUILD_EXAMPLES MATCHES ON)
    message(CHECK_START "  Configuring build for library and batch mode examples")
 
@@ -199,7 +187,7 @@ endif()
 option(BUILD_INTERFACE_JAVA "Option to build Java Swig interface to Nomad" OFF)
 if(BUILD_INTERFACE_JAVA MATCHES ON)
 
-   # The following lines maybe required.
+   # The following lines maybe required. See issue #83 in bbopt/nomad
    #set(JAVA_INCLUDE_PATH "$ENV{JAVA_HOME}/Contents/Home/include")
    #set(JAVA_INCLUDE_PATH2 "$ENV{JAVA_HOME}/Contents/Home/include")
    #set(JAVA_AWT_INCLUDE_PATH "$ENV{JAVA_HOME}/Contents/Home/include")

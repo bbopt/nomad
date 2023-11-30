@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.3                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -102,8 +102,10 @@ namespace SGTELIB {
     inline int get_nb_cols ( void ) const { return _nbCols; }
     inline int get_numel   ( void ) const { return _nbRows*_nbCols; }
 
+      bool testNull()const;
+
     // access to element (k)
-    double get ( const int k ) const; 
+    double get ( const int k ) const;
     // access to element (i,j)
     inline double get ( const int i , const int j ) const {
       #ifdef SGTELIB_DEBUG
@@ -121,7 +123,7 @@ namespace SGTELIB {
 
 
 
-    SGTELIB::Matrix get ( const std::list<int> & list_cols , 
+    SGTELIB::Matrix get ( const std::list<int> & list_cols ,
                           const std::list<int> & list_rows) const;
 
     SGTELIB::Matrix get_row (const int i) const;
@@ -132,7 +134,7 @@ namespace SGTELIB {
 
     SGTELIB::Matrix get_rows (const int i1, const int i2) const;
     SGTELIB::Matrix get_cols (const int i1, const int i2) const;
-  
+
     void swap_rows (const int i1, const int i2);
 
 
@@ -154,9 +156,12 @@ namespace SGTELIB {
     void set_col (const SGTELIB::Matrix & T , const int j); // T is col vector
     void set_row (const double v , const int i); // T is row vector
     void set_col (const double v , const int j); // T is col vector
-  
+
     // swap terms (i1,j1) and (i2,j2)
     void swap (const int i1 , const int j1 , const int i2 , const int j2 );
+
+    // Multiply matrix elements
+    void multiply (const double &v);
 
     // Multiply row
     void multiply_row (const double v , const int i); // T is row vector
@@ -164,6 +169,10 @@ namespace SGTELIB {
 
     // Inverse
     SGTELIB::Matrix SVD_inverse ( void ) const;
+    // Pseudo-Inverse
+    SGTELIB::Matrix SVD_pseudo_inverse ( const double tol_rank = 1E-15 ) const;
+    // Singular values (from SVD)
+    SGTELIB::Matrix get_singular_values ( ) const;
 
     // Inverse the diagonal terms
     SGTELIB::Matrix diag_inverse ( void ) const;
@@ -206,6 +215,13 @@ namespace SGTELIB {
 
     // Product
     static SGTELIB::Matrix product ( const SGTELIB::Matrix & A,
+                                     const SGTELIB::Matrix & B);
+
+    static void inplace_product ( SGTELIB::Matrix & C,
+                            const SGTELIB::Matrix & A,
+                            const SGTELIB::Matrix & B);
+
+    static double dot ( const SGTELIB::Matrix & A,
                                      const SGTELIB::Matrix & B);
 
     static SGTELIB::Matrix product ( const SGTELIB::Matrix & A,
@@ -270,7 +286,7 @@ namespace SGTELIB {
                                  const SGTELIB::Matrix & B);
 
     void sub ( const SGTELIB::Matrix & B);
-  
+
     // Identity matrix
     static SGTELIB::Matrix identity ( const int n );
 
@@ -282,6 +298,10 @@ namespace SGTELIB {
 
     // Rank of the values
     SGTELIB::Matrix rank ( void ) const;
+
+    // solve under-determined least squares via SVD
+    static SGTELIB::Matrix solve_least_squares_SVD ( const SGTELIB::Matrix & A ,
+                                                     const SGTELIB::Matrix & b);
 
     // Conjugate gradient
     static SGTELIB::Matrix conjugate_solve ( const SGTELIB::Matrix & A ,
@@ -300,7 +320,8 @@ namespace SGTELIB {
     static SGTELIB::Matrix cholesky_solve ( const SGTELIB::Matrix & A ,
                                             const SGTELIB::Matrix & b );
 
-
+    // LDLt factorization
+    SGTELIB::Matrix LDLt_decomposition ( void ) const;
 
     // Triangular matrix
     static SGTELIB::Matrix tril_inverse (const SGTELIB::Matrix & L );
@@ -312,9 +333,9 @@ namespace SGTELIB {
                                         const SGTELIB::Matrix & b );
     // SVD decomposition:
     bool SVD_decomposition ( std::string & error_msg ,
-                             SGTELIB::Matrix * &MAT_U,  // OUT, nbRows x nbCols
-                             SGTELIB::Matrix * &MAT_W,  // OUT, nbCols x nbCols, diagonal
-                             SGTELIB::Matrix * &MAT_V,  // OUT, nbCols x nbCols
+                             SGTELIB::Matrix &MAT_U,  // OUT, nbRows x nbCols
+                             SGTELIB::Matrix &MAT_W,  // OUT, nbCols x nbCols, diagonal
+                             SGTELIB::Matrix &MAT_V,  // OUT, nbCols x nbCols
                              int           max_mpn = 1500 ) const;
 
     bool SVD_decomposition ( std::string & error_msg      ,
@@ -322,6 +343,10 @@ namespace SGTELIB {
                              double      * W              ,  // OUT, nbCols x nbCols, diagonal
                              double     ** V              ,  // OUT, nbCols x nbCols
                              int           max_mpn = 1500 ) const;
+
+
+    // Null space
+    SGTELIB::Matrix null_space( const double rank_tol = 1E-7 ) const ; // compute null space matrix
 
     // Projection matrix for linear over-determined models
     static SGTELIB::Matrix get_matrix_P     ( const SGTELIB::Matrix & Ai,
@@ -350,9 +375,9 @@ namespace SGTELIB {
     // Min / Max
     double max (void);
     double min (void);
-    static SGTELIB::Matrix max ( const SGTELIB::Matrix & A , 
+    static SGTELIB::Matrix max ( const SGTELIB::Matrix & A ,
                                  const SGTELIB::Matrix & B );
-    static SGTELIB::Matrix min ( const SGTELIB::Matrix & A , 
+    static SGTELIB::Matrix min ( const SGTELIB::Matrix & A ,
                                  const SGTELIB::Matrix & B );
 
     // Get min index
@@ -373,16 +398,16 @@ namespace SGTELIB {
     static SGTELIB::Matrix string_to_row ( const std::string & s , int nbCols = 0 );
 
     // distances
-    static SGTELIB::Matrix get_distances_norm1   ( const SGTELIB::Matrix & A , 
+    static SGTELIB::Matrix get_distances_norm1   ( const SGTELIB::Matrix & A ,
                                                    const SGTELIB::Matrix & B );
-    static SGTELIB::Matrix get_distances_norm2   ( const SGTELIB::Matrix & A , 
+    static SGTELIB::Matrix get_distances_norm2   ( const SGTELIB::Matrix & A ,
                                                    const SGTELIB::Matrix & B );
-    static SGTELIB::Matrix get_distances_norminf ( const SGTELIB::Matrix & A , 
+    static SGTELIB::Matrix get_distances_norminf ( const SGTELIB::Matrix & A ,
                                                    const SGTELIB::Matrix & B );
 
     int find_row (SGTELIB::Matrix & R);
 
-    // nan 
+    // nan
     bool has_nan (void) const;
     bool has_inf (void) const;
     void replace_nan (double d);

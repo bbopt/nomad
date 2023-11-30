@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -46,7 +46,7 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../Algos/MegaIteration.hpp"
-
+#include "../Algos/EvcInterface.hpp"
 
 // Constructor
 NOMAD::MegaIteration::MegaIteration(const Step* parentStep,
@@ -74,7 +74,7 @@ void NOMAD::MegaIteration::startImp()
         runCallback(NOMAD::CallbackType::MEGA_ITERATION_START, *this, stop);
         if (!_stopReasons->checkTerminate() && stop)
         {
-            _stopReasons->set(NOMAD::BaseStopType::USER_STOPPED);
+            _stopReasons->set(NOMAD::BaseStopType::USER_GLOBAL_STOP);
         }
     }
 }
@@ -97,13 +97,49 @@ void NOMAD::MegaIteration::endImp()
 {
     if (_runParams->getAttributeValue<bool>("USER_CALLS_ENABLED"))
     {
+        // Run callback and set stop reason if overall stop is requested
         bool stop = false;
         runCallback(NOMAD::CallbackType::MEGA_ITERATION_END, *this, stop);
         if (!_stopReasons->checkTerminate() && stop)
         {
-            _stopReasons->set(NOMAD::BaseStopType::USER_STOPPED);
+            _stopReasons->set(NOMAD::BaseStopType::USER_GLOBAL_STOP);
+        }
+        
+        
+        // Reset user iteration stop reason
+        if (_stopReasons->testIf(NOMAD::IterStopType::USER_ITER_STOP))
+        {
+            _stopReasons->set(NOMAD::IterStopType::STARTED);
         }
     }
+
+    // If last megaIteration, update hmax and barrier incumbents to ensure consistent display
+    // (if stopping criteria reached during search for ex, hmax and incumbents have not been updated if it was not a full success)
+    if(_stopReasons->checkTerminate())
+    {
+            auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+            auto evalType = NOMAD::EvalType::BB;
+            auto computeType = NOMAD::ComputeType::STANDARD;
+            if (nullptr != evc)
+            {
+                evalType = evc->getCurrentEvalType();
+                computeType = evc->getComputeType();
+            }
+
+            // Update of hmax and feasible/infeasible incumbents
+            bool barrierModified = false;
+            std::vector<NOMAD::EvalPoint> evalPointList;  // eval point list empty just to call updateWithPoints
+            if(_barrier!= nullptr)
+            {
+                barrierModified = _barrier->updateWithPoints(
+                                    evalPointList,
+                                    evalType,
+                                    computeType,
+                                    false /* not used by progressive barrier */,
+                                    true /* update incumbents and hmax*/ );
+            }
+    }
+
 }
 
 
@@ -136,7 +172,7 @@ void NOMAD::MegaIteration::computeMaxXFeasXInf(size_t &maxXFeas, size_t &maxXInf
         if (maxXFeas + maxXInf > maxIter)
         {
             // This case should not happen and should be debugged.
-            std::cerr << "Warning: Bad computation in computeMaxXFeasXInf. maxIter = " << maxIter << " maxXFeas = " << maxXFeas << " (was " << maxXFeas0 << ") maxXInf = " << maxXInf << " (was " << maxXInf0 << ")" << std::endl;
+            std::cout << "Warning: Bad computation in computeMaxXFeasXInf. maxIter = " << maxIter << " maxXFeas = " << maxXFeas << " (was " << maxXFeas0 << ") maxXInf = " << maxXInf << " (was " << maxXInf0 << ")" << std::endl;
         }
     }
 }
@@ -164,7 +200,7 @@ void NOMAD::MegaIteration::read(std::istream& is)
             else
             {
                 std::string err = "Error: Reading a Barrier onto a NULL pointer";
-                std::cerr << err << std::endl;
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
             }
         }
         else

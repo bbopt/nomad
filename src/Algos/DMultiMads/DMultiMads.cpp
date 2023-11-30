@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -68,7 +68,6 @@ void NOMAD::DMultiMads::init()
     {
         throw NOMAD::InvalidParameter(__FILE__,__LINE__,"DMultiMads is intended to solve problems with more than one objective.");
     }
-    
 }
 
 bool NOMAD::DMultiMads::runImp()
@@ -107,8 +106,7 @@ bool NOMAD::DMultiMads::runImp()
             
             if (getUserInterrupt())
             {
-                std::cout << "Hot restart not implemented for DMultiMads. Let's continue." << std::endl;
-                // hotRestartOnUserInterrupt();
+                throw NOMAD::Exception(__FILE__,__LINE__,"DMultiMads does not currently support hot restart.");
             }
         }
 
@@ -127,5 +125,8 @@ bool NOMAD::DMultiMads::runImp()
 
 void NOMAD::DMultiMads::readInformationForHotRestart()
 {
-    // Todo
+    if (_runParams->getAttributeValue<bool>("HOT_RESTART_READ_FILES"))
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"DMultiMads does not currently support hot restart.");
+    }
 }

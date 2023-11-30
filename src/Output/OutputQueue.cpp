@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -240,7 +240,7 @@ void NOMAD::OutputQueue::setDisplayDegree(const int displayDegree)
     }
     else
     {
-        std::cerr << "Unrecognized display degree to set: " << displayDegree << std::endl;
+        std::cout << "Unrecognized display degree to set: " << displayDegree << std::endl;
     }
 
     _maxOutputLevel = outputLevel;
@@ -501,7 +501,7 @@ void NOMAD::OutputQueue::initStatsFile()
         _statsStream.open(_statsFile.c_str(), std::ofstream::out | std::ios::trunc);
         if (_statsStream.fail())
         {
-            std::cerr << "Warning: could not open stats file " << _statsFile << std::endl;
+            std::cout << "Warning: could not open stats file " << _statsFile << std::endl;
         }
         _statsStream.setf(std::ios::fixed);
         // Set full precision on stats file.

@@ -59,9 +59,10 @@ The algorithms implemented are based on the book
 Springer 2017.
 
 
-WEB PAGE:
+WEB PAGES:
 
 https://www.gerad.ca/nomad/
+Https://github.com/bbopt/nomad
 
 
 CONTACT:
@@ -71,10 +72,10 @@ nomad@gerad.ca
 
 VERSION WARNING:
 
-This repository is for NOMAD 4. NOMAD 3 is not on GitHub.
+This repository is for NOMAD 4. The previous version, NOMAD 3, 
+is not on GitHub. NOMAD 3 will be deprecated in the future.
 
-NOMAD 4 is similar in usage to NOMAD 3. It does not have all
-functionalities from NOMAD 3 yet. 
+NOMAD 4 is similar in usage to NOMAD 3. 
 
 NOMAD 4 has a new software architecture, uses OpenMP to run 
 evaluations in parallel, and also has some new functionalities.
@@ -109,6 +110,9 @@ cmake -S . -B build/release
 
          To enable *Matlab* interface building:
               cmake -DBUILD_INTERFACE_MATLAB=ON  -DTEST_OPENMP=OFF -S . -B build/release
+
+              ! More details are provided in $NOMAD_HOME/interfaces/Matlab_MEX/readme.txt 
+
               ! Compiler version and Matlab version need to be compatible;
               ! Check https://www.mathworks.com/support/requirements/supported-compilers.html
                
@@ -117,19 +121,18 @@ cmake -S . -B build/release
               ! An extra addpath Matlab command must be done to have access 
               to nomad Mex binaries. 
               
-              ! Extra flags might be required to prevent CMake errors. See details 
-              in User Guide (Section Matlab interface).
+              ! Extra flags might be required to prevent CMake errors. 
 
          To enable *Python* interface (PyNomad) building:
-              cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release
+              cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release
+
+              ! More details are provided in $NOMAD_HOME/interfaces/PyNomad/readme.txt 
              
               ! Building requires to have Cython. Cython can be obtained with
               Anaconda distribution platform.
-
-              ! The Python interface will not be built if OpenMP is enabled.  
-
-              ! On *Windows*, using Visual Studio, see the user guide to properly
-              manage X86/X64 building of binaries. 
+  
+              ! On *Windows*, using Visual Studio, see the user guide or the readme
+              to properly manage X86/X64 building of binaries. 
               
          To enable *Java* interface building (with Swig):
               cmake -DBUILD_INTERFACE_JAVA=ON -S . -B build/release
@@ -152,7 +155,7 @@ cmake --install build/release (for *OSX* and *Linux*)
 
 By default, the executable "nomad" will installed into the directory:
 build/release/bin/  (build/debug/bin/ when in debug mode). A symbolic link
-is added in the bin directory for OSX and Linux. 
+is added in the bin directory.
 
 It is possible to build only a single application in its working directory:
 (with NOMAD_HOME environment variable properly set)
@@ -168,14 +171,13 @@ The procedure to build the debug version is the following.
 On the command line in the $NOMAD_HOME directory:
 
 cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
-    ---> On Windows, all 4 configurations are always prepared
+    ---> On *Windows*, all 4 configurations are configured
          (Debug, RelWithDebugInfo, MinSizeRel, Release); flag 
          CMAKE_BUILD_TYPE is ignored.
 
-cmake --build build/debug --config Debug (for *Windows)
+cmake --build build/debug --config Debug (for *Windows*)
 or
-cmake --build build/debug (for *OSX* and *Linux*)
-
+cmake --build build/debug (for *OSX* and *Linux*)   
     ---> Build the libraries and applications
          
          Option --parallel xx can be added for faster build.
@@ -185,14 +187,6 @@ or
 cmake --install build/debug  (for *OSX* and *Linux*)
     ---> Copy binaries and headers in build/debug/[bin, include, lib]
          and in the examples/tests directories
-
-BINARIES:
-Nomad libraries are available in a Julia package for some plateforms at 
-https://github.com/JuliaBinaryWrappers/NOMAD_jll.jl/tree/main
-
-BINARIES:
-Nomad libraries are available in a Julia package for some plateforms at 
-https://github.com/JuliaBinaryWrappers/NOMAD_jll.jl/tree/main
 
 
 EXAMPLES OF OPTIMIZATION:
@@ -204,9 +198,10 @@ by default. The problem may be resolved using NOMAD and the parameter file:
 
 $NOMAD_HOME/build/release/bin/nomad param.txt
 
-For convenience, the path to $NOMAD_HOME/build/release/bin directory can 
-be added to the $PATH environment variable. For *Windows*, this is 
-achieved by setting the parameters for environment variable %PATH%. 
+For convenience, the path to $NOMAD_HOME/build/release/bin directory 
+can be added to the $PATH environment variable. For *Windows*, this is 
+achieved by setting the parameters for environment variable %PATH% to
+ 
 
 Library Mode:
 There are examples in library mode in $NOMAD_HOME/examples/basic/library/.
@@ -215,23 +210,3 @@ Nomad application. The problems may be resolved by execution,
 for instance:
 
 ./example_lib.exe
-
-
-NOTE:
-
-We recommend to download the complete NOMAD source files and examples and build the project for your platform. For users who do not follow this recommendation, a compact version with binaries (zipped) are available for Windows, Mac-OSX and Linux Ubuntu in the Assets section of the Release. 
-
-For OSX: After download and unzip, the binaries must be de-quarantined (OSX will not let you run the executables)
-To remove the quarantine:
-         xattr -d com.apple.quarantine ./bin/nomad 
-         xattr -d com.apple.quarantine ./lib/libnomadUtils.4.3.0.dylib
-         xattr -d com.apple.quarantine ./lib/libnomadEval.4.3.0.dylib
-         xattr -d com.apple.quarantine ./lib/libnomadAlgos.4.3.0.dylib
-         xattr -d com.apple.quarantine ./lib/libsgtelib.2.0.3.dylib
-The rpath needs also to be changed:
-         install_name_tool -rpath /Users/runner/work/nomad/nomad/instdir/lib @loader_path/../lib ./bin/nomad
-
-
-For Linux, due to different compiler versions and available standard libraries, the binaries will most likely not be executable. If they are, you may still need to change the LD_LIBRARY_PATH variable to find the nomad shared object libraries (lib/libnomad*.so.*).
-
-For Windows, you may want to update the %PATH% environment variable to add the directory where the executable and the dll have been put (for example: C:\Users\Unknown\Downloads\windows-latest\bin).

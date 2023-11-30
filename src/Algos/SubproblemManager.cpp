@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -114,7 +114,7 @@ void NOMAD::SubproblemManager::reset()
     if (_map.size() > 0)
     {
         // Shoud not happen. Warn the user.
-        std::cerr << "Warning: SubproblemManager::clear() called on non-empty SubproblemManager" << std::endl;
+        std::cout << "Warning: SubproblemManager::clear() called on non-empty SubproblemManager" << std::endl;
     }
 #ifdef _OPENMP
     omp_set_lock(&_mapLock);

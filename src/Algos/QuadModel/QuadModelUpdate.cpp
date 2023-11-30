@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -53,6 +53,8 @@
 #include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
 
+#include "../../../ext/sgtelib/src/Surrogate_PRS.hpp"
+
 NOMAD::QuadModelUpdate::~QuadModelUpdate()
 {
 }
@@ -69,6 +71,13 @@ void NOMAD::QuadModelUpdate::init()
     _flagUseTrialPointsToDefineBox = ( _trialPoints.size() > 0);
     
     _flagUseScaledModel = (_scalingDirections.size() > 0);
+    
+    _boxFactor = NOMAD::INF;
+    if (nullptr != _pbParams)
+    {
+        _boxFactor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_BOX_FACTOR");
+    }
+    _n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     
 }
 
@@ -104,18 +113,17 @@ bool NOMAD::QuadModelUpdate::runImp()
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Update must have a Iteration among its ancestors.");
     }
-    
-    auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
+
     const auto bbot = NOMAD::Algorithm::getBbOutputType();
     size_t nbConstraints = NOMAD::getNbConstraints(bbot);
     size_t nbModels = nbConstraints+1; /// Constraint plus a single objective
 
     // row_X and row_Z are one-liner matrices to stock current point.
-    SGTELIB::Matrix row_X("row_X", 1, static_cast<int>(n));
+    SGTELIB::Matrix row_X("row_X", 1, static_cast<int>(_n));
     SGTELIB::Matrix row_Z("row_Z", 1, static_cast<int>(nbModels));
 
     // Matrices to stock all points to send to the model
-    auto add_X = std::make_shared<SGTELIB::Matrix>("add_X", 0, static_cast<int>(n));
+    auto add_X = std::make_shared<SGTELIB::Matrix>("add_X", 0, static_cast<int>(_n));
     auto add_Z = std::make_shared<SGTELIB::Matrix>("add_Z", 0, static_cast<int>(nbModels));
 
     auto model=iter->getModel();
@@ -143,26 +151,26 @@ bool NOMAD::QuadModelUpdate::runImp()
         {
             // Case of Quad Model used for SORT
             
-            NOMAD::ArrayOfDouble minVal(n,INF), maxVal(n,M_INF);
+            NOMAD::ArrayOfDouble minVal(_n,INF), maxVal(_n,M_INF);
             for (const auto & pt: _trialPoints)
             {
-                for (size_t i=0; i < n ; i++)
+                for (size_t i=0; i < _n ; i++)
                 {
                     minVal[i] = min(minVal[i], (*pt.getX())[i]);
                     maxVal[i] = max(maxVal[i], (*pt.getX())[i]);
                 }
             }
-            _modelCenter.reset(n);
-            _boxSize.reset(n);
+            _modelCenter.reset(_n);
+            _boxSize.reset(_n);
             
-            NOMAD::Double boxFactor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_SORT_BOX_FACTOR");
+
             
             // Model center is obtained by averaging min and max of the trial points.
             // Multiply box size by box factor parameter
-            for (size_t i=0; i < n ; i++)
+            for (size_t i=0; i < _n ; i++)
             {
                 _modelCenter[i] = ( minVal[i] + maxVal[i] ) / 2.0;
-                _boxSize[i] = ( maxVal[i] - minVal[i] ) * boxFactor;
+                _boxSize[i] = ( maxVal[i] - minVal[i] ) * _boxFactor;
             }
         }
         else if (nullptr != iter->getMesh())
@@ -177,11 +185,9 @@ bool NOMAD::QuadModelUpdate::runImp()
             
             // Box size is the current frame size
             _boxSize = iter->getMesh()->getDeltaFrameSize();
-
-            NOMAD::Double boxFactor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_SEARCH_BOX_FACTOR");
             
             // Multiply by box factor parameter
-            _boxSize *= boxFactor;
+            _boxSize *= _boxFactor;
             
             OUTPUT_INFO_START
             s = "Mesh size: " + iter->getMesh()->getdeltaMeshSize().display();
@@ -198,7 +204,7 @@ bool NOMAD::QuadModelUpdate::runImp()
            {
                throw NOMAD::Exception(__FILE__,__LINE__,"Update must have a model center.");
            }
-            _boxSize = NOMAD::ArrayOfDouble(n,NOMAD::INF);
+            _boxSize = NOMAD::ArrayOfDouble(_n,NOMAD::INF);
             
             OUTPUT_INFO_START
             AddOutputInfo("Box size set to infinity. All evaluated points in cache will be used for update.");
@@ -217,23 +223,49 @@ bool NOMAD::QuadModelUpdate::runImp()
         AddOutputInfo(s);
         OUTPUT_INFO_END
         
+        
         // Get valid points: notably, they have a BB evaluation.
         // Use CacheInterface to ensure the points are converted to subspace
         NOMAD::CacheInterface cacheInterface(this);
+        
+    
+        
+        // Get number of valid points in cache
+        auto crit0 = [&](const NOMAD::EvalPoint& evalPoint){return this->isValidForUpdate(evalPoint);};
+        cacheInterface.find(crit0, evalPointList, true /*find in subspace*/);
+        size_t nbMaxCache = evalPointList.size();
+        
+        // Get points in the box
         auto crit = [&](const NOMAD::EvalPoint& evalPoint){return this->isValidForIncludeInModel(evalPoint);};
         cacheInterface.find(crit, evalPointList, true /*find in subspace*/);
         
-        // If the number of points is less than n, enlarge the box size and repeat
-        if (evalPointList.size()<n)
+        //        // If the number of points is less than n, enlarge the box size and repeat
+        //        if (evalPointList.size()<_n)
+        //        {
+        //            evalPointList.clear();
+        //            _boxSize *= 2;
+        //            cacheInterface.find(crit, evalPointList, true /*find in subspace*/);
+        //            OUTPUT_INFO_START
+        //            s = "Enlarge box size to get more points: " + _boxSize.display();
+        //            AddOutputInfo(s);
+        //            OUTPUT_INFO_END
+        //        }
+        // If the number of points is less than 0.5*(n+2)*(n+1), enlarge the box size and repeat
+        if ( nbMaxCache >= 0.5*(_n+2)*(_n+1))
         {
-            evalPointList.clear();
-            _boxSize *= 2;
-            cacheInterface.find(crit, evalPointList, true /*find in subspace*/);
-            OUTPUT_INFO_START
-            s = "Enlarge box size to get more points: " + _boxSize.display();
-            AddOutputInfo(s);
-            OUTPUT_INFO_END
+            size_t nbIncrease = 0;
+            while (nbIncrease < 10 && evalPointList.size() < 0.5*(_n+2)*(_n+1))
+            {
+                nbIncrease++;
+                _boxSize *= 2.0;
+                cacheInterface.find(crit, evalPointList, true /*find in subspace*/);
+                OUTPUT_INFO_START
+                s = "Enlarge box size to get more points: " + _boxSize.display();
+                AddOutputInfo(s);
+                OUTPUT_INFO_END
+            }
         }
+
     }
 
     // Minimum and maximum number of valid points to build a model
@@ -269,7 +301,7 @@ bool NOMAD::QuadModelUpdate::runImp()
         nbValidPoints = evalPointList.size();
     }
 
-    if (nbValidPoints < 2 || nbValidPoints < minNbPoints || nbValidPoints < n)
+    if (nbValidPoints < 2 || nbValidPoints < minNbPoints || nbValidPoints < _n)
     {
         
         // If no points available, it is impossible to build a model, a stop reason is set.
@@ -325,7 +357,7 @@ bool NOMAD::QuadModelUpdate::runImp()
             AddOutputInfo(s, OutputLevel::LEVEL_DEBUG);
         }
 
-        for (size_t j = 0; j < n; j++)
+        for (size_t j = 0; j < _n; j++)
         {
             // X
             row_X.set(0, static_cast<int>(j), x[j].todouble());
@@ -347,7 +379,7 @@ bool NOMAD::QuadModelUpdate::runImp()
         int k = 1;
         for (size_t j = 0; j < bbo.size(); j++)
         {
-            if (NOMAD::isConstraint(bbot[j]))
+            if (bbot[j].isConstraint())
             {
                 row_Z.set(0, k, bbo[j].todouble());
                 k++;
@@ -379,6 +411,7 @@ bool NOMAD::QuadModelUpdate::runImp()
             OUTPUT_INFO_START
             AddOutputInfo("OK.", _displayLevel);
             OUTPUT_INFO_END
+            
         }
         else
         {
@@ -394,12 +427,11 @@ bool NOMAD::QuadModelUpdate::runImp()
     // Check if the model is ready
     if ( model->is_ready() )
     {
-        updateSuccess = true;
+        {
+             updateSuccess = true;
+        }
     }
-    else
-    {
-        updateSuccess = false;
-    }
+    // updateSuccess default is "false"
 
     OUTPUT_INFO_START
     s = "New nb of points: " + std::to_string(trainingSet->get_nb_points());

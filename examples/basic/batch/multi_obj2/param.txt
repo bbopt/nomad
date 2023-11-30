@@ -11,11 +11,15 @@ UPPER_BOUND    * 5
 
 MAX_BB_EVAL    1000            
 
+# DMultiMads is enabled (default Mads is disabled)
 DMULTIMADS_OPTIMIZATION yes
 
+# For multiobjctive, sort should not use the default quad model info
 EVAL_QUEUE_SORT DIR_LAST_SUCCESS
-DIRECTION_TYPE ORTHO n+1 neg
 
+# Let's deactivate all default search methods
+# and do ORTHO n+1 Neg (Neg is for disabling quad model (n+1)th direction)
+DIRECTION_TYPE ORTHO n+1 neg
 QUAD_MODEL_SEARCH no
 NM_SEARCH no
 SPECULATIVE_SEARCH no
@@ -25,4 +29,9 @@ DISPLAY_STATS BBE ( SOL ) BBO  # Display the number of evaluation (BBE),
 		     		  # the current solution ( SOL ) and the objectives
 
 
+SOLUTION_FILE sol.txt          # Write the approximated Pareto points 
+                               # in a file during the run
+
+
 HISTORY_FILE history.txt
+

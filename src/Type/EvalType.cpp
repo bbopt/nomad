@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -59,8 +59,8 @@
 
 // Convert a string ("BB", "MODEL", "SURROGATE")
 // to a NOMAD::EvalType.
-// "UNDEFINED" or "LAST" throws an exception, as well as any value other than "BB", "MODEL".
-NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst)
+// If noException is false (default), "UNDEFINED" or "LAST" throws an exception, as well as any value other than "BB", "MODEL" and "SURROGATE".
+NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst, bool noException )
 {
     NOMAD::EvalType ret;
     std::string s = sConst;
@@ -70,17 +70,21 @@ NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst)
     {
         ret = NOMAD::EvalType::BB;
     }
-    else if (s == "MODEL")
-    {
-        ret = NOMAD::EvalType::MODEL;
-    }
     else if (s == "SURROGATE")
     {
         ret = NOMAD::EvalType::SURROGATE;
     }
+    else if (s == "MODEL")
+    {
+        ret = NOMAD::EvalType::MODEL;
+    }
     else
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized string for NOMAD::EvalType: " + s);
+        if (!noException)
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized string for NOMAD::EvalType: " + s);
+        }
+        ret = NOMAD::EvalType::UNDEFINED;
     }
 
     return ret;
@@ -100,11 +104,11 @@ std::string NOMAD::evalTypeToString(NOMAD::EvalType evalType)
         case NOMAD::EvalType::BB:
             s = "BB";
             break;
-        case NOMAD::EvalType::MODEL:
-            s = "MODEL";
-            break;
         case NOMAD::EvalType::SURROGATE:
             s = "SURROGATE";
+            break;
+        case NOMAD::EvalType::MODEL:
+            s = "MODEL";
             break;
         case NOMAD::EvalType::UNDEFINED:
             s = "UNDEFINED";

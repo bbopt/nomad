@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
  \see    EvalQueuePoint.cpp
  */
 
-#ifndef __NOMAD_4_3_EVALQUEUEPOINT__
-#define __NOMAD_4_3_EVALQUEUEPOINT__
+#ifndef __NOMAD_4_4_EVALQUEUEPOINT__
+#define __NOMAD_4_4_EVALQUEUEPOINT__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -101,6 +101,20 @@ public:
 
     void setK(const size_t k) { _k = k; };
     size_t getK() const { return _k; }
+    
+    /// Comparison operator \c ==.
+    /**
+     \param evalQueuePoint   The right-hand side object -- \b IN.
+     \return            \c true if  \c *this \c == \c p, \c false if not.
+     */
+    bool operator== (const EvalQueuePoint& evalQueuePoint) const;
+
+    /// Comparison operator \c !=.
+    /**
+     \param evalQueuePoint   The right-hand side object -- \b IN.
+     \return            \c false if  \c *this \c == \c p, \c true if not.
+     */
+    bool operator!= (const EvalQueuePoint& evalQueuePoint) const { return !(*this == evalQueuePoint); }
 };
 
 /// Smart pointer to EvalQueuePoint
@@ -112,6 +126,6 @@ typedef std::vector<EvalQueuePointPtr> BlockForEval;
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_EVALQUEUEPOINT__
+#endif // __NOMAD_4_4_EVALQUEUEPOINT__
 
 

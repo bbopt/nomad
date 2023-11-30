@@ -1,0 +1,359 @@
+###############################################################################
+#######     Definition of Run Parameters attributes (QP Algo)      ############
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+QP_OPTIMIZATION
+bool
+false
+\( Quad model stand alone QP optimization for constrained and unconstrained pbs \)
+\(
+
+. QP standalone optimization on quadratic models for constrained and
+  unconstrained problems
+
+. Argument: bool
+
+. Standalone optimization will deactivate any other optimization strategy.
+
+. Example: QP_OPTIMIZATION true
+
+\)
+\( advanced sgtelib quadratic quad optimization programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+QP_SEARCH
+bool
+false
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. A QP search step for Mads that make several trial points from the poll center
+
+. Argument: bool
+
+. Example: QP_SEARCH true
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_SelectAlgo
+size_t
+0
+\( Select the algorithm for QP solver \)
+\(
+
+. Select the algorithm for QPSolver
+
+. Argument: size_t
+
+. Example: QP_SelectAlgo 0
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_maxIter
+size_t
+10
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver iteration limit
+
+. Argument: size_t
+
+. Example: maxIter 100
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_tolDistDX
+NOMAD::Double
+-1.0
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver smallest progress accepted
+
+. Argument: Double
+
+. Example: QP_tolDistDX 1e-15
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_absoluteTol
+NOMAD::Double
+1e-3
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver absolute tolerance
+
+. Argument: Double
+
+. Example: QP_absoluteTol 1e-3
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_tolCond
+NOMAD::Double
+1e-15
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver relative tolerance w.r.t to condition number
+
+. Argument: Double
+
+. Example: QP_tolCond 1e-15
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_tolMesh
+NOMAD::Double
+1.0
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver relative tolerance w.r.t to mesh size
+
+. Argument: Double
+
+. Example: QP_tolMesh 1.0
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_relativeTol
+NOMAD::Double
+1e-3
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver relative tolerance
+
+. Argument: Double
+
+. Example: QP_relativeTol 1e-3
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_verbose
+bool
+false
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver verbosity
+
+. Argument: bool
+
+. Example: verbose false
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_verboseFull
+bool
+false
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver verbosity of all subiterations
+
+. Argument: bool
+
+. Example: QP_verboseFull false
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_AugLag_mu0
+NOMAD::Double
+0.5
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver initial penalty parameter value for Augmented Lagrangian solver
+
+. Argument: Double
+
+. Example: QP_AugLag_mu0 0.5
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_AugLag_muDecrease
+NOMAD::Double
+2
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver penalty parameter decrease factor for Augmented Lagrangian solver
+
+. Argument: Double
+
+. Example: QP_AugLag_muDecrease 2
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_AugLag_eta0
+NOMAD::Double
+1.0
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver initial constraint tolerance value for Augmented Lagrangian solver
+
+. Argument: Double
+
+. Example: QP_AugLag_eta0 1.0
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_AugLag_omega0
+NOMAD::Double
+1.0
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver initial subproblem's tolerance value for Augmented Lagrangian solver
+
+. Argument: Double
+
+. Example: QP_AugLag_omega0 1.0
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_AugLag_maxIterInner
+size_t
+10
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver iteration limit for the subproblem
+
+. Argument: size_t
+
+. Example: QP_AugLag_maxIterInner 50
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_AugLag_tolDistDXInner
+NOMAD::Double
+1e-15
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver smallest progress accepted in the subproblem
+
+. Argument: Double
+
+. Example: QP_AugLag_tolDistDXInner 1e-15
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_AugLag_maxSuccessivFail
+size_t
+3
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver maximum number of successiv failure for the subproblem
+
+. Argument: size_t
+
+. Example: QP_AugLag_maxSuccessivFail 3
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_AugLag_successRatio
+NOMAD::Double
+0.99
+\( A quad model based search step for Mads using a QP solver \)
+\(
+
+. QPSolver ratio of expected decrease, so that f_{k+1} < ratio * f_k
+
+. Argument: NOMAD::Double (between 0 and 1)
+
+. Example: QP_AugLag_successRatio 0.99
+
+\)
+\( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################

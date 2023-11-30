@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_POLL__
-#define __NOMAD_4_3_POLL__
+#ifndef __NOMAD_4_4_POLL__
+#define __NOMAD_4_4_POLL__
 
 #include <set>
 
@@ -65,11 +65,19 @@ private:
     DLL_ALGO_API static double  _pollTime;      ///< Total time spent running the poll
     DLL_ALGO_API static double  _pollEvalTime;  ///< Total time spent evaluating poll points
 #endif // TIME_STATS
+    
+    DirectionTypeList _primaryDirectionTypes, _secondaryDirectionTypes;  ///< The poll methods implement different direction types for primary and secondary poll centers.
 
+    NOMAD::Double _rho; ///< Rho parameter of the progressive barrier. Used to choose if the primary frame center is the feasible or infeasible  incumbent.
+    
+    size_t _trialPointMaxAddUp; ///< Add new trial points to the ones produced by the selected direction type up to reached a given number.
+    
 protected:
+    bool _hasSecondPass;   ///<  Ortho n+1 poll methods generate n trial points in a first pass and, if not successful, generate the n+1 th point (second pass)
+    
     std::vector<std::shared_ptr<PollMethodBase>> _pollMethods;  ///< Unlike for Search, Poll methods generate all their points and only then they are evaluated.
 
-    std::vector<EvalPointPtr> _frameCenters;  ///< The frame centers (primary and secondary) of the poll methods. See createPollMethods.
+    std::vector<EvalPointPtr> _frameCenters;  ///< The frame centers (primary and secondary) of the poll methods. See createPollMethods. 
     
 public:
     /// Constructor
@@ -93,6 +101,14 @@ public:
       In this second pass, the trial points are determined using the evaluations of the first N points.
       */
     void generateTrialPointsSecondPass();
+    
+    
+    /// Extra trial point generation after first pass.
+    /**
+      Add trial points to reached a prescribed trial point number (TRIAL_POINT_MAX_ADD_UP).
+     Only for single pass direction type (ortho 2n).
+      */
+    void generateTrialPointsExtra();
 
 #ifdef TIME_STATS
     /// Time stats
@@ -111,14 +127,15 @@ protected:
     ///  Set the stop type for the Algorithm (can be reimplemented, for example CS)
     virtual void setMeshPrecisionStopType();
     
+    /// Helper to create poll methods for current poll centers
+    virtual void createPollMethodsForPollCenters();
+    
 
 private:
     /// Helper for constructor
     void init();
 
-    /// Helper to create poll methods for current poll centers
-    void createPollMethodsForPollCenters();
-    
+
     /// Implementation for start tasks for MADS poll.
     /**
      Call to generate the poll methods
@@ -152,4 +169,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_POLL__
+#endif // __NOMAD_4_4_POLL__

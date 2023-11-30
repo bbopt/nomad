@@ -1,0 +1,25 @@
+[project]
+name = "PyNomadDev"
+version = "4.4.dev1"
+authors = [
+  { name = "Jan Provaznik and Christophe Tribes", email="christophe.tribes@polymtl.ca"},
+]
+description = "Python interface to Nomad 4"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/bbopt/nomad"
+"Bug Tracker" = "https://github.com/bbopt/nomad/issues"
+
+[build-system]
+requires = [
+  'setuptools',
+  'cython',
+  'wheel'
+]

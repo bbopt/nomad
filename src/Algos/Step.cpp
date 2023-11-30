@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -63,6 +63,7 @@ bool NOMAD::Step::_userTerminate = false;
 NOMAD::StepCbFunc NOMAD::Step::_cbIterationEnd = defaultStepCB;
 NOMAD::StepCbFunc NOMAD::Step::_cbMegaIterationEnd = defaultStepCB;
 NOMAD::StepCbFunc NOMAD::Step::_cbMegaIterationStart = defaultStepCB;
+NOMAD::StepCbFunc NOMAD::Step::_cbPostprocessingCheck = defaultStepCB;
 NOMAD::HotRestartCbFunc NOMAD::Step::_cbHotRestart = defaultHotRestart;
 
 bool NOMAD::Step::_showWarnings = true;
@@ -111,6 +112,8 @@ void NOMAD::Step::init()
 {
     _success = NOMAD::SuccessType::UNDEFINED;
     
+    _isMegaSearchPoll = false;
+    _hMax0 = NOMAD::INF;
     if (nullptr != _parentStep)
     {
         // If the parent is ROOT the params will be null
@@ -121,6 +124,12 @@ void NOMAD::Step::init()
         if (nullptr == _pbParams)
         {
             _pbParams = _parentStep->_pbParams;
+        }
+       // In case no run params is provided (not even from parent)
+        if ( nullptr != _runParams)
+        {
+            _isMegaSearchPoll = _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL");
+            _hMax0 = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
         }
     }
 }
@@ -144,6 +153,9 @@ void NOMAD::Step::addCallback(const NOMAD::CallbackType& callbackType,
             _cbMegaIterationStart = stepCbFunc;
         case NOMAD::CallbackType::MEGA_ITERATION_END:
             _cbMegaIterationEnd = stepCbFunc;
+            break;
+        case NOMAD::CallbackType::POSTPROCESSING_CHECK:
+            _cbPostprocessingCheck = stepCbFunc;
             break;
         default:
             break;
@@ -175,6 +187,9 @@ void NOMAD::Step::runCallback(NOMAD::CallbackType callbackType,
             break;
         case NOMAD::CallbackType::MEGA_ITERATION_END:
             _cbMegaIterationEnd(step, stop);
+            break;
+        case NOMAD::CallbackType::POSTPROCESSING_CHECK:
+            _cbPostprocessingCheck(step, stop);
             break;
         default:
             break;
@@ -323,9 +338,9 @@ void NOMAD::Step::verifyParentNotNull()
 
 void NOMAD::Step::verifyGenerateAllPointsBeforeEval(const std::string& method, const bool expected) const
 {
-    bool actual = _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL");
+    
 
-    if (expected != actual)
+    if (expected != _isMegaSearchPoll)
     {
         std::string err = "Error: " + method + " should only be called if ";
         err += " parameter MEGA_SEARCH_POLL is ";
@@ -477,15 +492,15 @@ bool NOMAD::Step::hasPhaseOneSolution() const
         barrier = constAlgo->getMegaIterationBarrier();
     }
     
-    NOMAD::Double hMax = (nullptr != barrier) ? barrier->getHMax() : _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+    NOMAD::Double hMax = (nullptr != barrier) ? barrier->getHMax() : _hMax0;
     // No feasible point in cache, but possibly in MegaIteration ancestor's barrier.
     if (nullptr != barrier)
     {
-        auto xFeas = barrier->getFirstXFeas();
-        if (nullptr != xFeas && NOMAD::EvalStatusType::EVAL_OK == xFeas->getEvalStatus(NOMAD::EvalType::BB))
+        auto xIncFeas = barrier->getCurrentIncumbentFeas();
+        if (nullptr != xIncFeas && NOMAD::EvalStatusType::EVAL_OK == xIncFeas->getEvalStatus(NOMAD::EvalType::BB))
         {
-            NOMAD::Double h = xFeas->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
-            hasPhaseOneSol = NOMAD::EvalPoint::isPhaseOneSolution(*xFeas) && (h <= hMax);
+            NOMAD::Double h = xIncFeas->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+            hasPhaseOneSol = NOMAD::EvalPoint::isPhaseOneSolution(*xIncFeas) && (h <= hMax);
         }
     }
     
@@ -623,32 +638,32 @@ void NOMAD::Step::updateParentSuccess()
 }
 
 bool NOMAD::Step::getUserTerminate()
-{ 
-	return _userTerminate; 
+{
+    return _userTerminate;
 }
 
 void NOMAD::Step::setUserTerminate()
-{ 
-	_userTerminate = true; 
+{
+    _userTerminate = true;
 }
 
 void NOMAD::Step::resetUserTerminate()
 {
-	_userTerminate = false;
+    _userTerminate = false;
 }
 
 bool NOMAD::Step::getUserInterrupt()
 {
-	return _userInterrupt;
+    return _userInterrupt;
 }
 
-void  NOMAD::Step::resetUserInterrupt() 
-{ 
-	_userInterrupt = false; 
+void  NOMAD::Step::resetUserInterrupt()
+{
+    _userInterrupt = false;
 }
 
 
-void NOMAD::Step::disableWarnings() 
-{ 
-	_showWarnings = false;
+void NOMAD::Step::disableWarnings()
+{
+    _showWarnings = false;
 }

@@ -1,0 +1,37 @@
+# PROBLEM PARAMETERS
+####################
+
+DIMENSION      2              # number of variables
+
+BB_EXE         bb5.exe        # 'bb5.exe' is a program that
+                              # takes in argument the name of
+                              # a text file ('input filename')
+                              # containing 2
+                              # values, and that write 1
+                              # values that correspond to the
+                              # objective function value (OBJ)
+                              # in a file inputfilename.output
+                              # IN THAT CASE WE MUST HAVE THE OPTION
+                              # BB_REDIRECTION no 
+                              
+BB_OUTPUT_TYPE OBJ 
+BB_REDIRECTION no             # For a blackbox that manages the output file
+                              # NOMAD expect an output file with a name 
+                              # of the input file + ".output' 
+                              # INPUT and OUTPUT files have a fixed name 
+                              # during optimization.          
+
+				
+X0 ( 2 2 )                    # starting point
+
+
+MAX_BB_EVAL    100            # the algorithm terminates when
+                              # 100 black-box evaluations have
+                              # been made
+
+# STATS_FILE stat.txt
+
+# DISPLAY_ALL_EVAL yes
+
+DISPLAY_STATS BBE ( SOL ) OBJ # Display the number of evaluation (BBE),
+DISPLAY_DEGREE 2              # the current solution ( SOL ) and the objective

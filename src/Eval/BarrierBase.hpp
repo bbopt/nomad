@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_BARRIERBASE__
-#define __NOMAD_4_3_BARRIERBASE__
+#ifndef __NOMAD_4_4_BARRIERBASE__
+#define __NOMAD_4_4_BARRIERBASE__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -58,8 +58,11 @@ class DLL_EVAL_API BarrierBase
 protected:
 
     std::vector<EvalPointPtr> _xFeas;  ///< Current feasible incumbent solutions
-    std::vector<EvalPointPtr> _xInf;   ///< Current infeasible incumbent solutions
-
+    std::vector<EvalPointPtr> _xInf;   ///< Current infeasible barrier points (contains infeasible incumbents) with h<=hMax
+    
+    std::vector<EvalPointPtr> _xIncFeas;   ///< Current feasible incumbent solutions. Can be a subset of _xFeas but for now, xIncFeas and xFeas are the same
+    std::vector<EvalPointPtr> _xIncInf;   ///< Current infeasible incumbent solutions (subset of _xInf if it is defined). For now, we consider a vector (maybe DMultiMads needs it)
+    
     EvalPointPtr _refBestFeas;      ///< Previous first feasible incumbent
     EvalPointPtr _refBestInf;       ///< Previous first infeasible incumbent
                                     ///< NB: can be above the barrier threshold
@@ -85,8 +88,16 @@ public:
         _n(0)
     {}
 
+    /// Copy Constructor
+    /**
+       Copy barrier some parameters. Barrier points are not copied.
+     */
+    BarrierBase(const BarrierBase & b)
+    {
+        _hMax = b._hMax;
+    }
     
-    // Use clone to create a barrier of the same type (Barrier or DMultiMadsBarrier)
+    // Use clone to create a barrier of the same type (for example, ProgressiveBarrier, DiscoMadsBarrier or DMultiMadsBarrier)
     virtual std::shared_ptr<BarrierBase> clone() const = 0;
     
     /*-----------------*/
@@ -97,14 +108,20 @@ public:
      \return All the eval points that are feasible.
      */
     const std::vector<EvalPointPtr>& getAllXFeas() const { return _xFeas; }
-
-    ///  Get the first feasible point in the barrier.
+    
+    ///  Get the current incumbent feasible point in the barrier.
     /**
      * If there is no feasible point, return a \c nullptr
      \return A single feasible eval point.
      */
-    virtual EvalPointPtr getFirstXFeas() const = 0;
+    virtual EvalPointPtr getCurrentIncumbentFeas() const =0;
     
+    
+    ///  Get all incumbent feasible points in the barrier
+    /**
+     \return All the eval points that are feasible incumbents (with same f and h).
+     */
+    const std::vector<EvalPointPtr>& getAllXIncFeas() const { return _xIncFeas; }
     
     ///  Get the point that was previously the first feasible point in the barrier.
     /**
@@ -131,13 +148,20 @@ public:
      \return All the eval points that are infeasible.
      */
     const std::vector<EvalPointPtr>& getAllXInf() const { return _xInf; }
+    
+    ///  Get all incumbent infeasible points in the barrier
+    /**
+     \return All the eval points that are infeasible incumbents (with same f and h).
+     */
+    const std::vector<EvalPointPtr>& getAllXIncInf() const { return _xIncInf; }
 
-    ///  Get the first infeasible point in the barrier.
+    
+    ///  Get the currnent infeasible incumbent.
     /**
      * If there is no infeasible point, return a \c nullptr
      \return A single infeasible eval point.
      */
-    virtual EvalPointPtr getFirstXInf() const = 0;
+    virtual EvalPointPtr getCurrentIncumbentInf() const = 0;
     
     
     ///  Get the point that was previously the first infeasible point in the barrier.
@@ -165,7 +189,7 @@ public:
 
     /// Get first of all feasible and infeasible points.
     /** If there are feasible points, returns first feasible point.
-      * else, returns first infeasible point. */
+      * else, returns first infeasible incumbent. */
     const EvalPointPtr getFirstPoint() const;
     
     /// Get the current hMax of the barrier.
@@ -198,7 +222,8 @@ public:
                           const std::vector<EvalPoint>& evalPointList,
                           EvalType evalType,
                           ComputeType computeType,
-                          const bool keepAllPoints = false) = 0;
+                          const bool keepAllPoints = false,
+                          const bool updateInfeasibleIncumbentAndHmax = false) = 0;
     
     /// Return the barrier as a string.
     /* May be used for information, or for saving a barrier. In the former case,
@@ -257,16 +282,25 @@ private:
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
-    virtual void checkXFeas(const EvalPoint &xFeas,
-                            EvalType evalType,
-                            ComputeType computeType = ComputeType::STANDARD) = 0;
+    void checkXFeas(const EvalPoint &xFeas,
+                    EvalType evalType,
+                    ComputeType computeType = ComputeType::STANDARD) ;
     
     /**
      * \brief Helper function for insertion.
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
-    virtual void checkXInf(const EvalPoint &xInf, EvalType evalType) = 0;
+    virtual void checkXFeasIsFeas(const EvalPoint &xFeas,
+                          EvalType evalType,
+                          ComputeType computeType = ComputeType::STANDARD);
+    
+    /**
+     * \brief Helper function for insertion.
+     *
+     * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
+     */
+    void checkXInf(const EvalPoint &xInf, EvalType evalType);
     
     
 };
@@ -279,4 +313,4 @@ DLL_EVAL_API std::istream& operator>>(std::istream& is, BarrierBase& barrier);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_BARRIERBASE__
+#endif // __NOMAD_4_4_BARRIERBASE__

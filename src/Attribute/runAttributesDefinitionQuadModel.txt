@@ -50,6 +50,39 @@ true
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ###############################################################################
+QUAD_MODEL_AND_LH_SEARCH
+bool
+false
+\( Quad model and LH search \)
+\(
+. Add points to construct a better quad model
+
+. Not implemented. Triggers exception if enabled.
+
+\)
+\( basic mads quad model lh latin hypercube sampling search model_search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+###############################################################################
+QUAD_MODEL_SLD_SEARCH
+bool
+false
+\( Quad model (SLD) search \)
+\(
+
+. MADS model search, using Sébastien Le Digabel quad models
+
+. Argument: one boolean ('yes' or 'no')
+
+. Disabled for more than 50 variables
+
+. Example: QUAD_MODEL_SLD_SEARCH yes
+
+\)
+\( basic mads quad model search model_search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
 QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR
 NOMAD::Double
 1
@@ -111,7 +144,10 @@ false
 \(
 
 . Quadratic model optimization for constrained and unconstrained
-  optimization
+  optimization.
+  
+. LH_EVAL can be used to sample points and evaluate them before running
+  quad model optimization.
 
 . Argument: bool
 
@@ -149,27 +185,55 @@ NOMAD::Double
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
-QUAD_MODEL_SORT_BOX_FACTOR
+QUAD_MODEL_BOX_FACTOR
 NOMAD::Double
 2.0
-\( Quadratic model sort point selection factor \)
+\( Quadratic model points selection box factor \)
 \(
-. Quadratic model sort point selection factor
 
-. This parameter is used to select points to build the quadratic model for
-  sorting trial points
+. This parameter is used to select points to build the quadratic model.
 
 . The max, min and average of trial points coordinates are used to identify a
-  box. This box contains all trial points to sort.
+  box.
   
 . The box is enlarged by this factor. Cache evaluation points inside this box
-  are selected to build the quadratic model for sort.
+  are selected to build the quadratic model.
 
 . Arguments: one strictly positive real
 
-. Example: QUAD_MODEL_SORT_BOX_FACTOR 1.0
+. Example: QUAD_MODEL_BOX_FACTOR 1.0
 \)
-\( developer quadratic model sort \)
+\( developer quadratic model sort search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QUAD_MODEL_SEARCH_FORCE_EB
+bool
+false
+\( Quadratic model search optimization using extreme barrier \)
+\(
+
+. By default (flag=false) quadratic model search optimization problem transforms
+  all constraints into progressive barrier constraints.
+  
+. Handling constraints with the progressive barrier is more costly (time) than
+  with the extreme barrier because updating the progressive barrier is more
+  complex.
+
+. On costly blackbox optimization problem the extra time for using the progressive
+  barrier during the quadratic model search optimization is minimal. But it can
+  be more important on simple analytical blacbox optimization problems with many
+  quad model searches.
+  
+. Forcing EB constraints for quad model search is faster but can result in less
+  successful trial points.
+  
+. Arguments: boolean
+
+. Example: QUAD_MODEL_FORCE_EB true
+
+\)
+\( developer quadratic model search \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -122,9 +122,9 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams, const size_t
 
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes;
-    bbOutputTypes.push_back(NOMAD::BBOutputType::OBJ);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::EB);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::EB);
+    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::OBJ);
+    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::EB);
+    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::EB);
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
@@ -177,7 +177,7 @@ int main ( int argc , char ** argv )
 
     NOMAD::MainStep TheMainStep;
 
-    // Set callbacks
+    // Set main step callback
     TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_END, userMegaIterationEnd);
 
     // Set parameters
@@ -236,8 +236,8 @@ int main ( int argc , char ** argv )
 
             bf.clear();
             bi.clear();
-            NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD, nullptr);
-            NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD,nullptr);
+            NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD);
+            NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
         }
     }
 

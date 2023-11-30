@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -57,7 +57,7 @@
 #include "../Algos/MainStep.hpp"
 #include "../Algos/SubproblemManager.hpp"
 #include "../Cache/CacheSet.hpp"
-#include "../Eval/Barrier.hpp"
+#include "../Eval/ProgressiveBarrier.hpp"
 #include "../Math/LHS.hpp"
 #include "../Math/RNG.hpp"
 #include "../Output/OutputQueue.hpp"
@@ -80,12 +80,18 @@
 #include "../Algos/PSDMads/PSDMads.hpp"
 #endif
 #ifdef USE_SGTELIB
+#include "../Algos/QPSolverAlgo/QPSolverAlgo.hpp"
 #include "../Algos/QuadModel/QuadModelAlgo.hpp"
 #include "../Algos/SgtelibModel/SgtelibModel.hpp"
 #endif
 #include "../Algos/SSDMads/SSDMads.hpp"
+#include "../Algos/DiscoMads/DiscoMads.hpp"
 #include "../Algos/TemplateAlgo/TemplateAlgo.hpp"
 
+// For hardware thread number
+#ifdef _OPENMP
+#include <thread>
+#endif
 
 void NOMAD::MainStep::setAllParameters(const std::shared_ptr<NOMAD::AllParameters> &allParams)
 {
@@ -140,7 +146,11 @@ NOMAD::ArrayOfPoint NOMAD::MainStep::suggest()
     NOMAD::OutputDirectToFile::getInstance()->init( _allParams->getDispParams() );
 
     // Create internal cache
-    createCache();
+    // The attribute passed to the function must be true for a cold suggest.
+    // A cold suggest has a new MainStep created everytime suggest is called.
+    // We rerun the algo using the points provided up to a certain state from a previous suggest. Then new points can be suggested.
+    // For warm suggest the MainStep is reused and algo iterates from the state it was before.
+    createCache(_allParams->getAttributeValue<bool>("USE_CACHE_FILE_FOR_RERUN"));
 
     size_t nbLHEval = _allParams->getAttributeValue<size_t>("LH_EVAL");
 
@@ -182,20 +192,28 @@ NOMAD::ArrayOfPoint NOMAD::MainStep::suggest()
             if (_evaluators.empty())
             {
                 // Batch mode. Create Evaluator on the go.
+                // We need an evaluator to store eval params. This is used to get bb output type and other info.
+                // A fake (EcalXDefined::UNDEFINED) bb evaluator is provided. This evaluator cannot evaluate a point. An exception is triggered when calling
                 _evaluators.push_back(std::make_shared<NOMAD::Evaluator>(_allParams->getEvalParams(),
                                                                          NOMAD::EvalType::BB,
-                                                                         NOMAD::EvalXDefined::USE_BB_EVAL));
+                                                                         NOMAD::EvalXDefined::UNDEFINED ));
+
+            }
+            else
+            {
+                    std::string err = "An evaluator has been set in the main step. Suggest does not require one. This can be problematic. ";
+                    throw NOMAD::StepException(__FILE__,__LINE__, err, this);
             }
 
             std::unique_ptr<NOMAD::EvaluatorControlParameters> evalContParams(new NOMAD::EvaluatorControlParameters(*_allParams->getEvaluatorControlParams()));
             evalContParams->checkAndComply();
             evaluatorControl = std::make_shared<NOMAD::EvaluatorControl>(_allParams->getEvaluatorControlGlobalParams(),
                                                           std::move(evalContParams));
-            for (const auto & ev: _evaluators)
-            {
-                evaluatorControl->addEvaluator(ev);
-            }
-            
+
+            // Add a fake evaluator
+            evaluatorControl->addEvaluator(_evaluators[0]);
+
+
             NOMAD::EvcInterface::setEvaluatorControl(std::move(evaluatorControl));
         }
 
@@ -203,7 +221,8 @@ NOMAD::ArrayOfPoint NOMAD::MainStep::suggest()
         auto mads = std::make_shared<NOMAD::Mads>(this,
                                               stopReasons ,
                                               _allParams->getRunParams(),
-                                              _allParams->getPbParams());
+                                              _allParams->getPbParams(),
+                                              false /* false: barrier not initialized from cache, use X0s*/);
 
         suggestedPoints = mads->suggest();
     }
@@ -232,15 +251,16 @@ void NOMAD::MainStep::observe(const std::vector<NOMAD::EvalPoint>& evalPointList
     NOMAD::OutputQueue::getInstance()->initParameters(_allParams->getDispParams());
     NOMAD::OutputDirectToFile::getInstance()->init(_allParams->getDispParams());
 
-    createCache();
-
+    // The attribute passed to the function is always false (no cache file read for rerun). The points observed are passed as list to be put into the cache file
+    createCache(false);
     if (evalPointList.size() > 0)
     {
         auto stopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
         auto mads = std::make_shared<NOMAD::Mads>(this,
                                               stopReasons ,
                                               _allParams->getRunParams(),
-                                              _allParams->getPbParams());
+                                              _allParams->getPbParams(),
+                                                  false /* false: cache file not used*/);
         mads->observe(evalPointList);
         // Update interesting parameters
         _allParams->setAttributeValue("INITIAL_FRAME_SIZE", mads->getPbParams()->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_FRAME_SIZE"));
@@ -297,7 +317,7 @@ void NOMAD::MainStep::startImp()
 #ifdef TIME_STATS
     _startTime = NOMAD::Clock::getCPUTime();
 #endif // TIME_STATS
-	
+
 
     if (nullptr == _allParams)
     {
@@ -335,19 +355,26 @@ void NOMAD::MainStep::startImp()
     {
         _allParams->display( std::cout );
     }
-    
+
     NOMAD::OutputQueue::getInstance()->initParameters( _allParams->getDispParams() );
     NOMAD::OutputDirectToFile::getInstance()->init( _allParams->getDispParams() );
 
-    createCache();
+    // Solution file is written only at the end
+    if (_allParams->getAttributeValue<bool>("SOLUTION_FILE_FINAL"))
+    {
+        // Disable solution file until the end
+        NOMAD::OutputDirectToFile::getInstance()->disableSolutionFile();
+    }
+
+    createCache(_allParams->getAttributeValue<bool>("USE_CACHE_FILE_FOR_RERUN"));
     updateX0sFromCacheAndFromLHSInit();
     auto x0s = _allParams->getPbParams()->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
 
     auto nbLHEval = _allParams->getRunParams()->getAttributeValue<size_t>("LH_EVAL");
     auto doRandomAlgo = _allParams->getRunParams()->getAttributeValue<bool>("RANDOM_ALGO_OPTIMIZATION");
     auto doDMultiMadsAlgo = _allParams->getRunParams()->getAttributeValue<bool>("DMULTIMADS_OPTIMIZATION");
-    
-    
+
+
     if ( (x0s.empty() || x0s[0].toBeDefined()) && nbLHEval == 0 && !doRandomAlgo && !doDMultiMadsAlgo)
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Need X0 to continue.");
@@ -360,7 +387,7 @@ void NOMAD::MainStep::startImp()
     if (_evaluators.empty())
     {
         // Down the road: manage multi fidelity surrogates. Add evaluators for each fidelity or pass the fidelity level to the constructor.
-        
+
         // Batch mode. Create Evaluator on the go.
         bool surrogateAsBB = _allParams->getAttributeValue<bool>("EVAL_SURROGATE_OPTIMIZATION");
         auto evalType = (surrogateAsBB) ? NOMAD::EvalType::SURROGATE : NOMAD::EvalType::BB;
@@ -376,11 +403,11 @@ void NOMAD::MainStep::startImp()
                 _evaluators.push_back(std::make_shared<NOMAD::Evaluator>(_allParams->getEvalParams(),
                                                                          NOMAD::EvalType::SURROGATE,
                                                                          NOMAD::EvalXDefined::USE_BB_EVAL));
-                
+
             }
         }
-        
-    }    
+
+    }
 
     auto evaluatorControl = NOMAD::EvcInterface::getEvaluatorControl();
     if (nullptr == evaluatorControl)
@@ -394,8 +421,8 @@ void NOMAD::MainStep::startImp()
             evaluatorControl->addEvaluator(evaluator);
         }
         // Need to force selection of BB evaluator. Otherwise the last added evaluator is used.
-        evaluatorControl->selectCurrentEvaluator(NOMAD::EvalType::BB);
-        
+        evaluatorControl->setCurrentEvaluatorType(NOMAD::EvalType::BB);
+
         NOMAD::EvcInterface::setEvaluatorControl(std::move(evaluatorControl));
     }
 
@@ -419,36 +446,35 @@ void NOMAD::MainStep::startImp()
 #ifdef USE_SGTELIB
     bool doQuadModelOpt = _allParams->getRunParams()->getAttributeValue<bool>("QUAD_MODEL_OPTIMIZATION");
     bool doSgtelibModelEval = _allParams->getRunParams()->getAttributeValue<bool>("SGTELIB_MODEL_EVAL");
+    bool doQPSolverQuadModelOpt = _allParams->getRunParams()->getAttributeValue<bool>("QP_OPTIMIZATION");
 #endif
     bool doSSDMads = _allParams->getRunParams()->getAttributeValue<bool>("SSD_MADS_OPTIMIZATION");
     bool doRandomAlgoOpt = _allParams->getRunParams()->getAttributeValue<bool>("RANDOM_ALGO_OPTIMIZATION");
     bool doDMultimadsOpt = _allParams->getRunParams()->getAttributeValue<bool>("DMULTIMADS_OPTIMIZATION");
+    bool doDiscoMads = _allParams->getRunParams()->getAttributeValue<bool>("DISCO_MADS_OPTIMIZATION");
 
+    bool evalOpportunistic = _allParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC");
+    // LH_EVAL can be done before another algo (not after!)
     if ( nbLHEval > 0 )
     {
         auto lhStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::LHStopType>>();
-
-        // All the LH sample points must be evaluated. No opportunism.
-        if ( _allParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC") )
-            AddOutputInfo("Opportunistic evaluation is disabled for LH when ran as a single algorithm.");
-
-        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
-
         auto lh = std::make_shared<NOMAD::LH>(this,
                                               lhStopReasons ,
                                               _allParams->getRunParams(),
                                               _allParams->getPbParams());
+
+        // All the LH sample points must be evaluated. No opportunism.
+        if ( evalOpportunistic )
+            AddOutputInfo("Opportunistic evaluation is disabled for LH when ran as a standalone algorithm.");
+        lh->setEvalOpportunistic(false);
+
         _algos.push_back(lh);
     }
-    else if ( doNMOptimization )
+
+
+    if ( doNMOptimization )
     {
         auto nmStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::NMStopType>>();
-
-        // All the NM points must be evaluated. No opportunism.
-        if ( _allParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC") )
-        {
-            AddOutputInfo("Opportunistic evaluation is disabled for NM when ran as a single algorithm.");
-        }
 
         NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
 
@@ -456,6 +482,13 @@ void NOMAD::MainStep::startImp()
                                               nmStopReasons ,
                                               _allParams->getRunParams(),
                                               _allParams->getPbParams());
+        // All the NM points must be evaluated. No opportunism.
+        if (evalOpportunistic)
+        {
+            AddOutputInfo("Opportunistic evaluation is disabled for NM when ran as a single algorithm.");
+        }
+        nm->setEvalOpportunistic(false);
+
         _algos.push_back(nm);
     }
     else if( doCSoptimization )
@@ -466,6 +499,9 @@ void NOMAD::MainStep::startImp()
                                               csStopReason ,
                                               _allParams->getRunParams(),
                                               _allParams->getPbParams());
+
+        cs->setEvalOpportunistic(evalOpportunistic);
+
         _algos.push_back(cs);
     }
 
@@ -479,6 +515,8 @@ void NOMAD::MainStep::startImp()
                                                     PSDMadsStopReasons,
                                                     _allParams->getRunParams(),
                                                     _allParams->getPbParams());
+        psd->setEvalOpportunistic(evalOpportunistic);
+
         _algos.push_back(psd);
     }
 #endif
@@ -487,8 +525,7 @@ void NOMAD::MainStep::startImp()
     {
         auto quadModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
 
-        // All the Sgtelib Model sample points are evaluated sequentially. No opportunism.
-        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
+        // Deactivate mega search poll
         _allParams->setAttributeValue("MEGA_SEARCH_POLL", false);
         _allParams->checkAndComply();
 
@@ -496,21 +533,21 @@ void NOMAD::MainStep::startImp()
                                                         quadModelStopReasons,
                                                         _allParams->getRunParams(),
                                                         _allParams->getPbParams());
+
+        // All the Sgtelib Model sample points are evaluated sequentially. No opportunism.
+        quadModelAlgo->setEvalOpportunistic(false);
+
         _algos.push_back(quadModelAlgo);
     }
     else if (doSgtelibModelEval)
     {
         auto sgtelibModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
 
-        // All the Sgtelib Model sample points are evaluated. No opportunism.
-        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
-
-
         std::shared_ptr<NOMAD::BarrierBase> barrier = nullptr;
         if (NOMAD::CacheBase::getInstance()->size() > 0)
         {
-            // Create a single objective barrier
-            barrier = std::make_shared<NOMAD::Barrier>();
+            // Create a single objective progressive barrier
+            barrier = std::make_shared<NOMAD::ProgressiveBarrier>();
         }
         auto sgtelibModel = std::make_shared<NOMAD::SgtelibModel>(this,
                                                         sgtelibModelStopReasons,
@@ -518,7 +555,25 @@ void NOMAD::MainStep::startImp()
                                                         _allParams->getRunParams(),
                                                         _allParams->getPbParams(),
                                                         nullptr);   // no mesh
+        // All the Sgtelib Model sample points are evaluated sequentially. No opportunism.
+        sgtelibModel->setEvalOpportunistic(false);
+
         _algos.push_back(sgtelibModel);
+    }
+    else if (doQPSolverQuadModelOpt)
+    {
+        auto quadModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
+
+        // All the Sgtelib Model sample points are evaluated sequentially. No opportunism.
+        NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
+        _allParams->setAttributeValue("MEGA_SEARCH_POLL", false);
+        _allParams->checkAndComply();
+
+        auto qpSolverQuadModelOptAlgo = std::make_shared<NOMAD::QPSolverAlgo>(this,
+                                                        quadModelStopReasons,
+                                                        _allParams->getRunParams(),
+                                                        _allParams->getPbParams());
+        _algos.push_back(qpSolverQuadModelOptAlgo);
     }
 #endif // USE_SGTELIB
     else if (doSSDMads)
@@ -528,6 +583,7 @@ void NOMAD::MainStep::startImp()
                                                     SSDMadsStopReasons,
                                                     _allParams->getRunParams(),
                                                     _allParams->getPbParams());
+        ssd->setEvalOpportunistic(evalOpportunistic);
         _algos.push_back(ssd);
     }
     else if (doRandomAlgoOpt)
@@ -537,66 +593,88 @@ void NOMAD::MainStep::startImp()
                                                                   randomAlgoStopReasons,
                                                                   _allParams->getRunParams(),
                                                                   _allParams->getPbParams());
+        randomAlgo->setEvalOpportunistic(evalOpportunistic);
+
         _algos.push_back(randomAlgo);
     }
     else if (doDMultimadsOpt)
     {
-        auto dMultiMadsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>(); // DMultiMads Stop type same as Mads
+        auto dMultiMadsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>(); // DMultiMads  Stop type.
         auto dMultiMadsAlgo = std::make_shared<NOMAD::DMultiMads>(this,
                                                                   dMultiMadsStopReasons,
                                                                   _allParams->getRunParams(),
                                                                   _allParams->getPbParams());
+        dMultiMadsAlgo->setEvalOpportunistic(evalOpportunistic);
+
         _algos.push_back(dMultiMadsAlgo);
+    }
+    else if (doDiscoMads)
+    {
+        auto discoMadsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
+        auto discoMadsAlgo = std::make_shared<NOMAD::DiscoMads>(this,
+                                                                  discoMadsStopReasons,
+                                                                  _allParams->getRunParams(),
+                                                                  _allParams->getPbParams());
+        _algos.push_back(discoMadsAlgo);
     }
     else
     {
         // Mads is the default algorithm (PhaseOne search is managed in MadsInitialization)
-        
+
+        if (nbLHEval > 0)
+        {
+            std::cout << "Warning: LH_EVAL is performed but Mads is disabled. To perform LH initialization for Mads use LH_SEARCH."<<std::endl ;
+            return;
+
+        }
+
         // The stop reasons for mads
         auto stopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
-        
+
         // Default behavior: create Mads and add it to _algos.
         auto mads = std::make_shared<NOMAD::Mads>(this,
                                                   stopReasons ,
                                                   _allParams->getRunParams(),
-                                                  _allParams->getPbParams());
+                                                  _allParams->getPbParams(),
+                                                  false /* false: do no initialize barrier from cache, X0s is used instead */);
+        mads->setEvalOpportunistic(evalOpportunistic);
         _algos.push_back(mads);
     }
 
     bool useIbex = _allParams->getRunParams()->getAttributeValue<bool>("USE_IBEX");
 	if (useIbex)
 	{
-	
+
 #ifdef USE_IBEX
 		// A Set file determine the feasible domain
-	
+
 		// If the Set file is already created, we can load it
 		bool setFile = _allParams->getRunParams()->getAttributeValue<bool>("SET_FILE");
-		if (setFile) 
+		if (setFile)
 		{
 			string setFileName = _allParams->getAttributeValue<string>("SET_FILE_NAME");
 			const char * c = setFileName.c_str();
 			_set = std::make_shared<ibex::Set>(c);
 		}
-		
+
 		// Else, we can load the system file of the problem (containing the variables, constraints, ...) and then create the Set
 		else
 		{
 			string constraintsFileName = _allParams->getAttributeValue<string>("SYSTEM_FILE_NAME");
 		        const char * c = constraintsFileName.c_str();
-		        
+
 			ibex::System sys(c);
 			ibex::IntervalVector box = sys.box;
-			
+
 			const int n = sys.nb_ctr;
 			ibex::Array<ibex::NumConstraint> constraints = sys.ctrs;
 			ibex::Array<ibex::Sep> separators(n);
-			
+
 			for (int i = 0; i<n; i++)
 			{
 				separators.set_ref(i, *new ibex::SepFwdBwd(constraints[i]));
 			}
-			
+
 			ibex::SepInter sep_poly_in(separators);
 			_set = std::make_shared<ibex::Set>(box);
 			sep_poly_in.contract(*_set, 0.1);
@@ -605,7 +683,7 @@ void NOMAD::MainStep::startImp()
     throw NOMAD::Exception(__FILE__, __LINE__, "IBEX projection requires to configure and build NOMAD with the option USE_IBEX.");
 #endif
     }
-        
+
 }
 
 
@@ -613,11 +691,12 @@ bool NOMAD::MainStep::runImp()
 {
     bool ret = false;
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    evc->restart();
 
     for (auto algo : _algos)
     {
-    
+        // Get ready to evaluate new points for each new algo.
+        evc->restart();
+
         // Begin parallel region.
         // Note: always use default(none) and never default(shared), which is much
         // too risky.
@@ -625,18 +704,24 @@ bool NOMAD::MainStep::runImp()
 #pragma omp parallel default(none) shared(algo,evc,ret)
 #endif // _OPENMP
         {
-            printNumThreads();
+
+            // Set opportunism for main thread only
+            if (evc->isMainThread(NOMAD::getThreadNum()))
+            {
+                evc->setOpportunisticEval(algo->getEvalOpportunistic());
+            }
 
             // Start evaluatorControl on all threads
             evc->run();
-            
+
             if (evc->isMainThread(NOMAD::getThreadNum()))
             {
+
                 // Note: Algo start has been moved from outside to inside the parallel region
                 // so that evaluation of multiple X0s is done in parallel.
                 // This may cause trouble. Still under investigation.
                 algo->start();
-                
+
                 // Algo run is done in main thread(s) only.
                 ret = algo->run();
 
@@ -645,11 +730,7 @@ bool NOMAD::MainStep::runImp()
             }
         }   // End of parallel region.
         algo->end();
-    
-        if (algo->getAllStopReasons()->checkTerminate())
-        {
-            break;
-        }
+
      }
 
     return ret;
@@ -660,14 +741,18 @@ void NOMAD::MainStep::endImp()
 {
     // Pass last algo stop reason to MainStep (before clearing the algos)
     _stopReasons = _algos.back()->getAllStopReasons();
-    
-    _algos.clear();
+
 
 #ifdef TIME_STATS
    _totalCPUTime += NOMAD::Clock::getCPUTime() - _startTime;
 #endif // TIME_STATS
 
     displayDetailedStats();
+
+    writeFinalSolutionFile();
+
+    _algos.clear();
+
 }
 
 
@@ -677,9 +762,17 @@ int NOMAD::MainStep::getNumThreads() const
 #ifdef _OPENMP
     // Number of threads on which to do the evaluation.
     nbThreadsParam = _allParams->getAttributeValue<int>("NB_THREADS_OPENMP");
+    int nbThreadsHard = static_cast<int>(std::thread::hardware_concurrency());
     if (nbThreadsParam < 1)
     {
-        nbThreadsParam = omp_get_max_threads();
+        nbThreadsParam = nbThreadsHard;
+    }
+    else if (nbThreadsParam > nbThreadsHard)
+    {
+        std::string s = "NB_THREADS_OPENMP exceeds the number of threads registered for this hardware: ";
+        s += NOMAD::itos(nbThreadsHard);
+        s += ". If this is true, it is not efficient. Let's continue anyway.";
+        NOMAD::OutputQueue::Add(s,NOMAD::OutputLevel::LEVEL_NORMAL);
     }
 #endif // _OPENMP
 
@@ -693,6 +786,12 @@ void NOMAD::MainStep::setNumThreads() const
     // Set number of threads on which to do the evaluation.
     int nbThreadsParam = getNumThreads();
     omp_set_num_threads(nbThreadsParam);
+
+    std::string s = "OpenMP will use " + NOMAD::itos(nbThreadsParam) + " thread";
+    if (nbThreadsParam > 1) { s += "s"; }
+    s += " in the parallel regions.\n";
+    NOMAD::OutputQueue::Add(s,NOMAD::OutputLevel::LEVEL_NORMAL);
+
 #endif // _OPENMP
 }
 
@@ -700,15 +799,12 @@ void NOMAD::MainStep::setNumThreads() const
 void NOMAD::MainStep::printNumThreads() const
 {
 #ifdef _OPENMP
-    // Once we are in the parallel region, print the actual
-    // number of threads used.
+    // Print the actual number of threads used (once if in parallel region).
 #pragma omp single nowait
     {
         int nbThreads = omp_get_num_threads();
-        std::string s = "Using " + NOMAD::itos(nbThreads) + " thread";
-        if (nbThreads > 1) { s += "s"; }
-        s += ".";
-        NOMAD::OutputQueue::Add(s);
+        std::string s = "Number of threads currently in use in the region: " + NOMAD::itos(nbThreads) ;
+        NOMAD::OutputQueue::Add(s,NOMAD::OutputLevel::LEVEL_NORMAL);
     }
 #endif // _OPENMP
 }
@@ -721,7 +817,7 @@ bool NOMAD::MainStep::detectPhaseOne()
     bool hasNoFeas = !NOMAD::CacheBase::getInstance()->hasFeas();
 
     auto bbOutputTypeList = _allParams->getEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
-    if (std::find(bbOutputTypeList.begin(), bbOutputTypeList.end(), NOMAD::BBOutputType::EB)
+    if (std::find(bbOutputTypeList.begin(), bbOutputTypeList.end(), NOMAD::BBOutputType("EB"))
         != bbOutputTypeList.end())
     {
         hasEBConstraints = true;
@@ -732,7 +828,7 @@ bool NOMAD::MainStep::detectPhaseOne()
 
 
 // Helper for start
-void NOMAD::MainStep::createCache() const
+void NOMAD::MainStep::createCache(bool useCacheForRerun) const
 {
     // Creation of an instance of CacheSet with CacheParameters
     // This must be done ONCE before accessing the singleton using NOMAD::CacheBase::getInstance()
@@ -745,6 +841,12 @@ void NOMAD::MainStep::createCache() const
         NOMAD::CacheSet::setInstance(_allParams->getCacheParams(),
                                      _allParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE"),
                                      _allParams->getAttributeValue<NOMAD::ArrayOfDouble>("BB_EVAL_FORMAT"));
+        if (useCacheForRerun)
+        {
+            // Swap cache and cacheForRerun
+            NOMAD::CacheBase::getInstance()->moveEvalPointToCacheForRerun();
+        }
+
     }
 }
 
@@ -753,16 +855,16 @@ void NOMAD::MainStep::updateX0sFromCacheAndFromLHSInit() const
 {
     // Update X0s, if needed.
     auto x0s = _allParams->getPbParams()->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
-    
+
     bool updatedX0s = false;
-    
+
     if (x0s.empty() || x0s[0].toBeDefined())
     {
         // X0 not provided directly by user. Find them in cache.
         x0s.clear();
-        
+
         bool canUseCache = (NOMAD::CacheBase::getInstance()->size() > 0);
-        
+
         if (canUseCache)
         {
             // Use best points in cache for x0.
@@ -774,30 +876,35 @@ void NOMAD::MainStep::updateX0sFromCacheAndFromLHSInit() const
             auto computeType = NOMAD::ComputeType::STANDARD;
             NOMAD::CacheBase::getInstance()->findBestFeas(evalPointList,
                                                           fixedVariable, evalType,
-                                                          computeType, nullptr);
+                                                          computeType);
             if (0 == evalPointList.size())
             {
                 auto hMax = _allParams->getRunParams()->getAttributeValue<NOMAD::Double>("H_MAX_0");
                 NOMAD::CacheBase::getInstance()->findBestInf(evalPointList,
                                                              hMax, fixedVariable,
-                                                             evalType, computeType, nullptr);
+                                                             evalType, computeType);
             }
             updatedX0s = (evalPointList.size() > 0)? true:false;
-            for (size_t i = 0; i < evalPointList.size(); i++)
+            for (const auto & evalPoint: evalPointList)
             {
-                x0s.push_back(evalPointList[i]);
+                x0s.push_back(evalPoint);
             }
         }
     }
-    
+
     // Complete X0 with LHS sampled points
     auto lhSearchType = _runParams->getAttributeValue<NOMAD::LHSearchType>("LH_SEARCH");
+    auto fixedVariables = _pbParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE");
     bool canUseLH = (lhSearchType.isEnabled() && lhSearchType.getNbInitial() > 0);
     if (canUseLH)
     {
         NOMAD::ArrayOfPoint sampleEvalPoints = suggestFromLH(lhSearchType.getNbInitial());
         for (size_t i = 0; i < sampleEvalPoints.size(); i++)
         {
+            if (fixedVariables.nbDefined() >= 1)
+            {
+                sampleEvalPoints[i] = sampleEvalPoints[i].makeFullSpacePointFromFixed(fixedVariables);
+            }
             x0s.push_back(sampleEvalPoints[i]);
         }
         updatedX0s = updatedX0s || (sampleEvalPoints.size() > 0)? true:false;
@@ -807,7 +914,7 @@ void NOMAD::MainStep::updateX0sFromCacheAndFromLHSInit() const
         _allParams->getPbParams()->setAttributeValue("X0", x0s);
         _allParams->getPbParams()->checkAndComply();
     }
-    
+
 }
 
 
@@ -889,23 +996,29 @@ void NOMAD::MainStep::displayVersion()
 /*------------------------------------------*/
 void NOMAD::MainStep::displayInfo()
 {
-    
+
     std::string info;
-    
+
     info += "Version " ;
     info += NOMAD_VERSION_NUMBER ;
-    info += " \n \n";
     
+#ifdef _OPENMP
+    info += ". Using OpenMP.";
+#else
+    info += ". Not using OpenMP.";
+#endif // _OPENMP
+    info += " \n \n";
+
     info += "NOMAD 4 has been created by \n";
     info += "    Viviane Rochon Montplaisir \n";
     info += "    Christophe Tribes \n\n";
-    
+
     info += "The copyright of NOMAD 4 is owned by \n";
     info += "    Charles Audet \n";
     info += "    Sebastien Le Digabel \n";
     info += "    Viviane Rochon Montplaisir \n";
     info += "    Christophe Tribes \n\n";
-    
+
     info += "NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada, \n";
     info += " NSERC (Natural Sciences and Engineering Research Council of Canada), \n";
     info += " InnovÉÉ (Innovation en Énergie Électrique) and \n";
@@ -921,7 +1034,7 @@ void NOMAD::MainStep::displayInfo()
     info += "Please report bugs to nomad@gerad.ca or \n";
     info += "create an issue at https://github.com/bbopt/nomad \n\n";
 
-    
+
     NOMAD::OutputQueue::Add(info, NOMAD::OutputLevel::LEVEL_NORMAL);
 }
 
@@ -1027,8 +1140,8 @@ void NOMAD::MainStep::resetComponentsBetweenOptimization()
     // Reset evaluator control
     NOMAD::EvcInterface::resetEvaluatorControl();
 
-    // Reset seed
-    NOMAD::RNG::resetPrivateSeedToDefault();
+    // Reset the random number generator to its initial state
+    NOMAD::RNG::reset();
 
     // Reset parameter entries
     NOMAD::Parameters::eraseAllEntries();
@@ -1068,6 +1181,10 @@ void NOMAD::MainStep::displayDetailedStats() const
     size_t bbEval = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
     s2.add(NOMAD::itos(bbEval));
 
+    s1.add("Blackbox evaluations (from cache file for rerun):");
+    size_t bbEvalFromCacheForRerun = NOMAD::EvcInterface::getEvaluatorControl()->getBbEvalFromCacheForRerun();
+    s2.add(NOMAD::itos(bbEvalFromCacheForRerun));
+
     s1.add("Cache hits:");
     size_t nbCacheHits = NOMAD::CacheBase::getNbCacheHits();
     s2.add(NOMAD::itos(nbCacheHits));
@@ -1099,7 +1216,11 @@ void NOMAD::MainStep::displayDetailedStats() const
     s1.add("Total surrogate evaluations:");
     size_t totalSurrogateEval = NOMAD::EvcInterface::getEvaluatorControl()->getSurrogateEval();
     s2.add(NOMAD::itos(totalSurrogateEval));
-    
+
+    s1.add("Total surrogate evaluations from cache file (for rerun):");
+    size_t totalSurrogateEvalFromCacheForRerun = NOMAD::EvcInterface::getEvaluatorControl()->getSurrogateEvalFromCacheForRerun();
+    s2.add(NOMAD::itos(totalSurrogateEvalFromCacheForRerun));
+
     s1.add("Total model evaluations:");
     size_t totalModelEval = NOMAD::EvcInterface::getEvaluatorControl()->getTotalModelEval();
     s2.add(NOMAD::itos(totalModelEval));
@@ -1119,6 +1240,13 @@ void NOMAD::MainStep::displayDetailedStats() const
     s1.add("Index of evaluation block containing the best feasible solution:");
     size_t indexSuccBlock = NOMAD::EvcInterface::getEvaluatorControl()->getIndexSuccBlockEval();
     s2.add(NOMAD::itos(indexSuccBlock));
+
+    size_t nbRevealingIter = NOMAD::EvcInterface::getEvaluatorControl()-> getNbRevealingIter(); // Curr. only used in DiscoMads
+    if (nbRevealingIter>0)
+    {
+        s1.add("Revealing Iterations:");
+        s2.add(NOMAD::itos(nbRevealingIter));
+    }
 
 #ifdef TIME_STATS
     s1.add("");
@@ -1191,31 +1319,64 @@ void NOMAD::MainStep::displayDetailedStats() const
     evalStatsStream.open(evalStatsFile.c_str(), std::ofstream::out | std::ios::trunc);
     if (evalStatsStream.fail())
     {
-        std::cerr << "Warning: could not open evaluation stats file " << evalStatsFile << std::endl;
+        std::cout << "Warning: could not open evaluation stats file " << evalStatsFile << std::endl;
     }
     evalStatsStream << paddedStats << std::endl;
     evalStatsStream.close();
 }
 
+void NOMAD::MainStep::writeFinalSolutionFile() const
+{
+    if (_allParams->getAttributeValue<bool>("SOLUTION_FILE_FINAL"))
+    {
+        // Enable solution file that was disabled at start
+        NOMAD::OutputDirectToFile::getInstance()->enableSolutionFile();
+
+        auto barrier = _algos.back()->getMegaIterationBarrier();
+
+        if (nullptr != barrier)
+        {
+            const std::vector<EvalPointPtr>& xFeas = barrier->getAllXFeas();
+            if (xFeas.size() > 1)
+            {
+                // If we have a success and we have muliple best feasible solution, we rewrite the solution file.
+
+                bool append = false;
+                for (const EvalPointPtr & ev: xFeas)
+                {
+                    NOMAD::StatsInfo info;
+
+                    info.setBBO(ev->getBBO(NOMAD::EvalType::BB));
+                    info.setSol(*(ev->getX()));
+
+                    NOMAD::OutputDirectToFile::Write(info, true, false /* do no write in history file */, append /* append in solution file */);
+                    append = true;
+                }
+            }
+        }
+    }
+}
+
+
 void NOMAD::MainStep::addEvaluator(const EvaluatorPtr ev)
 {
     NOMAD::EvalType evalTypeAdded = ev->getEvalType();
-    
+
     if (NOMAD::EvalType::MODEL == evalTypeAdded)
     {
         std::string s = "Error in evaluator management: cannot add evaluator Model eval type in main step";
         throw NOMAD::Exception(__FILE__, __LINE__, s);
     }
-    
+
     auto it = std::find_if(_evaluators.begin(),_evaluators.end(), [evalTypeAdded](NOMAD::EvaluatorPtr e){ return e->getEvalType() == evalTypeAdded; });
-    
+
     if ( _evaluators.end() != it )
     {
         std::string s = "Error in evaluator management: evaluator with EvalType = " + NOMAD::evalTypeToString(evalTypeAdded);
         s += " has already been added.";
         throw NOMAD::Exception(__FILE__, __LINE__, s);
     }
-    
+
     if (NOMAD::EvalType::SURROGATE == evalTypeAdded &&
         NOMAD::EvalSortType::SURROGATE != _allParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT") )
     {
@@ -1223,12 +1384,12 @@ void NOMAD::MainStep::addEvaluator(const EvaluatorPtr ev)
             ( _allParams->getAttributeValue<bool>("VNS_MADS_SEARCH") &&
              ! _allParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE") ) )
         {
-            std::cerr << "Warning: A SURROGATE evaluator is available but it will not be used. To use it, set EVAL_QUEUE_SORT to SURROGATE or set VNS_MADS_SEARCH_WITH_SURROGATE." << std::endl;
+            std::cout << "Warning: A SURROGATE evaluator is available but it will not be used. To use it, set EVAL_QUEUE_SORT to SURROGATE or set VNS_MADS_SEARCH_WITH_SURROGATE." << std::endl;
         }
-        
+
     }
     _evaluators.push_back(ev);
-    
+
 }
 
 void NOMAD::MainStep::setEvaluator(const EvaluatorPtr ev)
@@ -1237,3 +1398,85 @@ void NOMAD::MainStep::setEvaluator(const EvaluatorPtr ev)
     addEvaluator(ev);
 }
 
+
+int NOMAD::MainStep::getRunFlag() const
+{
+
+    bool hasFeas = NOMAD::CacheBase::getInstance()->hasFeas(NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD);
+    bool hasInfeas = NOMAD::CacheBase::getInstance()->hasInfeas(NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD); // hasFeas and hasInfeas can be both false. Maybe cache contains no valid BB evaluations -> initialization error
+
+    bool initializationError = AllStopReasons::testIf(BaseStopType::INITIALIZATION_FAILED);
+    if (initializationError && !(hasFeas || hasInfeas))
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Failed initialization detected but cache contains a valid evaluation point.");
+    }
+
+    if (nullptr == _stopReasons)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Stop reasons is null. The function getRunFlag must be called after MainStep::end.");
+    }
+
+    bool stopByUser = (
+                     AllStopReasons::testIf(BaseStopType::CTRL_C) ||
+                     AllStopReasons::testIf(BaseStopType::USER_GLOBAL_STOP));
+    bool nomadError = (
+                       AllStopReasons::testIf(BaseStopType::ERROR) ||
+                       AllStopReasons::testIf(BaseStopType::UNKNOWN_STOP_REASON));
+
+    bool stopOnEvalIterCrit =  (
+                            AllStopReasons::testIf(EvalGlobalStopType::MAX_EVAL_REACHED) ||
+                            AllStopReasons::testIf(EvalGlobalStopType::MAX_BB_EVAL_REACHED) ||
+                            AllStopReasons::testIf(EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED) ||
+                            _stopReasons->testIf(IterStopType::MAX_ITER_REACHED) );
+
+    bool stopOnTimeLimit =  ( AllStopReasons::testIf(NOMAD::BaseStopType::MAX_TIME_REACHED));
+
+    bool stopOnFeasible = _stopReasons->testIf(IterStopType::STOP_ON_FEAS);
+
+    auto madsStopReason = NOMAD::AlgoStopReasons<NOMAD::MadsStopType>::get (_stopReasons);
+    bool madsStopOnMeshCrit = false;
+    if (nullptr != madsStopReason)
+    {
+      madsStopOnMeshCrit = ( madsStopReason->testIf(NOMAD::MadsStopType::MESH_PREC_REACHED) ||
+                             madsStopReason->testIf(NOMAD::MadsStopType::MIN_MESH_INDEX_REACHED) ||
+                             madsStopReason->testIf(NOMAD::MadsStopType::MIN_MESH_SIZE_REACHED));
+    }
+
+    bool targetReachedCrit = false; // Stop when matching target not yet implemented
+
+    int runFlag = -3 ;
+    if (stopByUser) {  // CTRL-C or User stopped (callback function)
+        runFlag = -5;
+    }
+    else if (nomadError) { // Error
+        runFlag = -3;
+    }
+    else if (stopOnTimeLimit) {  // Time limit reached (user option)
+        runFlag = -4;
+    }
+    else if (stopOnFeasible) {  // Stop on feasible point (user option)
+        runFlag = -6;
+    }
+    else if (initializationError) { // Initial point failed to evaluate
+        runFlag = -3;
+    }
+    else if (targetReachedCrit || (hasFeas && madsStopOnMeshCrit)) { // Objective target reached OR Mads converged (mesh criterion) to a feasible point. The true problem is considered (outputs from blackbox evaluations, not surrogate).
+        runFlag = 1;
+    }
+    else if (hasFeas && stopOnEvalIterCrit) { // At least one feasible point obtained and evaluation budget (single bb or block of bb) spent or max iteration (user option) reached.
+        runFlag = 0;
+    }
+    else if (hasInfeas && madsStopOnMeshCrit) { // Mads mesh converged but no feasible point obtained (only infeasible). The true problem is considered (outputs from blackbox evaluations, not surrogate).
+        runFlag = -1;
+    }
+    else if (hasInfeas && stopOnEvalIterCrit) { // No feasible point obtained (only infeasible) and evaluation budget (single bb or block of bb) spent or max iteration (user option) reached
+        runFlag = -2;
+    }
+    else
+    {
+      // Something else must have happened.
+        runFlag = -3;
+    }
+
+    return runFlag;
+}

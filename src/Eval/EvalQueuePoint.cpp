@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -50,5 +50,16 @@
 /* Class EvalQueuePoint   */
 /*------------------------*/
 
-
+bool NOMAD::EvalQueuePoint::operator== (const NOMAD::EvalQueuePoint &evalQueuePoint) const
+{
+    // First compare eval type.
+    if ( this->_evalType != evalQueuePoint.getEvalType() )
+        return false;
+    
+    // Compare EvalPoint part.
+    bool equal = NOMAD::EvalPoint::operator==(evalQueuePoint);
+    
+    return equal;
+    
+}
 

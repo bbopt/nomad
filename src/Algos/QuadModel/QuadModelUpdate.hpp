@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_QUAD_MODEL_UPDATE__
-#define __NOMAD_4_3_QUAD_MODEL_UPDATE__
+#ifndef __NOMAD_4_4_QUAD_MODEL_UPDATE__
+#define __NOMAD_4_4_QUAD_MODEL_UPDATE__
 
 #include "../../Algos/Step.hpp"
 
@@ -70,7 +70,10 @@ private:
 
     const double epsilon = 0.01; ///<  For scaling by directions
     const double epsilonDelta = epsilon/(1.0 - epsilon);
-    
+ 
+    size_t _n ; ///< Pb dimension
+    Double _boxFactor ; ///< Box factor (multiplies frame size) to select points when build quad model
+
     
 public:
     explicit QuadModelUpdate(const Step* parentStep,
@@ -125,4 +128,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_QUAD_MODEL_UPDATE__
+#endif // __NOMAD_4_4_QUAD_MODEL_UPDATE__

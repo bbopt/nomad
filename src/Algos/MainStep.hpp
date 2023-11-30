@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -50,8 +50,8 @@
   \author Viviane Rochon Montplaisir
   \date   June 2018
 */
-#ifndef __NOMAD_4_3_MAINSTEP__
-#define __NOMAD_4_3_MAINSTEP__
+#ifndef __NOMAD_4_4_MAINSTEP__
+#define __NOMAD_4_4_MAINSTEP__
 
 #include "../Algos/Algorithm.hpp"
 #include "../Eval/Evaluator.hpp"
@@ -137,6 +137,22 @@ public:
      The evaluators are shared between main threads. Set a single evaluator. To add more, use addEvaluator (see above).
      */
     void setEvaluator(const EvaluatorPtr ev);
+    
+    
+    /// Get the run flag of the execution (success or type of fail)
+    /**
+     Must be called after run()
+     Run flags:
+     %       1 - Objective target reached OR Mads converged (mesh criterion) to a feasible point (true problem).
+     %       0 - At least one feasible point obtained and evaluation budget (single bb or block of bb) spent or max iteration (user option) reached.
+     %      -1 - Mads mesh converged but no feasible point obtained (only infeasible) for the true problem.
+     %      -2 - No feasible point obtained (only infeasible) and evaluation budget (single bb or block of bb) spent or max iteration (user option) reached
+     %      -3 - Initial point failed to evaluate
+     %      -4 - Time limit reached (user option)
+     %      -5 - CTRL-C or user stopped (callback function)
+     %      -6 - Stop on feasible point (user option)
+     */
+    int getRunFlag() const;
 
     /*---------*/
     /* Others  */
@@ -232,7 +248,7 @@ protected:
     bool detectPhaseOne();
 
     /// Helper for start
-    void createCache() const;
+    void createCache(bool useCacheForRerun) const;
 
     /// Helper for start
     void updateX0sFromCacheAndFromLHSInit() const;
@@ -248,6 +264,9 @@ private:
 
     ///  Detailed stats
     void displayDetailedStats() const;
+    
+    /// Final solution file
+    void writeFinalSolutionFile() const;
 
 };
 
@@ -255,4 +274,4 @@ private:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_3_MAINSTEP__
+#endif // __NOMAD_4_4_MAINSTEP__

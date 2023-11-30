@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -110,8 +110,8 @@ bool NOMAD::CSUpdate::runImp()
 
     barrier->updateRefBests();
 
-    NOMAD::EvalPointPtr newBestFeas = barrier->getFirstXFeas();
-    NOMAD::EvalPointPtr newBestInf  = barrier->getFirstXInf();
+    NOMAD::EvalPointPtr newBestFeas = barrier->getCurrentIncumbentFeas();
+    NOMAD::EvalPointPtr newBestInf  = barrier->getCurrentIncumbentInf();
 
     if (nullptr != refBestFeas || nullptr != refBestInf)
     {

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -204,6 +204,12 @@ void NOMAD::DisplayParameters::checkAndComply(
         auto seed = runParams->getAttributeValue<int>("SEED");
         NOMAD::completeFileName(solutionFileName, problemDir, addSeedToFileNames, seed);
         setAttributeValue("SOLUTION_FILE", solutionFileName);
+    }
+    
+    bool solutionFileFinal = getAttributeValueProtected<bool>("SOLUTION_FILE_FINAL",false) ;
+    if(solutionFileName.empty() && solutionFileFinal)
+    {
+        throw NOMAD::InvalidParameter(__FILE__,__LINE__, "SOLUTION_FILE_FINAL must be enabled only with SOLUTION_FILE properly set.");
     }
 
     _toBeChecked = false;

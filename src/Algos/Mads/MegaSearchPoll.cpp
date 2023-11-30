@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -112,6 +112,12 @@ void NOMAD::MegaSearchPoll::generateTrialPointsImp()
 
     _poll->generateTrialPoints();
     _poll->generateTrialPointsSecondPass();
+
+    // Add extra points to reach a given number of trial points
+    // -> First: count the points that would need eval (check cache and barrier)
+    _poll->countTrialPointsThatNeedEval(this);
+    _poll->generateTrialPointsExtra();
+    
     auto trialPointsPoll = _poll->getTrialPoints();
 
     // Merge two sets and remove duplicates
@@ -129,5 +135,7 @@ void NOMAD::MegaSearchPoll::generateTrialPointsImp()
     
     // Complete trial points information for sorting before eval
     completeTrialPointsInformation();
+    
 
 }
+

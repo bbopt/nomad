@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
  \see    Evaluator.cpp
  */
 
-#ifndef __NOMAD_4_3_EVALUATOR__
-#define __NOMAD_4_3_EVALUATOR__
+#ifndef __NOMAD_4_4_EVALUATOR__
+#define __NOMAD_4_4_EVALUATOR__
 
 #include "../Eval/BBOutput.hpp"
 #include "../Eval/EvalPoint.hpp"
@@ -68,7 +68,8 @@ enum class EvalXDefined
 {
     EVAL_BLOCK_DEFINED_BY_USER, ///< User redefined eval_block() in library mode; Default value
     EVAL_X_DEFINED_BY_USER,     ///< User redefined eval_x() in library mode
-    USE_BB_EVAL                 ///< Neither eval_x() nor eval_block() were redefined by library mode. An external executable is provided.
+    USE_BB_EVAL,                 ///< Neither eval_x() nor eval_block() were redefined by library mode. An external executable is provided.
+    UNDEFINED                    ///< For a fake evaluator
 };
 
 
@@ -91,9 +92,10 @@ protected:
     
 
 private:
-    static std::vector<std::string>    _tmpFiles;      ///< One file per thread.
+       
 
     /// Did the user redefine eval_x() for single point, or should we use BB_EXE ?
+    /// A fake evaluator has the type UNDEFINED.
     mutable EvalXDefined _evalXDefined;
 
     /** If we are using MODEL, it means EvalPoint's model evaluation needs to be updated.
@@ -101,6 +103,8 @@ private:
      */
     
     std::string    _bbExe;
+    
+    static bool   _bbRedirection;
     
     const ArrayOfDouble _bbEvalFormat;
     
@@ -171,6 +175,8 @@ public:
     
     /// Access to bb output types
     const BBOutputTypeList & getBBOutputTypeList() const { return _bbOutputTypeList ; }
+    
+    EvalXDefined getEvalXDefined() const { return _evalXDefined; }
 
 private:
     
@@ -187,4 +193,4 @@ typedef std::shared_ptr<Evaluator> EvaluatorPtr;
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_EVALUATOR__
+#endif // __NOMAD_4_4_EVALUATOR__

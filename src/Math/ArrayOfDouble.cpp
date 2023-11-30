@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -374,7 +374,7 @@ void NOMAD::ArrayOfDouble::readValuesAsArray(const NOMAD::ArrayOfString& strDoub
     {
         if (strDouble.size() != 2)
         {
-            std::cerr << "Warning: Expecting an array of size 2 for this parameter entry: " << valueString << std::endl;
+            std::cout << "Warning: Expecting an array of size 2 for this parameter entry: " << valueString << std::endl;
         }
 
         if (!d.atof(strDouble[1]))

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -96,7 +96,7 @@ void initParams(std::shared_ptr<NOMAD::AllParameters>& params, const std::string
     params->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(2, 10.0));
 
     NOMAD::BBOutputTypeList bbot;   // Definition of output types
-    bbot.push_back(NOMAD::BBOutputType::OBJ);
+    bbot.push_back(NOMAD::BBOutputType::Type::OBJ);
     params->setAttributeValue("BB_OUTPUT_TYPE", bbot);
 
     

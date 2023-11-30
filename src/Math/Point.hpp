@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
  \see    Point.cpp
  */
 
-#ifndef __NOMAD_4_3_POINT__
-#define __NOMAD_4_3_POINT__
+#ifndef __NOMAD_4_4_POINT__
+#define __NOMAD_4_4_POINT__
 
 #include <numeric>
 #include "../Math/ArrayOfDouble.hpp"
@@ -267,4 +267,4 @@ DLL_UTIL_API std::istream& operator>>(std::istream& in, Point& pt);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_3_POINT__
+#endif // __NOMAD_4_4_POINT__

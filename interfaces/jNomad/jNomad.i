@@ -159,7 +159,7 @@ namespace NOMAD{
                   const bool evalOk = true);
 
   };
-  
+
   class DLL_UTIL_API EvalParameters : public NOMAD::Parameters {
     public:
 

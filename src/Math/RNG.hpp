@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
  \see    RNG.cpp
  */
 
-#ifndef __NOMAD_4_3_RNG__
-#define __NOMAD_4_3_RNG__
+#ifndef __NOMAD_4_4_RNG__
+#define __NOMAD_4_4_RNG__
 
 
 #include "../Util/defines.hpp"
@@ -92,7 +92,15 @@ public:
      * The set seed works like a reset. The private seed used by RNG is always reset.
      \param s   The seed -- \b IN.
      */
-    static void setSeed(int s);
+	DLL_UTIL_API static void setSeed(int s);
+    
+    
+    /// Reset RNG state
+    /**
+     - reset the private seed to default.
+     - set the rng state for the current seed
+     */
+	DLL_UTIL_API static void reset();
 
     /// Get a random integer
     /**
@@ -199,7 +207,7 @@ private:
     DLL_UTIL_API static uint32_t x_def, y_def, z_def;    ///< Initial values for the random number generator
 	DLL_UTIL_API static uint32_t _x, _y, _z;             ///< Current values for the random number generator
 
-	DLL_UTIL_API static int _s;
+    DLL_UTIL_API static int _s;
 
 
 };
@@ -207,4 +215,4 @@ private:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_3_RNG__
+#endif // __NOMAD_4_4_RNG__

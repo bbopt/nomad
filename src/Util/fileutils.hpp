@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -51,8 +51,8 @@
  \date   June 2017
  \see    fileutils.cpp
  */
-#ifndef __NOMAD_4_3_FILEUTILS__
-#define __NOMAD_4_3_FILEUTILS__
+#ifndef __NOMAD_4_4_FILEUTILS__
+#define __NOMAD_4_4_FILEUTILS__
 
 // use of 'access' or '_access', and getpid() or _getpid():
 #ifdef _MSC_VER
@@ -153,7 +153,7 @@ bool write(const T &info, const std::string &filename)
 
     if (filename.empty())
     {
-        std::cerr << "Warning: " << typeid(T).name() << ": Cannot write to file: file name is not defined.";
+        std::cout << "Warning: " << typeid(T).name() << ": Cannot write to file: file name is not defined.";
         writeSuccess = false;
     }
 
@@ -162,7 +162,7 @@ bool write(const T &info, const std::string &filename)
         fout.open(filename.c_str(), std::ofstream::out);
         if (fout.fail())
         {
-            std::cerr << "Warning: " << typeid(T).name() << ": Cannot write to file " + filename << std::endl;
+            std::cout << "Warning: " << typeid(T).name() << ": Cannot write to file " + filename << std::endl;
             writeSuccess = false;
             fout.close();
         }
@@ -191,7 +191,7 @@ bool read(T &info, const std::string &filename)
 
     if (filename.empty())
     {
-        std::cerr << "Warning: " << typeid(T).name() << ": Cannot read file: file name is not defined.";
+        std::cout << "Warning: " << typeid(T).name() << ": Cannot read file: file name is not defined.";
         readSuccess = false;
     }
 
@@ -199,7 +199,7 @@ bool read(T &info, const std::string &filename)
     {
         if (!checkReadFile(filename))
         {
-            std::cerr << "Warning: " << typeid(T).name() << ": File does not exist or cannot be read: " + filename << std::endl;
+            std::cout << "Warning: " << typeid(T).name() << ": File does not exist or cannot be read: " + filename << std::endl;
             readSuccess = false;
         }
     }
@@ -209,7 +209,7 @@ bool read(T &info, const std::string &filename)
         fin.open(filename.c_str(), std::ifstream::out);
         if (fin.fail())
         {
-            std::cerr << "Warning: " << typeid(T).name() << ": Cannot read from file " + filename << std::endl;
+            std::cout << "Warning: " << typeid(T).name() << ": Cannot read from file " + filename << std::endl;
             readSuccess = false;
             fin.close();
         }
@@ -232,4 +232,4 @@ DLL_UTIL_API bool readAllFile(std::string &info, const std::string &filename);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_FILEUTILS__
+#endif // __NOMAD_4_4_FILEUTILS__

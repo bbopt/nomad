@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -69,8 +69,10 @@ bool NOMAD::isAlgorithm(const StepType& stepType)
         case NOMAD::StepType::ALGORITHM_PHASE_ONE:
         case NOMAD::StepType::ALGORITHM_PSD_MADS_SUBPROBLEM:
         case NOMAD::StepType::ALGORITHM_PSD_MADS:
+        case NOMAD::StepType::ALGORITHM_QPSOLVER:
         case NOMAD::StepType::ALGORITHM_SGTELIB_MODEL:
         case NOMAD::StepType::ALGORITHM_SSD_MADS:
+        case NOMAD::StepType::ALGORITHM_DISCO_MADS:
         case NOMAD::StepType::ALGORITHM_QUAD_MODEL:
         case NOMAD::StepType::ALGORITHM_VNS_MADS:
         case NOMAD::StepType::ALGORITHM_RANDOM:
@@ -93,8 +95,10 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::ALGORITHM_PHASE_ONE, "Phase One"},
         {NOMAD::StepType::ALGORITHM_PSD_MADS_SUBPROBLEM, "PSD-Mads subproblem"},
         {NOMAD::StepType::ALGORITHM_PSD_MADS, "PSD-Mads"},
+        {NOMAD::StepType::ALGORITHM_QPSOLVER, "Algorithm for Quad Model"},
         {NOMAD::StepType::ALGORITHM_SGTELIB_MODEL, "Sgtelib Model"},
         {NOMAD::StepType::ALGORITHM_SSD_MADS, "SSD-Mads"},
+        {NOMAD::StepType::ALGORITHM_DISCO_MADS, "DiscoMads"},
         {NOMAD::StepType::ALGORITHM_RANDOM, "Random algorithm"},
         {NOMAD::StepType::ALGORITHM_QUAD_MODEL, "Quad Model"},
         {NOMAD::StepType::ALGORITHM_VNS_MADS, "VNS Mads"},
@@ -121,6 +125,7 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::MODEL_OPTIMIZE, "Model optimize"},
         {NOMAD::StepType::POLL, "Poll"},
         {NOMAD::StepType::CS_POLL, "Coordinate Search Poll"},
+        {NOMAD::StepType::REVEALING_POLL, "Revealing Poll"},
         {NOMAD::StepType::POLL_METHOD_DOUBLE, "Double Poll Method"},
         {NOMAD::StepType::POLL_METHOD_ORTHO_NPLUS1_NEG, "Ortho N+1 Neg Poll Method"},
         {NOMAD::StepType::POLL_METHOD_ORTHO_NPLUS1_QUAD, "Ortho N+1 Quad Poll Method"},
@@ -136,10 +141,12 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::SEARCH_METHOD_QUAD_MODEL_SLD, "Quadratic Model (SLD) Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_SGTELIB_MODEL, "Sgtelib Model Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_SIMPLE_RANDOM, "Simple (no iter.) random search method"},
+        {NOMAD::StepType::SEARCH_METHOD_SIMPLE_LINE_SEARCH, "Simple line search Method"},
         {NOMAD::StepType::SEARCH_METHOD_SPECULATIVE, "Speculative Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_USER, "User-Defined Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_VNS_MADS, "VNS Mads Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_VNSMART_MADS, "VNSmart Mads Search Method"},
+        {NOMAD::StepType::SEARCH_METHOD_REVEALING, "Revealing Search Method"},
         {NOMAD::StepType::SURROGATE_EVALUATION, "Points evaluated using static surrogate"},
         {NOMAD::StepType::MODEL_EVALUATION, "Points evaluated using dynamic model"},
         {NOMAD::StepType::QUAD_MODEL_SORT, "Build dynamic model for sorting points"},

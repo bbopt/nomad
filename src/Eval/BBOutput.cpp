@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -98,7 +98,7 @@ bool NOMAD::BBOutput::getCountEval(const BBOutputTypeList &bbOutputType) const
 
     for (size_t i = 0; i < _BBO.size(); i++)
     {
-        if (NOMAD::BBOutputType::CNT_EVAL == bbOutputType[i])
+        if (bbOutputType[i] == NOMAD::BBOutputType::Type::CNT_EVAL)
         {
             countEval = (bool) _BBO[i].todouble();
         }
@@ -115,9 +115,8 @@ bool NOMAD::BBOutput::isComplete(const NOMAD::BBOutputTypeList &bbOutputType) co
     {
         for (size_t i = 0; i < _BBO.size(); i++)
         {
-            if (NOMAD::BBOutputType::OBJ == bbOutputType[i]
-                || NOMAD::BBOutputType::PB == bbOutputType[i]
-                || NOMAD::BBOutputType::EB == bbOutputType[i])
+            if (bbOutputType[i].isObjective()
+                || bbOutputType[i].isConstraint())
             {
                 if (!_BBO[i].isDefined())
                 {
@@ -144,7 +143,7 @@ NOMAD::Double NOMAD::BBOutput::getObjective(const NOMAD::BBOutputTypeList &bbOut
     {
         for (size_t i = 0; i < _BBO.size(); i++)
         {
-            if (NOMAD::BBOutputType::OBJ == bbOutputType[i])
+            if (bbOutputType[i].isObjective())
             {
                 obj = _BBO[i];
                 break;
@@ -162,7 +161,7 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getObjectives(const NOMAD::BBOutputTypeLis
     {
         for (size_t i = 0; i < _BBO.size(); i++)
         {
-            if ( NOMAD::BBOutputType::OBJ == bbOutputType[i])
+            if (bbOutputType[i].isObjective())
             {
                 size_t objSize = objectives.size();
                 objectives.resize(objSize + 1);
@@ -183,7 +182,7 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getConstraints(const NOMAD::BBOutputTypeLi
     {
         for (size_t i = 0; i < _BBO.size(); i++)
         {
-            if ( NOMAD::BBOutputTypeIsConstraint(bbOutputType[i]) )
+            if ( bbOutputType[i].isConstraint())
             {
                 size_t constrSize = constraints.size();
                 constraints.resize(constrSize + 1);
@@ -195,6 +194,24 @@ NOMAD::ArrayOfDouble NOMAD::BBOutput::getConstraints(const NOMAD::BBOutputTypeLi
     return constraints;
 }
 
+NOMAD::ArrayOfDouble NOMAD::BBOutput::getExtraOutputs(const NOMAD::BBOutputTypeList &bbOutputType) const
+{
+    NOMAD::ArrayOfDouble extraOs;
+
+    if (_evalOk && !bbOutputType.empty() && checkSizeMatch(bbOutputType))
+    {
+        for (size_t i = 0; i < _BBO.size(); i++)
+        {
+            if (bbOutputType[i].isExtraOutput())
+            {
+                size_t s = extraOs.size();
+                extraOs.resize(s + 1);
+                extraOs[s] = _BBO[i];
+            }
+        }
+    }
+    return extraOs;
+}
 
 const NOMAD::ArrayOfDouble & NOMAD::BBOutput::getBBOAsArrayOfDouble() const
 {

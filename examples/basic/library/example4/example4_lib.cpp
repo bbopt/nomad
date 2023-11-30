@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -159,7 +159,8 @@ void initParams(NOMAD::AllParameters &p)
     // Using surrogate for sort and the options below => no quad model is used.
     p.getRunParams()->setAttributeValue("QUAD_MODEL_SEARCH", false);
     p.getRunParams()->setAttributeValue("NM_SEARCH", false);
-    p.getRunParams()->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_NP1_NEG);
+    // p.getRunParams()->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_NP1_NEG);
+    p.getRunParams()->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_2N);
 
     p.getDispParams()->setAttributeValue("DISPLAY_DEGREE", 2);
 

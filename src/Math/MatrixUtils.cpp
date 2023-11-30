@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -46,7 +46,9 @@
 /*---------------------------------------------------------------------------------*/
 #include "../Math/MatrixUtils.hpp"
 #include "../Util/utils.hpp"
+
 #include <math.h>
+#include <algorithm>
 
 bool NOMAD::getDeterminant(double ** M,
                             double  & det,
@@ -552,4 +554,691 @@ bool NOMAD::LU_decomposition ( std::string & error_msg,
     delete [] indx;
     return true;
 
+}
+
+/*--------------------------------------------------------------*/
+/*                        QR factorization                      */
+/*                                                              */
+/*--------------------------------------------------------------*/
+/*                                                              */
+/*           M = Q.R                                            */
+/*                                                              */
+/*           M ( m x n )                                        */
+/*           Q ( m x m ): ....                                  */
+/*           R ( m x n ): lower triangular                      */
+/*                                                              */
+/*--------------------------------------------------------------*/
+bool NOMAD::qr_factorization ( std::string & error_msg,
+                              double     ** M,
+                              double     ** Q,
+                              double     ** R,
+                              int           m,
+                              int           n,
+                              int           max_n     ) // default = 1500
+{
+    error_msg.clear();
+
+    if ( max_n > 0 && (n > max_n || m > max_n) )
+    {
+        error_msg = "qr_factorization() error: min(m,n) > " + NOMAD::itos ( max_n );
+        return false;
+    }
+
+    int  i, j, k;
+    bool chk = true;
+
+    double ** v = new double *[m]; // size m x n
+    for ( i = 0 ; i < m ; ++i )
+        v[i] = new double [n];
+    double * normv = new double [n];
+
+    // Gram-Schmidt (GS): First step: v1=u1 (first column of A):
+    normv[0] = 0.0;
+    for ( i = 0 ; i < m ; ++i )
+    {
+        v[i][0] = M[i][0];
+        normv[0] += pow(v[i][0], 2.0);
+    }
+    if ( normv[0] == 0.0 )
+        chk = false;
+
+    // GS: Compute vj=uj-projections:
+    for ( j = 1 ; j < n ; ++j )
+    {
+
+        if ( !chk )
+            break;
+
+        // Init: vj=uj:
+        for ( i = 0 ; i < m ; ++i )
+            v[i][j] = M[i][j];
+
+        // Compute projections:
+        for ( k = 0 ; k < j ; ++k )
+        {
+            // pk: projection of uj to vk:
+            double tmp = 0.0;
+            for ( i = 0 ; i < m ; ++i )
+                tmp += v[i][k] * M[i][j];
+            for ( i = 0 ; i < m ; ++i )
+                v[i][j] -= tmp * v[i][k] / normv[k];
+        }
+
+        // Compute norm of vj:
+        normv[j] = 0.0;
+        for ( i = 0 ; i < m ; ++i )
+            normv[j] += pow(v[i][j], 2.0);
+        if ( normv[j] == 0.0 )
+            chk = false;
+    }
+
+    // Final step of GS: Normalize the v vectors into the Q matrix:
+    if ( chk )
+        for ( j = 0 ; j < n ; ++j )
+            for ( i = 0 ; i < m ; ++i )
+                Q[i][j] = v[i][j] / pow(normv[j],0.5);
+
+    // Delete v and normv:
+    for ( i = 0 ; i < m ; ++i )
+        delete [] v[i];
+    delete [] v;
+    delete [] normv;
+
+    // Final step of the QR decomposition: Compute R:
+    for ( i = 0 ; i < n ; ++i )
+    {
+        for ( j = 0 ; j < i ; ++j )
+            R[i][j] = 0.0;
+        for ( j = i ; j < n ; ++j )
+        {
+            R[i][j] = 0.0;
+            for ( k = 0 ; k < m ; ++k )
+                R[i][j] += Q[k][i] * M[k][j];
+        }
+    }
+
+    // Reset Q and R in case of failure:
+    if ( !chk )
+    {
+        for ( j = 0 ; j < n ; ++j )
+        {
+            for ( i = 0 ; i < m ; ++i )
+                Q[i][j] = 0.0;
+            for ( i = 0 ; i < n ; ++i )
+                R[i][j] = 0.0;
+        }
+        return false;
+    }
+
+    return true;
+}
+
+/*--------------------------------------------------------------*/
+/*                        LDLt decomposition                    */
+/*                                                              */
+/*--------------------------------------------------------------*/
+/*                                                              */
+/*           M = L.D.L^T                                        */
+/*                                                              */
+/*           M ( n x n )                                        */
+/*           D ( n x n ): block-diagonal of size 1 x 1 or 2 x 2 */
+/*           L ( n x n ): lower triangular with unit diagonal   */
+/*                                                              */
+/*--------------------------------------------------------------*/
+bool NOMAD::LDLt_decomposition ( std::string & error_msg,
+                              double     ** M,
+                              double     ** L,
+                              double     ** D,
+                              int        * pp,
+                              int           n,
+                              int           max_n     ) // default = 1500
+{
+    error_msg.clear();
+
+    int piv = 1; // We use Bunch and Kaufman partial pivoting, but rook pivoting could also be implemented.
+
+    if ( max_n > 0 && n > max_n )
+    {
+        error_msg = "LDLt_decomposition() error: n > " + NOMAD::itos ( max_n );
+        return false;
+    }
+
+    // Initialization of L and D as identity matrices
+    for (int i = 0 ; i < n ; i++ )
+    {
+        for ( int j = 0; j < n ; j++ )
+            if (j == i)
+            {
+                D[i][j]=1;
+            }
+            else{
+                D[i][j]=0;
+            }
+    }
+
+    for (int i = 0 ; i < n ; i++ )
+    {
+        for ( int j = 0; j < n ; j++ )
+            if (j == i)
+            {
+                L[i][j]=1;
+            }
+            else{
+                L[i][j]=0;
+            }
+    }
+
+    double * Mik = new double[n];
+    double * Mki = new double[n];
+
+    double detE;
+    double tmp;
+
+    for (int i = 0 ; i < n ; i++ )
+    {
+        pp[i] = i;
+    }
+
+    double rho = 1; // rho = norm(A, Inf)
+
+    int s = 1; // size of the current block
+
+    int m1=0;
+    int m2=0;
+
+    double alpha = (1 + sqrt(27)) / 8;
+    double sigma;
+
+    // Temporary variables:
+    int vr=0;
+    double lambda;
+    int r=0;
+    bool swap;
+
+    int k = 0;
+    while (k < n - 1)
+    {
+        // lambda, vr = findmax(abs.(A[k+1:n, k]))
+        vr = k + 1;
+        lambda = abs(M[vr][k]);
+        for (int j = k + 2; j < n; j++)
+        {
+            if (abs(M[j][k]) > lambda)
+            {
+                vr = int(j);
+                lambda = abs(M[vr][k]);
+            }
+        }
+
+        r = vr;
+        if (lambda > 0)
+        {
+
+            swap = false;
+            if (abs(M[k][k]) >= alpha * lambda)
+            {
+                s = 1;
+            }
+            else
+            {
+
+                if (piv == 1) // piv = 'p'
+                {
+                    sigma = -1;
+                    for (int i = k; i < n; i++)
+                    {
+                        if (abs(M[i][r]) > sigma)
+                        {
+                            sigma = abs(M[i][r]); // σ = norm(A[k:n, r], Inf)
+                        }
+                    }
+                    if (alpha * lambda * lambda <= abs(M[k][k]) * sigma)
+                    {
+                        s = 1;
+                    }
+                    else if ( abs(M[r][r]) >= alpha * sigma )
+                    {
+                        swap = true;
+                        m1 = k;
+                        m2 = r;
+                        s = 1;
+                    }
+                    else
+                    {
+                        swap = true;
+                        m1 = k + 1;
+                        m2 = r;
+                        s = 2;
+                    }
+                    if (m1 < 0 || m1 >= n || m2 < 0 || m2 >= n)
+                    {
+                        return false;
+                    }
+                    if (swap)
+                    {
+                        for (int i = 0; i < n; i++)
+                        {
+                            // A[[m1, m2], :] = A[[m2, m1], :]
+                            tmp = M[m1][i];
+                            M[m1][i] = M[m2][i];
+                            M[m2][i] = tmp;
+                            // L[[m1, m2], :] = L[[m2, m1], :]
+                            tmp = L[m1][i];
+                            L[m1][i] = L[m2][i];
+                            L[m2][i] = tmp;
+                        }
+                        for (int i = 0; i < n; i++)
+                        {
+                            // A[:, [m1, m2]] = A[:, [m2, m1]]
+                            tmp = M[i][m1];
+                            M[i][m1] = M[i][m2];
+                            M[i][m2] = tmp;
+                            // L[:, [m1, m2]] = L[:, [m2, m1]]
+                            tmp = L[i][m1];
+                            L[i][m1] = L[i][m2];
+                            L[i][m2] = tmp;
+                        }
+                        // pp[[m1, m2]] = pp[[m2, m1]]
+                        tmp = pp[m1];
+                        pp[m1] = pp[m2];
+                        pp[m2] = static_cast<int>(tmp);
+                    }
+
+                }
+                else if (piv == 2) // piv = 'p'
+                {
+
+                }
+                else
+                {
+                    error_msg = "Not implemented pivoting piv, only 1 and 2.";
+                    return false;
+                }
+
+            }
+
+            if (s == 1)
+            {
+                D[k][k] = M[k][k];
+                for (int j = k + 1; j < n; j++)
+                {
+                    M[j][k] = M[j][k] / M[k][k];
+                    L[j][k] = M[j][k];
+                }
+
+                // A[k+1:n][k+1:n] = A[k+1:n][k+1:n] - A[k+1:n, k:k] * A[k:k][k+1:n] // rank-1 update
+                for (int i = 0; i < n; i++)
+                {
+                    Mki[i] = M[i][k]; // A[k+1:n, k:k]
+                    Mik[i] = M[k][i]; // A[k:k, k+1:n]
+                }
+                for (int i = k + 1; i < n; i++)
+                {
+                    for (int j = k + 1; j < n; j++)
+                    {
+                        M[i][j] = M[i][j] - Mki[i] * Mik[j];
+                    }
+                }
+
+                // A[k+1:n][k+1:n] = 0.5 * (A[k+1:n, k+1:n] + A[k+1:n,k+1:n]')
+               for (int i = k + 1; i < n; i++)
+                {
+                    for (int j = k + 1; j <= i; j++)
+                    {
+                        M[i][j] = 0.5 * (M[i][j] + M[j][i]);
+                    }
+                }
+                for (int i = k + 1; i < n; i++)
+                {
+                    for (int j = i + 1; j < n; j++)
+                    {
+                        M[i][j] = M[j][i];
+                    }
+                }
+
+            }
+            else if (s == 2)
+            {
+                if (k >= n)
+                {
+                    return false;
+                }
+                // E = A[k:k+1, k:k+1]
+                // D[k:k+1, k:k+1] = E
+                D[k][k] = M[k][k];
+                D[k][k + 1] = M[k][k + 1];
+                D[k + 1][k] = M[k + 1][k];
+                D[k + 1][k + 1] = M[k + 1][k + 1];
+
+                // i = k+2:n
+                // C = A[i, k:k+1]
+                // temp = C / E // So, temp * E = C, so temp is of size (n x 2)
+                detE = D[k][k] * D[k + 1][k + 1] - D[k][k + 1] * D[k + 1][k];
+                if (detE == 0)
+                {
+                    error_msg = "Error in pivoting: determinant of block diagonal is 0.";
+                    return false;
+                }
+
+                // L[i, k:k+1] = temp // So, for all i, L[i, k:k+1] = E^{-1} * C[i]
+                for (int i = k + 2; i < n; i++)
+                {
+                    L[i][k] = (D[k + 1][k + 1] * M[i][k] - D[k][k + 1] * M[i][k + 1]) / detE;
+                    L[i][k + 1] = (- D[k + 1][k] * M[i][k] + D[k][k] * M[i][k + 1]) / detE;
+                }
+
+                // A[i, k+2:n] = A[i, k+2:n] - temp * C'
+                for (int i = k + 2; i < n; i++)
+                {
+                    for (int j = k + 2; j < n; j++)
+                    {
+                        M[i][j] = M[i][j] - L[i][k] * M[j][k]- L[i][k + 1] * M[j][k + 1];
+                    }
+                }
+
+                // A[i, i] = 0.5 * (A[i, i] + A[i, i]')
+                for (int i = k + 2; i < n; i++)
+                {
+                    for (int j = k + 2; j <= i; j++)
+                    {
+                        M[i][j] = 0.5 * (M[i][j] + M[j][i]);
+                    }
+                }
+                for (int i = k + 2; i < n; i++)
+                {
+                    for (int j = i + 1; j < n; j++)
+                    {
+                        M[i][j] = M[j][i];
+                    }
+                }
+            }
+            else
+            {
+                // Unexpected value for s
+                error_msg = "Unexpected value for s = " + std::to_string(s);
+                return false;
+            }
+            if (k + s <= n - 1)
+            {
+                //val,_ = findmax(abs.(A[k+s:n, k+s:n]))
+               double val = -1;
+               for (int i = k + s; i < n; i++)
+               {
+                    for (int j = k + s; j < n; j++)
+                    {
+                        if (abs(M[i][j]) > val)
+                        {
+                            val = abs(M[i][j]);
+                        }
+                    }
+               }
+               rho = std::max(rho, val);
+            }
+        }
+        else // nothing to do
+        {
+            s = 1;
+            D[k][k] = M[k][k];
+        }
+
+        k = k + s;
+
+        if (k == n - 1)
+        {
+            D[n - 1][n - 1] = M[n - 1][n - 1];
+        }
+    }
+
+    delete [] Mik;
+    delete [] Mki;
+
+    return true;
+}
+
+bool NOMAD::DiagRegularization(double ** D, int n)
+{
+    int s; // it is either 1 or 2
+    double detE; // determinant of the 2x2 block matrix
+    double traceE; // trace of the 2x2 block matrix
+    double * l = new double [2]; // eigenvalues of the 2x2 block matrix
+
+    double diag;
+    double findmin = 0; // min(0, smallest_eigenvalue) <= 0
+    double findmax = 1; // max(1, largest_eigenvalue) >= 0
+    double findsmall = 1; // min(min(|eigenvalues|), 1) >= 0
+
+    int j;
+    int k = 0;
+    while (k < n)
+    {
+        if (n == 1 || k == n - 1 || (D[k][k + 1] == 0 && D[k + 1][k] == 0))
+        {
+            s = 1;
+            l[0] = D[k][k];
+        }
+        else
+        {
+            s = 2;
+            detE = D[k][k] * D[k + 1][k + 1] - D[k][k + 1] * D[k + 1][k];
+            traceE = D[k][k] + D[k + 1][k + 1];
+            // det = l1 * l2 and traceE = l1 + l2
+            l[0] = 0.5 * (traceE + sqrt(pow(traceE, 2.0) - 4 * detE));
+            l[1] = 0.5 * (traceE - sqrt(pow(traceE, 2.0) - 4 * detE));
+        }
+        for (j = 0 ; j < s; ++j)
+        {
+            diag = l[j];
+            if (diag <= findmin)
+            {
+                findmin = diag;
+            }
+            if (diag >= findmax)
+            {
+                findmax = diag;
+            }
+            if (fabs(diag) <= findsmall)
+            {
+                findsmall = fabs(diag);
+            }
+        }
+        k += s;
+    }
+
+    double regularizer = - findmin + (findsmall + findmax) / 2;
+
+    if (findmin < 0)
+    {
+        int k = 0;
+        while (k < n)
+        {
+            if (n == 1 || k == n - 1 || (D[k][k + 1] == 0 && D[k + 1][k] == 0))
+            {
+                s = 1;
+                diag = D[k][k];
+                if (diag < 0)
+                {
+                    D[k][k] += regularizer;
+                }
+            }
+            else
+            {
+                s = 2;
+                detE = D[k][k] * D[k + 1][k + 1] - D[k][k + 1] * D[k + 1][k];
+                traceE = D[k][k] + D[k + 1][k + 1];
+                if ((detE <= 0) || (traceE < 0))
+                {
+                    D[k][k] += regularizer;
+                    D[k + 1][k + 1] += regularizer;
+                }
+            }
+            k += s;
+        }
+    }
+
+    delete [] l;
+
+    return true;
+}
+
+double NOMAD::FindSmallestEigenvalue(double ** D, int n)
+{
+    int s; // it is either 1 or 2
+    double detE; // determinant of the 2x2 block matrix
+    double traceE; // trace of the 2x2 block matrix
+    double * l = new double [2]; // eigenvalues of the 2x2 block matrix
+
+    double diag;
+    double findmin = std::numeric_limits<double>::infinity();
+
+    int j;
+    int k = 0;
+    while (k < n)
+    {
+        if (n == 1 || k == n - 1 || (D[k][k + 1] == 0 && D[k + 1][k] == 0))
+        {
+            s = 1;
+            l[0] = D[k][k];
+        }
+        else
+        {
+            s = 2;
+            detE = D[k][k] * D[k + 1][k + 1] - D[k][k + 1] * D[k + 1][k];
+            traceE = D[k][k] + D[k + 1][k + 1];
+            // det = l1 * l2 and traceE = l1 + l2
+            l[0] = 0.5 * (traceE + sqrt(pow(traceE, 2.0) - 4 * detE));
+            l[1] = 0.5 * (traceE - sqrt(pow(traceE, 2.0) - 4 * detE));
+        }
+        for (j = 0 ; j < s; ++j)
+        {
+            diag = l[j];
+            if (diag <= findmin)
+            {
+                findmin = diag;
+            }
+        }
+        k += s;
+    }
+
+    delete [] l;
+
+    return findmin;
+}
+
+bool NOMAD::ldl_lsolve( double ** L, double * rhs, double * Ly, int n)
+{
+    for(int k = 0; k < n; k++)
+    {
+        Ly[k] = rhs[k];
+        for(int j = 0; j < k; j++)
+        {
+            Ly[k] -= L[k][j] * Ly[j];
+        }
+    }
+    return true;
+}
+
+bool NOMAD::ldl_ltsolve( double ** L, double * rhs, double * Ly, int n)
+{
+    for(int k = n - 1; k > -1; k--)
+    {
+        Ly[k] = rhs[k];
+        for(int j = k + 1; j < n; j++)
+        {
+            Ly[k] -= L[j][k] * Ly[j];
+        }
+    }
+    return true;
+}
+
+bool NOMAD::ldl_dsolve( double ** D,  double * rhs, double * Ly, int n)
+{
+    int s; // it is either 1 or 2
+    double detE; // determinant of the 2x2 block matrix
+    int k = 0;
+    while (k < n)
+    {
+        if (n == 1 || k == n - 1 || (D[k][k + 1] == 0 && D[k + 1][k] == 0))
+        {
+            s = 1;
+            if (D[k][k] == 0)
+            {
+                return false;
+            }
+            else
+            {
+                Ly[k] = rhs[k] / D[k][k];
+            }
+        }
+        else
+        {
+            s = 2;
+            detE = D[k][k] * D[k + 1][k + 1] - D[k][k + 1] * D[k + 1][k];
+            if (detE == 0)
+            {
+                return false;
+            }
+            else
+            {
+                Ly[k] = (D[k + 1][k + 1] * rhs[k] - D[k][k + 1] * rhs[k + 1]) / detE;
+                Ly[k + 1] = (- D[k + 1][k] * rhs[k] + D[k][k] * rhs[k + 1]) / detE;
+            }
+        }
+        k += s;
+    }
+    return true;
+}
+
+bool NOMAD::ldl_solve( std::string & error_msg,
+    double     ** D,
+    double     ** L,
+    double     * rhs,
+    double     * sol,
+    int        * pp,
+    int            n
+)
+{
+    error_msg.clear();
+    bool success;
+
+    double * prhs = new double [n];
+    double * Lz = new double [n];
+    for (int i = 0; i < n; i++)
+    {
+        prhs[i] = rhs[pp[i]];
+        Lz[i] = 0.0;
+    }
+    success = ldl_lsolve(L, prhs, Lz, n); // Lz = rhs
+    if (!success)
+    {
+        return false;
+    }
+    double * Dy = new double [n];
+    for (int i = 0; i < n; i++)
+    {
+        Dy[i] = 0.0;
+    }
+    success = ldl_dsolve(D, Lz, Dy, n); // Dy = z
+    if (!success)
+    {
+        return false;
+    }
+
+    double * psol = new double [n];
+    for (int i = 0; i < n; i++)
+    {
+        psol[i] = 0.0;
+    }
+    ldl_ltsolve(L, Dy, psol, n); // L^Tx = y
+
+    for (int i = 0; i < n; i++)
+    {
+        sol[i] = psol[pp[i]];
+    }
+
+    delete [] prhs;
+    delete [] Lz;
+    delete [] Dy;
+    delete [] psol;
+
+    return success;
 }

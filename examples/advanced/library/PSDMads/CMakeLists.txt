@@ -20,11 +20,10 @@ if(BUILD_TESTS MATCHES ON)
     # Can run this test after install
 
     if (WIN32)
-# Todo Find a way to detect error
-#        add_test(NAME ExampleAdvancedPSDMads
-#	    COMMAND ./rosenbrock.exe # Let ctest detect error. Not sure it can!
-#	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-#        )
+        add_test(NAME ExampleAdvancedPSDMads
+	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./rosenbrock.exe
+	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+        )
     else()
         add_test(NAME ExampleAdvancedPSDMads
 	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./rosenbrock.exe

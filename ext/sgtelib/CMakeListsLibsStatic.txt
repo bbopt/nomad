@@ -1,0 +1,38 @@
+# Static library
+#
+
+add_library(
+  sgtelibStatic
+  STATIC ${SGTELIB_SOURCES}
+)
+
+target_include_directories(
+  sgtelibStatic 
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>
+)
+
+set_target_properties(
+  sgtelibStatic
+  PROPERTIES 
+    VERSION "${SGTELIB_VERSION}"
+    SOVERSION "${SGTELIB_VERSION_MAJOR}.${SGTELIB_VERSION_MINOR}"
+    OUTPUT_NAME sgtelibStatic
+)
+
+# export symbols on Windows
+if (WIN32)
+    target_compile_definitions(
+      sgtelibStatic
+      PRIVATE -DNOMAD_STATIC_BUILD
+)
+endif()
+
+# installing library
+install(
+  TARGETS sgtelibStatic 
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
+)

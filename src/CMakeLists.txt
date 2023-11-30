@@ -13,7 +13,6 @@ Algos/Iteration.hpp
 Algos/IterationUtils.hpp
 Algos/MainStep.hpp
 Algos/MegaIteration.hpp
-Algos/Projection.hpp
 Algos/Step.hpp
 Algos/Subproblem.hpp
 Algos/SubproblemManager.hpp
@@ -33,7 +32,6 @@ Algos/Iteration.cpp
 Algos/IterationUtils.cpp
 Algos/MainStep.cpp
 Algos/MegaIteration.cpp
-Algos/Projection.cpp
 Algos/Step.cpp
 Algos/Subproblem.cpp
 Algos/SubproblemManager.cpp
@@ -57,9 +55,12 @@ Attribute/runAttributesDefinitionIBEX.txt
 Attribute/runAttributesDefinitionNM.txt
 Attribute/runAttributesDefinitionCS.txt
 Attribute/runAttributesDefinitionPSDSSD.txt
+Attribute/runAttributesDefinitionQPSolver.txt
 Attribute/runAttributesDefinitionQuadModel.txt
 Attribute/runAttributesDefinitionSgtelibModel.txt
-Attribute/runAttributesDefinitionVNS.txt)
+Attribute/runAttributesDefinitionVNS.txt
+Attribute/runAttributesDefinitionDisco.txt
+)
 
 set(ATTRIBUTE_HEADERS
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/cacheAttributesDefinition.hpp
@@ -99,7 +100,7 @@ Cache/CacheSet.cpp
 # Eval
 #
 set(EVAL_HEADERS
-Eval/Barrier.hpp
+#Eval/Barrier.hpp
 Eval/BarrierBase.hpp
 Eval/BBInput.hpp
 Eval/BBOutput.hpp
@@ -112,10 +113,11 @@ Eval/Evaluator.hpp
 Eval/EvaluatorControl.hpp
 Eval/EvcMainThreadInfo.hpp
 Eval/MeshBase.hpp
+Eval/ProgressiveBarrier.hpp
 Eval/SuccessStats.hpp)
 
 set(EVAL_SOURCES
-Eval/Barrier.cpp
+#Eval/Barrier.cpp
 Eval/BarrierBase.cpp
 Eval/BBInput.cpp
 Eval/BBOutput.cpp
@@ -128,6 +130,7 @@ Eval/Evaluator.cpp
 Eval/EvaluatorControl.cpp
 Eval/EvcMainThreadInfo.cpp
 Eval/MeshBase.cpp
+Eval/ProgressiveBarrier.cpp
 Eval/SuccessStats.cpp
 )
 
@@ -344,6 +347,26 @@ Algos/DMultiMads/DMultiMadsUpdate.cpp
 )
 
 #
+# DiscoMads
+#
+set(DISCOMADS_HEADERS
+Algos/DiscoMads/DiscoMads.hpp
+Algos/DiscoMads/DiscoMadsMegaIteration.hpp
+Algos/DiscoMads/DiscoMadsIteration.hpp
+Algos/DiscoMads/RevealingPoll.hpp
+Algos/DiscoMads/DiscoMadsBarrier.hpp
+Algos/DiscoMads/DiscoMadsUpdate.hpp
+)
+
+set(DISCOMADS_SOURCES
+Algos/DiscoMads/DiscoMads.cpp
+Algos/DiscoMads/DiscoMadsMegaIteration.cpp
+Algos/DiscoMads/DiscoMadsIteration.cpp
+Algos/DiscoMads/RevealingPoll.cpp
+Algos/DiscoMads/DiscoMadsBarrier.cpp
+Algos/DiscoMads/DiscoMadsUpdate.cpp
+)
+#
 # Mads
 #
 set(MADS_HEADERS
@@ -362,12 +385,14 @@ Algos/Mads/Ortho2NPollMethod.hpp
 Algos/Mads/OrthoNPlus1PollMethod.hpp
 Algos/Mads/Poll.hpp
 Algos/Mads/PollMethodBase.hpp
+Algos/Mads/QPSolverAlgoSearchMethod.hpp
 Algos/Mads/QuadSearchMethod.hpp
 Algos/Mads/Search.hpp
 Algos/Mads/SearchMethodAlgo.hpp
 Algos/Mads/SearchMethodBase.hpp
 Algos/Mads/SearchMethodSimple.hpp
 Algos/Mads/SgtelibSearchMethod.hpp
+Algos/Mads/SimpleLineSearchMethod.hpp
 Algos/Mads/SinglePollMethod.hpp
 Algos/Mads/SpeculativeSearchMethod.hpp
 Algos/Mads/TemplateAlgoSearchMethod.hpp
@@ -393,12 +418,14 @@ Algos/Mads/Ortho2NPollMethod.cpp
 Algos/Mads/OrthoNPlus1PollMethod.cpp
 Algos/Mads/Poll.cpp
 Algos/Mads/PollMethodBase.cpp
+Algos/Mads/QPSolverAlgoSearchMethod.cpp
 Algos/Mads/QuadSearchMethod.cpp
 Algos/Mads/Search.cpp
 Algos/Mads/SearchMethodAlgo.cpp
 Algos/Mads/SearchMethodBase.cpp
 Algos/Mads/SearchMethodSimple.cpp
 Algos/Mads/SgtelibSearchMethod.cpp
+Algos/Mads/SimpleLineSearchMethod.cpp
 Algos/Mads/SinglePollMethod.cpp
 Algos/Mads/SpeculativeSearchMethod.cpp
 Algos/Mads/TemplateAlgoSearchMethod.cpp
@@ -491,6 +518,24 @@ Algos/QuadModel/QuadModelSinglePass.cpp
 Algos/QuadModel/QuadModelUpdate.cpp
 )
 
+#
+# QP Solvers
+#
+set(QPSOLVER_HEADERS
+Algos/QPSolverAlgo/QPSolverAlgo.hpp
+Algos/QPSolverAlgo/QPSolverAlgoIteration.hpp
+Algos/QPSolverAlgo/QPSolverAlgoMegaIteration.hpp
+Algos/QPSolverAlgo/QPSolverOptimize.hpp
+Algos/QPSolverAlgo/QPSolverAlgoSinglePass.hpp
+)
+
+set(QPSOLVER_SOURCES
+Algos/QPSolverAlgo/QPSolverAlgo.cpp
+Algos/QPSolverAlgo/QPSolverAlgoIteration.cpp
+Algos/QPSolverAlgo/QPSolverAlgoMegaIteration.cpp
+Algos/QPSolverAlgo/QPSolverOptimize.cpp
+Algos/QPSolverAlgo/QPSolverAlgoSinglePass.cpp
+)
 
 #
 # SgtelibModel
@@ -553,6 +598,19 @@ Algos/TemplateAlgo/TemplateAlgoRandom.cpp
 Algos/TemplateAlgo/TemplateAlgoSinglePass.cpp
 Algos/TemplateAlgo/TemplateAlgoUpdate.cpp)
 
+#
+# Simple Line Search
+#
+set(SIMPLELINESEARCH_ALGO_HEADERS
+Algos/SimpleLineSearch/SimpleLineSearch.hpp
+Algos/SimpleLineSearch/SimpleLineSearchMegaIteration.hpp
+)
+
+set(SIMPLELINESEARCH_ALGO_SOURCES
+Algos/SimpleLineSearch/SimpleLineSearch.cpp
+Algos/SimpleLineSearch/SimpleLineSearchMegaIteration.cpp
+)
+
 
 #
 # VNS
@@ -572,7 +630,9 @@ Algos/VNSMads/VNS.cpp
 #
 
 # Build attribute executable
-add_executable(WriteAttributeDefinitionFile ${ATTRIBUTE_HEADERS_GENERATOR})
+add_executable(
+  WriteAttributeDefinitionFile ${ATTRIBUTE_HEADERS_GENERATOR}
+)
 
 # Command to create the attribute headers
 add_custom_command(
@@ -583,7 +643,8 @@ add_custom_command(
 )
 
 #
-# Build libraries
+# Build libraries and executable
+# Install all
 #
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
@@ -594,226 +655,150 @@ if (WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
-# Utils
-add_library (nomadUtils SHARED ${MATH_SOURCES} ${OUTPUT_SOURCES} ${PARAM_SOURCES} ${TYPE_SOURCES} ${UTIL_SOURCES} ${ATTRIBUTE_HEADERS})
-target_include_directories(nomadUtils PUBLIC
-    $<BUILD_INTERFACE: ${CMAKE_SOURCE_DIR}/src/Attribute ${CMAKE_SOURCE_DIR}/src/Math ${CMAKE_SOURCE_DIR}/src/Output
-    ${CMAKE_SOURCE_DIR}/src/Param ${CMAKE_SOURCE_DIR}/src/Type ${CMAKE_SOURCE_DIR}/src/Util>
-    $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}>
-)
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(nomadUtils PUBLIC OpenMP::OpenMP_CXX)
-endif()
-if (WIN32)
-    target_compile_definitions(nomadUtils PRIVATE -DDLL_UTIL_EXPORTS)
-endif()
-set_target_properties(nomadUtils PROPERTIES 
-                                 VERSION "${NOMAD_VERSION}"
-                                 SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}")
+# Build shared libraries (nomadUtils, nomadEval, nomadAlgos)
+include(./CMakeListsLibs.txt)
 
-# Evals
-add_library (nomadEval SHARED ${CACHE_SOURCES} ${EVAL_SOURCES})
-target_include_directories(nomadEval PUBLIC
-    $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Cache ${CMAKE_CURRENT_SOURCE_DIR}/Eval>
-    $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}>
-)
-target_link_libraries(nomadEval PUBLIC nomadUtils)
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(nomadEval PUBLIC OpenMP::OpenMP_CXX)
-endif()
-if (WIN32)
-    target_compile_definitions(nomadEval PRIVATE -DDLL_EVAL_EXPORTS)
-endif()
-set_target_properties(nomadEval  PROPERTIES 
-                                 VERSION "${NOMAD_VERSION}"
-                                 SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}")
-
-
-# Algos
-if(USE_SGTELIB MATCHES ON)
-    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${CS_SOURCES} ${DMULTIMADS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${QUADMODEL_SOURCES} ${SGTELIBMODEL_SOURCES} ${SSDMADS_SOURCES}  ${TEMPLATE_ALGO_SOURCES} ${VNSMADS_SOURCES})
-   target_include_directories(nomadAlgos PUBLIC
-      $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Algos
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/CoordinateSearch
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/DMultiMads
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/Mads
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/NelderMead
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PhaseOne
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModel
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SgtelibModel
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/TemplateAlgo
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads>
-      $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}>)
-else()
-    add_library (nomadAlgos SHARED ${ALGOS_SOURCES} ${CS_SOURCES} ${DMULTIMADS_SOURCES} ${MADS_SOURCES} ${LH_SOURCES} ${NM_SOURCES} ${PHASEONE_SOURCES} ${PSDMADS_SOURCES} ${SSDMADS_SOURCES} ${TEMPLATE_ALGO_SOURCES} ${VNSMADS_SOURCES})
-    target_include_directories(nomadAlgos PUBLIC
-        $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/Algos
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/CoordinateSearch
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/DMultiMads
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/Mads
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/NelderMead
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PhaseOne
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/TemplateAlgo
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads
-        $ENV{IBEX_ROOT}/src>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-endif()
-if (WIN32)
-    target_compile_definitions(nomadAlgos PRIVATE -DDLL_ALGO_EXPORTS)
+# build statically linked library (nomadStatic) for PyNomad interface
+if(BUILD_INTERFACE_PYTHON MATCHES ON)
+   include(./CMakeListsLibsStatic.txt)
 endif()
 
+# Build dynamically linked executables (nomad)
+include(./CMakeListsExes.txt)
 
-#
-# Base libraries + extra library for OpenMP and sgtelib
-target_link_libraries(nomadAlgos PUBLIC nomadUtils nomadEval)
-if(USE_SGTELIB MATCHES ON)
-       target_link_libraries(nomadAlgos PUBLIC sgtelib)
-endif()
-if(OpenMP_CXX_FOUND)
-   target_link_libraries(nomadAlgos PUBLIC OpenMP::OpenMP_CXX)
-endif()
-if(USE_IBEX MATCHES ON)
-        target_link_libraries(nomadAlgos PUBLIC ibex)
-	add_library(ibex SHARED IMPORTED)
-	set_target_properties(ibex PROPERTIES IMPORTED_LOCATION $ENV{IBEX_ROOT}/lib/libibex.so)
-	target_include_directories (ibex INTERFACE
-                "$ENV{IBEX_ROOT}/__build__" 
-		"$ENV{IBEX_ROOT}/include/ibex"
-		"$ENV{IBEX_ROOT}/include/ibex/3rd")
-	message(CHECK_START " Ready to use IBEX")
-endif()
-set_target_properties(nomadAlgos  PROPERTIES 
-                                 VERSION "${NOMAD_VERSION}"
-                                 SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}")
+# Build statically linked executable (nomad)
+# include(./CMakeListsExesStatic.txt)
 
-
-#
-# Build executables
-#
-
-add_executable (nomad ${NOMAD_SOURCES})
-set_target_properties(nomad PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-target_include_directories(nomad PUBLIC
-    $<BUILD_INTERFACE: ${CMAKE_CURRENT_SOURCE_DIR}/
-    ${CMAKE_CURRENT_SOURCE_DIR}/Nomad>
-    $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}/Nomad>
+# Install header files
+install(
+  FILES ${ALGOS_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos
 )
 
-target_link_libraries(nomad PUBLIC nomadAlgos nomadUtils nomadEval)
-if(OpenMP_CXX_FOUND)
-       target_link_libraries(nomad PUBLIC OpenMP::OpenMP_CXX)
-endif()
-
-
-#
-# Install executable, libraries and headers
-#
-
-# installing executables and libraries
-install(TARGETS nomad nomadUtils nomadEval nomadAlgos
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/
+install(
+  FILES ${ATTRIBUTE_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Attribute
 )
 
-# install header files
-install(FILES ${ALGOS_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos
+install(
+  FILES ${CACHE_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Cache
 )
 
-install(FILES ${ATTRIBUTE_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Attribute
+install(
+  FILES ${EVAL_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Eval
 )
 
-install(FILES ${CACHE_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Cache
+install(
+  FILES ${MATH_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Math
 )
 
-install(FILES ${EVAL_HEADERS}
-       DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Eval
+install(
+  FILES ${NOMAD_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Nomad
 )
 
-install(FILES ${MATH_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Math
+install(
+  FILES ${OUTPUT_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Output
 )
 
-install(FILES ${NOMAD_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Nomad
+install(
+  FILES ${PARAM_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Param
 )
 
-install(FILES ${OUTPUT_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Output
+install(
+  FILES ${TYPE_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Type
 )
 
-install(FILES ${PARAM_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Param
+install(
+  FILES ${UTIL_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Util
 )
 
-install(FILES ${TYPE_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Type
+install(
+  FILES ${CS_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/CoordinateSearch
 )
 
-install(FILES ${UTIL_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Util
+install(
+  FILES ${DMULTIMADS_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/DMultiMads
 )
 
-install(FILES ${CS_HEADERS}
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/CoordinateSearch
+install(
+   FILES ${DISCOMADS_HEADERS}
+   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/DiscoMads
 )
 
-install(FILES ${DMULTIMADS_HEADERS}
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/DMultiMads
+install(
+  FILES ${LH_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/LatinHypercubeSampling
 )
 
-install(FILES ${LH_HEADERS}
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/LatinHypercubeSampling
+install(
+  FILES ${MADS_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/Mads
 )
 
-install(FILES ${MADS_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/Mads
+install(
+  FILES ${NM_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/NelderMead
 )
 
-install(FILES ${NM_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/NelderMead
+install(
+  FILES ${PHASEONE_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/PhaseOne
 )
 
-install(FILES ${PHASEONE_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/PhaseOne
+install(
+  FILES ${PSDMADS_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/PSDMads
 )
 
-install(FILES ${PSDMADS_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/PSDMads
+install(
+  FILES ${QPSOLVER_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/QPSolverAlgo
 )
 
-install(FILES ${QUADMODEL_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/QuadModel
+install(
+  FILES ${QUADMODEL_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/QuadModel
 )
 
-install(FILES ${SGTELIB_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SgtelibModel
+install(
+  FILES ${SGTELIB_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SgtelibModel
 )
 
-install(FILES ${SSDMADS_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SSDMads
+install(
+  FILES ${SSDMADS_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SSDMads
 )
 
-install(FILES ${TEMPLATE_ALGO_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/TemplateAlgo
+install(
+  FILES ${TEMPLATE_ALGO_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/TemplateAlgo
 )
 
-install(FILES ${VNSMADS_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/VNSMads
+install(
+  FILES ${SIMPLELINESEARCH_ALGO_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SimpleLineSearch
 )
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/nomad_nsbegin.hpp
+install(
+  FILES ${VNSMADS_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/VNSMads
+)
+
+install(
+  FILES ${CMAKE_CURRENT_SOURCE_DIR}/nomad_nsbegin.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/nomad_nsend.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/nomad_platform.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/nomad_version.hpp
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/
 )

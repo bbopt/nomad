@@ -1,11 +1,11 @@
 set(CMAKE_EXECUTABLE_SUFFIX .exe)
-add_executable(bb_s.exe bb.cpp )
-set_target_properties(bb_s.exe PROPERTIES SUFFIX "")
+add_executable(bb3.exe bb.cpp )
+set_target_properties(bb3.exe PROPERTIES SUFFIX "")
 
-target_link_libraries(bb_s.exe PUBLIC OpenMP::OpenMP_CXX)
+target_link_libraries(bb3.exe PUBLIC OpenMP::OpenMP_CXX)
 
 # installing executables and libraries
-install(TARGETS bb_s.exe
+install(TARGETS bb3.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example

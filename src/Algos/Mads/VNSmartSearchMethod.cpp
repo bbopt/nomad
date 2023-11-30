@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -126,8 +126,8 @@ bool NOMAD::VNSmartAlgoSearchMethod::runImp()
             }
             
             // MegaIteration's barrier member is already in sub dimension.
-            auto bestXFeas = barrier->getFirstXFeas();
-            auto bestXInf  = barrier->getFirstXInf();
+            auto bestXFeas = barrier->getCurrentIncumbentFeas();
+            auto bestXInf  = barrier->getCurrentIncumbentInf();
             
             // Get the frame center for VNS sub optimization
             auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
@@ -165,8 +165,8 @@ bool NOMAD::VNSmartAlgoSearchMethod::runImp()
                 
                 if (nullptr != vnsBarrier)
                 {
-                    auto vnsBestFeas = vnsBarrier->getFirstXFeas();
-                    auto vnsBestInf = vnsBarrier->getFirstXInf();
+                    auto vnsBestFeas = vnsBarrier->getCurrentIncumbentFeas();
+                    auto vnsBestInf = vnsBarrier->getCurrentIncumbentInf();
                     NOMAD::SuccessType success = barrier->getSuccessTypeOfPoints(vnsBestFeas,
                                                                                  vnsBestInf,
                                                                                  NOMAD::EvalType::BB,
@@ -182,7 +182,8 @@ bool NOMAD::VNSmartAlgoSearchMethod::runImp()
                     barrier->updateWithPoints(vnsBarrier->getAllPoints(),
                                                                     NOMAD::EvalType::BB,
                                                                     NOMAD::ComputeType::STANDARD,
-                                                                    _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
+                                                                    _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"),
+                                                                    true /* true: update incumbents and hMax */);
                     
                 }
             }

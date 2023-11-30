@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -83,14 +83,20 @@ void NOMAD::TrialPointStats::initializeMap(std::map<EvalType, size_t> & counter)
 
 void NOMAD::TrialPointStats::incrementEvalsDone(size_t nb, EvalType evalType)
 {
-    _nbTotalEvalsDone.at(evalType) += nb;
-    _nbCurrentEvalsDone.at(evalType) += nb;
+    if ( evalType < NOMAD::EvalType::LAST)
+    {
+        _nbTotalEvalsDone.at(evalType) += nb;
+        _nbCurrentEvalsDone.at(evalType) += nb;
+    }
 }
 
 void NOMAD::TrialPointStats::incrementTrialPointsGenerated(size_t nb, EvalType evalType)
 {
-    _nbTotalTrialPointsGenerated.at(evalType) += nb;
-    _nbCurrentTrialPointsGenerated.at(evalType) += nb;
+    if ( evalType < NOMAD::EvalType::LAST)
+    {
+        _nbTotalTrialPointsGenerated.at(evalType) += nb;
+        _nbCurrentTrialPointsGenerated.at(evalType) += nb;
+    }
 }
 
 size_t NOMAD::TrialPointStats::getNbTrialPointsGenerated(EvalType evalType, bool totalCount) const

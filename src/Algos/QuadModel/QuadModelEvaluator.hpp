@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,11 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_QUAD_MODEL_EVALUATION__
-#define __NOMAD_4_3_QUAD_MODEL_EVALUATION__
+#ifndef __NOMAD_4_4_QUAD_MODEL_EVALUATION__
+#define __NOMAD_4_4_QUAD_MODEL_EVALUATION__
 
 #include "../../Eval/Evaluator.hpp"
 #include "../../Output/OutputInfo.hpp"
+
 #include "../../../ext/sgtelib/src/Surrogate.hpp"
 
 #include "../../nomad_nsbegin.hpp"
@@ -62,7 +63,10 @@ private:
     OutputLevel                _displayLevel;
     Point                      _fixedVariable;  ///< Points maybe sent to evaluator in  full space. Evaluator works in local sub space. In this case this member is used for conversions. Can be undefined: sub=full.
 
-
+    
+    size_t _nbConstraints,_nbModels;
+    
+    
 public:
     /// Constructor
     /**
@@ -98,4 +102,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_QUAD_MODEL_EVALUATION__
+#endif // __NOMAD_4_4_QUAD_MODEL_EVALUATION__

@@ -1,6 +1,6 @@
 DIMENSION      5              # number of variables
 
-BB_EXE         bb_s.exe
+BB_EXE         bb3.exe
 
 BB_MAX_BLOCK_SIZE 4
 

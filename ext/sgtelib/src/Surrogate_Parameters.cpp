@@ -49,6 +49,16 @@ SGTELIB::Surrogate_Parameters::Surrogate_Parameters ( const std::string & s ):
   check();
 }//
 
+/*-----------------------------------------------------------------------*/
+/*          constructor for default empty parameters                     */
+/*-----------------------------------------------------------------------*/
+SGTELIB::Surrogate_Parameters::Surrogate_Parameters ( ):
+  _type  ( SGTELIB::PRS ){
+  set_defaults();
+  read_string("");
+  check();
+}//
+
 /*----------------------------*/
 /*          Destructor        */
 /*----------------------------*/

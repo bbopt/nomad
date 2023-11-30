@@ -1,0 +1,60 @@
+#
+# Build executables
+#
+
+add_executable(
+  nomadExecutable ${NOMAD_SOURCES}
+)
+
+target_link_libraries(
+  nomadExecutable
+  PUBLIC nomadAlgos nomadUtils nomadEval
+)
+
+target_include_directories(
+  nomadExecutable
+  PUBLIC
+    $<BUILD_INTERFACE: 
+      ${CMAKE_CURRENT_SOURCE_DIR}/
+      ${CMAKE_CURRENT_SOURCE_DIR}/Nomad
+    >
+    $<INSTALL_INTERFACE: 
+      ${CMAKE_INSTALL_INCLUDEDIR}/Nomad
+    >
+)
+
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(
+    nomadExecutable
+    PUBLIC OpenMP::OpenMP_CXX
+  )
+endif()
+
+set_target_properties(
+  nomadExecutable
+  PROPERTIES
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
+)
+
+
+set_target_properties(
+  nomadExecutable
+  PROPERTIES 
+    VERSION "${NOMAD_VERSION}"
+    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
+    OUTPUT_NAME nomad
+)
+
+#
+# Install executable
+#
+
+# installing executables and libraries
+install(
+  TARGETS
+    nomadExecutable
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/
+)
+

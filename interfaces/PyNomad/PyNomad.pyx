@@ -180,36 +180,38 @@ def observe(params,points,evals,udpatedCacheFileName):
 def optimize(fBB, pX0, pLB, pUB, params, fSurrogate=None):
     cdef PyNomadEvalPoint uFeas = PyNomadEvalPoint()
     cdef PyNomadEvalPoint uInfeas = PyNomadEvalPoint()
-    cdef int runStatus = 0
+    cdef int runFlag = 0
     cdef size_t nbEvals = 0
     cdef size_t nbIters = 0
     cdef double fReturn = float("inf")
     cdef double hReturn = float("inf")
     xReturn = []
     eParams = []
+    cdef string stopReason
 
     cdef size_t nbParams = len(params)
     for i in range(nbParams):
          eParams.append(params[i].encode(u"ascii"))
 
     if fSurrogate is None:
-        runStatus = runNomad(<Callback> cb, <CallbackL> cbL, 
-                         <void*> fBB, <vector[double]&> pX0,
+        runFlag = runNomad(cb, cbL, <void*> fBB, <vector[double]&> pX0,
                          <vector[double]&> pLB, <vector[double]&> pUB,
                          <vector[string]&> eParams,
                          uFeas.c_ep_ptr,
                          uInfeas.c_ep_ptr,
-                         nbEvals, nbIters)
+                         nbEvals, nbIters, stopReason)
     else:
-        runStatus = runNomad(<Callback> cb, <CallbackL> cbL, 
-                         <void*> fBB,  <void*> fSurrogate,
+        runFlag = runNomad(cb, cbL, <void*> fBB,  <void*> fSurrogate,
                          <vector[double]&> pX0,
                          <vector[double]&> pLB, <vector[double]&> pUB,
                          <vector[string]&> eParams,
                          uFeas.c_ep_ptr,
                          uInfeas.c_ep_ptr,
-                         nbEvals, nbIters)
+                         nbEvals, nbIters, stopReason)
 
+    stopReasonU = stopReason.decode('utf-8')
+
+    # For now, runNomad returns a feasible point or an infeasible point (least infeasible with smallest f) NOT BOTH
     if uFeas.c_ep_ptr != NULL:
         fReturn = uFeas.getF()
         hReturn = uFeas.getH()  # Should be 0
@@ -222,7 +224,7 @@ def optimize(fBB, pX0, pLB, pUB, params, fSurrogate=None):
         for i in xrange(uInfeas.size()):
             xReturn.append(uInfeas.get_coord(i))
 
-    return {'x_best': xReturn, 'f_best': fReturn, 'h_best': hReturn, 'nb_evals': nbEvals, 'nb_iters': nbIters, 'exit_status': runStatus}
+    return {'x_best': xReturn, 'f_best': fReturn, 'h_best': hReturn, 'nb_evals': nbEvals, 'nb_iters': nbIters, 'run_flag': runFlag, 'stop_reason': stopReasonU}
 
 cdef extern from "Algos/MainStep.hpp" namespace "NOMAD":
     cdef cppclass MainStep:
@@ -458,17 +460,17 @@ cdef extern from "nomadCySimpleInterface.cpp":
                  vector[string] &params,
                  shared_ptr[EvalPoint] &bestFeasSol,
                  shared_ptr[EvalPoint] &bestInfeasSol,
-                 size_t &nbEvals, size_t &nbIters) except+
+                 size_t &nbEvals, size_t &nbIters, string &stopReason) except+
     int runNomad(Callback cb, CallbackL cbL, void* applyBB, void* applySurrogate, vector[double] &X0,
                  vector[double] &LB, vector[double] &UB,
                  vector[string] &params,
                  shared_ptr[EvalPoint] &bestFeasSol,
                  shared_ptr[EvalPoint] &bestInfeasSol,
-                 size_t &nbEvals, size_t &nbIters) except+
+                 size_t &nbEvals, size_t &nbIters, string &stopReason) except+
 
 
 # Define callback function for a single EvalPoint ---> link with Python
-cdef int cb(void *f, shared_ptr[EvalPoint] x):
+cdef int cb(void *f, shared_ptr[EvalPoint] x) noexcept:
     cdef PyNomadEvalPoint u = PyNomadEvalPoint()
 
     u.c_ep_ptr = x
@@ -476,9 +478,10 @@ cdef int cb(void *f, shared_ptr[EvalPoint] x):
 
 
 # Define callback function for a block (vector) of EvalPoints
-cdef vector[int] cbL(void *f, shared_ptr[Block] block):
+cdef vector[int] cbL(void *f, shared_ptr[Block] block) noexcept:
 
     cdef PyNomadBlock u = PyNomadBlock()
 
     u.c_block_ptr = block
     return (<object>f)(u)
+ 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -150,7 +150,7 @@ void NOMAD::OutputDirectToFile::initHistoryFile()
         _historyStream.open(_historyFile.c_str(), std::ofstream::out | std::ios::trunc);
         if (_historyStream.fail())
         {
-            std::cerr << "Warning: could not open history file " << _historyFile << std::endl;
+            std::cout << "Warning: could not open history file " << _historyFile << std::endl;
         }
         _historyStream.setf(std::ios::fixed);
         // Set full precision on history file.
@@ -159,7 +159,7 @@ void NOMAD::OutputDirectToFile::initHistoryFile()
 }
 
 
-void NOMAD::OutputDirectToFile::write(const NOMAD::StatsInfo &info, bool writeInSolutionFile, bool writeInHistoryFile )
+void NOMAD::OutputDirectToFile::write(const NOMAD::StatsInfo &info, bool writeInSolutionFile, bool writeInHistoryFile, bool appendInSolutionFile )
 {
     // Early out
     if (_historyFile.empty() && _solutionFile.empty())
@@ -188,12 +188,20 @@ void NOMAD::OutputDirectToFile::write(const NOMAD::StatsInfo &info, bool writeIn
     // Add information in solution file
     if (writeInSolutionFile && _enabledSolutionFile && !_solutionFile.empty())
     {
-        // Open solution file and clear it (trunc)
+        // Open solution file and clear it if needed
         _solutionStream.close();
-        _solutionStream.open(_solutionFile.c_str(), std::ofstream::out | std::ios::trunc);
+        
+        if (appendInSolutionFile)
+        {
+            _solutionStream.open(_solutionFile.c_str(), std::ofstream::out | std::ios::app);
+        }
+        else
+        {
+            _solutionStream.open(_solutionFile.c_str(), std::ofstream::out | std::ios::trunc);
+        }
         if (_solutionStream.fail())
         {
-            std::cerr << "Warning: could not open solution file " << _solutionFile << std::endl;
+            std::cout << "Warning: could not open solution file " << _solutionFile << std::endl;
         }
         _solutionStream.setf(std::ios::fixed);
         // Set full precision on solution file.

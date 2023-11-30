@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -59,7 +59,14 @@
 
 void NOMAD::VNS::init()
 {
+    /*
+    if ( _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL") )
+    {
+        _name += " One Iteration";
+    }
+     */
     setStepType(NOMAD::StepType::ALGORITHM_VNS_MADS);
+
 }
 
 

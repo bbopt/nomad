@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -136,8 +136,8 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams, const size_t
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
     allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj"));
     
-	
-	// COCO
+    
+    // COCO
     /*
     bbOutputTypes.push_back(NOMAD::BBOutputType::PB);
     bbOutputTypes.push_back(NOMAD::BBOutputType::PB);
@@ -317,11 +317,11 @@ void userMegaIterationStartForVNS(const NOMAD::Step& step,
         // std::cout << std::endl << "Stopping condition: " << stopCondition << std::endl;
         
         // Stop motivated by user conditions : after one megaiteration
-        if (NOMAD::SuccessType::UNDEFINED != success && nbEnterMegaIter > 1) 
+        if (NOMAD::SuccessType::UNDEFINED != success && nbEnterMegaIter > 1)
         {
             stop = true;
             nbEnterMegaIter = 0;
-            nbBbeWithVNS += (static_cast<int>(bbe) - nbBbeBeforeVNS);
+            nbBbeWithVNS += (bbe - nbBbeBeforeVNS);
         }
     }
 }
@@ -423,7 +423,7 @@ int main ( int argc , char ** argv )
                 stopConsFailures = static_cast<int>(3*std::ceil(i/5.0));
 
                 TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_START, userMegaIterationStartForVNS);
-                nbBbeBeforeVNS = static_cast<int>(NOMAD::EvcInterface::getEvaluatorControl()->getBbEval()); // Keeps the number of blackbox evaluations before using VNS
+                nbBbeBeforeVNS = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval(); // Keeps the number of blackbox evaluations before using VNS
                 
                 // Activate VNS MADS serach
                 params->getRunParams()->setAttributeValue("VNS_MADS_SEARCH", true);
@@ -467,8 +467,8 @@ int main ( int argc , char ** argv )
 
             bf.clear();
             bi.clear();
-            NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD, nullptr);
-            NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD,nullptr);
+            NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD);
+            NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
             
             ++i;
             
@@ -483,4 +483,3 @@ int main ( int argc , char ** argv )
 
     return EXIT_SUCCESS;
 }
-

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -93,9 +93,17 @@ void NOMAD::RNG::setSeed(int s)
                                 "NOMAD::RNG::setSeed(): invalid seed. Seed should be in [0,INT_MAX] U {-1}");
     }
 
-    // Always reset the private seed to default values
+    // Reset the random number generator state according to the seed
+    reset();
+    
+}
+
+void NOMAD::RNG::reset()
+{
+    // Reset the private seed to default values
     resetPrivateSeedToDefault();
 
+    // Set the random number generator to its state for the given seed
     for (int i = 0; i < _s; i++)
     {
         NOMAD::RNG::rand();
