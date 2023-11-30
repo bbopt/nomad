@@ -34,5 +34,14 @@ MAX_EVAL 200
 DISPLAY_DEGREE 2 
 DISPLAY_ALL_EVAL 1
 DISPLAY_STATS BBE ( SOL ) OBJ CONS_H
+
+# Formatted stats into a file
 #STATS_FILE stats.txt BBE SOL OBJ
+
+# History file (just inputs and outputs)
+#HISTORY_FILE history.txt
+
+# Solution file (just best inputs found)
+#SOLUTION_FILE sol.txt
+
 
