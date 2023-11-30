@@ -44,6 +44,9 @@ In some occasions, CMake cannot find Matlab installation directory.
 The option -DMatlab_ROOT_DIR=/Path/To/Matlab/Install/Dir must be passed 
 during configuration.
 
+It may be required (Windows) to force the use of the 64bit version. 
+The option -A x64 must be passed during configuration.
+
 ************************
 HOW TO BUILD AND INSTALL
 ************************
