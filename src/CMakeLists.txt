@@ -660,14 +660,13 @@ include(./CMakeListsLibs.txt)
 
 # build statically linked library (nomadStatic) for PyNomad interface
 if(BUILD_INTERFACE_PYTHON MATCHES ON)
+   message(STATUS "  Warning: build static libraries for Python interface.")
    include(./CMakeListsLibsStatic.txt)
 endif()
 
 # Build dynamically linked executables (nomad)
 include(./CMakeListsExes.txt)
 
-# Build statically linked executable (nomad)
-# include(./CMakeListsExesStatic.txt)
 
 # Install header files
 install(

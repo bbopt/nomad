@@ -107,7 +107,9 @@ include(CMakePackageConfigHelpers)
 include(./CMakeListsLibs.txt)
 
 # Build static libraries (sgtelibStatic)
-include(./CMakeListsLibsStatic.txt)
+if(BUILD_INTERFACE_PYTHON MATCHES ON)
+  include(./CMakeListsLibsStatic.txt)
+endif()
 
 
 # install header files
