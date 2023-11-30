@@ -120,7 +120,8 @@ cmake -S . -B build/release
               ! The Matlab interface will not be built if OpenMP is enabled.
 
               ! An extra addpath Matlab command must be done to have access 
-              to nomad Mex binaries. 
+              to nomad Mex binaries:
+              addpath(strcat(getenv('NOMAD_HOME'),'/build/release/bin'))
 
          To enable *Python* interface (PyNomad) building:
               cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release

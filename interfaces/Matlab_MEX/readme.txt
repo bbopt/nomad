@@ -72,8 +72,7 @@ The command
 must be run before using the Matlab nomadOpt function. 
 
 Also, the Matlab command 
-   addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib')) 
-or addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib64')) 
+   addpath(strcat(getenv('NOMAD_HOME'),'/build/release/bin')) 
 must be executed to have access to the libraries and run the examples.
 
 **********
