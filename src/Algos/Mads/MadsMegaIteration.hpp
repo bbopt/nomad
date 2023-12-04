@@ -68,7 +68,7 @@ Manager for Mads iterations.
   It is also preferable to keep parallelization to the only place where
   it matters the most to avoid errors.
   There is no parallelization at the algorithmic level.
-  Algorithms are run in main thread(s) only; Secundary threads are available for evaluations.
+  Algorithms are run in main thread(s) only; Secondary threads are available for evaluations.
 */
 class MadsMegaIteration: public MegaIteration
 {
