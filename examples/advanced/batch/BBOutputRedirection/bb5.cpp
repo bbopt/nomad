@@ -60,7 +60,7 @@ using namespace std;
 // The name of the output MUST be inputfilename.output.
 // INPUT and OUTPUT files have a fixed name during optimization.
 // Some verbose can be displayed on the standard output or standard error and will not be considered by Nomad
-// The verbose is stored in a log file.
+// The verbose can be send to a log file (see param.txt file).
 int main(int argc, const char ** argv) 
 {
     
