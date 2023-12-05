@@ -62,10 +62,14 @@
 /* Set an inequality constraint:          */
 /*         x1+...+x4<=10                  */
 /* If constraint is verified              */
-/* Pick up   d = 10-(x1+...+x4)           */
-/* Compute f=-(x^1+...+x^4^2+d^2)         */
-/* Consider that inequality constraint is */
-/* not costly to evaluate                 */
+/*   - Pick up   d = 10-(x1+...+x4)       */
+/*   - Compute f=-(x^1+...+x^4^2+d^2)     */
+/*   - Count eval                         */
+/* If constraint is not verified          */
+/*   - f=Inf                              */
+/*   - Constraint is EB constraint        */
+/*   - Geometric constraint is not costly */
+/*   - Do not count eval                  */
 /*----------------------------------------*/
 class My_Evaluator : public NOMAD::Evaluator
 {
