@@ -44,10 +44,10 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------*/
-/*  Example of a program that makes NOMAD stop at the end of an iteration   */
-/*  The user stopping criterion is that F has reached a target              */
-/*--------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*  Example of a program that makes NOMAD stop at the end of a Mads iteration */
+/*  The user stopping criterion is that F has reached a target                */
+/*----------------------------------------------------------------------------*/
 #include "Nomad/nomad.hpp"
 #include "Algos/EvcInterface.hpp"
 #include "Algos/Mads/MadsMegaIteration.hpp"
@@ -123,9 +123,12 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     bbOutputTypes.push_back(NOMAD::BBOutputType::Type::EB);
     bbOutputTypes.push_back(NOMAD::BBOutputType::Type::EB);
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
+    
+    // Algo for search
+    allParams->setAttributeValue("NM_SEARCH", false);
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
-    allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj"));
+    allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj cons_h"));
     allParams->setAttributeValue("DISPLAY_ALL_EVAL", true);
     
     // Parameters validation requested to have access to their value.
@@ -154,11 +157,14 @@ void userIterationCallback(const NOMAD::Step& step,
         std::vector<NOMAD::EvalPoint> bestFeas;
         NOMAD::CacheBase::getInstance()->findBestFeas(bestFeas, NOMAD::Point() /* no fixed variables */,
                                                       NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
-        
-        if (bestFeas.size() > 0 && bestFeas[0].getF() < FTarget)
+        for (const auto & evalP: bestFeas)
         {
-            // Stop motivated by user conditions
-            stop = true;
+            if ( evalP.getF() <= FTarget)
+            {
+                // Stop motivated by user conditions
+                stop = true;
+                break;
+            }
         }
         
         // NOTE: This strategy stops at the end of Mads (Mega) iteration.
@@ -197,4 +203,4 @@ int main ( int argc , char ** argv )
     TheMainStep.end();
         
     return 1;
-}
+} 
