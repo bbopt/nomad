@@ -156,8 +156,6 @@ void initParams(NOMAD::AllParameters &p)
     fixedVariable[5] = X0[5];
     p.setAttributeValue("FIXED_VARIABLE", fixedVariable);
 
-    p.setAttributeValue("H_MAX_0", NOMAD::Double(10000000));
-
     p.setAttributeValue("DISPLAY_DEGREE", 2);
     p.setAttributeValue("DISPLAY_ALL_EVAL", true);
     p.setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL BLK_EVA ( SOL ) OBJ CONS_H H_MAX"));
