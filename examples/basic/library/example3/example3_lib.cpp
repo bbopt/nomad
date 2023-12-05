@@ -145,9 +145,7 @@ void initParams(NOMAD::AllParameters &p)
     // the algorithm terminates after MAX_BB_EVAL black-box evaluations, or MAX_EVAL total evaluations (including cache hits).
     p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", 1000);
     p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_EVAL", 1000);
-    p.getEvaluatorControlGlobalParams()->setAttributeValue("BB_MAX_BLOCK_SIZE", (size_t)8);
-    // When using blocks, OpenMP is "disabled" - only one thread is used.
-    p.getRunParams()->setAttributeValue("NB_THREADS_OPENMP", 1);
+    p.getEvaluatorControlGlobalParams()->setAttributeValue("BB_MAX_BLOCK_SIZE", (size_t)8); // Use block of eval -> OpenMP parallel eval is disabled
 
     NOMAD::ArrayOfDouble minMeshSize(n, 0.1);
     minMeshSize[4] = 0.2;
@@ -162,14 +160,6 @@ void initParams(NOMAD::AllParameters &p)
     p.getDispParams()->setAttributeValue("DISPLAY_DEGREE", 2);
     p.getDispParams()->setAttributeValue("DISPLAY_ALL_EVAL", true);
     p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL BLK_EVA ( SOL ) OBJ CONS_H H_MAX"));
-
-    p.getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
-    p.getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
-
-    // Do not read the cache when starting.
-    // We do this because it is an example. In larger problems, an input cache file
-    // is usually useful.
-    p.getCacheParams()->setAttributeValue("CACHE_FILE", std::string(""));
 
     // parameters validation
     p.checkAndComply();
