@@ -135,34 +135,33 @@ void initParams(NOMAD::AllParameters &p)
 {
     // parameters creation
     size_t n = 6;   // Number of variables
-    p.getPbParams()->setAttributeValue("DIMENSION", n);
-    p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ EB EB"));
+    p.setAttributeValue("DIMENSION", n);
+    p.setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ EB EB"));
 
     
     NOMAD::Point X0(n, 0.0);
     // X0[n-1] = -4.0; // starting point (0.0 0.0 0.0 0.0 0.0 -4.0)
-    p.getPbParams()->setAttributeValue("X0", X0);
-    p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, -6.0)); // all var. >= -6
+    p.setAttributeValue("X0", X0);
+    p.setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, -6.0)); // all var. >= -6
     NOMAD::ArrayOfDouble ub(n);     // x_4 and x_5 have no bounds
     ub[0] = 5.0;                    // x_1 <= 5
     ub[1] = 6.0;                    // x_2 <= 6
     ub[2] = 7.0;                    // x_3 <= 7
     ub[n-1] = 6.0;                  // x_6 <= 6
-    p.getPbParams()->setAttributeValue("UPPER_BOUND", ub);
+    p.setAttributeValue("UPPER_BOUND", ub);
 
     // the algorithm terminates after MAX_BB_EVAL black-box evaluations.
-    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", 1000);
-    p.getEvaluatorControlGlobalParams()->setAttributeValue("EVAL_SURROGATE_COST", 10);
-    p.getEvaluatorControlParams()->setAttributeValue("EVAL_QUEUE_SORT",NOMAD::EvalSortType::SURROGATE);
+    p.setAttributeValue("MAX_BB_EVAL", 1000);
+    p.setAttributeValue("EVAL_SURROGATE_COST", 10);
+    p.setAttributeValue("EVAL_QUEUE_SORT",NOMAD::EvalSortType::SURROGATE);
     
 
     // Using surrogate for sort and the options below => no quad model is used.
-    p.getRunParams()->setAttributeValue("QUAD_MODEL_SEARCH", false);
-    p.getRunParams()->setAttributeValue("NM_SEARCH", false);
-    // p.getRunParams()->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_NP1_NEG);
-    p.getRunParams()->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_2N);
+    p.setAttributeValue("QUAD_MODEL_SEARCH", false);
+    p.setAttributeValue("NM_SEARCH", false);
+    p.setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_2N);
 
-    p.getDispParams()->setAttributeValue("DISPLAY_DEGREE", 2);
+    p.setAttributeValue("DISPLAY_DEGREE", 2);
 
 
     // parameters validation
