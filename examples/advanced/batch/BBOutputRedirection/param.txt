@@ -12,11 +12,12 @@ BB_EXE         bb5.exe        # 'bb5.exe' is a program that
                               # objective function value (OBJ)
                               # in a file inputfilename.output
                               # IN THAT CASE WE MUST HAVE THE OPTION
-                              # BB_REDIRECTION no 
+                              # BB_REDIRECTION no
+                              # To have log file use BB_EXE "bb5.exe $>> $log.txt" 
                               
 BB_OUTPUT_TYPE OBJ 
-BB_REDIRECTION no             # For a blackbox that manages the output file
-                              # NOMAD expect an output file with a name 
+BB_REDIRECTION no             # For a blackbox that manages the output file (default 
+                              # is redirection), NOMAD expect an output file with a name 
                               # of the input file + ".output' 
                               # INPUT and OUTPUT files have a fixed name 
                               # during optimization.          
