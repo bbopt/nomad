@@ -564,7 +564,7 @@ void NOMAD::Algorithm::displayEvalCounts() const
         //sFeedLapBbEval += "";
         //sFeedNbEvalNoCount += "";
         sFeedModelEval += "   ";
-        sFeedTotalModelEval += " ";
+        sFeedTotalModelEval += "     ";
         sFeedCacheHits += "                  ";
         sFeedNbEval += " ";
         sFeedSurrogateEval += "";
