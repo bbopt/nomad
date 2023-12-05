@@ -176,7 +176,7 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_NP1_NEG);
     
     
-    allParams->setAttributeValue("DISPLAY_DEGREE", 5);
+    allParams->setAttributeValue("DISPLAY_DEGREE", 2);
     allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj"));
     allParams->setAttributeValue("DISPLAY_ALL_EVAL", true);
     
