@@ -53,7 +53,7 @@
 #endif
 
 // Number of threads to be used in parallel
-#define NUM_THREADS    4
+#define NUM_THREADS   6 
 
 // A structure to pass arguments to the evaluation wrapper function
 class My_Evaluator;
@@ -149,6 +149,8 @@ void initParams(std::shared_ptr<NOMAD::AllParameters>& params)
     params->setAttributeValue("SPECULATIVE_SEARCH", false);
     params->setAttributeValue("NM_SEARCH", false);
     params->setAttributeValue("QUAD_MODEL_SEARCH", false);
+    // Use single pass poll method with n+1 points -> 6 trial points in a block per poll 
+    params->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::NP1_UNI);
 
     params->setAttributeValue("X0", NOMAD::Point(5,0.0));  // starting point
 
