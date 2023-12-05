@@ -128,38 +128,39 @@ void initParams(NOMAD::AllParameters &p)
 {
     // parameters creation
     size_t n = 6;   // Number of variables
-    p.getPbParams()->setAttributeValue("DIMENSION", n);
-    p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ PB PB"));
+    p.setAttributeValue("DIMENSION", n);
+    p.setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ PB PB"));
 
     NOMAD::Point X0(n, 0.0);
     X0[n-1] = -4.0; // starting point (0.0 0.0 0.0 0.0 0.0 -4.0)
-    p.getPbParams()->setAttributeValue("X0", X0);
-    p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, -6.0)); // all var. >= -6
+    p.setAttributeValue("X0", X0);
+    p.setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, -6.0)); // all var. >= -6
     NOMAD::ArrayOfDouble ub(n);     // x_4 and x_5 have no bounds
     ub[0] = 5.0;                    // x_1 <= 5
     ub[1] = 6.0;                    // x_2 <= 6
     ub[2] = 7.0;                    // x_3 <= 7
     ub[n-1] = 6.0;                  // x_6 <= 6
-    p.getPbParams()->setAttributeValue("UPPER_BOUND", ub);
+    p.setAttributeValue("UPPER_BOUND", ub);
 
     // the algorithm terminates after MAX_BB_EVAL black-box evaluations, or MAX_EVAL total evaluations (including cache hits).
-    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", 1000);
-    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_EVAL", 1000);
-    p.getEvaluatorControlGlobalParams()->setAttributeValue("BB_MAX_BLOCK_SIZE", (size_t)8); // Use block of eval -> OpenMP parallel eval is disabled
+    p.setAttributeValue("MAX_BB_EVAL", 1000);
+    p.setAttributeValue("MAX_EVAL", 1000);
+    p.setAttributeValue("BB_MAX_BLOCK_SIZE", (size_t)8); 
+    p.setAttributeValue("NB_THREADS_OPENMP",1); // Using a single thread is recommanded with block eval
 
     NOMAD::ArrayOfDouble minMeshSize(n, 0.1);
     minMeshSize[4] = 0.2;
-    p.getPbParams()->setAttributeValue("MIN_MESH_SIZE", minMeshSize);
+    p.setAttributeValue("MIN_MESH_SIZE", minMeshSize);
 
     NOMAD::Point fixedVariable(n);
     fixedVariable[5] = X0[5];
-    p.getPbParams()->setAttributeValue("FIXED_VARIABLE", fixedVariable);
+    p.setAttributeValue("FIXED_VARIABLE", fixedVariable);
 
-    p.getRunParams()->setAttributeValue("H_MAX_0", NOMAD::Double(10000000));
+    p.setAttributeValue("H_MAX_0", NOMAD::Double(10000000));
 
-    p.getDispParams()->setAttributeValue("DISPLAY_DEGREE", 2);
-    p.getDispParams()->setAttributeValue("DISPLAY_ALL_EVAL", true);
-    p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL BLK_EVA ( SOL ) OBJ CONS_H H_MAX"));
+    p.setAttributeValue("DISPLAY_DEGREE", 2);
+    p.setAttributeValue("DISPLAY_ALL_EVAL", true);
+    p.setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL BLK_EVA ( SOL ) OBJ CONS_H H_MAX"));
 
     // parameters validation
     p.checkAndComply();
