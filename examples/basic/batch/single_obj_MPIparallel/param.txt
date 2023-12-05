@@ -1,6 +1,6 @@
 DIMENSION      5              # number of variables
 
-BB_EXE         '$/opt/homebrew/bin/mpirun $-np $4 bb4.exe'   # WARNING Adjust the path to mpirun 
+BB_EXE         '$mpirun $-np $4 bb4.exe'   # WARNING Adjust the path to mpirun 
                                                           # or mpiexec according to your setup.
                                                          
 
@@ -8,7 +8,8 @@ BB_MAX_BLOCK_SIZE 20    # At most, 20 points are put in a block for evaluation
 MEGA_SEARCH_POLL yes    # Generate search and poll trial points before evaluation
                         # Max points put in box. Without this option, single point
                         # can be passed in a block for evaluation creating a bottleneck.
-
+DIRECTION_TYPE ORTHO 2N # Single pass for generating poll trial points
+                        # Better to have more points in blocks
 
 BB_OUTPUT_TYPE OBJ PB PB
 
