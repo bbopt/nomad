@@ -106,7 +106,7 @@ void initParams(std::shared_ptr<NOMAD::AllParameters>& params,
     }
 
     // Display parameters
-    //params->setAttributeValue("DISPLAY_DEGREE", 4);
+    params->setAttributeValue("DISPLAY_DEGREE", 0);
 
     // parameters validation
     params->getPbParams()->doNotShowWarnings();
