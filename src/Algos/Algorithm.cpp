@@ -508,16 +508,16 @@ void NOMAD::Algorithm::displayEvalCounts() const
     // Conditional values: showNbEval, showNbEvalNoCount, showLapBbEval
     if (showbbEvalFromCacheForRerun)  // Longest title
     {
-        sFeedBbEval += "      ";
+        sFeedBbEval += "           ";
         sFeedBbEvalFromCacheForRerun += "";
         //sFeedLapBbEval += "";
-        sFeedNbEvalNoCount += "      ";
-        sFeedModelEval += "     ";
-        sFeedTotalModelEval += "                 ";
-        sFeedCacheHits += "      ";
-        sFeedNbEval += "      ";
-        sFeedSurrogateEval += "     ";
-        sFeedNbRevealingIter += "      ";   // TODO: check indentation for release
+        sFeedNbEvalNoCount += "           ";
+        sFeedModelEval += "          ";
+        sFeedTotalModelEval += "           ";
+        sFeedCacheHits += "           ";
+        sFeedNbEval += "           ";
+        sFeedSurrogateEval += "          ";
+        sFeedNbRevealingIter += "           ";
     }
     if (showSurrogateEvalFromCacheForRerun)  // Longest title
     {
