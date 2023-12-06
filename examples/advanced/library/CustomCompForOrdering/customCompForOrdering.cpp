@@ -150,11 +150,6 @@ public:
         {
             lowerPriority = true;
         }
-        else if (d2 < d1)
-        {
-            lowerPriority = false;
-        }
-
         return lowerPriority;
     }
 };
