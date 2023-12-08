@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
-/*  example of a program that makes NOMAD do a local step stop (search)     */
-/*  after a user criterion                                                  */
+/*  Example of a program that makes NOMAD do a local opportunistic stop     */
+/*  of queued evaluations from a Poll step when a user criterion is met     */
 /*--------------------------------------------------------------------------*/
 #include "Nomad/nomad.hpp"
 #include "Algos/EvcInterface.hpp"
@@ -56,7 +56,11 @@
 #include "Type/EvalSortType.hpp"
 #include "Algos/AlgoStopReasons.hpp"
 #include "Util/AllStopReasons.hpp"
-#include "../../Output/OutputQueue.hpp"
+#include "Output/OutputQueue.hpp"
+
+// Global variable to store current best feasible point
+// for custom opportunistic stop of step
+NOMAD::EvalPoint currentBestFeas;
 
 /*----------------------------------------*/
 /*               The problem              */
@@ -90,13 +94,12 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
         c1 += (x[i]-1).pow2();
         c2 += (x[i]+1).pow2();
     }
-    NOMAD::Double constr1 = c1-25;
-    NOMAD::Double constr2 = 25-c2;
-    auto bbOutputType = _evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
+    NOMAD::Double constr1 = c1-15;
+    NOMAD::Double constr2 = 15-c2;
     std::string bbo = x[4].tostring();
     bbo += " " + constr1.tostring();
     bbo += " " + constr2.tostring();
-    x.setBBO(bbo, bbOutputType, getEvalType());
+    x.setBBO(bbo);
 
     countEval = true; // count a black-box evaluation
 
@@ -106,7 +109,7 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
 
 void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams, const size_t n)
 {
-    
+
     // Parameters creation
     allParams->setAttributeValue("DIMENSION", n);
     // 100 black-box evaluations
@@ -130,18 +133,19 @@ void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams, const size_
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 3);
-    allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj"));
+    allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj cons_h"));
     allParams->setAttributeValue("DISPLAY_ALL_EVAL", true);
-    
-    // Algo
-    // allParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
-    // allParams->setAttributeValue("NM_SEARCH", true);
-    //allParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_2N);
-    // allParams->setAttributeValue("EVAL_QUEUE_SORT", NOMAD::EvalSortType::DIR_LAST_SUCCESS);
+
+    // Just consider the custom opportunistic check (see callback function customEvalCB)
+    allParams->setAttributeValue("EVAL_OPPORTUNISTIC", false);
+
+    allParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
+    allParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
+    allParams->setAttributeValue("NM_SEARCH", false);
 
     // Parameters validation
     allParams->checkAndComply();
-    
+
 
 }
 
@@ -152,75 +156,32 @@ void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams, const size_
 /*-----------------------------------------------------*/
 void customEvalCB(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool &opportunisticStop)
 {
+    // Consider only BB evals
     if (NOMAD::EvalType::BB == evalQueuePoint->getEvalType() )
     {
-        
-        auto bbe = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
-        
-        
-        auto mystep = evalQueuePoint->getGenStep();
-        
-        if(bbe>10 && mystep==NOMAD::StepType::SEARCH_METHOD_SPECULATIVE)
-        {
-            opportunisticStop=true;
-            std::cout<<"Custom opportunistic stop in speculative search"<<std::endl; // FIX : here we have a problem : nelder mead is still run after the speculative search
-        }
-        
-        // if (bbe%3==0)
-        // {
-        //     opportunisticStop = true;
-        // }
-    }
-    
-}
-
-
-void cbPostprocessing(const NOMAD::Step & step, bool &stop)
-{
-    stop = false;
-    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-   
-    // This is postprocessing for BB only
-    if (NOMAD::EvalType::BB != evc->getCurrentEvalType())
+        // Consider only feasible points
+        if (evalQueuePoint->isFeasible(NOMAD::EvalType::BB))
     {
-        return;
-    }
-    
-    auto evcStopReason = evc->getStopReason(-1);
-    std::cout<<"cbPostprocessing D"<<std::endl;
-    if ( evcStopReason.checkStopType(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_STOP))
-    {
-        // NOTE: To output information, it is safer to use "Add" instead of "AddOutputInfo" in callback to avoid segmentation faults
-        // when accessing step name as callbacks may be called deep in code, e.g. in EvaluatorControl just after evaluation 
-        NOMAD::OutputQueue::Add("Custom opportunistic triggered. We don't want a global stop. Return stop = false. Reset evcStopReason to continue.", NOMAD::OutputLevel::LEVEL_INFO);
-        NOMAD::OutputQueue::Flush();
-
-
-        evc->setStopReason(-1, NOMAD::EvalMainThreadStopType::STARTED);
-
-
-        // Is this a search ? Then stop its iteration.
-        NOMAD::Search * searchStep = step.getParentOfType<NOMAD::Search*>(false);
-        if(nullptr!= searchStep)
-        {
-            std::cout<<"Let's do a user stop of the search " << searchStep->getName() <<std::endl;
-
-            // stop the current search and go the the end of main algorithm megaIteration
-            searchStep->getAllStopReasons()->set(NOMAD::IterStopType::USER_ITER_STOP);
-            
-            // Is this an algo ? Look for an algorithm among the parents. It should be a search algorithm, that is, not the root Algorithm. Stop it completely if found.
-            // If we simply search for an algorithm among the parents we may endup with the root Mads algorithm. 
-            auto algoSM = step.getFirstAlgorithm();
-            if (algoSM != step.getRootAlgorithm())
+            // Update my current best feasible point
+            if (!currentBestFeas.ArrayOfDouble::isDefined())
             {
-                std::cout<<"Let's do a user stop of the search algo " << algoSM->getName() <<std::endl;
-                algoSM->getAllStopReasons()->set(NOMAD::IterStopType::USER_ALGO_STOP);
+                currentBestFeas = *evalQueuePoint;
             }
 
+            auto bbe = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
+            auto mystep = evalQueuePoint->getGenStep();
+
+            // Opportunism only if enough reduction is obtained
+            if (NOMAD::stepTypeToString(mystep).find("Poll") != string::npos &&
+                evalQueuePoint->getF(NOMAD::EvalType::BB) < 0.95*currentBestFeas.getF(NOMAD::EvalType::BB))
+            {
+                opportunisticStop=true;
+                std::cout<<"*****************************************************"<< std::endl;
+                std::cout<<"Opportunistic stop in Poll on f sufficient decrease. "<< std::endl;
+                std::cout<<"*****************************************************"<< std::endl;
+            }
         }
     }
-    
-    std::cout<<"cbPostprocessing F"<<std::endl;
 }
 
 
@@ -232,27 +193,27 @@ int main ( int argc , char ** argv )
 {
     // Dimension (Number of variables)
     size_t n = 5;
-    
+
     NOMAD::MainStep TheMainStep;
-        
+
     // Set parameters
     auto params = std::make_shared<NOMAD::AllParameters>();
     initAllParams(params, n);
     TheMainStep.setAllParameters(params);
-    
+
     // Custom Evaluator
     std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
     TheMainStep.setEvaluator(std::move(ev));
-    
+
     // Link callback function with user function defined locally
     NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK> cbInter = customEvalCB;
     // Add callback function run just after evaluation
     NOMAD::EvcInterface::getEvaluatorControl()->addEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK>(cbInter);
-    
+
     // The run
     TheMainStep.start();
     TheMainStep.run();
     TheMainStep.end();
-        
+
     return 1;
 }
