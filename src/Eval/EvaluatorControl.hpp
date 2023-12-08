@@ -82,9 +82,16 @@ struct CallbackFuncType
     typedef std::function<void()> funcType;
 };
 
-// Callback function type for Opportunistic check. 1 bool opportunisticStop + eval queue point
+// Callback function type for eval opportunistic check. 1 bool opportunisticStop + eval queue point
 template<>
 struct CallbackFuncType<CallbackType::EVAL_OPPORTUNISTIC_CHECK>
+{
+    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, bool&)> funcType;
+};
+
+// Callback function type for iter opportunistic check. 1 bool opportunisticStop + eval queue point
+template<>
+struct CallbackFuncType<CallbackType::ITER_OPPORTUNISTIC_CHECK>
 {
     typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, bool&)> funcType;
 };
@@ -96,9 +103,9 @@ struct CallbackFuncType<CallbackType::EVAL_STOP_CHECK>
     typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, bool&)> funcType;
 };
 
-// Callback function type for update just after point evaluation. jus No argument apart from eval queue point.
+// Callback function type for update just after point evaluation. No argument apart from eval queue point.
 template<>
-struct CallbackFuncType<CallbackType::EVAL_UPDATE> 
+struct CallbackFuncType<CallbackType::EVAL_UPDATE>
 {
     typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint)> funcType;
 };
@@ -266,10 +273,13 @@ private:
     static void defaultEvalCB(EvalQueuePointPtr & evalQueuePoint, ARGS&&... args) {}
 
     
-    // Callback function definition for opportunistic check. Requires one in/out bool attribute for opportunistic stop
+    // Callback function definition for eval opportunistic check. Requires one in/out bool attribute for opportunistic stop
     static EvalCallbackFunc<CallbackType::EVAL_OPPORTUNISTIC_CHECK> _cbEvalOpportunisticCheck ;
+    
+    // Callback function definition for eval opportunistic check to stop iteration. Requires one in/out bool attribute for opportunistic stop
+    static EvalCallbackFunc<CallbackType::ITER_OPPORTUNISTIC_CHECK> _cbIterOpportunisticCheck ;
 
-    // Callback function definition for a special update defined by the user run just after evaluation. 
+    // Callback function definition for a special update defined by the user run just after evaluation.
     static EvalCallbackFunc<CallbackType::EVAL_UPDATE> _cbEvalUpdate;
     
     // Callback function definition for global stop check. Requires one in/out bool attributes for global stop
@@ -293,12 +303,13 @@ public:
     static void resetCallbacks()
     {
         _cbEvalOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
+        _cbIterOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
         _cbEvalUpdate = NOMAD::EvaluatorControl::defaultEvalCB<>;
         _cbEvalStopCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
         _cbFailEvalCheck = NOMAD::EvaluatorControl::defaultEvalCB<>;
     }
 
-    /// Constructor 
+    /// Constructor
     /**
      \param evalContGlobalParams  The parameters controlling how the class works -- \b IN.
      \param evalContParams  The parameters for main threads -- \b IN.
@@ -429,7 +440,7 @@ public:
     /// Get the number of surrogate evaluations.
     size_t getSurrogateEval() const { return _surrogateEval; }
     size_t getSurrogateEvalFromCacheForRerun() const { return _surrogateEvalFromCacheForRerun; }
-    size_t getLapSurrogateEval() const { return 0; } // Not yet implemented. 
+    size_t getLapSurrogateEval() const { return 0; } // Not yet implemented.
 
     size_t getModelEval(const int mainThreadNum = -1) const;
     void resetModelEval(const int mainThreadNum = -1);
@@ -788,7 +799,7 @@ private:
     
     /// \brief Generic run user eval callback (no extra argument)
     template<CallbackType callback>
-    void runEvalCallback(EvalQueuePointPtr & evalQueuePoint);    
+    void runEvalCallback(EvalQueuePointPtr & evalQueuePoint);
 
     /// \brief Generic run user eval callback (1 extra bool argument)
     template<CallbackType callback>

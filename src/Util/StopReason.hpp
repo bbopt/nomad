@@ -224,14 +224,14 @@ enum class EvalMainThreadStopType : int
     STARTED                 ,  ///< Started (no stop)
     LAP_MAX_BB_EVAL_REACHED,   ///< Max number of blackbox evaluations for a sub algorithm run (lap run)
     SUBPROBLEM_MAX_BB_EVAL_REACHED,   ///< Max number of blackbox evaluations for a subproblem run (E.g. SSD-Mads)
-    OPPORTUNISTIC_SUCCESS   ,  ///< Success found and opportunistic strategy is used
-    CUSTOM_OPPORTUNISTIC_STOP,  ///< Custom opportunistic stop has been detected via a callback
-    EMPTY_LIST_OF_POINTS    ,  ///< Tried to eval an empty list
-    ALL_POINTS_EVALUATED    ,  ///< No more points to evaluate
-    MAX_MODEL_EVAL_REACHED  ,  ///< Max number of quad or sgtelib model evaluations
+    OPPORTUNISTIC_SUCCESS         ,  ///< Success found and opportunistic strategy is used
+    CUSTOM_OPPORTUNISTIC_ITER_STOP,  ///< Custom opportunistic iteration stop has been detected via a callback
+    CUSTOM_OPPORTUNISTIC_EVAL_STOP,  ///< Custom opportunistic evaluation stop has been detected via a callback
+    EMPTY_LIST_OF_POINTS          ,  ///< Tried to eval an empty list
+    ALL_POINTS_EVALUATED          ,  ///< No more points to evaluate
+    MAX_MODEL_EVAL_REACHED        ,  ///< Max number of quad or sgtelib model evaluations
     LAST
 };
-
 
 /// Stop type that can happen at the end of an iteration
 enum class IterStopType : int

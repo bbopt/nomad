@@ -273,6 +273,9 @@ private:
     /// Helper for evalTrialPoints
     void updateStepSuccessStats(const Step* step);
     
+    /// Helper to update stopReason
+    void updateStopReasonForIterStop(const Step* step);
+    
     /// Helper for evalTrialPoints:
     /**
      * keep trial points that need eval

@@ -427,7 +427,7 @@ void NOMAD::DiscoMadsMegaIteration::callbackPostProcessing(const NOMAD::Step & s
     auto evcStopReason = evc->getStopReason(-1);
     
     // If there was a revelation, stop type of evaluator was changed to opportunistic
-    if (evcStopReason.checkStopType(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_STOP))
+    if (evcStopReason.checkStopType(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP))
     {
         // NOTE: it is safer to use "Add" instead of "AddOutputInfo" in callback to avoid segmentation faults as they may be called deep in code
         OUTPUT_INFO_START

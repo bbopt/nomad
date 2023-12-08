@@ -46,6 +46,10 @@ true
 
 . This parameter is the value used for Poll step
 
+. In addition, a custom criterion can also be provided (library mode only) in
+ a callback function (see example in 
+ $NOMAD_HOME/examples/advanced/library/CustomOpportunistic ) 
+
 . Argument: one boolean (yes or no)
 
 . Type 'nomad -h opportunistic' to see advanced options

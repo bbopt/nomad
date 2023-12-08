@@ -472,7 +472,8 @@ template<> DLL_UTIL_API std::map<NOMAD::EvalMainThreadStopType,std::string> & NO
         {NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED,  "Maximum number of blackbox evaluations for a sub algorithm run (lap run)"},
         {NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED,  "Maximum number of blackbox evaluations for a subproblem run"},
         {NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS,    "Success found and opportunistic strategy maybe used (if set)"},
-        {NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_STOP,    "Custom opportunistic stop detected via post-evaluation callback"},
+        {NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP,    "Custom opportunistic iteration stop detected via post-evaluation callback"},
+        {NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_EVAL_STOP,    "Custom opportunistic evaluation stop detected via post-evaluation callback"},
         {NOMAD::EvalMainThreadStopType::EMPTY_LIST_OF_POINTS,     "Tried to eval an empty list"},
         {NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED,     "No more points to evaluate"},
         {NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED,   "Maximum number of model evaluations reached"}
@@ -510,13 +511,14 @@ template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::EvalMainThreadStopType>::c
         case NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED:
         case NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED:
         case NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED:
-        case NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_STOP:
+        case NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP:
             return true;
             break;
         case NOMAD::EvalMainThreadStopType::STARTED:
         case NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS:
         case NOMAD::EvalMainThreadStopType::EMPTY_LIST_OF_POINTS:
         case NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED:
+        case NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_EVAL_STOP:
             return false;
             break;
         default:

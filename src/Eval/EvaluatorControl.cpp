@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Algos/QuadModel/QuadModelIteration.hpp"
 #include "../Cache/CacheBase.hpp"
 #include "../Eval/ComparePriority.hpp"
@@ -62,6 +63,7 @@
 // Do not forget to reset callbacks in EvaluatorControl::resetCallbacks()
 NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_UPDATE> NOMAD::EvaluatorControl::_cbEvalUpdate = NOMAD::EvaluatorControl::defaultEvalCB<>;
 NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK> NOMAD::EvaluatorControl::_cbEvalOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
+NOMAD::EvalCallbackFunc<NOMAD::CallbackType::ITER_OPPORTUNISTIC_CHECK> NOMAD::EvaluatorControl::_cbIterOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
 NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_STOP_CHECK> NOMAD::EvaluatorControl::_cbEvalStopCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
 NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_FAIL_CHECK> NOMAD::EvaluatorControl::_cbFailEvalCheck = NOMAD::EvaluatorControl::defaultEvalCB<>;
 bool NOMAD::EvaluatorControl::_cbFailEvalCheckIsDefault = true;
@@ -82,6 +84,12 @@ template<>
 void DLL_EVAL_API NOMAD::EvaluatorControl::addEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK>(const NOMAD::EvalCallbackFunc<CallbackType::EVAL_OPPORTUNISTIC_CHECK>& evalCbFunc)
 {
     _cbEvalOpportunisticCheck = evalCbFunc;
+}
+
+template<>
+void DLL_EVAL_API NOMAD::EvaluatorControl::addEvalCallback<NOMAD::CallbackType::ITER_OPPORTUNISTIC_CHECK>(const NOMAD::EvalCallbackFunc<CallbackType::EVAL_OPPORTUNISTIC_CHECK>& evalCbFunc)
+{
+    _cbIterOpportunisticCheck = evalCbFunc;
 }
 
 template<>
@@ -109,6 +117,13 @@ template<>
 void NOMAD::EvaluatorControl::runEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK>(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool & opportunisticStop)
 {
     _cbEvalOpportunisticCheck(evalQueuePoint, opportunisticStop);
+}
+
+/// \brief Template specialization. Run opportunistic check callback for stopping iteration (1 extra bool argument)
+template<>
+void NOMAD::EvaluatorControl::runEvalCallback<NOMAD::CallbackType::ITER_OPPORTUNISTIC_CHECK>(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool & opportunisticStop)
+{
+    _cbIterOpportunisticCheck(evalQueuePoint, opportunisticStop);
 }
 
 /// \brief Template specialization. Run opportunistic check callback (1 extra bool argument)
@@ -1267,7 +1282,6 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
 
     // conditionForStop is true if we are in a main thread and stopMainEval() returns true.
     // conditionForStop is true in any thread if reachedMaxEval() returns true; otherwise, it is always false.
-    bool customOpportunisticStop = false;
     while (!conditionForStop && !_allDoneWithEval)
     {
         // Check for stop conditions
@@ -1277,7 +1291,7 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
         }
 
         // If we reached max eval, we also stop (valid for all threads).
-        conditionForStop = conditionForStop || customOpportunisticStop || reachedMaxEval();
+        conditionForStop = conditionForStop || reachedMaxEval();
 
         NOMAD::BlockForEval block;
         if (!conditionForStop && popBlock(block))
@@ -1298,11 +1312,14 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
                         const int mainThreadNum = evalQueuePoint->getThreadAlgo();
 
                         
-                        // User callback 
+                        // User callback
                         // Note: should be done before accessing success type as this may be modified in the callback (e.g. in DiscoMads)
-                        bool opportunisticStop = false;
-
-                        runEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK>(evalQueuePoint,opportunisticStop);
+                        bool customOpportunisticEvalStop = false;
+                        runEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK>(evalQueuePoint,customOpportunisticEvalStop);
+                        
+                        bool customOpportunisticIterStop = false;
+                        runEvalCallback<NOMAD::CallbackType::ITER_OPPORTUNISTIC_CHECK>(evalQueuePoint,customOpportunisticIterStop);
+                        
 
                         const NOMAD::SuccessType success = evalQueuePoint->getSuccess();
 
@@ -1343,12 +1360,21 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
                             setStopReason(mainThreadNum, NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS);
                         }
 
-                        customOpportunisticStop = customOpportunisticStop || opportunisticStop;
+                        // Stop reason for OPPORTUNISTIC_SUCCESS must be shadowed by
+                        // CUSTOM_OPPORTUNISTIC_EVAL_STOP and
+                        // CUSTOM_OPPORTUNISTIC_ITER_STOP
+                        
+                        // Associate custom opportunistic eval stop to mainthread
+                        // Testing for success is done later to decide if we do the next step of the iteration.
+                        if (customOpportunisticEvalStop)
+                        {
+                            setStopReason(mainThreadNum, NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_EVAL_STOP);
+                        }
 
                         // Associate custom opportunistic stop to mainThread
-                        if (customOpportunisticStop)
+                        if (customOpportunisticIterStop)
                         {
-                            setStopReason(mainThreadNum, NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_STOP);
+                            setStopReason(mainThreadNum, NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP);
                         }
                     }
                 }
@@ -1504,7 +1530,9 @@ bool NOMAD::EvaluatorControl::stopMainEval(const int mainThreadNum, bool display
     bool doStopEvalGlobal = NOMAD::AllStopReasons::checkEvalGlobalTerminate();
 
     // Inspect for opportunistic success set in a previous point
-    doStopEvalMainThread = doStopEvalMainThread || getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS);
+    doStopEvalMainThread = doStopEvalMainThread || getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS) ||
+        getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP) ||
+        getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_EVAL_STOP);
 
     // Update stopReason if there is no more point to evaluate for this thread
     if (   (0 == getQueueSize(mainThreadNum))

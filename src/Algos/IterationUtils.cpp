@@ -372,6 +372,12 @@ bool NOMAD::IterationUtils::postProcessing()
     {
         bool stop;
         step->runCallback(NOMAD::CallbackType::POSTPROCESSING_CHECK, *step, stop);
+        
+        // Convert CUSTOM_OPPORTUNISTIC_ITER_STOP (evc) into USER_ITER_STOP (iter)
+        updateStopReasonForIterStop(step);
+        
+        // Do we have a global stop?
+        // This can only be from a custom callback because default callback returns stop=false;
         if (!step->getAllStopReasons()->checkTerminate() && stop)
         {
             step->getAllStopReasons()->set(NOMAD::BaseStopType::USER_GLOBAL_STOP);
@@ -657,4 +663,33 @@ NOMAD::Point NOMAD::IterationUtils::projectWithIbex(NOMAD::Point point)
     return point;
 }
 #endif
+
+void NOMAD::IterationUtils::updateStopReasonForIterStop(const Step* step)
+{
+    // Test for NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP)
+    // and transform into NOMAD::IterStopType::USER_ITER_STOP
+    
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    
+    // This is postprocessing for BB only
+    if (NOMAD::EvalType::BB != evc->getCurrentEvalType())
+    {
+        return;
+    }
+    auto evcStopReason = evc->getStopReason(-1);
+    
+    if (evcStopReason.checkStopType(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP))
+    {
+        OUTPUT_INFO_START
+        NOMAD::OutputQueue::Add("User iter stop in "+step->getName(), NOMAD::OutputLevel::LEVEL_INFO);
+        NOMAD::OutputQueue::Flush();
+        OUTPUT_INFO_END
+        
+        // Reset evcStopReason
+        evc->setStopReason(-1, NOMAD::EvalMainThreadStopType::STARTED);
+        
+        step->getAllStopReasons()->set(NOMAD::IterStopType::USER_ITER_STOP);
+        
+    }
+}
 
