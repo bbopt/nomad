@@ -173,7 +173,7 @@ public:
         if (nullptr != _single)
         {
             _single->clear();
-            // _single.release() ; No need to release the unique ptr. When running multiple time, with a singleton we have multiple unique_ptr created.
+            _single.release(); 
         }
     }
     
