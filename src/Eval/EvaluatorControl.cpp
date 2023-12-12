@@ -45,7 +45,6 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-
 #include "../Algos/QuadModel/QuadModelIteration.hpp"
 #include "../Cache/CacheBase.hpp"
 #include "../Eval/ComparePriority.hpp"
@@ -62,8 +61,8 @@
 /*-----------------------------------*/
 // Do not forget to reset callbacks in EvaluatorControl::resetCallbacks()
 NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_UPDATE> NOMAD::EvaluatorControl::_cbEvalUpdate = NOMAD::EvaluatorControl::defaultEvalCB<>;
-NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK> NOMAD::EvaluatorControl::_cbEvalOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
-NOMAD::EvalCallbackFunc<NOMAD::CallbackType::ITER_OPPORTUNISTIC_CHECK> NOMAD::EvaluatorControl::_cbIterOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
+NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK> NOMAD::EvaluatorControl::_cbEvalOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&,bool&>;
+bool NOMAD::EvaluatorControl::_customOpportunisticCheck = false;
 NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_STOP_CHECK> NOMAD::EvaluatorControl::_cbEvalStopCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
 NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_FAIL_CHECK> NOMAD::EvaluatorControl::_cbFailEvalCheck = NOMAD::EvaluatorControl::defaultEvalCB<>;
 bool NOMAD::EvaluatorControl::_cbFailEvalCheckIsDefault = true;
@@ -84,13 +83,9 @@ template<>
 void DLL_EVAL_API NOMAD::EvaluatorControl::addEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK>(const NOMAD::EvalCallbackFunc<CallbackType::EVAL_OPPORTUNISTIC_CHECK>& evalCbFunc)
 {
     _cbEvalOpportunisticCheck = evalCbFunc;
+    _customOpportunisticCheck = true;
 }
 
-template<>
-void DLL_EVAL_API NOMAD::EvaluatorControl::addEvalCallback<NOMAD::CallbackType::ITER_OPPORTUNISTIC_CHECK>(const NOMAD::EvalCallbackFunc<CallbackType::EVAL_OPPORTUNISTIC_CHECK>& evalCbFunc)
-{
-    _cbIterOpportunisticCheck = evalCbFunc;
-}
 
 template<>
 void NOMAD::EvaluatorControl::addEvalCallback<NOMAD::CallbackType::EVAL_UPDATE>(const NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_UPDATE>& evalCbFunc)
@@ -112,24 +107,28 @@ void NOMAD::EvaluatorControl::runEvalCallback<NOMAD::CallbackType::EVAL_FAIL_CHE
     _cbFailEvalCheck(evalQueuePoint);
 }
 
-/// \brief Template specialization. Run opportunistic check callback (1 extra bool argument)
+/// \brief Template specialization. Run opportunistic check callback at evaluation (2 extra bool argument)
+/// The stop can be an opportunistic evaluation stop (remaining points in queue are not evaluated) OR an iteration
+/// stop (remaining points in queue are not evaluated AND remaining steps in iteration are not done)
 template<>
-void NOMAD::EvaluatorControl::runEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK>(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool & opportunisticStop)
+void NOMAD::EvaluatorControl::runEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK>(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool & opportunisticEvalStop, bool &opportunisticIterStop)
 {
-    _cbEvalOpportunisticCheck(evalQueuePoint, opportunisticStop);
-}
-
-/// \brief Template specialization. Run opportunistic check callback for stopping iteration (1 extra bool argument)
-template<>
-void NOMAD::EvaluatorControl::runEvalCallback<NOMAD::CallbackType::ITER_OPPORTUNISTIC_CHECK>(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool & opportunisticStop)
-{
-    _cbIterOpportunisticCheck(evalQueuePoint, opportunisticStop);
+    // Initialize the flags to indicate the what to do.
+    opportunisticEvalStop = opportunisticIterStop = false;
+    
+    _cbEvalOpportunisticCheck(evalQueuePoint, opportunisticEvalStop, opportunisticIterStop);
+    if (opportunisticEvalStop && opportunisticIterStop)
+    {
+        std::string s = "EvaluatorControl::runEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK> cannot return both opportunisticEvalStop and opportunisticIterStop to true. The purpose of the callback should be unique." ;
+        throw NOMAD::Exception(__FILE__,__LINE__,s);
+    }
 }
 
 /// \brief Template specialization. Run opportunistic check callback (1 extra bool argument)
 template<>
 void NOMAD::EvaluatorControl::runEvalCallback<NOMAD::CallbackType::EVAL_STOP_CHECK>(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool & globalStop)
 {
+    globalStop = false;
     _cbEvalStopCheck(evalQueuePoint, globalStop);
 }
 
@@ -1314,12 +1313,11 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
                         
                         // User callback
                         // Note: should be done before accessing success type as this may be modified in the callback (e.g. in DiscoMads)
-                        bool customOpportunisticEvalStop = false;
-                        runEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK>(evalQueuePoint,customOpportunisticEvalStop);
-                        
-                        bool customOpportunisticIterStop = false;
-                        runEvalCallback<NOMAD::CallbackType::ITER_OPPORTUNISTIC_CHECK>(evalQueuePoint,customOpportunisticIterStop);
-                        
+                        bool customOpportunisticEvalStop = false, customOpportunisticIterStop = false;
+                        if (_customOpportunisticCheck)
+                        {
+                            runEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK>(evalQueuePoint,customOpportunisticEvalStop,customOpportunisticIterStop);
+                        }
 
                         const NOMAD::SuccessType success = evalQueuePoint->getSuccess();
 
@@ -1354,15 +1352,17 @@ NOMAD::SuccessType NOMAD::EvaluatorControl::run()
                         // Output in history (always) and solution (FULL_SUCCESS only)
                         addDirectToFileInfo(evalQueuePoint);
 
-                        // Opportunism on full success only
-                        if (getOpportunisticEval(mainThreadNum) && getSuccessType(mainThreadNum) >= NOMAD::SuccessType::FULL_SUCCESS)
+                        // Opportunism on full success only (default opportunism only)
+                        // See belon when a callback is added for checking custom opportunistic criterion
+                        if (!_customOpportunisticCheck && getOpportunisticEval(mainThreadNum) && getSuccessType(mainThreadNum) >= NOMAD::SuccessType::FULL_SUCCESS)
                         {
                             setStopReason(mainThreadNum, NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS);
                         }
 
                         // Stop reason for OPPORTUNISTIC_SUCCESS must be shadowed by
-                        // CUSTOM_OPPORTUNISTIC_EVAL_STOP and
+                        // CUSTOM_OPPORTUNISTIC_EVAL_STOP OR
                         // CUSTOM_OPPORTUNISTIC_ITER_STOP
+                        // Both cannot be true to have a clear decision what to do (eval stop or iter stop). The flags are automatically checked after the callback.
                         
                         // Associate custom opportunistic eval stop to mainthread
                         // Testing for success is done later to decide if we do the next step of the iteration.
@@ -1533,6 +1533,11 @@ bool NOMAD::EvaluatorControl::stopMainEval(const int mainThreadNum, bool display
     doStopEvalMainThread = doStopEvalMainThread || getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS) ||
         getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP) ||
         getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_EVAL_STOP);
+    
+    if (doStopEvalMainThread)
+    {
+        std::cout<<" Opportunistic success or custom opportunistic stop"<<std::endl;
+    }
 
     // Update stopReason if there is no more point to evaluate for this thread
     if (   (0 == getQueueSize(mainThreadNum))

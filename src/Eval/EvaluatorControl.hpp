@@ -52,6 +52,14 @@
  \see    EvaluatorControl.cpp
  */
 
+/**
+ \file   EvaluatorControl.hpp
+ \brief  Management for evaluation.
+ \author Viviane Rochon Montplaisir
+ \date   November 2017
+ \see    EvaluatorControl.cpp
+ */
+
 #ifndef __NOMAD_4_4_EVALUATORCONTROL__
 #define __NOMAD_4_4_EVALUATORCONTROL__
 
@@ -86,14 +94,7 @@ struct CallbackFuncType
 template<>
 struct CallbackFuncType<CallbackType::EVAL_OPPORTUNISTIC_CHECK>
 {
-    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, bool&)> funcType;
-};
-
-// Callback function type for iter opportunistic check. 1 bool opportunisticStop + eval queue point
-template<>
-struct CallbackFuncType<CallbackType::ITER_OPPORTUNISTIC_CHECK>
-{
-    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, bool&)> funcType;
+    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, bool&, bool&)> funcType;
 };
 
 // Callback function type for global stop check. 1 bool opportunisticStop + eval queue point
@@ -103,7 +104,7 @@ struct CallbackFuncType<CallbackType::EVAL_STOP_CHECK>
     typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, bool&)> funcType;
 };
 
-// Callback function type for update just after point evaluation. No argument apart from eval queue point.
+// Callback function type for update just after point evaluation. jus No argument apart from eval queue point.
 template<>
 struct CallbackFuncType<CallbackType::EVAL_UPDATE>
 {
@@ -273,11 +274,9 @@ private:
     static void defaultEvalCB(EvalQueuePointPtr & evalQueuePoint, ARGS&&... args) {}
 
     
-    // Callback function definition for eval opportunistic check. Requires one in/out bool attribute for opportunistic stop
+    // Callback function definition for eval opportunistic check. Requires two out bool attributes for opportunistic stop
     static EvalCallbackFunc<CallbackType::EVAL_OPPORTUNISTIC_CHECK> _cbEvalOpportunisticCheck ;
-    
-    // Callback function definition for eval opportunistic check to stop iteration. Requires one in/out bool attribute for opportunistic stop
-    static EvalCallbackFunc<CallbackType::ITER_OPPORTUNISTIC_CHECK> _cbIterOpportunisticCheck ;
+    static bool _customOpportunisticCheck;
 
     // Callback function definition for a special update defined by the user run just after evaluation.
     static EvalCallbackFunc<CallbackType::EVAL_UPDATE> _cbEvalUpdate;
@@ -302,8 +301,7 @@ public:
      */
     static void resetCallbacks()
     {
-        _cbEvalOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
-        _cbIterOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
+        _cbEvalOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&,bool&>;
         _cbEvalUpdate = NOMAD::EvaluatorControl::defaultEvalCB<>;
         _cbEvalStopCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
         _cbFailEvalCheck = NOMAD::EvaluatorControl::defaultEvalCB<>;

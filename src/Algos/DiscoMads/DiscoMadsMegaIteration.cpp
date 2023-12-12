@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Algos/DiscoMads/DiscoMads.hpp"
@@ -72,7 +73,7 @@ bool NOMAD::DiscoMadsMegaIteration::discontinuityTest(const NOMAD::EvalPoint & x
 
         // If both points are correctly evaluated...
         if(x1.getEvalStatus(NOMAD::EvalType::BB)== NOMAD::EvalStatusType::EVAL_OK && x2.getEvalStatus(NOMAD::EvalType::BB)== NOMAD::EvalStatusType::EVAL_OK)
-        {   
+        {
             //As this function is used in eval callback, we use "Add" instead of "AddOutputInfo" to avoid segmentation faults as callback may be called deep in code
             OUTPUT_DEBUGDEBUG_START
                 std::string s = "Test if revelation between points "+  std::to_string(x1.getTag()) + " and "+ std::to_string(x2.getTag());
@@ -85,17 +86,17 @@ bool NOMAD::DiscoMadsMegaIteration::discontinuityTest(const NOMAD::EvalPoint & x
             // Check for numerical problem
             if(d==0)
             {
-                OUTPUT_DEBUG_START 
+                OUTPUT_DEBUG_START
                 std::string s = "Warning: DiscoMadsMegaIteration:: Revelation:: distance between tested points is null.";
                 NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
                 NOMAD::OutputQueue::Flush();
-                OUTPUT_DEBUG_END    
-                throw NOMAD::Exception(__FILE__,__LINE__,"Numerical precision problem");        
+                OUTPUT_DEBUG_END
+                throw NOMAD::Exception(__FILE__,__LINE__,"Numerical precision problem");
             }
 
             // Revelation if distance between x1 and x2 < detectionRadius and rate of change of at least one revealing output exceeds the limit rate
-            if (d < _detectionRadius) 
-            {   
+            if (d < _detectionRadius)
+            {
                 auto arrayOutputx1 = x1.getEval(NOMAD::EvalType::BB)->getBBOutput().getBBOAsArrayOfDouble();  // BB output X1
                 auto arrayOutputx2 = x2.getEval(NOMAD::EvalType::BB)->getBBOutput().getBBOAsArrayOfDouble();  // BB output x1
 
@@ -112,10 +113,10 @@ bool NOMAD::DiscoMadsMegaIteration::discontinuityTest(const NOMAD::EvalPoint & x
                         NOMAD::OutputQueue::Flush();
                         OUTPUT_DEBUGDEBUG_END
                     }
-                }      
+                }
             }
-        }                   
-        return critvalue;    
+        }
+        return critvalue;
     }
 
 
@@ -126,13 +127,15 @@ bool NOMAD::DiscoMadsMegaIteration::proximityTestOnRevealingPoint(const NOMAD::P
     // check first if point x2 is revealing
      if (x2.getEvalStatus(NOMAD::EvalType::BB)==NOMAD::EvalStatusType::EVAL_OK && x2.getRevealingStatus()>0)
      {
-        // then compute distance 
+        // then compute distance
         NOMAD::Double d=NOMAD::Point::dist(x1,x2);  // distance between 2 points
         if(d< _exclusionRadius)
         {
             critvalue=true;
         }
      }
+
+     //TODO: could be optimized by keeping track of a distance matrix for the whole run
 
     return critvalue;
 }
@@ -147,15 +150,15 @@ void NOMAD::DiscoMadsMegaIteration::callbackCheckIfRevealingAndUpdate(NOMAD::Eva
     if(evalQueuePoint->getEvalType()==NOMAD::EvalType::BB)
     {
 
-        // Callback is called even after failed eval, discard treatment in this case
+        // Callback is called even after failed eval, discard treatment in this case //TODO: voir avec C.T. si on ne ferait pas plutôt le RunEvalCallback dans evalblock seulement si eval correcte
         if(!evalQueuePoint->isEvalOk(NOMAD::EvalType::BB))
         {
             return;
         }
 
-        // Point violating EB constraints cannot be revealing 
+        // Point violating EB constraints cannot be revealing
         if(!evalQueuePoint->isEBOk(NOMAD::EvalType::BB))
-        {   
+        {
             OUTPUT_DEBUG_START
                 s = std::to_string(evalQueuePoint->getTag())+" is not a revealing point (violates at least one EB constraint).";
                 NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
@@ -165,14 +168,14 @@ void NOMAD::DiscoMadsMegaIteration::callbackCheckIfRevealingAndUpdate(NOMAD::Eva
         }
 
         auto cache = CacheBase::getInstance().get();
-        std::vector<NOMAD::EvalPoint> revealingPointList;  
+        std::vector<NOMAD::EvalPoint> revealingPointList;
 
         // 1) Try to reveal either hidden constraints or discontinuity
         // Reveal hidden constraints
         if(_detectHiddConst)
         {
             if(evalQueuePoint->getRevealingStatus()==2){
-                evalQueuePoint->setRevealedConstraint(1.0); 
+                evalQueuePoint->setRevealedConstraint(1.0);
                 cache->update(*evalQueuePoint,NOMAD::EvalType::BB);  // update revealing status and revealed constraint
                 revealingPointList.push_back(*evalQueuePoint);
             }
@@ -185,7 +188,7 @@ void NOMAD::DiscoMadsMegaIteration::callbackCheckIfRevealingAndUpdate(NOMAD::Eva
 
             // If we have detected at least one revealing point thanks to evalQueuePoint...
             if(revealingPointList.size()>0)
-            {   
+            {
                 // ...then evalQueuePoint is a new revealing point and shoul be updated
                 OUTPUT_DEBUG_START    // NOTE: safer to use "Add" instead of "AddOutputInfo" in callback to avoid segmentation faults when accessing step name
                     s = std::to_string(evalQueuePoint->getTag())+" is a revealing point.";
@@ -194,17 +197,17 @@ void NOMAD::DiscoMadsMegaIteration::callbackCheckIfRevealingAndUpdate(NOMAD::Eva
                 OUTPUT_DEBUG_END
 
                 evalQueuePoint->setRevealingStatus(2);           // set to 2 to indicate that the point was found revealing at this iteration
-                evalQueuePoint->setRevealedConstraint(1.0);    
+                evalQueuePoint->setRevealedConstraint(1.0);
                 cache->update(*evalQueuePoint,NOMAD::EvalType::BB);   // update revealing status and revealed constraint
 
                 // update revealing status of other new revealing points (their revealed constraints are set in DiscoMadsBarrier)
                 for(auto evalPoint : revealingPointList)
-                {   
+                {
                     if(evalPoint.getRevealingStatus()==0)         // discard revealing points already known (with status ==1)
                     {
-                        evalPoint.setRevealingStatus(2);      
+                        evalPoint.setRevealingStatus(2);
                         cache->update(evalPoint,NOMAD::EvalType::BB);   // update only revealing status
-                        // DEV : va poser problème avec le parallelisme 
+                        // DEV : va poser problème avec le parallelisme
                     }
                 }
 
@@ -224,7 +227,7 @@ void NOMAD::DiscoMadsMegaIteration::callbackCheckIfRevealingAndUpdate(NOMAD::Eva
             OUTPUT_DEBUG_END
 
             // locate revealing neighbours points
-            std::vector<NOMAD::EvalPoint> revealingNeighbours; 
+            std::vector<NOMAD::EvalPoint> revealingNeighbours;
             auto crittest = [&](const EvalPoint& x2){return this->proximityTestOnRevealingPoint(*evalQueuePoint, x2);};
             cache->find(crittest,revealingNeighbours);
     
@@ -241,8 +244,8 @@ void NOMAD::DiscoMadsMegaIteration::callbackCheckIfRevealingAndUpdate(NOMAD::Eva
                     NOMAD::OutputQueue::Flush();
                     OUTPUT_DEBUG_END
 
-                    NOMAD::Double d=NOMAD::Point::dist(*evalQueuePoint,revealingPoint); // Distance
-                    NOMAD::Double tmpConstraint =1-d/_exclusionRadius; 
+                    NOMAD::Double d=NOMAD::Point::dist(*evalQueuePoint,revealingPoint); // Distance //TODO: should be optimized with a distance matrix (computed here for the 3rd time)
+                    NOMAD::Double tmpConstraint =1-d/_exclusionRadius;
                     if(tmpConstraint>revealedConstraint)
                     {
                         revealedConstraint=tmpConstraint;
@@ -254,27 +257,27 @@ void NOMAD::DiscoMadsMegaIteration::callbackCheckIfRevealingAndUpdate(NOMAD::Eva
                 if (revealedConstraint> evalQueuePoint->getRevealedConstraint())
                 {
                     evalQueuePoint->setRevealedConstraint(revealedConstraint);
-                    cache->update(*evalQueuePoint,NOMAD::EvalType::BB); 
+                    cache->update(*evalQueuePoint,NOMAD::EvalType::BB);
                 }
             }
-        }    
+        }
 
         // Debug output to check that all new revealing points have been detected
-        OUTPUT_DEBUG_START 
-        std::vector<NOMAD::EvalPoint> newRevealingPointsBis; 
+        OUTPUT_DEBUG_START
+        std::vector<NOMAD::EvalPoint> newRevealingPointsBis;
         auto crittestNewRevealing = [&](const EvalPoint& x){return x.getRevealingStatus()==2;};
         cache->find(crittestNewRevealing,newRevealingPointsBis);
         if (newRevealingPointsBis.size()>0){
             std::string s;
             s = "List of new revealing points (" +std::to_string(newRevealingPointsBis.size())+"):";
             for(auto point: newRevealingPointsBis)
-            {   
+            {
                 s += " "+std::to_string(point.getTag());
             }
             NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
             NOMAD::OutputQueue::Flush();
         }
-        OUTPUT_DEBUG_END 
+        OUTPUT_DEBUG_END
 
         // Export cache at the end of megaiteration (for debug)
         bool cacheExport = false;
@@ -346,16 +349,17 @@ void NOMAD::DiscoMadsMegaIteration::exportCache(std::string cacheFile)
 
 
 
-void NOMAD::DiscoMadsMegaIteration::callbackEvalOpportStop(bool &opportunisticStop, NOMAD::EvalQueuePointPtr & evalQueuePoint)
+void NOMAD::DiscoMadsMegaIteration::callbackEvalOpportStop(bool &opportunisticIterStop, NOMAD::EvalQueuePointPtr & evalQueuePoint)
 {
+    
     // If evalQueuePoint was a MODEL or SURROGATE eval, it is useless to check for revealation as no new information on BB output is known
     if(evalQueuePoint->getEvalType()==NOMAD::EvalType::BB)
     {
-        // Check if the point is revealing 
+        // Check if the point is revealing
         if(evalQueuePoint->getRevealingStatus()==2)
         {
             _isRevealing = true;           //then iteration is revealing
-            opportunisticStop = true;      //and evaluations at this iteration should be stopped
+            opportunisticIterStop = true;      //and evaluations at this iteration should be stopped.
         }
     }
 }
@@ -377,7 +381,7 @@ void NOMAD::DiscoMadsMegaIteration::callbackFailedEval(EvalQueuePointPtr & evalQ
 
             // Create new values of bb Output
             auto bboList = evalQueuePoint->getEval(NOMAD::EvalType::BB)->getBBOutput().getBBOAsArrayOfDouble();
-            string bboutput;      
+            string bboutput;
             for(size_t i = 0 ; i < bbOutputTypeList.size(); ++i)
             {
                 NOMAD::BBOutputType bbot = bbOutputTypeList[i];
@@ -395,7 +399,7 @@ void NOMAD::DiscoMadsMegaIteration::callbackFailedEval(EvalQueuePointPtr & evalQ
                     continue;
                 }
                 else{
-                    // Check by security : other types of constraints are not treated 
+                    // Check by security : other types of constraints are not treated
                     throw NOMAD::Exception(__FILE__,__LINE__,"Discomads for hidden constraints: callback for failed eval only treat OBJ/PB/EB/RPB constraints.");
                 }
             }
@@ -415,7 +419,11 @@ void NOMAD::DiscoMadsMegaIteration::callbackFailedEval(EvalQueuePointPtr & evalQ
 
 
 void NOMAD::DiscoMadsMegaIteration::callbackPostProcessing(const NOMAD::Step & step, bool &stop)
-{    
+{
+    // Treat special case of revealation during a search algo: in this case remaining evaluations for this search algo should be stopped
+    // as well as parent search evaluations for this DiscoMads iteration
+    // NB: this situation is not taken into account in IterationUtils::updateStopReasonForIterStop)
+
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     stop = false;  // reset as we don't control a global stop in this callback
     
@@ -429,48 +437,35 @@ void NOMAD::DiscoMadsMegaIteration::callbackPostProcessing(const NOMAD::Step & s
     // If there was a revelation, stop type of evaluator was changed to opportunistic
     if (evcStopReason.checkStopType(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP))
     {
-        // NOTE: it is safer to use "Add" instead of "AddOutputInfo" in callback to avoid segmentation faults as they may be called deep in code
-        OUTPUT_INFO_START
-        NOMAD::OutputQueue::Add("Stop detected: stop search or revealing poll if current step and reset stop reason to continue.", NOMAD::OutputLevel::LEVEL_INFO);
-        NOMAD::OutputQueue::Flush();
-        OUTPUT_INFO_END
 
-        evc->setStopReason(-1, NOMAD::EvalMainThreadStopType::STARTED);
-
-         // Is this a search ? Then stop its iteration.
+         // Is this step done during a search ?
         NOMAD::Search * searchStep = step.getParentOfType<NOMAD::Search*>(false);
         if(nullptr!= searchStep)
         {
-            OUTPUT_DEBUG_START
-            NOMAD::OutputQueue::Add("User stop of the search "+searchStep->getName(), NOMAD::OutputLevel::LEVEL_DEBUG);
-            NOMAD::OutputQueue::Flush();
-            OUTPUT_DEBUG_END
-
-            // stop the current search and go the the end of main algorithm megaIteration
-            searchStep->getAllStopReasons()->set(NOMAD::IterStopType::USER_ITER_STOP);
-            
-            // Is this an algo ? Look for an algorithm among the parents. It should be a search algorithm, that is, not the root Algorithm. Stop it completely if found.
-            // If we simply search for an algorithm among the parents we may endup with the root Mads algorithm. 
+            // Is this done during a search algo ? Look for an algorithm among the parents. It should be a search algorithm, that is, not the root Algorithm. Stop it completely if found.
+            // If we simply search for an algorithm among the parents we may endup with the root Mads algorithm.
             auto algoSM = step.getFirstAlgorithm();
             if (algoSM != step.getRootAlgorithm())
             {
                 OUTPUT_DEBUG_START
+                // NOTE: it is safer to use "Add" instead of "AddOutputInfo" in this callback to avoid segmentation faults as they may be called deep in code
                 NOMAD::OutputQueue::Add("User stop of the search algo "+algoSM->getName(), NOMAD::OutputLevel::LEVEL_DEBUG);
                 NOMAD::OutputQueue::Flush();
                 OUTPUT_DEBUG_END
 
+                // stop the parent search step iteration (may contains severeal searches)
+                searchStep->getAllStopReasons()->set(NOMAD::IterStopType::USER_ITER_STOP);
+                // stop the search algo used in search step
                 algoSM->getAllStopReasons()->set(NOMAD::IterStopType::USER_ALGO_STOP);
+
+                // required to not erase USER_ALGO_STOP by USER_ITER_STOP in IterationUtils::updateStopReasonForIterStop
+                evc->setStopReason(-1, NOMAD::EvalMainThreadStopType::STARTED);
             }
-
         }
 
-        // Is this a revealing poll? Then stop the iteration (i.e. do not do Poll from Mads after revealing poll)
-        if(step.getStepType()==NOMAD::StepType::REVEALING_POLL)
-        {
-            step.getAllStopReasons()->set(NOMAD::IterStopType::USER_ITER_STOP);
-        }
-
-    } 
+        // Is this step done during a revealing poll or a poll
+        // => stop is managed by IterationUtils::updateStopReasonForIterStop and passed to checkTerminate
+    }
 }
 
 
@@ -503,8 +498,8 @@ void NOMAD::DiscoMadsMegaIteration::init()
     // Build vector of indices of revealing output
     const auto bbotList = NOMAD::Algorithm::getBbOutputType();
     std::vector<int> revealingOutputIdx;
-        for(unsigned int idxOutput=0; idxOutput<bbotList.size();idxOutput++)  
-        { 
+        for(unsigned int idxOutput=0; idxOutput<bbotList.size();idxOutput++)
+        {
             if(bbotList[idxOutput].isRevealing())
             {
                 revealingOutputIdx.push_back(idxOutput);
@@ -518,17 +513,17 @@ void NOMAD::DiscoMadsMegaIteration::init()
     NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_UPDATE> cbInterEvalUpdate = [&](EvalQueuePointPtr & evalQueuePoint){return this->callbackCheckIfRevealingAndUpdate(evalQueuePoint);};
     NOMAD::EvcInterface::getEvaluatorControl()->addEvalCallback<NOMAD::CallbackType::EVAL_UPDATE>(cbInterEvalUpdate);
 
-        // Callback to trigger opportunistic stop if a revealing point has been evaluated (called after evaluation of block)
-    NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK> cbInter = [&](EvalQueuePointPtr & evalQueuePoint, bool &opportunisticStop){return this->callbackEvalOpportStop(opportunisticStop, evalQueuePoint);};
+        // Callback during eval to trigger an iteration opportunistic stop (that will cancel all remaining evaluations for this iteration) if a revealing point has been evaluated
+    NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK> cbInter = [&](EvalQueuePointPtr & evalQueuePoint, bool &opportunisticEvalStop, bool &opportunisticIterStop){opportunisticEvalStop = false; return this->callbackEvalOpportStop(opportunisticIterStop, evalQueuePoint);};
     NOMAD::EvcInterface::getEvaluatorControl()->addEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK>(cbInter);
     
-        // Callback to reset opportunistic stop triggered by revelation, and stop all remaining evals for this megaiteration
+        // Callback called at postprocessing to specifically stop a search algo (e.g Nelder-Mead) if a revealation occured during this search algo
     auto cbInterPostProcessing= [&](const NOMAD::Step & step, bool &stop){return this->callbackPostProcessing(step,stop);};
     this->addCallback(NOMAD::CallbackType::POSTPROCESSING_CHECK, cbInterPostProcessing);
 
-    if(_detectHiddConst)  
+    if(_detectHiddConst)
     {
-        // Callback specific to hidden constraints detection to put high value of f to points for which evaluation failed       
+        // Callback specific to hidden constraints detection to put high value of f to points for which evaluation failed
         NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_FAIL_CHECK> cbInterFailedEval = [&](EvalQueuePointPtr & evalQueuePoint){return this->callbackFailedEval(evalQueuePoint);};
         NOMAD::EvcInterface::getEvaluatorControl()->addEvalCallback<NOMAD::CallbackType::EVAL_FAIL_CHECK>(cbInterFailedEval);
     }

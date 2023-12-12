@@ -370,7 +370,7 @@ bool NOMAD::IterationUtils::postProcessing()
     const NOMAD::Step * step  = dynamic_cast<NOMAD::Step*>(this);
     if (nullptr != step)
     {
-        bool stop;
+        bool stop=false;     // should be initialized to false or may lead to strange behaviour if empty callback
         step->runCallback(NOMAD::CallbackType::POSTPROCESSING_CHECK, *step, stop);
         
         // Convert CUSTOM_OPPORTUNISTIC_ITER_STOP (evc) into USER_ITER_STOP (iter)

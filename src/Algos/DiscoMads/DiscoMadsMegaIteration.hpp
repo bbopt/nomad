@@ -65,12 +65,12 @@ private:
     // vector of indices of revealing outputs
     std::vector<int> _idxRevealingOutput;
 
-    // DiscoMads parameters  
-    NOMAD::Double  _exclusionRadius;   // used to penalize revealed regions 
+    // DiscoMads parameters  // TODO: bettetr as const but should be defined in constructor then
+    NOMAD::Double  _exclusionRadius;   // used to penalize revealed regions
     NOMAD::Double  _detectionRadius;   // detectionRadius and limitRate are used to reveal discontinuities
-    NOMAD::Double  _limitRate;   
+    NOMAD::Double  _limitRate;
 
-    bool _detectHiddConst;               // if true, discoMads used to reveal hidden constraints instead of discontinuities      
+    bool _detectHiddConst;               // if true, discoMads used to reveal hidden constraints instead of discontinuities
     NOMAD::Double _hiddConstOutputValue;  // only used to reveal hidden constraints regions
 
     bool _isRevealing ;  // Flag for indicating if MegaIteration is revealing. Reset at start, after DiscoMadsUpdate because it uses the flag.
@@ -137,8 +137,9 @@ private:
     */
     void callbackFailedEval(EvalQueuePointPtr & evalQueuePoint);
 
-    // Callback attached to evaluator: check after each evaluation if there was a revealation and set opportunisticStop to True
-    void callbackEvalOpportStop(bool &opportunisticStop, EvalQueuePointPtr & evalQueuePoint );
+    // Callback attached to evaluator: check after each evaluation if there was a revealation and set opportunisticIterStop to True.
+    // This will trigger an iter stop.
+    void callbackEvalOpportStop(bool &opportunisticIterStop, EvalQueuePointPtr & evalQueuePoint );
 
     // Callback attached to postProcessing : if there has been a revelation, stop current step and stop megaiteration without doing remaining eval
     void callbackPostProcessing(const NOMAD::Step & step, bool &stop);
