@@ -5,8 +5,8 @@ add_executable(bbr.exe bbr.cpp )
 
 add_library (utils OBJECT utils.cpp)
 
-set_target_properties(suggest.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
-set_target_properties(observe.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" SUFFIX "")
+set_target_properties(suggest.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" SUFFIX "")
+set_target_properties(observe.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" SUFFIX "")
 set_target_properties(bbr.exe PROPERTIES SUFFIX "")
 
 if(OpenMP_CXX_FOUND)
