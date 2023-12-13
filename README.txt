@@ -111,8 +111,10 @@ cmake -S . -B build/release
          To enable *Matlab* interface building:
               cmake -DBUILD_INTERFACE_MATLAB=ON  -DTEST_OPENMP=OFF -S . -B build/release
 
+              ! Before proceeding, have a look into 
+              $NOMAD_HOME/interfaces/PyNomad/readme.txt
+
               ! Extra flags might be required to prevent CMake errors. 
-              ! More details are provided in $NOMAD_HOME/interfaces/Matlab_MEX/readme.txt 
 
               ! Compiler version and Matlab version need to be compatible;
               ! Check https://www.mathworks.com/support/requirements/supported-compilers.html
@@ -129,7 +131,7 @@ cmake -S . -B build/release
               ! Before proceeding, have a look into 
               $NOMAD_HOME/interfaces/PyNomad/readme.txt
 
-	      ! For now, PyNomad cannot work with OpenMP enabled.
+	      ! The Python interface will not be built if OpenMP is enabled.
 
               ! More details are provided in $NOMAD_HOME/interfaces/PyNomad/readme.txt 
              
