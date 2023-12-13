@@ -67,7 +67,6 @@ auto madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopTy
 // Problem given to the solver
 std::string problembName = "./problems/RASTRIGIN";
 std::string bbexe = "./problems/RASTRIGIN/bb.exe";
-//std::string bbexe = "./COCO/single_bbob-constrained.exe";
 
 // Counter for the number of successive failure
 int compteur = 0;
@@ -154,9 +153,6 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams, const size_t
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
     allParams->setAttributeValue("DISPLAY_ALL_EVAL", true);
-    allParams->getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
-    allParams->getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
-
 
     // Parameters validation
     allParams->checkAndComply();
