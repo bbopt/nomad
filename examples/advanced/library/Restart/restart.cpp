@@ -118,22 +118,17 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams, const size_t
     ub[1] = 6.0;    // x_2 <= 6
     ub[2] = 7.0;    // x_3 <= 7
     allParams->setAttributeValue("UPPER_BOUND", ub);
-    allParams->getPbParams()->setAttributeValue("GRANULARITY", NOMAD::ArrayOfDouble(n, 0.0000001));
 
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes;
     bbOutputTypes.push_back(NOMAD::BBOutputType::Type::OBJ);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::EB);
+    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::EB); // Note: pb solves easier with PB constraint. This choice is made to illustrate the custom stop and restart.
     bbOutputTypes.push_back(NOMAD::BBOutputType::Type::EB);
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
-    allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj"));
+    allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj cons_h"));
     allParams->setAttributeValue("DISPLAY_ALL_EVAL", true);
-
-    allParams->getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
-    allParams->getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
-
 
     // Parameters validation
     allParams->checkAndComply();
@@ -149,15 +144,16 @@ void userMegaIterationEnd(const NOMAD::Step& step,
                           bool &stop)
 {
     auto megaIter = dynamic_cast<const NOMAD::MadsMegaIteration*>(&step);
-    // auto bbe = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
+    
+    // Let's have bb eval for fun.
+    auto bbe = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
     
     if (nullptr != megaIter)
     {
-        // Let's pass the mesh
+        // Let's have the mesh for fun.
         mesh = megaIter->getMesh();
     
         auto nbConsecutiveFail = megaIter->getConstSuccessStats().getStatsNbConsecutiveFail();
-        
         if (nbConsecutiveFail >= 2 )
         {
             // Stop motivated by user conditions
@@ -184,6 +180,9 @@ int main ( int argc , char ** argv )
     auto params = std::make_shared<NOMAD::AllParameters>();
     initAllParams(params, n);
     TheMainStep.setAllParameters(params);
+    
+    auto ev = std::make_unique<My_Evaluator>(params->getEvalParams(),NOMAD::EvalType::BB);
+    TheMainStep.addEvaluator(std::move(ev));
 
     std::vector<NOMAD::EvalPoint> bf;
     std::vector<NOMAD::EvalPoint> bi;
@@ -195,11 +194,7 @@ int main ( int argc , char ** argv )
         for ( int i = 0 ; i < 6 ; ++i )
         {
             std::cout << std::endl << "MADS run #" + NOMAD::itos(i) << std::endl;
-
-            // Custom Evaluator
-            auto ev = std::make_unique<My_Evaluator>(params->getEvalParams(),NOMAD::EvalType::BB);
-            TheMainStep.addEvaluator(std::move(ev));
-
+            
             // not for the first run:
             if ( i > 0 )
             {
