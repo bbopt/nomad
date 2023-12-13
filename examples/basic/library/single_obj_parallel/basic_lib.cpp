@@ -165,8 +165,11 @@ void initParams(std::shared_ptr<NOMAD::AllParameters>& params)
     // 100 black-box evaluations
 
     // Max number of points to be given as a block for evaluation
-    // This option is required to perform parallel evaluations
+    // This option is required to perform parallel evaluations in eval_block
+    // function above
     params->setAttributeValue("BB_MAX_BLOCK_SIZE", NUM_THREADS);
+    
+    // A single thread is used for Nomad "parallel" evaluation queue.
     params->setAttributeValue("NB_THREADS_OPENMP", 1);
 
     // parameters validation:
