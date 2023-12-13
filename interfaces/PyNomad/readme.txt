@@ -118,7 +118,9 @@ must also be run to install libraries.
 
 IMPORTANT:
 To install PyNomad wheel in your Python environment you must do
-    pip install --user --force-reinstall dist/*whl
+    pip install --user --force-reinstall dist/*whl 
+Or
+    pip install dist/*whl 
 In the the PyNomad directory
 
 **********
