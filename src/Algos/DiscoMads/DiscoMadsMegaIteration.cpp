@@ -457,9 +457,6 @@ void NOMAD::DiscoMadsMegaIteration::callbackPostProcessing(const NOMAD::Step & s
                 searchStep->getAllStopReasons()->set(NOMAD::IterStopType::USER_ITER_STOP);
                 // stop the search algo used in search step
                 algoSM->getAllStopReasons()->set(NOMAD::IterStopType::USER_ALGO_STOP);
-
-                // required to not erase USER_ALGO_STOP by USER_ITER_STOP in IterationUtils::updateStopReasonForIterStop
-                evc->setStopReason(-1, NOMAD::EvalMainThreadStopType::STARTED);
             }
         }
 
