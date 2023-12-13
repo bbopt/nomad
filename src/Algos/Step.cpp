@@ -177,6 +177,9 @@ void NOMAD::Step::runCallback(NOMAD::CallbackType callbackType,
                               const NOMAD::Step& step,
                               bool &stop)
 {
+    // Default stop value.
+    stop = false;
+    
     switch(callbackType)
     {
         case NOMAD::CallbackType::ITERATION_END:

@@ -1533,11 +1533,6 @@ bool NOMAD::EvaluatorControl::stopMainEval(const int mainThreadNum, bool display
     doStopEvalMainThread = doStopEvalMainThread || getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS) ||
         getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP) ||
         getMainThreadInfo(mainThreadNum).testIf(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_EVAL_STOP);
-    
-    if (doStopEvalMainThread)
-    {
-        std::cout<<" Opportunistic success or custom opportunistic stop"<<std::endl;
-    }
 
     // Update stopReason if there is no more point to evaluate for this thread
     if (   (0 == getQueueSize(mainThreadNum))

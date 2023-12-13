@@ -680,15 +680,19 @@ void NOMAD::IterationUtils::updateStopReasonForIterStop(const Step* step)
     
     if (evcStopReason.checkStopType(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP))
     {
-        OUTPUT_INFO_START
-        NOMAD::OutputQueue::Add("User iter stop in "+step->getName(), NOMAD::OutputLevel::LEVEL_INFO);
-        NOMAD::OutputQueue::Flush();
-        OUTPUT_INFO_END
-        
         // Reset evcStopReason
         evc->setStopReason(-1, NOMAD::EvalMainThreadStopType::STARTED);
         
-        step->getAllStopReasons()->set(NOMAD::IterStopType::USER_ITER_STOP);
+        // Only replace the default iter stop reason (no stop)
+        if (step->getAllStopReasons()->testIf(NOMAD::IterStopType::STARTED))
+        {
+            step->getAllStopReasons()->set(NOMAD::IterStopType::USER_ITER_STOP);
+            
+            OUTPUT_INFO_START
+            NOMAD::OutputQueue::Add("User iter stop in "+step->getName(), NOMAD::OutputLevel::LEVEL_INFO);
+            NOMAD::OutputQueue::Flush();
+            OUTPUT_INFO_END
+        }
         
     }
 }
