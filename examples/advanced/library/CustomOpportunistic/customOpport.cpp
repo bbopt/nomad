@@ -132,9 +132,9 @@ void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj"));
     allParams->setAttributeValue("DISPLAY_ALL_EVAL", true);
 
-    //  Opportunistic eval must be activated (default is activated!). Let us sort with a poor sorting strategy (quadratic model is much better). Default criterion for opportunism is disabled and replaced by a custom opportunistic criterion provided by a user callback (see below).
+    //  Opportunistic eval must be activated (rem: activated by default!). Let us sort with a poor sorting strategy (quadratic model is much better). Default criterion for opportunism is disabled and replaced by a custom opportunistic criterion provided by a user callback (see below).
     allParams->setAttributeValue("EVAL_OPPORTUNISTIC", true);
-    // allParams->setAttributeValue("EVAL_QUEUE_SORT",NOMAD::EvalSortType::LEXICOGRAPHICAL);
+    allParams->setAttributeValue("EVAL_QUEUE_SORT",NOMAD::EvalSortType::LEXICOGRAPHICAL);
 
     allParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
     allParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
