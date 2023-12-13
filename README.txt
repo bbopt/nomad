@@ -124,7 +124,12 @@ cmake -S . -B build/release
               addpath(strcat(getenv('NOMAD_HOME'),'/build/release/bin'))
 
          To enable *Python* interface (PyNomad) building:
-              cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release
+              cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release
+
+              ! Before proceeding, have a look into 
+              $NOMAD_HOME/interfaces/PyNomad/readme.txt
+
+	      ! For now, PyNomad cannot work with OpenMP enabled.
 
               ! More details are provided in $NOMAD_HOME/interfaces/PyNomad/readme.txt 
              
