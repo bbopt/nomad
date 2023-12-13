@@ -170,7 +170,7 @@ void customEvalCB(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool &opportunistic
             auto mystep = evalQueuePoint->getGenStep();
 
             // Opportunism only if enough reduction is obtained (optim f is 0)
-            auto FMinOpport = currentBestFeasF - 0.1*currentBestFeasF.abs();
+            auto FMinOpport = currentBestFeasF - 0.01*currentBestFeasF.abs();
             if (NOMAD::stepTypeToString(mystep).find("Poll") != string::npos &&
                 evalQueuePoint->getF(NOMAD::EvalType::BB) < FMinOpport)
             {
