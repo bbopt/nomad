@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 /*--------------------------------------------------------------------------*/
 /*  Example of a program that makes NOMAD do a local opportunistic stop     */
 /*  of queued evaluations from a Poll step when a user criterion is met     */
@@ -66,6 +67,8 @@ NOMAD::Double currentBestFeasF;
 /*----------------------------------------*/
 /*               The problem              */
 /*----------------------------------------*/
+const int N=4;
+
 class My_Evaluator : public NOMAD::Evaluator
 {
 private:
@@ -89,30 +92,36 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
                           bool &countEval) const
 {
     
-    NOMAD::Double f = pow ( 10 * (x[1].todouble() - pow(x[0].todouble(),2) ) , 2 );
-    f += pow ( 1 - x[0].todouble() , 2 );
-    std::string bbo = f.tostring();
-    x.setBBO(bbo);
-
-    countEval = true; // count a black-box evaluation
+    if (N%2 != 0)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"Dimension N should be an even number");
+    }
+    
+    double f=0;
+    for ( size_t i = 1 ; i <= N/2 ; ++i ) {
+        f += pow ( 10 * (x[2*i-1].todouble() - pow(x[2*i-2].todouble(),2) ) , 2 );
+        f += pow ( 1 - x[2*i-2].todouble() , 2 );
+    }
+    x.setBBO(std::to_string(f));
+    countEval = true;
 
     return true;       // the evaluation succeeded
 }
 
 
-void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams, const size_t n)
+void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams)
 {
 
     // Parameters creation
-    allParams->setAttributeValue("DIMENSION", n);
+    allParams->setAttributeValue("DIMENSION", N);
     // 100 black-box evaluations
-    allParams->setAttributeValue("MAX_BB_EVAL", 400);
+    allParams->setAttributeValue("MAX_BB_EVAL", 400*N);
     // Starting point
-    allParams->setAttributeValue("X0", NOMAD::Point(n, 0.0) );
+    allParams->setAttributeValue("X0", NOMAD::Point(N, 0.0) );
 
     // Bounds
-    allParams->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, -10.0));
-    allParams->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(n, 10.0));
+    allParams->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(N, -10.0));
+    allParams->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(N, 10.0));
 
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes;
@@ -125,7 +134,7 @@ void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams, const size_
 
     //  Opportunistic eval must be activated (default is activated!). Let us sort with a poor sorting strategy (quadratic model is much better). Default criterion for opportunism is disabled and replaced by a custom opportunistic criterion provided by a user callback (see below).
     allParams->setAttributeValue("EVAL_OPPORTUNISTIC", true);
-    allParams->setAttributeValue("EVAL_QUEUE_SORT",NOMAD::EvalSortType::LEXICOGRAPHICAL);
+    // allParams->setAttributeValue("EVAL_QUEUE_SORT",NOMAD::EvalSortType::LEXICOGRAPHICAL);
 
     allParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
     allParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
@@ -161,7 +170,7 @@ void customEvalCB(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool &opportunistic
             auto mystep = evalQueuePoint->getGenStep();
 
             // Opportunism only if enough reduction is obtained (optim f is 0)
-            auto FMinOpport = currentBestFeasF - 0.05*currentBestFeasF.abs();
+            auto FMinOpport = currentBestFeasF - 0.1*currentBestFeasF.abs();
             if (NOMAD::stepTypeToString(mystep).find("Poll") != string::npos &&
                 evalQueuePoint->getF(NOMAD::EvalType::BB) < FMinOpport)
             {
@@ -183,15 +192,11 @@ void customEvalCB(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool &opportunistic
 /*------------------------------------------*/
 int main ( int argc , char ** argv )
 {
-    // Dimension (Number of variables)
-    // size_t n = 5;
-    size_t n = 2;
-
     NOMAD::MainStep TheMainStep;
 
     // Set parameters
     auto params = std::make_shared<NOMAD::AllParameters>();
-    initAllParams(params, n);
+    initAllParams(params);
     TheMainStep.setAllParameters(params);
 
     // Custom Evaluator
