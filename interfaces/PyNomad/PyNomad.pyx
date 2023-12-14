@@ -470,7 +470,7 @@ cdef extern from "nomadCySimpleInterface.cpp":
 
 
 # Define callback function for a single EvalPoint ---> link with Python
-cdef int cb(void *f, shared_ptr[EvalPoint] x):
+cdef int cb(void *f, shared_ptr[EvalPoint] x) noexcept:
     cdef PyNomadEvalPoint u = PyNomadEvalPoint()
 
     u.c_ep_ptr = x
@@ -478,7 +478,7 @@ cdef int cb(void *f, shared_ptr[EvalPoint] x):
 
 
 # Define callback function for a block (vector) of EvalPoints
-cdef vector[int] cbL(void *f, shared_ptr[Block] block):
+cdef vector[int] cbL(void *f, shared_ptr[Block] block) noexcept:
 
     cdef PyNomadBlock u = PyNomadBlock()
 
