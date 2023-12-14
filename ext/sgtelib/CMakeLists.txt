@@ -108,6 +108,7 @@ include(./CMakeListsLibs.txt)
 
 # Build static libraries (sgtelibStatic)
 if(BUILD_INTERFACE_PYTHON MATCHES ON)
+  message(STATUS "  Warning: build sgtelib static libraries for Python interface.")
   include(./CMakeListsLibsStatic.txt)
 endif()
 
