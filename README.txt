@@ -208,6 +208,7 @@ $NOMAD_HOME/build/release/bin/nomad param.txt
 For convenience, the path to $NOMAD_HOME/build/release/bin directory 
 can be added to the $PATH environment variable. For *Windows*, this is 
 achieved by setting the parameters for environment variable %PATH% to
+%NOMAD_HOME\build\release\bin\
  
 
 Library Mode:
@@ -217,3 +218,7 @@ Nomad application. The problems may be resolved by execution,
 for instance:
 
 ./example_lib.exe
+
+IMPORTANT: Library mode examples with *Windows* require to set 
+the %PATH% environment variable (see above). Otherwise, the executables
+cannot find NOMAD dlls.
