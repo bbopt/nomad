@@ -73,26 +73,6 @@ set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR} CACHE PATH "..." FORCE)
 message(STATUS "  Installation prefix set to ${CMAKE_INSTALL_PREFIX}")
 
 #
-# Use sgtelib
-#
-option(USE_SGTELIB "Option to use the Sgtelib library" ON)
-if(USE_SGTELIB MATCHES ON)
-  message(CHECK_START "  Configuring for use of Sgtelib library")
-
-  if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib) 
-     message(CHECK_FAIL "  failed. Directory ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib not found. Let's configure without Sgtelib library")
-     set(USE_SGTELIB OFF)
-  else()
-     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext)
-     add_compile_definitions(USE_SGTELIB)
-     list(APPEND EXTRA_LIBS sgtelib)
-     message(CHECK_PASS "   Sgtelib found. done")
-  endif()
-else()
-   message(STATUS "  Sgtelib library will NOT be used\n")
-endif()
-
-#
 # Choose to build with time stats enabled
 #
 option(TIME_STATS "Option to build with time stats enabled" OFF)
@@ -225,6 +205,29 @@ if(USE_IBEX MATCHES ON)
 else()
    message(STATUS "  Use of Ibex for projecting NOT enabled")
 endif()
+
+
+#
+# Use sgtelib
+#
+option(USE_SGTELIB "Option to use the Sgtelib library" ON)
+if(USE_SGTELIB MATCHES ON)
+  message(CHECK_START "  Configuring for use of Sgtelib library")
+
+  if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib) 
+     message(CHECK_FAIL "  failed. Directory ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib not found. Let's configure without Sgtelib library")
+     set(USE_SGTELIB OFF)
+  else()
+     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext)
+     add_compile_definitions(USE_SGTELIB)
+     list(APPEND EXTRA_LIBS sgtelib)
+     message(CHECK_PASS "   Sgtelib found. done")
+  endif()
+else()
+   message(STATUS "  Sgtelib library will NOT be used\n")
+endif()
+
+
 
 #
 # Custom options final message
