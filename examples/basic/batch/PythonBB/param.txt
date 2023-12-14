@@ -1,6 +1,6 @@
 DIMENSION 5
 
-BB_EXE         '$python3 bb.py '
+BB_EXE         '$python bb.py ' # '$python3 bb.py '
 BB_OUTPUT_TYPE OBJ PB EB
 
 X0             ( 0 0 0 0 0 )

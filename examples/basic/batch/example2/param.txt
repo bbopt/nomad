@@ -32,6 +32,9 @@ NB_THREADS_OPENMP 4  # Number of threads to perform blackbox evaluation
 # including cache hits
 MAX_EVAL 200
 
+QUAD_MODEL_SEARCH no
+DIRECTION_TYPE ORTHO 2N
+
 # DISPLAY PARAMETERS
 ####################
 DISPLAY_DEGREE 2
