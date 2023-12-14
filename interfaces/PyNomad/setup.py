@@ -112,10 +112,7 @@ setuptools.setup(
     version = __version__,
     author = 'Jan Provaznik and Christophe Tribes',
     author_email = 'christophe.tribes@polymtl.ca',
-    license = 'LGPL',
     description = 'Python interface to NOMAD for blackbox optimization',
-    long_description = ' NOMAD: Nonlinear Optimization using the MADS Algorithm.\n NOMAD solves a Global MINLP/NLP in the form:\n   min f(x) \n   subject to: nlcon(x) <= 0, \n               lb <= x <= ub and \n               x in R.\n Long description is obtained by running PyNomad.info().\n This is python interface version 2.2.\n Examples of PyNomad utilization are provided in https://github.com/bbopt/nomad/tree/master/examples/advanced/library/PyNomad.',
-    long_description_content_type = 'text/plain',
     url = 'https://github.com/bbopt/nomad',
     ext_modules = cythonize(setuptools.Extension(
         'PyNomad',
