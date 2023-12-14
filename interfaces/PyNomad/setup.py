@@ -59,10 +59,10 @@ else:
     setup_compile_args.append('-pthread')
 
     # Use GCC on non-MSVC builds.
-    #if (os.environ.get("CC") == ""):
-    #   os.environ["CC"] = "gcc"
-    #if (os.environ.get("CXX") == ""):
-    #   os.environ["CXX"] = "g++"
+    if (os.environ.get("CC") == ""):
+       os.environ["CC"] = "gcc"
+    if (os.environ.get("CXX") == ""):
+       os.environ["CXX"] = "g++"
 
 # MSVC linker automagically resolves static libraries
 # by their base names if given appropriate search paths.

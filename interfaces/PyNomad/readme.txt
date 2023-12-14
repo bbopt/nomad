@@ -98,7 +98,8 @@ For now, PyNomad cannot work with OpenMP enabled.
 The configuration command:
    cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release 
 must be performed with Cython available (that can be done within a Conda 
-environment: conda activate ... or activate ...). 
+environment: conda activate ... or activate ... OR with a virtual environment
+containing cython and wheel).  
 
 For Windows, the default Anaconda is Win64. Older Visual Studio versions can 
 support both Win32 and Win64 compilations. The configuration must be forced
