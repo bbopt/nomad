@@ -725,12 +725,12 @@ bool NOMAD::MainStep::runImp()
                 // Algo run is done in main thread(s) only.
                 ret = algo->run();
 
+                algo->end();
+
                 // When algo is done, evaluatorControl will wait for all main threads to be done.
                 evc->stop();
             }
-        }   // End of parallel region.
-        algo->end();
-
+        }
      }
 
     return ret;
