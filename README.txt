@@ -112,7 +112,7 @@ cmake -S . -B build/release
               cmake -DBUILD_INTERFACE_MATLAB=ON  -DTEST_OPENMP=OFF -S . -B build/release
 
               ! Before proceeding, have a look into 
-              $NOMAD_HOME/interfaces/PyNomad/readme.txt
+              $NOMAD_HOME/interfaces/Matlab_MEX/readme.txt
 
               ! Extra flags might be required to prevent CMake errors. 
 
@@ -160,9 +160,9 @@ cmake --install build/release (for *OSX* and *Linux*)
     ---> Copy binaries and headers in build/release/[bin, include, lib]
          and in the examples/tests directories.
 
-By default, the executable "nomad" will installed into the directory:
+By default, the executable "nomad" will be installed into the directory:
 build/release/bin/  (build/debug/bin/ when in debug mode). A symbolic link
-is added in the bin directory.
+is added in the bin directory (not functional for windows).
 
 It is possible to build only a single application in its working directory:
 (with NOMAD_HOME environment variable properly set)
