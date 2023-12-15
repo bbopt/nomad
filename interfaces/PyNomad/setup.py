@@ -58,11 +58,11 @@ else:
     setup_compile_args.append('-std=c++14')
     setup_compile_args.append('-pthread')
 
-    # Use GCC on non-MSVC builds.
-    if (os.environ.get("CC") == ""):
-       os.environ["CC"] = "gcc"
-    if (os.environ.get("CXX") == ""):
-       os.environ["CXX"] = "g++"
+#    # Use GCC on non-MSVC builds.
+#    if (os.environ.get("CC") == ""):
+#       os.environ["CC"] = "gcc -arch x86_64"
+#    if (os.environ.get("CXX") == ""):
+#       os.environ["CXX"] = "g++ -arch x86_64"
 
 # MSVC linker automagically resolves static libraries
 # by their base names if given appropriate search paths.
