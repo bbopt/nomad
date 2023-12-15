@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------
 
 # cmake version : the latest one
-cmake_minimum_required(VERSION 3.14...3.14)
+cmake_minimum_required(VERSION 3.15...3.15)
 
 # Warning. This must be consistent with src/nomad_version.hpp
 set(NOMAD_VERSION_MAJOR 4)
@@ -132,7 +132,7 @@ if(BUILD_INTERFACE_PYTHON MATCHES ON)
    if(OpenMP_FOUND)
        message(STATUS "  Warning: Cannot build Python interface with OpenMP enabled")
    else()
-       find_package(Python 3.6 QUIET REQUIRED)
+       set(Python3_FIND_VIRTUALENV "First")
        message(CHECK_START "  Configuring build for Python interface (Python ${Python_VERSION})")
        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/PyNomad)
        message(CHECK_PASS " done")
