@@ -16,6 +16,15 @@ set(NOMAD_VERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}.${NOMAD_VERSION_
 # Need to update when version changes
 project (Nomad VERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR})
 
+# Disable soname (used for Julia interface).
+option(SETSONAME "Option to build Nomad libraries with SONAME" ON)
+if(SETSONAME MATCHES OFF)
+   message(STATUS "Dynamic libraries without soname")
+   set(NO_SONAME True)
+else()
+   set(NO_SONAME False)
+endif()
+
 # Nomad src template (copy of template defined in src/nomad_version.hpp, used by jNomad) 
 # Need to update when version changes
 set(NOMAD_SRC_TEMPLATE NOMAD_${NOMAD_VERSION_MAJOR}_${NOMAD_VERSION_MINOR})

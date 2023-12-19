@@ -18,6 +18,7 @@ set_target_properties(
   PROPERTIES 
     VERSION "${SGTELIB_VERSION}"
     SOVERSION "${SGTELIB_VERSION_MAJOR}.${SGTELIB_VERSION_MINOR}"
+    NO_SONAME ${NO_SONAME}
 )
 
 # export symbols on Windows
