@@ -30,11 +30,15 @@ package Examples;
 import static java.lang.Math.pow;
 
 import jNomad.AllParameters;
+import jNomad.CacheBase;
+import jNomad.ComputeType;
 import jNomad.Double;
 import jNomad.EvalPoint;
+import jNomad.EvalPointVector;
 import jNomad.EvalType;
 import jNomad.Evaluator;
 import jNomad.MainStep;
+import jNomad.Point;
 
 /*
  * A simple program to test jNomad with the well-known Rosenbrock problem
@@ -145,6 +149,12 @@ public class Rosenbrock {
 			mainstep.start();
 			mainstep.run();
 			mainstep.end();
+
+			// Get the best feasibles
+			Point fixedPoint = new Point();
+			EvalPointVector bestFeas = new EvalPointVector();
+			CacheBase cacheBase = CacheBase.getInstance();
+			cacheBase.findBestFeas(bestFeas, fixedPoint, EvalType.BB, ComputeType.STANDARD);
 
 		} catch (RuntimeException e) {
 			System.err.println("\nNOMAD has been interrupted (" + e.toString() + ")\n\n");

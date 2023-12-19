@@ -181,7 +181,7 @@ if(BUILD_INTERFACE_JAVA MATCHES ON)
    #set(JAVA_INCLUDE_PATH "$ENV{JAVA_HOME}/Contents/Home/include")
    #set(JAVA_INCLUDE_PATH2 "$ENV{JAVA_HOME}/Contents/Home/include")
    #set(JAVA_AWT_INCLUDE_PATH "$ENV{JAVA_HOME}/Contents/Home/include")
-   #set(JAVA_JVM_LIBRARY NotNeeded)
+   set(JAVA_JVM_LIBRARY NotNeeded)
 
    find_package(Java REQUIRED COMPONENTS Runtime Development)
    find_package(SWIG 4.0 REQUIRED COMPONENTS java)
