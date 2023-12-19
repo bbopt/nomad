@@ -100,7 +100,6 @@ Cache/CacheSet.cpp
 # Eval
 #
 set(EVAL_HEADERS
-#Eval/Barrier.hpp
 Eval/BarrierBase.hpp
 Eval/BBInput.hpp
 Eval/BBOutput.hpp
@@ -117,7 +116,6 @@ Eval/ProgressiveBarrier.hpp
 Eval/SuccessStats.hpp)
 
 set(EVAL_SOURCES
-#Eval/Barrier.cpp
 Eval/BarrierBase.cpp
 Eval/BBInput.cpp
 Eval/BBOutput.cpp

@@ -273,6 +273,50 @@ only for point evaluation.
 An example of usage of PSD-MADS in library mode is in
 ``$NOMAD_HOME/examples/advanced/library/PSDMads``.
 
+.. _disco_mads:
+
+DISCO-Mads
+----------
+
+The DiscoMADS algorithm [AuBaKo22]_ reveals and escapes some regions of the space of variables while solving an optimization problem.
+These regions may be (1) hidden constraints regions, in which blackbox evaluations fail, or (2) regions containing discontinuities of
+some user-defined blackbox outputs, called revealing outputs.
+
+
+The DiscoMads algorith is built on the MADS algorithm with progressive barrier approach [AuDe09a]_ and includes two additional mechanisms:
+
+  `*` revealing hidden constraints or discontinuities: after each backbox evaluation, a revealing mechanism is triggered to check if a discontinuity or a hidden constraint has been revealed.
+
+  `*` progressively escaping the surrounding regions: an additional blackbox output is automatically added during a run of DiscoMADS to penalize points close to discontinuities or hidden constraints regions.
+
+To account for these mechanisms, a new type of iteration, called revealing iteration, is introduced with respect to MADS.
+It is triggered when a discontinuity or a hidden constraint is revealed. A new revealing poll is also added for the sake of the convergence analysis.
+
+
+Hidden constraints
+""""""""""""""""""
+
+To use DiscoMADS to reveal hidden constraints regions, set ``DISCO_MADS_OPTIMIZATION`` to true and ``DISCO_MADS_HID_CONST`` to true.
+Set ``DISCO_MADS_EXCLUSION_RADIUS`` to define the wished remoteness of the solution to discontinuities.
+
+An example of usage of DiscoMADS to reveal hidden constraints regions is provided in batch mode (``$NOMAD_HOME/examples/advanced/batch/DiscoMads/paramEscapeHiddenConstraints.txt``) and in library mode (``$NOMAD_HOME/examples/advanced/library/DiscoMads/EscapeHiddenConstraints``). This example relies on the Styrene blackbox available at `GitHub <https://github.com/bbopt/styrene>`_.
+
+Discontinuities
+"""""""""""""""
+
+To use DiscoMADS to reveal discontinuities in revealing blackbox outputs, set the parameter ``DISCO_MADS_OPTIMIZATION`` to true.
+
+Define revaling output by appending "-R" to the desired output types when using the command ``BB_OUTPUT_TYPE``.
+
+To define discontinuities (in a weak sense) set the parameters ``DISCO_MADS_DETECTION_RADIUS`` and ``DISCO_MADS_LIMIT_RATE``: if the rate of change of a revealing blackbox ouput between two points at distance less than ``DISCO_MADS_DETECTION_RADIUS`` exceeds the limit rate ``DISCO_MADS_LIMIT_RATE``, then a discontinuity is revealed between the two points.
+
+Finally, set ``DISCO_MADS_EXCLUSION_RADIUS`` to define the wished remoteness of the solution to discontinuities.
+
+An example of usage of DiscoMADS to reveal discontinuities is provided in batch mode (``$NOMAD_HOME/examples/advanced/batch/DiscoMads/paramEscapeDiscont.txt``) and in library mode (``$NOMAD_HOME/examples/advanced/library/DiscoMads/EscapeDiscontinuities``).
+
+This example is described in details in section 5.1 of [AuBaKo22]_.
+
+
 .. _hot_restart:
 
 Hot and Warm Restart
@@ -307,13 +351,12 @@ The user still has room for 50 more evaluations.
 The parameter file may be changed with value ``MAX_BB_EVAL 150``, and the second run of
 NOMAD will start where it was, with evaluation 101.
 
-Doxygen
--------
-
-A local doxygen documentation can be created by running the ``doxygen`` command (if available) in ``$NOMAD_HOME/doc/doxygen``. The documentation can be opened by a browser at ``$NOMAD_HOME/doc/doxygen/html/index.html``.
-
 
 .. topic:: References
+
+  .. [AuBaKo22] C. Audet, A. Batailly et S. Kojtych.
+    Escaping Unknown Discontinuous Regions in Blackbox Optimization.
+    *SIAM Journal on Optimization*, 32(3):1843-1870, 2022. DOI: 10.1137/21M1420915. OAI : hal.science/hal-03804934.
 
   .. [AuBeLe08b] C. Audet, V. Béchard, and S. Le Digabel.
     Nonsmooth optimization through mesh adaptive direct search and variable neighborhood search.
