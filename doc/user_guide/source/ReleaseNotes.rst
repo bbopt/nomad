@@ -6,7 +6,6 @@ NOMAD 4 is a complete redesign compared with NOMAD 3, with a new architecture pr
 
 Some functionalities available in NOMAD 3 will be included in NOMAD 4 in future releases:
 
-* *BiMads* [AuSaZg2008a]_
 * *RobustMads* [AudIhaLedTrib2016]_ and *StoMads* [G-2019-30]_
 * Categorical [AuDe01a]_ and periodical variables [AuLe2012]_
 
@@ -14,7 +13,6 @@ The performance of NOMAD 4 and 3 are similar when the default parameters of NOMA
 
 .. topic:: References
 
-  .. [AuSaZg2008a] C. Audet, G. Savard, and W. Zghal. 2008.  Multiobjective Optimization Through a Series of Single-Objective Formulations. *SIAM Journal onOptimization* 19, 1 (2008), 188–210
   .. [AudIhaLedTrib2016] C. Audet, A. Ihaddadene, S. Le Digabel, and C. Tribes. 2018. Robust optimization of noisy blackbox problems using the Mesh Adaptive Direct Search algorithm. *Optimization Letters* 12, 4 (2018), 675–689
   .. [G-2019-30] C. Audet, K.J. Dzahini, M. Kokkolaras, and S. Le Digabel. 2021.Stochastic mesh adaptive direct search for blackbox optimization using probabilistic estimates. *Technical Report* G-2019-30. Les cahiers du GERAD.  To appear in *Computational Optimization and Applications*.
   .. [AuDe01a] C. Audet and J.E. Dennis, Jr. 2001. Pattern Search Algorithms for Mixed Variable Programming. *SIAM Journal on Optimization* 11, 3 (2001), 573–594.

@@ -126,7 +126,6 @@ The possible syntaxes to specify the granularity of the variables are as follows
 ``SURROGATE_EXE``
 """""""""""""""""
 
-Static surrogate executable.
 
 A static surrogate, or static surrogate function, is a cheaper blackbox function that is used, at least partially, to drive the optimization.
 
@@ -139,7 +138,11 @@ A static surrogate, or static surrogate function, is a cheaper blackbox function
 
 The current version of NOMAD can use a static surrogate, provided by the user, which is not updated during the algorithm. See [BoDeFrSeToTr99a]_ for a survey on surrogate optimization, and [AuCM2019]_ about using static surrogate evaluations. This surrogate may be used for sorting points before evaluation. This sorting strategy is obtained by setting the parameter :ref:`eval_queue_sort` to ``SURROGATE``.
 
-In batch mode, the parameter ``SURROGATE_EXE`` associates a static surrogate executable with the blackbox executable given by parameter ``BB_EXE``. The surrogate must display the same input and output types as its associated blackbox, given by parameters ``BB_INPUT_TYPE`` and ``BB_OUTPUT_TYPE``. In library mode, if a surrogate function is to be used, then its Evaluator should be of type ``EvalType::SURROGATE`` (see Section :ref:`library_mode`).
+In batch mode, the parameter ``SURROGATE_EXE`` associates a static surrogate executable with the blackbox executable given by parameter ``BB_EXE``. The surrogate must display the same input and output types as its associated blackbox, given by parameters ``BB_INPUT_TYPE`` and ``BB_OUTPUT_TYPE``.
+
+In library mode, if a surrogate function is to be used, then its Evaluator should be of type ``EvalType::SURROGATE``. An example is given in ``$NOMAD_HOME/examples/basic/library/CustomSurrogateOrdering``.
+
+When using a surrogate, by default, the ordering of the trial points relies solely on the objective and constraints surrogate evaluations. In library mode, it is possible to tailor the ordering by defining a custom comparison function (see example in ``$NOMAD_HOME/examples/advanced/library/CustomCompForOrdering``).
 
 
 .. _block_evaluations:
@@ -170,7 +173,7 @@ Batch mode
 
 
 In batch mode, NOMAD creates input files which can contain at most
-BB_MAX_BLOCK_SIZE trial points separated by a linebreak. Each point is given as a row of values.
+BB_MAX_BLOCK_SIZE trial points separated by a line break. Each point is given as a row of values.
 The user must provide a blackbox program that can read the input file, evaluate them and
 output the objective and constraints functions (in the order provided by the BB_OUTPUT_TYPE
 parameter) for each trial point in the same order as provided in the input file.
@@ -179,7 +182,7 @@ submitted the content of the output file must reflect the outputs for each point
 If one value provided in the output file
 cannot be read by NOMAD, then the corresponding trial point is considered as having failed.
 The trial points that have failed will not be evaluated again.
-An example of blackbox program written is provided in the
+An example of blackbox program using OpenMP is provided in the
 directory ``$NOMAD_HOME/examples/basic/batch/single_obj_parallel``.
 The executable ``bb3.exe`` evaluates up to 4 trial points in parallel.
 
@@ -225,6 +228,8 @@ The same directory holds the parameter file that specifies this blackbox program
 When evaluations are performed by blocks, i.e., when ``BB_MAX_BLOCK_SIZE`` is greater
 than one, the opportunistic strategy applies after evaluating a block of trial points.
 
+An example with a blackbox using MPI for parallelization is provided in ``$NOMAD_HOME/examples/basic/batch/simple_obj_MPIparallel``.
+
 
 Library mode
 """"""""""""
@@ -239,9 +244,8 @@ on how to manage a block of evaluations in parallel using OpenMP.
 Parallel evaluations
 --------------------
 
-When OpenMP is available (see :ref:`Use OpenMP <cmake_configuration>`), the user may provide the number of threads ``NB_THREADS_OPENMP``
-to efficiently access the computer cores. If this parameter is not set, OpenMP computes
-the number of available threads. The evaluations of trial points are dispatched to these threads.
+When OpenMP is available (see :ref:`Use OpenMP <cmake_configuration>`), the user MUST provide the number of threads ``NB_THREADS_OPENMP``
+to efficiently access the computer cores. If this parameter is not set, OpenMP uses a single thread. The evaluations of trial points stored in a queue are dispatched to these threads.
 
 .. _psd_mads:
 
@@ -285,7 +289,7 @@ some user-defined blackbox outputs, called revealing outputs.
 
 The DiscoMads algorith is built on the MADS algorithm with progressive barrier approach [AuDe09a]_ and includes two additional mechanisms:
 
-  `*` revealing hidden constraints or discontinuities: after each backbox evaluation, a revealing mechanism is triggered to check if a discontinuity or a hidden constraint has been revealed.
+  `*` revealing hidden constraints or discontinuities: after each blackbox evaluation, a revealing mechanism is triggered to check if a discontinuity or a hidden constraint has been revealed.
 
   `*` progressively escaping the surrounding regions: an additional blackbox output is automatically added during a run of DiscoMADS to penalize points close to discontinuities or hidden constraints regions.
 
@@ -306,7 +310,7 @@ Discontinuities
 
 To use DiscoMADS to reveal discontinuities in revealing blackbox outputs, set the parameter ``DISCO_MADS_OPTIMIZATION`` to true.
 
-Define revaling output by appending "-R" to the desired output types when using the command ``BB_OUTPUT_TYPE``.
+Define revealing output by appending "-R" to the desired output types when using the command ``BB_OUTPUT_TYPE``.
 
 To define discontinuities (in a weak sense) set the parameters ``DISCO_MADS_DETECTION_RADIUS`` and ``DISCO_MADS_LIMIT_RATE``: if the rate of change of a revealing blackbox ouput between two points at distance less than ``DISCO_MADS_DETECTION_RADIUS`` exceeds the limit rate ``DISCO_MADS_LIMIT_RATE``, then a discontinuity is revealed between the two points.
 

@@ -11,7 +11,8 @@ in a light executable that can define and run optimization for your problem. Con
 mode, this has the disadvantage that a crash within the executable (for example during the evaluation of a point)
 will end the optimization unless a special treatment of exception is provided by the user.
 But, as a counterpart, it offers more options and flexibility for blackbox integration and
-optimization management (display, pre- and post-processing, multiple optimizations, user search, etc.).
+optimization management (display, pre- and post-processing, multiple optimizations, user search, etc.). See examples
+in :ref:`access_to_solution`, :ref:`multiple_runs` and :ref:`callbacks`.
 
 The library mode requires additional coding and compilation before conducting optimization.
 First, we will briefly review the compilation of source code to obtain NOMAD binaries
@@ -336,6 +337,8 @@ For the example, the parameters are set in
 The ``checkAndComply`` function must be called to ensure that parameters are compatible.
 Otherwise an exception is triggered.
 
+.. _access_to_solution:
+
 Access to solution and optimization data
 """"""""""""""""""""""""""""""""""""""""
 
@@ -343,19 +346,71 @@ In the basic example 1, final information is displayed at the end of an algorith
 
 To access the best feasible and infeasible points, use
 
-``NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD, nullptr);``
+``NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);``
 
-``NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD,nullptr);``
+``NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);``
 
-** More stats will be available in future version. **
+To get the run flag of a run (success or type of fail) use the function
+
+``NOMAD::MainStep::getRunFlag()``
+
+The run flag is an integer to indicate the optimization termination status. For example, a run flag 0 corresponds to objective target reached OR Mads converged (mesh criterion) to a feasible point (true problem). The different run flags and their meaning are provided in ``$NOMAD_HOME/src/Algos/MainStep.h``.
+
+It is also possible to have access to the termination reason of the run by calling
+
+``stopReason = TheMainStep.getAllStopReasons()->getStopReasonAsString();``
+
+Where ``stopReason`` is a string.
+
+Detailed success stats are also available
+
+``auto successStats = TheMainStep.getSuccessStats()``
+
+
+.. _multiple_runs:
+
+Multiple runs and fixed variables
+"""""""""""""""""""""""""""""""""
+
+An example of multiple runs of algorithm while changing the fixed variables is provided in ``$NOMAD_HOME/examples/advanced/library/FixedVariable``.
+
+
+.. _callbacks:
+
+Controlling runs with callbacks
+"""""""""""""""""""""""""""""""
+
+Various types of callbacks functions are available to control the unfolding of a run. Callback functions must be added either to a `MainStep` object or the `EvaluatorControl`.
+
+For example, after each iteration, we want to verify if the algorithm should stop or not based on a user defined criterion. To do that, we first need to add ("register") the callback to a `MainStep`
+
+``TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_END, userIterationCallback);``
+
+The first attribute of the function is the type of callback that define when "the calling" must occurs. The second argument is the user defined function
+
+``void userIterationCallback(const NOMAD::Step& step, bool &stop)``
+
+The `stop` is set to true to indicate that the `MainStep` must stop.
+
+This is used in ``$NOMAD_HOME/examples/basic/library/StopOnFTarget`` to implement a stop using a user defined objective target criterion. Other examples of user defined criterions are provided in ``$NOMAD_HOME/examples/advanced/library/``.
+
+In the `StopOnFTarget` example, the callback is called only at the end of an iteration (`MEGA_ITERATION_END`) and several points can be evaluated after reaching the F target. It is possible to stop the run after any evaluation by adding a callback to the 'EvaluatorControl'. An example to stop the run when an evaluation fails is provided in ``$NOMAD_HOME/examples/advanced/library/StopIfBBFails``.
+
 
 Matlab interface
 -----------------
 
+.. note::
+   NOMAD solver and Matlab for blackbox evaluation can be used in combination. There are two ways to perform optimization using objective and constraint function evaluated as Matlab code.
+
+   The simplest way is to start and run Matlab as a blackbox in batch mode to evaluate each given point. An example is provided in ``$NOMAD_HOME/examples/basic/batch/MatlabBB``. Please note that this strategy is practical only for costly Matlab evaluation because of the important overhead time cost due to Matlab start sequence.
+
+   Another way is to build the Matlab MEX interface for NOMAD as described in what follows. Because NOMAD "runs within" a single Matlab, there is no overhead time cost to start Matlab.
+
 .. note:: Building the Matlab MEX interface requires compatibility of the versions of Matlab and the compiler. Check the compatibility at `MathWorks <https://www.mathworks.com/support/requirements/supported-compilers.html>`_.
 
 The Matlab MEX interface allows to run NOMAD within the command line of Matlab.
-Some examples and source codes are provided in ``$NOMAD_HOME/interface/Matlab_MEX``.
+Some examples and source codes are provided in ``$NOMAD_HOME/interfaces/Matlab_MEX``.
 To enable the building of the interface, option ``-DBUILD_INTERFACE_MATLAB=ON`` must be
 set when configuring for building NOMAD, as such: ``cmake -DTEST_OPENMP=OFF -DBUILD_INTERFACE_MATLAB=ON -S . -B build/release``.
 
@@ -371,19 +426,32 @@ All functionalities of NOMAD are available in ``nomadOpt``.
 NOMAD parameters are provided in a Matlab structure with keywords and values using the same syntax as used in the NOMAD parameter
 files. For example, ``params = struct('initial_mesh_size','* 10','MAX_BB_EVAL','100');``
 
+.. note:: More details for Windows are provided in :ref:`guide_matlab_mex`.
 
 
 PyNomad interface
 -----------------
 
-A Python interface for NOMAD called PyNomad can be obtained by building source codes.
-Some examples and source codes are provided in ``$NOMAD_HOME/interfaces/PyNomad``.
+.. note::
+   NOMAD and Python can be used in combination. There are two ways to perform optimization using objective and constraint function evaluated by a Python script.
 
-.. note:: The build procedure relies on Python 3.6 and Cython 0.24 or higher. A simple way to make it work is to first install the `Anaconda <http://www.anaconda.org/>`_ package.
+   The simplest way is to run the Python script as a blackbox in batch mode to evaluate each given point. An example is provided in $NOMAD_HOME/examples/basic/batch/PythonBB.
+
+   Another way is to obtain the Nomad interface for Python (PyNomadBBO or PyNomad for short). Since version 4.4, the PyNomadBBO package can be install from PyPI:
+
+   ``pip install PyNomadBBO``
+
+   PyNomadBBO from PyPI relies on Python3 version 3.8+. We recommend to install PyNomadBBO into a virtual environment.
+
+A Python interface for NOMAD called PyNomad can be obtained by building source codes.
+The source codes and basic tests are provided in ``$NOMAD_HOME/interfaces/PyNomad``. Examples are given in ``$NOMAD_HOME/examples/advanced/library/PyNomad``.
+
+.. note:: The build procedure relies on Python 3.8+, a recent version of Cython, wheel and setuptools. A simple way to have all packages for PyNomad build is work within  an `Anaconda <http://www.anaconda.org/>` environment or a virtual environment.
 
 To enable the building of the Python interface, option ``-DBUILD_INTERFACE_PYTHON=ON`` must be
 set when configuring for building NOMAD. The configuration command ``cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release`` must be performed within a Conda environment with Cython available (``conda activate ...`` or ``activate ...``).
 
+In some situations, the configuration command should be adapted depending on the environment available.
 For Windows, the default Anaconda is Win64. Visual Studio can support both Win32 and Win64 compilations.
 The configuration must be forced to use Win64 with a command such as ``cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release -G"Visual Studio 15 2017 Win64"``.
 The Visual Studio version must be adapted.
@@ -395,8 +463,7 @@ The command ``cmake --install build/release`` must be run before using the PyNom
 All functionalities of NOMAD are available in PyNomad.
 NOMAD parameters are provided in a list of strings using the same syntax as used in the NOMAD parameter
 files.
-Several tests and examples are proposed in the ``PyNomad`` directory to check that everything is up and
-running.
+Some basic tests are available in the ``PyNomad`` directory to check that everything is up and running.
 
 C interface
 -----------

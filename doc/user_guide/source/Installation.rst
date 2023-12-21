@@ -5,9 +5,9 @@ Installation
 
 On Linux, Windows and Mac OS X, NOMAD can be compiled using *CMake*, a tool to manage building of source code.
 
-The minimum version of *CMake* is 3.14. Older versions should trigger an error. *CMake* will detect which compiler is available.
+The minimum version of *CMake* is 3.15. Older versions should trigger an error. *CMake* will detect which compiler is available.
 
-A recent C++ compiler supporting C++14 is also required. The compilation has been tested on Linux with gcc 9.3.0, 10.1.0 and 11.1.0. The compilation has been tested on OSX with gcc Homebrew 9.3.0 and 11.2.0, and also Apple clang version 11.0.3 and 13.0.0. The compilation has been tested on Windows 8 and Windows 10 Enterprise with Microsoft Visual Studio 2019 (cl.exe 19.29.300038.1) and Microsoft Visual Studio 2017.
+A recent C++ compiler supporting C++14 is also required. The compilation has been tested on Linux with gcc 10.1.0, 11.1.0 and 12.2.0. The compilation has been tested on OSX with gcc Homebrew 9.3.0 and 11.2.0, and also Apple clang version 14.0.3. The compilation has been tested on Windows 8 and Windows 10 Enterprise with Microsoft Visual Studio 2019 (cl.exe 19.29.300038.1) and Microsoft Visual Studio 2017.
 
 
 .. warning:: Some older version of *CMake* do not trigger an explicit error on the version number.
@@ -17,11 +17,11 @@ A recent C++ compiler supporting C++14 is also required. The compilation has bee
 
     cmake --version
 
-  **The minimum acceptable version is 3.14.**
+  **The minimum acceptable version is 3.15.**
 
 
 
-.. note:: If the version of *CMake* is older than 3.14 or if you do not have *CMake* installed,
+.. note:: If the version of *CMake* is older than 3.15 or if you do not have *CMake* installed,
    we recommend to install *CMake* using a **package manager**. The other option is to
    follow the procedure given at `cmake.org <https://cmake.org/install/>`_ to obtain binaries.
 
@@ -34,16 +34,14 @@ A recent C++ compiler supporting C++14 is also required. The compilation has bee
 
 The NOMAD installation procedure has the three following steps: **configuration, building and installation**.
 
-.. warning:: Before starting the procedure we recommend to set the environment variable ``$NOMAD_HOME`` with the path where NOMAD has been copied. For Linux and OSX,
+.. warning:: Before starting the procedure we recommend to set the environment variable ``$NOMAD_HOME`` with the path where NOMAD has been copied. For Windows, add an environment variable ``%NOMAD_HOME%`` containing the path. For Linux and OSX,
 
   ::
 
     export NOMAD_HOME=/home/myUserName/PathToNomad
 
-For Windows, add an environment variable ``%NOMAD_HOME%`` containing the path.
 
-
-  The remaining of the documentation uses the ``$NOMAD_HOME`` environment variable.
+.. warning:: The remaining of the documentation uses the ``$NOMAD_HOME`` environment variable.
 
 
 
@@ -61,10 +59,6 @@ On the command line, in the ``$NOMAD_HOME`` directory::
 
 .. sidebar:: Building options
 
-     To enable time stats build::
-
-        cmake -DTIME_STATS=ON -S . -B build/release
-
      To enable C interface building::
 
         cmake -DBUILD_INTERFACE_C=ON -S . -B build/release
@@ -80,6 +74,10 @@ On the command line, in the ``$NOMAD_HOME`` directory::
      To disable *OpenMP* compilation::
 
        cmake -DTEST_OPENMP=OFF -S . -B build/release
+
+     To enable time stats build::
+
+       cmake -DTIME_STATS=ON -S . -B build/release
 
 
 This command creates the files and directories for building (``-B``) in ``build/release``. The source (``-S``) ``CMakeLists.txt`` file is in the ``$NOMAD_HOME`` directory.
@@ -103,7 +101,7 @@ For Windows, the default configuration is Debug. To obtain the Release version::
 
   cmake --build build/release --config Release
 
-Option ``--parallel xx`` can be added for faster build
+Option ``--parallel`` can be added for faster build
 
 It is possible to build only a single application in its working directory::
 
@@ -123,14 +121,14 @@ The executable ``nomad`` will installed into the directory::
 
   $NOMAD_HOME/build/release/bin/
 
-Additionally a symbolic link to ``nomad`` binary is available::
+Additionally, for Linux and OSX only, a symbolic link to ``nomad`` binary is available::
 
   $NOMAD_HOME/bin
 
 
 
-Bulding for debug version
-"""""""""""""""""""""""""
+Building for debug version
+""""""""""""""""""""""""""
 
 The procedure to configure, build and install the ``debug`` version is the following (linux/OSX). On the command line in the ``$NOMAD_HOME`` directory::
 
@@ -160,16 +158,14 @@ Once building **and installation** have been performed some tests can be perform
 
 The NOMAD binary can be tested::
 
-  $NOMAD_HOME/bin/nomad -v
+  $NOMAD_HOME/build/release/bin/nomad -v
 
 This should return the version number on the command line.
 
-By default the examples are built and can be tested::
+By default the examples are built and can be tested (Linux and OSX only)::
 
   cd build/release
   ctest
-
-For Windows, the configuration must be provided: ``ctest -C Release``.
 
 Please note that the tests will take several minutes. Option ``--parallel xx`` can be added for faster execution.
 The log of the tests can be found in ``$NOMAD_HOME/build/release/Testing/Temporary``.
