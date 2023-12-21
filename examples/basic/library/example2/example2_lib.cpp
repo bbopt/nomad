@@ -49,7 +49,7 @@
 
 /*----------------------------------------*/
 /*          A geometric problem           */
-/* Original: min x1^1+...+x^5             */
+/* Original: min x1^2+...+x5^2            */
 /*           st x1+...+x5 = 10            */
 /*              0 <= xi <=5               */
 /* Solution is xi=2                       */
@@ -63,7 +63,7 @@
 /*         x1+...+x4<=10                  */
 /* If constraint is verified              */
 /*   - Pick up   d = 10-(x1+...+x4)       */
-/*   - Compute f=-(x^1+...+x^4^2+d^2)     */
+/*   - Compute f=-(x1^2+...+x^4^2+d^2)    */
 /*   - Count eval                         */
 /* If constraint is not verified          */
 /*   - f=Inf                              */
