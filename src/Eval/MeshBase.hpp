@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -51,8 +51,8 @@
  * \date   November 2017
  */
 
-#ifndef __NOMAD_4_3_MESHBASE__
-#define __NOMAD_4_3_MESHBASE__
+#ifndef __NOMAD_4_4_MESHBASE__
+#define __NOMAD_4_4_MESHBASE__
 
 #include <memory>   // for shared_ptr
 
@@ -315,4 +315,4 @@ DLL_EVAL_API std::istream& operator>>(std::istream& is, MeshBase& mesh);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_MESHBASE__
+#endif // __NOMAD_4_4_MESHBASE__

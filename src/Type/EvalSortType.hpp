@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
  \see    EvalSortType.cpp
  */
 
-#ifndef __NOMAD_4_3_EVAL_SORT_TYPE__
-#define __NOMAD_4_3_EVAL_SORT_TYPE__
+#ifndef __NOMAD_4_4_EVAL_SORT_TYPE__
+#define __NOMAD_4_4_EVAL_SORT_TYPE__
 
 #include <sstream>
 
@@ -87,4 +87,4 @@ inline std::ostream& operator<<(std::ostream& out, EvalSortType evalSortType)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_3_EVAL_SORT_TYPE__
+#endif  // __NOMAD_4_4_EVAL_SORT_TYPE__

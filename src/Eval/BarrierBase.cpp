@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -118,6 +118,7 @@ void NOMAD::BarrierBase::clearXFeas()
 void NOMAD::BarrierBase::clearXInf()
 {
     _xInf.clear();
+    _xIncInf.clear();
 }
 
 std::vector<NOMAD::EvalPoint> NOMAD::BarrierBase::getAllPoints() const
@@ -148,13 +149,25 @@ std::vector<NOMAD::EvalPointPtr> NOMAD::BarrierBase::getAllPointsPtr() const
 
 const NOMAD::EvalPointPtr NOMAD::BarrierBase::getFirstPoint() const
 {
-    if (_xFeas.size() > 0)
+    if (_xIncFeas.size() > 0)
+    {
+        return _xIncFeas[0];
+    }
+    else if (_xFeas.size() > 0)
     {
         return _xFeas[0];
     }
-    else
+    else if (_xIncInf.size() > 0)
+    {
+        return _xIncInf[0];
+    }
+    else if (_xInf.size() > 0 )
     {
         return _xInf[0];
+    }
+    else
+    {
+        return nullptr;
     }
 }
 
@@ -222,8 +235,7 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::BarrierBase& barrier)
         }
     }
     
-    barrier.updateWithPoints(evalPointList,NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
-    barrier.setHMax(hMax);
+    barrier.updateWithPoints(evalPointList,NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, false, true /* true: update incumbents and hMax */);
     return is;
 }
 
@@ -263,3 +275,53 @@ bool NOMAD::BarrierBase::findPoint(const NOMAD::Point& point,
     return found;
 }
 
+void NOMAD::BarrierBase::checkXInf(const NOMAD::EvalPoint &xInf, NOMAD::EvalType evalType)
+{
+    // If evalType is UNDEFINED, skip this check.
+    if (NOMAD::EvalType::UNDEFINED != evalType)
+    {
+        if (nullptr == xInf.getEval(evalType))
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__,
+                                   "Barrier: xInf must be evaluated before being set.");
+        }
+    }
+}
+
+
+void NOMAD::BarrierBase::checkXFeas(const NOMAD::EvalPoint &xFeas,
+                                    NOMAD::EvalType  evalType,
+                                    NOMAD::ComputeType computeType)
+{
+    // If evalType is UNDEFINED, skip this check.
+    if (NOMAD::EvalType::UNDEFINED != evalType)
+    {
+        if (nullptr == xFeas.getEval(evalType))
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__,
+                                "Barrier: xFeas must be evaluated before being set.");
+        }
+        checkXFeasIsFeas(xFeas, evalType, computeType);
+    }
+}
+
+
+void NOMAD::BarrierBase::checkXFeasIsFeas(const NOMAD::EvalPoint &xFeas,
+                                          NOMAD::EvalType  evalType,
+                                          NOMAD::ComputeType computeType)
+{
+    // If evalType is UNDEFINED, skip this check.
+    if (NOMAD::EvalType::UNDEFINED != evalType)
+    {
+        auto eval = xFeas.getEval(evalType);
+        if (nullptr != eval && NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
+        {
+            NOMAD::Double h = eval->getH(computeType);
+            if (!h.isDefined() || 0.0 != h)
+            {
+                std::string err = "Error: Barrier: xFeas' h value must be 0.0, got: " + h.display();
+                throw NOMAD::Exception(__FILE__,__LINE__,err);
+            }
+        }
+    }
+}

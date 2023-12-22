@@ -83,6 +83,27 @@ NOMAD::Double
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
+SEARCH_METHOD_MESH_PROJECTION
+bool
+true
+\( Projection on mesh for trial points from a search method \)
+\(
+
+. Flag to project on mesh search methods trial points.
+
+. Disabling mesh projection breaks Mads theory.
+
+. Need mesh projection if some variables are granular.
+
+. Argument: bool
+
+. Example: SEARCH_METHOD_MESH_PROJECTION false
+
+\)
+\( advanced mads mesh search projection project trial points \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
 DIRECTION_TYPE
 NOMAD::DirectionTypeList
 ORTHO N+1 QUAD
@@ -140,6 +161,64 @@ ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 UNIQUE_ENTRY no
 ################################################################################
+TRIAL_POINT_MAX_ADD_UP
+size_t
+0
+\( Max number of trial points \)
+\(
+. Complete the trial points obtained from the primary and secondary poll
+  directions to reached the given target number.
+  
+. D
+
+. Added trial points are obtained by repeating SINGLE direction
+ (see DIRECTION_TYPE) trial point creation.
+
+. If the number is not increased by a adding a SINGLE direction we stop adding.
+
+. When the number of trial points obtained from poll directions (primary and
+  secondary) is above the given target nothing is done.
+  
+. This strategy can be used to complete the number of trial points in a block
+  (see BB_MAX_BLOCK_SIZE). In this case, both attributes can have the same value.
+
+. Arguments: size_t
+
+. Example:
+    . DIMENSION 2
+    . DIRECTION_TYPE ORTHO N+1 NEG
+    . BB_MAX_BLOCK_SIZE 10
+    . TRIAL_POINT_MAX_ADD_UP 10
+
+. See also: DIRECTION_TYPE BB_MAX_BLOCK_SIZE 
+
+\)
+\( advanced poll direction primary secondary block parallel \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+UNIQUE_ENTRY yes
+################################################################################
+ORTHO_MESH_REFINE_FREQ
+size_t
+1
+\( Control mesh refinement frequency \)
+\(
+. When mesh refinement is called, perform it once every given frequency value.
+
+. Frequency value below 1 has no effect. Increase frequency value to prevent
+  the mesh to collapse to quickly when the cone of progress directions is narrow.
+
+. Arguments: size_t
+
+. Examples:
+    . ORTHO_MESH_REFINE_FREQ 10
+
+\)
+\( advanced mesh refine refinement ortho \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+UNIQUE_ENTRY no
+################################################################################
 DMULTIMADS_OPTIMIZATION
 bool
 false
@@ -152,14 +231,14 @@ must be explicitly enabled.
 . Note: It is recommended to output all evaluation points into a file (use
 HISTORY_FILE). The user must do some post-processing for these results to obtain
  the approximation of the pareto front. Future version will have the option
- to output the pareto front in a file.
+ to output th``$NOMAD_HOME/doc/doxygen``e pareto front in a file.
 
 . Argument: bool
 
 . Example: DMULTIMADS_OPTIMIZATION true
 
 \)
-\( advanced multi objective(s) bi algorithm pareto front \)
+\( advanced multi objective bi algorithm pareto front \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
@@ -347,12 +426,14 @@ RESTART_ATTRIBUTE yes
 ################################################################################
 NB_THREADS_OPENMP
 int
--1
+1
 \( The number of threads when OpenMP parallel evaluations
 are enabled \)
 \(
 
 . Set the number of threads to be used by OpenMP.
+
+. Default is to use a single thread.
 
 . Argument: One positive integer, or -1. A value of -1 means OpenMP decides
   by itself.
@@ -419,6 +500,27 @@ int
 
 \)
 \( advanced seed(s) random number run \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SIMPLE_LINE_SEARCH
+bool
+false
+\( MADS simple line search method complement speculative search \)
+\(
+
+. A line search method that add a point after unsuccessful speculative
+search.The direction of last success is used for each frame center. Three points
+are considered to build a quadratic model of the objective along this direction.
+The minimum of the quadratic is used to construct a new point. Done if all three
+points are feasible.
+
+. Argument: one boolean ('yes' or 'no')
+
+. Example: SIMPLE_LINE_SEARCH yes
+
+\)
+\( basic mads search speculative line \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################

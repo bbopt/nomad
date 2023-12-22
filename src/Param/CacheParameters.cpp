@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -100,7 +100,7 @@ void NOMAD::CacheParameters::checkAndComply( std::shared_ptr<NOMAD::RunParameter
         if (cacheFileName.empty())
         {
             cacheFileName = "cache.txt";
-            std::cerr << "Warning: " << ((hotRestartWrite) ? "HOT_RESTART_WRITE_FILES" : "HOT_RESTART_READ_FILES") << " is set. CACHE_FILE set to \"" << cacheFileName << "\"" << std::endl;
+            std::cout << "Warning: " << ((hotRestartWrite) ? "HOT_RESTART_WRITE_FILES" : "HOT_RESTART_READ_FILES") << " is set. CACHE_FILE set to \"" << cacheFileName << "\"" << std::endl;
 
             NOMAD::completeFileName(cacheFileName, problemDir);
             setAttributeValue("CACHE_FILE", cacheFileName);

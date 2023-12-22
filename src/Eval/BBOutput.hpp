@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -53,8 +53,8 @@
  */
 
 
-#ifndef __NOMAD_4_3_BB_OUTPUT__
-#define __NOMAD_4_3_BB_OUTPUT__
+#ifndef __NOMAD_4_4_BB_OUTPUT__
+#define __NOMAD_4_4_BB_OUTPUT__
 
 #include "../Type/BBOutputType.hpp"
 #include "../Math/ArrayOfDouble.hpp"
@@ -119,6 +119,14 @@ public:
      \return                The constraints as an array of values.
      */
     ArrayOfDouble getConstraints(const BBOutputTypeList &bbOutputType) const;
+    
+
+    /// Get the user extra outputs from raw blackbox evaluation
+    /**
+     \param bbOutputType    The list of blackbox output types -- \b IN.
+     \return                The extra outputs as a ArrayOfDouble
+     */
+    ArrayOfDouble getExtraOutputs(const BBOutputTypeList &bbOutputType) const;
 
     /// Set each blackbox output separately from a string.
     /**
@@ -179,4 +187,4 @@ DLL_EVAL_API std::istream& operator>>(std::istream& is, BBOutput &bbo);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_3_BB_OUTPUT__
+#endif // __NOMAD_4_4_BB_OUTPUT__

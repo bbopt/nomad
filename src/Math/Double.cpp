@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -1035,9 +1035,13 @@ const NOMAD::Double NOMAD::Double::nextMult(const NOMAD::Double &granularity) co
         {
             granMult++;
         }
-        double bigGranExp = pow(10, granularity.nbDecimals());
-        int bigGran = (int)(granularity.todouble() * bigGranExp);
-        d = granMult * bigGran / bigGranExp;
+        d = granMult*granularity;
+
+        if (! d.isMultipleOf(granularity))
+        {
+            throw NOMAD::Double::InvalidValue ( "Double.cpp" , __LINE__ ,
+                                                "NOMAD::Double::nextMult(gran): cannot get a multiple of granularity" );
+        }
     }
 
     return d;

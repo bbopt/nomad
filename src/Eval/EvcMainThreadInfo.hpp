@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
  \see    EvcMainThreadInfo.cpp
  */
 
-#ifndef __NOMAD_4_3_EVCMAINTHREADINFO__
-#define __NOMAD_4_3_EVCMAINTHREADINFO__
+#ifndef __NOMAD_4_4_EVCMAINTHREADINFO__
+#define __NOMAD_4_4_EVCMAINTHREADINFO__
 
 #include <atomic>   // for atomic
 
@@ -73,7 +73,7 @@ class EvcMainThreadInfo
 private:
     std::vector<EvaluatorPtr>      _evaluators;         ///< The Evaluators for either blackbox, surrogate or model evaluations.
     
-    EvaluatorPtr                   _currentEvaluator;
+    EvalType                       _currentEvaluatorType;  ///< Current evaluator type MAY NOT correspond to an element of _evaluators. This triggers an error only when call calling getCurrentEvaluator()
 
     
     const std::unique_ptr<EvaluatorControlParameters> _evalContParams;  ///< The parameters controlling the behavior of EvaluatorControl for this main thread
@@ -95,14 +95,24 @@ private:
     
     // For convenience. See getCurrentBBOutputTypeList function.
     BBOutputTypeList _emptyBBOutputTypeList;
+    
+    EvalSortType _evalSortType;
+    
+    bool _evalOpportunistic;
 
+    bool _useCache;
+    
+    size_t _subPbMaxBBEval;
+    
+    bool _evalSurrogateOptimization;
+    
 public:
     /// Constructor
     /**
      \param evalContParams  The parameters controlling how the EvaluatorControl behaves for this main thread-- \b IN.
      */
     explicit EvcMainThreadInfo(std::unique_ptr<EvaluatorControlParameters> evalContParams)
-      :_currentEvaluator(nullptr),
+      :_currentEvaluatorType(NOMAD::EvalType::UNDEFINED),
         _evalContParams(std::move(evalContParams)),
         _nbPointsInQueue(0),
         _doneWithEval(false),
@@ -120,7 +130,9 @@ public:
         _lastSuccessfulInfDir(nullptr),
         _stopReason()
     {
+        init();
     }
+    
 
     /// Test if evalType evaluator exists in _evaluators.
     /**
@@ -128,11 +140,12 @@ public:
      */
     bool hasEvaluator(EvalType evalType ) const;
     
-    /// Select current evaluator from evaluator type.
+    /// Select current evaluator type.
+    /// NOTE: The evaluator MAY NOT have been added yet
     /**
      \param evalType       The evaluator type (real blackbox, surrogate blackbox or model evaluations)-- \b IN.
      */
-    void selectCurrentEvaluator(EvalType evalType );
+    void setCurrentEvaluatorType(EvalType evalType ) { _currentEvaluatorType = evalType ; }
     
     /// Set the evaluator from a given evaluator
     /*
@@ -144,11 +157,11 @@ public:
     void addEvaluator(EvaluatorPtr evaluator );
 
     const Evaluator* getEvaluator(EvalType evalType)
-    { selectCurrentEvaluator(evalType) ; return _currentEvaluator.get() ; }
-    const Evaluator* getCurrentEvaluator() { return _currentEvaluator.get(); }
-    std::shared_ptr<EvalParameters> getCurrentEvalParams() const;
-    const BBOutputTypeList & getCurrentBBOutputTypeList() const;
-    EvalType getCurrentEvalType() const;
+    { setCurrentEvaluatorType(evalType) ; return getCurrentEvaluator() ; }
+    const Evaluator* getCurrentEvaluator() const ;
+    std::shared_ptr<EvalParameters> getCurrentEvalParams() const { return getCurrentEvaluator()->getEvalParams(); }
+    const BBOutputTypeList & getCurrentBBOutputTypeList() const { return getCurrentEvaluator()->getBBOutputTypeList(); }
+    EvalType getCurrentEvalType() const { return _currentEvaluatorType ; }
 
     size_t getNbPointsInQueue() const { return _nbPointsInQueue; }
     void incNbPointsInQueue();
@@ -159,15 +172,15 @@ public:
     void setDoneWithEval(const bool doneWithEval) { _doneWithEval = doneWithEval; }
 
     // Get and set parameters
-    EvalSortType getEvalSortType() const;
+    EvalSortType getEvalSortType() const { return _evalSortType; }
     void setEvalSortType(EvalSortType evalSortType);
-    bool getOpportunisticEval() const;
+    bool getOpportunisticEval() const { return _evalOpportunistic; }
     void setOpportunisticEval(const bool opportunisticEval);
-    bool getUseCache() const;
+    bool getUseCache() const { return _useCache; }
     void setUseCache(const bool useCache);
-    size_t getMaxBbEvalInSubproblem() const;
+    size_t getMaxBbEvalInSubproblem() const { return _subPbMaxBBEval; }
     void setMaxBbEvalInSubproblem(const size_t maxBbEval);
-    bool getSurrogateOptimization() const;
+    bool getSurrogateOptimization() const { return _evalSurrogateOptimization; }
     void setSurrogateOptimization(const bool surrogateOptimization);
 
     // Get and set counters
@@ -217,10 +230,13 @@ public:
     std::string getStopReasonAsString() const { return _stopReason.getStopReasonAsString(); }
     bool testIf(const EvalMainThreadStopType& s) const { return s == _stopReason.get(); }
     bool checkEvalTerminate() const { return _stopReason.checkTerminate(); }
+    
+private:
+    void init();
 
 };
 
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_EVCMAINTHREADINFO__
+#endif // __NOMAD_4_4_EVCMAINTHREADINFO__

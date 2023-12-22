@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -66,14 +66,14 @@ void NOMAD::NMMegaIteration::init()
 void NOMAD::NMMegaIteration::startImp()
 {
     // Create a Nelder Mead iteration for a simplex center.
-    // Use xFeas or xInf if XFeas is not available.
+    // Use xIncFeas or xIncInf if XIncFeas is not available.
     // During NM we use a single iteration object with several start, run, end for the various iterations of the algorithm.
 
     if ( ! _stopReasons->checkTerminate() )
     {
         // MegaIteration's barrier member is already in sub dimension.
-        auto bestXFeas = _barrier->getFirstXFeas();
-        auto bestXInf  = _barrier->getFirstXInf();
+        auto bestXFeas = _barrier->getCurrentIncumbentFeas();
+        auto bestXInf  = _barrier->getCurrentIncumbentInf();
 
         // Note: getParentOfType with argument "false" gets over the "Algorithm" parents.
         // Here, we are looking for a MegaIteration which would be ancestor of
@@ -202,7 +202,7 @@ void NOMAD::NMMegaIteration::read(  std::istream& is )
             else
             {
                 std::string err = "Error: Reading a Barrier onto a NULL pointer";
-                std::cerr << err;
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
             }
         }
         else

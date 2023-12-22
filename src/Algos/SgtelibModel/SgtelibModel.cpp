@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,7 +52,7 @@
 #include "../../Algos/SgtelibModel/SgtelibModelMegaIteration.hpp"
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Cache/CacheBase.hpp"
-#include "../../Eval/Barrier.hpp"
+#include "../../Eval/ProgressiveBarrier.hpp"
 #include "../../Eval/ComputeSuccessType.hpp"
 #include "../../Output/OutputQueue.hpp"
 
@@ -312,7 +312,7 @@ bool NOMAD::SgtelibModel::runImp()
 
     if (!_termination->terminate(k))
     {
-        // Barrier constructor automatically finds the best points in the cache.
+        // ProgressiveBarrier constructor automatically finds the best points in the cache.
         // This barrier is not the same as the _barrierForX0s member, which
         // is used for model optimization.
         // This barrier is used for MegaIteration management.
@@ -320,7 +320,7 @@ bool NOMAD::SgtelibModel::runImp()
         if (nullptr == barrier)
         {
             auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-            barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
+            barrier = std::make_shared<NOMAD::ProgressiveBarrier>(hMax, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
                                                        NOMAD::EvalType::BB,
                                                        NOMAD::EvcInterface::getEvaluatorControl()->getComputeType());
         }
@@ -433,7 +433,7 @@ size_t NOMAD::SgtelibModel::getNbModels(const NOMAD::SgtelibModelFeasibilityType
             nbModels = 2;
             break;
         case NOMAD::SgtelibModelFeasibilityType::UNDEFINED:
-            std::cerr << "UNDEFINED SGTELIB_MODEL_FEASIBILITY" << std::endl;
+            throw SGTELIB::Exception(__FILE__, __LINE__, "SgtelibModel: UNDEFINED SGTELIB_MODEL_FEASIBILITY");
             break;
     }
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -50,6 +50,7 @@
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Output/OutputQueue.hpp"
 
+#include "../../Algos/Mads/Search.hpp"
 
 const NOMAD::Double deltaR = 1;
 
@@ -57,10 +58,18 @@ void NOMAD::NMReflective::init()
 {
     _currentStepType = _nextStepType = NOMAD::StepType::NM_UNSET;
 
-    _deltaE = _runParams->getAttributeValue<NOMAD::Double>("NM_DELTA_E");
-    _deltaIC = _runParams->getAttributeValue<NOMAD::Double>("NM_DELTA_IC");
-    _deltaOC = _runParams->getAttributeValue<NOMAD::Double>("NM_DELTA_OC");
-
+    // The pb params handle only variables (fixed variables are not considered)
+    if (nullptr != _pbParams)
+    {
+        _n = _pbParams->getAttributeValue<size_t>("DIMENSION");
+        
+        _lb = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
+        _ub = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
+        
+        _deltaE = _runParams->getAttributeValue<NOMAD::Double>("NM_DELTA_E");
+        _deltaIC = _runParams->getAttributeValue<NOMAD::Double>("NM_DELTA_IC");
+        _deltaOC = _runParams->getAttributeValue<NOMAD::Double>("NM_DELTA_OC");
+    }
 
     if ( _deltaE <= 1 )
         throw NOMAD::Exception(__FILE__,__LINE__,"Delta value deltaE not compatible with expansion");
@@ -74,7 +83,7 @@ void NOMAD::NMReflective::init()
     auto nmOptimization = _runParams->getAttributeValue<bool>("NM_OPTIMIZATION");
     auto nmSearchRankEps = _runParams->getAttributeValue<NOMAD::Double>("NM_SEARCH_RANK_EPS");
     _rankEps = ( nmOptimization ) ? NOMAD::DEFAULT_EPSILON:nmSearchRankEps;
-
+    
     verifyParentNotNull();
 }
 
@@ -118,7 +127,7 @@ void NOMAD::NMReflective::startImp()
 
     if (_iterAncestor->getMesh())
     {
-        if (!verifyPointsAreOnMesh(getName()))
+        if (_projectOnMesh && !verifyPointsAreOnMesh(getName()))
         {
             OUTPUT_INFO_START
             AddOutputInfo("At least one trial point is not on mesh. May need investigation if this happens too often.");
@@ -174,11 +183,10 @@ bool NOMAD::NMReflective::runImp()
 
 void NOMAD::NMReflective::generateTrialPointsImp()
 {
-    // The pb params handle only variables (fixed variables are not considered)
-    size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
+
 
     // The size of simplex must be large enough to perform reflexion
-    size_t minYSize = n + 1;
+    size_t minYSize = _n + 1;
     size_t YSize = _nmY->size();
     if ( YSize < minYSize )
     {
@@ -200,18 +208,18 @@ void NOMAD::NMReflective::generateTrialPointsImp()
     std::set<NOMAD::EvalPoint>::iterator itBeforeEnd = _nmY->end();
     --itBeforeEnd;
     int i=0;
-    NOMAD::Point yc(n,0);
+    NOMAD::Point yc(_n,0);
     for (it = _nmY->begin() ; it != itBeforeEnd ; ++it, i++)
     {
         OUTPUT_INFO_START
         AddOutputInfo("y" + std::to_string(i) + ": " + (*it).display() );
         OUTPUT_INFO_END
-        for (size_t k = 0 ; k < n ; ++k )
+        for (size_t k = 0 ; k < _n ; ++k )
         {
             yc[k] += (*it)[k];
         }
     }
-    yc *= 1.0/n;
+    yc *= 1.0/_n;
 
     const NOMAD::Point & yn = *itBeforeEnd;
     OUTPUT_INFO_START
@@ -219,16 +227,16 @@ void NOMAD::NMReflective::generateTrialPointsImp()
     AddOutputInfo("yc: " + yc.display() );
     OUTPUT_INFO_END
 
-    NOMAD::Point d(n,0);
-    for (size_t k = 0 ; k < n ; ++k )
+    NOMAD::Point d(_n,0);
+    for (size_t k = 0 ; k < _n ; ++k )
     {
         d[k] = yc[k]-yn[k];
     }
     d *= _delta;
 
     // Creation of point
-    NOMAD::EvalPoint xt(n);
-    for (size_t k = 0 ; k < n ; ++k )
+    NOMAD::EvalPoint xt(_n);
+    for (size_t k = 0 ; k < _n ; ++k )
     {
         xt[k] = yc[k] + d[k];
     }
@@ -240,10 +248,7 @@ void NOMAD::NMReflective::generateTrialPointsImp()
         xt.setPointFrom(pointFrom, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
     }
 
-    auto lb = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
-    auto ub = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
-
-    if (snapPointToBoundsAndProjectOnMesh(xt, lb, ub))
+    if (snapPointToBoundsAndProjectOnMesh(xt, _lb, _ub))
     {
         xt.addGenStep(getStepType());
         bool inserted = insertTrialPoint(xt);

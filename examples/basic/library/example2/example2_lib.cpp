@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -48,7 +48,28 @@
 #include "Nomad/nomad.hpp"
 
 /*----------------------------------------*/
-/*               The problem              */
+/*          A geometric problem           */
+/* Original: min x1^2+...+x5^2            */
+/*           st x1+...+x5 = 10            */
+/*              0 <= xi <=5               */
+/* Solution is xi=2                       */
+/* Recall that Nomad cannot manage        */
+/* equality constraint.                   */
+/*                                        */
+/* Modified problem:                      */
+/* Geometric constraint x1+...+d=5        */
+/* Pb dimension is set to n=4             */
+/* Set an inequality constraint:          */
+/*         x1+...+x4<=10                  */
+/* If constraint is verified              */
+/*   - Pick up   d = 10-(x1+...+x4)       */
+/*   - Compute f=-(x1^2+...+x^4^2+d^2)    */
+/*   - Count eval                         */
+/* If constraint is not verified          */
+/*   - f=Inf                              */
+/*   - Constraint is EB constraint        */
+/*   - Geometric constraint is not costly */
+/*   - Do not count eval                  */
 /*----------------------------------------*/
 class My_Evaluator : public NOMAD::Evaluator
 {
@@ -64,40 +85,44 @@ public:
         size_t n = x.size();
 
         NOMAD::Double f = 0.0;  // Objective value
-        NOMAD::Double c1 = 0.0; // Constraint 1
-        NOMAD::Double c2 = 0.0; // Constraint 2
+        NOMAD::Double s1 = 0; // Sum of x1,...,x4
+        NOMAD::Double c1 = 0.0; // Constraint 1 -> geometric constraint
 
         try
         {
+            
             for (size_t i = 0; i < n; i++)
             {
-                NOMAD::Double xi = x[i];
-                c1 += (xi-1).pow2();
-                c2 += (xi+1).pow2();
+                // Let's suppose this geometric constraint is not costly to compute but f is!
+                s1 += x[i];
+                if (s1 > 10)
+                {
+                    c1 = s1;
+                    std::string bbo = f.tostring() + " " + c1.tostring(); // f is not really computed. But the point is infeasible and we handle the constraint with EB, so it does not matter. The point is simply discarded.
+                    
+                    x.setBBO(bbo);
+                    countEval = false; // DO NOT count as a blackbox evaluation when geometric constraint is not verified
+                    
+                    // the evaluation succeeded
+                    return true;
+                }
+                
             }
-            c1 = c1-25;
-            c2 = 25-c2;
-            if (c1*c1 + c2*c2 > hMax)
-            {
-                // Does not count as an evaluation.
-                // This can be useful in case the constraints take less time
-                // to compute than the function itself.
-                countEval = false;
-                std::string bbo = f.tostring() + " " + c1.tostring() + " " + c2.tostring();
 
-                // Simple way to set the BBO
-                x.setBBO(bbo);
-                // This way to set BBO maybe slightly faster
-                // x.setBBO(bbo, _bbOutputTypeList, _evalType);
-            }
-            else
+            if (s1 <= 10)
             {
-                f = x[n-1];
-                std::string bbo = f.tostring() + " " + c1.tostring() + " " + c2.tostring();
+                c1 = s1 - 10 ; // if s1 <= 10 we can get x1+...+x4 - 10 <= 0 -> Feasible !
+                NOMAD::Double d = 10.0 - s1; // With this value of d, we have x1+...+x4+d = 10
+                
+                // Compute the objective. Let's pretend it is costly!
+                f =  d*d;
+                for (size_t i = 0; i < n; i++)
+                {
+                    f += x[i]*x[i];
+                }
+                std::string bbo = f.tostring() + " " + c1.tostring() ;
                 // Simple way to set the BBO
                 x.setBBO(bbo);
-                // This way to set BBO maybe slightly faster
-                // x.setBBO(bbo, _bbOutputTypeList, _evalType);
                 countEval = true; // count a black-box evaluation
             }
         }
@@ -116,33 +141,23 @@ public:
 void initParams(NOMAD::AllParameters &p)
 {
     // parameters creation
-    size_t n = 5;   // Number of variables
-    p.getPbParams()->setAttributeValue("DIMENSION", n);
-    p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ PB PB"));
+    size_t n = 4;   // Number of variables of the modified problem
+    p.setAttributeValue("DIMENSION", n);
+    p.setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ EB")); // EB constraint: If a point is infeasible it is simply discarded. F (costly part) is not computed. 
 
-    p.getPbParams()->setAttributeValue("X0", NOMAD::Point(n,0.0));  // starting point (0.0 0.0 0.0 0.0 0.0)
-    p.getPbParams()->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, -6.0)); // all var. >= -6
-    NOMAD::ArrayOfDouble ub(n);     // x_4 and x_5 have no bounds
-    ub[0] = 5.0;                    // x_1 <= 5
-    ub[1] = 6.0;                    // x_2 <= 6
-    ub[2] = 7.0;                    // x_3 <= 7
-    p.getPbParams()->setAttributeValue("UPPER_BOUND", ub);
-    NOMAD::ArrayOfDouble granularity(n, 10e-2);
-    p.getPbParams()->setAttributeValue("GRANULARITY", granularity);
+    p.setAttributeValue("X0", NOMAD::Point(n,5.0));  // starting point (0.0 0.0 0.0 0.0 0.0)
+    p.setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, 0.0)); // all var. >= 0
+    p.setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(n, 5.0)); // all var. >= 0);
 
     // the algorithm terminates after 100 black-box evaluations,
-    // or 100 total evaluations, including cache hits and evalutions for
+    // or 10000 total evaluations, including cache hits and evalutions for
     // which countEval was false.
-    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_BB_EVAL", 100);
-    p.getEvaluatorControlGlobalParams()->setAttributeValue("MAX_EVAL", 200);
+    p.setAttributeValue("MAX_BB_EVAL", 200);
+    p.setAttributeValue("MAX_EVAL", 10000);
 
-    p.getRunParams()->setAttributeValue("H_MAX_0", NOMAD::Double(10000000));
-
-    p.getDispParams()->setAttributeValue("DISPLAY_DEGREE", 2);
-    p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL ( SOL ) OBJ CONS_H H_MAX"));
-
-    p.getRunParams()->setAttributeValue("HOT_RESTART_READ_FILES", false);
-    p.getRunParams()->setAttributeValue("HOT_RESTART_WRITE_FILES", false);
+    p.setAttributeValue("DISPLAY_DEGREE", 2);
+    p.setAttributeValue("DISPLAY_ALL_EVAL", true);
+    p.setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("EVAL ( SOL ) OBJ CONS_H"));
 
     // parameters validation
     p.checkAndComply();

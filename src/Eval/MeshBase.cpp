@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -238,7 +238,8 @@ void NOMAD::MeshBase::setLimitMeshIndices(int limitMinMeshIndex, int limitMaxMes
 {
     _limitMaxMeshIndex = limitMaxMeshIndex;
     _limitMinMeshIndex = limitMinMeshIndex;
-    
+
+
     // Not yet defined for MeshBase.
     throw NOMAD::Exception(__FILE__, __LINE__, "setLimitMeshIndices not yet implemented.");
     

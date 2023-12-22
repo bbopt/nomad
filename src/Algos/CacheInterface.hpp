@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_3_CACHEINTERFACE__
-#define __NOMAD_4_3_CACHEINTERFACE__
+#ifndef __NOMAD_4_4_CACHEINTERFACE__
+#define __NOMAD_4_4_CACHEINTERFACE__
 
 #include "Step.hpp"
 
@@ -83,28 +83,27 @@ public:
      \param evalPointList  The found evaluation points -- \b OUT.
      \param evalType             Criterion for EvalType -- \b IN.
      \param computeType      Criterion for ComputType    -- \b IN.
-     \param refeval               The point of reference                                      -- \b IN.
      \return              Number of points found
      */
     size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
                         EvalType  evalType,
-                        ComputeType computeType,
-                        const Eval* refeval) const;
+                        ComputeType computeType) const;
 
-    /// Find best infeasible point(s) in cache
+    /// Find best infeasible points in cache with h<=hmax:
+    ///  -> index 0 and above if doublons, least infeasible point with smallest f
+    ///  -> last index and below if doublons, best f with smallest h
+    /// All best f points have the same bboutputs. Idem for the least infeasible points.
     /**
      \param evalPointList   The found evaluation points -- \b OUT.
      \param hMax                       Points' h value must be under this value -- \b IN.
      \param evalType              Points' EvalType to look at -- \b IN.
      \param computeType       Points' ComputType to look at    -- \b IN.
-     \param refeval                The point of reference                   -- \b IN.
      \return                 Number of points found
      */
     size_t findBestInf(std::vector<EvalPoint> &evalPointList,
                        const Double& hMax,
                        EvalType  evalType,
-                       ComputeType computeType,
-                       const Eval* refeval) const;
+                       ComputeType computeType) const;
 
     /// Interface for CacheBase::smartInsert.
     /**
@@ -157,4 +156,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_CACHEINTERFACE__
+#endif // __NOMAD_4_4_CACHEINTERFACE__

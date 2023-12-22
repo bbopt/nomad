@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_3_EVCINTERFACE__
-#define __NOMAD_4_3_EVCINTERFACE__
+#ifndef __NOMAD_4_4_EVCINTERFACE__
+#define __NOMAD_4_4_EVCINTERFACE__
 
 #include "../Algos/Step.hpp"
 #include "../Eval/EvaluatorControl.hpp"
@@ -93,6 +93,7 @@ public:
     static void resetEvaluatorControl()
     {
         _evaluatorControl.reset();
+        NOMAD::EvaluatorControl::resetCallbacks();
     }
 
     /**
@@ -102,18 +103,10 @@ public:
 
     /// Interface for EvaluatorControl::setBarrier.
     /**
-     Transform from subBarrier to fullBarrier, that is transform points in sub-space to full-space.
-     Set the barrier to a full space barrier.
+     Set the barrier. Can be a full space or subspace barrier. Evaluator control cares only of outputs for detecting success.
      */
     void setBarrier(const std::shared_ptr<BarrierBase> subBarrier);
 
-    /// Look for a point in the EvaluatorControl Barrier.
-    /**
-      \param x -- IN
-      \param evalPoint -- OUT
-      \return \c true if point was found, \c false otherwise
-     */
-    bool findInBarrier(const Point& x, EvalPoint &evalPoint) const;
 
     /// Get all evaluated points
     /**
@@ -132,10 +125,31 @@ public:
      *  If it is, count a cache hit.
      *  If not, convert it to an EvalQueuePoint and add it to EvaluatorControl's Queue.
 
-     \param trialPoints The trial points -- \b IN/OUT.
+     \param trialPoints The trial points -- \b IN.
      \param useMesh     Flag to use mesh or not -- \b IN.
      */
     void keepPointsThatNeedEval(const EvalPointSet &trialPoints, bool useMesh = true);
+    
+    
+    // This method is used by Poll to calculate the number of points to add to reach a target number
+    /**
+     *  For each point, look if it is in the cache.
+     *  If not, count it but DO NOT add it to EvaluatorControl's Queue.
+
+     \param trialPoints The trial points to consider-- \b IN.
+     \return number of trial points that would need to be evaluated
+     */
+    size_t countPointsThatNeedEval(const EvalPointSet &trialPoints);
+    
+    
+    /**
+     *  For each point, look if it is in the cache.
+     *  If it is, return it.
+
+     \param trialPoints The trial points -- \b IN.
+     \return vector of evaluated points from cache.
+     */
+    std::vector<EvalPoint> retrieveEvaluatedPointsFromCache(const EvalPointSet &trialPoints);
     
     // Possible refactoring to prevent code duplication.
     /**
@@ -188,4 +202,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_EVCINTERFACE__
+#endif // __NOMAD_4_4_EVCINTERFACE__

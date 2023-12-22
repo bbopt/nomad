@@ -267,7 +267,10 @@ string
 \( The name of the file for stats about evaluations and successes \)
 \(
 
-. File containing overall stats information about number of evaluations and successes
+. File containing overall stats information about number of evaluations and
+successes.
+
+. If NOMAD is built with TIME_STATS enabled, provide detailed time stats.
 
 . Arguments: one string for the file name
 
@@ -277,7 +280,7 @@ string
 . Example: EVAL_STATS_FILE detailedStats.txt
 
 \)
-\( basic stat(s) file(s) evaluation(s) \)
+\( basic stat(s) file(s) evaluation(s) time\)
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ###############################################################################
@@ -344,6 +347,9 @@ std::string
 
 . The solution file contains the best feasible incumbent point in a simple
   format (SOL BBO)
+  
+. If SOLUTION_FILE_FINAL is set to false, the solution file is written when
+a new success is obtained. Otherwise, it is written upon finalizing the run.
 
 . Arguments: one string (file name)
 
@@ -351,6 +357,33 @@ std::string
   ADD_SEED_TO_FILE_NAMES=\'yes\' (default)
 
 . Example: SOLUTION_FILE sol.txt
+
+
+\)
+\( basic solution best incumbent file name display(s) output(s) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+###############################################################################
+SOLUTION_FILE_FINAL
+bool
+false
+\( Flag to decide when to write best feasible solution \)
+\(
+
+. If a SOLUTION_FILE is provided, the best feasible incumbent point can be
+written on every success or at the end of the optimization.
+
+. For multiobjective optimization problem the solution file contains current
+pareto solutions. There can be a large number of pareto points.
+  
+. If SOLUTION_FILE_FINAL is set to false, the solution file is written when
+a new success is obtained. Otherwise, it is written upon finalizing the run.
+
+. The flag has not effect if SOLUTION_FILE is not set properly.
+
+. Arguments: one bool
+
+. Example: SOLUTION_FILE_FINAL true
 
 
 \)

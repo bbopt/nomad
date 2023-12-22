@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -126,6 +126,16 @@ public:
         }
 
         countEval = true;
+
+// Uncomment when testing with failed eval simulation (see display parameters below)
+//        // Simulate failed evaluations
+//        auto bbe = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
+//        if(bbe>=9)
+//        {
+//            //Failed eval
+//            eval_ok=false;
+//        }
+
         return eval_ok;
     }
 };
@@ -154,7 +164,13 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
     allParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_2N);
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
-    allParams->setAttributeValue("DISPLAY_UNSUCCESSFUL", false);
+
+// Uncomment when testing with failed eval simulation (see eval_x function)
+//    allParams->set_DISPLAY_ALL_EVAL(true);
+//    allParams->setAttributeValue("DISPLAY_FAILED", true);
+//    allParams->setAttributeValue("DISPLAY_UNSUCCESSFUL", true);
+//    allParams->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString("stats.txt bbe obj")); //"stats.txt obj mesh_size success_type"
+//    allParams->setAttributeValue("EVAL_STATS_FILE", std::string("statsEnd.txt"));
 
     // Parameters validation
     allParams->checkAndComply();

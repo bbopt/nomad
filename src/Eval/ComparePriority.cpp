@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -98,7 +98,6 @@ bool NOMAD::OrderByDirection::comp(NOMAD::EvalQueuePointPtr& point1,
             || lastSuccessfulDir2->size() != dir2.size())
         {
             err = "Error: Last successful direction is not of the same dimension as points";
-            std::cerr << err << std::endl;
             throw NOMAD::Exception(__FILE__, __LINE__, err);
         }
         else if (0 == dir1.norm() || 0 == dir2.norm())
@@ -207,28 +206,49 @@ bool NOMAD::OrderByEval::comp(NOMAD::EvalQueuePointPtr& point1,
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "OrderBySurrogate: " + evalTypeToString(_evalTypeForOrder) + " evaluation missing for point " + point2->displayAll());
     }
-    // two cases to compare when both are feasible or both are infeasible. Dominance based on fs and hs.
-    if (eval1->dominates(*eval2))
+    
+    // Manage failed evaluations
+    if (eval1->getEvalStatus() != NOMAD::EvalStatusType::EVAL_OK)
+    {
+        if (eval2->getEvalStatus() != NOMAD::EvalStatusType::EVAL_OK)
+        {
+            useTag = true;
+        }
+        else
+        {
+            lowerPriority = true;
+        }
+    }
+    else if (eval2->getEvalStatus() != NOMAD::EvalStatusType::EVAL_OK)
     {
         lowerPriority = false;
     }
-    else if (eval2->dominates(*eval1))
+    else  // Both evaluations are ok
     {
-        lowerPriority = true;
-    }
-    // two cases where one is feasible and the other is not (no need to compare fs and hs
-    else if (eval1->isFeasible(ComputeType::STANDARD) && !eval2->isFeasible(ComputeType::STANDARD))
-    {
-        lowerPriority = false;
-    }
-    else if (! eval1->isFeasible(ComputeType::STANDARD) && eval2->isFeasible(ComputeType::STANDARD))
-    {
-        lowerPriority = true;
-    }
-    else
-    {
-        // Revert to tag ordering
-        useTag = true;
+        
+        // two cases to compare when both are feasible or both are infeasible. Dominance based on fs and hs.
+        if (eval1->dominates(*eval2))
+        {
+            lowerPriority = false;
+        }
+        else if (eval2->dominates(*eval1))
+        {
+            lowerPriority = true;
+        }
+        // two cases where one is feasible and the other is not (no need to compare fs and hs
+        else if (eval1->isFeasible(ComputeType::STANDARD) && !eval2->isFeasible(ComputeType::STANDARD))
+        {
+            lowerPriority = false;
+        }
+        else if (! eval1->isFeasible(ComputeType::STANDARD) && eval2->isFeasible(ComputeType::STANDARD))
+        {
+            lowerPriority = true;
+        }
+        else
+        {
+            // Revert to tag ordering
+            useTag = true;
+        }
     }
 
     if (useTag)
@@ -266,7 +286,6 @@ bool NOMAD::ComparePriority::operator()(NOMAD::EvalQueuePointPtr& point1,
         err += "failed for point1 = ";
         err += point1->display() + ", point2 = " + point2->display();
         err += " " + std::string(e.what());
-        std::cerr << err << std::endl;
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 

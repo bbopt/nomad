@@ -10,15 +10,6 @@ Advanced parameters are intended to setup optimization problems, algorithmic and
 Only a few advanced parameters are presented below; all advanced parameters can be obtained with ``$NOMAD_HOME -h advanced``.
 Also a complete list of parameters and a short description is available in :ref:`appendix_parameters`.
 
-.. _dmultimads:
-
-``DMULTIMADS_OPTIMIZATION``
-"""""""""""""""""""""""""""
-
-When ``BB_OUTPUT_TYPE`` contains more than one objective, the DMultiMads algorithm (see [BiLedSa2020]_) must be explicitly enabled to solve for multiobjective optimization problems.
-In the current version, it is recommended to output all evaluation points into a file such as ``HISTORY_FILE``. The user must do some post-processing for these results to obtain the approximation of the pareto front. Future version will have the option to output the pareto front in a file.
-
-
 .. _eval_queue_sort:
 
 ``EVAL_QUEUE_SORT``
@@ -135,6 +126,7 @@ The possible syntaxes to specify the granularity of the variables are as follows
 ``SURROGATE_EXE``
 """""""""""""""""
 
+
 A static surrogate, or static surrogate function, is a cheaper blackbox function that is used, at least partially, to drive the optimization.
 
 .. figure:: ../figs/surrogate.png
@@ -148,7 +140,10 @@ The current version of NOMAD can use a static surrogate, provided by the user, w
 
 In batch mode, the parameter ``SURROGATE_EXE`` associates a static surrogate executable with the blackbox executable given by parameter ``BB_EXE``. The surrogate must display the same input and output types as its associated blackbox, given by parameters ``BB_INPUT_TYPE`` and ``BB_OUTPUT_TYPE``.
 
-In library mode, if a surrogate function is to be used, then an Evaluator of type ``EvalType::SURROGATE`` must be provided. Please refer to ``$NOMAD_HOME/examples/basic/library/example4`` for an example on how to manage both ``BB`` and ``SURROGATE`` evaluation types.
+In library mode, if a surrogate function is to be used, then its Evaluator should be of type ``EvalType::SURROGATE``. An example is given in ``$NOMAD_HOME/examples/basic/library/CustomSurrogateOrdering``.
+
+When using a surrogate, by default, the ordering of the trial points relies solely on the objective and constraints surrogate evaluations. In library mode, it is possible to tailor the ordering by defining a custom comparison function (see example in ``$NOMAD_HOME/examples/advanced/library/CustomCompForOrdering``).
+
 
 .. _block_evaluations:
 
@@ -178,7 +173,7 @@ Batch mode
 
 
 In batch mode, NOMAD creates input files which can contain at most
-BB_MAX_BLOCK_SIZE trial points separated by a linebreak. Each point is given as a row of values.
+BB_MAX_BLOCK_SIZE trial points separated by a line break. Each point is given as a row of values.
 The user must provide a blackbox program that can read the input file, evaluate them and
 output the objective and constraints functions (in the order provided by the BB_OUTPUT_TYPE
 parameter) for each trial point in the same order as provided in the input file.
@@ -187,7 +182,7 @@ submitted the content of the output file must reflect the outputs for each point
 If one value provided in the output file
 cannot be read by NOMAD, then the corresponding trial point is considered as having failed.
 The trial points that have failed will not be evaluated again.
-An example of blackbox program written is provided in the
+An example of blackbox program using OpenMP is provided in the
 directory ``$NOMAD_HOME/examples/basic/batch/single_obj_parallel``.
 The executable ``bb3.exe`` evaluates up to 4 trial points in parallel.
 
@@ -233,6 +228,8 @@ The same directory holds the parameter file that specifies this blackbox program
 When evaluations are performed by blocks, i.e., when ``BB_MAX_BLOCK_SIZE`` is greater
 than one, the opportunistic strategy applies after evaluating a block of trial points.
 
+An example with a blackbox using MPI for parallelization is provided in ``$NOMAD_HOME/examples/basic/batch/simple_obj_MPIparallel``.
+
 
 Library mode
 """"""""""""
@@ -247,9 +244,8 @@ on how to manage a block of evaluations in parallel using OpenMP.
 Parallel evaluations
 --------------------
 
-When OpenMP is available (see :ref:`Use OpenMP <cmake_configuration>`), the user may provide the number of threads ``NB_THREADS_OPENMP``
-to efficiently access the computer cores. If this parameter is not set, OpenMP computes
-the number of available threads. The evaluations of trial points are dispatched to these threads.
+When OpenMP is available (see :ref:`Use OpenMP <cmake_configuration>`), the user MUST provide the number of threads ``NB_THREADS_OPENMP``
+to efficiently access the computer cores. If this parameter is not set, OpenMP uses a single thread. The evaluations of trial points stored in a queue are dispatched to these threads.
 
 .. _psd_mads:
 
@@ -280,6 +276,50 @@ Remaining available threads are not used for algorithmic management or point gen
 only for point evaluation.
 An example of usage of PSD-MADS in library mode is in
 ``$NOMAD_HOME/examples/advanced/library/PSDMads``.
+
+.. _disco_mads:
+
+DISCO-Mads
+----------
+
+The DiscoMADS algorithm [AuBaKo22]_ reveals and escapes some regions of the space of variables while solving an optimization problem.
+These regions may be (1) hidden constraints regions, in which blackbox evaluations fail, or (2) regions containing discontinuities of
+some user-defined blackbox outputs, called revealing outputs.
+
+
+The DiscoMads algorith is built on the MADS algorithm with progressive barrier approach [AuDe09a]_ and includes two additional mechanisms:
+
+  `*` revealing hidden constraints or discontinuities: after each blackbox evaluation, a revealing mechanism is triggered to check if a discontinuity or a hidden constraint has been revealed.
+
+  `*` progressively escaping the surrounding regions: an additional blackbox output is automatically added during a run of DiscoMADS to penalize points close to discontinuities or hidden constraints regions.
+
+To account for these mechanisms, a new type of iteration, called revealing iteration, is introduced with respect to MADS.
+It is triggered when a discontinuity or a hidden constraint is revealed. A new revealing poll is also added for the sake of the convergence analysis.
+
+
+Hidden constraints
+""""""""""""""""""
+
+To use DiscoMADS to reveal hidden constraints regions, set ``DISCO_MADS_OPTIMIZATION`` to true and ``DISCO_MADS_HID_CONST`` to true.
+Set ``DISCO_MADS_EXCLUSION_RADIUS`` to define the wished remoteness of the solution to discontinuities.
+
+An example of usage of DiscoMADS to reveal hidden constraints regions is provided in batch mode (``$NOMAD_HOME/examples/advanced/batch/DiscoMads/paramEscapeHiddenConstraints.txt``) and in library mode (``$NOMAD_HOME/examples/advanced/library/DiscoMads/EscapeHiddenConstraints``). This example relies on the Styrene blackbox available at `GitHub <https://github.com/bbopt/styrene>`_.
+
+Discontinuities
+"""""""""""""""
+
+To use DiscoMADS to reveal discontinuities in revealing blackbox outputs, set the parameter ``DISCO_MADS_OPTIMIZATION`` to true.
+
+Define revealing output by appending "-R" to the desired output types when using the command ``BB_OUTPUT_TYPE``.
+
+To define discontinuities (in a weak sense) set the parameters ``DISCO_MADS_DETECTION_RADIUS`` and ``DISCO_MADS_LIMIT_RATE``: if the rate of change of a revealing blackbox ouput between two points at distance less than ``DISCO_MADS_DETECTION_RADIUS`` exceeds the limit rate ``DISCO_MADS_LIMIT_RATE``, then a discontinuity is revealed between the two points.
+
+Finally, set ``DISCO_MADS_EXCLUSION_RADIUS`` to define the wished remoteness of the solution to discontinuities.
+
+An example of usage of DiscoMADS to reveal discontinuities is provided in batch mode (``$NOMAD_HOME/examples/advanced/batch/DiscoMads/paramEscapeDiscont.txt``) and in library mode (``$NOMAD_HOME/examples/advanced/library/DiscoMads/EscapeDiscontinuities``).
+
+This example is described in details in section 5.1 of [AuBaKo22]_.
+
 
 .. _hot_restart:
 
@@ -315,28 +355,12 @@ The user still has room for 50 more evaluations.
 The parameter file may be changed with value ``MAX_BB_EVAL 150``, and the second run of
 NOMAD will start where it was, with evaluation 101.
 
-Adding an algorithm
--------------------
-
-Adding its own code for optimization into NOMAD is possible. The license of NOMAD allows it. Please note that C++ object oriented programming skills are required for this task. NOMAD libraries offers many functionalities and classes to make this process less difficult.
-
-We make the distinction between a method to generate trial points based on an iterative algorithm (like Nelder Mead for example) or a single pass method to generate new points (like Latin Hypercube sampling).
-
-NOMAD allows this new method to be used as a Mads search method or as a standalone optimization strategy (without Mads). A template algorithm is provided in ``$NOMAD_HOME/src/Algos/TemplateAlgo``. Both utilization (search method or standalone optimization) are illustrated. The modifications to implement a new algorithm span over several classes and files. To control a new algorithm, several new parameters maybe added in ``$NOMAD_HOME/src/Attribute/runAttributesDefinition.txt``.
-
-In complement of Mads poll step, a new algorithm within Mads search step can help provide diversity and exploration of the design space. To obtain a diversity of trial points from different algorithms one must restrain the evaluation budget given to a new algorithm. Enabling a new Mads search method, requires to add it in the list of available search methods (see in ``NOMAD::Search::init()`` function).
-
-To run standalone new optimization algorithm, it must be enabled in the ``$NOMAD_HOME/src/Algos/MainStep.cpp`` (see in ``NOMAD::MainStep::start()`` function for examples).
-
-
-
-Doxygen
--------
-
-A local doxygen documentation can be created by running the ``doxygen`` command (if available) in ``$NOMAD_HOME/doc/doxygen``. The documentation can be opened by a browser at ``$NOMAD_HOME/doc/doxygen/html/index.html``.
-
 
 .. topic:: References
+
+  .. [AuBaKo22] C. Audet, A. Batailly et S. Kojtych.
+    Escaping Unknown Discontinuous Regions in Blackbox Optimization.
+    *SIAM Journal on Optimization*, 32(3):1843-1870, 2022. DOI: 10.1137/21M1420915. OAI : hal.science/hal-03804934.
 
   .. [AuBeLe08b] C. Audet, V. Béchard, and S. Le Digabel.
     Nonsmooth optimization through mesh adaptive direct search and variable neighborhood search.
@@ -349,10 +373,6 @@ A local doxygen documentation can be created by running the ``doxygen`` command 
   .. [AuDeLe07] C. Audet, J.E. Dennis, Jr., and S. Le Digabel.
     Parallel space decomposition of the mesh adaptive direct search algorithm.
     *SIAM Journal on Optimization*, 19(3):1150–1170, 2008.
-
-  .. [BiLedSa2020] J. Bigeon and S. Le Digabel and L. Salomon.
-    DMulti-MADS: Mesh adaptive direct multisearch for bound-constrained blackbox multiobjective optimization.
-    *Computational Optimization and Applications*, 79(2):301--338, 2021.
 
   .. [BoDeFrSeToTr99a] A.J. Booker, J.E. Dennis, Jr., P.D. Frank, D.B. Serafini, V. Torczon, and M.W. Trosset.
     A Rigorous Framework for Optimization of Expensive Functions by Surrogates.

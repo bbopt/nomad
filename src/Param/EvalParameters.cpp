@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -121,13 +121,62 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
     /* BB_OUTPUT_TYPE */
     /*----------------*/
     // The default value is empty: set a single OBJ
-    auto bbOType = getAttributeValueProtected<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE", false);
-    if ( bbOType.size() == 0 )
+    auto bbOutputList = getAttributeValueProtected<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE", false);
+    if ( bbOutputList.size() == 0 )
     {
-        bbOType.push_back(NOMAD::BBOutputType::OBJ);
-        setAttributeValue("BB_OUTPUT_TYPE", bbOType );
+        bbOutputList.push_back(NOMAD::BBOutputType::Type::OBJ);
+        setAttributeValue("BB_OUTPUT_TYPE", bbOutputList );
     }
+    
+    /*----------------*/
+    /* DISCO MADS */
+    /*----------------*/
+    auto itBBO_RPB = std::find(bbOutputList.begin(),bbOutputList.end(),BBOutputType::RPB);
+    
+    // Check if at least one revealing output for discoMads algorithm
+    bool useAlgoDiscoMads = runParams->getAttributeValue<bool>("DISCO_MADS_OPTIMIZATION");
+    if(useAlgoDiscoMads)
+    {
+        bool useDiscoMadsforDiscontinuity = !runParams->getAttributeValue<bool>("DISCO_MADS_HID_CONST");
+        if(useDiscoMadsforDiscontinuity)
+        {
+            // Check if at least one revealing output for discoMads algorithm when used to reveal discontinuities
+            const size_t nbRevealingOutput(NOMAD::getNbRevealing(bbOutputList));
+            if(nbRevealingOutput==0)
+            {
+                throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DiscoMads requires at least one revealing output" );
+            }
+            
+            // Warn user if a EB constraint is set as revealing output
+            bool EBConstRevealing = false;
+            for (size_t i = 0; i < bbOutputList.size(); i++)
+            {
+                if (bbOutputList[i].isRevealing()&& bbOutputList[i]==NOMAD::BBOutputType::EB)
+                {
+                    EBConstRevealing = true;
+                    break;
+                }
+            }
+            if(EBConstRevealing)
+            {
+                std::cerr << "At least one EB constraint is set as revealing. This is ok but be aware that revelation will only be conducted for points satisfying all EB contraints."<<  std::endl;
+            }
+        }
 
+        // Add the revealed constraint RPB if not already present.
+        // For suboptimization, updated BBoutputTypeList is passed -> not need to add another one
+        if ( itBBO_RPB == bbOutputList.end())
+        {
+            bbOutputList.push_back(NOMAD::BBOutputType::RPB);
+            setAttributeValue("BB_OUTPUT_TYPE", bbOutputList);
+        }        
+    }
+    // User should not be able to set RPB constraint (internal).
+   else if (itBBO_RPB != bbOutputList.end())
+   {
+       throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: User cannot set RPB constraint. Done internally for DISCO_MADS_OPTIMIZATION." );
+   }
+    
     /*---------------------------*/
     /* BB_EVAL_FORMAT (internal) */
     /*---------------------------*/

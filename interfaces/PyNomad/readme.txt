@@ -1,7 +1,73 @@
-Creating the Python Interface to NOMAD (PyNomad) requires to build 
-source codes. The build procedure relies on Python 3.6 and Cython 0.24 
-or higher. A simple way to make it work is to first install the Anaconda 
-package manager.
+**********************
+**********************
+NOMAD and Python 
+**********************
+**********************
+
+NOMAD and Python can be used in combination. There are two ways to perform
+optimization using objective and constraint function evaluated by a Python script.
+
+The simplest way is to run the Python script as a blackbox in batch mode to evaluate each 
+given point. An example is provided in $NOMAD_HOME/examples/basic/batch/PythonBB.
+
+Another way is to obtain the Nomad interface for Python (PyNomad) as described in what 
+follows. 
+
+
+**********************
+**********************
+Installation from PyPi
+**********************
+**********************
+
+The simplest way to install PyNomad package is to proceed from PyPI.
+
+A python package installation guide is available at
+https://packaging.python.org/en/latest/tutorials/installing-packages/
+
+To install the last version, from a shell command line perform:
+
+pip install PyNomad 
+
+PyNomad from PyPI relies on Python3 version 3.8 and above.
+
+**********
+HOW TO USE
+**********
+Some tests are proposed in the directory to check that everything 
+is up and running. From the command line, if pytest is available, 
+simply run the command:
+
+pytest
+
+To have more info, start python in a shell, import PyNomad as a module 
+and run PyNomad.info() to obtain the interface usage. To obtain help 
+on a Nomad parameter, run PyNomad.help("keyword"). To list all 
+attributes and functions, execute dir(PyNomad).
+
+NOMAD parameters are provided in a list of strings using the same syntax 
+as used in the NOMAD parameter files. Several tests and examples are 
+proposed in the $NOMAD_HOME/examples/advanced/library/PyNomad directory.
+
+        python3 simpleExample_basic.py
+        python3 simpleExample_BlockEval.py
+        Python3 simpleExample_PbWithConst.py
+
+
+
+****************
+****************
+Building PyNomad 
+****************
+****************
+Alternatively, one can build PyNomad (and Nomad binaries) from Nomad 
+source code as described below.  
+
+The build procedure relies on Python 3.6 and Cython 0.24 
+or higher. 
+
+The procedure is often straightforward but several issues that can prevent
+a successful building of the binaries can arise.
 
 ************
 KNOWN ISSUES
@@ -27,15 +93,17 @@ $NOMAD_HOME/interfaces/PyNomad MUST BE REMOVED BEFORE REBUILD.
 HOW TO BUILD AND INSTALL
 ************************
 The interface build is managed by CMake that can be run at NOMAD root. 
+For now, PyNomad cannot work with OpenMP enabled.
 
 The configuration command:
    cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release 
 must be performed with Cython available (that can be done within a Conda 
-environment: conda activate ... or activate ...). 
-Please note that the Python interface do not support OpenMP.
+environment: conda activate ... or activate ... OR with a virtual environment
+containing cython and wheel).  
 
-For Windows, the default Anaconda is Win64. Visual Studio can support both 
-Win32 and Win64 compilations. The configuration must be forced to use Win64:
+For Windows, the default Anaconda is Win64. Older Visual Studio versions can 
+support both Win32 and Win64 compilations. The configuration must be forced
+ to use Win64:
    cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release -G"Visual Studio 15 2017 Win64". 
 
 The Visual Studio version must be adapted.
@@ -47,28 +115,33 @@ is used for building the selected configuration.
 
 The command 
    cmake --install build/release
-must be run before using the PyNomad module.
+must also be run to install libraries.
 
-Also, for *Windows*, the path to $NOMAD_HOME/build/release/bin directory MUST 
-be added to the %PATH% environment variable. This will allow PyNomad to find
-the Nomad libraries.
-
+IMPORTANT:
+To install PyNomad wheel in your Python environment you must do
+    pip install --user --force-reinstall dist/*whl 
+Or
+    pip install dist/*whl 
+In the the PyNomad directory
 
 **********
 HOW TO USE
 **********
 Some tests are proposed in the directory to check that everything 
-is up and running.
+is up and running. From the command line, if pytest is available, 
+simply run the command:
 
-Import PyNomad as a module and run PyNomad.info() to obtain the interface 
-usage. To obtain help on a Nomad parameter, run PyNomad.help("keyword").
-To list all attributes and functions, execute dir(PyNomad).
+pytest
+
+To have more info, start python in a shell, import PyNomad as a module 
+and run PyNomad.info() to obtain the interface usage. To obtain help 
+on a Nomad parameter, run PyNomad.help("keyword"). To list all 
+attributes and functions, execute dir(PyNomad).
 
 NOMAD parameters are provided in a list of strings using the same syntax 
 as used in the NOMAD parameter files. Several tests and examples are 
-proposed in the PyNomad directory to check that everything is up and 
-running:
-        python runTest.py
-        python runTest_BlockEval.py
-        Python runTest_PbWithConst.py
+proposed in the $NOMAD_HOME/examples/advanced/library/PyNomad directory.
 
+        python3 simpleExample_basic.py
+        python3 simpleExample_BlockEval.py
+        Python3 simpleExample_PbWithConst.py

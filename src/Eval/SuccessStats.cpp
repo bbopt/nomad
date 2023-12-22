@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -119,19 +119,19 @@ void NOMAD::SuccessStats::setNbConsecutiveSuccessAndFail(SuccessType successType
     }
 }
 
-//size_t NOMAD::SuccessStats::getNbSuccessAndFail(SuccessType successType, StepType stepType) const
-//{
-//    auto iter = _nbSuccessAndFail.find(std::make_pair(stepType,successType));
-//    
-//    if (iter == _nbSuccessAndFail.end())
-//    {
-//        return 0;
-//    }
-//    else
-//    {
-//        return iter->second;
-//    }
-//}
+size_t NOMAD::SuccessStats::getStat(StepType stepType, SuccessType successType) const
+{
+    auto iter = _nbSuccessAndFail.find(std::make_pair(stepType,successType));
+    
+    if (iter == _nbSuccessAndFail.end())
+    {
+        return 0;
+    }
+    else
+    {
+        return iter->second;
+    }
+}
 
 
 /*---------------*/

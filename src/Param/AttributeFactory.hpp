@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
 //  Copyright (c) 2017 GERAD. All rights reserved.
 //
 
-#ifndef __NOMAD_4_3_ATTRIBUTEFACTORY__
-#define __NOMAD_4_3_ATTRIBUTEFACTORY__
+#ifndef __NOMAD_4_4_ATTRIBUTEFACTORY__
+#define __NOMAD_4_4_ATTRIBUTEFACTORY__
 
 #include "../Param/TypeAttribute.hpp"
 
@@ -87,4 +87,4 @@ public:
 };
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_3_ATTRIBUTEFACTORY__
+#endif  // __NOMAD_4_4_ATTRIBUTEFACTORY__

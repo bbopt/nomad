@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -64,11 +64,15 @@ void NOMAD::QuadModelEvaluator::init()
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: a model is required (nullptr)");
     }
+    
+    _nbConstraints = NOMAD::getNbConstraints(_bbOutputTypeList);
+    _nbModels = _nbConstraints+1;
+    
 }
 
 
 //*------------------------------------------------------*/
-//*       evaluate the quad model at a given point       */
+//*       evaluate the quad model at given points        */
 //*------------------------------------------------------*/
 std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
                                                const NOMAD::Double &hMax,
@@ -112,12 +116,11 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
     size_t m = block.size();
     size_t n = block[0]->size(); // dimension of the local full space.
 
-    size_t nbConstraints = NOMAD::getNbConstraints(_bbOutputTypeList);
-    size_t nbModels = nbConstraints+1;
+    
 
     // Init the matrices for prediction
     // Creation of matrix for input / output of SGTELIB model
-    SGTELIB::Matrix M_predict (  "M_predict", static_cast<int>(m), static_cast<int>(nbModels));
+    SGTELIB::Matrix M_predict (  "M_predict", static_cast<int>(m), static_cast<int>(_nbModels));
     SGTELIB::Matrix X_predict("X_predict", static_cast<int>(m), static_cast<int>(n));
 
     int j = 0;
@@ -167,14 +170,14 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
         // ====================================== //
         std::string sObj = "F = ";
         std::string sCons = "C = [ ";
-        for (size_t i = 0; i < nbModels; i++)
+        for (size_t i = 0; i < _nbModels; i++)
         {
             if (_bbOutputTypeList[i] != NOMAD::BBOutputType::OBJ)
                 sCons += std::to_string(M_predict.get(j,static_cast<int>(i))) + " ";
             else
                 sObj  += std::to_string(M_predict.get(j,static_cast<int>(i))) + " ";
         }
-        s = sObj + ((nbConstraints>0 ) ? sCons+" ]":"") ;
+        s = sObj + ((_nbConstraints>0 ) ? sCons+" ]":"") ;
         NOMAD::OutputQueue::Add(s, _displayLevel);
 
         // ====================================== //
@@ -185,7 +188,7 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
         // ----------------- //
         //   Set BBO         //
         // ----------------- //
-        for (size_t i = 0; i < nbModels; i++)
+        for (size_t i = 0; i < _nbModels; i++)
         {
             newbbo[i] = M_predict.get(j,static_cast<int>(i));
         }

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_NMITERATION__
-#define __NOMAD_4_3_NMITERATION__
+#ifndef __NOMAD_4_4_NMITERATION__
+#define __NOMAD_4_4_NMITERATION__
 
 #include "../../Algos/Iteration.hpp"
 #include "../../Algos/NelderMead/NMSimplexEvalPoint.hpp"
@@ -63,13 +63,20 @@
 class NMIteration: public Iteration
 {
 private:
-    /// Helper for constructor
-    void init ();
-
     /**
      The simplex is shared among Nelder Mead components. The simplex is initially built by NMInitializeSimplex::run
      */
     std::shared_ptr<NMSimplexEvalPointSet> _nmY ;
+    
+    bool _nmOpt; ///< NM standalone optimization
+    bool _nmSearchStopOnSuccess; ///< Early stop of NM search if a success point is obtained.
+    
+    
+private:
+    /// Helper for constructor
+    void init ();
+
+
 
     /**
      The simplex "center" at the creation of this iteration.
@@ -136,4 +143,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_NMITERATION__
+#endif // __NOMAD_4_4_NMITERATION__

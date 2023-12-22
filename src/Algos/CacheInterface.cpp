@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -84,13 +84,12 @@ size_t NOMAD::CacheInterface::find(const NOMAD::Point& x,
 
 size_t NOMAD::CacheInterface::findBestFeas(std::vector<NOMAD::EvalPoint> &evalPointList,
                                            NOMAD::EvalType  evalType,
-                                           NOMAD::ComputeType computeType,
-                                           const NOMAD::Eval* refeval) const
+                                           NOMAD::ComputeType computeType) const
 {
     // Cache holds the full dimension points.
     // Return a list of sub dimension points.
     NOMAD::CacheBase::getInstance()->findBestFeas(evalPointList, _fixedVariable,
-                                                  evalType, computeType, refeval);
+                                                  evalType, computeType);
 
     NOMAD::convertPointListToSub(evalPointList, _fixedVariable);
 
@@ -98,17 +97,16 @@ size_t NOMAD::CacheInterface::findBestFeas(std::vector<NOMAD::EvalPoint> &evalPo
 }
 
 
-size_t NOMAD::CacheInterface::findBestInf(std::vector<NOMAD::EvalPoint>& evalPointList,
+size_t NOMAD::CacheInterface::findBestInf(std::vector<NOMAD::EvalPoint> & evalPointList,
                                           const NOMAD::Double& hMax,
                                           NOMAD::EvalType  evalType,
-                                          NOMAD::ComputeType computeType,
-                                          const NOMAD::Eval* refeval) const
+                                          NOMAD::ComputeType computeType) const
 {
     // Cache holds the full dimension points.
     // Return a list of sub dimension points.
     NOMAD::CacheBase::getInstance()->findBestInf(evalPointList, hMax,
                                                  _fixedVariable, evalType,
-                                                 computeType, refeval);
+                                                 computeType);
 
     NOMAD::convertPointListToSub(evalPointList, _fixedVariable);
 

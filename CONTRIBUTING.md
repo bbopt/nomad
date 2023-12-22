@@ -4,9 +4,6 @@
 For questions, bugs, feature requests and other issues, please open a new issue at https://github.com/bbopt/nomad/issues.
 To add a feature, especially if it involves algorithmic developments, or to otherwise suggest changes to the code, do [contact us](mailto:nomad@gerad.ca) for more information.
 
-### NOMAD 3
-NOMAD 3 is still available. It is not on GitHub. For any question or issue specific to NOMAD 3, [email us](mailto:nomad@gerad.ca).
-
 ### Questions
 We are happy to help. An issue may be opened with the question, or you can [email us](mailto:nomad@gerad.ca).
 

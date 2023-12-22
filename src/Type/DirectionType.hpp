@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
  \see    DirectionType.cpp
  */
 
-#ifndef __NOMAD_4_3_DIRECTION_TYPE__
-#define __NOMAD_4_3_DIRECTION_TYPE__
+#ifndef __NOMAD_4_4_DIRECTION_TYPE__
+#define __NOMAD_4_4_DIRECTION_TYPE__
 
 #include <list>
 #include <sstream>
@@ -116,4 +116,4 @@ inline std::ostream& operator<<(std::ostream& out, const DirectionTypeList &dirT
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_3_DIRECTION_TYPE__
+#endif  // __NOMAD_4_4_DIRECTION_TYPE__

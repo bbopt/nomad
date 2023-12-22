@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -246,6 +246,23 @@ void NOMAD::Direction::computeDirOnUnitSphere(NOMAD::Direction &randomDir)
     {
         randomDir[i] /= norm;
     }
+
+}
+
+/*--------------------------------------------------*/
+/*  Compute a random direction in a unit N-Sphere   */
+/*--------------------------------------------------*/
+void NOMAD::Direction::computeDirInUnitSphere(NOMAD::Direction &randomDir)
+{
+    size_t n = randomDir.size();
+
+    // Random direction on unit sphere
+    NOMAD::Direction::computeDirOnUnitSphere(randomDir);
+
+    // Random direction in unit sphere
+    NOMAD::Double newNorm= NOMAD::RNG::rand(NOMAD::Double::getEpsilon(),1);
+    for (size_t j=0 ; j <n ; j++ )
+        randomDir[j] *= newNorm;
 
 }
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -53,7 +53,7 @@
 #endif
 
 // Number of threads to be used in parallel
-#define NUM_THREADS    4
+#define NUM_THREADS   6 
 
 // A structure to pass arguments to the evaluation wrapper function
 class My_Evaluator;
@@ -149,6 +149,8 @@ void initParams(std::shared_ptr<NOMAD::AllParameters>& params)
     params->setAttributeValue("SPECULATIVE_SEARCH", false);
     params->setAttributeValue("NM_SEARCH", false);
     params->setAttributeValue("QUAD_MODEL_SEARCH", false);
+    // Use single pass poll method with n+1 points -> 6 trial points in a block per poll 
+    params->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::NP1_UNI);
 
     params->setAttributeValue("X0", NOMAD::Point(5,0.0));  // starting point
 
@@ -163,8 +165,11 @@ void initParams(std::shared_ptr<NOMAD::AllParameters>& params)
     // 100 black-box evaluations
 
     // Max number of points to be given as a block for evaluation
-    // This option is required to perform parallel evaluations
+    // This option is required to perform parallel evaluations in eval_block
+    // function above
     params->setAttributeValue("BB_MAX_BLOCK_SIZE", NUM_THREADS);
+    
+    // A single thread is used for Nomad "parallel" evaluation queue.
     params->setAttributeValue("NB_THREADS_OPENMP", 1);
 
     // parameters validation:

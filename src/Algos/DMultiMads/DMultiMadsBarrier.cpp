@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -58,7 +58,7 @@ void NOMAD::DMultiMadsBarrier::init(const NOMAD::Point& fixedVariables,
                             NOMAD::ComputeType computeType,
                             bool barrierInitializedFromCache)
 {
-    std::list<NOMAD::EvalPoint> cachePoints;
+    std::vector<NOMAD::EvalPoint> cachePoints;
 
     if (fixedVariables.isEmpty())
     {
@@ -84,7 +84,7 @@ void NOMAD::DMultiMadsBarrier::init(const NOMAD::Point& fixedVariables,
             }
             cachePoints.clear();
         }
-        if (cache->findBestInf(cachePoints, _hMax, fixedVariables, evalType, computeType) > 0)
+        if (cache->findFilterInf(cachePoints, _hMax, fixedVariables, evalType, computeType) > 0)
         {
             for (const auto &evalPoint : cachePoints)
             {
@@ -253,20 +253,6 @@ void NOMAD::DMultiMadsBarrier::clearXFeas()
     
 }
 
-void NOMAD::DMultiMadsBarrier::checkXFeas(const NOMAD::EvalPoint &xFeas,
-                                  NOMAD::EvalType evalType,
-                                  NOMAD::ComputeType computeType)
-{
-    // If evalType is UNDEFINED, skip this check.
-    if (NOMAD::EvalType::UNDEFINED != evalType) {
-        if (nullptr == xFeas.getEval(evalType)) {
-            throw NOMAD::Exception(
-                __FILE__, __LINE__,
-                "DMultiMadsBarrier: xFeas must be evaluated before being set.");
-        }
-        checkXFeasIsFeas(xFeas, evalType, computeType);
-    }
-}
 
 
 void NOMAD::DMultiMadsBarrier::checkXFeasIsFeas(const NOMAD::EvalPoint &xFeas,
@@ -297,7 +283,7 @@ void NOMAD::DMultiMadsBarrier::checkXFeasIsFeas(const NOMAD::EvalPoint &xFeas,
 }
 
 
-NOMAD::EvalPointPtr NOMAD::DMultiMadsBarrier::getFirstXInfNoXFeas() const
+NOMAD::EvalPointPtr NOMAD::DMultiMadsBarrier::getFirstXIncInfNoXFeas() const
 {
     NOMAD::EvalPointPtr xInf = nullptr;
     if (_xFilterInf.size() == 0)
@@ -507,20 +493,6 @@ NOMAD::EvalPointPtr NOMAD::DMultiMadsBarrier::getXInfMinH() const
 }
 
 
-void NOMAD::DMultiMadsBarrier::checkXInf(const NOMAD::EvalPoint &xInf, NOMAD::EvalType evalType)
-{
-    // If evalType is UNDEFINED, skip this check.
-    if (NOMAD::EvalType::UNDEFINED != evalType)
-    {
-        if (nullptr == xInf.getEval(evalType))
-        {
-            throw NOMAD::Exception(__FILE__, __LINE__,
-                                   "Barrier: xInf must be evaluated before being set.");
-        }
-    }
-}
-
-
 
 void NOMAD::DMultiMadsBarrier::clearXInf()
 {
@@ -539,7 +511,7 @@ void NOMAD::DMultiMadsBarrier::updateRefBests()
 }
 
 
-// The code is the very similar to what is in Barrier. Here we use current incumbents, but these points are accessible with the getFirstXFeas and getFirstXInf functions.
+// The code is the very similar to what is in Barrier. Here we use current incumbents.
 NOMAD::SuccessType NOMAD::DMultiMadsBarrier::getSuccessTypeOfPoints(const EvalPointPtr xFeas,
                                                             const EvalPointPtr xInf,
                                                             EvalType evalType,
@@ -906,7 +878,8 @@ bool NOMAD::DMultiMadsBarrier::updateWithPoints(
                                         const std::vector<EvalPoint>& evalPointList,
                                         EvalType evalType,
                                         ComputeType computeType,
-                                        const bool keepAllPoints)
+                                        const bool keepAllPoints,
+                                            const bool updateInfeasibleIncumbentAndHmax)
 {
     bool updated = false;
     bool updatedFeas = false;
@@ -1349,7 +1322,7 @@ void NOMAD::DMultiMadsBarrier::updateCurrentIncumbentInf()
     }
     else
     {
-        _currentIncumbentInf = getFirstXInfNoXFeas();
+        _currentIncumbentInf = getFirstXIncInfNoXFeas();
     }
 
 }

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
  \see    ComparePriority.cpp
  */
 
-#ifndef __NOMAD_4_3_COMPAREPRIORITY__
-#define __NOMAD_4_3_COMPAREPRIORITY__
+#ifndef __NOMAD_4_4_COMPAREPRIORITY__
+#define __NOMAD_4_4_COMPAREPRIORITY__
 
 #include "../Eval/EvalQueuePoint.hpp"
 #include "../Math/Direction.hpp"
@@ -61,7 +61,6 @@
 
 #include "../nomad_nsbegin.hpp"
 
-//typedef std::function<bool(EvalQueuePointPtr &p1, EvalQueuePointPtr &p2)> ComparePriorityFunction;
 
 /// Definition for compare priority method.
 /**
@@ -187,6 +186,6 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_COMPAREPRIORITY__
+#endif // __NOMAD_4_4_COMPAREPRIORITY__
 
 

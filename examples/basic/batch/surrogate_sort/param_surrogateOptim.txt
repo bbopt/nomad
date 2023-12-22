@@ -9,7 +9,6 @@ BB_OUTPUT_TYPE OBJ
 
 # Surrogate
 SURROGATE_EXE ss_sgte.exe
-EVAL_SURROGATE_COST 2
 
 # Starting point
 X0 ( 5.0 5.0 )
@@ -24,11 +23,9 @@ UPPER_BOUND *  20.0
 # The algorithm terminates after that number surrogate evaluations
 MAX_SURROGATE_EVAL_OPTIMIZATION 100
 
-# Use surrogate executable to sort points before evaluating them with the blackbox
+# Use surrogate evaluation for optimization 
 EVAL_SURROGATE_OPTIMIZATION yes
 
-# Using only one thread for clarity and reproducibility
-NB_THREADS_OPENMP 1
 
 # Display parameters
 ####################

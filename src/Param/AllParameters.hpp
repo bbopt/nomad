@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_ALLPARAMETERS__
-#define __NOMAD_4_3_ALLPARAMETERS__
+#ifndef __NOMAD_4_4_ALLPARAMETERS__
+#define __NOMAD_4_4_ALLPARAMETERS__
 
 
 #include "../Param/CacheParameters.hpp"
@@ -253,7 +253,7 @@ public:
 
     /**
      Try readParamLine for each class of parameters until it works.
-     If the parameter is not found display a message. 
+     If the parameter is not found, throw an exception.
      */
     void readParamLine(const std::string &line);
 
@@ -284,4 +284,4 @@ public:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_3_ALLPARAMETERS__
+#endif // __NOMAD_4_4_ALLPARAMETERS__

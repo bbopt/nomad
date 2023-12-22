@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_3_ITERATIONUTILS__
-#define __NOMAD_4_3_ITERATIONUTILS__
+#ifndef __NOMAD_4_4_ITERATIONUTILS__
+#define __NOMAD_4_4_ITERATIONUTILS__
 
 #include <stdexcept>
 
@@ -97,12 +97,24 @@ protected:
      */
     TrialPointStats _trialPointStats;
     
+    /**
+     Trial points can be projected on mesh or not.
+     For now, this is only for search method.
+     Note: theory requires mesh projection.
+     */
+    bool _projectOnMesh ;
+    
+    
     #ifdef USE_IBEX
     NOMAD::Point projectWithIbex(NOMAD::Point point);
     #endif
     
-
-    
+    /// Parameters set in init
+    /**
+     No need to do getAttributeValue every time we need these parameters
+     */
+    bool _frameCenterUseCache ;
+    Point _pointPrecisionFull; ///< Point format in full dimension (not subspace)
     
 private:
     /**
@@ -110,8 +122,14 @@ private:
      Used when evaluating trial points without mesh and frame center.
      */
     bool _fromAlgo;
+    
+    
 
+protected:
+    
     SuccessType _trialPointsSuccess; ///< Success type of trial points evaluation.
+    
+    bool _updateIncumbentsAndHMax;
     
 public:
     /// Constructor
@@ -125,7 +143,9 @@ public:
         _trialPointsSuccess(SuccessType::UNDEFINED),
         _iterAncestor(nullptr),
         _trialPointStats( parentStep ),
-        _fromAlgo(false)
+        _fromAlgo(false),
+        _updateIncumbentsAndHMax(true),
+        _projectOnMesh(true)
     {
         init();
     }
@@ -192,6 +212,15 @@ public:
                                            const ArrayOfDouble& lowerBound,
                                            const ArrayOfDouble& upperBound);
 
+
+    
+    /// Count trial points that would need eval
+    /**
+     \param step    Current step to get the barrier from.
+     */
+    void countTrialPointsThatNeedEval(const Step *step);
+    
+    
     /// Start evaluation of the trial points
     /**
      * Called by run.
@@ -229,8 +258,12 @@ public:
     
     void updateStats(TrialPointStats & trialPointStats);
     
+
+    
+    
 protected:
     bool meshIsFinest() const;
+
     
 private:
        
@@ -240,9 +273,23 @@ private:
     /// Helper for evalTrialPoints
     void updateStepSuccessStats(const Step* step);
     
+    /// Helper to update stopReason
+    void updateStopReasonForIterStop(const Step* step);
+    
+    /// Helper for evalTrialPoints:
+    /**
+     * keep trial points that need eval
+     \param step    Current step.
+     \param keepN   Number of points to keep (by default keep all)
+     \param removeStepType Remove trial points of this type after evaluation (default UNDEFINED, do not remove).
+     */
+    void keepTrialPointsThatNeedEval(const Step* step,
+                                     const size_t keepN = INF_SIZE_T,
+                                     StepType removeStepType = StepType::UNDEFINED);
+    
     
 };
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_ITERATIONUTILS__
+#endif // __NOMAD_4_4_ITERATIONUTILS__

@@ -3,9 +3,9 @@
 %   min f(x)      subject to:     nlcon(x) <= 0
 %    x                            lb <= x <= ub
 %                                 x in R
-%            
+%
 %%%%%%%%%%%%% GERAD VERSION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   [x,fval,exitflag,iter,nfval] = nomadOpt(fun,x0,lb,ub,params,cbFun)
+%   [x,fval,hinf,runflag,nfval] = nomadOpt(fun,x0,lb,ub,params,cbFun)
 %
 %   Input arguments:
 %       fun - nonlinear function handle (f and nlcon)

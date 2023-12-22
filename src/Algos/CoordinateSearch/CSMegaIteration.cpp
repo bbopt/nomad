@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -170,7 +170,7 @@ void NOMAD::CSMegaIteration::read(std::istream& is)
             else
             {
                 std::string err = "Error: Reading a mesh onto a NULL pointer";
-                std::cerr << err;
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
             }
         }
         else if ("ITERATION_COUNT" == name)
@@ -186,7 +186,7 @@ void NOMAD::CSMegaIteration::read(std::istream& is)
             else
             {
                 std::string err = "Error: Reading a Barrier onto a NULL pointer";
-                std::cerr << err;
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
             }
         }
         else

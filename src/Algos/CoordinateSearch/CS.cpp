@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -50,7 +50,7 @@
 #include "../../Algos/CoordinateSearch/CSIteration.hpp"
 #include "../../Algos/CoordinateSearch/CSUpdate.hpp"
 #include "../../Algos/CoordinateSearch/CSMegaIteration.hpp"
-#include "../../Eval/Barrier.hpp"
+#include "../../Eval/ProgressiveBarrier.hpp"
 
 
 #include "../../Algos/EvcInterface.hpp"
@@ -192,7 +192,7 @@ void NOMAD::CS::readInformationForHotRestart()
             // Create a CSMesh and an MadsMegaIteration with default values, to be filled
             // by istream is.
             // NOTE: Working in full dimension
-            auto barrier = std::make_shared<NOMAD::Barrier>(NOMAD::INF, NOMAD::Point(_pbParams->getAttributeValue<size_t>("DIMENSION")), NOMAD::EvalType::BB);
+            auto barrier = std::make_shared<NOMAD::ProgressiveBarrier>(NOMAD::INF, NOMAD::Point(_pbParams->getAttributeValue<size_t>("DIMENSION")), NOMAD::EvalType::BB);
             std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::CSMesh>(_pbParams);
 
             _refMegaIteration = std::make_shared<NOMAD::CSMegaIteration>(this, 0, barrier, mesh, NOMAD::SuccessType::UNDEFINED);

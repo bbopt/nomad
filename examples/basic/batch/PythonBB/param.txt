@@ -1,0 +1,16 @@
+DIMENSION 5
+
+BB_EXE         '$python bb.py ' # '$python3 bb.py '
+BB_OUTPUT_TYPE OBJ PB EB
+
+X0             ( 0 0 0 0 0 )
+
+LOWER_BOUND    * -6.0
+UPPER_BOUND    ( 5 6 7 - - )
+
+
+MAX_BB_EVAL    100
+DISPLAY_DEGREE 2 
+DISPLAY_ALL_EVAL yes
+
+DISPLAY_STATS BBE ( SOL ) OBJ

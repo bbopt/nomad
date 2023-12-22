@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -55,7 +55,7 @@
 
 void NOMAD::SurrogateEvaluation::init()
 {
-
+    
     if (EvalType::SURROGATE == _evalType)
     {
         setStepType(NOMAD::StepType::SURROGATE_EVALUATION);
@@ -72,25 +72,25 @@ void NOMAD::SurrogateEvaluation::init()
 
 void NOMAD::SurrogateEvaluation::startImp()
 {
-
+    
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     if (EvalType::SURROGATE == _evalType)
     {
         // BB evaluator will be selected later, once done with surrogate evaluator. See run function.
-        evc->selectCurrentEvaluator(_evalType);
+        evc->setCurrentEvaluatorType(_evalType);
         _evaluatorIsReady = true;
     }
     if(EvalType::MODEL == _evalType)
     {
         auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
-
+        
         auto fullFixedVar = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
         OUTPUT_INFO_START
         std::string s = "Create QuadModelEvaluator with fixed variable = ";
         s += fullFixedVar.display();
         AddOutputInfo(s);
         OUTPUT_INFO_END
-
+        
         _quadModelIteration = std::make_unique<NOMAD::QuadModelIteration>(_parentStep, nullptr, 0, nullptr, _trialPoints /* trial points are used for sorting. */);
         _quadModelIteration->start();
         
@@ -101,9 +101,9 @@ void NOMAD::SurrogateEvaluation::startImp()
         if (nullptr!=model && model->is_ready())
         {
             auto evaluator = std::make_shared<NOMAD::QuadModelEvaluator>(evc->getCurrentEvalParams(),
-                                                            model,
-                                                            modelDisplay,
-                                                            fullFixedVar);
+                                                                         model,
+                                                                         modelDisplay,
+                                                                         fullFixedVar);
             // If a quad model evaluator already exists in evc, it will be replaced by this new one. The last added evaluator is used as the currentEvaluator. Once done, BB evaluator must be selected (see below in run).
             evc->addEvaluator(evaluator);
             _evaluatorIsReady = true;
@@ -115,7 +115,7 @@ void NOMAD::SurrogateEvaluation::startImp()
         _quadModelIteration->end();
         
     }
-
+    
     
 }
 
@@ -148,8 +148,10 @@ bool NOMAD::SurrogateEvaluation::runImp()
     // No barrier need for surrogate (MODEL or SURROGATE) evaluations for sort because no comparison is neeeded to detect success
     evc->setBarrier(nullptr);
     
+    // Lock the eval point queue before adding trial point in it
     evc->lockQueue();
     
+    // Keep trial points that need eval and put them in the evaluation queue
     evcInterface.keepPointsThatNeedEval(_trialPoints, false /* do not use the mesh */);
     
     // The number of points in the queue for evaluation
@@ -158,41 +160,69 @@ bool NOMAD::SurrogateEvaluation::runImp()
     // and the queue may be empty.
     size_t nbEvalPointsThatNeedEval = evc->getQueueSize(NOMAD::getThreadNum());
     
-    // Arguments to unlockQueue:
-    // true: do sort
-    // keepN: keep a maximum of N points
-    // removeStepType: only remove points of this StepType.
-    evc->unlockQueue(true, true, getStepType());
-    
-    if (nbEvalPointsThatNeedEval > 0)
+    // Update trial points with evaluated trial points.
+    // Note: If cache is not used, Points that are alread evaluated
+    // will be forgotten.
+    NOMAD::EvalPointSet evalPointSet;
+   
+    // Retrieve evaluated points from cache that should not be evaluated again.
+    // This must be done BEFORE starting evaluation (this is because of parallel mode). We unlock the queue after that.
+    // NOTE: There are two reasons why nbEvalPointsThatNeedEval < _trialPoints.size: 1- Trial point(s) has already been evaluated, 2- Trial point(s) is already in the queue. We are interested only in the evaluated points from cache.
+    // NOTE: We can have doublons in trial points. Insertion in queue may detect a doublons when a mesh is extremely fine. We keep just one.
+    if (nbEvalPointsThatNeedEval < _trialPoints.size())
     {
-        evcInterface.startEvaluation();
-        
-        
-        // Update trial points with evaluated trial points.
-        // Note: If cache is not used, Points that are not evaluated yet
-        // will be forgotten.
-        NOMAD::EvalPointSet evalPointSet;
-        for (auto evalPoint : evcInterface.retrieveAllEvaluatedPoints())
+        for (const auto & evalPoint : evcInterface.retrieveEvaluatedPointsFromCache(_trialPoints))
         {
             evalPointSet.insert(evalPoint);
         }
         OUTPUT_DEBUG_START
         std::string s;
-        s = "Number of trial points: " + std::to_string(_trialPoints.size());
-        _parentStep->AddOutputDebug(s);
-        s = "Number of trial points that needed eval: " + std::to_string(nbEvalPointsThatNeedEval);
-        _parentStep->AddOutputDebug(s);
-        s = "Number of evaluated points: " + std::to_string(evalPointSet.size());
+        s = "The number of points that need eval is smaller than the number of trial points. Some evaluated points are already in cache.";
         _parentStep->AddOutputDebug(s);
         OUTPUT_DEBUG_END
         
-        _trialPoints.clear();
-        _trialPoints = evalPointSet;
     }
     
+    // Arguments to unlockQueue:
+    // false: do not sort
+    // keepN: default, keep all points
+    evc->unlockQueue(false);
+    
+    // Start surrogate evaluation if needed
+    if (nbEvalPointsThatNeedEval > 0)
+    {
+        evcInterface.startEvaluation();
+        
+        for (const auto & evalPoint : evcInterface.retrieveAllEvaluatedPoints())
+        {
+            evalPointSet.insert(evalPoint);
+        }
+    }
+
+    
+    OUTPUT_DEBUG_START
+    std::string s;
+    s = "Number of trial points: " + std::to_string(_trialPoints.size());
+    _parentStep->AddOutputDebug(s);
+    s = "Number of trial points that needed eval: " + std::to_string(nbEvalPointsThatNeedEval);
+    _parentStep->AddOutputDebug(s);
+    s = "Number of evaluated points: " + std::to_string(evalPointSet.size());
+    _parentStep->AddOutputDebug(s);
+    if (_trialPoints.size() != evalPointSet.size())
+    {
+        s = "Warning: number of trial points != number of evaluated points. This is normal if it happens just before reaching max_bb_eval.";
+        _parentStep->AddOutputDebug(s);
+    }
+    OUTPUT_DEBUG_END
+    
+    
+    
+    _trialPoints.clear();
+    _trialPoints = evalPointSet;
+    
+    
     evc->setOpportunisticEval(previousOpportunism);
-    evc->selectCurrentEvaluator(NOMAD::EvalType::BB);
+    evc->setCurrentEvaluatorType(NOMAD::EvalType::BB);
     
     // Points are now all evaluated using SURROGATE or MODEL.
     // Points are still in the parent step's trial points. There is no update to do here.

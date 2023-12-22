@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -45,7 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#define NOMADMEX_VERSION "1.5 [Feb 22nd, 2023]"
+#define NOMADMEX_VERSION "1.5  [Feb 22nd, 2023]"
 //NOTE The OPTI interface is no longer supported.
 // Another change compared with previous versions: the parameters are passed as a list of strings (in the form struct('KEYWORD','value',...)). The keyword and value follow exactly the Nomad syntax.
 
@@ -80,10 +80,10 @@ typedef struct {
 
 // Evaluation callback structure
 typedef struct {
-	char f[FLEN];
-	mxArray *plhs[1];
-	mxArray *prhs[4];
-	bool enabled;
+    char f[FLEN];
+    mxArray *plhs[1];
+    mxArray *prhs[4];
+    bool enabled;
 } usrCallbackFcn;
 
 
@@ -125,7 +125,7 @@ private:
     size_t nobj;
     size_t ncon;
 
-	usrCallbackFcn *callbackF;
+    usrCallbackFcn *callbackF;
 
 
 public:
@@ -136,49 +136,49 @@ public:
         fun     = _fun;
         nobj    = _nobj;
         ncon    = _ncon;
-		counter_eval = 0;
-		callbackF = _callbackF;
+        counter_eval = 0;
+        callbackF = _callbackF;
 
     }
     //Destructor
     ~matlabEval(void) {}
-
 
     //Function + Constraint Evaluation on a given block of eval points
     std::vector<bool> eval_block(NOMAD::Block &block,
                                                    const NOMAD::Double &hMax,
                                                    std::vector<bool> &countEval) const
     {
-        
+
         size_t m = block.size();
         std::vector<bool> evalOk(m, false);
         countEval.resize(m, false);
-        
+
         //mexPrintf("Optimization using block of points evaluation is not available\n");
         //NOMAD::Step::setUserTerminate();
-        
-        
+
+
         if (NOMAD::Step::getUserTerminate())
         {
             NOMAD::Step::setUserTerminate(); // Two calls to user terminate maybe necessary
             return evalOk;
         }
-        
+
         //Check for Ctrl-C
         if ( utIsInterruptPending() )
         {
             utSetInterruptPending(false); /* clear Ctrl-C status */
             mexPrintf("\nCtrl-C Detected. Exiting NOMAD...\n\n");
-            
+
             NOMAD::Step::setUserTerminate();
             return evalOk;
         }
-        
-        
+
+
         int n = static_cast<int>(block[0]->size());
         fun->prhs[fun->xrhs] = mxCreateDoubleMatrix(m, n, mxREAL); //x
         double *List_x = mxGetPr(fun->prhs[fun->xrhs]);
-        
+
+        mxLogical *sur;
         size_t j=0;
         for (size_t j = 0 ; j < block.size() ; j++)
         {
@@ -187,15 +187,14 @@ public:
                 List_x[i*m+j] = (*block[j])[i].todouble();
             }
         }
-        
+
         //Add a flag if surrogate eval
-        mxLogical *sur;
         if( NOMAD::EvalType::SURROGATE == _evalType )
         {
             sur=mxGetLogicals(fun->prhs[fun->xrhs+1]);
             *sur=true;
         }
-        
+
         char errstr[1024];
         //Call MATLAB Objective
         try
@@ -203,14 +202,14 @@ public:
             // Count eval for bbox
             // The case where the evaluation is rejected by user (and should not be counted) is not managed in the matlab version
             countEval.assign(m,true);
-            
+
             // Use call with Trap to catch some errors on fun eval that are not properly catched as an exception
 #ifdef BLACKBOX_COUNT_EVAL
             mxArray * except = mexCallMATLABWithTrap(2, fun->plhs, fun->nrhs, fun->prhs, fun->f);
 #else
             mxArray * except = mexCallMATLABWithTrap(1, fun->plhs, fun->nrhs, fun->prhs, fun->f);
 #endif
-            
+
             if ( except != NULL )
             {
                 std::string error_message ( "\n +++++++++++++++++++++++++++++++++++++++++++++++ \n");
@@ -237,8 +236,8 @@ public:
             NOMAD::Step::setUserTerminate();
             return evalOk;
         }
-        
-        
+
+
         //Check we got the correct number of elements back
         if(mxGetNumberOfElements(fun->plhs[0]) > (nobj+ncon)*m)
             mexPrintf("Black box returns more elements than required. Please provide a BB_OUTPUT_TYPE consistent with your black box function or correct the black box function.");
@@ -260,7 +259,7 @@ public:
             NOMAD::Step::setUserTerminate();
             return evalOk;
         }
-        
+
         //Assign count_eval
 #ifdef BLACKBOX_COUNT_EVAL
         count=mxGetPr(fun->plhs[1]);
@@ -269,18 +268,19 @@ public:
             countEval.clear();
         }
 #endif
-        
+
         // Update the MatlabEvaluator counter
         counter_eval += m;
 
-                //Assign bb output
+        //Assign bb output
         double *fvals = mxGetPr(fun->plhs[0]);
+        j=0;
         for (size_t j =0 ; j < block.size() ; j++)
         {
 #ifdef BLACKBOX_COUNT_EVAL
             countEval.push_back( ( ( count[j] == 1) ? true : false) ) ;
 #endif
-            
+
             std::string bboStr;
             for(size_t i=0;i<(nobj+ncon);i++)
             {
@@ -289,18 +289,18 @@ public:
             }
             block[j]->setBBO(bboStr,_bbOutputTypeList, _evalType);
         }
-        
+
         evalOk.assign(m,true);
-        
+
         //Iteration Callback
         if (nullptr != callbackF && callbackF->enabled)
         {
             callbackF->plhs[0] = nullptr;
-            
+
             callbackF->prhs[1] = mxCreateNumericMatrix(1, 1, mxINT32_CLASS, mxREAL);
             callbackF->prhs[2] = mxCreateDoubleMatrix(m, (nobj + ncon), mxREAL);
             callbackF->prhs[3] = mxCreateDoubleMatrix(m, n, mxREAL);
-            
+
             memcpy(mxGetData(callbackF->prhs[1]), &counter_eval, sizeof(int));
             memcpy(mxGetPr(callbackF->prhs[2]), fvals, m*(nobj + ncon) * sizeof(double));
             memcpy(mxGetPr(callbackF->prhs[3]), List_x, m*n * sizeof(double));
@@ -314,7 +314,7 @@ public:
                 NOMAD::Step::setUserTerminate();
                 return evalOk;
             }
-            
+
             //Collect return argument
             bool stop = *(bool*)mxGetData(callbackF->plhs[0]);
             //Check for iterfun stop
@@ -324,14 +324,14 @@ public:
                 NOMAD::Step::setUserTerminate();
             }
         }
-        
+
         // Clean up LHS Fun Ptr
         mxDestroyArray(fun->plhs[0]);
 
 #ifdef BLACKBOX_COUNT_EVAL
         mxDestroyArray(fun->plhs[1]);
 #endif
-        
+
         return evalOk;
     }
 
@@ -339,20 +339,21 @@ public:
     //Function + Constraint Evaluation
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &h_max, bool &count_eval) const
     {
+
         char errstr[1024];
         bool stop = false;
         int i, n = static_cast<int>(x.size());
         double *xm, *fvals;
         mxLogical *sur;
         double *count=NULL;
-        count_eval = true; 
+        count_eval = true;
 
-		if (NOMAD::Step::getUserTerminate())
-		{
-			NOMAD::Step::setUserTerminate(); // Two calls to user terminate maybe necessary
-			count_eval = false;
-			return false;
-		}
+        if (NOMAD::Step::getUserTerminate())
+        {
+            NOMAD::Step::setUserTerminate(); // Two calls to user terminate maybe necessary
+            count_eval = false;
+            return false;
+        }
 
         //Check for Ctrl-C
         if ( utIsInterruptPending() )
@@ -379,11 +380,11 @@ public:
          //Call MATLAB Objective
          try
          {
-             // Use Trap to catch some errors on fun eval that are not properly catched as an exception
+             // Use call with Trap to catch some errors on fun eval that are not properly catched as an exception
 #ifdef BLACKBOX_COUNT_EVAL
             mxArray * except = mexCallMATLABWithTrap(2, fun->plhs, fun->nrhs, fun->prhs, fun->f);
 #else
- 			mxArray * except = mexCallMATLABWithTrap(1, fun->plhs, fun->nrhs, fun->prhs, fun->f);
+             mxArray * except = mexCallMATLABWithTrap(1, fun->plhs, fun->nrhs, fun->prhs, fun->f);
 #endif
 
             // Counting eval if Matlab bb has been called
@@ -416,7 +417,6 @@ public:
          }
 
          //Check we got the correct number of elements back
-
          if( mxGetNumberOfElements(fun->plhs[0]) > nobj+ncon )
              mexWarnMsgTxt("Black box returns more elements than required. Please provide a BB_OUTPUT_TYPE consistent with your black box function");
          else if( mxGetNumberOfElements(fun->plhs[0]) < nobj+ncon )
@@ -434,71 +434,71 @@ public:
 #endif
 
          if ( count != NULL )
- 		{
+         {
              count_eval = (*count == 1) ? true : false ;
-			 mxDestroyArray(fun->plhs[1]);
-		 }
+             mxDestroyArray(fun->plhs[1]);
+         }
 
          std::string bboStr;
          for(i=0;i<(nobj+ncon);i++)
          {
              NOMAD::Double bbo = fvals[i];
-             bboStr += bbo.tostring() + " " ;   
+             bboStr += bbo.tostring() + " " ;
          }
          x.setBBO(bboStr,_bbOutputTypeList, _evalType);
-		 // mexPrintf("Function output: %s\n", bboStr);
+         // mexPrintf("Function output: %s\n", bboStr);
 
-		 //Iteration Callback
-		 if (nullptr != callbackF && callbackF->enabled)
-		 {
-			 // mexPrintf("Callback function about to be called\n");
+         //Iteration Callback
+         if (nullptr != callbackF && callbackF->enabled)
+         {
+             // mexPrintf("Callback function about to be called\n");
 
-			 callbackF->plhs[0] = nullptr;
+             callbackF->plhs[0] = nullptr;
 
-			 callbackF->prhs[1] = mxCreateNumericMatrix(1, 1, mxINT32_CLASS, mxREAL);
-			 callbackF->prhs[2] = mxCreateDoubleMatrix(1, (nobj + ncon), mxREAL);
-			 callbackF->prhs[3] = mxCreateDoubleMatrix(1, n, mxREAL);
+             callbackF->prhs[1] = mxCreateNumericMatrix(1, 1, mxINT32_CLASS, mxREAL);
+             callbackF->prhs[2] = mxCreateDoubleMatrix(1, (nobj + ncon), mxREAL);
+             callbackF->prhs[3] = mxCreateDoubleMatrix(1, n, mxREAL);
 
-			 memcpy(mxGetData(callbackF->prhs[1]), &counter_eval, sizeof(int));
-			 memcpy(mxGetPr(callbackF->prhs[2]), fvals, (nobj + ncon) * sizeof(double));
-			 memcpy(mxGetPr(callbackF->prhs[3]), xm, n * sizeof(double));
-			 try {
-				 mexCallMATLAB(1, callbackF->plhs, 4, callbackF->prhs, callbackF->f);
-			 }
-			 catch (...)
-			 {
-				 mexPrintf("Unrecoverable error from user eval callback. Callback function [stop] = cbFun(eval_counter,fevals,x) must be provided. Exiting NOMAD...\n\n");
-				 //Force exit
-				 NOMAD::Step::setUserTerminate();
-				 return false;
-			 }
+             memcpy(mxGetData(callbackF->prhs[1]), &counter_eval, sizeof(int));
+             memcpy(mxGetPr(callbackF->prhs[2]), fvals, (nobj + ncon) * sizeof(double));
+             memcpy(mxGetPr(callbackF->prhs[3]), xm, n * sizeof(double));
+             try {
+                 mexCallMATLAB(1, callbackF->plhs, 4, callbackF->prhs, callbackF->f);
+             }
+             catch (...)
+             {
+                 mexPrintf("Unrecoverable error from user eval callback. Callback function [stop] = cbFun(eval_counter,fevals,x) must be provided. Exiting NOMAD...\n\n");
+                 //Force exit
+                 NOMAD::Step::setUserTerminate();
+                 return false;
+             }
 
-			 //Collect return argument
-			 stop = *(bool*)mxGetData(callbackF->plhs[0]);
+             //Collect return argument
+             stop = *(bool*)mxGetData(callbackF->plhs[0]);
 
-			 //Clean up Ptr
-			 mxDestroyArray(callbackF->plhs[0]);
+             //Clean up Ptr
+             mxDestroyArray(callbackF->plhs[0]);
 
-		 }
+         }
 
-		 //Add Function Eval Counter
-		 counter_eval ++;
+         //Add Function Eval Counter
+         counter_eval ++;
 
-		 // Clean up LHS Fun Ptr
-		 mxDestroyArray(fun->plhs[0]);
-        
+         // Clean up LHS Fun Ptr
+         mxDestroyArray(fun->plhs[0]);
+
 #ifdef BLACKBOX_COUNT_EVAL
         mxDestroyArray(fun->plhs[1]);
 #endif
 
-		 //Check for iterfun stop
-		 if (stop)
-		 {
-			 mexPrintf("\nUser evaluation callback called for a stop. Exiting NOMAD with a CTRL-C signal ...\n\n");
-			 NOMAD::Step::setUserTerminate();
-		 }
-		 
-		 return true;
+         //Check for iterfun stop
+         if (stop)
+         {
+             mexPrintf("\nUser evaluation callback called for a stop. Exiting NOMAD with a CTRL-C signal ...\n\n");
+             NOMAD::Step::setUserTerminate();
+         }
+
+         return true;
 
     }
 };
@@ -507,25 +507,25 @@ public:
 
 class mxstreambuf : public std::streambuf {
 public:
-	mxstreambuf() {
-		stdoutbuf = std::cout.rdbuf(this);
-	}
-	~mxstreambuf() {
-		std::cout.rdbuf(stdoutbuf);
-	}
+    mxstreambuf() {
+        stdoutbuf = std::cout.rdbuf(this);
+    }
+    ~mxstreambuf() {
+        std::cout.rdbuf(stdoutbuf);
+    }
 protected:
-	virtual std::streamsize xsputn(const char* s, std::streamsize n) override {
-		mexPrintf("%.*s", n, s);
-		return n;
-	}
-	virtual int overflow(int c = EOF) override {
-		if (c != EOF) {
-			mexPrintf("%.1s", &c);
-		}
-		return 1;
-	}
+    virtual std::streamsize xsputn(const char* s, std::streamsize n) override {
+        mexPrintf("%.*s", n, s);
+        return n;
+    }
+    virtual int overflow(int c = EOF) override {
+        if (c != EOF) {
+            mexPrintf("%.1s", &c);
+        }
+        return 1;
+    }
 private:
-	std::streambuf *stdoutbuf;
+    std::streambuf *stdoutbuf;
 };
 
 
@@ -534,66 +534,66 @@ private:
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 
-	// For cout redirection
-	mxstreambuf mout;
+    // For cout redirection
+    mxstreambuf mout;
 
-	//Input Args
-	usrFcn fun;
-	double *x0, *lb = NULL, *ub = NULL;
-
-
-
-	//Internal Vars
-	size_t ndec;
-	int i;
-	size_t nobj = 1, ncon = 0;
-	char errstr[1024]; //used for returning error info
-
-	//Check user inputs
-	if (!checkInputs(prhs, nrhs, plhs, nlhs))
-		return;
+    //Input Args
+    usrFcn fun;
+    double *x0, *lb = NULL, *ub = NULL;
 
 
-	//Get Size
-	ndec = mxGetNumberOfElements(pX0);
 
-	//Get Blackbox / Objective Function Handle
-	if (mxIsChar(pFUN))
-	{
-		if (mxGetString(pFUN, fun.f, FLEN) != 0)
-			mexErrMsgTxt("\n Error reading objective name as string");
-		fun.nrhs = 1;
-		fun.xrhs = 0;
-	}
-	else
-	{
-		fun.prhs[0] = (mxArray*)pFUN;
-		strcpy(fun.f, "feval");
-		fun.nrhs = 2;
-		fun.xrhs = 1;
-	}
-	fun.prhs[fun.xrhs] = mxCreateDoubleMatrix(ndec, 1, mxREAL); //x
+    //Internal Vars
+    size_t ndec;
+    int i;
+    size_t nobj = 1, ncon = 0;
+    char errstr[1024]; //used for returning error info
+
+    //Check user inputs
+    if (!checkInputs(prhs, nrhs, plhs, nlhs))
+        return;
 
 
-	usrCallbackFcn callbackFun;
-	callbackFun.enabled = false;
-	if (nrhs > eCB && !mxIsEmpty(pCB))
-	{
-		mexPrintf("Callback function is enabled");
-		//Get Blackbox / Objective Function Handle
-		if (mxIsChar(pCB))
-		{
-			if (mxGetString(pCB, callbackFun.f, FLEN) != 0)
-				mexErrMsgTxt("\n Error reading eval callback function name as string");
-		}
-		else
-		{
-			callbackFun.prhs[0] = (mxArray*)pCB;
-			strcpy(callbackFun.f, "feval");
-		}
-		callbackFun.enabled = true;
+    //Get Size
+    ndec = mxGetNumberOfElements(pX0);
 
-	}
+    //Get Blackbox / Objective Function Handle
+    if (mxIsChar(pFUN))
+    {
+        if (mxGetString(pFUN, fun.f, FLEN) != 0)
+            mexErrMsgTxt("\n Error reading objective name as string");
+        fun.nrhs = 1;
+        fun.xrhs = 0;
+    }
+    else
+    {
+        fun.prhs[0] = (mxArray*)pFUN;
+        strcpy(fun.f, "feval");
+        fun.nrhs = 2;
+        fun.xrhs = 1;
+    }
+    fun.prhs[fun.xrhs] = mxCreateDoubleMatrix(ndec, 1, mxREAL); //x
+
+
+    usrCallbackFcn callbackFun;
+    callbackFun.enabled = false;
+    if (nrhs > eCB && !mxIsEmpty(pCB))
+    {
+        mexPrintf("Callback function is enabled");
+        //Get Blackbox / Objective Function Handle
+        if (mxIsChar(pCB))
+        {
+            if (mxGetString(pCB, callbackFun.f, FLEN) != 0)
+                mexErrMsgTxt("\n Error reading eval callback function name as string");
+        }
+        else
+        {
+            callbackFun.prhs[0] = (mxArray*)pCB;
+            strcpy(callbackFun.f, "feval");
+        }
+        callbackFun.enabled = true;
+
+    }
 
 
 
@@ -651,9 +651,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     NOMAD::Point px0 (ndec);
     for(i=0;i<ndec;i++)
         px0[i] = x0[i];
-    
+
     p->setAttributeValue("X0",px0);
-    
+
     //Check NOMAD parameters
     try
     {
@@ -674,7 +674,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     auto bboutputlist = p->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
     nobj=NOMAD::getNbObj(bboutputlist);  // Only single objective is supported in Nomad 4
     ncon=bboutputlist.size()-nobj;
-    
+
     // Read fun output for surrogate use
     if ( p->mayUseSurrogate() )
     {
@@ -698,31 +698,31 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
 
     int mainStepRunFlag = -3;
-    
+
     //Create evaluator and run mads based on number of objectives
     try
     {
         //NOMAD Vars
         NOMAD::MainStep mainStep;
-        mainStep.setAllParameters(p); 
+        mainStep.setAllParameters(p);
 
-	    auto evBB = std::make_unique<matlabEval>(p->getEvalParams(),&fun,nobj,ncon,NOMAD::EvalType::BB, &callbackFun);
+        auto evBB = std::make_unique<matlabEval>(p->getEvalParams(),&fun,nobj,ncon,NOMAD::EvalType::BB, &callbackFun);
         mainStep.addEvaluator(std::move(evBB));
-        
+
         // The same matlab evaluator is used for surrgate and bb. A flag is passed to the matlab BB callback function
-    
+
         if (p->mayUseSurrogate())
         {
             auto evSurrogate = std::make_unique<matlabEval>(p->getEvalParams(),&fun,nobj,ncon,NOMAD::EvalType::SURROGATE, &callbackFun);
             mainStep.addEvaluator(std::move(evSurrogate));
         }
-        
+
         mainStep.start();
         mainStep.run();
         mainStep.end();
-        
+
         mainStepRunFlag = mainStep.getRunFlag();
-    
+
     }
     catch(exception &e)
     {
@@ -736,7 +736,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     plhs[2] = mxCreateDoubleMatrix(1,1, mxREAL);
     plhs[3] = mxCreateDoubleMatrix(1,1, mxREAL);
     plhs[4] = mxCreateDoubleMatrix(1,1, mxREAL);
-    
+
     double *x= mxGetPr(plhs[0]);
     double *fval = mxGetPr(plhs[1]);
     double *hinf = mxGetPr(plhs[2]);
@@ -744,32 +744,37 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double *nfval = mxGetPr(plhs[4]);
 
     std::vector<NOMAD::EvalPoint> bf, bi ;
-    NOMAD::EvalPoint sol;  
+    NOMAD::EvalPoint sol;
 
-    size_t nbBestFeas = NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(ndec), NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD, nullptr);
-    size_t nbBestInf  = NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(ndec), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD,nullptr);
+    size_t nbBestFeas = NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(ndec), NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD);
+    size_t nbBestInf  = NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(ndec), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
 
+    // For now
+    // If nbFeas > 0 we return a single best feasible point (no infeasible point)
+    // Else (if nbFeas == 0) we return the least infeasible point with the smallest f (index 0, see findBestInf)
+    // Maybe this could be generalized to show the best feasible point and all undominated infeasible points.
+    // The same logic for Nomad C and Matlab interfaces and for PyNomad.
     if (nbBestFeas == 0)
     {
         if (nbBestInf == 0)
-        { 
-			mexPrintf("NO solution obtained\n");
+        {
+            mexPrintf("NO solution obtained\n");
             *runflag = double(mainStepRunFlag) ;
-			*fval = 0;
-			*hinf = 1;
-			for (i = 0; i < ndec; i++)
-				x[i] = x0[i];
+            *fval = 0;
+            *hinf = 1;
+            for (i = 0; i < ndec; i++)
+                x[i] = x0[i];
             return;
         }
         else
         {
-			mexPrintf("Infeasible solution obtained\n");
+            mexPrintf("Least infeasible solution obtained (with smallest f)\n");
             sol = bi[0];
         }
     }
     else
     {
-		mexPrintf("Feasible solution obtained\n");
+        mexPrintf("Feasible solution obtained\n");
         sol = bf[0];
     }
 
@@ -777,10 +782,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     NOMAD::Point pt(*sol.getX());
     for(i=0;i<ndec;i++)
         x[i] = pt[i].todouble();
-    
+
     //Save fval
     *fval = sol.getF().todouble();
-    
+
     //Save hinf
     *hinf = sol.getH().todouble();
 
@@ -815,8 +820,8 @@ int checkInputs(const mxArray *prhs[], int nrhs, mxArray *plhs[], int nlhs)
 
     NOMAD::MainStep mainStep;
 
-	//Redirect cout
-	mxstreambuf mout;
+    //Redirect cout
+    mxstreambuf mout;
 
     //MEX Display Version
     if (nrhs < 1)
@@ -828,7 +833,7 @@ int checkInputs(const mxArray *prhs[], int nrhs, mxArray *plhs[], int nlhs)
         return 0;
     }
 
-    
+
 
     //Check for display on options passed as structure
     if(nrhs == 1 && mxIsStruct(prhs[0]))
@@ -918,8 +923,8 @@ int checkInputs(const mxArray *prhs[], int nrhs, mxArray *plhs[], int nlhs)
     }
 
     //Version check
-	if (nrhs > eCB+1)
-		mexErrMsgTxt("Calling NOMAD using the wrong syntax. Correct syntax: nomadOpt(bb,x0,lb,ub,params,bbCallBackFun). The last argument is optional.");
+    if (nrhs > eCB+1)
+        mexErrMsgTxt("Calling NOMAD using the wrong syntax. Correct syntax: nomadOpt(bb,x0,lb,ub,params,bbCallBackFun). The last argument is optional.");
 
     //Return Continue
     return  1;
@@ -929,29 +934,29 @@ int checkInputs(const mxArray *prhs[], int nrhs, mxArray *plhs[], int nlhs)
 void setNomadParams(const std::shared_ptr<NOMAD::AllParameters> p, const mxArray *params)
 {
 
-	// For cout redirection
-	mxstreambuf  mout;
+    // For cout redirection
+    mxstreambuf  mout;
 
     char strbuf[1024];
     int i, no = 0;
     mxArray *value;
 
-	bool doAdd = false;
+    bool doAdd = false;
 
     if(!mxIsStruct(params))
     {
-        mexErrMsgTxt("Params should be provided as Matlab structure: struct('KEY1','VAL1','KEY2','VAL2') "); 
+        mexErrMsgTxt("Params should be provided as Matlab structure: struct('KEY1','VAL1','KEY2','VAL2') ");
     }
 
     if(params)
-    {    
+    {
         no = mxGetNumberOfFields(params);
     }
     else
     {
         return;
     }
-    
+
     //For each field, check if it's empty, if not, set it within NOMAD
     for(i=0;i<no;i++)
     {
@@ -964,10 +969,8 @@ void setNomadParams(const std::shared_ptr<NOMAD::AllParameters> p, const mxArray
        sprintf(strbuf,"%s %s",keyword,mxArrayToString(value));
         // std::cout<<strbuf << std::endl;
        p->readParamLine(strbuf);
-    }       
+    }
 }
-
-
 
 //Print Solver Information
 void printSolverInfo()

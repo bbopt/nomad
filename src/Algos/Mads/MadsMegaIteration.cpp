@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -96,7 +96,7 @@ void NOMAD::MadsMegaIteration::observe(const std::vector<NOMAD::EvalPoint>& eval
 
     // Update barrier with new points.
     _barrier->updateRefBests();
-    _barrier->updateWithPoints(evalPointList, NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
+    _barrier->updateWithPoints(evalPointList, NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"), true /* true: update incumbents and hMax */);
 
     // Update main mesh
     NOMAD::MadsUpdate update(this);
@@ -227,7 +227,7 @@ void NOMAD::MadsMegaIteration::read(std::istream& is)
             else
             {
                 std::string err = "Error: Reading a mesh onto a NULL pointer";
-                std::cerr << err;
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
             }
         }
         else if ("ITERATION_COUNT" == name)
@@ -243,7 +243,7 @@ void NOMAD::MadsMegaIteration::read(std::istream& is)
             else
             {
                 std::string err = "Error: Reading a Barrier onto a NULL pointer";
-                std::cerr << err;
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
             }
         }
         else

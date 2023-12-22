@@ -135,14 +135,14 @@ int main(int argc, char **argv)
 
     if (exists_infeas) // as a feasible solution has been found, no infeasible solution is given
     {
-        printf("Best feasible solution found: \n");
+        printf("Best infeasible solution found (least infeasible with lowest f): \n");
         printf("x_infeas = [ ");
         for (int i = 0; i < nb_inputs; ++i)
         {
             printf("%f ", x_inf_sol[i]);
         }
         printf(" ]\n");
-        printf("f_feas = ");
+        printf("f_infeas = ");
         printf("%f \n", outputs_inf_sol[2]);
     }
 

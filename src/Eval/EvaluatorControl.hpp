@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,16 @@
  \see    EvaluatorControl.cpp
  */
 
-#ifndef __NOMAD_4_3_EVALUATORCONTROL__
-#define __NOMAD_4_3_EVALUATORCONTROL__
+/**
+ \file   EvaluatorControl.hpp
+ \brief  Management for evaluation.
+ \author Viviane Rochon Montplaisir
+ \date   November 2017
+ \see    EvaluatorControl.cpp
+ */
+
+#ifndef __NOMAD_4_4_EVALUATORCONTROL__
+#define __NOMAD_4_4_EVALUATORCONTROL__
 
 #include "../Eval/BarrierBase.hpp"
 #include "../Eval/SuccessStats.hpp"
@@ -71,6 +79,50 @@
 #include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
+// Generic funtion with a  mandatory eval queue point (in/out) and a variable number of in/out bool arguments
+template<class ... Types>
+using EvalCbFunc = std::function<void(EvalQueuePointPtr & EvalQueuePoint, Types ...)>;  ///< Type definitions for callback functions during evaluation.
+
+// Generic callback function type stored in a struc
+template<CallbackType type>
+struct CallbackFuncType
+{
+    typedef std::function<void()> funcType;
+};
+
+// Callback function type for eval opportunistic check. 1 bool opportunisticStop + eval queue point
+template<>
+struct CallbackFuncType<CallbackType::EVAL_OPPORTUNISTIC_CHECK>
+{
+    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, bool&, bool&)> funcType;
+};
+
+// Callback function type for global stop check. 1 bool opportunisticStop + eval queue point
+template<>
+struct CallbackFuncType<CallbackType::EVAL_STOP_CHECK>
+{
+    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, bool&)> funcType;
+};
+
+// Callback function type for update just after point evaluation. jus No argument apart from eval queue point.
+template<>
+struct CallbackFuncType<CallbackType::EVAL_UPDATE>
+{
+    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint)> funcType;
+};
+
+// Callback function type for fail eval check and management. No argument apart from eval queue point.
+template<>
+struct CallbackFuncType<CallbackType::EVAL_FAIL_CHECK>
+{
+    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint)> funcType;
+};
+
+// Callback function template
+template<CallbackType type>
+using EvalCallbackFunc = typename CallbackFuncType<type>::funcType;
+
+
 
 /// \brief Class to control the evaluation of points using a queue.
 /**
@@ -78,9 +130,9 @@
  */
 class DLL_EVAL_API EvaluatorControl {
 private:
-    std::shared_ptr<EvaluatorControlGlobalParameters> _evalContGlobalParams;  ///< The parameters controlling the behavior of the class
+    const std::shared_ptr<EvaluatorControlGlobalParameters> _evalContGlobalParams;  ///< The parameters controlling the behavior of the class
 
-    std::shared_ptr<EvaluatorControlParameters> _evalContParams;
+    const std::shared_ptr<EvaluatorControlParameters> _evalContParams;
     
     std::set<int> _mainThreads;     // Thread numbers of main threads
 
@@ -98,7 +150,7 @@ private:
      */
     std::vector<EvalQueuePointPtr> _evalPointQueue;
 
-    std::shared_ptr<ComparePriorityMethod>  _userCompMethod;    ///< User-implemented comparison method to sort points before evaluation
+    static std::shared_ptr<ComparePriorityMethod>  _userCompMethod;    ///< User-implemented comparison method to sort points before evaluation
 
 #ifdef _OPENMP
     /// To lock the queue
@@ -113,6 +165,15 @@ private:
      * I find it clearer to declare it atomic from the start.
      */
     std::atomic<size_t> _bbEval;
+    
+    /// The number of blackbox evaluations obtained from a cache file (rerun)
+    /**
+     \remark
+     * Atomic for thread-safety. \n
+     * Atomic is also supported by OpenMP, but here
+     * I find it clearer to declare it atomic from the start.
+     */
+    std::atomic<size_t> _bbEvalFromCacheForRerun;
 
     /// The number of blackbox evaluations that are not ok
     /**
@@ -143,6 +204,9 @@ private:
 
     /// The number of static surrogate evaluations performed
     std::atomic<size_t> _surrogateEval;
+    
+    /// The number of static surrogate evaluations obtained from cache (rerun mode)
+    std::atomic<size_t> _surrogateEvalFromCacheForRerun;
 
     /// The total number of quad or modellib model evaluations. Used for stats exclusively.
     std::atomic<size_t> _totalModelEval;
@@ -187,17 +251,63 @@ private:
      The number of PhaseOne success evaluations performed through \c this.
      */
     std::atomic<size_t> _nbPhaseOneSuccess;
+    
+    /**
+     The number of revealing  iterations performed through \c this. (currently only used for DiscoMads)
+     */
+    std::atomic<size_t> _nbRevealingIter;
+
 
     bool _allDoneWithEval;     ///< All evaluations done. The queue can be destroyed.
-
-    SuccessStats _successStats; ///< Collect stats for SuccessType and trial point generating step type.
     
+    SuccessStats _successStats; ///< Collect stats for SuccessType and trial point generating step type.
+
+    
+    // Global evaluator control attributes
+    SPAttribute<size_t> _bbMaxBlockSize, _surrogateMaxBlockSize, _modelMaxBlockSize, _maxModelEval;
+    SPAttribute<size_t>  _maxBBEval, _maxSurrogateEval, _maxEval, _maxBlockEval;
+    SPAttribute<bool> _useCacheFileForRerun; ///< Flag to use cache file for evaluation during rerun.
+    
+    
+    // Default callback function. Does nothing.
+    template<typename... ARGS>
+    static void defaultEvalCB(EvalQueuePointPtr & evalQueuePoint, ARGS&&... args) {}
+
+    
+    // Callback function definition for eval opportunistic check. Requires two out bool attributes for opportunistic stop
+    static EvalCallbackFunc<CallbackType::EVAL_OPPORTUNISTIC_CHECK> _cbEvalOpportunisticCheck ;
+    static bool _customOpportunisticCheck;
+
+    // Callback function definition for a special update defined by the user run just after evaluation.
+    static EvalCallbackFunc<CallbackType::EVAL_UPDATE> _cbEvalUpdate;
+    
+    // Callback function definition for global stop check. Requires one in/out bool attributes for global stop
+    static EvalCallbackFunc<CallbackType::EVAL_STOP_CHECK> _cbEvalStopCheck ;
+    
+    // Callback function definition for eval fail check and manage. Requires no in/out attribute
+    static EvalCallbackFunc<CallbackType::EVAL_FAIL_CHECK> _cbFailEvalCheck ;
+    
+    // Flag to indicate if callback for eval fail check has been set by user
+    static bool _cbFailEvalCheckIsDefault;
+
 #ifdef TIME_STATS
     double _evalTime;  ///< Total time spent running evaluations
 #endif // TIME_STATS
 
 public:
-    /// Constructor 
+    /**
+    Set the callbacks to defaultEvalCB.
+    Useful for Runner between two optimization problems to reset all callback. Callbacks are initiated in MainStep::startImp()
+     */
+    static void resetCallbacks()
+    {
+        _cbEvalOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&,bool&>;
+        _cbEvalUpdate = NOMAD::EvaluatorControl::defaultEvalCB<>;
+        _cbEvalStopCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
+        _cbFailEvalCheck = NOMAD::EvaluatorControl::defaultEvalCB<>;
+    }
+
+    /// Constructor
     /**
      \param evalContGlobalParams  The parameters controlling how the class works -- \b IN.
      \param evalContParams  The parameters for main threads -- \b IN.
@@ -209,15 +319,16 @@ public:
         _mainThreads(),
         _mainThreadInfo(),
         _evalPointQueue(),
-        _userCompMethod(nullptr),
 #ifdef _OPENMP
         _evalQueueLock(),
 #endif // _OPENMP
         _bbEval(0),
+        _bbEvalFromCacheForRerun(0),
         _bbEvalNotOk(0),
         _feasBBEval(0),
         _infBBEval(0),
         _surrogateEval(0),
+        _surrogateEvalFromCacheForRerun(0),
         _totalModelEval(0),
         _blockEval(0),
         _indexSuccBlockEval(0),
@@ -226,13 +337,14 @@ public:
         _nbEvalSentToEvaluator(0),
         _nbRelativeSuccess(0),
         _nbPhaseOneSuccess(0),
+        _nbRevealingIter(0),
         _allDoneWithEval(false),
         _successStats()
 #ifdef TIME_STATS
         ,_evalTime(0.0)
 #endif // TIME_STATS
     {
-        init(evalContParams);
+        init();
     }
 
     /// Constructor #2
@@ -249,15 +361,16 @@ public:
         _mainThreads(),
         _mainThreadInfo(),
         _evalPointQueue(),
-        _userCompMethod(nullptr),
 #ifdef _OPENMP
         _evalQueueLock(),
 #endif // _OPENMP
         _bbEval(0),
+        _bbEvalFromCacheForRerun(0),
         _bbEvalNotOk(0),
         _feasBBEval(0),
         _infBBEval(0),
         _surrogateEval(0),
+        _surrogateEvalFromCacheForRerun(0),
         _totalModelEval(0),
         _blockEval(0),
         _indexSuccBlockEval(0),
@@ -266,13 +379,14 @@ public:
         _nbEvalSentToEvaluator(0),
         _nbRelativeSuccess(0),
         _nbPhaseOneSuccess(0),
+        _nbRevealingIter(0),
         _allDoneWithEval(false),
         _successStats()
 #ifdef TIME_STATS
         ,_evalTime(0.0)
 #endif // TIME_STATS
     {
-        init(evalContParams);
+        init();
         addEvaluator(evaluator);
     }
 
@@ -288,7 +402,6 @@ public:
     /* Get/Set       */
     /*---------------*/
     void addMainThread(const int threadNum,
-                       const std::shared_ptr<StopReason<EvalMainThreadStopType>> evalMainThreadStopReason,
                        const std::shared_ptr<EvaluatorControlParameters> evalContParams);
     bool isMainThread(const int threadNum) const { return (_mainThreads.end() != _mainThreads.find(threadNum)); }
 
@@ -296,8 +409,8 @@ public:
     int getNbMainThreads() const { return int(_mainThreads.size()); }
 
     bool hasEvaluator(EvalType evalType) const ;
-    void selectCurrentEvaluator(EvalType evalType);
-    void selectCurrentEvaluator(EvalType evalType, const int mainThreadNum);
+    void setCurrentEvaluatorType(EvalType evalType);
+    void setCurrentEvaluatorType(EvalType evalType, const int mainThreadNum);
     void addEvaluator(EvaluatorPtr evaluator);
     void addEvaluator(EvaluatorPtr evaluator, const int mainThreadNum);
 
@@ -306,6 +419,12 @@ public:
 
     /// Set blackbox evaluations number.
     void setBbEval(const size_t bbEval) { _bbEval = bbEval; }
+    
+    /// Get the number of blackbox evaluations.
+    size_t getBbEvalFromCacheForRerun() const { return _bbEvalFromCacheForRerun; }
+
+    /// Set blackbox evaluations number.
+    void setBbEvalFromCacheForRerun(const size_t bbEvalFromCacheForRerun) { _bbEvalFromCacheForRerun = bbEvalFromCacheForRerun; }
 
     /// Get the number of blackbox evaluations that are not ok.
     size_t getBbEvalNotOk() const { return _bbEvalNotOk; }
@@ -318,7 +437,8 @@ public:
 
     /// Get the number of surrogate evaluations.
     size_t getSurrogateEval() const { return _surrogateEval; }
-    size_t getLapSurrogateEval() const { return 0; } // Not yet implemented. 
+    size_t getSurrogateEvalFromCacheForRerun() const { return _surrogateEvalFromCacheForRerun; }
+    size_t getLapSurrogateEval() const { return 0; } // Not yet implemented.
 
     size_t getModelEval(const int mainThreadNum = -1) const;
     void resetModelEval(const int mainThreadNum = -1);
@@ -361,6 +481,9 @@ public:
     size_t getNbRelativeSuccess() const {return  _nbRelativeSuccess; }
     size_t getIndexFeasEval() const { return _indexBestFeasEval; }
     size_t getIndexInfeasEval() const { return _indexBestInfeasEval; }
+
+    size_t getNbRevealingIter() const {return  _nbRevealingIter; }
+    void incrementNbRevealingIter();
 
 #ifdef TIME_STATS
     /// Get the total time spend in Evaluator
@@ -444,6 +567,7 @@ public:
     void setOpportunisticEval(const bool opportunistic);
     bool getUseCache(const int mainThreadNum = -1) const;
     void setUseCache(const bool usecache);
+    bool getUseCacheForRerun() const { return _useCacheFileForRerun->getValue() ;}
     EvalType getCurrentEvalType(const int mainThreadNum = -1) const;
     size_t getMaxBbEvalInSubproblem(const int mainThreadNum = -1) const;
     void setMaxBbEvalInSubproblem(const size_t maxBbEval);
@@ -477,8 +601,8 @@ public:
     /// Get the top point from the queue and pop it.
     /**
     \param evalQueuePoint   The eval point popped from the queue -- \b OUT.
-    \param evaluator        Evaluator with which this point must be evaluated -- \b IN / OUT
-    \param hMax             hMax for evaluation of this point -- \b IN / OUT
+    \param evaluator        Evaluator with which this point must be evaluated -- \b IN/OUT
+    \param hMax             hMax for evaluation of this point -- \b IN/OUT
     \return                 \c true if it worked, \c false otherwise.
     */
     bool popEvalPoint(EvalQueuePointPtr &evalQueuePoint, Evaluator*& evaluator, Double& hMax);
@@ -587,15 +711,50 @@ public:
      The option to force a random ordering is for Ortho Mads n+1. So we have guarantee that the direction will grow asymptotically dense.
      */
     void sort(std::vector<EvalQueuePointPtr> & evalPointsPtrToSort, bool forceRandom);
+        
+    /*
+     Callback function can be added for checking if a special condition that is not a SuccessType (defined by an algo for example) is obtained after evaluating each point.
+     Callback function can be added for checking a fail evaluation and manage it (no stop will be called after this callback).
+     */
+    template<CallbackType type>
+    void DLL_EVAL_API addEvalCallback(const NOMAD::EvalCallbackFunc<type>& evalCbFunc);
+    // Template specializations in .cpp
+
+    /// Update local variables
+    /**
+     This is called when some evaluator control global variables are modified and the CheckAndComply is called.
+     */
+    void updateGlobalVariables();
+
+    /// Helper function called during evaluation.
+    /**
+     Update EvalQueuePointPtr after evaluation.
+    Public to allow use in user callback (e.g. with DiscoMads)
+
+     \param evalQueuePoint The queue point of interest -- \b IN/OUT.
+     \param evalOk         Flag to specific if evaluation was OK -- \b IN.
+     */
+    void computeSuccess(EvalQueuePointPtr evalQueuePoint,
+                        const bool evalOk,
+                        bool pointFromCache = false);
 
 private:
 
     /// Helper for constructor #1
-    void init(const std::shared_ptr<EvaluatorControlParameters>& evalContParams);
+    void init();
     
     /// Helper for destructor
     void destroy();
 
+    /// Helper for run
+    /**
+     * If either f value or h value of evalPoint is not well defined or eval part is nullptr, change eval status of eval point to fail and return false
+    \param evalPoint The queue point of interest -- \b IN/OUT.
+    \param evaluator The current evaluator -- \b IN
+    \param evalInfoPtr to display warning messages-- \b IN/OUT.
+     */
+    bool checkIfEvalOk(const NOMAD::Evaluator& evaluator, NOMAD::EvalPointPtr evalPoint, NOMAD::OutputInfo* evalInfoPtr);
+    
     /// Get the EvcMainThreadInfo associated with this thread number.
     /**
      * Get EvcMainThreadInfo associated with this thread number.
@@ -604,15 +763,6 @@ private:
      */
     EvcMainThreadInfo& getMainThreadInfo(const int mainThreadNum = -1) const;
 
-    /// Helper function called during evaluation.
-    /**
-     Update EvalQueuePointPtr after evaluation.
-
-     \param evalQueuePoint The queue point of interest -- \b IN/OUT.
-     \param evalOk         Flag to specific if evaluation was OK -- \b IN.
-     */
-    void computeSuccess(EvalQueuePointPtr evalQueuePoint,
-                        const bool evalOk);
 
     /// Helper for EvalType: BB OR (SURROGATE and EVAL_AS_SURROGATE)
     bool evalTypeAsBB(EvalType evalType, const int mainThreadNum) const;
@@ -629,7 +779,7 @@ private:
     /**
      \param mainThreadNum    The main thread number to verify --\b IN.
      */
-    bool stopMainEval(const int mainThreadNum) const;
+    bool stopMainEval(const int mainThreadNum, bool displayIfStop) const;
 
     /// Debug trace when a thread is waiting.
     void displayDebugWaitingInfo(time_t &lastDisplayed) const;
@@ -645,8 +795,23 @@ private:
     
     bool checkModelEvals() const;
     
+    /// \brief Generic run user eval callback (no extra argument)
+    template<CallbackType callback>
+    void runEvalCallback(EvalQueuePointPtr & evalQueuePoint);
+
+    /// \brief Generic run user eval callback (1 extra bool argument)
+    template<CallbackType callback>
+    void runEvalCallback(EvalQueuePointPtr & evalQueuePoint, bool &);
+    
+    /// \brief Generic run user eval callback (2 extra bool argument)
+    template<CallbackType callback>
+    void runEvalCallback(EvalQueuePointPtr & evalQueuePoint, bool &, bool &);
+
+    // Template specializations in .cpp
 };
+
+
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_EVALUATORCONTROL__
+#endif // __NOMAD_4_4_EVALUATORCONTROL__

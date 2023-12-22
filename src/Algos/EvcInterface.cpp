@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -337,65 +337,126 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
 }
 
 
-void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::BarrierBase> subBarrier)
+// For each point, look if it is in the cache.
+// If not, count it but DO NOT add it to EvaluatorControl's Queue.
+size_t NOMAD::EvcInterface::countPointsThatNeedEval(const NOMAD::EvalPointSet &trialPoints)
 {
-    if (subBarrier == nullptr)
+    size_t nbPointsThatNeedEval = 0;
+    // Create EvalPoints and send them to EvaluatorControl
+    if (nullptr == _evaluatorControl)
     {
-        return;
+        throw NOMAD::StepException(__FILE__,__LINE__, _step->getName() + ": EvaluatorControl not found", _step);
     }
-       
-    // Input is the barrier from MegaIteration, which may belong to a subspace.
-    // EvaluatorControl's barrier must be in full dimension.
-    // Use the clone function to obtain the same type of barrier (Mads Barrier or DMultiMadsBarrier).
-    // Clone returns an empty barrier. Populate the barrier.
-    auto fullBarrier = subBarrier->clone();
 
-
-    auto evalType = _evaluatorControl->getCurrentEvalType();
-
-    std::vector<EvalPoint> evalPointList;
-    for (const auto &x : subBarrier->getAllPointsPtr())
+    NOMAD::EvalType evalType = _evaluatorControl->getCurrentEvalType();
+    for (auto trialPoint : trialPoints)
     {
-        evalPointList.push_back(x->makeFullSpacePointFromFixed(_fixedVariable));
-    }
-    fullBarrier->updateWithPoints(evalPointList,evalType,_evaluatorControl->getComputeType());
+        // Try to insert the trialPoint in the cache.
+        // If it is not in the cache, it will be added.
+        // If the point is already in the cache, depending on its
+        // EvalStatus we might want to evaluate it.
 
-    // Need to transfer Ref best points from subBarrier to full barrier
-    auto refBestFeas = subBarrier->getRefBestFeas();
-    auto refBestInf  = subBarrier->getRefBestInf();
-    if (nullptr != refBestFeas)
-    {
-        fullBarrier->setRefBestFeas(std::make_shared<NOMAD::EvalPoint>(refBestFeas->makeFullSpacePointFromFixed(_fixedVariable)));
-    }
-    if (nullptr != refBestInf)
-    {
-        fullBarrier->setRefBestInf(std::make_shared<NOMAD::EvalPoint>(refBestInf->makeFullSpacePointFromFixed(_fixedVariable)));
-    }
-    fullBarrier->setHMax(subBarrier->getHMax());
+        // First, convert trial point to full dimension, since we are
+        // now only working with the cache and the EvaluatorControl.
+        auto trialPointSub = trialPoint;    // Used to get iteration
+        trialPoint = trialPoint.makeFullSpacePointFromFixed(_fixedVariable);
 
-    _evaluatorControl->setBarrier(fullBarrier);
-}
-
-
-bool NOMAD::EvcInterface::findInBarrier(const NOMAD::Point& x, NOMAD::EvalPoint& evalPoint) const
-{
-    bool pointFound = false;
-
-    auto barrier = _evaluatorControl->getBarrier();
-    
-    if (nullptr != barrier)
-    {
-        auto xFull = x.makeFullSpacePointFromFixed(_fixedVariable);
-        NOMAD::EvalPoint evalPointFull(evalPoint);
-        pointFound = barrier->findPoint(xFull, evalPointFull);
-        if (pointFound)
+        // Compute if we should evaluate, maybe re-evaluate, this point
+        bool doEval = true;
+        // maxNumberEval is used to compute if we should re-evaluate this point.
+        // Default value is 1.
+        // This will be a parameter in the future. Currently not implemented.
+        const int maxNumberEval = 1;
+        if (_evaluatorControl->getUseCache())
         {
-            // Put found point back in sub-dimension
-            evalPoint = evalPointFull.makeSubSpacePointFromFixed(_fixedVariable);
+            // Cache is in full space.
+            doEval = NOMAD::CacheBase::getInstance()->smartInsert(trialPoint, maxNumberEval, evalType);
+        }
+        else
+        {
+
+            // Look in EvaluatorControl's Barrier if the point is already evaluated.
+            // Only do this when EvalType is BB. If it is MODEL, always reevaluate.
+            if (NOMAD::EvalType::BB == evalType)
+            {
+                auto barrier = _evaluatorControl->getBarrier();
+                if (nullptr != barrier)
+                {
+                    NOMAD::EvalPoint foundEvalPoint;
+                    // Either point is not in barrier, or
+                    // point was evaluated, but not with the current eval type.
+                    // Barrier is in full space.
+                    doEval = !barrier->findPoint(*trialPoint.getX(), foundEvalPoint)
+                            || (nullptr == foundEvalPoint.getEval(evalType));
+                }
+            }
+        }
+
+        if (doEval)
+        {
+            nbPointsThatNeedEval++;
         }
     }
 
-    return pointFound;
+
+    OUTPUT_INFO_START
+    _step->AddOutputInfo("Number of points for step " + _step->getName() + " of eval type" + NOMAD::evalTypeToString(evalType) + " that would need eval: " + std::to_string(nbPointsThatNeedEval));
+
+    NOMAD::OutputQueue::Flush();
+    OUTPUT_INFO_END
+    
+    return nbPointsThatNeedEval;
+}
+
+
+std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::retrieveEvaluatedPointsFromCache(const NOMAD::EvalPointSet &trialPoints)
+{
+    std::vector<NOMAD::EvalPoint> evaluatedPoints;
+    
+    // Create EvalPoints and send them to EvaluatorControl
+    if (nullptr == _evaluatorControl)
+    {
+        throw NOMAD::StepException(__FILE__,__LINE__, _step->getName() + ": EvaluatorControl not found", _step);
+    }
+
+    NOMAD::EvalType evalType = _evaluatorControl->getCurrentEvalType();
+
+    if (_evaluatorControl->getUseCache())
+    {
+        
+        for (auto trialPoint : trialPoints)
+        {
+            // Find the trialPoint in the cache.
+            // If the point is in the cache, depending on its
+            // EvalStatus we don't need to evaluate it and we return it.
+            
+            // First, convert trial point to full dimension, since we are
+            // now only working with the cache and the EvaluatorControl.
+            
+            trialPoint = trialPoint.makeFullSpacePointFromFixed(_fixedVariable);
+            
+            NOMAD::EvalPoint evalPoint;
+            
+            // Cache is in full space.
+            NOMAD::CacheBase::getInstance()->find(trialPoint, evalPoint, evalType, false /* false: do not wait if point is not available */);
+            
+            if (evalPoint.isComplete() && evalPoint.isEvalOk(evalType) )
+            {
+                evalPoint = evalPoint.makeSubSpacePointFromFixed(_fixedVariable);
+                evaluatedPoints.push_back(evalPoint);
+            }
+        }
+    }
+
+    return evaluatedPoints;
+    
+}
+
+
+void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::BarrierBase> subBarrier)
+{
+    // The barrier may belong to a subspace but EvaluatorControl cares only of outputs for detecting success. No need create a barrier from scratch.
+    _evaluatorControl->setBarrier(subBarrier);
 }
 
 
@@ -436,9 +497,8 @@ NOMAD::SuccessType NOMAD::EvcInterface::startEvaluation()
     OUTPUT_DEBUG_END
 
     OUTPUT_INFO_START
-    NOMAD::OutputQueue::Flush();
-
     _step->AddOutputInfo("Evaluate points (full space) for " + _step->getName(), false, true);
+    NOMAD::OutputQueue::Flush();
     OUTPUT_INFO_END
 
     return success;

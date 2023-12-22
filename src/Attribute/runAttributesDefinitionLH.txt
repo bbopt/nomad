@@ -43,8 +43,10 @@ size_t
 
 . p: number of LH points
 
-. All points will be evaluated (no opportunism). This options will deactivate
-  any optimization strategy.
+. All points will be evaluated (no opportunism).
+
+. This option will not work with Mads but can be combined with quadratic
+  model optimization to have enough points to construct models.
 
 . The LH sampling requires to have both lower and upper bounds defined.
 

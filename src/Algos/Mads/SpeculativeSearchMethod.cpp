@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -67,14 +67,24 @@ void NOMAD::SpeculativeSearchMethod::init()
 {
     setStepType(NOMAD::StepType::SEARCH_METHOD_SPECULATIVE);
 
-    bool enable = false;
+    bool enabled = false;
     // For some testing, it is possible that _runParams is null
     if (nullptr != _runParams)
     {
-        enable = _runParams->getAttributeValue<bool>("SPECULATIVE_SEARCH");
+        enabled = _runParams->getAttributeValue<bool>("SPECULATIVE_SEARCH");
     }
-
-    setEnabled(enable);
+    setEnabled(enabled);
+    
+    // Number of speculative search trial points for a pass
+    _nbSearches = 0;
+    _baseFactor = 0.0;
+    if (nullptr != _runParams)
+    {
+        _nbSearches = _runParams->getAttributeValue<size_t>("SPECULATIVE_SEARCH_MAX");
+        
+        // Base factor to control the extent of the speculative direction
+        _baseFactor = _runParams->getAttributeValue<NOMAD::Double>("SPECULATIVE_SEARCH_BASE_FACTOR");
+    }
 }
 
 
@@ -92,33 +102,24 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsFinal()
         throw NOMAD::Exception(__FILE__,__LINE__,"SpeculativeSearchMethod needs a barrier");
     }
 
-    // Get the base factor for speculative seach
-    auto baseFactor = _runParams->getAttributeValue<NOMAD::Double>("SPECULATIVE_SEARCH_BASE_FACTOR");
+
 
     // Generate points starting from all points in the barrier.
     // If FRAME_CENTER_USE_CACHE is false (default), that is the same
     // as using the best feasible and best infeasible points.
-    
-    std::shared_ptr<DMultiMadsBarrier> dMultiMadsBarrier = std::dynamic_pointer_cast<DMultiMadsBarrier>(barrier);
-    
     std::vector<NOMAD::EvalPoint> frameCenters;
     
-    // DMultiMadsBarrier may contain too many points. Use only the current incumbents.
-    if (nullptr != dMultiMadsBarrier)
+    auto firstXIncFeas = barrier->getCurrentIncumbentFeas();;
+    auto firstXIncInf  = barrier->getCurrentIncumbentInf();;
+    if (firstXIncFeas)
     {
-        if (dMultiMadsBarrier->nbXFeas() > 0)
-        {
-            frameCenters.push_back(*dMultiMadsBarrier->getCurrentIncumbentFeas());
-        }
-        if (dMultiMadsBarrier->nbXInf() > 0)
-        {
-            frameCenters.push_back(*dMultiMadsBarrier->getCurrentIncumbentInf());
-        }
+        frameCenters.push_back(*firstXIncFeas);
     }
-    else
+    if (firstXIncInf)
     {
-        frameCenters = barrier->getAllPoints();
+        frameCenters.push_back(*firstXIncInf);
     }
+    
     
     for (const auto & frameCenter : frameCenters)
     {
@@ -141,17 +142,17 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsFinal()
             AddOutputInfo("Direction before scaling: " + dir.display());
             OUTPUT_INFO_END
 
-            auto nbSearches = _runParams->getAttributeValue<size_t>("SPECULATIVE_SEARCH_MAX");
-            if (nbSearches == NOMAD::INF_SIZE_T)
+            
+            if (_nbSearches == NOMAD::INF_SIZE_T)
             {
                 throw NOMAD::Exception(__FILE__,__LINE__,"SpeculativeSearchMethod: can not have INF for SPECULATIVE_SEARCH_MAX.");
             }
-            for (size_t i = 1; i <= nbSearches; i++)
+            for (size_t i = 1; i <= _nbSearches; i++)
             {
                 auto diri = dir;
                 for(size_t j = 0 ; j < dir.size(); j++)
                 {
-                    diri[j] *= baseFactor * (double)i;
+                    diri[j] *= _baseFactor * (double)i;
                 }
 
                 OUTPUT_INFO_START

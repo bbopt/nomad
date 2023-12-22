@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -48,7 +48,7 @@
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/NelderMead/NMInitialization.hpp"
 #include "../../Algos/SubproblemManager.hpp"
-#include "../../Eval/Barrier.hpp"
+#include "../../Eval/ProgressiveBarrier.hpp"
 
 
 void NOMAD::NMInitialization::init()
@@ -100,7 +100,7 @@ void NOMAD::NMInitialization::endImp()
         std::copy(_trialPoints.begin(), _trialPoints.end(),
                           std::back_inserter(evalPointList));
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-        _barrier = std::make_shared<NOMAD::Barrier>(hMax,
+        _barrier = std::make_shared<NOMAD::ProgressiveBarrier>(hMax,
                                 NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
                                 NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType(),
                                 NOMAD::EvcInterface::getEvaluatorControl()->getComputeType(),

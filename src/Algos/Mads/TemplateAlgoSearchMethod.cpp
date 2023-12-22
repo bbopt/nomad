@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -116,7 +116,7 @@ void NOMAD::TemplateAlgoSearchMethod::generateTrialPointsFinal()
     // The trial points of one iteration of this template algorithm (random) are generated (not evaluated).
 
 
-    // Use first point of barrier as simplex center.
+    // Note: Use first point of barrier as simplex center.
     NOMAD::TemplateAlgoSinglePass randomAlgo(this,
                                              getMegaIterationBarrier()->getFirstPoint());
     randomAlgo.start();

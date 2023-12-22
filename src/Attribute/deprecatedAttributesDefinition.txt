@@ -45,14 +45,6 @@ false
 \)
 \( internal \)
 ################################################################################
-BB_REDIRECTION
-bool
-true
-\( Deprecated from Nomad 3: Not implemented \)
-\(
-\)
-\( internal \)
-################################################################################
 CACHE_SAVE_PERIOD
 size_t
 25

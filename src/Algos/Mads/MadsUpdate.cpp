@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -63,6 +63,13 @@ void NOMAD::MadsUpdate::init()
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Error: An instance of class MadsUpdate must have a MegaIteration among its ancestors");
     }
+    
+    _clearEvalQueue = true;
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    if (nullptr != evc)
+    {
+        _clearEvalQueue = evc->getEvaluatorControlGlobalParams()->getAttributeValue<bool>("EVAL_QUEUE_CLEAR");
+    }
 
 }
 
@@ -104,7 +111,7 @@ bool NOMAD::MadsUpdate::runImp()
     }
     OUTPUT_DEBUG_END
 
-    // Barrier is already updated from previous steps.
+    // Barrier is already updated from previous steps (IterationUtils::postProcessing).
     // Get ref best feasible and infeasible, and then update
     // reference values.
     auto refBestFeas = barrier->getRefBestFeas();
@@ -112,8 +119,8 @@ bool NOMAD::MadsUpdate::runImp()
 
     barrier->updateRefBests();
 
-    NOMAD::EvalPointPtr newBestFeas = barrier->getFirstXFeas();
-    NOMAD::EvalPointPtr newBestInf  = barrier->getFirstXInf();
+    NOMAD::EvalPointPtr newBestFeas = barrier->getCurrentIncumbentFeas();
+    NOMAD::EvalPointPtr newBestInf  = barrier->getCurrentIncumbentInf();
 
     if (nullptr != refBestFeas || nullptr != refBestInf)
     {
@@ -200,13 +207,9 @@ bool NOMAD::MadsUpdate::runImp()
         // This is the value from the previous MegaIteration. If it
         // was not evaluated, ignore the test.
         // If queue is not cleared between runs, also ignore the test.
-        bool clearEvalQueue = true;
-        if (nullptr != evc)
-        {
-            clearEvalQueue = evc->getEvaluatorControlGlobalParams()->getAttributeValue<bool>("EVAL_QUEUE_CLEAR");
-        }
+
         const bool megaIterEvaluated = (NOMAD::SuccessType::UNDEFINED != megaIter->getSuccessType());
-        if (!clearEvalQueue && megaIterEvaluated && (success != megaIter->getSuccessType()))
+        if (!_clearEvalQueue && megaIterEvaluated && (success != megaIter->getSuccessType()))
         {
             s = "Warning: MegaIteration success type: ";
             s += NOMAD::enumStr(megaIter->getSuccessType());

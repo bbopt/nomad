@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -133,7 +133,10 @@ void NOMAD::LH::generateTrialPointsImp()
     for (auto point : pointVector)
     {
         // First, project on mesh.
-        point = mesh->projectOnMesh(point, center);
+        if (_runParams->getAttributeValue<bool>("SEARCH_METHOD_MESH_PROJECTION"))
+        {
+            point = mesh->projectOnMesh(point, center);
+        }
         // Second, snap to bounds.
         point.snapToBounds(lowerBound, upperBound);
 

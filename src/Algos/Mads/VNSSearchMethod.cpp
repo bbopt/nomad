@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -77,7 +77,7 @@ void NOMAD::VNSSearchMethod::init()
             try
             {
                 // When VNS search is done the current evaluator is set back to BB
-                evc->selectCurrentEvaluator(EvalType::SURROGATE);
+                evc->setCurrentEvaluatorType(EvalType::SURROGATE);
             }
             catch (NOMAD::Exception &e ) {
                 std::string error = e.what();
@@ -169,8 +169,8 @@ bool NOMAD::VNSSearchMethod::runImp()
             }
             
             // MegaIteration's barrier member is already in sub dimension.
-            auto bestXFeas = barrier->getFirstXFeas();
-            auto bestXInf  = barrier->getFirstXInf();
+            auto bestXFeas = barrier->getCurrentIncumbentFeas();
+            auto bestXInf  = barrier->getCurrentIncumbentInf();
             
             // Get the frame center for VNS sub optimization
             auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
@@ -208,8 +208,8 @@ bool NOMAD::VNSSearchMethod::runImp()
                 
                 if (nullptr != vnsBarrier)
                 {
-                    auto vnsBestFeas = vnsBarrier->getFirstXFeas();
-                    auto vnsBestInf = vnsBarrier->getFirstXInf();
+                    auto vnsBestFeas = vnsBarrier->getCurrentIncumbentFeas();
+                    auto vnsBestInf = vnsBarrier->getCurrentIncumbentInf();
                     
                     // If searchEvalType is surrogate perform BB evaluation on the selected point.
                     if (_useSurrogate)
@@ -222,7 +222,7 @@ bool NOMAD::VNSSearchMethod::runImp()
                         {
                             insertTrialPoint(*vnsBestInf);
                         }
-                        evc->selectCurrentEvaluator(NOMAD::EvalType::BB);
+                        evc->setCurrentEvaluatorType(NOMAD::EvalType::BB);
                         return evalTrialPoints(this);
                         
                     }
@@ -244,7 +244,8 @@ bool NOMAD::VNSSearchMethod::runImp()
                         barrier->updateWithPoints(vnsBarrier->getAllPoints(),
                                                   NOMAD::EvalType::BB,
                                                   NOMAD::ComputeType::STANDARD,
-                                                  _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
+                                                  _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"),
+                                                                    true /*true: update incumbents and hMax*/);
                     }
                     else
                     {
@@ -260,7 +261,7 @@ bool NOMAD::VNSSearchMethod::runImp()
             AddOutputInfo("VNS trigger criterion not met. Stop VNS Mads Search.");
             OUTPUT_INFO_END
         }
-        evc->selectCurrentEvaluator(NOMAD::EvalType::BB);
+        evc->setCurrentEvaluatorType(NOMAD::EvalType::BB);
     }
     return foundBetter;
 }

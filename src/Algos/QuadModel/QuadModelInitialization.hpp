@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_QUAD_MODEL_INITIALIZATION__
-#define __NOMAD_4_3_QUAD_MODEL_INITIALIZATION__
+#ifndef __NOMAD_4_4_QUAD_MODEL_INITIALIZATION__
+#define __NOMAD_4_4_QUAD_MODEL_INITIALIZATION__
 
 #include "../../Algos/Initialization.hpp"
 #include "../../Algos/IterationUtils.hpp"
@@ -57,11 +57,15 @@ class QuadModelInitialization: public Initialization, public IterationUtils
 {
 private:
     std::shared_ptr<AlgoStopReasons<ModelStopType>> _qmStopReason;
+    
+    bool _cacheOnlyInitialization;
+    
 public:
     /// Constructor
     explicit QuadModelInitialization(const Step* parentStep)
       : Initialization(parentStep),
-        IterationUtils(parentStep)
+        IterationUtils(parentStep),
+        _cacheOnlyInitialization(false)
     {
         init();
     }
@@ -86,5 +90,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_QUAD_MODEL_INITIALIZATION__
+#endif // __NOMAD_4_4_QUAD_MODEL_INITIALIZATION__
 

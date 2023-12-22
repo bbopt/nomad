@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -105,7 +105,7 @@ bool NOMAD::DMultiMadsIteration::runImp()
         _search->start();
         iterationSuccess = _search->run();
         _search->end();
-        
+
         if (iterationSuccess)
         {
             // If success, update MegaIteration best success type with success found. No poll will be performed.
@@ -121,7 +121,6 @@ bool NOMAD::DMultiMadsIteration::runImp()
     {
         if (! iterationSuccess)
         {
-
             // 2. Poll
             _poll->start();
             
@@ -139,8 +138,6 @@ bool NOMAD::DMultiMadsIteration::runImp()
             
         }
     }
-
-    
 
     // End of the iteration: iterationSuccess is true if we have a partial or full success.
     return iterationSuccess;

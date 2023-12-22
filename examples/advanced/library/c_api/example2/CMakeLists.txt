@@ -1,20 +1,40 @@
 add_executable(example2_c_api.exe example2_c_api.c )
 
-target_include_directories(example2_c_api.exe PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/interfaces/CInterface)
+target_include_directories(
+  example2_c_api.exe
+    PRIVATE
+      ${CMAKE_SOURCE_DIR}/src
+      ${CMAKE_SOURCE_DIR}/interfaces/CInterface
+)
 
-set_target_properties(example2_c_api.exe PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" SUFFIX "")
+set_target_properties(
+  example2_c_api.exe 
+  PROPERTIES 
+    INSTALL_RPATH 
+      "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" 
+    SUFFIX ""
+)
 
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(example2_c_api.exe PUBLIC nomadAlgos nomadUtils nomadEval nomadCInterface OpenMP::OpenMP_CXX)
+  target_link_libraries(
+    example2_c_api.exe 
+    PUBLIC 
+      nomadCInterface
+      OpenMP::OpenMP_CXX
+  )
 else()
-    target_link_libraries(example2_c_api.exe PUBLIC nomadAlgos nomadUtils nomadEval nomadCInterface)
+  target_link_libraries(
+    example2_c_api.exe 
+    PUBLIC nomadCInterface
+  )
 endif()
-if (WIN32)
-else()
-    target_link_libraries(example2_c_api.exe PUBLIC m)
+
+if (NOT WIN32)
+  target_link_libraries(
+    example2_c_api.exe 
+    PUBLIC m
+  )
 endif()
 
 # installing executables and libraries
@@ -28,9 +48,9 @@ if(BUILD_EXAMPLES MATCHES ON)
     # Can run this test after install
 
     if (WIN32)
-# Todo Find a way to detect error
+# MAYBE enable when script works for windows
 #        add_test(NAME ExampleAdvancedC-API2
-#	    COMMAND ./example2_c_api.exe # Let ctest detect error. Not sure it can!
+#	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./example2_c_api.exe
 #	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
 #        )
     else()

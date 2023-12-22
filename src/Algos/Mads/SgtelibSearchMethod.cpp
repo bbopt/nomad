@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -148,6 +148,10 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsFinal()
         NOMAD::OutputQueue::Flush();
         OUTPUT_INFO_END
 
+        // Here, NOMAD 3 uses parameter SGTELIB_MODEL_TRIALS: Max number of
+        // sgtelib model search failures before going to the poll step.
+        // Not used.
+        //const size_t kkmax = _runParams->getAttributeValue<size_t>("SGTELIB_MODEL_SEARCH_TRIALS");
         /*----------------*/
         /*  oracle points */
         /*----------------*/
@@ -188,7 +192,7 @@ void NOMAD::SgtelibSearchMethod::getBestProjection(const NOMAD::Point& incumbent
                                     const NOMAD::ArrayOfDouble& deltaMeshSize,
                                     std::shared_ptr<NOMAD::Point> x)
 {
-    // Not implemented
+    // Issue #383: Use Projection class
 }
 
 

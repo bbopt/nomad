@@ -15,11 +15,8 @@ This chapter describes how to use NOMAD for solving blackbox optimization proble
 
 Batch mode is presented first, followed by a description of the basic parameters to setup and solve the majority of optimization problems that NOMAD can handle. The library mode is described in :ref:`library_mode`.
 
-NOMAD should be cited with references [AuCo04a]_ and [AuLeRoTr2021]_. Other relevant papers by the developers are accessible through  the NOMAD website  `<http://www.gerad.ca/nomad>`_.
+NOMAD should be cited with the reference [AuLeRoTr2021]_. Other relevant papers by the developers are accessible through the NOMAD website  `<http://www.gerad.ca/nomad>`_.
 
-.. topic:: References
-
-  .. [AuCo04a] M.A. Abramson, C. Audet, G. Couture, J.E. Dennis, Jr., S. Le Digabel, V. Rochon Montplaisir, and C. Tribes. The NOMAD project. Software available at `<https://www.gerad.ca/nomad>`_, 2021.
 
 Optimization in batch mode
 --------------------------
@@ -174,8 +171,8 @@ All the types are:
 +---------------+-------------------------------------------------------+
 | ``F``         | Constraint treated with **Filter** approach           |
 +---------------+-------------------------------------------------------+
-| ``NOTHING``   | The output is ignored                                 |
-| ``EXTRA_O``   |                                                       |
+| ``NOTHING``   | The output is ignored by algorithm but will appear in |
+| ``EXTRA_O``   | cache and history file.                               |
 | ``-``         |                                                       |
 +---------------+-------------------------------------------------------+
 | ``OBJ``       | Objective value to be minimized                       |
@@ -236,7 +233,6 @@ Algorithmic parameters
    :widths: 20,7,20,7
 
    :ref:`DIRECTION_TYPE <direction_type>` , direction type, type of directions for the poll , ``ORTHO N+1 QUAD``
-   F_TARGET , real :math:`t` , NOMAD terminates if :math:`f(x_k) \leq t` for the objective function, none
    :ref:`INITIAL_MESH_SIZE <initial_mesh_size>` , array of doubles, :math:`\delta_0` [AuDe2006]_ , none
    :ref:`INITIAL_FRAME_SIZE <initial_mesh_size>` , array of doubles, :math:`\Delta_0` [AuDe2006]_ , ``r0.1`` or based on ``X0``
    LH_SEARCH , 2 integers: ``p0`` and ``pi`` , **LH (Latin-Hypercube) search** (``p0``: initial and ``pi``: iterative) , none
@@ -256,7 +252,7 @@ This parameter defines the type of directions for *Mads* *Poll* step. The possib
 .. csv-table:: Direction types
    :widths: 6,20
 
-   ``ORTHO N+1 QUAD``, "OrthoMADS, n+1, with ((n+1)th dir = quad model optimization) [Default since 4.2][AuIaLeDTr2014]_"
+   ``ORTHO N+1 QUAD``, "OrthoMADS, n+1, with (n+1)th dir = quad model optimization [Default since 4.2][AuIaLeDTr2014]_"
    ``ORTHO 2N``, "OrthoMADS, 2n. This corresponds to the original *Ortho Mads* algorithm [AbAuDeLe09]_ with :math:`2n` directions."
    ``ORTHO N+1 NEG``, "OrthoMADS, n+1, with ((n+1)th dir = negative sum of the first n dirs) [AuIaLeDTr2014]_"
    ``N+1 UNI``, "MADS with n+1, using :math:`n+1` uniformly distributed directions."
@@ -330,7 +326,7 @@ Output parameters
    :header: "Name", "Argument", "Short description", "Default"
    :widths: 20,7,20,7
 
-   CACHE_FILE , string ,  "cache file; if the file does not exist, it will be created", none
+   :ref:`CACHE_FILE <cache_file>` , string ,  "cache file; if the file does not exist, it will be created", none
    DISPLAY_ALL_EVAL , bool , if ``yes`` all points are displayed with ``DISPLAY_STATS`` and ``STATS_FILE`` , ``no``
    DISPLAY_DEGREE , integer in [0 ; 3] or a string with four digits (see online help) , 0 no display and 3 full display ,  ``2``
    :ref:`DISPLAY_STATS <display_stats>` , list of strings ,  what information is displayed at each success , ``BBE OBJ``
@@ -338,6 +334,19 @@ Output parameters
    SOLUTION_FILE, string , file to save the best feasible incumbent point in a simple format (SOL BBO) , none
    :ref:`STATS_FILE <display_stats>`  , string ``file_name`` + list of strings , the same as ``DISPLAY_STATS`` but for a display into file ,  none
 
+.. _cache_file:
+
+``CACHE_FILE``
+""""""""""""""
+
+The cache file is used to store evaluations (true blackbox and surrogate) during optimization. Evaluation points are ordered according to the coordinates of the points.
+When NOMAD generates a trial point, before starting an evaluation, the cache is scanned for the point. If the evaluation information is available it will be used and the point will not be re-evaluated. It is possible to not use evaluation from cache by setting `EVAL_USE_CACHE false`.
+
+Evaluation points in a cache file can be read for another optimization on the same problem. The dimension of the problem and the number of outputs must correspond.
+If no initial point is provided, NOMAD will consider the best point(s) from the cache as the initial best incumbent(s) for the optimization. The evaluation points in a cache file are also used to initialize the barrier and to build quadratic models.
+
+By setting the flag `USE_CACHE_FILE_FOR_RERUN true` a special cache set is loaded from the cache file and is used to rerun an optimization. If an algorithm proposes a new trial point (not in regular cache), that is in the cache for rerun, the evaluation results will be used. Points not in cache for rerun will be evaluated with blackbox. This allows to perform a hot restart or reset the state of an algorithm (for example, an end-of-optimization state) to possibly suggest new points.
+An example is given in ``$NOMAD_HOME/examples/advanced/batch/UseCacheFileForRerun``.
 
 .. _display_degree:
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_MADSUPDATE__
-#define __NOMAD_4_3_MADSUPDATE__
+#ifndef __NOMAD_4_4_MADSUPDATE__
+#define __NOMAD_4_4_MADSUPDATE__
 
 #include "../../Algos/Step.hpp"
 
@@ -57,6 +57,10 @@
  */
 class MadsUpdate: public Step
 {
+    
+protected:
+    
+    bool _clearEvalQueue ; ///< Clear the eval queue between iterations
 public:
     // Constructor
     explicit MadsUpdate(const Step* parentStep)
@@ -75,6 +79,10 @@ private:
     /// No implementation is required for start.
     virtual void    startImp() override {}
 
+    /// No implementation is required for end.
+    virtual void    endImp()   override {}
+
+protected:
     /// Implementation of the run tasks.
     /**
      Gets the best feasible point (xFeas) and best infeasible point (xInf)
@@ -86,11 +94,8 @@ private:
      */
     virtual bool    runImp()   override;
 
-    /// No implementation is required for end.
-    virtual void    endImp()   override {}
-
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_MADSUPDATE__
+#endif // __NOMAD_4_4_MADSUPDATE__

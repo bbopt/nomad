@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -54,6 +54,17 @@ void NOMAD::Termination::init()
 {
     setStepType(NOMAD::StepType::TERMINATION);
     verifyParentNotNull();
+    
+    if (nullptr != _runParams)
+    {
+        _maxIterations = _runParams->getTypeAttribute<size_t>("MAX_ITERATIONS");
+        _maxTime = _runParams->getTypeAttribute<size_t>("MAX_TIME");
+        
+        _stopIfFeasible = _runParams->getTypeAttribute<bool>("STOP_IF_FEASIBLE");
+        
+        _stopIfPhaseOneSolution = _runParams->getTypeAttribute<bool>("STOP_IF_PHASE_ONE_SOLUTION");
+    }
+    
 }
 
 bool NOMAD::Termination::runImp()
@@ -72,8 +83,7 @@ bool NOMAD::Termination::terminate(size_t iteration)
     }
 
     // Set stopReason due to criterions other than AlgoStopReasons<>
-    auto maxIterations = _runParams->getAttributeValue<size_t>("MAX_ITERATIONS");
-    auto maxTime = _runParams->getAttributeValue<size_t>("MAX_TIME");
+
 
     // Termination conditions go here.
     // This is also tested in EvaluatorControl
@@ -82,21 +92,21 @@ bool NOMAD::Termination::terminate(size_t iteration)
         // Force quit (by pressing CTRL-C):
         _stopReasons->set(NOMAD::BaseStopType::CTRL_C);
     }
-    else if (maxIterations < NOMAD::INF_SIZE_T && iteration > maxIterations)
+    else if (_maxIterations->getValue() < NOMAD::INF_SIZE_T && iteration > _maxIterations->getValue())
     {
         // Max iterations reached
         _stopReasons->set(NOMAD::IterStopType::MAX_ITER_REACHED);
     }
-    else if (maxTime < NOMAD::INF_SIZE_T && NOMAD::Clock::getTimeSinceStart() >= maxTime)
+    else if (_maxTime->getValue() < NOMAD::INF_SIZE_T && NOMAD::Clock::getTimeSinceStart() >= _maxTime->getValue())
     {
         // Max time reached
         _stopReasons->set(NOMAD::BaseStopType::MAX_TIME_REACHED);
     }
-    else if (_runParams->getAttributeValue<bool>("STOP_IF_FEASIBLE") && solHasFeas())
+    else if (_stopIfFeasible->getValue() && solHasFeas())
     {
         _stopReasons->set(NOMAD::IterStopType::STOP_ON_FEAS);
     }
-    else if (_runParams->getAttributeValue<bool>("STOP_IF_PHASE_ONE_SOLUTION") && hasPhaseOneSolution())
+    else if ( _stopIfPhaseOneSolution->getValue() && hasPhaseOneSolution())
     {
         _stopReasons->set(NOMAD::IterStopType::PHASE_ONE_COMPLETED);
     }

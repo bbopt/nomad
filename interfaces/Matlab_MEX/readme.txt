@@ -1,3 +1,25 @@
+************************
+************************
+NOMAD and Matlab
+************************
+************************
+
+NOMAD and Matlab can be used in combination. There are two ways to perform
+optimization using objective and constraint function evaluated as Matlab code.
+
+The simplest way is to run Matlab as a blackbox in batch mode to evaluate each 
+given point. An example is provided in $NOMAD_HOME/examples/basic/batch/MatlabBB.
+
+Another way is to build the Matlab MEX interface for NOMAD as described in what 
+follows. 
+
+
+******************************
+******************************
+NOMAD and Matlab MEX interface
+******************************
+******************************
+
 The Matlab MEX interface allows to run NOMAD within the command line of Matlab.
 
 Creating the Matlab MEX Interface to NOMAD requires to build source codes.
@@ -21,6 +43,9 @@ the build with a flag like -DCMAKE_OSX_ARCHITECTURES=x86_64.
 In some occasions, CMake cannot find Matlab installation directory. 
 The option -DMatlab_ROOT_DIR=/Path/To/Matlab/Install/Dir must be passed 
 during configuration.
+
+It may be required (Windows) to force the use of the 64bit version. 
+The option -A x64 must be passed during configuration.
 
 ************************
 HOW TO BUILD AND INSTALL
@@ -47,8 +72,7 @@ The command
 must be run before using the Matlab nomadOpt function. 
 
 Also, the Matlab command 
-   addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib')) 
-or addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib64')) 
+   addpath(strcat(getenv('NOMAD_HOME'),'/build/release/bin')) 
 must be executed to have access to the libraries and run the examples.
 
 **********
@@ -74,6 +98,3 @@ command in Matlab you may obtain an error such as
 (example obtained on linux-Ubuntu). This is an indication that the versions
  of Matlab and the compiler may not be compatible (See in the preamble 
 the web site to check compatibility).
-
-
-

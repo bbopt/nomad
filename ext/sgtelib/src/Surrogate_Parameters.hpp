@@ -88,6 +88,7 @@ namespace SGTELIB {
     // Constructors
     explicit Surrogate_Parameters ( const model_t mt);
     explicit Surrogate_Parameters ( const std::string & s);
+    explicit Surrogate_Parameters ( );
     //Surrogate_Parameters ( const SGTELIB::Surrogate_Parameters & p );
 
     // Defaults
@@ -142,6 +143,7 @@ namespace SGTELIB {
     void update_covariance_coef ( const int nvar );
     //void set_distance_type   ( distance_t dt ) { _distance_type = dt; };
     //void set_degree          ( int d         ) { _degree = d;         };
+    void set_ridge           ( const double ridge ) { _ridge = ridge ;}
 
     // destructor:
     virtual ~Surrogate_Parameters ( void );

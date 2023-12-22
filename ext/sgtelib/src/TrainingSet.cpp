@@ -67,29 +67,76 @@ SGTELIB::TrainingSet::TrainingSet ( const Matrix & X ,
   _Z_std        ( new double   [_m] ) ,
   _Zs_mean      ( new double   [_m] ) , // Mean of each normalized output
   _Z_nbdiff     ( new int      [_m] ) ,
-  _Ds_mean      ( 0.0               ) {
-
-  // Init bounds
-  for (int i=0 ; i<_n ; i++){
-    _X_lb[i] = 0;
-    _X_ub[i] = 0;
-  }
-  for (int j=1 ; j<_m ; j++){
-    _Z_lb[j] = 0;
-    _Z_ub[j] = 0;
-  }
-
-  // Init the _bbo with standard values:
-  // First is the objective,
-  // Then constraints
-  _bbo[0] = BBO_OBJ;
-  for (int j=1 ; j<_m ; j++){
-    _bbo[j] = BBO_CON;
-    _Z_lb[j] = 0;
-    _Z_ub[j] = 0;
-  }
-
-}//
+_Ds_mean      ( 0.0               ) {
+    
+    // Init bounds
+    for (int i=0 ; i<_n ; i++){
+        _X_lb[i] = 0;
+        _X_ub[i] = 0;
+    }
+    for (int j=1 ; j<_m ; j++){
+        _Z_lb[j] = 0;
+        _Z_ub[j] = 0;
+    }
+    // Init the _bbo with standard values:
+    
+    // First is the objective,
+    // Then constraints
+    _bbo[0] = BBO_OBJ;
+    for (int j=1 ; j<_m ; j++){
+        _bbo[j] = BBO_CON;
+        _Z_lb[j] = 0;
+        _Z_ub[j] = 0;
+    }
+}
+      
+SGTELIB::TrainingSet::TrainingSet ( int n, int m  ) :
+        _p            ( 0   ) , // Nb of points
+        _n            ( n  ) , // Nb of input
+        _m            ( m  ) , // Nb of output
+        _ready        ( false             ) ,
+        _bbo          ( new bbo_t [_m]    ) , // Types of output (OBJ, CON or DUM)
+        _bbo_is_def   ( false             ) , // Allows to know if _bbo has been def
+        _j_obj        ( 0                 ) , // Index of the output that represents the objective
+        _f_min        ( INF               ) ,
+        _fs_min       ( INF               ) ,
+        _i_min        ( 0                 ) , // Index of the point where f_min is reached
+        _X            ( "EmptyX", 0, 0    ) , // Input Data
+        _Z            ( "EmptyZ", 0, 0    ) , // Output Data
+        _Xs           ( "TrainingSet._Xs" , _p , _n ) , // Normalized Input Data
+        _Zs           ( "TrainingSet._Zs" , _p , _m ) , // Normalized Output Data
+        _Ds           ( "TrainingSet._Ds" , _p , _p ) , // Nb of varying input
+        _nvar         ( -1                ) , // Nb of varying output
+        _mvar         ( -1                ) ,
+        _pvar         ( -1                ) ,
+        _X_lb         ( new double   [_n] ) ,
+        _X_ub         ( new double   [_n] ) ,
+        _X_scaling_a  ( new double   [_n] ) ,
+        _X_scaling_b  ( new double   [_n] ) ,
+        _X_mean       ( new double   [_n] ) ,
+        _X_std        ( new double   [_n] ) ,
+        _X_nbdiff     ( new int      [_n] ) ,
+        _X_nbdiff1    ( 0                 ) ,
+        _X_nbdiff2    ( 0                 ) ,
+        _Z_lb         ( new double   [_m] ) ,
+        _Z_ub         ( new double   [_m] ) ,
+        _Z_replace    ( new double   [_m] ) ,
+        _Z_scaling_a  ( new double   [_m] ) ,
+        _Z_scaling_b  ( new double   [_m] ) ,
+        _Z_mean       ( new double   [_m] ) , // Mean of each output
+        _Z_std        ( new double   [_m] ) ,
+        _Zs_mean      ( new double   [_m] ) , // Mean of each normalized output
+        _Z_nbdiff     ( new int      [_m] ) ,
+        _Ds_mean      ( 0.0               )
+      {
+          
+          // No training set sample -> all diff.
+          for (int i=0 ; i<_n ; i++)
+          {
+              _X_nbdiff[i] = 2;
+          }
+          
+      }//
 
 
 

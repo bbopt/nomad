@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -77,7 +77,7 @@ std::string NOMAD::AllStopReasons::getStopReasonAsString() const
 
     if (_iterStopReason.checkTerminate())
     {
-        stopReason += (stopReason.empty() ? "" : " ") + _iterStopReason.getStopReasonAsString() + " (Iter)";
+        stopReason += (stopReason.empty() ? "" : " ") + _iterStopReason.getStopReasonAsString() + " (IterStopType)";
         flagTerminate = true;
     }
 

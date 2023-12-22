@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -58,6 +58,10 @@ void NOMAD::Initialization::init()
 {
     setStepType(NOMAD::StepType::INITIALIZATION);
     verifyParentNotNull();
+    
+    _x0s = _pbParams->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
+    _n = _pbParams->getAttributeValue<size_t>("DIMENSION");
+    
 }
 
 
@@ -79,15 +83,14 @@ void NOMAD::Initialization::incrementCounters()
 
 void NOMAD::Initialization::validateX0s() const
 {
-    auto x0s = _pbParams->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
-    size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
+
     bool validX0available = false;
     std::string err;
 
-    for (size_t x0index = 0; x0index < x0s.size(); x0index++)
+    for (size_t x0index = 0; x0index < _x0s.size(); x0index++)
     {
-        auto x0 = x0s[x0index];
-        if (!x0.isComplete() || x0.size() != n)
+        auto x0 = _x0s[x0index];
+        if (!x0.isComplete() || x0.size() != _n)
         {
             err += "Initialization: eval_x0s: Invalid X0 " + x0.display() + ".";
         }

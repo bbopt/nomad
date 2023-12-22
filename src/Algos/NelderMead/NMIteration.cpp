@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -59,6 +59,13 @@
 void NOMAD::NMIteration::init()
 {
     setStepType(NOMAD::StepType::NM_ITERATION);
+    
+    if (nullptr != _runParams)
+    {
+        _nmOpt = _runParams->getAttributeValue<bool>("NM_OPTIMIZATION");
+        _nmSearchStopOnSuccess = _runParams->getAttributeValue<bool>("NM_SEARCH_STOP_ON_SUCCESS");
+    }
+    
 }
 
 void NOMAD::NMIteration::startImp()
@@ -95,8 +102,7 @@ bool NOMAD::NMIteration::runImp()
     // Start with the REFLECT step
     NOMAD::StepType stepType = NOMAD::StepType::NM_REFLECT;
 
-    bool nmOpt = _runParams->getAttributeValue<bool>("NM_OPTIMIZATION");
-    bool nmSearchStopOnSuccess = _runParams->getAttributeValue<bool>("NM_SEARCH_STOP_ON_SUCCESS");
+
 
     // Running an NM iteration consists in performing
     // 1) A Reflect
@@ -121,7 +127,7 @@ bool NOMAD::NMIteration::runImp()
         if ( reflect_success > _success )
         {
             // NM Search can be stopped on success
-            if ( reflect_success == NOMAD::SuccessType::FULL_SUCCESS && !nmOpt && nmSearchStopOnSuccess )
+            if ( reflect_success == NOMAD::SuccessType::FULL_SUCCESS && !_nmOpt && _nmSearchStopOnSuccess )
             {
                 auto nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get ( _stopReasons );
                 nmStopReason->set( NOMAD::NMStopType::NM_STOP_ON_SUCCESS );
@@ -134,7 +140,7 @@ bool NOMAD::NMIteration::runImp()
     // Perform SHRINK only for a standalone NM optimization
     // Shrink because Reflect step has failed (last chance) or when requested
     if ( (_stopReasons->checkTerminate() || stepType == NOMAD::StepType::NM_SHRINK)  &&
-         nmOpt )
+         _nmOpt )
     {
         NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get(_stopReasons)->setStarted();
         
@@ -153,7 +159,7 @@ bool NOMAD::NMIteration::runImp()
     }
     // Perform SHRINK only for a standalone NM optimization ELSE stop NM
     if ( ! _stopReasons->checkTerminate() &&
-         stepType == NOMAD::StepType::NM_SHRINK && !nmOpt )
+         stepType == NOMAD::StepType::NM_SHRINK && !_nmOpt )
     {
         auto nmStopReason = NOMAD::AlgoStopReasons<NOMAD::NMStopType>::get ( _stopReasons );
         nmStopReason->set( NOMAD::NMStopType::NM_STOP_NO_SHRINK );

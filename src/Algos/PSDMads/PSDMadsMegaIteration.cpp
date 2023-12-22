@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -72,7 +72,29 @@ void NOMAD::PSDMadsMegaIteration::startImp()
 
     // Create Mads for this subproblem
     // The barrier of the algo will be initialized with the Cache.
-    _madsOnSubPb = std::make_shared<NOMAD::Mads>(this, madsStopReasons, subProblemRunParams, subProblemPbParams);
+    _madsOnSubPb = std::make_shared<NOMAD::Mads>(this, madsStopReasons, subProblemRunParams, subProblemPbParams, true /* true: barrier initialized from cache */);
+    /*
+    std::string madsName = "Mads ";
+    if (isPollster)
+    {
+        madsName += "pollster";
+    }
+    else
+    {
+        if (_fixedVariable.size() <= 10)
+        {
+            madsName += "with fixed variable ";
+            madsName += _fixedVariable.display();
+        }
+        else
+        {
+            madsName += "with ";
+            madsName += NOMAD::itos(_fixedVariable.size() - _fixedVariable.nbDefined());
+            madsName += " fixed variables";
+        }
+    }
+    _madsOnSubPb->setName(madsName);
+    */
     _madsOnSubPb->setStepType(NOMAD::StepType::ALGORITHM_PSD_MADS_SUBPROBLEM);
     
     
@@ -123,6 +145,8 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
     auto mainFrameSize = _mainMesh->getDeltaFrameSize();
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
 
+    // Note: If n >= 50, models are disabled. They could be re-enabled on
+    // subproblems with lesser dimension.
     subProblemPbParams->doNotShowWarnings();
     if (isPollster)
     {
@@ -136,8 +160,7 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
         subProblemRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
         subProblemRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
         subProblemRunParams->setAttributeValue("SPECULATIVE_SEARCH", false);
-        subProblemRunParams->setAttributeValue("VNS_MADS_SEARCH", false);  // VNS has static member. Problematic with threads. 
-        
+        subProblemRunParams->setAttributeValue("VNS_MADS_SEARCH", false); 
     }
     else
     {
@@ -162,7 +185,6 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
         subProblemRunParams->setAttributeValue("NM_SEARCH", false);
         subProblemRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
         
-        // For now, ORTHO N+1 QUAD seems to have trouble when generating the n+1 th point with quad model (fixed variable pb).
         subProblemRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
         
         subProblemPbParams->setAttributeValue("FIXED_VARIABLE", _fixedVariable);

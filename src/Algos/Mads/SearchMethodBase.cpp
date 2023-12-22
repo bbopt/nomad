@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,13 +52,23 @@ void NOMAD::SearchMethodBase::init()
 {
     // A search method must have a parent
     verifyParentNotNull();
+    
+    if (nullptr != _pbParams)
+    {
+        _lb = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
+        _ub = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
+    }
 
 }
 
 
 void NOMAD::SearchMethodBase::endImp()
 {
-    // Compute hMax and update Barrier.
+    // Compute hMax and update incumbents in barrier only if full success.
+    // If no trial points success, just add the points in barrier.
+    // HMax and incumbents update will be performed during poll.
+    
+    _updateIncumbentsAndHMax = (_trialPointsSuccess >= NOMAD::SuccessType::FULL_SUCCESS);
     postProcessing();
 
     // Need to reimplement end() to set a stop reason for Mads based on the search method stop reason
@@ -76,13 +86,12 @@ void NOMAD::SearchMethodBase::generateTrialPointsImp()
 
     // Snap the points to bounds and mesh
     auto searchMethodPoints = getTrialPoints();
-    auto lowerBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
-    auto upperBound = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
+
 
     std::list<NOMAD::EvalPoint> snappedTrialPoints;
     for (auto evalPoint : searchMethodPoints)
     {
-        if (snapPointToBoundsAndProjectOnMesh(evalPoint, lowerBound, upperBound))
+        if (snapPointToBoundsAndProjectOnMesh(evalPoint, _lb, _ub))
         {
             snappedTrialPoints.push_back(evalPoint);
             OUTPUT_INFO_START

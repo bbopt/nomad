@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_STEPSUCCESSSTATS__
-#define __NOMAD_4_3_STEPSUCCESSSTATS__
+#ifndef __NOMAD_4_4_STEPSUCCESSSTATS__
+#define __NOMAD_4_4_STEPSUCCESSSTATS__
 
 #include <map>
 
@@ -92,6 +92,9 @@ public:
     size_t getStatsNbConsecutiveSuccess() const { return _nbConsecutiveSuccess ; }
     size_t getStatsNbConsecutiveFail() const { return _nbConsecutiveFail ; }
     
+    /// Access to stat for given step type and success type
+    size_t getStat(StepType stepType, SuccessType successType) const;
+    
     
     // size_t getNbSuccessAndFail(SuccessType successType, StepType stepType) const;
      
@@ -119,4 +122,4 @@ std::ostream& operator<<(std::ostream& os, const SuccessStats& stats);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_BASEEVALSTATS__
+#endif // __NOMAD_4_4_BASEEVALSTATS__
