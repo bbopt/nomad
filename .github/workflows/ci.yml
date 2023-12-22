@@ -107,14 +107,14 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          cmake --build build --config ${{matrix.config.build_type}} --clean-first --parallel 2 
+          cmake --build build --config ${{matrix.config.build_type}} --clean-first --parallel 2
 
       - name: Install
         shell: bash
         run: |
           cmake --install build --config ${{matrix.config.build_type}}
 
-      - name: Tests 
+      - name: Tests
         shell: bash
         run: |
           export PATH=`pwd`/build/bin:$PATH
@@ -129,8 +129,16 @@ jobs:
           pip install --force-reinstall dist/*.whl
           pytest
 
-#      - name: Upload
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: ${{ matrix.config.os }}
-#          path: build
+      - name: Prepare upload
+        shell: bash
+        run: |
+          mv README.txt instdir/.
+          mv LICENSE instdir/.
+          cd instdir
+          tar -cf NOMAD4.tar *
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.config.os }}
+          path: instdir/NOMAD4.tar
