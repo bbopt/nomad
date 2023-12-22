@@ -3,11 +3,11 @@ Release notes and future developments
 
 NOMAD 4 is a complete redesign compared with NOMAD 3, with a new architecture providing more flexible code, some added functionalities and reusable code.
 
-
 Some functionalities available in NOMAD 3 will be included in NOMAD 4 in future releases:
 
-* *RobustMads* [AudIhaLedTrib2016]_ and *StoMads* [G-2019-30]_
-* Categorical [AuDe01a]_ and periodical variables [AuLe2012]_
+   `-` *RobustMads* [AudIhaLedTrib2016]_ and *StoMads* [G-2019-30]_
+
+   `-` Categorical [AuDe01a]_ and periodical variables [AuLe2012]_
 
 The performance of NOMAD 4 and 3 are similar when the default parameters of NOMAD 3 are used (see [AuLeRoTr2021]_).
 
