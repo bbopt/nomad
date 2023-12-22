@@ -31,12 +31,12 @@ endif()
 # For running the tests on the batch examples we need to build the blackbox
 # AND install
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/example1)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/example2)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/single_obj)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/multi_obj)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/multi_obj2)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/surrogate_sort)
 if(OpenMP_CXX_FOUND)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/example2)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/single_obj_parallel)
 endif()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/basic/batch/single_obj_MPIparallel)
