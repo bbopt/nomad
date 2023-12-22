@@ -256,8 +256,7 @@ protected:
     /// Helper for start
     ArrayOfPoint suggestFromLH(const size_t nbPoints) const;
     
- 
-
+    
 private:
     /// Helper for constructor
     void init();

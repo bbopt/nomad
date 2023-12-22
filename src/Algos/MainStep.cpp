@@ -1001,7 +1001,7 @@ void NOMAD::MainStep::displayInfo()
 
     info += "Version " ;
     info += NOMAD_VERSION_NUMBER ;
-    
+
 #ifdef _OPENMP
     info += ". Using OpenMP.";
 #else

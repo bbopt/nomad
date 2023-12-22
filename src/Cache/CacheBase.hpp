@@ -173,10 +173,10 @@ public:
         if (nullptr != _single)
         {
             _single->clear();
-            _single.release(); 
+            _single.release();
         }
     }
-    
+
     /// Destructor
     virtual ~CacheBase(void) = default;
 
@@ -254,7 +254,7 @@ public:
     virtual size_t find(const Point & x, EvalPoint &evalPoint,
                         EvalType evalType = EvalType::UNDEFINED,
                         bool waitIfNotYetAvailable = true ) const = 0;
-    
+
     /// Get eval point at point x from the cache for rerun (there can be only one in CacheSet).
     /**
      \param x           The point to find                   -- \b IN.
@@ -263,7 +263,7 @@ public:
      */
     virtual bool findInCacheForRerun(const Point & x,
                                     NOMAD::EvalPoint &evalPoint ) const = 0;
-    
+
 
     /// Insert evalPoint in cache.
     /**
@@ -340,7 +340,7 @@ public:
      */
     virtual bool hasFeas(EvalType evalType = EvalType::BB,
                          ComputeType computeType = ComputeType::STANDARD) const = 0;
-    
+
     /// Test if cache contains an infeasible points.
     /**
       \return \c true if the cache contains at least one infeasible point, \c false otherwise.
@@ -505,8 +505,8 @@ public:
 
     /// Read a cache file and load it.
     virtual bool read() = 0;
-    
-    
+
+
     /// Move eval points from cache set to cache set for rerun
     virtual void moveEvalPointToCacheForRerun() = 0;
 

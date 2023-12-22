@@ -89,7 +89,7 @@ void NOMAD::Algorithm::init()
     {
         _isSubAlgo = true;
     }
-    
+
     // Check pbParams if needed, ex. if a copy of PbParameters was given to the Algorithm constructor.
     _pbParams->checkAndComply();
 
@@ -111,7 +111,7 @@ void NOMAD::Algorithm::init()
      * \todo Propage interruption to all threads, for all parallel evaluations of blackbox.
      */
     signal(SIGINT, userInterrupt);
-    
+
     // This signal handling is problematic with Matlab.
     // Let's test without it.
     // signal(SIGSEGV, debugSegFault);
@@ -134,11 +134,11 @@ void NOMAD::Algorithm::startImp()
         _startTime = NOMAD::Clock::getCPUTime();
     }
 #endif // TIME_STATS
-    
+
     // Reset the current counters. The total counters are not reset (done only once when algo constructor is called.
     _trialPointStats.resetCurrentStats();
-    
-    
+
+
     // All stop reasons are reset.
     _stopReasons->setStarted();
 
@@ -205,7 +205,7 @@ void NOMAD::Algorithm::startImp()
 
 void NOMAD::Algorithm::endImp()
 {
-    
+
     if ( _endDisplay )
     {
         displayBestSolutions();
@@ -219,7 +219,7 @@ void NOMAD::Algorithm::endImp()
 
         displayEvalCounts();
     }
-    
+
     // Update parent if it exists (can be Algo or IterationUtils)  with this stats
     _trialPointStats.updateParentStats();
 
@@ -229,12 +229,12 @@ void NOMAD::Algorithm::endImp()
     {
         _stopReasons->set(NOMAD::IterStopType::STARTED);
     }
-    
-    
+
+
     // Update the parent success
     Step * parentStep = const_cast<Step*>(_parentStep);
     parentStep->setSuccessType(_success);
-    
+
     // By default reset the lap counter for BbEval and set the lap maxBbEval to INF
     NOMAD::EvcInterface::getEvaluatorControl()->resetLapBbEval();
     NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval( NOMAD::INF_SIZE_T );
@@ -320,7 +320,7 @@ void NOMAD::Algorithm::displayBestSolutions() const
 
     sFeas = "Best feasible solution";
     auto barrier = getMegaIterationBarrier();
-    
+
     // Let try to build a progressive barrier from the cache
     if (nullptr == barrier)
     {
@@ -461,7 +461,7 @@ void NOMAD::Algorithm::displayEvalCounts() const
     // Display evaluation information
 
     // _isSubAlgo is used to display or not certain values
-    
+
     // Output levels will be modulated depending on the counts and on the Algorithm level.
     NOMAD::OutputLevel outputLevelHigh = _isSubAlgo ? NOMAD::OutputLevel::LEVEL_INFO
                                                : NOMAD::OutputLevel::LEVEL_HIGH;
@@ -590,7 +590,7 @@ void NOMAD::Algorithm::displayEvalCounts() const
     {
         surrogateCost = evc->getEvaluatorControlGlobalParams()->getAttributeValue<size_t>("EVAL_SURROGATE_COST");
     }
-    
+
     std::string sBbEval           = "Blackbox evaluations: " + sFeedBbEval + NOMAD::itos(bbEval);
     std::string sBbEvalFromCacheForRerun = "Blackbox evaluations from cache (rerun): " + sFeedBbEvalFromCacheForRerun + NOMAD::itos(bbEvalFromCacheForRerun);
     std::string sLapBbEval        = "Sub-optimization blackbox evaluations: " + sFeedLapBbEval + NOMAD::itos(lapBbEval);
@@ -689,7 +689,7 @@ NOMAD::EvalPoint NOMAD::Algorithm::getBestSolution(bool bestFeas) const
             bestSol = bestSolPtr->makeFullSpacePointFromFixed(fixedVariable);
         }
     }
-    
+
     return bestSol;
 }
 

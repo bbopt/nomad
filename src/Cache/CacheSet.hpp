@@ -82,9 +82,9 @@ private:
     static ArrayOfDouble       _bbEvalFormat;  ///< Used to write cache correctly
 
     EvalPointSet _cache;  ///< The set of points that constitutes the cache.
-    EvalPointSet _cacheForRerun;  ///< The set of points that constitutes the cache used for rerun only (empty if not in rerun mode). Filled with points from a cache file. Used for evaluation, not for "cache hit". 
+    EvalPointSet _cacheForRerun;  ///< The set of points that constitutes the cache used for rerun only (empty if not in rerun mode). Filled with points from a cache file. Used for evaluation, not for "cache hit".
 
-    
+
 
     /// Constructor
     /**
@@ -146,8 +146,8 @@ public:
     size_t find(const Point & x, EvalPoint &evalPoint,
                 const EvalType evalType = EvalType::UNDEFINED,
                 bool waitIfNotYetAvailable = true ) const override;
-    
-    
+
+
     /// Get eval point at point x from the cache for rerun (there can be only one in CacheSet).
     /**
      \param x           The point to find                   -- \b IN.
@@ -201,7 +201,7 @@ public:
              EvalType evalType = EvalType::BB,
              ComputeType computeType = ComputeType::STANDARD) const override;
 
-    
+
 
     /**
      * \brief Get best eval points, using comp().
@@ -231,7 +231,7 @@ public:
      */
     bool hasFeas(EvalType evalType,
                  ComputeType computeType = ComputeType::STANDARD) const override;
-    
+
     /// Test if cache contains an infeasible point.
     /**
      \return \c true if the cache contains at least one infeasible point, \c false otherwise.
@@ -389,7 +389,7 @@ public:
     void processOnAllPoints(void (*func)(EvalPoint&), const int mainThreadNum = -1) override;
 
     void deleteModelEvalOnly(const int mainThreadNum) override;
-    
+
     /// Move eval points from cache set to cache set for rerun
     void moveEvalPointToCacheForRerun() override;
 

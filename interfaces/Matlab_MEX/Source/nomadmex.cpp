@@ -50,7 +50,7 @@
 // Another change compared with previous versions: the parameters are passed as a list of strings (in the form struct('KEYWORD','value',...)). The keyword and value follow exactly the Nomad syntax.
 
 // The GERAD interface is now:
-//      [x,fval,hinf,runflag,nfval]= nomadOPt(fun,x0,lb,ub,params,callbackFun)
+//      [x,fval,hinf,runflag,nfval] = nomadOPt(fun,x0,lb,ub,params,callbackFun)
 
 
 #include "mex.h"
@@ -148,36 +148,36 @@ public:
                                                    const NOMAD::Double &hMax,
                                                    std::vector<bool> &countEval) const
     {
-        
+
         size_t m = block.size();
         std::vector<bool> evalOk(m, false);
         countEval.resize(m, false);
-        
+
         //mexPrintf("Optimization using block of points evaluation is not available\n");
         //NOMAD::Step::setUserTerminate();
-        
-        
+
+
         if (NOMAD::Step::getUserTerminate())
         {
             NOMAD::Step::setUserTerminate(); // Two calls to user terminate maybe necessary
             return evalOk;
         }
-        
+
         //Check for Ctrl-C
         if ( utIsInterruptPending() )
         {
             utSetInterruptPending(false); /* clear Ctrl-C status */
             mexPrintf("\nCtrl-C Detected. Exiting NOMAD...\n\n");
-            
+
             NOMAD::Step::setUserTerminate();
             return evalOk;
         }
-        
-        
+
+
         int n = static_cast<int>(block[0]->size());
         fun->prhs[fun->xrhs] = mxCreateDoubleMatrix(m, n, mxREAL); //x
         double *List_x = mxGetPr(fun->prhs[fun->xrhs]);
-        
+
         mxLogical *sur;
         size_t j=0;
         for (size_t j = 0 ; j < block.size() ; j++)
@@ -187,14 +187,14 @@ public:
                 List_x[i*m+j] = (*block[j])[i].todouble();
             }
         }
-        
+
         //Add a flag if surrogate eval
         if( NOMAD::EvalType::SURROGATE == _evalType )
         {
             sur=mxGetLogicals(fun->prhs[fun->xrhs+1]);
             *sur=true;
         }
-        
+
         char errstr[1024];
         //Call MATLAB Objective
         try
@@ -202,14 +202,14 @@ public:
             // Count eval for bbox
             // The case where the evaluation is rejected by user (and should not be counted) is not managed in the matlab version
             countEval.assign(m,true);
-            
+
             // Use call with Trap to catch some errors on fun eval that are not properly catched as an exception
 #ifdef BLACKBOX_COUNT_EVAL
             mxArray * except = mexCallMATLABWithTrap(2, fun->plhs, fun->nrhs, fun->prhs, fun->f);
 #else
             mxArray * except = mexCallMATLABWithTrap(1, fun->plhs, fun->nrhs, fun->prhs, fun->f);
 #endif
-            
+
             if ( except != NULL )
             {
                 std::string error_message ( "\n +++++++++++++++++++++++++++++++++++++++++++++++ \n");
@@ -236,8 +236,8 @@ public:
             NOMAD::Step::setUserTerminate();
             return evalOk;
         }
-        
-        
+
+
         //Check we got the correct number of elements back
         if(mxGetNumberOfElements(fun->plhs[0]) > (nobj+ncon)*m)
             mexPrintf("Black box returns more elements than required. Please provide a BB_OUTPUT_TYPE consistent with your black box function or correct the black box function.");
@@ -259,7 +259,7 @@ public:
             NOMAD::Step::setUserTerminate();
             return evalOk;
         }
-        
+
         //Assign count_eval
 #ifdef BLACKBOX_COUNT_EVAL
         count=mxGetPr(fun->plhs[1]);
@@ -268,10 +268,10 @@ public:
             countEval.clear();
         }
 #endif
-        
+
         // Update the MatlabEvaluator counter
         counter_eval += m;
-        
+
         //Assign bb output
         double *fvals = mxGetPr(fun->plhs[0]);
         j=0;
@@ -280,7 +280,7 @@ public:
 #ifdef BLACKBOX_COUNT_EVAL
             countEval.push_back( ( ( count[j] == 1) ? true : false) ) ;
 #endif
-            
+
             std::string bboStr;
             for(size_t i=0;i<(nobj+ncon);i++)
             {
@@ -289,18 +289,18 @@ public:
             }
             block[j]->setBBO(bboStr,_bbOutputTypeList, _evalType);
         }
-        
+
         evalOk.assign(m,true);
-        
+
         //Iteration Callback
         if (nullptr != callbackF && callbackF->enabled)
         {
             callbackF->plhs[0] = nullptr;
-            
+
             callbackF->prhs[1] = mxCreateNumericMatrix(1, 1, mxINT32_CLASS, mxREAL);
             callbackF->prhs[2] = mxCreateDoubleMatrix(m, (nobj + ncon), mxREAL);
             callbackF->prhs[3] = mxCreateDoubleMatrix(m, n, mxREAL);
-            
+
             memcpy(mxGetData(callbackF->prhs[1]), &counter_eval, sizeof(int));
             memcpy(mxGetPr(callbackF->prhs[2]), fvals, m*(nobj + ncon) * sizeof(double));
             memcpy(mxGetPr(callbackF->prhs[3]), List_x, m*n * sizeof(double));
@@ -314,7 +314,7 @@ public:
                 NOMAD::Step::setUserTerminate();
                 return evalOk;
             }
-            
+
             //Collect return argument
             bool stop = *(bool*)mxGetData(callbackF->plhs[0]);
             //Check for iterfun stop
@@ -324,14 +324,14 @@ public:
                 NOMAD::Step::setUserTerminate();
             }
         }
-        
+
         // Clean up LHS Fun Ptr
         mxDestroyArray(fun->plhs[0]);
 
 #ifdef BLACKBOX_COUNT_EVAL
         mxDestroyArray(fun->plhs[1]);
 #endif
-        
+
         return evalOk;
     }
 
@@ -339,7 +339,7 @@ public:
     //Function + Constraint Evaluation
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &h_max, bool &count_eval) const
     {
-        
+
         char errstr[1024];
         bool stop = false;
         int i, n = static_cast<int>(x.size());
@@ -486,7 +486,7 @@ public:
 
          // Clean up LHS Fun Ptr
          mxDestroyArray(fun->plhs[0]);
-        
+
 #ifdef BLACKBOX_COUNT_EVAL
         mxDestroyArray(fun->plhs[1]);
 #endif
@@ -497,7 +497,7 @@ public:
              mexPrintf("\nUser evaluation callback called for a stop. Exiting NOMAD with a CTRL-C signal ...\n\n");
              NOMAD::Step::setUserTerminate();
          }
-         
+
          return true;
 
     }
@@ -651,9 +651,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     NOMAD::Point px0 (ndec);
     for(i=0;i<ndec;i++)
         px0[i] = x0[i];
-    
+
     p->setAttributeValue("X0",px0);
-    
+
     //Check NOMAD parameters
     try
     {
@@ -674,7 +674,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     auto bboutputlist = p->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
     nobj=NOMAD::getNbObj(bboutputlist);  // Only single objective is supported in Nomad 4
     ncon=bboutputlist.size()-nobj;
-    
+
     // Read fun output for surrogate use
     if ( p->mayUseSurrogate() )
     {
@@ -698,7 +698,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
 
     int mainStepRunFlag = -3;
-    
+
     //Create evaluator and run mads based on number of objectives
     try
     {
@@ -708,21 +708,21 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
         auto evBB = std::make_unique<matlabEval>(p->getEvalParams(),&fun,nobj,ncon,NOMAD::EvalType::BB, &callbackFun);
         mainStep.addEvaluator(std::move(evBB));
-        
+
         // The same matlab evaluator is used for surrgate and bb. A flag is passed to the matlab BB callback function
-    
+
         if (p->mayUseSurrogate())
         {
             auto evSurrogate = std::make_unique<matlabEval>(p->getEvalParams(),&fun,nobj,ncon,NOMAD::EvalType::SURROGATE, &callbackFun);
             mainStep.addEvaluator(std::move(evSurrogate));
         }
-        
+
         mainStep.start();
         mainStep.run();
         mainStep.end();
-        
+
         mainStepRunFlag = mainStep.getRunFlag();
-    
+
     }
     catch(exception &e)
     {
@@ -736,7 +736,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     plhs[2] = mxCreateDoubleMatrix(1,1, mxREAL);
     plhs[3] = mxCreateDoubleMatrix(1,1, mxREAL);
     plhs[4] = mxCreateDoubleMatrix(1,1, mxREAL);
-    
+
     double *x= mxGetPr(plhs[0]);
     double *fval = mxGetPr(plhs[1]);
     double *hinf = mxGetPr(plhs[2]);
@@ -782,10 +782,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     NOMAD::Point pt(*sol.getX());
     for(i=0;i<ndec;i++)
         x[i] = pt[i].todouble();
-    
+
     //Save fval
     *fval = sol.getF().todouble();
-    
+
     //Save hinf
     *hinf = sol.getH().todouble();
 
@@ -833,7 +833,7 @@ int checkInputs(const mxArray *prhs[], int nrhs, mxArray *plhs[], int nlhs)
         return 0;
     }
 
-    
+
 
     //Check for display on options passed as structure
     if(nrhs == 1 && mxIsStruct(prhs[0]))
@@ -956,7 +956,7 @@ void setNomadParams(const std::shared_ptr<NOMAD::AllParameters> p, const mxArray
     {
         return;
     }
-    
+
     //For each field, check if it's empty, if not, set it within NOMAD
     for(i=0;i<no;i++)
     {

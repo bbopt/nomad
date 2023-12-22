@@ -148,7 +148,7 @@ def observe(params,points,evals,udpatedCacheFileName):
     mainStep.setAllParameters(allParameters_ptr)
 
     # Reset the cache (important for static members reinitialization) before calling observe
-    mainStep.resetCache() 
+    mainStep.resetCache()
 
     if len(points) != len(evals):
       print("Observe: Incompatible dimension of points and evaluations")
@@ -484,4 +484,3 @@ cdef vector[int] cbL(void *f, shared_ptr[Block] block) noexcept:
 
     u.c_block_ptr = block
     return (<object>f)(u)
- 
