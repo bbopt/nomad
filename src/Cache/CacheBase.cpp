@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -73,9 +73,7 @@ void NOMAD::CacheBase::init()
     {
         std::string err = "Error: Cache file name should have been converted to full path: ";
         err += _filename;
-        std::cerr << err;
-        // Be kind. Do not throw an exception from the constructor. Yet.
-        //throw NOMAD::Exception(__FILE__, __LINE__, err);
+        throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 }
 

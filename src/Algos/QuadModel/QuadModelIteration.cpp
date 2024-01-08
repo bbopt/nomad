@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -66,7 +66,7 @@ void NOMAD::QuadModelIteration::init()
     _trainingSet = std::make_shared<SGTELIB::TrainingSet>(empty_X, empty_Z);
 
     // The quadratic model is from Sgtelib
-    _model = std::shared_ptr<SGTELIB::Surrogate>(SGTELIB::Surrogate_Factory(*_trainingSet, "TYPE PRS"));
+    _model = std::shared_ptr<SGTELIB::Surrogate>(SGTELIB::Surrogate_Factory(*_trainingSet, "TYPE PRS RIDGE 0"));
     
     if (_trialPoints.size() > 0)
     {

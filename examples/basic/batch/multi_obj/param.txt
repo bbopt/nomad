@@ -17,25 +17,27 @@ MAX_BB_EVAL    400            # the algorithm terminates when
                               # 100 black-box evaluations have
                               # been made
 
-# TMP_DIR        /tmp         # indicates a directory where
-                              # temporary files are put
-                              # (increases performance by ~100%
-                              # if you're working on a network
-                              # account and if TMP_DIR is on a
-                              # local disk)
-
+# DMultiMads is enabled (default Mads is disabled)
 DMULTIMADS_OPTIMIZATION yes
 
+# For multiobjctive, sort should not use the default quad model info
 EVAL_QUEUE_SORT DIR_LAST_SUCCESS
-DIRECTION_TYPE ORTHO 2n
 
+# Let's deactivate all default search methods
+# and do ORTHO 2n for more intense poll (default is n+1)
+DIRECTION_TYPE ORTHO 2n
 QUAD_MODEL_SEARCH no
-#NM_SEARCH no
+NM_SEARCH no
 SPECULATIVE_SEARCH no
 
 DISPLAY_DEGREE 2
+DISPLAY_ALL_EVAL yes
 DISPLAY_STATS BBE ( SOL ) BBO  # Display the number of evaluation (BBE),
-		     		  # the current solution ( SOL ) and the objectives
+		     	       # the current points ( SOL ) and the blackbox outputs
 
+SOLUTION_FILE sol.txt          # Write the approximated Pareto points 
+                               # in a solution file 
 
-HISTORY_FILE history.txt
+SOLUTION_FILE_FINAL true       # Write the solution file only once at the end
+
+# HISTORY_FILE history.txt

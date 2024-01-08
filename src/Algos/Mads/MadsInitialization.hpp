@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,10 +44,11 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_MADSINITIALIZATION__
-#define __NOMAD_4_3_MADSINITIALIZATION__
+#ifndef __NOMAD_4_4_MADSINITIALIZATION__
+#define __NOMAD_4_4_MADSINITIALIZATION__
 
 #include "../../Algos/Initialization.hpp"
+#include "../../Type/BBInputType.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -58,11 +59,19 @@
  */
 class MadsInitialization : public Initialization
 {
+    
+private:
+    
+    BBInputTypeList _bbInputType;
+    
+    Double _hMax0;  ///< Initial HMax of barrier
+    
 protected:
     MeshBasePtr _initialMesh;
     
     bool _barrierInitializedFromCache;
     bool _isUsedForDMultiMads;
+    bool _isUsedForDiscoMads;
 
 public:
     /// Constructor
@@ -70,11 +79,12 @@ public:
      \param parentStep                   The parent of this step -- \b IN.
      \param barrierInitializedFromCache  Flag to initialize barrier from cache or not -- \b IN.
      */
-    explicit MadsInitialization(const Step* parentStep, bool barrierInitializedFromCache=true, bool isUsedForDMultiMads=false)
+    explicit MadsInitialization(const Step* parentStep, bool barrierInitializedFromCache=true, bool isUsedForDMultiMads=false, bool isUsedForDiscoMads=false)
       : Initialization(parentStep),
         _initialMesh(nullptr),
         _barrierInitializedFromCache(barrierInitializedFromCache),
-        _isUsedForDMultiMads(isUsedForDMultiMads)
+        _isUsedForDMultiMads(isUsedForDMultiMads),
+        _isUsedForDiscoMads(isUsedForDiscoMads)
     {
         init();
     }
@@ -96,4 +106,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_MADSINITIALIZATION__
+#endif // __NOMAD_4_4_MADSINITIALIZATION__

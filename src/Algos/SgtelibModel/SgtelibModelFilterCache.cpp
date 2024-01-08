@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -297,7 +297,7 @@ void NOMAD::SgtelibModelFilterCache::computeInitialValues()
         const auto bbot = evalParams->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
         for (size_t j = 0; j < bbo.size(); j++)
         {
-            if (NOMAD::isConstraint(bbot[j]))
+            if (bbot[j].isConstraint())
             {
                 _hmax[i] = std::max(_hmax[i], bbo[j].todouble());
             }

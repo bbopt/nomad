@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -89,7 +89,7 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
         f += pow ( 10 * (x[2*i-1].todouble() - pow(x[2*i-2].todouble(),2) ) , 2 );
         f += pow ( 1 - x[2*i-2].todouble() , 2 );
     }
-    x.setBBO(std::to_string(f), {NOMAD::BBOutputType::OBJ});
+    x.setBBO(std::to_string(f));
 
     countEval = true; // count a black-box evaluation
 

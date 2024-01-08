@@ -1,0 +1,66 @@
+#
+# Build executables
+#
+
+add_executable(
+  nomadExecutableStatic ${NOMAD_SOURCES}
+)
+
+target_link_libraries(
+  nomadExecutableStatic
+  PUBLIC nomadStatic
+)
+
+target_include_directories(
+  nomadExecutableStatic
+  PUBLIC
+    $<BUILD_INTERFACE: 
+      ${CMAKE_CURRENT_SOURCE_DIR}/
+      ${CMAKE_CURRENT_SOURCE_DIR}/Nomad
+    >
+    $<INSTALL_INTERFACE: 
+      ${CMAKE_INSTALL_INCLUDEDIR}/Nomad
+    >
+)
+
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(
+    nomadExecutableStatic
+    PUBLIC OpenMP::OpenMP_CXX
+  )
+endif()
+
+set_target_properties(
+  nomadExecutableStatic
+  PROPERTIES
+    VERSION "${NOMAD_VERSION}"
+    SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
+    OUTPUT_NAME nomad
+)
+
+
+if (WIN32)
+  target_compile_definitions(
+    nomadExecutableStatic
+    PRIVATE 
+      -DNOMAD_STATIC_BUILD
+  )
+endif()
+
+
+#
+# Install executable
+#
+
+# installing executables and libraries
+install(
+  TARGETS
+    nomadExecutableStatic
+  RUNTIME 
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY 
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  PUBLIC_HEADER 
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/
+)
+

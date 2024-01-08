@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -60,70 +60,63 @@
 
 // Convert a string (ex "OBJ", "EB", "PB"...)
 // to a NOMAD::BBOutputType.
-NOMAD::BBOutputType NOMAD::stringToBBOutputType(const std::string &sConst)
+NOMAD::BBOutputType::BBOutputType(const std::string &sConst)
 {
-    NOMAD::BBOutputType ret = NOMAD::BBOutputType::BBO_UNDEFINED;
+    _type = NOMAD::BBOutputType::Type::BBO_UNDEFINED;
     std::string s = sConst;
     NOMAD::toupper(s);
 
+    // Detect if output is revealing (DiscoMads Algorithm)
+    std::size_t pos = s.find("-R");      // position of R in str
+    if (pos!=std::string::npos)
+    {   
+        // keep only substring defining output type    
+        s = s.substr(0,pos);
+        _isRevealing = true;
+    }
+    
     if (s == "OBJ")
     {
-        ret = NOMAD::BBOutputType::OBJ;
+        _type = NOMAD::BBOutputType::Type::OBJ;
     }
     else if (s == "EB")
     {
-        ret = NOMAD::BBOutputType::EB;
+        _type = NOMAD::BBOutputType::Type::EB;
     }
     else if (s == "PB" || s == "CSTR")
     {
-        ret = NOMAD::BBOutputType::PB;
+        _type = NOMAD::BBOutputType::Type::PB;
+    }
+    else if (s == "RPB" )
+    {
+        _type = NOMAD::BBOutputType::Type::RPB;
     }
     else if (s == "CNT_EVAL")
     {
-        ret = NOMAD::BBOutputType::CNT_EVAL;
+        _type = NOMAD::BBOutputType::Type::CNT_EVAL;
     }
     else if (s == "EXTRA_O" || s == "NOTHING" || s == "-" || s == "BBO_UNDEFINED")
     {
-        ret = NOMAD::BBOutputType::BBO_UNDEFINED;
+        _type = NOMAD::BBOutputType::Type::BBO_UNDEFINED;
     }
     else
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized string for NOMAD::BBOutputType: " + s);
     }
 
-    return ret;
 }
-
-// test if a BBOutputType is a constraint (PB, EB, ....). Add new constraint type as they appear.
-bool NOMAD::BBOutputTypeIsConstraint( const BBOutputType & bboType )
-{
-    bool ret = false;
-    switch ( bboType )
-    {
-        case NOMAD::BBOutputType::EB:
-            ret = true;
-            break;
-        case NOMAD::BBOutputType::PB:
-            ret = true;
-            break;
-        default:
-            ret = false;
-    }
-    return ret;
-}
-
 
 // Convert a string containing multiple BBOutputTypes (ex "OBJ EB PB PB")
 // to a NOMAD::BBOutputTypeList.
 NOMAD::BBOutputTypeList NOMAD::stringToBBOutputTypeList(const std::string &s)
 {
-    NOMAD::BBOutputTypeList bbOutputType;
+    NOMAD::BBOutputTypeList list;
     NOMAD::ArrayOfString aos(s);
     for (size_t i = 0; i < aos.size(); i++)
     {
-        bbOutputType.push_back(NOMAD::stringToBBOutputType(aos[i]));
+        list.push_back(NOMAD::BBOutputType(aos[i]));
     }
-    return bbOutputType;
+    return list;
 }
 
 
@@ -133,7 +126,12 @@ std::string NOMAD::BBOutputTypeListToString( const BBOutputTypeList & bbotList )
     std::ostringstream oss;
     for ( auto bbot : bbotList )
     {
-        oss << bbot << " ";
+        oss << bbot;
+        if (bbot._isRevealing)
+        {
+            oss << "-R";
+        }
+        oss << " ";
     }
     return oss.str();
 }
@@ -145,7 +143,7 @@ size_t NOMAD::getNbConstraints(const BBOutputTypeList& bbotList)
     size_t nbConstraints = 0;
     for (size_t i = 0; i < bbotList.size(); i++)
     {
-        if (NOMAD::isConstraint(bbotList[i]))
+        if (bbotList[i].isConstraint())
         {
             nbConstraints++;
         }
@@ -155,16 +153,6 @@ size_t NOMAD::getNbConstraints(const BBOutputTypeList& bbotList)
 }
 
 
-bool NOMAD::isConstraint(const BBOutputType& bbot)
-{
-    bool isConst = false;
-    if (NOMAD::BBOutputType::PB == bbot || NOMAD::BBOutputType::EB == bbot)
-    {
-        isConst = true;
-    }
-
-    return isConst;
-}
 
 
 // Count the number of objectives
@@ -173,7 +161,7 @@ size_t NOMAD::getNbObj(const BBOutputTypeList& bbotList)
     size_t nbObj = 0;
     for (size_t i = 0; i < bbotList.size(); i++)
     {
-        if (NOMAD::BBOutputType::OBJ == bbotList[i])
+        if (bbotList[i].NOMAD::BBOutputType::isObjective())
         {
             nbObj++;
         }
@@ -182,6 +170,20 @@ size_t NOMAD::getNbObj(const BBOutputTypeList& bbotList)
     return nbObj;
 }
 
+// Count the number of revealing output
+size_t NOMAD::getNbRevealing(const BBOutputTypeList& bbotList)
+{
+    size_t nbReveal = 0;
+    for (size_t i = 0; i < bbotList.size(); i++)
+    {
+        if (bbotList[i].NOMAD::BBOutputType::isRevealing())
+        {
+            nbReveal++;
+        }
+    }
+
+    return nbReveal;
+}
 
 std::istream& NOMAD::operator>>(std::istream& is, NOMAD::BBOutputTypeList &bbOutputTypeList)
 {
@@ -189,8 +191,42 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::BBOutputTypeList &bbOut
 
     while (is >> s)
     {
-        bbOutputTypeList.push_back(NOMAD::stringToBBOutputType(s));
+        bbOutputTypeList.push_back(NOMAD::BBOutputType(s));
     }
 
     return is;
+}
+
+
+std::string NOMAD::BBOutputType::display() const
+{
+    std::string s = "BBO_UNDEFINED";
+    switch (_type)
+    {
+        case BBOutputType::Type::OBJ:
+            s = "OBJ";
+            break;
+        case BBOutputType::Type::PB:
+            s = "PB";
+            break;
+        case BBOutputType::Type::RPB:
+            s = "RPB";
+            break;
+        case BBOutputType::Type::EB:
+            s = "EB";
+            break;
+        case BBOutputType::Type::CNT_EVAL:
+            s = "CNT_EVAL";
+            break;
+        case BBOutputType::Type::BBO_UNDEFINED:
+        default:
+            break;
+    }
+    
+    if (_isRevealing)
+    {
+        s = s+"-R";
+    }
+    
+    return s;
 }

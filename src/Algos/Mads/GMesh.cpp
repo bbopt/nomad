@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -264,6 +264,16 @@ bool NOMAD::GMesh::enlargeDeltaFrameSize(const NOMAD::Direction& direction)
 // updated simultaneously as a result of the implementation.
 void NOMAD::GMesh::refineDeltaFrameSize()
 {
+    
+    _refineCount++;
+    
+    // Maybe we don't really refine the mesh
+    if ( _refineCount%_refineFreq != 0)
+    {
+        return;
+    }
+    
+    
     for (size_t i = 0 ; i < _n ; i++)
     {
         // Compute the new values frameSizeMant and frameSizeExp first.
@@ -612,7 +622,6 @@ void NOMAD::GMesh::checkDeltasGranularity(const size_t i,
         }
         if (hasError)
         {
-            std::cerr << err;
             throw NOMAD::Exception(__FILE__,__LINE__,err);
         }
     }
@@ -641,7 +650,6 @@ void NOMAD::GMesh::checkFrameSizeIntegrity(const NOMAD::Double &frameSizeExp,
 
     if (hasError)
     {
-        std::cerr << err;
         throw NOMAD::Exception(__FILE__,__LINE__,err);
     }
 }
@@ -674,7 +682,6 @@ void NOMAD::GMesh::checkSetDeltas(const size_t i,
 
     if (hasError)
     {
-        std::cerr << err << std::endl;
         throw NOMAD::Exception(__FILE__,__LINE__,err);
     }
 
@@ -711,8 +718,8 @@ NOMAD::Double NOMAD::GMesh::scaleAndProjectOnMesh(size_t i, const NOMAD::Double 
 NOMAD::ArrayOfDouble NOMAD::GMesh::scaleAndProjectOnMesh(
     const NOMAD::Direction &dir) const
 {
-    size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
-    NOMAD::ArrayOfDouble proj(n);
+    
+    NOMAD::ArrayOfDouble proj(_n);
 
     NOMAD::Double infiniteNorm = dir.infiniteNorm();
 
@@ -722,7 +729,7 @@ NOMAD::ArrayOfDouble NOMAD::GMesh::scaleAndProjectOnMesh(
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
-    for (size_t i = 0; i < n; ++i)
+    for (size_t i = 0; i < _n; ++i)
     {
         // Scaling and projection on the mesh
         proj[i] = this->scaleAndProjectOnMesh(i, dir[i] / infiniteNorm);

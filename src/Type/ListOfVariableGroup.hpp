@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
  \see    ListOfVariableGroup.cpp
  */
 
-#ifndef __NOMAD_4_3_LIST_OF_VARIABLE_GROUP__
-#define __NOMAD_4_3_LIST_OF_VARIABLE_GROUP__
+#ifndef __NOMAD_4_4_LIST_OF_VARIABLE_GROUP__
+#define __NOMAD_4_4_LIST_OF_VARIABLE_GROUP__
 
 #include <set>
 #include <sstream>
@@ -79,4 +79,4 @@ std::ostream& operator<<(std::ostream& out, const ListOfVariableGroup& lvg);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_3_LIST_OF_VARIABLE_GROUP__
+#endif // __NOMAD_4_4_LIST_OF_VARIABLE_GROUP__

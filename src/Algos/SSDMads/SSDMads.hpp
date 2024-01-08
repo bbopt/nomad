@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_SSDMADS__
-#define __NOMAD_4_3_SSDMADS__
+#ifndef __NOMAD_4_4_SSDMADS__
+#define __NOMAD_4_4_SSDMADS__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Algorithm.hpp"
@@ -86,4 +86,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_SSDMADS__
+#endif // __NOMAD_4_4_SSDMADS__

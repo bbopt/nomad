@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -190,7 +190,8 @@ bool NOMAD::CacheSet::insert(const NOMAD::EvalPoint &evalPoint)
 // Get EvalPoint evalPoint at Point x from the cache
 // Returns the number of EvalPoints found
 size_t NOMAD::CacheSet::find(const NOMAD::Point& x, NOMAD::EvalPoint &evalPoint,
-                             const NOMAD::EvalType evalType) const
+                             const NOMAD::EvalType evalType,
+                             bool waitIfNotYetAvailable ) const
 {
     size_t nbFound = 0;
 
@@ -203,12 +204,12 @@ size_t NOMAD::CacheSet::find(const NOMAD::Point& x, NOMAD::EvalPoint &evalPoint,
     omp_unset_lock(&_cacheLock);
 #endif // _OPENMP
     if (it != _cache.end())
-    {
+    {        
 #ifdef _OPENMP
         // Wait for evaluation:
         // If using OpenMP, the EvalPoint may be updated by another thread.
         // Otherwise, do not wait.
-        if ((NOMAD::EvalType::UNDEFINED != evalType) && (omp_get_num_threads() > 1))
+        if ( waitIfNotYetAvailable && (NOMAD::EvalType::UNDEFINED != evalType) && (omp_get_num_threads() > 1))
         {
             auto evalStatus = it->getEvalStatus(evalType);
             while (!_stopWaiting
@@ -225,6 +226,26 @@ size_t NOMAD::CacheSet::find(const NOMAD::Point& x, NOMAD::EvalPoint &evalPoint,
         evalPoint = *it;
     }
     return nbFound;
+}
+
+// Get EvalPoint evalPoint at Point x from the cache for rerun.
+bool NOMAD::CacheSet::findInCacheForRerun(const NOMAD::Point& x, NOMAD::EvalPoint &evalPoint) const
+{
+
+    NOMAD::EvalPointSet::const_iterator it;
+#ifdef _OPENMP
+    omp_set_lock(&_cacheLock);
+#endif // _OPENMP
+    it = _cacheForRerun.find(NOMAD::EvalPoint(x));
+#ifdef _OPENMP
+    omp_unset_lock(&_cacheLock);
+#endif // _OPENMP
+    if (it != _cacheForRerun.end())
+    {
+        evalPoint = *it;
+        return true;
+    }
+    return false;
 }
 
 
@@ -285,7 +306,7 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
             ret.first->setTag(evalPoint.getTag());
             
             OUTPUT_INFO_START
-            std::string s = "Point already in cache, but not BB evaluated: ";
+            std::string s = "Point already in cache (but not BB evaluated): ";
             s += ret.first->display();
             NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_INFO);
             OUTPUT_INFO_END
@@ -320,7 +341,7 @@ bool NOMAD::CacheSet::smartInsert(const NOMAD::EvalPoint &evalPoint,
         }
         if (doEval)
         {
-            std::cerr << "Warning: CacheSet: smartInsert: New evaluation of point found in cache " << (*ret.first).display() << std::endl;
+            std::cout << "Warning: CacheSet: smartInsert: New evaluation of point found in cache " << (*ret.first).display() << std::endl;
         }
     }
 
@@ -383,16 +404,12 @@ size_t NOMAD::CacheSet::findBest(std::function<bool(const NOMAD::Eval&, const NO
                      const NOMAD::Double& hMax,
                      const NOMAD::Point& fixedVariable,
                      NOMAD::EvalType  evalType,
-                     NOMAD::ComputeType computeType,
-                     const NOMAD::Eval* refevalIn) const
+                     NOMAD::ComputeType computeType) const
 {
     evalPointList.clear();
     NOMAD::EvalPointSet::const_iterator it;
-    std::shared_ptr<NOMAD::Eval> refeval = nullptr;
-    if (nullptr != refevalIn)
-    {
-        refeval = std::make_shared<NOMAD::Eval>(*refevalIn);
-    }
+    NOMAD::Eval refeval;
+    
 
 #ifdef _OPENMP
     omp_set_lock(&_cacheLock);
@@ -425,22 +442,22 @@ size_t NOMAD::CacheSet::findBest(std::function<bool(const NOMAD::Eval&, const NO
             continue;
         }
 
-        if (nullptr == refeval)
+        if (refeval.getEvalStatus()==NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED)
         {
             // Found first point
-            refeval = std::make_shared<NOMAD::Eval>(*eval);
+            refeval = *eval;
             evalPointList.push_back(evalPoint);
         }
-        else if (*eval == *refeval)
+        else if (*eval == refeval)
         {
             // Found first point
             // Found a point with eval == refeval
             evalPointList.push_back(evalPoint);
         }
-        else if (comp(*eval, *refeval, computeType))
+        else if (comp(*eval, refeval, computeType))
         {
             // Found a better point
-            *refeval = *eval;
+            refeval = *eval;
             // Reset list with new best
             evalPointList.clear();
             evalPointList.push_back(evalPoint);
@@ -452,19 +469,6 @@ size_t NOMAD::CacheSet::findBest(std::function<bool(const NOMAD::Eval&, const NO
 
     return evalPointList.size();
 }
-
-
-size_t NOMAD::CacheSet::findBestFeas(std::vector<NOMAD::EvalPoint> &evalPointList,
-                                     const NOMAD::Point& fixedVariable,
-                                     NOMAD::EvalType  evalType,
-                                     NOMAD::ComputeType computeType,
-                                     const NOMAD::Eval* refeval) const
-{
-    findBest(NOMAD::Eval::compEvalFindBest, evalPointList, true, 0,
-             fixedVariable, evalType, computeType, refeval);
-    return evalPointList.size();
-}
-
 
 bool NOMAD::CacheSet::hasFeas(NOMAD::EvalType evalType, NOMAD::ComputeType computeType) const
 {
@@ -493,21 +497,32 @@ bool NOMAD::CacheSet::hasFeas(NOMAD::EvalType evalType, NOMAD::ComputeType compu
     return ret;
 }
 
-
-size_t NOMAD::CacheSet::findBestInf(std::vector<NOMAD::EvalPoint> &evalPointList,
-                                    const NOMAD::Double& hMax,
-                                    const NOMAD::Point& fixedVariable,
-                                    NOMAD::EvalType  evalType,
-                                    NOMAD::ComputeType computeType,
-                                    const NOMAD::Eval* refeval) const
+bool NOMAD::CacheSet::hasInfeas(NOMAD::EvalType evalType, NOMAD::ComputeType computeType) const
 {
-    findBest(NOMAD::Eval::compEvalFindBest, evalPointList, false, hMax,
-             fixedVariable, evalType, computeType, refeval);
+    bool ret = false;
 
-    return evalPointList.size();
+#ifdef _OPENMP
+    omp_set_lock(&_cacheLock);
+#endif // _OPENMP
+    for (auto it = _cache.begin(); it != _cache.end(); ++it)
+    {
+        const NOMAD::Eval* eval = (*it).getEval(evalType);
+        if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
+        {
+            continue;
+        }
+        if (!eval->isFeasible(computeType))
+        {
+            ret = true;
+            break;
+        }
+    }
+#ifdef _OPENMP
+    omp_unset_lock(&_cacheLock);
+#endif // _OPENMP
+
+    return ret;
 }
-
-
 
 size_t NOMAD::CacheSet::find(const NOMAD::Point & X,
                              std::function<bool(const NOMAD::Point&, const NOMAD::EvalPoint &)> crit,
@@ -534,7 +549,7 @@ size_t NOMAD::CacheSet::find(const NOMAD::Point & X,
                 err += NOMAD::itos(X.size());
                 err += " but the cache points are of size ";
                 err += NOMAD::itos(it->size());
-                std::cerr << "Warning: CacheSet: find: Looking for a point of size " << X.size() << " but found cache point of size " << it->size() << std::endl;
+                std::cout << "Warning: CacheSet: find: Looking for a point of size " << X.size() << " but found cache point of size " << it->size() << std::endl;
                 errSizeDisplayed = true;
             }
             continue; // Points are in different dimensions -skip.
@@ -605,7 +620,7 @@ size_t NOMAD::CacheSet::find(std::function<bool(const NOMAD::EvalPoint&)> crit1,
 }
 
 
-size_t NOMAD::CacheSet::findBestFeas(std::list<EvalPoint> &evalPointList,
+size_t NOMAD::CacheSet::findBestFeas(std::vector<EvalPoint> &evalPointList,
                                      const Point& fixedVariable,
                                      EvalType evalType,
                                      ComputeType computeType) const
@@ -613,26 +628,26 @@ size_t NOMAD::CacheSet::findBestFeas(std::list<EvalPoint> &evalPointList,
     evalPointList.clear();
 
     size_t nobj = 0;
-    for (const auto bbo: getBbOutputType())
+    for (const auto & bbo: getBbOutputType())
     {
-        if (bbo == BBOutputType::OBJ)
+        if (bbo.isObjective())
         {
             nobj += 1;
         }
     }
 
-    if (computeType == ComputeType::PHASE_ONE ||
+    if (((computeType == ComputeType::STANDARD) && (nobj == 1)) ||
+        computeType == ComputeType::PHASE_ONE ||
         computeType == ComputeType::UNDEFINED ||
-        computeType == ComputeType::USER ||
-        ((computeType == ComputeType::STANDARD) && (nobj == 1)))
+        computeType == ComputeType::USER      )
     {
-        // NB: not the most efficient version...
-        std::vector<EvalPoint> tmpEvalPointList;
-        findBestFeas(tmpEvalPointList, fixedVariable, evalType, computeType, nullptr);
-        std::copy(tmpEvalPointList.begin(), tmpEvalPointList.end(), std::back_inserter(evalPointList));
+        findBest(NOMAD::Eval::compEvalFindBest, evalPointList, true, 0,
+                 fixedVariable, evalType, computeType);
         return evalPointList.size();
     }
-
+    
+    
+    std::list<NOMAD::EvalPoint> tmpEvalPointList;
     NOMAD::EvalPointSet::const_iterator itCache;
 #ifdef _OPENMP
     omp_set_lock(&_cacheLock);
@@ -656,9 +671,9 @@ size_t NOMAD::CacheSet::findBestFeas(std::list<EvalPoint> &evalPointList,
         // For robustness, be sure the cache picks up points which
         // have the same number of objectives
         size_t nobjEval = 0;
-        for (const auto bbo: eval->getBBOutputTypeList())
+        for (const auto & bbo: eval->getBBOutputTypeList())
         {
-            if (bbo == BBOutputType::OBJ)
+            if (bbo.isObjective())
             {
                 nobjEval += 1;
             }
@@ -669,9 +684,9 @@ size_t NOMAD::CacheSet::findBestFeas(std::list<EvalPoint> &evalPointList,
         }
 
         // Found first point
-        if (evalPointList.size() == 0)
+        if (tmpEvalPointList.size() == 0)
         {
-            evalPointList.push_back(evalPoint);
+            tmpEvalPointList.push_back(evalPoint);
         }
         else
         {
@@ -689,6 +704,7 @@ size_t NOMAD::CacheSet::findBestFeas(std::list<EvalPoint> &evalPointList,
             //
             // One could also simply order the points by lexicographic order with one pass to get
             // all non dominated ones.
+            //
             if (nobj == 2)
             {
                 bool insert = false;
@@ -697,10 +713,10 @@ size_t NOMAD::CacheSet::findBestFeas(std::list<EvalPoint> &evalPointList,
                     return ev.getEval(evalType)->getFs(computeType)[0] <= eval->getFs(computeType)[0];
                 };
                 // Find the last element of the list which satisfies the condition
-                auto itPfreverse = std::find_if(evalPointList.rbegin(), evalPointList.rend(), isBelowf1Eval);
+                auto itPfreverse = std::find_if(tmpEvalPointList.rbegin(), tmpEvalPointList.rend(), isBelowf1Eval);
                 std::list<EvalPoint>::iterator itPfforward;
 
-                if (itPfreverse == evalPointList.rend())
+                if (itPfreverse == tmpEvalPointList.rend())
                 {
                     // In this case, evalPoint has the smallest f1 value of the list
                     // and can be inserted at the beginning.
@@ -723,7 +739,7 @@ size_t NOMAD::CacheSet::findBestFeas(std::list<EvalPoint> &evalPointList,
 
                             // Skip all equal elements.
                             itPfreverse++;
-                            while (itPfreverse != evalPointList.rend())
+                            while (itPfreverse != tmpEvalPointList.rend())
                             {
                                 NOMAD::EvalPoint tmp2EvalPoint(*itPfreverse);
                                 const NOMAD::Eval* evalTmp2 = tmp2EvalPoint.getEval(evalType);
@@ -748,17 +764,17 @@ size_t NOMAD::CacheSet::findBestFeas(std::list<EvalPoint> &evalPointList,
                 if (insert)
                 {
                     // Add new evalPoint
-                    evalPointList.insert(itPfreverse.base(), evalPoint);
+                    tmpEvalPointList.insert(itPfreverse.base(), evalPoint);
 
                     // Remove points after evalPoint
                     itPfforward = itPfreverse.base();
-                    while (itPfforward != evalPointList.end())
+                    while (itPfforward != tmpEvalPointList.end())
                     {
                         // evalj element is dominated.
                         const NOMAD::Eval* evalj = itPfforward->getEval(evalType);
                         if (eval->getFs(computeType)[1] <= evalj->getFs(computeType)[1])
                         {
-                            evalPointList.erase(itPfforward++);
+                            tmpEvalPointList.erase(itPfforward++);
                             continue;
                         }
                         itPfforward++;
@@ -769,8 +785,8 @@ size_t NOMAD::CacheSet::findBestFeas(std::list<EvalPoint> &evalPointList,
             else
             {
                 bool insert = true;
-                std::list<EvalPoint>::iterator itPf = evalPointList.begin();
-                while (itPf != evalPointList.end())
+                std::list<EvalPoint>::iterator itPf = tmpEvalPointList.begin();
+                while (itPf != tmpEvalPointList.end())
                 {
                     auto compFlag = evalPoint.compMO(*itPf, evalType);
                     if (compFlag == CompareType::DOMINATED)
@@ -780,14 +796,14 @@ size_t NOMAD::CacheSet::findBestFeas(std::list<EvalPoint> &evalPointList,
                     }
                     if (compFlag == CompareType::DOMINATING)
                     {
-                        evalPointList.erase(itPf++);
+                        tmpEvalPointList.erase(itPf++);
                         continue;
                     }
                     itPf++;
                 }
                 if (insert)
                 {
-                    evalPointList.push_front(evalPoint);
+                    tmpEvalPointList.push_front(evalPoint);
                 }
             }
         }
@@ -795,11 +811,13 @@ size_t NOMAD::CacheSet::findBestFeas(std::list<EvalPoint> &evalPointList,
 #ifdef _OPENMP
     omp_unset_lock(&_cacheLock);
 #endif // _OPENMP
+    std::copy(tmpEvalPointList.begin(), tmpEvalPointList.end(), std::back_inserter(evalPointList));
     return evalPointList.size();
 }
 
-
-size_t NOMAD::CacheSet::findBestInf(std::list<EvalPoint> &evalPointList,
+// Find best infeasible points with h<hmax:  least infeasible points with smallest f -> index 0 (and above), best f points with smallest h-> last index (and below). 
+// All best f points have the same bboutputs. Idem for the least infeasible points.
+size_t NOMAD::CacheSet::findBestInf(std::vector<EvalPoint> &evalPointList,
                                     const Double& hMax,
                                     const Point& fixedVariable,
                                     EvalType evalType,
@@ -808,27 +826,21 @@ size_t NOMAD::CacheSet::findBestInf(std::list<EvalPoint> &evalPointList,
     evalPointList.clear();
 
     size_t nobj = 0;
-    for (const auto bbo: getBbOutputType())
+    for (const auto & bbo: getBbOutputType())
     {
-        if (bbo == BBOutputType::OBJ)
+        if (bbo.isObjective())
         {
             nobj += 1;
         }
     }
 
-    if (computeType == ComputeType::PHASE_ONE ||
-        computeType == ComputeType::UNDEFINED ||
-        computeType == ComputeType::USER ||
-        ((computeType == ComputeType::STANDARD) && (nobj == 1)))
-    {
-        // NB: not the most efficient version...
-        std::vector<EvalPoint> tmpEvalPointList;
-        findBestInf(tmpEvalPointList, hMax, fixedVariable, evalType, computeType, nullptr);
-        std::copy(tmpEvalPointList.begin(), tmpEvalPointList.end(), std::back_inserter(evalPointList));
-        return evalPointList.size();
-    }
-
     NOMAD::EvalPointSet::const_iterator itCache;
+    
+    // Refs values (f and h) for both bestF and leastInf
+    NOMAD::ArrayOfDouble bestFRefFs(nobj,NOMAD::INF);
+    NOMAD::Double bestFRefH(NOMAD::INF);
+    NOMAD::Double leastInfRefH(NOMAD::INF);
+    NOMAD::ArrayOfDouble leastInfRefFs(nobj,NOMAD::INF);
 #ifdef _OPENMP
     omp_set_lock(&_cacheLock);
 #endif // _OPENMP
@@ -840,7 +852,8 @@ size_t NOMAD::CacheSet::findBestInf(std::list<EvalPoint> &evalPointList,
         {
             continue;
         }
-        if (eval->isFeasible(computeType)){
+        if (eval->isFeasible(computeType))
+        {
             continue;
         }
         NOMAD::Double h = eval->getH(computeType);
@@ -856,9 +869,9 @@ size_t NOMAD::CacheSet::findBestInf(std::list<EvalPoint> &evalPointList,
         // For robustness, be sure the cache picks up points which
         // have the same number of objectives
         size_t nobjEval = 0;
-        for (const auto bbo: eval->getBBOutputTypeList())
+        for (const auto &bbo: eval->getBBOutputTypeList())
         {
-            if (bbo == BBOutputType::OBJ)
+            if (bbo.isObjective())
             {
                 nobjEval += 1;
             }
@@ -867,63 +880,57 @@ size_t NOMAD::CacheSet::findBestInf(std::list<EvalPoint> &evalPointList,
         {
             continue;
         }
-        // The set of non dominated points is empty, so insert it.
-        if (evalPointList.size() == 0)
+        NOMAD::ArrayOfDouble fs = eval->getFs(computeType);
+        
+        // Two types of best inf but no duplication of points. If leastInf and bestF are the same we put single point in the list (see below in the second step).
+        
+        // Better f (still infeasible though)
+        // For multiobjective, compare all objectives in the arrayOfDouble (no dominance).
+        if (fs.isComplete() && fs < bestFRefFs )
         {
-            evalPointList.push_back(evalPoint);
+            bestFRefFs = fs;
+            bestFRefH = h;
         }
-        else
+        
+        // lower infeas (do not care about f)
+        if (h < leastInfRefH)
         {
-            // Insertion into a non-empty set.
-            bool insert = true;
-            std::list<EvalPoint>::iterator itInfPf = evalPointList.begin();
-            while (itInfPf != evalPointList.end())
+            leastInfRefH = h;
+            leastInfRefFs = fs;
+        }
+    }
+    
+    // Create the list with bestF (last index and below if multiple point) and leastInf (index 0 and above if multiple points)
+    for (itCache = _cache.begin(); itCache != _cache.end(); ++itCache)
+    {
+        // Must be eval ok
+        const NOMAD::Eval* eval = itCache->getEval(evalType);
+        if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
+        {
+            continue;
+        }
+        // Must be in the subspace defined byFixedVariable
+        if (!itCache->hasFixed(fixedVariable))
+        {
+            continue;
+        }
+        
+        if (nullptr != eval)
+        {
+            NOMAD::ArrayOfDouble fs = eval->getFs(computeType);
+            NOMAD::Double h = eval->getH(computeType);
+            if (fs == bestFRefFs && h == bestFRefH)
             {
-                auto compFlag = evalPoint.compMO(*itInfPf, evalType, true);
-                if (compFlag == NOMAD::CompareType::DOMINATED)
-                {
-                    insert = false;
-                    break;
-                }
-                else if (compFlag == NOMAD::CompareType::DOMINATING)
-                {
-                    evalPointList.erase(itInfPf++);
-                    continue;
-                }
-                // Make a last check to be sure not dominating or dominated
-                // according to h.
-                else if (compFlag == NOMAD::CompareType::EQUAL)
-                {
-                    const NOMAD::Eval* tmpEval = itInfPf->getEval(evalType);
-                    // Dominating
-                    if (eval->getH() < tmpEval->getH())
-                    {
-                        evalPointList.erase(itInfPf++);
-                        continue;
-                    }
-                    // Dominated
-                    else if (eval->getH() > tmpEval->getH())
-                    {
-                        insert = false;
-                        break;
-                    }
-                }
-                itInfPf++;
+                evalPointList.push_back(*itCache);
+                continue;
             }
-            if (insert)
+            if (h == leastInfRefH && fs == leastInfRefFs)
             {
-                evalPointList.push_front(evalPoint);
+                evalPointList.insert(evalPointList.begin(),*itCache);
             }
         }
     }
 
-    // Sort the list according to f1; beneficial when looking for an infeasible incumbent
-    // for a biobjective problem.
-    evalPointList.sort(
-              [&evalType](const EvalPoint& evalPoint1, const EvalPoint& evalPoint2)
-              {
-                  return evalPoint1.getEval(evalType)->getFs()[0] < evalPoint2.getEval(evalType)->getFs()[0];
-              });
 #ifdef _OPENMP
     omp_unset_lock(&_cacheLock);
 #endif // _OPENMP
@@ -931,7 +938,7 @@ size_t NOMAD::CacheSet::findBestInf(std::list<EvalPoint> &evalPointList,
 }
 
 
-size_t NOMAD::CacheSet::findFilterInf(std::list<EvalPoint> &evalPointList,
+size_t NOMAD::CacheSet::findFilterInf(std::vector<NOMAD::EvalPoint> &evalPointList,
                                       const Double& hMax,
                                       const Point& fixedVariable,
                                       EvalType evalType,
@@ -940,25 +947,26 @@ size_t NOMAD::CacheSet::findFilterInf(std::list<EvalPoint> &evalPointList,
     evalPointList.clear();
 
     size_t nobj = 0;
-    for (const auto bbo: getBbOutputType())
+    for (const auto & bbo: getBbOutputType())
     {
-        if (bbo == BBOutputType::OBJ)
+        if (bbo.isObjective())
         {
             nobj += 1;
         }
     }
 
+    // Notion of dominance is not defined for those compute types.
+    // Let's find some best infeasible points with h<hmax: least infeasible point -> index 0 and best f point -> last index
     if (computeType == ComputeType::PHASE_ONE ||
         computeType == ComputeType::UNDEFINED ||
         computeType == ComputeType::USER)
     {
-        // NB: not the most efficient version...
-        std::vector<EvalPoint> tmpEvalPointList;
-        findBestInf(tmpEvalPointList, hMax, fixedVariable, evalType, computeType, nullptr);
-        std::copy(tmpEvalPointList.begin(), tmpEvalPointList.end(), std::back_inserter(evalPointList));
+        // NB: not the most efficient version... vector->list!!!
+        findBestInf(evalPointList, hMax, fixedVariable, evalType, computeType);
         return evalPointList.size();
     }
 
+    std::list<NOMAD::EvalPoint> tmpEvalPointList;
     NOMAD::EvalPointSet::const_iterator itCache;
 #ifdef _OPENMP
     omp_set_lock(&_cacheLock);
@@ -987,9 +995,9 @@ size_t NOMAD::CacheSet::findFilterInf(std::list<EvalPoint> &evalPointList,
         // For robustness, be sure the cache picks up points which
         // have the same number of objectives
         size_t nobjEval = 0;
-        for (const auto bbo: eval->getBBOutputTypeList())
+        for (const auto & bbo: eval->getBBOutputTypeList())
         {
-            if (bbo == BBOutputType::OBJ)
+            if (bbo.isObjective())
             {
                 nobjEval += 1;
             }
@@ -999,16 +1007,16 @@ size_t NOMAD::CacheSet::findFilterInf(std::list<EvalPoint> &evalPointList,
             continue;
         }
         // The set of non dominated points is empty, so insert it.
-        if (evalPointList.size() == 0)
+        if (tmpEvalPointList.size() == 0)
         {
-            evalPointList.push_back(evalPoint);
+            tmpEvalPointList.push_back(evalPoint);
         }
         else
         {
             // Insertion into a non-empty set.
             bool insert = true;
-            std::list<EvalPoint>::iterator itInfPf = evalPointList.begin();
-            while (itInfPf != evalPointList.end())
+            std::list<EvalPoint>::iterator itInfPf = tmpEvalPointList.begin();
+            while (itInfPf != tmpEvalPointList.end())
             {
                 auto compFlag = evalPoint.compMO(*itInfPf, evalType, false);
                 if (compFlag == NOMAD::CompareType::DOMINATED)
@@ -1018,20 +1026,21 @@ size_t NOMAD::CacheSet::findFilterInf(std::list<EvalPoint> &evalPointList,
                 }
                 else if (compFlag == NOMAD::CompareType::DOMINATING)
                 {
-                    evalPointList.erase(itInfPf++);
+                    tmpEvalPointList.erase(itInfPf++);
                     continue;
                 }
                 itInfPf++;
             }
             if (insert)
             {
-                evalPointList.push_front(evalPoint);
+                tmpEvalPointList.insert(tmpEvalPointList.begin(),evalPoint);
             }
         }
     }
 #ifdef _OPENMP
     omp_unset_lock(&_cacheLock);
 #endif // _OPENMP
+    std::copy(tmpEvalPointList.begin(), tmpEvalPointList.end(), std::back_inserter(evalPointList));
     return evalPointList.size();
 }
 
@@ -1053,7 +1062,7 @@ bool NOMAD::CacheSet::update(const NOMAD::EvalPoint& evalPoint, NOMAD::EvalType 
         // Cannot update to a null Eval. Warn the user.
         std::string err = "Warning: CacheSet: Update: Cannot update to a NULL Eval for Point ";
         err += evalPoint.displayAll();
-        std::cerr << err << std::endl;
+        std::cout << err << std::endl;
         return false;
     }
 
@@ -1065,7 +1074,7 @@ bool NOMAD::CacheSet::update(const NOMAD::EvalPoint& evalPoint, NOMAD::EvalType 
     if (it == _cache.end())
     {
         std::string err = "Warning: CacheSet: Update: Did not find EvalPoint to update in cache: " + evalPoint.displayAll();
-        std::cerr << err << std::endl;
+        std::cout << err << std::endl;
         NOMAD::OutputQueue::Add(err, NOMAD::OutputLevel::LEVEL_WARNING);
     }
     else
@@ -1084,6 +1093,12 @@ bool NOMAD::CacheSet::update(const NOMAD::EvalPoint& evalPoint, NOMAD::EvalType 
             cacheEvalPoint->setMesh(mesh);
         }
         
+        // Update revealing status of the point (DiscoMads algorithm)
+        cacheEvalPoint->setRevealingStatus(evalPoint.getRevealingStatus());
+        
+        // Update user fail eval check flag of the point (DiscoMads algorithm)
+        cacheEvalPoint->setUserFailEvalCheck(evalPoint.getUserFailEvalCheck());
+
         updateOk = true;
     }
 #ifdef _OPENMP
@@ -1140,7 +1155,7 @@ void NOMAD::CacheSet::clearModelEval(const int mainThreadNum)
 // Note June 2021: We are now ignoring points for which eval status is not EVAL_OK.
 void NOMAD::CacheSet::purge()
 {
-    std::cerr << "Warning: Calling Cache purge. Size is " << _cache.size() << " max is " << _maxSize << ". Some points will be removed from the cache." << std::endl;
+    std::cout << "Warning: Calling Cache purge. Size is " << _cache.size() << " max is " << _maxSize << ". Some points will be removed from the cache." << std::endl;
     if ( _maxSize== NOMAD::INF_SIZE_T || _cache.size() < _maxSize)
     {
         // Do nothing
@@ -1351,14 +1366,14 @@ std::string NOMAD::CacheSet::displayAll() const
 }
 
 
-// Display only EvalPoints that have a BB eval that is good. Only eval status
-// is checked.
+// Display only EvalPoints that have a BB or SURROGATE eval that is good. Only eval status is checked.
 // This method is used to write points to cache.
 std::ostream& NOMAD::CacheSet::displayPointsWithEval(std::ostream& os) const
 {
     for (auto evalPoint : _cache)
     {
-        if (nullptr != evalPoint.getEval(NOMAD::EvalType::BB) && evalPoint.getEval(NOMAD::EvalType::BB)->goodForCacheFile())
+        if ( (nullptr != evalPoint.getEval(NOMAD::EvalType::BB) && evalPoint.getEval(NOMAD::EvalType::BB)->goodForCacheFile() ) ||
+            (nullptr != evalPoint.getEval(NOMAD::EvalType::SURROGATE) && evalPoint.getEval(NOMAD::EvalType::SURROGATE)->goodForCacheFile() ) )
         {
             os << evalPoint.displayForCache(_bbEvalFormat) << std::endl;
         }
@@ -1367,6 +1382,11 @@ std::ostream& NOMAD::CacheSet::displayPointsWithEval(std::ostream& os) const
     return os;
 }
 
+void NOMAD::CacheSet::moveEvalPointToCacheForRerun()
+{
+    _cacheForRerun = _cache;
+    _cache.clear();
+}
 
 // Display only EvalPoints that have an eval.
 std::ostream& NOMAD::operator<<(std::ostream& os, const NOMAD::CacheSet& cache)
@@ -1413,7 +1433,7 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::CacheSet& cache)
             }
             else
             {
-                bbOutputTypes.push_back(NOMAD::stringToBBOutputType(s));
+                bbOutputTypes.push_back(NOMAD::BBOutputType(s));
             }
         }
 
@@ -1426,6 +1446,7 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::CacheSet& cache)
     {
         evalPoint.setBBOutputType(bbOutputTypes);
         evalPoint.updateTag();
+        evalPoint.setEvalIsFromCacheFile(true);
         cache.insert(evalPoint);
     }
 

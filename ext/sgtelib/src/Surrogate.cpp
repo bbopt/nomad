@@ -1005,7 +1005,6 @@ void SGTELIB::Surrogate::compute_metric_linv (void){
     const SGTELIB::Matrix Zs = get_matrix_Zs();
     double s,dz;
     double linv;
-      
     for (int j=0 ; j<_m ; j++){
       if (_trainingset.get_bbo(j)!=SGTELIB::BBO_DUM){
         linv = 0;

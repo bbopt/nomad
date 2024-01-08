@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
  \see    StepType.cpp
  */
 
-#ifndef __NOMAD_4_3_STEP_TYPE__
-#define __NOMAD_4_3_STEP_TYPE__
+#ifndef __NOMAD_4_4_STEP_TYPE__
+#define __NOMAD_4_4_STEP_TYPE__
 
 #include <map>
 #include <sstream>
@@ -72,11 +72,13 @@ enum class StepType
     ALGORITHM_PHASE_ONE,        ///< Phase One
     ALGORITHM_PSD_MADS_SUBPROBLEM, ///< Subproblem in PSD-Mads
     ALGORITHM_PSD_MADS,         ///< Algorithm PSD-Mads
+    ALGORITHM_QPSOLVER,         ///< Algorithm QPSolver
     ALGORITHM_QUAD_MODEL,       ///< Algorithm Quad Model
     ALGORITHM_SGTELIB_MODEL,    ///< Algorithm Quad Model
     ALGORITHM_SSD_MADS,         ///< Algorithm SSD-Mads
     ALGORITHM_RANDOM,           ///< Algorithm random (to be used as a template example for a new algorithm)
     ALGORITHM_VNS_MADS,         ///< Algorithm VNS-Mads
+    ALGORITHM_DISCO_MADS,       ///< Algorithm DISCO-Mads
     INITIALIZATION,             ///< Initialization step
     ITERATION,                  ///< Iteration step
     MAIN,                       ///< Main step
@@ -99,22 +101,25 @@ enum class StepType
 
     MODEL_OPTIMIZE,                   ///<  model sub-optimization
     POLL,                       ///< Mads Poll
-    CS_POLL,                    ///< Coordinate Search poll
+    CS_POLL,                    ///< Coordinate Search poll  
+    REVEALING_POLL,             ///< Revealing poll      
     POLL_METHOD_DOUBLE,         ///< Double poll method
     POLL_METHOD_ORTHO_NPLUS1_NEG, ///< Ortho N+1 neg poll method
     POLL_METHOD_ORTHO_NPLUS1_QUAD, ///< Ortho N+1 quad poll method
     POLL_METHOD_ORTHO_2N,       ///< Ortho 2N poll method
     POLL_METHOD_SINGLE,         ///< Single poll method
     POLL_METHOD_UNI_NPLUS1,     ///< Uniform N+1 poll method
-    CS_POLL_METHOD,             ///< Coordinate Search poll method
+    CS_POLL_METHOD,             ///< Coordinate Search poll method 
     SEARCH,                     ///< Search
     SEARCH_METHOD_ALGO_RANDOM,///< Template for a search method using an algo (iterations)
     SEARCH_METHOD_LH,           ///< Latin hypercube search method
     SEARCH_METHOD_NM,           ///< Nelder-Mead search method
     SEARCH_METHOD_QUAD_MODEL,   ///< Quadratic model search method
     SEARCH_METHOD_QUAD_MODEL_SLD,///< Quadratic model (SLD) search method
+    SEARCH_METHOD_REVEALING,     ///< Revealing search method (revealing poll in DiscoMads)  
     SEARCH_METHOD_SGTELIB_MODEL,///< Sgtelib model search method
     SEARCH_METHOD_SIMPLE_RANDOM,///< Template for a simple (no iteration) search method
+    SEARCH_METHOD_SIMPLE_LINE_SEARCH,  ///< Simple line search method
     SEARCH_METHOD_SPECULATIVE,  ///< Speculative search method
     SEARCH_METHOD_USER,         ///< User-defined search method
     SEARCH_METHOD_VNS_MADS,     ///< VNS Mads search method
@@ -151,4 +156,4 @@ inline std::ostream& operator<<(std::ostream& out, const StepType &stepType)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_3_STEP_TYPE__
+#endif  // __NOMAD_4_4_STEP_TYPE__

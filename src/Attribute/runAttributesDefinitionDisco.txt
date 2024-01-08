@@ -1,0 +1,215 @@
+###############################################################################
+#######         Definition of Run Parameters attributes (CS)       ############
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+DISCO_MADS_OPTIMIZATION
+bool
+false
+\( DiscoMads optimization \)
+\(
+
+. DiscoMads optimization: reveal and escape either weak discontinuities
+in revealing outputs or hidden constraints regions (with DISCO_MADS_HID_CONST).
+
+. If DiscoMads is used for discontinuities, they are characterized by 
+DISCO_MADS_DETECTION_RADIUS and DISCO_MADS_LIMIT_RATE.  Revealing outputs
+ should be indicated by appending -R to blackbox outputs type in parameters file.
+
+. Prescribed distance to revealing points is controlled by 
+DISCO_MADS_EXCLUSION_RADIUS.
+
+. Revealing poll parameters are DISCO_MADS_REVEALING_POLL_NB_POINTS and
+DISCO_MADS_REVEALING_POLL_RADIUS.
+
+. Argument: bool
+
+. Example: DISCO_MADS_OPTIMIZATION true
+
+\)
+\( discomads mads discontinuity\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+###############################################################################
+DISCO_MADS_DETECTION_RADIUS
+NOMAD::Double
+1.0
+\( Radius used to reveal discontinuities in DiscoMads \)
+\(
+
+. DiscoMADS algorithm attempts to reveal discontinuities between couple of
+points whose distance is strictly less than this value.
+
+. Argument: greater than or equal to 0. If 0, the DiscoMads algorithm is 
+equivalent to the Mads algorithm with a special search (the revealing poll).
+
+. This attribute is used only when DiscoMads optimization is active and 
+DiscoMads is used for discontinuity revealation (DISCO_MADS_HID_CONST false)
+
+. Example: DISCO_MADS_DETECTION_RADIUS 1.0
+
+. This radius is called rd in the article.
+\)
+\( advanced discomads radius detection discontinuity\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+DISCO_MADS_LIMIT_RATE
+NOMAD::Double
+1
+\( Limit rate of change used to reveal discontinuities in DiscoMads \)
+\(
+
+. When using DiscoMADS algorithm, a discontinuity is revealed if between two
+ points at distance at most DISCO_MADS_DETECTION_RADIUS the rate of change of 
+at least one revealing output exceeds DISCO_MADS_LIMIT_RATE. 
+
+. Argument: stricly greater than 0
+
+. This attribute is used only when DiscoMads optimization is active and 
+DiscoMads is used for discontinuity revealation (DISCO_MADS_HID_CONST false)
+
+. Example: DISCO_MADS_LIMIT_RATE 1.0
+
+. This quantity is called tau in the article.
+\)
+\( advanced discomads rate \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+DISCO_MADS_EXCLUSION_RADIUS
+NOMAD::Double
+1
+\( Radius of exclusion balls around revealing points in DiscoMads\)
+\(
+
+. When using DiscoMADS algorithm, the points at distance at most 
+ DISCO_MADS_EXCLUSION_RADIUS of revealing points are considered to be close to
+ revealing points and thus penalized.
+
+. Argument: stricly greater than 0
+
+. This attribute is used only when DiscoMads optimization is active.
+
+. Example: DISCO_MADS_EXCLUSION_RADIUS 1.0
+
+. This radius is called re in the article.
+\)
+\( advanced discomads radius exclusion \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+DISCO_MADS_REVEALING_POLL_RADIUS
+NOMAD::Double
+2.02
+\( Revealing poll radius in DiscoMads \)
+\(
+
+.  When using DiscoMADS algorithm, the revealing poll evaluates random points
+in the ball of this radius around the best feasible incumbent if it exists, 
+otherwise around the best infeasible incumbent.
+
+. Argument: Double stricly greater than exclusion radius + detection radius,
+  e.g. 1.01*(exclusion radius + detection radius).
+
+. This attribute is used only when DiscoMads optimization is active.
+
+. Example: DISCO_MADS_REVEALING_POLL_RADIUS 2.5
+
+. This radius is called rm in the article.
+\)
+\( advanced discomads radius poll revealing\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+DISCO_MADS_REVEALING_POLL_NB_POINTS
+size_t
+1
+\( Number of random points sampled by the revealing poll in DiscoMads \)
+\(
+
+.  When using DiscoMADS algorithm, the revealing poll evaluates this number
+of random points in a ball around the best feasible or infeasible incumbent.
+
+. Argument: one positive integer. A common choice is to take the problem
+dimension.
+
+. If null, the revealing poll is disabled. This should only be used for testing
+as a strictly positive value is requiered for the convergence analysis.
+
+. This attribute is used only when DiscoMads optimization is active.
+
+. Example: DISCO_MADS_REVEALING_POLL_NB_POINTS 1
+
+\)
+\( advanced discomads radius poll revealing\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+###############################################################################
+DISCO_MADS_HID_CONST
+bool
+false
+\( Use DiscoMADS to reveal and escape hidden constraints regions \)
+\(
+
+. Special use of DiscoMads to reveal hidden constraint regions instead of 
+discontinuities. Parameters DISCO_MADS_DETECTION_RADIUS and DISCO_MADS_LIMIT_RATE
+are not considered in this casem DISCO_MADS_DETECTION_RADIUS takes the value 0.
+
+. Argument: bool
+
+. Example: DISCO_MADS_HID_CONST true
+
+\)
+\( discomads hidden failed\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+###############################################################################
+DISCO_MADS_HID_CONST_OUTPUT_VALUE
+NOMAD::Double
+1E20
+\( Value attributed to objective function and PB constraints for failed evaluations
+when DiscoMads is used to reveal hidden constraints regions.\)
+\(
+
+. This attribute is used only when DiscoMads optimization is active and DiscoMads 
+is used to reveal hidden constraints regions (DISCO_MADS_HID_CONST)
+
+. Argument: Double strictly positive, greater than MODEL_MAX_OUTPUT and
+less than NOMAD::INF.
+
+. Example: DISCO_MADS_HID_CONST_OUTPUT_VALUE 1e20
+
+\)
+\( discomads hidden failed\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+###############################################################################

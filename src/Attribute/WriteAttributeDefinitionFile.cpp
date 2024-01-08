@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -60,7 +60,7 @@
 #include <string>
 
 // Registered attribute definition names
-const std::string attributeDefinitionNames[16] = { "deprecatedAttributesDefinition",
+const std::string attributeDefinitionNames[18] = { "deprecatedAttributesDefinition",
     "displayAttributesDefinition",
     "evalAttributesDefinition",
     "cacheAttributesDefinition",
@@ -73,10 +73,14 @@ const std::string attributeDefinitionNames[16] = { "deprecatedAttributesDefiniti
     "runAttributesDefinitionCS",
     "runAttributesDefinitionNM",
     "runAttributesDefinitionPSDSSD",
+    "runAttributesDefinitionQPSolver",
     "runAttributesDefinitionQuadModel",
     "runAttributesDefinitionSgtelibModel",
-    "runAttributesDefinitionVNS"
+    "runAttributesDefinitionVNS",
+    "runAttributesDefinitionDisco"   
 };
+
+const std::string forbiddenWords[3] = {"SOLVER", "NOMAD", "RUNNER"};
 
 /// \brief Registered attribute flags and default value
 /**
@@ -161,6 +165,18 @@ void duplicateParPlurals(std::string & blockOfStrings )
     }
 }
 
+std::string containsForbiddenWords(const std::string &attributeName)
+{
+    for ( const auto & word : forbiddenWords )
+    {
+        size_t pos = attributeName.find( word , 0 );
+        if ( pos != std::string::npos )
+        {
+            return word;
+        }
+    }
+    return std::string();
+}
 
 /// \brief Utility to read a block of lines
 std::string readBlockOfLines(std::ifstream & fin,
@@ -238,6 +254,8 @@ int main(int argc, char *argv[])
     std::ostringstream oss;
 
     std::map<std::string,bool> attributeFlags;
+    
+    std::string fw; // For testing forbidden words (example: runner does not like the word SOLVER)
 
     for ( auto attDefName : attributeDefinitionNames )
     {
@@ -257,8 +275,8 @@ int main(int argc, char *argv[])
         oss << "//////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////" << std::endl;
         oss << "//////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////" << std::endl << std::endl;
 
-        oss << "#ifndef __NOMAD_4_3_"<< UpperAttDefName << "__" << std::endl;
-        oss << "#define __NOMAD_4_3_"<< UpperAttDefName << "__" << std::endl << std::endl;
+        oss << "#ifndef __NOMAD_4_4_"<< UpperAttDefName << "__" << std::endl;
+        oss << "#define __NOMAD_4_4_"<< UpperAttDefName << "__" << std::endl << std::endl;
         oss << "_definition = {" ;
 
         bool flagInFile;
@@ -333,6 +351,13 @@ int main(int argc, char *argv[])
                     throw ( Exception(lineNumber,errMsg) );
                 }
                 oss << "{ \"" << attributeName << "\", ";
+                
+                fw = containsForbiddenWords(attributeName);
+                if (!fw.empty())
+                {
+                    errMsg = " The attribute name " + attributeName + " contains the forbidden word " + fw ;
+                    throw ( Exception(lineNumber,errMsg) );
+                }
 
                 // Read attribute type
                 getline(fin, line);

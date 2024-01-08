@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -106,7 +106,7 @@ void initParams(std::shared_ptr<NOMAD::AllParameters>& params,
     }
 
     // Display parameters
-    //params->setAttributeValue("DISPLAY_DEGREE", 4);
+    params->setAttributeValue("DISPLAY_DEGREE", 0);
 
     // parameters validation
     params->getPbParams()->doNotShowWarnings();

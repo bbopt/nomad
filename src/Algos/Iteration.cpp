@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -62,6 +62,12 @@ void NOMAD::Iteration::init()
 {
     setStepType(NOMAD::StepType::ITERATION);
     verifyParentNotNull();
+    
+    _userCallbackEnabled = false;
+    if (nullptr != _runParams)
+    {
+        _userCallbackEnabled = _runParams->getAttributeValue<bool>("USER_CALLS_ENABLED");
+    }
 }
 
 
@@ -76,18 +82,21 @@ void NOMAD::Iteration::endImp()
     OUTPUT_INFO_START
     AddOutputInfo("Stop reason: " + _stopReasons->getStopReasonAsString() );
     OUTPUT_INFO_END
-
-    if ( _runParams->getAttributeValue<bool>("USER_CALLS_ENABLED") )
+    if ( _userCallbackEnabled )
     {
         bool stop = false;
 
-        /// Callback user provided function to check if user requested a stop.
+        // Callback user provided function to check if user requested a stop.
         runCallback(NOMAD::CallbackType::ITERATION_END, *this, stop);
-
-
         if (!_stopReasons->checkTerminate() && stop)
         {
-            _stopReasons->set(NOMAD::BaseStopType::USER_STOPPED);
+            _stopReasons->set(NOMAD::BaseStopType::USER_GLOBAL_STOP);
+        }
+        
+        // Reset user iteration stop reason
+        if (_stopReasons->testIf(NOMAD::IterStopType::USER_ITER_STOP))
+        {
+            _stopReasons->set(NOMAD::IterStopType::STARTED);
         }
     }
 }

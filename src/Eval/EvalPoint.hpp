@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
  \see    EvalPoint.cpp
  */
 
-#ifndef __NOMAD_4_3_EVALPOINT__
-#define __NOMAD_4_3_EVALPOINT__
+#ifndef __NOMAD_4_4_EVALPOINT__
+#define __NOMAD_4_4_EVALPOINT__
 
 #ifdef USE_UNORDEREDSET
 #include <unordered_set>
@@ -83,10 +83,10 @@ private:
 
     static int     _currentTag;  ///< Value of the current tag
 
-    EvalUPtr _eval[3];  ///< Value of the evaluation for each eval type
+    EvalUPtr _eval[3];  ///< Value of the evaluation for each eval type. The index number must correspond to EvalType enum order
                         ///< Index 0: access to BB
-                        ///< Index 1: access to MODEL
-                        ///< Index 2: access to SURROGATE
+                        ///< Index 1: access to SURROGATE
+                        ///< Index 2: access to MODEL
 
     mutable int                 _tag; ///< Tag: Ordinal representing the order of creation
 
@@ -94,6 +94,8 @@ private:
 
     short                       _numberBBEval; ///< Number of times \c *this point has been evaluated (blackbox only)
 
+    bool                        _evalFromCacheFile; ///<  Evaluation (BB or SURROGATE obtained from reading a cache file
+    
     std::shared_ptr<EvalPoint>  _pointFrom; ///< The frame center which generated \c *this point (blackbox only). Full space.
 
     StepTypeList                _genSteps;   ///< Steps and algorithms that generated this point
@@ -103,6 +105,10 @@ private:
 
     std::shared_ptr<MeshBase> _mesh;
     
+    int                        _isRevealing;  ///< for DiscoMads, 0 : not revealing, 1: revealing, 2: just revealed at the last eval
+    
+    bool                       _userFailEvalCheck; ///< for DiscoMads handling hidden constraints. True: fail eval point has been checked (not necessarily EvalOk after)
+             
     
 public:
 
@@ -213,7 +219,9 @@ public:
                 EvalType evalType = EvalType::LAST,
                 const bool evalOk = true);
 
-    void setBBOutputType(const BBOutputTypeList& bbOutputType, EvalType evalType = EvalType::BB);
+    void setBBOutputType(const BBOutputTypeList& bbOutputType, EvalType evalType);
+    void setBBOutputType(const BBOutputTypeList& bbOutputType);
+    
 
     /// Get evaluation status of the Eval of this EvalType
     EvalStatusType getEvalStatus(EvalType evalType) const;
@@ -232,6 +240,9 @@ public:
     short getNumberBBEval() const { return _numberBBEval; }
     void setNumberBBEval(const short numBBEval) { _numberBBEval = numBBEval; }
     void incNumberBBEval() { _numberBBEval++; }
+    
+    bool getEvalIsFromCacheFile() const { return _evalFromCacheFile ;}
+    void setEvalIsFromCacheFile(bool flag) { _evalFromCacheFile = flag; }
 
     /// Get the Point which was the center when this point was generated
     const std::shared_ptr<EvalPoint> getPointFrom() const { return _pointFrom; }
@@ -260,6 +271,30 @@ public:
     void setMesh(const MeshBasePtr mesh);
     MeshBasePtr getMesh() const { return _mesh; }
     
+    /// Get revealing status (for DiscoMads)
+    int getRevealingStatus() const {return _isRevealing;}
+    
+    /// Set revealing status (for DiscoMads)
+    /**
+     \param revealingStatus Flag for revealing status IN.
+    */
+    void setRevealingStatus(const int& revealingStatus){_isRevealing=revealingStatus;};
+    
+    /// Get user fail eval check status (for DiscoMads)
+    bool getUserFailEvalCheck() const { return _userFailEvalCheck; }
+    
+    /// Set user fail eval check status (for DiscoMads)
+    /**
+     \param userFailEvalCheck Flag for user fail check IN.
+     */
+    void setUserFailEvalCheck(bool userFailEvalCheck){_userFailEvalCheck=userFailEvalCheck;};
+
+    /// Get revealed constraint value (for some algorithms like DiscoMads)
+    NOMAD::Double getRevealedConstraint() const;
+
+    /// Set revealed constraint value (for some algorithms like DiscoMads) 
+    void setRevealedConstraint(const NOMAD::Double &constraintValue);
+
     /// Get the Point which was the center when this point was generated
     /**
      Returns a Point in the Subspace defined by the fixedVariable
@@ -275,6 +310,12 @@ public:
 
     /// Get evaluation feasibility flag f the Eval of this EvalType
     bool isFeasible(EvalType evalType, ComputeType computeType = ComputeType::STANDARD) const;
+
+    /// Get feasibility with respect to EB constraints only
+    /**
+     Returns true if point satisfies all EB constraints
+     */
+    bool isEBOk(NOMAD::EvalType evalType) const;
 
     /// Comparison operator used by NM algorithm.
     /**
@@ -442,10 +483,10 @@ public:
     static const EvalPointSet emptyEvalPointSet = {}; /// For convenience. Used when calling functions with EvalPointSet as arguments.
 
 /// Definition for EvalPointList
-typedef std::vector<EvalPoint> EvalPointList;
+typedef std::list<EvalPoint> EvalPointList;
 
-DLL_EVAL_API void convertPointListToSub(EvalPointList &evalPointList,  const Point& fixedVariable);
-DLL_EVAL_API void convertPointListToFull(EvalPointList &evalPointList, const Point& fixedVariable);
+DLL_EVAL_API void convertPointListToSub(std::vector<EvalPoint> &evalPointList,  const Point& fixedVariable);
+DLL_EVAL_API void convertPointListToFull(std::vector<EvalPoint> &evalPointList, const Point& fixedVariable);
 
 
 #include "../nomad_nsend.hpp"
@@ -477,4 +518,4 @@ namespace std {
 #endif // USE_UNORDEREDSET
 
 
-#endif // __NOMAD_4_3_EVALPOINT__
+#endif // __NOMAD_4_4_EVALPOINT__

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -79,8 +79,8 @@ bool NOMAD::TemplateAlgoUpdate::runImp()
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Update must have an Iteration among its ancestors.");
     }
-    auto bestXFeas = barrier->getFirstXFeas();
-    auto bestXInf  = barrier->getFirstXInf();
+    auto bestXFeas = barrier->getCurrentIncumbentFeas();
+    auto bestXInf  = barrier->getCurrentIncumbentInf();
     
     // This is the bestXFeas or bestXInf from MegaIteration barrier.
     // Update them (done at the start of Iteration)

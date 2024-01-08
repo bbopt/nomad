@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -159,7 +159,6 @@ void NOMAD::OrthoNPlus1PollMethod::trialPointsReduction()
     // If the mesh is finest we don't want to order the direction based on some informed rule. Some informed ordering can select always the same directions.
     // Forcing random will ensure that the Ortho n+1 direction will grows asymptotically dense
     // NOTE: With GMesh the mesh is refined less frequently then with XMesh (the Ortho N+1 paper was based on XMesh). So we more frequently force a random ordering. The quad model ordering is beneficial when opportunistic. Using the Frame size to decide is also not pertinent. When the mesh index is available we should use it instead of the mesh size.
-    // bool forceRandom = meshIsFinest();
     bool forceRandom = false;
     std::vector<EvalPoint> sortedEvalPoints=evcInterface.getSortedTrialPoints(_trialPoints,forceRandom);
     

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -51,7 +51,9 @@
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/MadsUpdate.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Cache/CacheBase.hpp"
+#include "../../Eval/ProgressiveBarrier.hpp"
 #include "../../Output/OutputQueue.hpp"
 #include "../../Util/fileutils.hpp"
 #ifdef TIME_STATS
@@ -77,12 +79,13 @@ void NOMAD::Mads::init(bool barrierInitializedFromCache)
 NOMAD::ArrayOfPoint NOMAD::Mads::suggest()
 {
 
-    _initialization->start();
-    _initialization->run();
-    _initialization->end();
-
-    std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams,_runParams);
-    std::shared_ptr<NOMAD::BarrierBase> barrier = _initialization->getBarrier();
+    auto mesh = std::make_shared<NOMAD::GMesh>(_pbParams,_runParams);
+    auto barrier = std::make_shared<NOMAD::ProgressiveBarrier>(NOMAD::INF,
+                                                     NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
+                                                     NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD,
+                                                     std::vector<NOMAD::EvalPoint>(),
+                                                     true /* Barrier must be initialized from cache, no x0 provided */);
+    
     NOMAD::MadsMegaIteration megaIteration(this, 1, barrier, mesh, NOMAD::SuccessType::UNDEFINED);
 
     OUTPUT_INFO_START
@@ -106,22 +109,22 @@ void NOMAD::Mads::observe(const std::vector<NOMAD::EvalPoint>& evalPointList)
     AddOutputDebug("Delta frame size: " + mesh->getDeltaFrameSize().display());
     AddOutputDebug("Delta mesh size:  " + mesh->getdeltaMeshSize().display());
     OUTPUT_DEBUG_END
-    // Create barrier from current points in cache.
+    // Create progressive barrier from current points in cache.
     auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-    std::shared_ptr<NOMAD::Barrier> barrier;
+    std::shared_ptr<NOMAD::ProgressiveBarrier> barrier;
     if (0 == NOMAD::CacheBase::getInstance()->size())
     {
         // No points in cache: Create it solely from evalPointList.
-        barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::Point(n),
-                                                   NOMAD::EvalType::BB,
-                                                   NOMAD::ComputeType::STANDARD,
-                                                   evalPointList);
+        barrier = std::make_shared<NOMAD::ProgressiveBarrier>(hMax, NOMAD::Point(n),
+                                                              NOMAD::EvalType::BB,
+                                                              NOMAD::ComputeType::STANDARD,
+                                                              evalPointList);
     }
     else
     {
-        // Constructer will create barrier from cache points.
-        barrier = std::make_shared<NOMAD::Barrier>(hMax, NOMAD::Point(n));
+        // Constructer will create progessive barrier from cache points.
+        barrier = std::make_shared<NOMAD::ProgressiveBarrier>(hMax, NOMAD::Point(n));
     }
 
 
@@ -204,7 +207,7 @@ bool NOMAD::Mads::runImp()
             }
         }
     }
-
+    
     _termination->start();
     _termination->run();
     _termination->end();
@@ -270,7 +273,7 @@ void NOMAD::Mads::readInformationForHotRestart()
             // Create a GMesh and an MadsMegaIteration with default values, to be filled
             // by istream is.
             // NOTE: Working in full dimension
-            auto barrier = std::make_shared<NOMAD::Barrier>(NOMAD::INF, NOMAD::Point(_pbParams->getAttributeValue<size_t>("DIMENSION")), NOMAD::EvalType::BB);
+            auto barrier = std::make_shared<NOMAD::ProgressiveBarrier>(NOMAD::INF, NOMAD::Point(_pbParams->getAttributeValue<size_t>("DIMENSION")), NOMAD::EvalType::BB);
             
             std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams,_runParams);
 

@@ -1,0 +1,84 @@
+## Run DiscoMads to reveal and escape discontinuities 
+
+# The problem is described sec. 5.1 "Results of a typical run" of [1] and more detailled 
+# following eq. 2.52, p.53 in [2].
+
+# [1] Escaping Unknown Discontinuous Regions in Blackbox Optimization
+# Charles Audet, Alain Batailly, and Solène Kojtych, SIAM Journal on Optimization, 2022
+# doi/10.1137/21M1420915
+# [2] Contributions à l'optimisation de systèmes mécaniques non réguliers : reconception
+# d'aubes de compresseur
+# Solène Kojtych, Ph.D. thesis 2022
+# doi/10.1137/21M1420915
+####################
+
+
+# PROBLEM PARAMETERS
+####################
+
+# Number of variables
+DIMENSION 2
+
+# Black box
+BB_EXE bb_disco.exe
+
+# BB output (-R indicates a revealing output)
+BB_OUTPUT_TYPE OBJ-R PB-R
+# Only revealing output are considered to reveal discontinuities with DiscoMads
+
+# Starting point
+X0 ( -5 -5 )
+
+LOWER_BOUND * -10
+UPPER_BOUND * 10
+
+# GENERAL ALGORITHM PARAMETERS
+######################
+
+# The algorithm terminates after that number black-box evaluations 
+# or when min mesh size is reached
+MAX_BB_EVAL 2000
+MIN_MESH_SIZE * 1E-9
+
+# Parameters for display degree
+DISPLAY_DEGREE 2
+DISPLAY_ALL_EVAL true
+DISPLAY_STATS BBE ( SOL ) OBJ
+
+
+# DISCOMADS PARAMETERS
+######################
+DISCO_MADS_OPTIMIZATION true
+
+# Characterization of discontinuities
+DISCO_MADS_DETECTION_RADIUS 0.25
+DISCO_MADS_LIMIT_RATE 0.3
+## A discontinuity is revealed if the rate of change of at least one revealing output
+## between two points at distance < DISCO_MADS_DETECTION_RADIUS exceeds DISCO_MADS_LIMIT_RATE
+
+# Remoteness to discontinuities wished
+DISCO_MADS_EXCLUSION_RADIUS 0.25
+
+# Revealing poll
+DISCO_MADS_REVEALING_POLL_RADIUS 0.505      # e.g. 1.01*(DISCO_MADS_DETECTION_RADIUS+DISCO_MADS_EXCLUSION_RADIUS)
+DISCO_MADS_REVEALING_POLL_NB_POINTS 2       # defaut= problem dimension
+
+
+# RECOMMENDED PARAMETERS FOR DISCOMADS
+######################
+NB_THREADS_OPENMP 1         # DiscoMads works with OpenMP but has not been extensively tested
+
+# Quadratic model: desactivated as they may be slow with DiscoMads
+QUAD_MODEL_SEARCH false     
+EVAL_QUEUE_SORT DIR_LAST_SUCCESS 
+DIRECTION_TYPE ORTHO 2N      
+
+
+# SPECIFIC THESIS PARAMETERS USED IN [2]
+######################
+## Uncomment the following parameters to reproduce the thesis parameters
+#DIRECTION_TYPE ORTHO N+1 NEG  #  comment previous "DIRECTION_TYPE" command
+#SEED 3698370
+#ANISOTROPIC_MESH false
+#NM_SEARCH false
+#SPECULATIVE_SEARCH true

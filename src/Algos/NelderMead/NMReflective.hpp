@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_NMREFLECTIVE__
-#define __NOMAD_4_3_NMREFLECTIVE__
+#ifndef __NOMAD_4_4_NMREFLECTIVE__
+#define __NOMAD_4_4_NMREFLECTIVE__
 
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
 #include "../../Algos/Step.hpp"
@@ -74,7 +74,10 @@ private:
     std::vector<EvalPoint> _nmY0; ///< Vector of undominated points extracted from simplex (the simplex has a loose ordering-->tied points can exist).
     std::vector<EvalPoint> _nmYn;  ///< Vector of dominated points extracted from simplex (the simplex has a loose ordering-->tied points can exist).
 
-
+    size_t _n;
+    
+    ArrayOfDouble _lb, _ub;
+    
 public:
     /// Constructor
     /**
@@ -191,4 +194,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_NMREFLECTIVE__
+#endif // __NOMAD_4_4_NMREFLECTIVE__

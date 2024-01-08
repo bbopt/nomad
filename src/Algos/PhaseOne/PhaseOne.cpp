@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -133,7 +133,7 @@ void NOMAD::PhaseOne::endImp()
     {
         std::vector<NOMAD::EvalPoint> evalPointList;
         NOMAD::CacheInterface cacheInterface(this);
-        size_t numFeas = cacheInterface.findBestFeas(evalPointList, NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, nullptr);
+        size_t numFeas = cacheInterface.findBestFeas(evalPointList, NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
         if (numFeas > 0)
         {
             // Evaluation info for output

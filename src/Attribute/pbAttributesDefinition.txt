@@ -212,9 +212,9 @@ NOMAD::ArrayOfDouble
 
 . Minimum mesh size
 
-. Arguments: same logic as INITIAL_MESH_SIZE ('r' can be used)
+. Arguments: same logic as INITIAL_MESH_SIZE ('*' can be used)
 
-. Example: MIN_MESH_SIZE r1E-5
+. Example: MIN_MESH_SIZE * 1E-5
 
 \)
 \( advanced min minimum frame mesh size stop stopping terminate(s) termination(s)

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -81,12 +81,11 @@ void NOMAD::PSDMads::init(const std::vector<NOMAD::EvaluatorPtr> & evaluators,
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     for (int mainThreadNum = 1; mainThreadNum < (int)nbMainThreads; mainThreadNum++)
     {
-        auto evalStopReason = std::make_shared<NOMAD::StopReason<NOMAD::EvalMainThreadStopType>>();
         auto subProblemEvalContParams = std::make_unique<NOMAD::EvaluatorControlParameters>(*evalContParams);
         subProblemEvalContParams->checkAndComply();
         
         // add a main thread
-        evc->addMainThread(mainThreadNum, evalStopReason, std::move(subProblemEvalContParams));
+        evc->addMainThread(mainThreadNum, std::move(subProblemEvalContParams));
         // Add evaluators to the main thread
         for (const auto & ev: evaluators )
         {
@@ -94,7 +93,7 @@ void NOMAD::PSDMads::init(const std::vector<NOMAD::EvaluatorPtr> & evaluators,
             evc->addEvaluator(ev,mainThreadNum);
         }
         // Select BB evaluator. Otherwise the last one added is used.
-        evc->selectCurrentEvaluator(NOMAD::EvalType::BB, mainThreadNum);
+        evc->setCurrentEvaluatorType(NOMAD::EvalType::BB, mainThreadNum);
     }
 
     _randomPickup.reset();
@@ -188,7 +187,8 @@ bool NOMAD::PSDMads::runImp()
                 _barrier->updateWithPoints(evalPointList,
                                        evalType,
                                        computeType,
-                                       _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"));
+                                       false /* not used by progressive barrier*/,
+                                       true /* true: update incumbents and hMax*/);
             }
             omp_unset_lock(&_psdMadsLock);
 

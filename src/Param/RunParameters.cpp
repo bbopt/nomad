@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -84,6 +84,9 @@ void NOMAD::RunParameters::init()
         #include "../Attribute/runAttributesDefinitionPSDSSD.hpp"
         registerAttributes( _definition );
 
+        #include "../Attribute/runAttributesDefinitionQPSolver.hpp"
+        registerAttributes( _definition );
+
         #include "../Attribute/runAttributesDefinitionQuadModel.hpp"
         registerAttributes( _definition );
 
@@ -92,7 +95,10 @@ void NOMAD::RunParameters::init()
         
         #include "../Attribute/runAttributesDefinitionVNS.hpp"
         registerAttributes( _definition );
-
+        
+        #include "../Attribute/runAttributesDefinitionDisco.hpp"
+        registerAttributes( _definition );
+        
         // Registered attributes using defined keywords (not in preprocessed special header file)
         registerAttribute<NOMAD::Double>("EPSILON", NOMAD::DEFAULT_EPSILON, false,
             " NOMAD precision for comparison of values ",
@@ -155,7 +161,7 @@ void NOMAD::RunParameters::checkAndComply(
         {
             if (!_warningUnknownParamShown)
             {
-                std::cerr << "Warning: " << err << "Ignoring unknown parameters." << std::endl;
+                std::cout << "Warning: " << err << "Ignoring unknown parameters." << std::endl;
             }
         }
     }
@@ -196,7 +202,7 @@ void NOMAD::RunParameters::checkAndComply(
         {
             setAttributeValue("QUAD_MODEL_SEARCH", false);
             setAttributeValue("SGTELIB_MODEL_SEARCH", false);
-            std::cerr << "Warning: Dimension " << n << " is greater than (or equal to) " << bigDim << ". Models are disabled." << std::endl;
+            std::cout << "Warning: Dimension " << n << " is greater than (or equal to) " << bigDim << ". Models are disabled." << std::endl;
         }
     }
 
@@ -255,14 +261,14 @@ void NOMAD::RunParameters::checkAndComply(
         err = "Warning: Parameter SGTELIB_MODEL_SEARCH is set to true, but ";
         err += "Sgtelib Model sampling cannot be used. To be able to use Sgtelib Model ";
         err += "search method, NOMAD must be recompiled using option USE_SGTELIB=1.";
-        std::cerr << err << std::endl;
+        std::cout << err << std::endl;
     }
     if (getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH", false))
     {
         err = "Warning: Parameter QUAD_MODEL_SEARCH is set to true, but ";
         err += "Quad Model sampling cannot be used. To be able to use Quad Model Search ";
         err += "search method, NOMAD must be recompiled using option USE_SGTELIB=1.";
-        std::cerr << err << std::endl;
+        std::cout << err << std::endl;
     }
 #endif
 
@@ -287,6 +293,14 @@ void NOMAD::RunParameters::checkAndComply(
         std::vector<NOMAD::DirectionType> dirTypes;
         dirTypes.push_back(NOMAD::DirectionType::SINGLE);
         setAttributeValue("DIRECTION_TYPE_SECONDARY_POLL", dirTypes);
+    }
+    
+    // Test for extra trial points. Only valid for a unique Ortho 2n direction type.
+    auto extraTrialPointsAddUp = getAttributeValueProtected<size_t>("TRIAL_POINT_MAX_ADD_UP",false);
+    if ( extraTrialPointsAddUp > 0 && ( primaryDirTypes.size() > 1 || primaryDirTypes[0] != NOMAD::DirectionType::ORTHO_2N ))
+    {
+        err = "TRIAL_POINT_MAX_ADD_UP can only be used with a single ORTHO 2N direction type";
+        throw NOMAD::Exception(__FILE__,__LINE__, err);
     }
     
     // Test for CS
@@ -345,9 +359,138 @@ void NOMAD::RunParameters::checkAndComply(
             if ( primaryDirTypes[0] != defaultPrimaryDirTypes[0] )
             {
                 // Warn the user if he has changed the direction type. Otherwise, change silently to CS.
-                std::cerr << "Warning: parameter DIRECTION_TYPE reset to CS because CS_OPTIMIZATION is enabled" <<  std::endl;
+                std::cout << "Warning: parameter DIRECTION_TYPE reset to CS because CS_OPTIMIZATION is enabled" <<  std::endl;
             }
             setAttributeValue("DIRECTION_TYPE", std::vector<NOMAD::DirectionType> {NOMAD::DirectionType::CS});
+        }
+    }
+    
+    // DiscoMads algorithm
+    
+    bool useAlgoDiscoMads = getAttributeValueProtected<bool>("DISCO_MADS_OPTIMIZATION", false);
+    if (useAlgoDiscoMads)
+    {
+        // If DiscoMads used to reveal hidden constraints...
+        bool hiddenConstraints = getAttributeValueProtected<bool>("DISCO_MADS_HID_CONST", false);
+        if (hiddenConstraints)
+        {
+            // In this case, detection radius and limit rate are useless, detection radius should be put to 0
+            std::cout << "Warning: DiscoMads is used to reveal hidden constraints, so the detection radius and limit rate will not be considered. Detection radius is forced to 0." <<  std::endl;
+            setAttributeValue<NOMAD::Double>("DISCO_MADS_DETECTION_RADIUS",0.0);
+
+            // Check high value chosen for return of OBJ and PB constraints of failed evaluations
+            const NOMAD::Double hiddConstOutputValue = getAttributeValueProtected<NOMAD::Double>("DISCO_MADS_HID_CONST_OUTPUT_VALUE", false);
+
+                 // Ensure that points leading to failed eval are not used to build models
+            if(hiddConstOutputValue<MODEL_MAX_OUTPUT){
+                throw NOMAD::Exception(__FILE__,__LINE__,"The high value ("+hiddConstOutputValue.tostring()+") attributed to objective function and PB constraints for failed evaluations should be more than MODEL_MAX_OUTPUT ("+std::to_string(MODEL_MAX_OUTPUT)+") to ensure these points are not used to construct models.");
+            }
+
+            if(hiddConstOutputValue>=NOMAD::INF){
+                throw NOMAD::Exception(__FILE__,__LINE__,"The high value ("+hiddConstOutputValue.tostring()+") attributed to objective function and PB constraints for failed evaluations should be less than NOMAD::INF. ");
+            }
+        }  
+
+        // If DiscoMads used to reveal discontinuities...
+        auto detectionRadius = getAttributeValueProtected<NOMAD::Double>("DISCO_MADS_DETECTION_RADIUS", false);
+            // Detection Radius 
+        if (detectionRadius < 0)
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DISCO_MADS_DETECTION_RADIUS must be positive" );
+        }
+
+        // Limit rate for detection
+        auto limitRate = getAttributeValueProtected<NOMAD::Double>("DISCO_MADS_LIMIT_RATE", false);
+        if (limitRate <= 0)
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DISCO_MADS_LIMIT_RATE must be strictly positive" );
+        }
+        
+        // Exclusion Radius
+        auto exclusionRadius = getAttributeValueProtected<NOMAD::Double>("DISCO_MADS_EXCLUSION_RADIUS", false);
+        if (exclusionRadius <= 0)
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DISCO_MADS_EXCLUSION_RADIUS must be strictly positive" );
+        }
+        
+        // Revealing poll radius
+        auto revealingRadius = getAttributeValueProtected<NOMAD::Double>("DISCO_MADS_REVEALING_POLL_RADIUS", false);
+        if (revealingRadius <= exclusionRadius+detectionRadius)
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DISCO_MADS_REVEALING_POLL_RADIUS must be strictly greater than DISCO_MADS_DETECTION_RADIUS + DISCO_MADS_EXCLUSION_RADIUS (use for instance 1.01*(DISCO_MADS_DETECTION_RADIUS + DISCO_MADS_EXCLUSION_RADIUS))" );
+        }
+        
+        // Number of points for revealing poll
+        const size_t revealingPointsNb = getAttributeValueProtected<size_t>("DISCO_MADS_REVEALING_POLL_NB_POINTS", false);
+        if (revealingPointsNb==0)
+        {
+            // Warn the user
+            std::cout << "Warning: the revealing poll is disabled as DISCO_MADS_REVEALING_POLL_NB_POINTS is null. This should only be used for testing as a strictly positive value is requiered for the convergence analysis." <<  std::endl;
+        }  
+
+        if (revealingPointsNb<0) // probably useless as size_t negative values are already checked in Parameters::checkFormatSizeT
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DISCO_MADS_REVEALING_POLL_NB_POINTS must be stricly positive" );
+        }    
+
+        //--- Compatibility with other options
+
+        // Check compatibility with block of evaluations
+        if (nullptr != evaluatorControlGlobalParams)
+        {
+            if (evaluatorControlGlobalParams->toBeChecked())
+            {
+                evaluatorControlGlobalParams->checkAndComply();
+            }
+            auto bbBlockSize = evaluatorControlGlobalParams->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE");
+            if(bbBlockSize>1)
+            {
+                throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DiscoMads cannot be used with BB_MAX_BLOCK_SIZE > 1." );
+            }
+        }
+
+        // Check here the initial frame size 
+        auto initialFrameSize = pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_FRAME_SIZE");
+        bool warning = false;
+        for(size_t i=0;i<initialFrameSize.size();i++)
+        {
+            if(initialFrameSize[i]>1.1*revealingRadius)
+            {
+                warning=true;
+                break;
+            }
+        }
+        if(warning)
+        {   // Warn the user
+            std::cout << "Warning: INITIAL_FRAME_SIZE > 1.1*REVEALING_POLL_RADIUS,  this may lead to poor convergence. Choose an INITIAL_FRAME_SIZE similar to REVEALING_POLL_RADIUS may help." <<  std::endl;
+        }
+
+        // Use with openMP
+        int nb_threads = getAttributeValueProtected<int>("NB_THREADS_OPENMP",false); 
+        if(nb_threads>1)
+        {
+            std::cerr << "Warning: NB_THREADS_OPENMP>1. DiscoMads should not return any erros but it was not extensively validated with OpenMP. Prefer run on one thread if you want to stick to the theory." <<  std::endl;
+        }
+
+        // Use with quad models search
+        bool quadModelSearch = getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH",false);
+        if(quadModelSearch)
+        {
+            std::cerr << "Warning: it is currently not recommended to activate QUAD_MODEL_SEARCH with DiscoMads as it may be much slower." <<  std::endl;
+        }
+        
+        // DiscoMads is currently not compatible with megaSearchPoll (beacuse revealingPoll is not seen by the megaSearchPoll)
+        bool megaSearchPoll = getAttributeValueProtected<bool>("MEGA_SEARCH_POLL",false);
+        if(megaSearchPoll)
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DiscoMads is not compatible with MEGA_SEARCH_POLL." );
+        }
+
+        // Variable group during revealing poll
+        auto varGroups = pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP",false);
+        if (varGroups.size() > 0)
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DiscoMads is not compatible with VARIABLE_GROUP. This breaks the density properties of the revealing poll." );
         }
     }
     
@@ -362,6 +505,15 @@ void NOMAD::RunParameters::checkAndComply(
         err = "Error: PSD_MADS_OPTIMIZATION can only be used when OpenMP is available. If that is not the case, use SSD_MADS_OPTIMIZATION.";
         throw NOMAD::Exception(__FILE__,__LINE__, err);
     }
+    
+    
+    size_t nbThreads = (size_t)getAttributeValueProtected<int>("NB_THREADS_OPENMP", false);
+    if (nbThreads != 1)
+    {
+        err = "Error: OpenMP is not available. NB_THREADS_OPENMP must be 1.";
+        throw NOMAD::Exception(__FILE__,__LINE__, err);
+    }
+    
 #endif // _OPENMP
 
     bool useAlgoSSDMads = getAttributeValueProtected<bool>("SSD_MADS_OPTIMIZATION", false);
@@ -394,7 +546,7 @@ void NOMAD::RunParameters::checkAndComply(
                 if (nbMadsSubproblemSetByUser)
                 {
                     // Warn the user
-                    std::cerr << "Warning: parameter PSD_MADS_NB_SUBPROBLEM reset to number of available threads (" << nbThreads << ")" <<  std::endl;
+                    std::cout << "Warning: parameter PSD_MADS_NB_SUBPROBLEM reset to number of available threads (" << nbThreads << ")" <<  std::endl;
                 }
             }
         }
@@ -428,7 +580,20 @@ void NOMAD::RunParameters::checkAndComply(
         {
             setAttributeValue("QUAD_MODEL_SEARCH", false);
             // Warn the user
-            std::cerr << "Warning: QUAD_MODEL_SEARCH is deactivated when enabling DMultiMads optimization" <<  std::endl;
+            std::cout << "Warning: QUAD_MODEL_SEARCH is deactivated when enabling DMultiMads optimization" <<  std::endl;
+        }
+        // Case where QUAD_MODEL_SLD_SEARCH is explicitely set by user -> exception
+        if ( isSetByUser("QUAD_MODEL_SLD_SEARCH") &&
+            getAttributeValueProtected<bool>("QUAD_MODEL_SLD_SEARCH",false) )
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"DMultiMads cannot currently use quad model sld search. Please deactivate: QUAD_MODEL_SLD_SEARCH no.");
+        }
+        // Case where default is used -> change to false with message
+        if ( getAttributeValueProtected<bool>("QUAD_MODEL_SLD_SEARCH",false) )
+        {
+            setAttributeValue("QUAD_MODEL_SLD_SEARCH", false);
+            // Warn the user
+            std::cout << "Warning: QUAD_MODEL_SLD_SEARCH is deactivated when enabling DMultiMads optimization" <<  std::endl;
         }
     }
         
@@ -438,17 +603,14 @@ void NOMAD::RunParameters::checkAndComply(
     bool useAlgoNM = getAttributeValueProtected<bool>("NM_OPTIMIZATION", false);
     bool useAlgoQuadOpt = getAttributeValueProtected<bool>("QUAD_MODEL_OPTIMIZATION", false);
     bool useAlgoSgtelibModel = getAttributeValueProtected<bool>("SGTELIB_MODEL_EVAL", false);
+    
     int totalAlgoSet = (int)useAlgoLH + (int)useAlgoCS +(int)useAlgoNM + (int)useAlgoQuadOpt
-                       + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoSSDMads + (int)useAlgoDMultiMads;
+                       + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoSSDMads + (int)useAlgoDMultiMads + (int)useAlgoDiscoMads;
 
     if (totalAlgoSet >= 2)
     {
         err = "Multiple parameters for algorithms are set. ";
         err += "These parameters are mutually exclusive:";
-        if (useAlgoLH)
-        {
-            err += " LH_EVAL";
-        }
         if (useAlgoCS)
         {
             err += " CS_OPTIMIZATION";
@@ -472,6 +634,10 @@ void NOMAD::RunParameters::checkAndComply(
         if (useAlgoSSDMads)
         {
             err += " SSD_MADS_OPTIMIZATION";
+        }
+        if (useAlgoDiscoMads)
+        {
+            err += " DISCO_MADS_OPTIMIZATION";
         }
         err += ". Please review parameters settings and choose only one algorithm.";
         throw NOMAD::Exception(__FILE__,__LINE__, err);
@@ -513,6 +679,13 @@ void NOMAD::RunParameters::checkAndComply(
     if (reductionFactor <= 0)
     {
         throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR must be strictly greater than 0");
+    }
+    
+    auto projectOnMesh = getAttributeValueProtected<bool>("SEARCH_METHOD_MESH_PROJECTION", false);
+    auto granularity = pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("GRANULARITY");
+    if (!projectOnMesh && granularity != NOMAD::ArrayOfDouble(n,0.0))
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: GRANULARITY is defined and search method mesh projection is disabled. Mesh projection is required to maintain granularity of variable.");
     }
 
     _warningUnknownParamShown = true;

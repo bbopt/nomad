@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -707,7 +707,7 @@ void NOMAD::PbParameters::setInitialMeshParameters()
             if (initialFrameSize[i].isDefined() && warningInitialFrameSizeReset)
             {
                 warningInitialFrameSizeReset = false;
-                std::cerr << "Warning: initial frame size reset from initial mesh." << std::endl;
+                std::cout << "Warning: initial frame size reset from initial mesh." << std::endl;
             }
             initialFrameSize[i] = initialMeshSize[i] * pow(n, 0.5);
             // Adjust value with granularity
@@ -794,7 +794,7 @@ void NOMAD::PbParameters::setInitialMeshParameters()
         std::string err = "Warning: initial mesh size reset from initial frame size.\n";
         err += "INITIAL_MESH_SIZE: " + initialMeshSize.display() + "\n";
         err += "INITIAL_FRAME_SIZE: " + initialFrameSize.display() + "\n";
-        std::cerr << err;
+        std::cout << err;
 
         // Show the warning only once.
         _showWarningMeshSizeRedefined = false;

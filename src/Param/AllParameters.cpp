@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -145,7 +145,7 @@ void NOMAD::AllParameters::readParamLine(const std::string &line)
     else
     {
         std::string err = "Unknown parameter: " + name;
-        std::cerr << err << std::endl;
+        std::cout << err << std::endl;
     }
 
 }
@@ -322,7 +322,7 @@ void NOMAD::AllParameters::display(std::ostream & os, bool flagHelp )
 {
     if (toBeChecked())
     {
-        std::cerr << "Warning: AllParameters::display(): Parameters are not checked." << std::endl;
+        std::cout << "Warning: AllParameters::display(): Parameters are not checked." << std::endl;
     }
 
     os << "----- RUN PARAMETERS -----" << std::endl;

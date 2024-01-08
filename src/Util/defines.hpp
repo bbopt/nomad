@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -50,8 +50,8 @@
  \author Sebastien Le Digabel, modified by Viviane Rochon Montplaisir
  \date   March 2017
  */
-#ifndef __NOMAD_4_3_DEFINES__
-#define __NOMAD_4_3_DEFINES__
+#ifndef __NOMAD_4_4_DEFINES__
+#define __NOMAD_4_4_DEFINES__
 
 #include <string>
 #include <iostream>
@@ -80,8 +80,12 @@
 
 // CASE Visual Studio C++ compiler
 #ifdef _MSC_VER
-#define WINDOWS
 #pragma warning(disable:4996)
+#endif
+
+// Case Windows (VS or MinGW g++)
+#if defined(_MSC_VER) || defined(__MINGW32__)
+#define WINDOWS
 #endif
 
 // For NOMAD random number generator
@@ -145,7 +149,7 @@ const int NB_DIGITS_BEFORE_POINT = 3;   // "Precision" before decimal point
 const int INT_DISPLAY_WIDTH = 3;        // Width for integers
 
 // Maximal output value for points used for models.
-const double MODEL_MAX_OUTPUT = 1E10;
+const double MODEL_MAX_OUTPUT = 1E20;
 
 
 // -------------------------
@@ -172,4 +176,4 @@ enum class SuccessType
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_DEFINES__
+#endif // __NOMAD_4_4_DEFINES__

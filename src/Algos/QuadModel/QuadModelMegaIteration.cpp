@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -68,24 +68,24 @@ NOMAD::QuadModelMegaIteration::~QuadModelMegaIteration()
 void NOMAD::QuadModelMegaIteration::startImp()
 {
     // Create an iteration for a frame center.
-    // Use xFeas or xInf if XFeas is not available.
+    // Use xIncFeas or xIncInf if XIncFeas is not available.
     // Use a single iteration object with several start, run, end for the various iterations of the algorithm.
 
     if ( ! _stopReasons->checkTerminate() )
     {
         // MegaIteration's barrier member is already in sub dimension.
-        auto bestXFeas = _barrier->getFirstXFeas();
-        auto bestXInf  = _barrier->getFirstXInf();
+        auto bestXIncFeas = _barrier->getCurrentIncumbentFeas();
+        auto bestXIncInf  = _barrier->getCurrentIncumbentInf();
 
-        if (nullptr != bestXFeas)
+        if (nullptr != bestXIncFeas)
         {
-            auto sqmIteration = std::make_shared<NOMAD::QuadModelIteration>(this, bestXFeas);
+            auto sqmIteration = std::make_shared<NOMAD::QuadModelIteration>(this, bestXIncFeas);
             _iterList.push_back(sqmIteration);
 
         }
-        else if (nullptr != bestXInf)
+        else if (nullptr != bestXIncInf)
         {
-            auto sqmIteration = std::make_shared<NOMAD::QuadModelIteration>(this, bestXInf);
+            auto sqmIteration = std::make_shared<NOMAD::QuadModelIteration>(this, bestXIncInf);
             _iterList.push_back(sqmIteration);
         }
 

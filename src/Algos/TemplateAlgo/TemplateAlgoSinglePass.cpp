@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -67,7 +67,7 @@ void NOMAD::TemplateAlgoSinglePass::startImp()
         TemplateAlgoIteration::startImp();
 
         generateTrialPoints();
-        if (!verifyPointsAreOnMesh(getName()))
+        if (_projectOnMesh && !verifyPointsAreOnMesh(getName()))
         {
             OUTPUT_INFO_START
             AddOutputInfo("At least one trial point is not on mesh. May need investigation if this happens too often.");

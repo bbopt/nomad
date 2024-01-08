@@ -6,18 +6,17 @@ Introduction
 .. note::
    NOMAD = Nonlinear Optimization by Mesh Adaptive Direct Search
 
+.. note::
+   Please cite NOMAD with Reference [AuLeRoTr2021]_.
+
+
 NOMAD is a software application for simulation-based optimization. It can efficiently explore a design space in search of better solutions for a large spectrum of optimization problems. NOMAD is at its best when  applied to blackbox functions.
 
 .. figure:: ../figs/blackbox.png
    :align: center
 
-   Blackbox optimization
 
-Such functions are typically the result of expensive computer simulations which
-
-* have no exploitable property such as derivatives,
-* may be contaminated by noise,
-* may fail to give a result even for feasible points.
+Such functions are typically the result of expensive computer simulations which have no exploitable property such as derivatives, may be contaminated by noise, may fail to give a result even for feasible points.
 
 NOMAD  is a ``C++`` implementation of the  **Mesh Adaptive Direct Search (MADS)** algorithm (see references [AbAuDeLe09]_, [AuDe2006]_, [AuDe09a]_ for details) designed for constrained optimization of blackbox functions in the form
 
@@ -53,7 +52,7 @@ The reader interested in the rather technical details should read Reference [AuD
 The objective of each iteration of the *MADS* algorithm, is to generate a trial point on the mesh that improves the current best solution.
 When an iteration fails to achieve this, the next iteration is initiated on a finer mesh.
 
-Each iteration is composed of two principal steps called the *Search* and the *Poll* steps [AuDe2006]_.
+Each iteration is composed of two principal steps called the *Search* and the *Poll* steps.
 The *Search* step is crucial in practice because it is so flexible and can improve the performance significantly.
 The *Search* step is constrained by the theory to return points on the underlying mesh, but of course,
 it is trying to identify a point that improves the current best solution.
@@ -76,12 +75,12 @@ Using NOMAD
 
 Minimally, users must accomplish several tasks to solve their own optimization problems:
 
-* Create a custom blackbox program(s) to evaluate the functions :math:`f` and :math:`c_j` OR embed
+  `-` Create a custom blackbox program(s) to evaluate the functions :math:`f` and :math:`c_j` OR embed
   the functions evaluations in C++ source code to be linked with the NOMAD library.
 
-* Create the optimization problem definition in a parameter file OR embed the problem definition in C++ source code to be linked with the NOMAD library.
+  `-` Create the optimization problem definition in a parameter file OR embed the problem definition in C++ source code to be linked with the NOMAD library.
 
-* Launch the execution at the command prompt OR from another executable system call.
+  `-` Launch the execution at the command prompt OR from another executable system call.
 
 
 Users can find several examples provided in the installation package and described in this user guide to perform customization for their problems.
@@ -113,27 +112,32 @@ The SGTELIB is included in NOMAD since version 3.8.0.
 
 **Developers** of the methods behind NOMAD include:
 
-* Mark A. Abramson (abramson@mathematics.byu.edu), Bringham Young University.
-* Charles Audet (`<https://www.gerad.ca/Charles.Audet>`_), GERAD and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
-* J.E. Dennis Jr. (`<http://www.caam.rice.edu/∼dennis>`_), Computational and Applied Mathematics Department, Rice University.
-* Sébastien Le Digabel (`<http://www.gerad.ca/Sebastien.Le.Digabel>`_), GERAD and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
-* Viviane Rochon Montplaisir (`<https://www.linkedin.com/in/montplaisir>`_).
-* Christophe Tribes, GERAD (`<https://www.gerad.ca/en/people/christophe-tribes>`_) and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
+  `-` Mark A. Abramson (abramson@mathematics.byu.edu), Bringham Young University.
+
+  `-` Charles Audet (`<https://www.gerad.ca/Charles.Audet>`_), GERAD and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
+
+  `-` J.E. Dennis Jr. (`<http://www.caam.rice.edu/∼dennis>`_), Computational and Applied Mathematics Department, Rice University.
+
+  `-` Sébastien Le Digabel (`<http://www.gerad.ca/Sebastien.Le.Digabel>`_), GERAD and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
+
+  `-` Viviane Rochon Montplaisir (`<https://www.linkedin.com/in/montplaisir>`_).
+
+  `-` Christophe Tribes, GERAD (`<https://www.gerad.ca/en/people/christophe-tribes>`_) and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
 
 
 Acknowledgments
 ^^^^^^^^^^^^^^^
 
-The developers of NOMAD wish to thank Florian Chambon, Mohamed Sylla and Quentin Reynaud, all from ISIMA, for their contribution
-to the project during Summer internships, and to Anthony Guillou and Dominique Orban for their help with AMPL, and their suggestions.
+The developers of NOMAD wish to thank Maud Bay, Eve Bélisle, Vincent Garnier, Michal Kvasnička, Alexander Lutz, Rosa-Maria Torres-Calderon, Yuri Vilmanis, Martin Posch, Etienne Duclos, Emmanuel Bigeon, Walid Zghal, Jerawan Armstrong, Stéphane Alarie and Klaus Truemper for their feedbacks and tests that significantly contributed to improve NOMAD.
 
-A special thank to Maud Bay, Eve Bélisle, Vincent Garnier, Michal Kvasnička, Alexander Lutz, Rosa-Maria Torres-Calderon, Yuri Vilmanis, Martin Posch, Etienne Duclos, Emmanuel Bigeon, Walid Zghal, Jerawan Armstrong, Stéphane Alarie and Klaus Truemper for their feedbacks and tests that significantly contributed to improve NOMAD. Some features of NOMAD have been developed under the impulsion of enthusiastic users/developers: Andrea Ianni, Florian Chambon, Mohamed Sylla, Quentin Reynaud, Amina Ihaddadene, Bastien Talgorn, Nadir Amaioua and Catherine Poissant.
-We also wish to thank Pascal Côté for his contribution in the development of the Python interface pyNomad and Jonathan Currie for the development of the foundations for a strong NOMAD interface for MATLAB.
+Some features of NOMAD have been developed under the impulsion of enthusiastic users/developers/interns: Andrea Ianni, Florian Chambon, Mohamed Sylla, Quentin Reynaud, Amina Ihaddadene, Bastien Talgorn, Nadir Amaioua, Catherine Poissant, Alexandre Expert and Victoire Houyau Pedascoll.
+
+We also wish to thank Pascal Côté and Jan Provaznik for their contribution in the development and distribution of the Python interface PyNomad and Jonathan Currie for the development of the foundations for a strong NOMAD interface for MATLAB.
 Another special thank to Jean-Max Redonnet for pushing the development of the Java Swig interface.
 
-The contributions of  Miguel Anjos, Romain Couderc, Miguel Diago Martinez, Solène Kojtych, Guillaume Lameynardie, Wim Lavrijsen, Alexis Montoison, Caroline Rocha, Ludovic Salomon, Renaud Saltet and Yassine Diouri was highly appreciated during the development and testing of NOMAD 4.
+The contributions of  Miguel Anjos, Romain Couderc, Miguel Diago Martinez, Solène Kojtych, Guillaume Lameynardie, Wim Lavrijsen, Alexis Montoison, Caroline Rocha, Ludovic Salomon, Renaud Saltet, Yassine Diouri, Xavier Lebeuf and Tangi Migot was highly appreciated during the development and testing of NOMAD 4.
 
-.. Finally, many thanks to the TOMS anonymous referees for their useful comments which helped a lot to improve the code and the text of [50].
+.. Finally, many thanks to the TOMS anonymous referees for their useful comments which helped a lot to improve the code and the text of [AuLeRoTr2021]_.
 
 
 

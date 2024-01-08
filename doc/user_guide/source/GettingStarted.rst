@@ -36,10 +36,10 @@ To conduct optimization in batch mode the users must define their separate black
 Blackbox program executions are managed by NOMAD with system calls.
 
 A valid blackbox program:
-    - takes an input vector file as single argument,
-    - reads space-separated values in input vector file,
-    - returns evaluation values on standard output or file,
-    - returns an evaluation status.
+    `- takes an input vector file as single argument,
+    `-` reads space-separated values in input vector file,
+    `-` returns evaluation values on standard output or file,
+    `-` returns an evaluation status.
 
 In what follows we use the example in the ``$NOMAD_HOME/examples/basic/batch/single_obj``.
 This example optimization problem has a single objective, 5 variables, 2 nonlinear constraints and 8 bound constraints:
@@ -136,10 +136,7 @@ In batch mode, the parameters are provided in a text file using predefined keywo
 .. note::
 
   Help on parameters is accessible at the command prompt:
-  ``$NOMAD_HOME/bin/nomad -h``
-  to see all parameters, or:
-  ``$NOMAD_HOME/bin/nomad -h PARAM_NAME``
-  for a particular parameter.
+  ``$NOMAD_HOME/bin/nomad -h param_name``
 
 Here are some of the most important parameters defining an optimization problem (without brackets):
 

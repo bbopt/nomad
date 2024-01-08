@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_DMULTIMADSBARRIER
-#define __NOMAD_4_3_DMULTIMADSBARRIER
+#ifndef __NOMAD_4_4_DMULTIMADSBARRIER
+#define __NOMAD_4_4_DMULTIMADSBARRIER
 
 #include "../../Eval/BarrierBase.hpp"
 #include "../../Eval/EvalPoint.hpp"
@@ -60,6 +60,7 @@ class DMultiMadsBarrier : public BarrierBase
 {
 private:
 
+    // The points of interest are not necessarily the incumbents defined in BarrierBase: _xIncFeas[0] and _xIncInf[0]
     EvalPointPtr _currentIncumbentFeas;  ///< current feasible of interest for DmultiMads
     EvalPointPtr _currentIncumbentInf;   ///< current infeasible of interest for DMultiMads
 
@@ -144,30 +145,20 @@ public:
 
     void clearXFeas() override;
 
-    ///  Get the point that is the best feasible point in the barrier
-    NOMAD::EvalPointPtr getCurrentIncumbentFeas() const { return _currentIncumbentFeas ; }
-    
-    /// Function used to get/set the primary and secondary frame centers to generate trial points (poll and search). For DMultiMads use the barrier current incumbent.
+    /// Function used to set the primary and secondary frame centers to generate trial points (poll and search). For DMultiMads use the barrier current incumbent.
     /**
      * If there is no feasible point, return a \c nullptr
      \return A single feasible eval point.
      */
-    NOMAD::EvalPointPtr getFirstXFeas() const override {    return _currentIncumbentFeas; }
+    NOMAD::EvalPointPtr getCurrentIncumbentFeas() const override { return _currentIncumbentFeas ; }
     
-    ///  Get the point that is the best infeasible point in the barrier
-    NOMAD::EvalPointPtr getCurrentIncumbentInf() const { return _currentIncumbentInf ; }
-
-    // Function used to get/set the primary and secondary frame centers to generate trial points (poll and search). For DMultiMads use the barrier current incumbent.
+    
+    /// Function used to set the primary and secondary frame centers to generate trial points (poll and search). For DMultiMads use the barrier current incumbent.
     /**
-     * If there is no infeasible point, return a \c nullptr
+     * If there is no feasible point, return a \c nullptr
      \return A single infeasible eval point.
      */
-    NOMAD::EvalPointPtr getFirstXInf() const override
-    {
-        return _currentIncumbentInf;
-    }
-
-    
+    NOMAD::EvalPointPtr getCurrentIncumbentInf() const override { return _currentIncumbentInf ; }
     
     ///  Get the i non dominated and best feasible incumbent.
     /**
@@ -251,7 +242,8 @@ public:
     bool updateWithPoints(const std::vector<EvalPoint>& evalPointList,
                           EvalType evalType,
                           ComputeType computeType,
-                          const bool keepAllPoints = false) override;
+                          const bool keepAllPoints = false,
+                          const bool updateInfeasibleIncumbentAndHmax = false /* Not used here*/) override;
     
     
     /// Update current feas and infeas incumbents. Called by DMultiMadsUpdate and when updating the barrier
@@ -309,14 +301,6 @@ private:
      */
     void checkMeshParameters(const EvalPoint &evalPoint) const;
     
-    /**
-     * \brief Helper function for insertion.
-     *
-     * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
-     */
-    void checkXFeas(const EvalPoint &xFeas,
-                    EvalType evalType,
-                    ComputeType computeType = ComputeType::STANDARD) override;
 
     /**
      * \brief Helper function for insertion.
@@ -325,19 +309,12 @@ private:
      */
     void checkXFeasIsFeas(const EvalPoint &xFeas,
                           EvalType evalType,
-                          ComputeType computeType = ComputeType::STANDARD);
-
-    /**
-     * \brief Helper function for insertion.
-     *
-     * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
-     */
-    void checkXInf(const EvalPoint &xInf, EvalType evalType) override;
+                          ComputeType computeType = ComputeType::STANDARD) override;
 
     /**
      * \brief Helper function for infeasible point candidate search.
      */
-    NOMAD::EvalPointPtr getFirstXInfNoXFeas() const;
+    NOMAD::EvalPointPtr getFirstXIncInfNoXFeas() const;
 
     /**
      * \brief Helper function for infeasible point candidate search.
@@ -383,4 +360,4 @@ std::istream& operator>>(std::istream& is, DMultiMadsBarrier& barrier);
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_DMULTIMADSBARRIER__
+#endif // __NOMAD_4_4_DMULTIMADSBARRIER__

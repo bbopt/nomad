@@ -12,8 +12,10 @@ do
     then
         break
     fi
+    echo "Evaluate $nbPoints points"
     ./bbr.exe x$i.txt > f$i.txt
     j=$((i+1))
+    echo "Observe $nbPoints points"
     ./observe.exe x$i.txt f$i.txt cache$i.txt cache$j.txt param$i.txt > param$j.txt
     i=$j
 done

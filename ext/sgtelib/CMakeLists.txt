@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 set(SGTELIB_VERSION_MAJOR 2)
 set(SGTELIB_VERSION_MINOR 0)
-set(SGTELIB_VERSION_PATCH 3)
+set(SGTELIB_VERSION_PATCH 4)
 set(SGTELIB_VERSION ${SGTELIB_VERSION_MAJOR}.${SGTELIB_VERSION_MINOR}.${SGTELIB_VERSION_PATCH})
 
 # name of the project
@@ -103,41 +103,21 @@ set(SGTELIB_MAIN_SOURCE src/sgtelib.cpp)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-# build shared library sgtelib
-add_library (sgtelib SHARED ${SGTELIB_SOURCES})
-target_include_directories(sgtelib PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>
-    )
+# Build shared libraries (sgtelib)
+include(./CMakeListsLibs.txt)
 
-# export symbols on Windows
-if (WIN32)
-    target_compile_definitions(sgtelib PRIVATE -DDLL_EXPORTS)
+# Build static libraries (sgtelibStatic)
+if(BUILD_INTERFACE_PYTHON MATCHES ON)
+  message(STATUS "  Warning: build sgtelib static libraries for Python interface.")
+  include(./CMakeListsLibsStatic.txt)
 endif()
 
-#add_executable (sgtelib_main ${SGTELIB_MAIN_SOURCE})
-#set_target_properties(sgtelib_main PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-#target_include_directories(sgtelib_main PUBLIC
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-#    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/sgtelib>
-#)
-#target_link_libraries(sgtelib_main PUBLIC sgtelib)
-
-set_target_properties(sgtelib  PROPERTIES 
-                               VERSION ${SGTELIB_VERSION}
-                               SOVERSION ${SGTELIB_VERSION_MAJOR}.${SGTELIB_VERSION_MINOR})
-
-# installing executables and libraries
-install(TARGETS sgtelib 
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
-    )
 
 # install header files
-install(FILES ${SGTELIB_HEADERS}
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
-    )
+install(
+  FILES ${SGTELIB_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sgtelib
+)
 
 
 

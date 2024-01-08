@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -55,6 +55,16 @@ void NOMAD::PollMethodBase::init()
 {
     // A poll method must have a parent
     verifyParentNotNull();
+    
+    if (nullptr != _pbParams)
+    {
+        _n = _pbParams->getAttributeValue<size_t>("DIMENSION");
+        _lb = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
+        _ub = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
+        
+        // Groups of variables.
+        _varGroups = _pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP");
+    }
 }
 
 void NOMAD::PollMethodBase::generateTrialPointsImp()
@@ -76,6 +86,11 @@ void NOMAD::PollMethodBase::generate2NDirections(std::list<NOMAD::Direction> &di
 {
     NOMAD::Direction dirUnit(n, 0.0);
     NOMAD::Direction::computeDirOnUnitSphere(dirUnit);
+    
+    OUTPUT_DEBUG_START
+    AddOutputDebug("Unit sphere direction: " + dirUnit.display());
+    NOMAD::OutputQueue::Flush();
+    OUTPUT_DEBUG_END
 
     // Householder Matrix
     NOMAD::Direction** H = new NOMAD::Direction*[2*n];
@@ -118,11 +133,11 @@ void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isSecondPass)
     {
         AddOutputDebug("Scaled and mesh projected poll direction: " + dir.display());
     }
+    NOMAD::OutputQueue::Flush();
     OUTPUT_DEBUG_END
 
-    auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     // We need a frame center to start with.
-    if (!_frameCenter->ArrayOfDouble::isDefined() || _frameCenter->size() != n)
+    if (!_frameCenter->ArrayOfDouble::isDefined() || _frameCenter->size() != _n)
     {
         std::string err = "Invalid frame center: " + _frameCenter->display();
         throw NOMAD::Exception(__FILE__, __LINE__, err);
@@ -134,10 +149,10 @@ void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isSecondPass)
 
     for (std::list<NOMAD::Direction>::iterator it = directionsFullSpace.begin(); it != directionsFullSpace.end() ; ++it)
     {
-        NOMAD::Point pt(n);
+        NOMAD::Point pt(_n);
 
         // pt = frame center + direction
-        for (size_t i = 0 ; i < n ; ++i )
+        for (size_t i = 0 ; i < _n ; ++i )
         {
             pt[i] = (*_frameCenter)[i] + (*it)[i];
         }
@@ -146,9 +161,7 @@ void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isSecondPass)
         evalPoint.setPointFrom(_frameCenter, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
         
         // Snap the points and the corresponding direction to the bounds
-        if (snapPointToBoundsAndProjectOnMesh(evalPoint,
-                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND"),
-                                              _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND")))
+        if (snapPointToBoundsAndProjectOnMesh(evalPoint, _lb, _ub))
         {
             if (*evalPoint.getX() != *_frameCenter->getX())
             {
@@ -187,19 +200,16 @@ void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isSecondPass)
 
 std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirections(bool isSecondPass,   NOMAD::MeshBasePtr mesh)
 {
-    // Groups of variables.
-    auto varGroups = _pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP");;
-    
-    auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
+
     
     std::list<NOMAD::Direction> directionsSubSpace, directionsFullSpace;
     
-    if (varGroups.size() == 0)
+    if (_varGroups.size() == 0)
     {
         if (!isSecondPass)
         {
             // Creation of the poll directions in the full space
-            generateUnitPollDirections(directionsFullSpace,n);
+            generateUnitPollDirections(directionsFullSpace,_n);
         }
         else
         {
@@ -212,7 +222,7 @@ std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirect
     }
     else
     {
-        for (auto vg : varGroups)
+        for (auto vg : _varGroups)
         {
             size_t nVG = vg.size();
 
@@ -230,13 +240,13 @@ std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirect
             }
 
             // Convert sub space (in a group of variable) directions to full space directions (all variables)
-            if (varGroups.size() > 1)
+            if (_varGroups.size() > 1)
             {
                 size_t vgIndex = 0; // For Output debug only
                 for (std::list<NOMAD::Direction>::iterator it = directionsSubSpace.begin(); it != directionsSubSpace.end() ; ++it)
                 {
                     // In full space, the direction for an index outside the group of variables is null
-                    NOMAD::Direction fullSpaceDirection(n,0.0);
+                    NOMAD::Direction fullSpaceDirection(_n,0.0);
 
                     // Copy the the sub space direction elements to full space
                     size_t i = 0;
@@ -293,10 +303,13 @@ void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs, s
     }
 
     std::list<NOMAD::Direction>::iterator itDir;
-    auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     for (itDir = dirs.begin(); itDir != dirs.end(); ++itDir)
     {
-        Direction scaledDir(n,0.0);
+        OUTPUT_DEBUG_START
+        AddOutputDebug("Poll direction before scaling and projection on mesh: " + itDir->display());
+        OUTPUT_DEBUG_END
+        
+        Direction scaledDir(_n,0.0);
 
         // Compute infinite norm for direction pointed by itDir.
         NOMAD::Double infiniteNorm = (*itDir).infiniteNorm();
@@ -306,7 +319,7 @@ void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs, s
             throw NOMAD::Exception(__FILE__, __LINE__, err);
         }
 
-        for (size_t i = 0; i < n; ++i)
+        for (size_t i = 0; i < _n; ++i)
         {
             // Scaling and projection on the mesh
             scaledDir[i] = mesh->scaleAndProjectOnMesh(i, (*itDir)[i] / infiniteNorm);
@@ -314,5 +327,8 @@ void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs, s
 
         *itDir = scaledDir;
     }
+    OUTPUT_DEBUG_START
+    NOMAD::OutputQueue::Flush();
+    OUTPUT_DEBUG_END
 }
 

@@ -1,0 +1,105 @@
+name: Build and publish binary wheels onto TestPyPi
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - name: Windows
+            os: windows-latest
+            archs: AMD64
+            msvc: 1
+
+          - name: Ubuntu
+            os: ubuntu-latest
+            archs: x86_64
+
+          - name: macOS
+            os: macos-latest
+            archs: x86_64
+
+    name: Wheels for ${{ matrix.target.name }}
+    runs-on: ${{ matrix.target.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies on Windows
+        if: startsWith(matrix.config.name, 'Windows')
+        run: |
+          choco install cmake
+          cmake --version
+
+      - name: Install dependencies on Ubuntu
+        if: startsWith(matrix.config.name, 'Ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install cmake
+          cmake --version
+          gcc --version
+
+      - name: Install dependencies on MacOS
+        if: startsWith(matrix.config.name, 'MacOS')
+        run: |
+          brew install cmake
+          cmake --version
+
+      - name: Build binary wheels
+        uses: pypa/cibuildwheel@v2.12.0
+        env:
+          CIBW_ARCHS: >-
+            ${{ matrix.target.archs }}
+          CIBW_BEFORE_ALL: >-
+            cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -DBUILD_EXAMPLES=OFF -S . -B build &&
+            cmake --build build --config Release --clean-first --target nomadStatic --parallel 2
+          CIBW_ENVIRONMENT: >-
+            NOMAD_SRC=../../src
+            NOMAD_BUILD_DIR=../../build
+            NOMAD_MSVC_FLAG=${{ matrix.target.msvc }}
+            NOMAD_MSVC_CONF=Release
+          CIBW_PROJECT_REQUIRES_PYTHON: >-
+            >=3.8
+          CIBW_BUILD_FRONTEND: >-
+            build
+          CIBW_BUILD_VERBOSITY: >-
+            3
+        with:
+          output-dir: wheelhouse
+          package-dir: interfaces/PyNomad
+
+      - name: Collect wheels for processing
+        uses: actions/upload-artifact@v3
+        with:
+          path: wheelhouse/*.whl
+
+  # We use pypa/gh-action-pypi-publish to upload the binary wheels onto PyPi.
+
+  pypi-publish:
+    name: Publish to TestPyPi (testing)
+    runs-on: ubuntu-latest
+    needs: build
+    # Specifying a GitHub environment is optional, but strongly encouraged
+    environment: develop
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
+
+    steps:
+      - name: Collect wheels for publication
+        uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: dist
+
+      - name: Publish wheels to TestPyPi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository_url: https://test.pypi.org/legacy/

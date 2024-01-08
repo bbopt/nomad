@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_CSSITERATION__
-#define __NOMAD_4_3_CSSITERATION__
+#ifndef __NOMAD_4_4_CSSITERATION__
+#define __NOMAD_4_4_CSSITERATION__
 
 #include "../../Algos/CoordinateSearch/CSPoll.hpp"
 #include "../../Algos/Iteration.hpp"
@@ -92,6 +92,13 @@ public:
      */
     const MeshBasePtr getMesh() const override { return _mesh; }
 
+//#ifdef TIME_STATS
+//    /// Time stats
+//    static double getIterTime()         { return _iterTime; }
+//    static double getPollTime()         { return _pollTime; }
+//    static double getPollEvalTime()     { return _pollEvalTime; }
+//#endif // TIME_STATS
+
     /*---------------------*/
     /* Other class methods */
     /*---------------------*/
@@ -109,8 +116,11 @@ private:
      */
     virtual bool runImp() override;
 
+//#ifdef TIME_STATS
+//    virtual void endImp() override;
+//#endif // TIME_STATS
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_CSITERATION__
+#endif // __NOMAD_4_4_CSITERATION__

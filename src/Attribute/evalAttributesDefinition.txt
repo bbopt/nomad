@@ -78,6 +78,37 @@ std::string
 \( basic blackbox(es) bb exe executable(s) binary output(s) batch \)
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
+###############################################################################
+BB_REDIRECTION
+bool
+true
+\( Blackbox executable redirection for outputs  \)
+\(
+
+. Flag to redirect blackbox executable outputs in a stream. The redirection
+  in a stream does not require an ouptut file. NOMAD interprets the outputs from
+  the stream according to BB_OUTPUT_TYPE. If the blackbox executable
+  outputs some verbose, NOMAD cannot interpret correctly the outputs.
+
+. If the redirection is disabled. The blackbox must output its results into a
+ file having the name of the input file (usually nomadtmp.pid.threadnum)
+ completed by \".output\". The format must follow the BB_OUTPUT_TYPE.
+ For example, for BB_OUTPUT_TYPE OBJ CSTR, we must have only the two values on
+ a single line in the output file with a end-of-line.
+ 
+. Disable blackbox redirection and managing output file can be convenient when
+the blackbox outputs some verbose. All the verbose is put into a temporary
+log file nomadtmp.pid.threadnum.tmplog
+ 
+. This parameter has no effect when BB_EXE is not defined like in library mode.
+
+. Examples
+    . BB_REDIRECTION false
+
+\)
+\( basic blackbox(es) bb exe executable(s) binary output(s) batch \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
 #################################################################################
 BB_OUTPUT_TYPE
 NOMAD::BBOutputTypeList
@@ -89,6 +120,11 @@ OBJ
 
 . List of types for each blackbox output
 
+. If BB_EXE is defined, the blackbox outputs must be returned by the executable
+on a SINGLE LINE of the standard output or in an output file
+(see BB_REDIRECTION). The order of outputs must be consistent between the blackbox
+and BB_OUTPUT_TYPE.
+
 . Available types
     . OBJ       : objective value to minimize (define twice for bi-objective)
     . PB        : constraint <= 0 treated with Progressive Barrier (PB)
@@ -99,8 +135,13 @@ OBJ
     . NOTHING   : this output is ignored
     . EXTRA_O   : same as 'NOTHING'
     .  -        : same as 'NOTHING'
+    . BBO_UNDEFINED: same as 'NOTHING'
 
 . Equality constraints are not natively supported
+
+. Extra outputs (EXTRA_O, NOTHING, BBO_UNDEFINED, ...) are not used for
+  optimization but are available for display and custom user testing
+  (see examples).
 
 . See parameters LOWER_BOUND and UPPER_BOUND for bound constraints
 

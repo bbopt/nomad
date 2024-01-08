@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_POLLMETHODBASE__
-#define __NOMAD_4_3_POLLMETHODBASE__
+#ifndef __NOMAD_4_4_POLLMETHODBASE__
+#define __NOMAD_4_4_POLLMETHODBASE__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/Step.hpp"
@@ -62,6 +62,10 @@ class PollMethodBase: public Step, public IterationUtils
 private:
     const EvalPointPtr _frameCenter;
     const bool _hasSecondPass;      ///< A Second pass is available after first pass fail to improve. Ortho N+1 methods require second pass.
+    size_t _n; ///< Pb dimension 
+    
+    ArrayOfDouble _lb, _ub; ///< Pb bounds
+    ListOfVariableGroup _varGroups; ///< Groups of variables
 
 protected:
     bool _scaleAndProjectSecondPassDirectionOnMesh ; ///< Flag to scale and project on mesh
@@ -181,5 +185,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_POLLMETHODBASE__
+#endif // __NOMAD_4_4_POLLMETHODBASE__
 

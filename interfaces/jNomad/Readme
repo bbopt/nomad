@@ -11,7 +11,7 @@ cmake --build build/release
 cmake --install build/release
 
 Note: Building may require to set JAVA_HOME variable and uncomment 
-lines in root CMakeLists.txt
+lines in root CMakeLists.txt (issue #83)
 
 
 How to run the example ?

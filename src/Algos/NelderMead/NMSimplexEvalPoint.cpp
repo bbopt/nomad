@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -63,7 +63,6 @@ bool NOMAD::NMSimplexEvalPointCompare::operator()(const NOMAD::EvalPoint& lhs,
     }
     NOMAD::ComputeSuccessType computeSuccess(evalType, computeType);
 
-    // This could be an inefficient function
     NOMAD::SuccessType success = computeSuccess(std::make_shared<NOMAD::EvalPoint>(lhs),
                                                 std::make_shared<NOMAD::EvalPoint>(rhs));
 

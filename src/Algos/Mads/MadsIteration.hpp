@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_MADSITERATION__
-#define __NOMAD_4_3_MADSITERATION__
+#ifndef __NOMAD_4_4_MADSITERATION__
+#define __NOMAD_4_4_MADSITERATION__
 
 #include "../../Algos/Iteration.hpp"
 #include "../../Algos/Mads/MegaSearchPoll.hpp"
@@ -62,7 +62,7 @@
  */
 class MadsIteration: public Iteration
 {
-private:
+protected:
     const MeshBasePtr  _mesh;        ///< Mesh on which the points are
 
     std::unique_ptr<Poll> _poll;
@@ -145,4 +145,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_MADSITERATION__
+#endif // __NOMAD_4_4_MADSITERATION__

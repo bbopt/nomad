@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_3_MADS__
-#define __NOMAD_4_3_MADS__
+#ifndef __NOMAD_4_4_MADS__
+#define __NOMAD_4_4_MADS__
 
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
@@ -70,15 +70,15 @@ public:
      \param runParams           The run parameters that control MADS -- \b IN.
      \param pbParams            The problem parameters that control MADS -- \b IN.
      \param barrierInitializedFromCache  Flag to initialize barrier from cache or not -- \b IN.
-     \param forceRootAlgo   Flag to make a root algorithm -- \b IN.
+     \param useOnlyLocalFixedVariables   Flag to use only local fixed variables or not (not the ones from the original problem) -- \b IN.
      */
     explicit Mads(const Step* parentStep,
                   std::shared_ptr<AlgoStopReasons<MadsStopType>> stopReasons,
                   const std::shared_ptr<RunParameters>& runParams,
                   const std::shared_ptr<PbParameters>& pbParams,
                   bool barrierInitializedFromCache = true,
-                  bool forceRootAlgo = true )
-      : Algorithm(parentStep, stopReasons, runParams, pbParams, forceRootAlgo)
+                  bool useOnlyLocalFixedVariables = false )
+      : Algorithm(parentStep, stopReasons, runParams, pbParams, useOnlyLocalFixedVariables)
     {
         init(barrierInitializedFromCache);
     }
@@ -110,4 +110,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_MADS__
+#endif // __NOMAD_4_4_MADS__

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_3_STEP__
-#define __NOMAD_4_3_STEP__
+#ifndef __NOMAD_4_4_STEP__
+#define __NOMAD_4_4_STEP__
 
 #include "../Eval/MeshBase.hpp"
 #include "../Eval/SuccessStats.hpp"
@@ -70,15 +70,17 @@ typedef std::function<void(std::vector<std::string>& paramLines)> HotRestartCbFu
 class DLL_ALGO_API Step
 {
 private:
-	static bool _userInterrupt; ///< Interrupt NOMAD if Ctrl-C is pressed.
-	static bool _userTerminate; ///< Terminate NOMAD if Ctrl-C is pressed again.
-
+    static bool _userInterrupt; ///< Interrupt NOMAD if Ctrl-C is pressed.
+    static bool _userTerminate; ///< Terminate NOMAD if Ctrl-C is pressed again.
+    
     // By default, always show warnings.
-	// Some warnings do not need to be shown in some cases, ex. unit tests.
-	static bool _showWarnings; 
+    // Some warnings do not need to be shown in some cases, ex. unit tests.
+    static bool _showWarnings;
+    
+    bool _isMegaSearchPoll;  ///< The step is for mega search poll (that is, generate trial points for both search and poll before starting queue evaluation.
 
+    Double _hMax0 ; ///< Initial hMax for barrier
 protected:
-	
 
 	const Step* _parentStep;    ///< The parent of this step.
 	//std::string         _name;  ///< The name of this step.
@@ -96,9 +98,8 @@ protected:
     static StepCbFunc    _cbIterationEnd;
     static StepCbFunc    _cbMegaIterationEnd;
     static StepCbFunc    _cbMegaIterationStart;
+    static StepCbFunc    _cbPostprocessingCheck;
     static HotRestartCbFunc _cbHotRestart;
-
-
     
     
     /**
@@ -191,16 +192,16 @@ public:
 	/**
 	 Called by pressing Ctrl-C.
 	 */
-	static bool getUserTerminate(); // not inline (dll pb)
+    static bool getUserTerminate() ; // not inline (dll pb)
 
 	/// Interruption requested
-	static void setUserTerminate(); // not inline (dll pb)
+    static void setUserTerminate() ; // not inline (dll pb)
 
 	/// Reset user terminate (called by mainstep to prevent invalid stop (Python or Matlab interface)
-	static void resetUserTerminate(); // not inline (dll pb)
+    static void resetUserTerminate() ; // not inline (dll pb)
     
     /// Reset user interrupt (called by mainstep to prevent invalid stop (Python or Matlab interface)
-	static void resetUserInterrupt(); // not inline (dll pb)
+    static void resetUserInterrupt() ; // not inline (dll pb)
     
 
     /// Get the parent step.
@@ -238,7 +239,7 @@ public:
     static void userInterrupt(int signalValue);
     static void debugSegFault(int signalValue);
 
-	static bool getUserInterrupt();  // not inline (dll pb)
+    static bool getUserInterrupt(); // not inline (dll pb)
 
     /// \brief Set user callback
     void addCallback(const CallbackType& callbackType,
@@ -253,7 +254,7 @@ public:
     static void runCallback(CallbackType callbackType,
                             std::vector<std::string>& paramLines);
 
-	static void disableWarnings(); // Force not inline (dll pb)
+    static void disableWarnings() ;
 
     /// \brief display output
     void AddOutputInfo(const std::string& s, bool isBlockStart, bool isBlockEnd) const;
@@ -453,4 +454,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_STEP__
+#endif // __NOMAD_4_4_STEP__

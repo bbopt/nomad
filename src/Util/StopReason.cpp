@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -57,7 +57,7 @@ template<> DLL_UTIL_API std::map<NOMAD::BaseStopType,std::string> & NOMAD::StopR
         {NOMAD::BaseStopType::UNKNOWN_STOP_REASON,"Unknown"},
         {NOMAD::BaseStopType::CTRL_C,"Ctrl-C"},
         {NOMAD::BaseStopType::HOT_RESTART,"Hot restart interruption"},
-        {NOMAD::BaseStopType::USER_STOPPED,"User-stopped in a callback function"}
+        {NOMAD::BaseStopType::USER_GLOBAL_STOP,"Global user stop in a callback function"}
 
     };
     return dictionary;
@@ -73,7 +73,7 @@ template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::BaseStopType>::checkTermin
         case NOMAD::BaseStopType::ERROR:
         case NOMAD::BaseStopType::UNKNOWN_STOP_REASON:
         case NOMAD::BaseStopType::CTRL_C:
-        case NOMAD::BaseStopType::USER_STOPPED:
+        case NOMAD::BaseStopType::USER_GLOBAL_STOP:
             return true;
             break;
         case NOMAD::BaseStopType::STARTED:
@@ -357,6 +357,36 @@ template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::RandomAlgoStopType>::check
     return false;
 }
 
+// Dictionary function for SimpleLineSearchStopType
+template<> DLL_UTIL_API std::map<NOMAD::SimpleLineSearchStopType,std::string> & NOMAD::StopReason<NOMAD::SimpleLineSearchStopType>::dict() const
+{
+    static std::map<NOMAD::SimpleLineSearchStopType,std::string> dictionary = {
+        {NOMAD::SimpleLineSearchStopType::STARTED,"Started"},   // Set a the begining of an EvaluatorControl Run
+        {NOMAD::SimpleLineSearchStopType::SPECULATIVE_SUCCESSFUL,"Speculative is successful, no line search"},
+        {NOMAD::SimpleLineSearchStopType::ALL_POINTS_EVALUATED,"All trial points evaluated, budget spent"}
+    };
+    return dictionary;
+}
+
+// Returns true only when template algorithm (random) is complete
+template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::SimpleLineSearchStopType>::checkTerminate() const
+{
+
+    switch ( _stopReason )
+    {
+        case NOMAD::SimpleLineSearchStopType::ALL_POINTS_EVALUATED:
+        case NOMAD::SimpleLineSearchStopType::SPECULATIVE_SUCCESSFUL:
+            return true;
+            break;
+        case NOMAD::SimpleLineSearchStopType::STARTED:
+            return false;
+            break;
+        default:
+            throw NOMAD::Exception ( __FILE__, __LINE__,"All simple line search stop types must be checked for algo terminate");
+    }
+    return false;
+}
+
 
 // Returns true only when VNS Mads algorithm is complete
 template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::VNSStopType>::checkTerminate() const
@@ -388,7 +418,9 @@ template<> DLL_UTIL_API std::map<NOMAD::IterStopType,std::string> & NOMAD::StopR
         {NOMAD::IterStopType::STARTED,"Started"},   // Set a the begining of a Step task
         {NOMAD::IterStopType::MAX_ITER_REACHED,"Maximum number of iterations reached"},
         {NOMAD::IterStopType::STOP_ON_FEAS,"A feasible point is reached"},
-        {NOMAD::IterStopType::PHASE_ONE_COMPLETED,"PhaseOne completed"}
+        {NOMAD::IterStopType::PHASE_ONE_COMPLETED,"PhaseOne completed"},
+        {NOMAD::IterStopType::USER_ITER_STOP,"Local (iter) user stop"},
+        {NOMAD::IterStopType::USER_ALGO_STOP,"Local (algo) user stop"}
     };
     return dictionary;
 }
@@ -402,6 +434,8 @@ template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::IterStopType>::checkTermin
         case NOMAD::IterStopType::MAX_ITER_REACHED:
         case NOMAD::IterStopType::STOP_ON_FEAS:
         case NOMAD::IterStopType::PHASE_ONE_COMPLETED:
+        case NOMAD::IterStopType::USER_ITER_STOP:
+        case NOMAD::IterStopType::USER_ALGO_STOP:
             return true;
             break;
         case NOMAD::IterStopType::STARTED:
@@ -423,7 +457,8 @@ template<> DLL_UTIL_API std::map<NOMAD::EvalGlobalStopType,std::string> & NOMAD:
         {NOMAD::EvalGlobalStopType::MAX_BB_EVAL_REACHED,      "Maximum number of blackbox evaluations"},
         {NOMAD::EvalGlobalStopType::MAX_SURROGATE_EVAL_OPTIMIZATION_REACHED, "Maximum number of surrogate evaluations"},
         {NOMAD::EvalGlobalStopType::MAX_EVAL_REACHED,         "Maximum number of total evaluations"},
-        {NOMAD::EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED,   "Maximum number of block eval reached"}
+        {NOMAD::EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED,   "Maximum number of block eval reached"},
+        {NOMAD::EvalGlobalStopType::CUSTOM_GLOBAL_STOP,   "User requested global stop after an evaluation"}
     };
     return dictionary;
 }
@@ -437,6 +472,8 @@ template<> DLL_UTIL_API std::map<NOMAD::EvalMainThreadStopType,std::string> & NO
         {NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED,  "Maximum number of blackbox evaluations for a sub algorithm run (lap run)"},
         {NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED,  "Maximum number of blackbox evaluations for a subproblem run"},
         {NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS,    "Success found and opportunistic strategy maybe used (if set)"},
+        {NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP,    "Custom opportunistic iteration stop detected via post-evaluation callback"},
+        {NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_EVAL_STOP,    "Custom opportunistic evaluation stop detected via post-evaluation callback"},
         {NOMAD::EvalMainThreadStopType::EMPTY_LIST_OF_POINTS,     "Tried to eval an empty list"},
         {NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED,     "No more points to evaluate"},
         {NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED,   "Maximum number of model evaluations reached"}
@@ -454,6 +491,7 @@ template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::EvalGlobalStopType>::check
         case NOMAD::EvalGlobalStopType::MAX_SURROGATE_EVAL_OPTIMIZATION_REACHED:
         case NOMAD::EvalGlobalStopType::MAX_EVAL_REACHED:
         case NOMAD::EvalGlobalStopType::MAX_BLOCK_EVAL_REACHED:
+        case NOMAD::EvalGlobalStopType::CUSTOM_GLOBAL_STOP:
             return true;
             break;
         case NOMAD::EvalGlobalStopType::STARTED:
@@ -473,12 +511,14 @@ template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::EvalMainThreadStopType>::c
         case NOMAD::EvalMainThreadStopType::LAP_MAX_BB_EVAL_REACHED:
         case NOMAD::EvalMainThreadStopType::SUBPROBLEM_MAX_BB_EVAL_REACHED:
         case NOMAD::EvalMainThreadStopType::MAX_MODEL_EVAL_REACHED:
+        case NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP:
             return true;
             break;
         case NOMAD::EvalMainThreadStopType::STARTED:
         case NOMAD::EvalMainThreadStopType::OPPORTUNISTIC_SUCCESS:
         case NOMAD::EvalMainThreadStopType::EMPTY_LIST_OF_POINTS:
         case NOMAD::EvalMainThreadStopType::ALL_POINTS_EVALUATED:
+        case NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_EVAL_STOP:
             return false;
             break;
         default:

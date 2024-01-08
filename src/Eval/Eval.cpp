@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,6 +52,7 @@
  \see    Eval.hpp
  */
 #include "../Eval/Eval.hpp"
+#include "../Type/EvalType.hpp"
 
 
 /*---------------------------------------------------------------------*/
@@ -242,11 +243,11 @@ NOMAD::Double NOMAD::Eval::computeHStandard() const
 
     const NOMAD::ArrayOfDouble bboArray = _bbOutput.getBBOAsArrayOfDouble();
     size_t bboIndex = 0;
-    for (auto bbOutputType : _bbOutputTypeList)
+    for (const auto & bbOutputType : _bbOutputTypeList)
     {
         NOMAD::Double bboI = bboArray[bboIndex];
         bboIndex++;
-        if (!NOMAD::BBOutputTypeIsConstraint(bbOutputType))
+        if (!bbOutputType.isConstraint())
         {
             continue;
         }
@@ -259,11 +260,11 @@ NOMAD::Double NOMAD::Eval::computeHStandard() const
         {
             hPos = true;
             NOMAD::Double hTemp = 0.0;
-            if (NOMAD::BBOutputType::EB == bbOutputType)
+            if (bbOutputType == NOMAD::BBOutputType::Type::EB)
             {
                 hTemp = NOMAD::INF;
             }
-            else if (NOMAD::BBOutputType::PB == bbOutputType)
+            else if (bbOutputType == NOMAD::BBOutputType::Type::PB || bbOutputType == NOMAD::BBOutputType::Type::RPB )
             {
                 hTemp = bboI * bboI;
             }
@@ -302,11 +303,11 @@ NOMAD::Double NOMAD::Eval::computeFPhaseOne() const
     {
         f=0.0;
         size_t bboIndex = 0;
-        for (auto bbOutputType : _bbOutputTypeList)
+        for (const auto & bbOutputType : _bbOutputTypeList)
         {
             NOMAD::Double bboI = bboArray[bboIndex];
             bboIndex++;
-            if (NOMAD::BBOutputType::EB != bbOutputType)
+            if (bbOutputType != NOMAD::BBOutputType::Type::EB)
             {
                 continue;
             }
@@ -347,7 +348,11 @@ void NOMAD::Eval::setBBO(const std::string &bbo,
     _bbOutput = NOMAD::BBOutput(bbo, evalOk);
     _bbOutputTypeList = bbOutputTypeList;
 
-    if (bbOutputTypeList.empty())
+    // Revealed constraint are not set by evaluator. They are updated later by a callback.
+    // Need to set a default value to pass the following tests.
+    updateForRevealedConstraints();
+    
+    if (_bbOutputTypeList.empty())
     {
         // Assume it will be set later.
     }
@@ -362,6 +367,29 @@ void NOMAD::Eval::setBBO(const std::string &bbo,
         _evalStatus = _bbOutput.getObjectives(_bbOutputTypeList).isComplete() ? NOMAD::EvalStatusType::EVAL_OK : NOMAD::EvalStatusType::EVAL_FAILED;
     }
 
+}
+
+// Called by setBBO or EvaluatorControl (when setBBO(bbo) is used instead of setBBO(bbo,bbot_list)).
+// Currently used only for DiscoMads revealed RPB
+void NOMAD::Eval::updateForRevealedConstraints()
+{
+    if (_bbOutputTypeList.empty())
+    {
+        return;
+    }
+    
+    auto bboAOD = _bbOutput.getBBOAsArrayOfDouble();
+    // Just ONE RPB constraint can be present
+    size_t diffSize = _bbOutputTypeList.size() - bboAOD.size();
+    auto it =  std::find(_bbOutputTypeList.begin(),_bbOutputTypeList.end(),NOMAD::BBOutputType::RPB);
+    if (diffSize == 1 &&  it!= _bbOutputTypeList.end())
+    {
+        // Update RPB constraint with a feasible default value.
+        _bbOutput = NOMAD::BBOutput(_bbOutput.getBBO()+" -1.0", _bbOutput.getEvalOk());    
+        _bbOutputComplete = _bbOutput.isComplete(_bbOutputTypeList);
+    }
+    
+    
 }
 
 
@@ -459,7 +487,7 @@ bool NOMAD::Eval::dominates(const NOMAD::Eval &eval, NOMAD::ComputeType computeT
 //    // Always false. Do nothing.
 
     
-    NOMAD::CompareType compare = compMO(eval, false /*compare f and h*/, computeType);
+    NOMAD::CompareType compare = compMO(eval, false /* false: compare f and h*/, computeType);
     // comparing a feasible point with an unfeasible point --> UNDEFINED -> false.
     return (NOMAD::CompareType::DOMINATING == compare);
 }
@@ -810,7 +838,7 @@ std::ostream& NOMAD::operator<<(std::ostream& out, const NOMAD::EvalStatusType &
             break;
         default:
             // Do not throw.
-            std::cerr << "Warning: Unknown eval status type" << std::endl;
+            std::cout << "Warning: Unknown eval status type" << std::endl;
             // We do not want a small mistake to disrupt the flow.
             break;
     }
@@ -823,6 +851,14 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalStatusType &evalSta
 {
     std::string s;
     is >> s;
+    
+    // Remove BB_/SURROGATE_/MODEL_ (this may be used in cache file to show the different eval types)
+    size_t indSep = s.find("_");
+    if (indSep < std::string::npos && NOMAD::stringToEvalType(s.substr(0, indSep), true /* true: do not trigger exception */) != NOMAD::EvalType::UNDEFINED)
+    {
+        s.erase(0,indSep+1);
+    }
+    
 
     if ("EVAL_NOT_STARTED" == s)
     {
@@ -858,6 +894,8 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalStatusType &evalSta
     }
     else
     {
+        evalStatus = NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED;
+        
         // Put back s to istream.
         for (unsigned i = 0; i < s.size(); i++)
         {

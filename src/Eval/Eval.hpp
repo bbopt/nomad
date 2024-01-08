@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -52,8 +52,8 @@
  \see    Eval.cpp
  */
 
-#ifndef __NOMAD_4_3_EVAL__
-#define __NOMAD_4_3_EVAL__
+#ifndef __NOMAD_4_4_EVAL__
+#define __NOMAD_4_4_EVAL__
 
 #include <functional>   // For std::function
 
@@ -147,6 +147,7 @@ public:
 
     EvalStatusType getEvalStatus() const { return _evalStatus; }
     void setEvalStatus(const EvalStatusType &evalStatus) { _evalStatus = evalStatus; }
+    bool isEvalOk () const { return _evalStatus == EvalStatusType::EVAL_OK; }
 
     bool isBBOutputComplete() const { return _bbOutputComplete; }
     BBOutput getBBOutput() const { return _bbOutput; }
@@ -298,11 +299,21 @@ public:
      \return A formatted eval as a string
      */
     std::string display(ComputeType computeType = ComputeType::STANDARD, const int prec = DISPLAY_PRECISION_STD) const;
+    
+    
+    /// Helper for setBBO or to be used by evaluator control
+    /**
+     Add default value (feasible) for revealed constraints added by some algos (like DiscoMads).
+     */
+    void updateForRevealedConstraints();
 
 private:
     /// Helpers for getF() and getH()
     Double computeHStandard() const;
     Double computeFPhaseOne() const;
+    
+
+    
 };
 
 
@@ -322,4 +333,4 @@ std::istream& operator>>(std::istream& is, EvalStatusType &evalStatus);
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_3_EVAL__
+#endif  // __NOMAD_4_4_EVAL__

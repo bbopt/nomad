@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,15 +44,11 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_OUTPUTDIRECTTOFILE__
-#define __NOMAD_4_3_OUTPUTDIRECTTOFILE__
+#ifndef __NOMAD_4_4_OUTPUTDIRECTTOFILE__
+#define __NOMAD_4_4_OUTPUTDIRECTTOFILE__
 
 #include <vector>
 #ifdef _OPENMP
-// Using OpenMP.
-// NOTE We would do a wrapper like suggested in http://bisqwit.iki.fi/story/howto/openmp/.
-// This way, the code would compile even if OpenMP is not available.
-// Plus, it might be clearer.
 #include <omp.h>
 #endif // _OPENMP
 
@@ -85,11 +81,11 @@ public:
     void init(const std::shared_ptr<DisplayParameters>& params);
 
     /// When history and/or solution files are active, write info in solution and history file according to the flags
-    void write(const StatsInfo& outInfo, bool writeInSolutionFile, bool writeInHistoryFile=true);
+    void write(const StatsInfo& outInfo, bool writeInSolutionFile, bool writeInHistoryFile=true, bool appendInSolutionFile = false);
 
-    static void Write(const StatsInfo & outInfo, bool writeInSolutionFile, bool writeInHistoryFile = true)
+    static void Write(const StatsInfo & outInfo, bool writeInSolutionFile, bool writeInHistoryFile = true, bool appendInSolutionFile = false)
     {
-        getInstance()->write(outInfo,writeInSolutionFile,writeInHistoryFile);
+        getInstance()->write(outInfo,writeInSolutionFile,writeInHistoryFile,appendInSolutionFile);
     }
 
     /// Good to write in history and/or solution files when the file names have been defined.
@@ -155,4 +151,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_OUTPUTDIRECTTOFILE__
+#endif // __NOMAD_4_4_OUTPUTDIRECTTOFILE__

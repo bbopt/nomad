@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -51,8 +51,8 @@
  * \date   November 2017
  */
 
-#ifndef __NOMAD_4_3_GMESH__
-#define __NOMAD_4_3_GMESH__
+#ifndef __NOMAD_4_4_GMESH__
+#define __NOMAD_4_4_GMESH__
 
 #include "../../Eval/MeshBase.hpp"
 #include "../../Param/RunParameters.hpp"
@@ -84,6 +84,9 @@ class GMesh: public MeshBase
     Double               _anisotropyFactor;  ///<   Control the development of anisotropy of the mesh (if anisotropicMesh is true).
     bool                 _anisotropicMesh;  ///<    Flag to enable or not anisotropic mesh
     
+    size_t               _refineFreq;        ///<  Control the frequency of actual mesh refinement
+    
+    size_t               _refineCount;       ///< Count mesh refinement call
     
 public:
 
@@ -104,7 +107,9 @@ public:
                 _enforceSanityChecks(true),
                 _allGranular(true),
                 _anisotropyFactor(runParams->getAttributeValue<NOMAD::Double>("ANISOTROPY_FACTOR")),
-                _anisotropicMesh(runParams->getAttributeValue<bool>("ANISOTROPIC_MESH"))
+                _anisotropicMesh(runParams->getAttributeValue<bool>("ANISOTROPIC_MESH")),
+                _refineFreq(runParams->getAttributeValue<size_t>("ORTHO_MESH_REFINE_FREQ")),
+                _refineCount(0)
     {
         init();
     }
@@ -259,4 +264,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_3_GMESH__
+#endif // __NOMAD_4_4_GMESH__

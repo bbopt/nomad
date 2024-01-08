@@ -1,6 +1,9 @@
 PyNomad.cpp
 *.so
 *.pyd
-build
 *.obj
-
+dist
+build
+PyNomad.egg-info
+PyNomadDev.egg-info
+.env

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -48,6 +48,7 @@
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/SubproblemManager.hpp"
+#include "../../Eval/ProgressiveBarrier.hpp"
 #include "../../Util/fileutils.hpp"
 
 // Template algo specifics
@@ -146,7 +147,7 @@ void NOMAD::TemplateAlgo::readInformationForHotRestart()
         {
             std::cout << "Read hot restart file " << hotRestartFile << std::endl;
             
-            auto barrier = std::make_shared<NOMAD::Barrier>();
+            auto barrier = std::make_shared<NOMAD::ProgressiveBarrier>();
             int k = 0;
             NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
 

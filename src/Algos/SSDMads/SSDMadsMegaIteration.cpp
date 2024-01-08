@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -80,10 +80,10 @@ void NOMAD::SSDMadsMegaIteration::startImp()
     OUTPUT_DEBUG_END
     if ( ! _stopReasons->checkTerminate() )
     {
-        auto bestEvalPoint = _barrier->getFirstXFeas();
+        auto bestEvalPoint = _barrier->getCurrentIncumbentFeas();
 
         if (bestEvalPoint == nullptr)
-            bestEvalPoint  = _barrier->getFirstXInf();
+            bestEvalPoint  = _barrier->getCurrentIncumbentInf();
 
         if (bestEvalPoint == nullptr)
             throw NOMAD::Exception(__FILE__, __LINE__, "No best eval point");
@@ -110,7 +110,7 @@ void NOMAD::SSDMadsMegaIteration::startImp()
 
             subProblemRunParams->checkAndComply(evcParams, subProblemPbParams);
 
-            auto madsOnASubProblem = std::make_shared<NOMAD::Mads>(this , stopReasons, subProblemRunParams, subProblemPbParams );
+            auto madsOnASubProblem = std::make_shared<NOMAD::Mads>(this , stopReasons, subProblemRunParams, subProblemPbParams , false /*false: Barrier not initialized from cache */);
             _madsList.push_back(madsOnASubProblem);
         }
 
@@ -185,8 +185,8 @@ bool NOMAD::SSDMadsMegaIteration::runImp()
         NOMAD::EvalPointPtr newBestFeas,newBestInf;
 
         // Use mega iteration barrier to get the reference best points (should work for opportunistic or not)
-        auto refBestFeas = _barrier->getFirstXFeas();
-        auto refBestInf = _barrier->getFirstXInf();
+        auto refBestFeas = _barrier->getRefBestFeas();
+        auto refBestInf = _barrier->getRefBestInf();
 
         // Set the iter success based on best feasible and best infeasible points found compared to initial point.
         if (iterSuccessful && (nullptr != refBestFeas || nullptr != refBestInf))
@@ -195,8 +195,8 @@ bool NOMAD::SSDMadsMegaIteration::runImp()
             auto barrier = madsOnSubPb->getMegaIterationBarrier();
             if (nullptr != barrier)
             {
-                newBestFeas = barrier->getFirstXFeas();
-                newBestInf = barrier->getFirstXInf();
+                newBestFeas = barrier->getCurrentIncumbentFeas();
+                newBestInf = barrier->getCurrentIncumbentInf();
 
                 // Compute success
                 // Get which of newBestFeas and newBestInf is improving
@@ -262,7 +262,7 @@ bool NOMAD::SSDMadsMegaIteration::runImp()
         auto evalPointList = madsOnSubPb->getMegaIterationBarrier()->getAllPoints();
         // Convert into full dimension
         NOMAD::convertPointListToFull(evalPointList, fixedVariable);
-        _barrier->updateWithPoints(evalPointList, NOMAD::EvalType::BB, evc->getComputeType(), true);
+        _barrier->updateWithPoints(evalPointList, NOMAD::EvalType::BB, evc->getComputeType(), true, true /* true: update incumbents and hMax */);
 
         // Reset counter will reset the EvalMainThreadStopReason if the max bb is reached for this sub optimization
         evc->resetBbEvalInSubproblem();

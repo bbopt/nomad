@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -109,8 +109,15 @@ NOMAD::ArrayOfPoint NOMAD::MadsIteration::suggest()
         NOMAD::EvalPoint evalPointFound;
         for (auto trialPoint : trialPoints)
         {
-            // Do not suggest points that are already in cache.
-            if (0 == NOMAD::CacheBase::getInstance()->find(trialPoint, evalPointFound))
+            NOMAD::EvalPoint evalPointFound;
+            
+            // Suggested points are already in cache put not evaluated
+            NOMAD::CacheBase::getInstance()->find(trialPoint, evalPointFound);
+            if (!evalPointFound.ArrayOfDouble::isDefined())
+            {
+                throw NOMAD::Exception(__FILE__, __LINE__, "MadsIteration suggest, trial point should be in cache");
+            }
+            if (nullptr == evalPointFound.getEval(NOMAD::EvalType::BB) && nullptr == evalPointFound.getEval(NOMAD::EvalType::SURROGATE) )
             {
                 // Do not suggest point already in vector
                 if (std::find(xs.begin(), xs.end(), *trialPoint.getX() ) == xs.end() )

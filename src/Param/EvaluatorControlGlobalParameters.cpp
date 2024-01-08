@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -74,6 +74,7 @@ void NOMAD::EvaluatorControlGlobalParameters::init()
         errorMsg += e.what();
         throw NOMAD::Exception(__FILE__,__LINE__, errorMsg);
     }
+    
 
 }
 
@@ -159,7 +160,7 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
                 }
             }
 
-            std::cerr << "All variables are granular. MAX_EVAL is set to " << new_max_eval << " to prevent algorithm from circling around best solution indefinitely" << std::endl;
+            std::cout << "All variables are granular. MAX_EVAL is set to " << new_max_eval << " to prevent algorithm from circling around best solution indefinitely" << std::endl;
 
             setAttributeValue("MAX_EVAL",new_max_eval);
         }
@@ -173,9 +174,9 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
     auto modelMaxEval = quadModelMaxEval;
     if (quadModelChanged && sgtelibModelChanged && quadModelMaxEval != sgtelibModelMaxEval)
     {
-        std::cerr << "Warning: Currently not supported: QUAD_MODEL_MAX_EVAL (";
-        std::cerr << quadModelMaxEval << ") different than SGTELIB_MODEL_MAX_EVAL (";
-        std::cerr << sgtelibModelMaxEval << "). Using only the value of QUAD_MODEL_MAX_EVAL." << std::endl;
+        std::cout << "Warning: Currently not supported: QUAD_MODEL_MAX_EVAL (";
+        std::cout << quadModelMaxEval << ") different than SGTELIB_MODEL_MAX_EVAL (";
+        std::cout << sgtelibModelMaxEval << "). Using only the value of QUAD_MODEL_MAX_EVAL." << std::endl;
         setAttributeValue("MODEL_MAX_EVAL", quadModelMaxEval);
     }
     else if (quadModelChanged)
@@ -218,9 +219,9 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
 
     if (quadModelChanged && sgtelibModelChanged && quadModelBlockSize != sgtelibModelBlockSize)
     {
-        std::cerr << "Warning: Currently not supported: QUAD_MODEL_MAX_BLOCK_SIZE (";
-        std::cerr << quadModelBlockSize << ") different than SGTELIB_MODEL_MAX_BLOCK_SIZE (";
-        std::cerr << sgtelibModelBlockSize << "). Using only the value of QUAD_MODEL_MAX_BLOCK_SIZE." << std::endl;
+        std::cout << "Warning: Currently not supported: QUAD_MODEL_MAX_BLOCK_SIZE (";
+        std::cout << quadModelBlockSize << ") different than SGTELIB_MODEL_MAX_BLOCK_SIZE (";
+        std::cout << sgtelibModelBlockSize << "). Using only the value of QUAD_MODEL_MAX_BLOCK_SIZE." << std::endl;
         setAttributeValue("MODEL_MAX_BLOCK_SIZE", quadModelBlockSize);
     }
     else if (quadModelChanged)

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -46,10 +46,12 @@
 /*---------------------------------------------------------------------------------*/
 
 #include "../../Cache/CacheBase.hpp"
+#include "../../Eval/BarrierBase.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/QuadSearchMethod.hpp"
 #include "../../Algos/QuadModel/QuadModelInitialization.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Output/OutputQueue.hpp"
 
 void NOMAD::QuadModelInitialization::init()
@@ -75,7 +77,7 @@ void NOMAD::QuadModelInitialization::startImp()
         // For a standalone optimization (no Search Method), X0s points must be evaluated if available, otherwise, the cache can be used.
         // Do nothing if this is part of a Search Method.
 
-        auto searchMethodConst = getParentOfType<NOMAD::QuadSearchMethod*>(false);
+        auto searchMethodConst = getParentOfType<NOMAD::SearchMethodBase*>(false);
 
         if ( searchMethodConst == nullptr )
         {
@@ -93,9 +95,9 @@ bool NOMAD::QuadModelInitialization::runImp()
 
     // For a standalone optimization (no Search method), X0s points must be evaluated if available, otherwise, the cache can be used.
     // Do nothing if this is part of a sub-optimization.
-    auto searchMethodConst = getParentOfType<NOMAD::QuadSearchMethod*>(false);
+    auto searchMethodConst = getParentOfType<NOMAD::SearchMethodBase*>(false);
 
-    if ( doContinue && searchMethodConst == nullptr )
+    if ( doContinue && searchMethodConst == nullptr &&  !_cacheOnlyInitialization)
     {
         // For a standalone quad model optimization, evaluate the X0s
         bool evalOk = eval_x0s();
@@ -146,14 +148,13 @@ void NOMAD::QuadModelInitialization::generateTrialPointsImp()
         size_t cacheSize = NOMAD::CacheBase::getInstance()->size();
         if (cacheSize > 0)
         {
-            err += " Hint: Try not setting X0 so that the cache is used (";
-            err += std::to_string(cacheSize) + " points)";
+            _cacheOnlyInitialization = true;            
         }
         else
         {
-            err += ". Cache is empty.";
+            err += ". No valid X0 available and cache is empty.";
+            throw NOMAD::Exception(__FILE__, __LINE__, err);
         }
-        throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
 }
@@ -184,3 +185,4 @@ bool NOMAD::QuadModelInitialization::eval_x0s()
 
     return evalOk;
 }
+

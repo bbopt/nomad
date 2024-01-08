@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------*/
 /*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
 /*                                                                                 */
-/*  NOMAD - Version 4 has been created by                                          */
+/*  NOMAD - Version 4 has been created and developed by                            */
 /*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
 /*                 Christophe Tribes           - Polytechnique Montreal            */
 /*                                                                                 */
@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_3_PARAMETERS__
-#define __NOMAD_4_3_PARAMETERS__
+#ifndef __NOMAD_4_4_PARAMETERS__
+#define __NOMAD_4_4_PARAMETERS__
 
 #include <algorithm>
 #include <fstream>
@@ -68,8 +68,15 @@
 
 typedef std::shared_ptr<Attribute> SPtrAtt;
 
+/// Alias to a template shared_ptr to a CONST TypeAttribute.
+/**
+ Used to access attribute valeu but no modification permitted.
+ */
+template<typename T>
+using SPAttribute = std::shared_ptr<const TypeAttribute<T>>;
+
 /// Comparator of shared_ptr<Attribute>
-struct lessThanAttribute 
+struct lessThanAttribute
 {
     bool operator()(SPtrAtt lhs, SPtrAtt rhs) const
     {
@@ -290,7 +297,55 @@ public:
     void insertCSVDoc(std::map<std::string,std::string> &csvdoc) const;
 
 
+    /// getTypeAttribute:
+    /**
+     Get a shared pointer to a CONST attribute to access the value. The value cannot be modifed (setValue not permitted).
+     This function is used in the Init functions of classes. The value of parameters is efficiently accessed with in the core of the classes. No need to repeatedly call getAttributeValue (the getAttribute function need to look for a string and it is not efficient).
+     */
+    template<typename T>
+    SPAttribute<T> getTypeAttribute(const std::string &name, bool flagCheckException = true) const
+    {
+        // Get attribute from which to get value
+        SPtrAtt att;
+        att = getAttribute(name);
 
+        if (nullptr == att)
+        {
+            // At this point, Verify att is non-null.
+            std::string err = "getAttributeValue: attribute " + name + " does not exist";
+            throw Exception(__FILE__, __LINE__, err);
+        }
+
+        // Verify attribute type
+        // Must use map access with "at" (not []) because the function is const
+        const std::string &typeTName = typeid(T).name();
+        if (typeTName != _typeOfAttributes.at(name))
+        {
+            std::string err = "In getAttributeValue<T> the attribute ";
+            err += name + " is not of type T = " + typeTName;
+            throw Exception(__FILE__,__LINE__, err);
+        }
+
+        // Note: we use getAttributeValue in init() and checkAndComply().
+        // We cannot verify toBeChecked() here. It has to be verified at
+        // another level.
+
+        // Get value from attribute
+        // Dynamic cast to the selected TypeAttribute
+        SPAttribute<T> sp = std::dynamic_pointer_cast<const TypeAttribute<T>>(att);
+        
+        // All attributes except DIMENSION must be checked before accessing the value
+        if ( _toBeChecked && flagCheckException && name != "DIMENSION" )
+        {
+            std::string err = "In getAttributeValue<T> the attribute ";
+            err += name + " has not been checked";
+            throw ParameterToBeChecked(__FILE__,__LINE__, err);
+        }
+        
+        return sp;
+
+        
+    }
 
 private:
     /**
@@ -379,10 +434,12 @@ protected:
 
     SPtrAtt getAttribute(std::string name) const;
 
+    
+
 
     // getSpValue: value is of correct type for parameter name.
-    template<typename T> const T&
-    getSpValue(const std::string &name, bool flagCheckException, bool flagDefault = false) const
+    template<typename T>
+    const T&  getSpValue(const std::string &name, bool flagCheckException, bool flagDefault = false) const
     {
         // Get attribute from which to get value
         SPtrAtt att;
@@ -789,4 +846,4 @@ protected:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_3_PARAMETERS__
+#endif // __NOMAD_4_4_PARAMETERS__
