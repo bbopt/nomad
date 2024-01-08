@@ -1,5 +1,5 @@
 [project]
-name = "PyNomad"
+name = "PyNomadDev"
 version = "4.4.dev2"
 authors = [
   { name = "Jan Provaznik and Christophe Tribes", email="christophe.tribes@polymtl.ca"},
