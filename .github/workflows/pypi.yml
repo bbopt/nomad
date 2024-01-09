@@ -1,4 +1,4 @@
-name: Build and publish binary wheels onto TestPyPi
+name: Build and publish binary wheels onto PyPi
 
 on:
   workflow_dispatch:
@@ -83,7 +83,7 @@ jobs:
   # We use pypa/gh-action-pypi-publish to upload the binary wheels onto PyPi.
 
   pypi-publish:
-    name: Publish to TestPyPi (testing)
+    name: Publish to PyPi
     runs-on: ubuntu-latest
     needs: build
     # Specifying a GitHub environment is optional, but strongly encouraged
@@ -99,7 +99,7 @@ jobs:
           name: artifact
           path: dist
 
-      - name: Publish wheels to TestPyPi
+      - name: Publish wheels to PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository_url: https://test.pypi.org/legacy/
+          repository_url: https://pypi.org/legacy/
