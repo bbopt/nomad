@@ -1,10 +1,14 @@
 [project]
-name = "PyNomadDev"
-version = "4.4.dev2"
+name = "PyNomadBBO"
+version = "4.4.0"
 authors = [
-  { name = "Jan Provaznik and Christophe Tribes", email="christophe.tribes@polymtl.ca"},
+  { name = "Jan Provaznik and Christophe Tribes"},
+]
+maintainers = [
+  { name = "Christophe Tribes", email="christophe.tribes@polymtl.ca"},
 ]
 description = "Python interface to Nomad 4 for blackbox optimization (BBO)"
+readme = { file = "long_description.md", content-type = "text/markdown"}
 requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
