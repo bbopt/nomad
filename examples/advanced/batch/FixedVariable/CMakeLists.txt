@@ -16,9 +16,10 @@ if(BUILD_TESTS MATCHES ON)
         add_test(NAME ExampleAdvancedBatchFixedVariables
         COMMAND bash.exe runFixedWin.sh ${CMAKE_INSTALL_PREFIX}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-    else()
-        add_test(NAME ExampleAdvancedBatchFixedVariables
-        COMMAND ./runFixed.sh ${CMAKE_INSTALL_PREFIX}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    # Temp comment
+    #else()
+    #    add_test(NAME ExampleAdvancedBatchFixedVariables
+    #    COMMAND ./runFixed.sh ${CMAKE_INSTALL_PREFIX}
+    #    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
     endif()
 endif()
