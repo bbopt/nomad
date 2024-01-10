@@ -136,7 +136,7 @@ In batch mode, the parameters are provided in a text file using predefined keywo
 .. note::
 
   Help on parameters is accessible at the command prompt:
-  ``$NOMAD_HOME/bin/nomad -h param_name``
+  ``$NOMAD_HOME/bin/nomad -h param_name`` (linux/osx) or ``%NOMAD_HOME%\build\release\bin\nomad.exe -h param_name``
 
 Here are some of the most important parameters defining an optimization problem (without brackets):
 
