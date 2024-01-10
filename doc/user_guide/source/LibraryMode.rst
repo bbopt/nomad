@@ -426,7 +426,9 @@ All functionalities of NOMAD are available in ``nomadOpt``.
 NOMAD parameters are provided in a Matlab structure with keywords and values using the same syntax as used in the NOMAD parameter
 files. For example, ``params = struct('initial_mesh_size','* 10','MAX_BB_EVAL','100');``
 
-.. note:: More details for Windows are provided in :ref:`guide_matlab_mex`.
+Help on NOMAD parameters is accessible at the Matlab prompt: ``nomadOpt('-h param_name')``.
+
+.. note:: More details for Windows installation are provided in :ref:`guide_matlab_mex`.
 
 
 PyNomad interface

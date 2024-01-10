@@ -287,7 +287,7 @@ These regions may be (1) hidden constraints regions, in which blackbox evaluatio
 some user-defined blackbox outputs, called revealing outputs.
 
 
-The DiscoMads algorith is built on the MADS algorithm with progressive barrier approach [AuDe09a]_ and includes two additional mechanisms:
+DiscoMads is built on the MADS algorithm with progressive barrier approach [AuDe09a]_ and includes two additional mechanisms:
 
   `*` revealing hidden constraints or discontinuities: after each blackbox evaluation, a revealing mechanism is triggered to check if a discontinuity or a hidden constraint has been revealed.
 
@@ -310,13 +310,15 @@ Discontinuities
 
 To use DiscoMADS to reveal discontinuities in revealing blackbox outputs, set the parameter ``DISCO_MADS_OPTIMIZATION`` to true.
 
-Define revealing output by appending "-R" to the desired output types when using the command ``BB_OUTPUT_TYPE``.
+By default, not all constraint outputs are considered. Define revealing output by appending "-R" to the desired output types when using the command ``BB_OUTPUT_TYPE``.
 
 To define discontinuities (in a weak sense) set the parameters ``DISCO_MADS_DETECTION_RADIUS`` and ``DISCO_MADS_LIMIT_RATE``: if the rate of change of a revealing blackbox ouput between two points at distance less than ``DISCO_MADS_DETECTION_RADIUS`` exceeds the limit rate ``DISCO_MADS_LIMIT_RATE``, then a discontinuity is revealed between the two points.
 
 Finally, set ``DISCO_MADS_EXCLUSION_RADIUS`` to define the wished remoteness of the solution to discontinuities.
 
 An example of usage of DiscoMADS to reveal discontinuities is provided in batch mode (``$NOMAD_HOME/examples/advanced/batch/DiscoMads/paramEscapeDiscont.txt``) and in library mode (``$NOMAD_HOME/examples/advanced/library/DiscoMads/EscapeDiscontinuities``).
+
+Additional information about parameters can be obtain on the command line ``$NOMAD_HOME/bin/nomad -h Disco`` (Linus/OSX) or ``$NOMAD_HOME/build/release/bin/nomad.exe -h Disco``.
 
 This example is described in details in section 5.1 of [AuBaKo22]_.
 
