@@ -83,11 +83,11 @@ jobs:
   # We use pypa/gh-action-pypi-publish to upload the binary wheels onto PyPi.
 
   pypi-publish:
-    name: Publish to PyPi
+    name: Publish to PyPi 
     runs-on: ubuntu-latest
     needs: build
     # Specifying a GitHub environment is optional, but strongly encouraged
-    environment: develop
+    environment: master
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
@@ -101,5 +101,3 @@ jobs:
 
       - name: Publish wheels to PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository_url: https://pypi.org/legacy/

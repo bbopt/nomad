@@ -445,7 +445,7 @@ PyNomad interface
 
    PyNomadBBO from PyPI relies on Python3 version 3.8+. We recommend to install PyNomadBBO into a virtual environment.
 
-   Please note that PyNomad wheels may not be available for your OS and Python version.
+   Please note that PyNomad wheels may not be available for your OS and Python version. 
 
 PyNomad can also be obtained by building source codes.
 The source codes and basic tests are provided in ``$NOMAD_HOME/interfaces/PyNomad``. Examples are given in ``$NOMAD_HOME/examples/advanced/library/PyNomad``.
