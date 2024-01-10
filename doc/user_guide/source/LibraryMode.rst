@@ -426,7 +426,9 @@ All functionalities of NOMAD are available in ``nomadOpt``.
 NOMAD parameters are provided in a Matlab structure with keywords and values using the same syntax as used in the NOMAD parameter
 files. For example, ``params = struct('initial_mesh_size','* 10','MAX_BB_EVAL','100');``
 
-.. note:: More details for Windows are provided in :ref:`guide_matlab_mex`.
+Help on NOMAD parameters is accessible at the Matlab prompt: ``nomadOpt('-h param_name')``.
+
+.. note:: More details for Windows installation are provided in :ref:`guide_matlab_mex`.
 
 
 PyNomad interface
@@ -443,7 +445,7 @@ PyNomad interface
 
    PyNomadBBO from PyPI relies on Python3 version 3.8+. We recommend to install PyNomadBBO into a virtual environment.
 
-   Please note that PyNomad wheels may not be available for your OS and Python version. 
+   Please note that PyNomad wheels may not be available for your OS and Python version.
 
 PyNomad can also be obtained by building source codes.
 The source codes and basic tests are provided in ``$NOMAD_HOME/interfaces/PyNomad``. Examples are given in ``$NOMAD_HOME/examples/advanced/library/PyNomad``.

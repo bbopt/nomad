@@ -675,6 +675,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     nobj=NOMAD::getNbObj(bboutputlist);  // Only single objective is supported in Nomad 4
     ncon=bboutputlist.size()-nobj;
 
+	// Test for DiscoMads -> DiscoMads increases the number of constraints.
+	bool disco = p->getAttributeValue<bool>("DISCO_MADS_OPTIMIZATION");
+	if (disco)
+	{
+		ncon--;
+	}
+
+
     // Read fun output for surrogate use
     if ( p->mayUseSurrogate() )
     {
