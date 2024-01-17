@@ -300,6 +300,8 @@ It is triggered when a discontinuity or a hidden constraint is revealed. A new r
 Hidden constraints
 """"""""""""""""""
 
+In some cases, blackbox execution cannot return all or some of the outputs because the experiment failed for unexpected reasons or because the simulation crashes for the given inputs, which corresponds to the presence of hidden constraints.
+
 To use DiscoMADS to reveal hidden constraints regions, set ``DISCO_MADS_OPTIMIZATION`` to true and ``DISCO_MADS_HID_CONST`` to true.
 Set ``DISCO_MADS_EXCLUSION_RADIUS`` to define the wished remoteness of the solution to discontinuities.
 
