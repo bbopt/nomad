@@ -57,7 +57,7 @@
 /* equality constraint.                   */
 /*                                        */
 /* Modified problem:                      */
-/* Geometric constraint x1+...+d=5        */
+/* Geometric constraint x1+...+x4+d=10    */
 /* Pb dimension is set to n=4             */
 /* Set an inequality constraint:          */
 /*         x1+...+x4<=10                  */
