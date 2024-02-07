@@ -98,3 +98,7 @@ command in Matlab you may obtain an error such as
 (example obtained on linux-Ubuntu). This is an indication that the versions
  of Matlab and the compiler may not be compatible (See in the preamble 
 the web site to check compatibility).
+If the versions at not too far apart a workaround can be to preload the
+libstdc++ library used to build Nomad. For example we can do
+"LD_PRELOAD=/lib64/libstdc++.so.6 matlab".
+See https://github.com/bbopt/nomad/issues/159 for more details.
