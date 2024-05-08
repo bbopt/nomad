@@ -151,6 +151,9 @@ const int INT_DISPLAY_WIDTH = 3;        // Width for integers
 // Maximal output value for points used for models.
 const double MODEL_MAX_OUTPUT = 1E20;
 
+// Buffer size for reading BB outputs
+const size_t BUFFER_SIZE = 1024;
+
 
 // -------------------------
 // Related to MADS algorithm

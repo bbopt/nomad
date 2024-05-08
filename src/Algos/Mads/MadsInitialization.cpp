@@ -168,11 +168,11 @@ bool NOMAD::MadsInitialization::eval_x0s()
             }
         }
         
+        evalPointX0s.push_back(evalPointX0);
         if (x0Found && evalPointX0.isEvalOk(evalType))
         {
             // evalOk is true if at least one evaluation is Ok
             evalOk = true;
-            evalPointX0s.push_back(evalPointX0);
             
             x0Failed = false;   // At least one good X0.
         }
@@ -187,10 +187,14 @@ bool NOMAD::MadsInitialization::eval_x0s()
         // If X0 fails, initialization is unsuccessful.
         _success = NOMAD::SuccessType::UNSUCCESSFUL;
         
-        for (const auto & x0 : _x0s)
+        for (const auto & ep: evalPointX0s)
         {
-            auto x0Full = x0.makeFullSpacePointFromFixed(NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
-            AddOutputError("X0 evaluation failed for X0 = " + x0Full.display());
+            const auto x0Full = ep.getX()->makeFullSpacePointFromFixed(NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+            AddOutputError("Evaluation failed for X0 = " + x0Full.display() + " -> Raw bb outputs obtained: \"" + ep.getBBO(evalType) + "\"");
+            if (ep.getEval(evalType)->getBBOutput().getBBOAsArrayOfDouble().size() != ep.getEval(evalType)->getBBOutputTypeList().size())
+            {
+                AddOutputError("Evaluation of point do not return the registered number of outputs, " +  std::to_string(ep.getEval(evalType)->getBBOutput().getBBOAsArrayOfDouble().size()) + " instead of " + std::to_string(ep.getEval(evalType)->getBBOutputTypeList().size()) + " expected. You may need to increase the buffer size in $NOMAD_HOME/src/Util/defines.hpp and rebuild Nomad." );
+            }
         }
     }
     else
