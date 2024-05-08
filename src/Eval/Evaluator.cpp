@@ -388,7 +388,7 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
     
         if (!_bbRedirection)
         {
-            char buffer[1024];
+            char buffer[BUFFER_SIZE];
             char *outputline = nullptr;
             
             outputline = fgets(buffer, sizeof(buffer), fresult);
