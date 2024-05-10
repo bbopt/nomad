@@ -464,7 +464,7 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
             {
                 std::shared_ptr<NOMAD::EvalPoint> x = block[index];
                 
-                char buffer[1024];
+                char buffer[BUFFER_SIZE];
                 char *outputLine = nullptr;
                 
                 size_t nbTries=0;
