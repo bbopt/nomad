@@ -2228,6 +2228,12 @@ std::vector<bool> NOMAD::EvaluatorControl::evalBlockOfPoints(
     {
         std::string err("EvaluatorControl: Eval Block of Points: eval_x returned an exception: ");
         err += e.what();
+        err += " \n Blackbox evaluation maybe the cause of this exception. Raw bb outputs obtained: \"";
+        for ( const auto & ep : block)
+        {
+            err += ep->getBBO(evalType);
+            err += "\"\n";
+        }
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
