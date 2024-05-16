@@ -224,6 +224,8 @@ std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirect
     {
         for (auto vg : _varGroups)
         {
+            directionsSubSpace.clear();
+            
             size_t nVG = vg.size();
 
             if (!isSecondPass)
