@@ -2,25 +2,25 @@ task:
   matrix:
     - name: FreeBSD -- gcc | g++
       freebsd_instance:
-        image: freebsd-13-1-release-amd64
+        image: freebsd-13-3-release-amd64
       env:
         cc: gcc12
         cxx: g++12
     - name: FreeBSD -- clang | clang++
       freebsd_instance:
-        image: freebsd-13-1-release-amd64
+        image: freebsd-13-3-release-amd64
       env:
         cc: clang
         cxx: clang++
     - name: MacOS M1 -- gcc | g++
       macos_instance:
-        image: ghcr.io/cirruslabs/macos-monterey-base:latest
+        image: ghcr.io/cirruslabs/macos-ventura-base:latest
       env:
-        cc: gcc-12
-        cxx: g++-12
+        cc: gcc-14
+        cxx: g++-14
     - name: MacOS M1 -- clang | clang++
       macos_instance:
-        image: ghcr.io/cirruslabs/macos-monterey-base:latest
+        image: ghcr.io/cirruslabs/macos-ventura-base:latest
       env:
         cc: clang
         cxx: clang++
@@ -29,7 +29,7 @@ task:
     if [ "$(uname)" = "FreeBSD" ]; then
       pkg install -y cmake bash gcc12
     else
-      brew install cmake gcc
+      brew install cmake gcc@14
     fi
   configure_script: |
     mkdir instdir
