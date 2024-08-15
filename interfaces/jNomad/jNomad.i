@@ -51,7 +51,7 @@
 %shared_ptr(NOMAD::Evaluator)
 
 %template(EvalPointVector) std::vector<NOMAD::EvalPoint>;
-%template(EvalPointList) std::list<NOMAD::EvalPoint>;
+// %template(EvalPointList) std::list<NOMAD::EvalPoint>;
 
 namespace NOMAD{
 
