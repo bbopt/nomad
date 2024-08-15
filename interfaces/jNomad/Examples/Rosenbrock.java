@@ -60,7 +60,7 @@ public class Rosenbrock {
 			if (os.startsWith("Mac"))
 				System.load(libpath + "libjNomad.jnilib");
 			else if (os.startsWith("Windows"))
-				System.load(libpath + "libjNomad.dll");
+				System.load(libpath + "Release/jNomad.dll");
 			else if (os.startsWith("Linux"))
 				System.load(libpath + "libjNomad.so");
 		} catch (UnsatisfiedLinkError e) {
