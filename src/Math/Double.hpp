@@ -254,7 +254,7 @@
         * Round the current value to given precision (number of decimals).
         \return \c true if rounding is done defined, \c false if not.
         */
-        bool roundToPrecision(const NOMAD::Double & precision) ;
+        bool roundToPrecision(const NOMAD::Double & precision, const NOMAD::Double & lb, const NOMAD::Double & ub) ;
         
         /// Rounding upward to an integer.
         const Double ceil() const;
