@@ -277,7 +277,7 @@ public:
     \param ub               The upper bound for the rounding -- \b IN.
     \return        A \c bool equal to \c true if a single element has been rounded.
     */
-    bool roundToPrecision(const NOMAD::ArrayOfDouble & precision, const NOMAD::Double & lb, const NOMAD::Double & ub);
+    bool roundToPrecision(const NOMAD::ArrayOfDouble & precision, const NOMAD::ArrayOfDouble & lb, const NOMAD::ArrayOfDouble & ub);
     
     
     /*------------*/
