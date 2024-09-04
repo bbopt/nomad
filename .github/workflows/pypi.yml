@@ -78,7 +78,7 @@ jobs:
           package-dir: interfaces/PyNomad
 
       - name: Collect wheels for processing
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.1.7
         with:
           path: wheelhouse/*.whl
 
