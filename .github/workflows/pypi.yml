@@ -10,18 +10,18 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - name: Windows
-            os: windows-latest
-            archs: AMD64
-            msvc: 1
+#          - name: Windows
+#            os: windows-latest
+#            archs: AMD64
+#            msvc: 1
 
           - name: Ubuntu
             os: ubuntu-latest
             archs: x86_64
 
-          - name: macOS
-            os: macos-latest
-            archs: x86_64
+#          - name: macOS
+#            os: macos-latest
+#            archs: x86_64
 
     name: Wheels for ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.os }}
@@ -30,13 +30,14 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.12'
+#          python-version: '3.8'
 
-      - name: Install dependencies on Windows
-        if: startsWith(matrix.config.name, 'Windows')
-        run: |
-          choco install cmake
-          cmake --version
+#      - name: Install dependencies on Windows
+#        if: startsWith(matrix.config.name, 'Windows')
+#        run: |
+#          choco install cmake
+#          cmake --version
 
       - name: Install dependencies on Ubuntu
         if: startsWith(matrix.config.name, 'Ubuntu')
@@ -46,14 +47,14 @@ jobs:
           cmake --version
           gcc --version
 
-      - name: Install dependencies on MacOS
-        if: startsWith(matrix.config.name, 'MacOS')
-        run: |
-          brew install cmake
-          cmake --version
+#      - name: Install dependencies on MacOS
+#        if: startsWith(matrix.config.name, 'MacOS')
+#        run: |
+#          brew install cmake
+#          cmake --version
 
       - name: Build binary wheels
-        uses: pypa/cibuildwheel@v2.12.0
+        uses: pypa/cibuildwheel@v2.20.0
         env:
           CIBW_ARCHS: >-
             ${{ matrix.target.archs }}
@@ -66,7 +67,8 @@ jobs:
             NOMAD_MSVC_FLAG=${{ matrix.target.msvc }}
             NOMAD_MSVC_CONF=Release
           CIBW_PROJECT_REQUIRES_PYTHON: >-
-            >=3.8
+            >=3.12
+#            >=3.8
           CIBW_BUILD_FRONTEND: >-
             build
           CIBW_BUILD_VERBOSITY: >-
