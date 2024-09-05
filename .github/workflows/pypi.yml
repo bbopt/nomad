@@ -53,7 +53,7 @@ jobs:
           cmake --version
 
       - name: Build binary wheels
-        uses: pypa/cibuildwheel@v2.12.0
+        uses: pypa/cibuildwheel@v2.20.0
         env:
           CIBW_ARCHS: >-
             ${{ matrix.target.archs }}
@@ -76,7 +76,7 @@ jobs:
           package-dir: interfaces/PyNomad
 
       - name: Collect wheels for processing
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: wheelhouse/*.whl
 
@@ -94,7 +94,7 @@ jobs:
 
     steps:
       - name: Collect wheels for publication
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: artifact
           path: dist
