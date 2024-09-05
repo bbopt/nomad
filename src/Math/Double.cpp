@@ -171,7 +171,7 @@ double NOMAD::Double::trunk() const
 
 }
 
-bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision )
+bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision, const NOMAD::Double & lb, const NOMAD::Double & ub )
 {
     if (! _defined)
     {
@@ -186,6 +186,18 @@ bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision )
         {
             double powprec = std::pow(10,precision.round());
             _value = std::round(_value * powprec) / powprec;
+            
+            // During the arithmetic operations we may have rounded _value slightly below or above (wrt EPSILON) lb or ub
+            // This can trigger an exception later
+            if (lb.isDefined() && _value < lb.todouble())
+            {
+                _value = lb.todouble();
+            }
+            else if (ub.isDefined() && _value > ub.todouble())
+            {
+                _value = ub.todouble();
+            }
+
         }
         else
         {

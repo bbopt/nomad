@@ -273,9 +273,11 @@ public:
     /**
     * Round all elements to their precision given as number of decimals.
     \param precision    The number of decimals for each element -- \b IN.
+    \param lb                The lower bound for the rounding -- \b IN.
+    \param ub               The upper bound for the rounding -- \b IN.
     \return        A \c bool equal to \c true if a single element has been rounded.
     */
-    bool roundToPrecision(const NOMAD::ArrayOfDouble & precision);
+    bool roundToPrecision(const NOMAD::ArrayOfDouble & precision, const NOMAD::ArrayOfDouble & lb, const NOMAD::ArrayOfDouble & ub);
     
     
     /*------------*/

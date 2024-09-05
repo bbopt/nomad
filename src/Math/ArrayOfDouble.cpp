@@ -577,13 +577,13 @@ const NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator-(const NOMAD::ArrayOfD
     return tmp;
 }
 
-bool NOMAD::ArrayOfDouble::roundToPrecision(const NOMAD::ArrayOfDouble & precision)
+bool NOMAD::ArrayOfDouble::roundToPrecision(const NOMAD::ArrayOfDouble & precision, const NOMAD::ArrayOfDouble & lb, const NOMAD::ArrayOfDouble & ub)
 {
     bool modif = false;
 
     for (size_t i = 0; i < _n; i++)
     {
-        if (_array[i].roundToPrecision(precision[i]))
+        if (_array[i].roundToPrecision(precision[i], lb[i], ub[i]))
         {
             modif = true;
         }

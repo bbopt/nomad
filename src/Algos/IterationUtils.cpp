@@ -192,7 +192,7 @@ bool NOMAD::IterationUtils::snapPointToBoundsAndProjectOnMesh(
 
     // Round to POINT_FORMAT number of decimals
     NOMAD::Point pointPrecision = _pointPrecisionFull.projectPointToSubspace(fixedVariable);
-    bool modif = point.roundToPrecision(pointPrecision);
+    bool modif = point.roundToPrecision(pointPrecision, lowerBound, upperBound);
     
     if (modif || *evalPoint0.getX() != point )
     {
