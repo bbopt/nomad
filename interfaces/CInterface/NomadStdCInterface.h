@@ -11,6 +11,7 @@
   #define DLL_EXPORT_API
 #endif
 
+#include <stdbool.h>
 #include "nomad_platform.hpp"
 // strongly inspired by Ipopt C interface
 
@@ -19,56 +20,114 @@ extern "C"
 {
 #endif
 
-    // Contains the most important things to solve a Nomad problem
-    struct NomadProblemInfo;
+// Contains the most important things to solve a Nomad problem
+struct NomadProblemInfo;
 
-    // Pointer to a Nomad problem
-    typedef struct NomadProblemInfo *NomadProblem;
+// Pointer to a Nomad problem
+typedef struct NomadProblemInfo *NomadProblem;
 
-    // To pass other informations required in the blackbox (can be useful for other interfaces)
-    typedef void *NomadUserDataPtr;
+// To pass other information required in the blackbox (can be useful for other
+// interfaces)
+typedef void *NomadUserDataPtr;
 
-    // Blackbox functions types (TODO add for blackbox block evaluation functions ?)
-    typedef bool (*Callback_BB_single)(int, double *, int, double *, bool *, NomadUserDataPtr);
+// Blackbox functions types
+typedef bool (*Callback_BB_single)(int, double *, int, double *, bool *,
+                                   NomadUserDataPtr);
+typedef void (*Callback_BB_block)(int, int, double *, int, double *, bool *, bool *,
+                                  NomadUserDataPtr);
 
-	DLL_EXPORT_API NomadProblem createNomadProblem(
-        Callback_BB_single bb_single, // black box function
-        int nb_inputs,                // number of inputs
-        int nb_outputs                // number of outputs
-    );
+// Contains information concerning the solution return by Nomad
+struct NomadResultInfo;
 
-	DLL_EXPORT_API void freeNomadProblem(NomadProblem nomad_problem);
+// Pointer to a Nomad result
+typedef struct NomadResultInfo *NomadResult;
+
+// Nomad problem functions API
+
+DLL_EXPORT_API NomadProblem createNomadProblem(
+    Callback_BB_single bb_single, // blackbox function (single evaluation)
+    Callback_BB_block bb_block,   // blackbox function (evalution per block)
+    const int nb_inputs,          // number of inputs
+    const int nb_outputs          // number of outputs
+);
+
+DLL_EXPORT_API void freeNomadProblem(NomadProblem nomad_problem);
+
+// parameters settings
+DLL_EXPORT_API bool addNomadParam(const NomadProblem nomad_problem,
+                                  const char *keyword_value_pair);
+
+DLL_EXPORT_API bool addNomadValParam(const NomadProblem nomad_problem,
+                                     const char *keyword,
+                                     const int value);
+
+DLL_EXPORT_API bool addNomadDoubleParam(const NomadProblem nomad_problem,
+                                        const char *keyword,
+                                        const double value);
+
+DLL_EXPORT_API bool addNomadBoolParam(const NomadProblem nomad_problem,
+                                      const char *keyword,
+                                      const bool value);
+
+DLL_EXPORT_API bool addNomadStringParam(const NomadProblem nomad_problem,
+                                        const char *keyword,
+                                        const char *param_str);
+
+DLL_EXPORT_API bool addNomadArrayOfDoubleParam(const NomadProblem nomad_problem,
+                                               const char *keyword,
+                                               const double *array_param);
 
 
+// Solve the problem and return the following flag
+// *  1 - Objective target reached OR Mads converged (mesh criterion) to a feasible point (true problem).
+// *  0 - At least one feasible point obtained and evaluation budget (single bb or block of bb) spent
+//        or max iteration (user option) reached.
+// * -1 - Mads mesh converged but no feasible point obtained (only infeasible) for the true problem.
+// * -2 - No feasible point obtained (only infeasible) and evaluation budget (single bb or block of bb)
+//        spent or max iteration (user option) reached
+// * -3 - Initial point failed to evaluate
+// * -4 - Time limit reached (user option)
+// * -5 - CTRL-C or user stopped (callback function)
+// * -6 - Stop on feasible point (user option)
+// * -7 - Wrong parameters
+// * -8 - Something has gone wrong with the evaluation
+// NB: this function does not allow a warm-start.
+DLL_EXPORT_API int solveNomadProblem(
+    const NomadResult result,
+    const NomadProblem nomad_problem,
+    const int nb_starting_points, // number of starting points
+    const double *x0s,            // starting points
+    NomadUserDataPtr user_data_ptr); // Anything, responsibility is on you
 
-    // parameters settings
-	DLL_EXPORT_API bool addNomadParam(NomadProblem nomad_problem, char *keyword_value_pair);
+// Nomad result API
 
-	DLL_EXPORT_API bool addNomadValParam(NomadProblem nomad_problem, char *keyword, int value);
+DLL_EXPORT_API NomadResult createNomadResult(void);
+DLL_EXPORT_API void freeNomadResult(NomadResult result);
 
-	DLL_EXPORT_API bool addNomadDoubleParam(NomadProblem nomad_problem, char *keyword, double value);
+DLL_EXPORT_API int nbInputsNomadResult(const NomadResult result);
+DLL_EXPORT_API int nbOutputsNomadResult(const NomadResult result);
+DLL_EXPORT_API int nbSolutionsNomadResult(const NomadResult result);
+DLL_EXPORT_API bool feasibleSolutionsFoundNomadResult(const NomadResult result);
 
-	DLL_EXPORT_API bool addNomadBoolParam(NomadProblem nomad_problem, char *keyword, bool value);
+// Return true if all solutions have been loaded, false otherwise.
+// WARNING: it is the responsibility of the user to allocate the correct
+// memory size (nb_solutions * nb_inputs) before calling this function.
+// Note that nb_solutions must be inferior or equal to the number of
+// solutions returned by Nomad.
+DLL_EXPORT_API bool loadInputSolutionsNomadResult(double *input_solutions,
+                                                  const int nb_solutions,
+                                                  const NomadResult result);
 
-	DLL_EXPORT_API bool addNomadStringParam(NomadProblem nomad_problem, char *keyword, char *param_str);
-
-	DLL_EXPORT_API bool addNomadArrayOfDoubleParam(NomadProblem nomad_problem, char *keyword, double *array_param);
-
-    // TODO precise a return status, i.e. a stop reason
-
-    // For the moment, do not allow the warm start
-	DLL_EXPORT_API bool solveNomadProblem(NomadProblem nomad_problem,
-                           int nb_starting_points,          // number of starting points
-                           double *x0s,                     // starting points
-                           bool *exists_feas_sol,           // indicates if the algorithm finds a feasible solution
-                           double *bb_best_x_feas,          // At the end, contains feas solution if this last one exists
-                           double *bb_best_feas_outputs,    // At the end, contains feas output solution if this last one exists
-                           bool *exists_inf_sol,            // Indicates if the algorithm finds an infeasible solution
-                           double *bb_best_x_inf,           // At the end, contains infeas input solution if this last one exists
-                           double *bb_best_inf_outputs,     // At the end, contains infeas output solution if this last one exists
-                           NomadUserDataPtr user_data_ptr); // Anything, responsability is on you
+// Return true if all solutions have been loaded, false otherwise.
+// WARNING: it is the responsibility of the user to allocate the correct
+// memory size (nb_solutions * nb_outputs) before calling this function.
+// Note that nb_solutions must be inferior or equal to the number of
+// solutions returned by Nomad.
+DLL_EXPORT_API bool loadOutputSolutionsNomadResult(double *output_solutions,
+                                                   const int nb_solutions,
+                                                   const NomadResult result);
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* ifndef SYMBOL */
+#endif /* _NOMADSTDCINTERFACE_H_ */

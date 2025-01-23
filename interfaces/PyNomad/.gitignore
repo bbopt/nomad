@@ -6,4 +6,3 @@ dist
 build
 PyNomad.egg-info
 PyNomadDev.egg-info
-.env

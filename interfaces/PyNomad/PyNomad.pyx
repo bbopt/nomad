@@ -148,7 +148,7 @@ def observe(params,points,evals,udpatedCacheFileName):
     mainStep.setAllParameters(allParameters_ptr)
 
     # Reset the cache (important for static members reinitialization) before calling observe
-    mainStep.resetCache()
+    mainStep.resetCache() 
 
     if len(points) != len(evals):
       print("Observe: Incompatible dimension of points and evaluations")
@@ -194,14 +194,14 @@ def optimize(fBB, pX0, pLB, pUB, params, fSurrogate=None):
          eParams.append(params[i].encode(u"ascii"))
 
     if fSurrogate is None:
-        runFlag = runNomad(<Callback> cb,<CallbackL> cbL, <void*> fBB, <vector[double]&> pX0,
+        runFlag = runNomad(cb, cbL, <void*> fBB, <vector[double]&> pX0,
                          <vector[double]&> pLB, <vector[double]&> pUB,
                          <vector[string]&> eParams,
                          uFeas.c_ep_ptr,
                          uInfeas.c_ep_ptr,
                          nbEvals, nbIters, stopReason)
     else:
-        runFlag = runNomad(<Callback> cb, <CallbackL> cbL, <void*> fBB,  <void*> fSurrogate,
+        runFlag = runNomad(cb, cbL, <void*> fBB,  <void*> fSurrogate,
                          <vector[double]&> pX0,
                          <vector[double]&> pLB, <vector[double]&> pUB,
                          <vector[string]&> eParams,
@@ -376,11 +376,38 @@ cdef class PyNomadDouble:
     def isDefined(self):
         return self.c_d.isDefined()
 
+cdef extern from "Type/EvalType.hpp" namespace "NOMAD":
+    cpdef enum class EvalType:
+        BB,
+        SURROGATE,
+        MODEL,
+        LAST,
+        UNDEFINED
+
+cdef extern from "Type/ComputeType.hpp" namespace "NOMAD":
+    cpdef enum class ComputeType:
+        STANDARD
+        PHASE_ONE
+        USER
+        UNDEFINED
+
+    cpdef enum class HNormType:
+        L1
+        L2
+        Linf
+
+    cdef struct FHComputeTypeS:
+        pass
+
+    cdef struct FHComputeType:
+        pass
+
+
 cdef extern from "Eval/EvalPoint.hpp" namespace "NOMAD":
     cdef cppclass EvalPoint:
         const Double& operator[](size_t i) const
-        const Double& getF()
-        const Double& getH()
+        const Double& getF(const FHComputeType& completeComputeType) const
+        const Double& getH(const FHComputeType& completeComputeType) const
         void setBBO(const string &bbo)
         string getBBO()
         size_t size()
@@ -409,7 +436,11 @@ cdef class PyNomadEvalPoint:
 
     def getF(self):
         cdef PyNomadDouble f = PyNomadDouble()
-        f.c_d = deref(self.c_ep_ptr).getF()
+        cdef FHComputeTypeS defaultFHComputeTypeS = FHComputeTypeS(ComputeType.STANDARD,
+                                                                   HNormType.L2)
+        cdef FHComputeType defaultFHComputeType = FHComputeType(EvalType.BB,
+                                                                FHComputeTypeS)
+        f.c_d = deref(self.c_ep_ptr).getF(defaultFHComputeType)
         cdef double f_d
         if ( f.isDefined() ):
             f_d = f.todouble()
@@ -419,7 +450,11 @@ cdef class PyNomadEvalPoint:
 
     def getH(self):
         cdef PyNomadDouble h = PyNomadDouble()
-        h.c_d = deref(self.c_ep_ptr).getH()
+        cdef FHComputeTypeS defaultFHComputeTypeS = FHComputeTypeS(ComputeType.STANDARD,
+                                                                   HNormType.L2)
+        cdef FHComputeType defaultFHComputeType = FHComputeType(EvalType.BB,
+                                                                FHComputeTypeS)
+        h.c_d = deref(self.c_ep_ptr).getH(defaultFHComputeType)
         cdef double h_d
         if ( h.isDefined() ):
             h_d = h.todouble()
@@ -484,3 +519,4 @@ cdef vector[int] cbL(void *f, shared_ptr[Block] block) noexcept:
 
     u.c_block_ptr = block
     return (<object>f)(u)
+ 

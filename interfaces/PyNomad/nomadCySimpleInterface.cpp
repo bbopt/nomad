@@ -155,7 +155,7 @@ static void printPyNomadUsage()
     std::cout << "     return evalOk"                                                   << std::endl;
     std::cout                                                                           << std::endl;
     std::cout << "-----------------------------------------------------------"          << std::endl;
-
+    
     std::cout << "-----------------------------------------------------------"          << std::endl;
     std::cout << " Nomad termination run flags"                                         << std::endl;
     std::cout                                                                           << std::endl;
@@ -173,7 +173,7 @@ static void printPyNomadUsage()
     std::cout << "  -4 - Time limit reached (user option)"                              << std::endl;
     std::cout << "  -5 - CTRL-C or user stopped (callback function)"                    << std::endl;
     std::cout << "  -6 - Stop on feasible point (user option)"                          << std::endl;
-
+    
 }
 
 
@@ -240,7 +240,7 @@ public:
         size_t nbPoints = block.size();
         std::vector<bool> evalOk(nbPoints, false);
         countEval.resize(nbPoints, false);
-
+        
         // eval_block is always called.
         // if cbL is NULL, this means that the block must be of size 1, and that
         // cb should be used.
@@ -415,8 +415,8 @@ static int runNomad(Callback cb,
 
     try
     {
-
-
+        
+        
         Py_BEGIN_ALLOW_THREADS
 
         NOMAD::MainStep TheMainStep;
@@ -433,7 +433,7 @@ static int runNomad(Callback cb,
         {
             cbL = nullptr;
         }
-
+        
         auto ev = std::make_unique<PyEval>(allParams->getEvalParams(), cb, cbL, apply, NOMAD::EvalType::BB);
         TheMainStep.addEvaluator(std::move(ev));
 
@@ -445,11 +445,15 @@ static int runNomad(Callback cb,
         nbIters = 0; // Not supported in this version of NOMAD 4
         // Keeping the value for compatibility with PyNomad 1
 
+        const auto hNormType = allParams->getAttributeValue<NOMAD::HNormType>("H_NORM");
+        const auto evalType = NOMAD::EvalType::BB;
+        const NOMAD::FHComputeType computeType= {evalType, {NOMAD::ComputeType::STANDARD, hNormType}};
+        
         // Set the best feasible and best infeasible solutions
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
-        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
-
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), computeType);
+        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), computeType);
+        
         // For now
         // If nbFeas > 0 we return a single best feasible point (no infeasible point)
         // Else (if nbFeas == 0) we return the least infeasible point with the smallest f (index 0, see findBestInf)
@@ -475,13 +479,13 @@ static int runNomad(Callback cb,
                 bestInfeasSol = nullptr;
             }
         }
-
+        
         runFlag = TheMainStep.getRunFlag();
-
+        
         stopReason = TheMainStep.getAllStopReasons()->getStopReasonAsString();
-
+        
         NOMAD::MainStep::resetComponentsBetweenOptimization();
-
+        
         Py_END_ALLOW_THREADS
         return runFlag;
     }
@@ -514,7 +518,7 @@ static int runNomad(Callback cb,
     bestFeasSol = nullptr;
     bestInfeasSol = nullptr;
     stopReason = "No stop reason";
-
+    
     int runFlag = -3 ;
 
     std::cout<<"Run nomad with surrogate"<<std::endl;
@@ -536,13 +540,13 @@ static int runNomad(Callback cb,
         {
             cbL = nullptr;
         }
-
+        
         auto evBB = std::make_unique<PyEval>(allParams->getEvalParams(), cb, cbL, applyBB, NOMAD::EvalType::BB);
         TheMainStep.addEvaluator(std::move(evBB));
 
         auto evSurrogate = std::make_unique<PyEval>(allParams->getEvalParams(), cb, cbL, applySurrogate, NOMAD::EvalType::SURROGATE);
         TheMainStep.addEvaluator(std::move(evSurrogate));
-
+        
         TheMainStep.start();
         TheMainStep.run();
         TheMainStep.end();
@@ -551,10 +555,14 @@ static int runNomad(Callback cb,
         nbIters = 0; // Not supported in this version of NOMAD 4
                      // Keeping the value for compatibility with PyNomad 1
 
+        const auto hNormType = allParams->getAttributeValue<NOMAD::HNormType>("H_NORM");
+        const auto evalType = NOMAD::EvalType::BB;
+        const NOMAD::FHComputeType computeType= {evalType, {NOMAD::ComputeType::STANDARD, hNormType}};
+
         // Set the best feasible and best infeasible solutions
         std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
-        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), computeType);
+        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), computeType);
 
         // For now
         // If nbFeas > 0 we return a single best feasible point (no infeasible point)
@@ -582,11 +590,11 @@ static int runNomad(Callback cb,
             }
         }
 
-        NOMAD::MainStep::resetComponentsBetweenOptimization();
-
         runFlag = TheMainStep.getRunFlag();
-
+        
         stopReason = TheMainStep.getAllStopReasons()->getStopReasonAsString();
+        
+        NOMAD::MainStep::resetComponentsBetweenOptimization();
 
         Py_END_ALLOW_THREADS
         return runFlag;
