@@ -114,7 +114,7 @@ NOMAD::BBOutputTypeList NOMAD::stringToBBOutputTypeList(const std::string &s)
     NOMAD::ArrayOfString aos(s);
     for (size_t i = 0; i < aos.size(); i++)
     {
-        list.push_back(NOMAD::BBOutputType(aos[i]));
+        list.emplace_back(aos[i]);
     }
     return list;
 }
@@ -124,7 +124,7 @@ NOMAD::BBOutputTypeList NOMAD::stringToBBOutputTypeList(const std::string &s)
 std::string NOMAD::BBOutputTypeListToString( const BBOutputTypeList & bbotList )
 {
     std::ostringstream oss;
-    for ( auto bbot : bbotList )
+    for (const auto& bbot : bbotList )
     {
         oss << bbot;
         if (bbot._isRevealing)
@@ -141,9 +141,9 @@ std::string NOMAD::BBOutputTypeListToString( const BBOutputTypeList & bbotList )
 size_t NOMAD::getNbConstraints(const BBOutputTypeList& bbotList)
 {
     size_t nbConstraints = 0;
-    for (size_t i = 0; i < bbotList.size(); i++)
+    for (const auto& bbot: bbotList)
     {
-        if (bbotList[i].isConstraint())
+        if (bbot.isConstraint())
         {
             nbConstraints++;
         }
@@ -159,9 +159,9 @@ size_t NOMAD::getNbConstraints(const BBOutputTypeList& bbotList)
 size_t NOMAD::getNbObj(const BBOutputTypeList& bbotList)
 {
     size_t nbObj = 0;
-    for (size_t i = 0; i < bbotList.size(); i++)
+    for (const auto& bbot: bbotList)
     {
-        if (bbotList[i].NOMAD::BBOutputType::isObjective())
+        if (bbot.NOMAD::BBOutputType::isObjective())
         {
             nbObj++;
         }
@@ -174,9 +174,9 @@ size_t NOMAD::getNbObj(const BBOutputTypeList& bbotList)
 size_t NOMAD::getNbRevealing(const BBOutputTypeList& bbotList)
 {
     size_t nbReveal = 0;
-    for (size_t i = 0; i < bbotList.size(); i++)
+    for (const auto& bbot: bbotList)
     {
-        if (bbotList[i].NOMAD::BBOutputType::isRevealing())
+        if (bbot.NOMAD::BBOutputType::isRevealing())
         {
             nbReveal++;
         }
@@ -191,7 +191,7 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::BBOutputTypeList &bbOut
 
     while (is >> s)
     {
-        bbOutputTypeList.push_back(NOMAD::BBOutputType(s));
+        bbOutputTypeList.emplace_back(s);
     }
 
     return is;

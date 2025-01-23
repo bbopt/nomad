@@ -144,7 +144,7 @@ void NOMAD::DMultiMadsMegaIteration::display( std::ostream& os ) const
 void NOMAD::DMultiMadsMegaIteration::read(  std::istream& is )
 {
     
-    throw NOMAD::Exception(__FILE__,__LINE__,"DMultiMadsMegationIteration is not yet available.");
+    throw NOMAD::Exception(__FILE__,__LINE__,"DMultiMadsMegaIteration is not yet available.");
 //    // Set up structures to gather member info
 //    size_t k=0;
 //    // Read line by line

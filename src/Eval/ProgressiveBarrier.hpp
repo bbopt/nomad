@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_PROGRESSIVEBARRIER__
-#define __NOMAD_4_4_PROGRESSIVEBARRIER__
+#ifndef __NOMAD_4_5_PROGRESSIVEBARRIER__
+#define __NOMAD_4_5_PROGRESSIVEBARRIER__
 
 #include "../Eval/BarrierBase.hpp"
 #include "../Eval/EvalPoint.hpp"
@@ -72,15 +72,16 @@ public:
     ProgressiveBarrier(const Double& hMax = INF,
             const Point& fixedVariable = Point(),
             EvalType evalType = EvalType::BB,
-            ComputeType computeType = ComputeType::STANDARD,
+            FHComputeTypeS computeType = defaultFHComputeTypeS,
             const std::vector<EvalPoint>& evalPointList = std::vector<EvalPoint>(),
             bool barrierInitializedFromCache= true)
-      : BarrierBase(hMax),
+      : BarrierBase(evalType, computeType, hMax),
         _incumbentsAndHMaxUpToDate(false)
     {
-        init(fixedVariable, evalType, computeType, barrierInitializedFromCache);
-        init(fixedVariable, evalType, evalPointList, computeType);
+        init(fixedVariable, barrierInitializedFromCache);
+        init(fixedVariable,evalPointList);
     }
+    
     
     
     // Copy constructor
@@ -111,16 +112,22 @@ public:
     */
     void setHMax(const Double &hMax) override;
 
-    ///  xFeas and xInf according to given points.
+    /// SuccessType of xFeas and xInf according to given points.
+    /* \param xFeas Feasible point -- \b IN.
+     * \param XInf Infeasible point -- \b IN.
+     * \return SuccessType of points.
+     * \note Input EvalPoints are already in subproblem dimension
+     */
     SuccessType getSuccessTypeOfPoints(const EvalPointPtr xFeas,
-                                       const EvalPointPtr xInf,
-                                       EvalType evalType,
-                                       ComputeType computeType) override;
+                                       const EvalPointPtr xInf) override;
 
     /// Update xFeas and xInf according to given points.
+    /* \param evalPointList vector of EvalPoints  -- \b IN.
+     * \param keepAllPoints \b IN.
+     * \return true if the barrier feasible and/or infeasible incumbents are changed, false otherwise
+     * \note Input EvalPoints are already in subproblem dimension
+     */
     bool updateWithPoints(const std::vector<EvalPoint>& evalPointList,
-                          EvalType evalType,
-                          ComputeType computeType,
                           const bool keepAllPoints = false,
                           const bool updateInfeasibleIncumbentAndHmax = false ) override;
     
@@ -145,13 +152,9 @@ private:
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      \param fixedVariable   The fixed variables have a fixed value     -- \b IN.
-     \param evalType        Which eval (Blackbox or Model) to use to verify feasibility  -- \b IN.
-     \param computeType    Which compute type (standard, phase-one or user) must be available to find in cache  -- \b IN.
      \param barrierInitializedFromCache  Flag to initialize barrier from cache or not. -- \b IN.
      */
     void init(const Point& fixedVariable,
-              EvalType evalType,
-              ComputeType computeType,
               bool barrierInitializedFromCache) override;
 
     /**
@@ -159,14 +162,10 @@ private:
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      \param fixedVariable   The fixed variables have a fixed value     -- \b IN.
-     \param evalType        Which eval (Blackbox or Model) to use to verify feasibility  -- \b IN.
      \param evalPointList   Additional points to consider to construct barrier. -- \b IN.
-     \param computeType    Which compute type (standard, phase-one or user) must be available to find in cache  -- \b IN.
      */
     void init(const Point& fixedVariable,
-              EvalType evalType,
-              const std::vector<EvalPoint>& evalPointList,
-              ComputeType computeType);
+              const std::vector<EvalPoint>& evalPointList);
 
     
     /** Helper for updateWithPoints
@@ -179,14 +178,14 @@ private:
      * Used for updating hMax
      * Get h just below hmax among all xInf
      */
-    NOMAD::Double getWorstHInBarrier(NOMAD::EvalType evalType, NOMAD::ComputeType computeType) const;
+    NOMAD::Double getWorstHInBarrier() const;
     
 protected:
 
     /** Helper for updateWithPoints
         * Set the infeasible incumbent(s) from xInf
      */
-    bool setInfeasibleIncumbents(NOMAD::EvalType evalType, NOMAD::ComputeType computeType) ;
+    bool setInfeasibleIncumbents() ;
 
 
 };
@@ -196,4 +195,4 @@ protected:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_PROGRESSIVEBARRIER__
+#endif // __NOMAD_4_5_PROGRESSIVEBARRIER__

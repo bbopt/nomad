@@ -117,15 +117,6 @@ void NOMAD::MegaIteration::endImp()
     // (if stopping criteria reached during search for ex, hmax and incumbents have not been updated if it was not a full success)
     if(_stopReasons->checkTerminate())
     {
-            auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-            auto evalType = NOMAD::EvalType::BB;
-            auto computeType = NOMAD::ComputeType::STANDARD;
-            if (nullptr != evc)
-            {
-                evalType = evc->getCurrentEvalType();
-                computeType = evc->getComputeType();
-            }
-
             // Update of hmax and feasible/infeasible incumbents
             bool barrierModified = false;
             std::vector<NOMAD::EvalPoint> evalPointList;  // eval point list empty just to call updateWithPoints
@@ -133,8 +124,6 @@ void NOMAD::MegaIteration::endImp()
             {
                 barrierModified = _barrier->updateWithPoints(
                                     evalPointList,
-                                    evalType,
-                                    computeType,
                                     false /* not used by progressive barrier */,
                                     true /* update incumbents and hmax*/ );
             }

@@ -138,9 +138,8 @@ void NOMAD::PbParameters::checkAndComply( )
     }
     else
     {
-        for (size_t x0index = 0; x0index < x0s.size(); x0index++)
+        for (const auto& x0 : x0s)
         {
-            auto x0 = x0s[x0index];
             if ( x0.size() != n )
             {
                 // X0 empty
@@ -310,7 +309,7 @@ void NOMAD::PbParameters::setGranularityAndBBInputType()
     }
 
     // Fix BB_INPUT_TYPE in a list form using the 'all of the same type (*)' syntax (for example: *R)
-    std::vector<NOMAD::BBInputType>::const_iterator it=bbInputType.begin();
+    auto it= bbInputType.begin();
     switch (*it)
     {
         case NOMAD::BBInputType::ALL_CONTINUOUS:
@@ -421,9 +420,8 @@ void NOMAD::PbParameters::setFixedVariables()
         throw NOMAD::InvalidParameter(__FILE__,__LINE__, oss.str());
     }
 
-    for (size_t x0index = 0; x0index < x0s.size(); x0index++)
+    for (const auto& x0 : x0s)
     {
-        auto x0 = x0s[x0index];
         for (size_t i = 0; i < n; i++)
         {
             if (fixedVariable[i].toBeDefined() && x0[i].isDefined())
@@ -482,7 +480,7 @@ void NOMAD::PbParameters::setVariableGroups()
 {
     auto lvg = getAttributeValueProtected<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP",false);
 
-    if (lvg.size() == 0)
+    if (lvg.empty())
         return;
 
     const size_t n = getAttributeValueProtected<size_t>("DIMENSION",false);
@@ -491,7 +489,7 @@ void NOMAD::PbParameters::setVariableGroups()
     // Create a single set of indices from all existing group of variables
     std::set<size_t> listOfAllVariableIndices;
     std::pair<std::set<size_t>::iterator,bool> ret;
-    for (auto vg: lvg )
+    for (const auto& vg: lvg )
     {
         for (auto index: vg)
         {
@@ -523,7 +521,7 @@ void NOMAD::PbParameters::setVariableGroups()
             if(ret.second)
                 newVG.insert(i);
         }
-        if (newVG.size() > 0)
+        if (!newVG.empty())
         {
             lvg.push_back(newVG);
 
@@ -543,9 +541,8 @@ void NOMAD::PbParameters::checkX0AgainstBounds() const
     // Get X0
     const auto x0s = getAttributeValueProtected<NOMAD::ArrayOfPoint>("X0",false);
 
-    for (size_t x0index = 0; x0index < x0s.size(); x0index++)
+    for (const auto& x0 : x0s)
     {
-        auto x0 = x0s[x0index];
         for ( size_t i = 0 ; i < n ; ++i )
         {
             // Check that x0s are within bounds when defined
@@ -725,9 +722,8 @@ void NOMAD::PbParameters::setInitialMeshParameters()
         NOMAD::Point x0ub(n);
         for (size_t j = 0; j < n; j++)
         {
-            for (size_t x0index = 0; x0index < x0s.size(); x0index++)
+            for (const auto& x0 : x0s)
             {
-                auto x0 = x0s[x0index];
                 if (!x0lb[j].isDefined() || x0[j] < x0lb[j])
                 {
                     x0lb[j] = x0[j];
@@ -823,10 +819,9 @@ void NOMAD::PbParameters::setInitialMeshParameters()
 
 void NOMAD::PbParameters::checkX0ForGranularity() const
 {
-    auto x0s = getAttributeValueProtected<NOMAD::ArrayOfPoint>("X0", false);
-    for (size_t x0index = 0; x0index < x0s.size(); x0index++)
+    const auto& x0s = getAttributeValueProtected<NOMAD::ArrayOfPoint>("X0", false);
+    for (const auto& x0 : x0s)
     {
-        auto x0 = x0s[x0index];
         if (!x0.toBeDefined())
         {
             checkForGranularity("X0", x0);

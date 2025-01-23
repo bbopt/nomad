@@ -87,9 +87,8 @@ void NOMAD::Initialization::validateX0s() const
     bool validX0available = false;
     std::string err;
 
-    for (size_t x0index = 0; x0index < _x0s.size(); x0index++)
+    for (const auto& x0 : _x0s)
     {
-        auto x0 = _x0s[x0index];
         if (!x0.isComplete() || x0.size() != _n)
         {
             err += "Initialization: eval_x0s: Invalid X0 " + x0.display() + ".";

@@ -44,58 +44,59 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-/**
- \file   TemplateSimpleSearchMethod.cpp
- \brief  A template for simple random search without iteration (implementation)
- \author Christophe Tribes
- \date   2022-05-25
- */
+#ifndef __NOMAD_4_5_COOPMADS__
+#define __NOMAD_4_5_COOPMADS__
 
-#include "../../Algos/Mads/TemplateSimpleSearchMethod.hpp"
-#include "../../Algos/TemplateAlgo/TemplateAlgoSinglePass.hpp"
-#include "../../Output/OutputQueue.hpp"
+#include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Algos/Algorithm.hpp"
+#include "../../Eval/Evaluator.hpp"
 
-/*-------------------------------------------------------------*/
-/*    Template for a simple (no iterations) search method      */
-/*-------------------------------------------------------------*/
-/*  Can be called (RANDOM_SIMPLE_SEARCH yes)                   */
-/*  Generate random points around best incumbent.              */
-/*  TEMPLATE use for a new search method: copy and rename the  */
-/*  file and the class name. Adapt the code to your needs.     */
-/*-------------------------------------------------------------*/
+#include "../../nomad_nsbegin.hpp"
 
-void NOMAD::TemplateSimpleSearchMethod::init()
+// Class for COOP-Mads
+class COOPMads: public Algorithm
 {
-    // TEMPLATE use for a new search method: define a specific step type in ../Type/StepType.hpp.
-    setStepType(NOMAD::StepType::SEARCH_METHOD_SIMPLE_RANDOM);
-
-    bool enabled = false;
-    // For some testifng, it is possible that _runParams is null
-    if (nullptr != _runParams)
+public:
+    /// Constructor
+    /**
+     \param parentStep    The parent of this step -- \b IN.
+     \param evaluators     The Evaluators to initialize all main threads -- \b IN.
+     \param evalContParams Parameters to initialize all main threads -- \b IN.
+     \param stopReasons   The COOP Mads stop reasons -- \b IN/OUT.
+     \param runParams     Parameters for algorithm -- \b IN.
+     \param refPbParams   Parameters for original optimization problem. PSD-Mads use its own copy -- \b IN.
+     */
+    explicit COOPMads(const Step* parentStep,
+                      const std::vector<EvaluatorPtr>& evaluators,
+                      const std::shared_ptr<EvaluatorControlParameters>& evalContParams,
+                      std::shared_ptr<AlgoStopReasons<MadsStopType>> stopReasons,
+                      const std::shared_ptr<RunParameters>& runParams,
+                      const std::shared_ptr<PbParameters>& refPbParams)
+    : Algorithm(parentStep, stopReasons, runParams, std::make_shared<PbParameters>(*refPbParams))
     {
-        // TEMPLATE use for a new search method: a new parameter must be defined to enable or not the search method (see ../Attributes/runAttributesDefinition.txt)
-        enabled = _runParams->getAttributeValue<bool>("RANDOM_SIMPLE_SEARCH");
-    }
-
-    setEnabled(enabled);
-}
-
-
-void NOMAD::TemplateSimpleSearchMethod::generateTrialPointsFinal()
-{
-    // The trial points of one iteration of this template algorithm (random) are generated (not evaluated).
-
-    // Note: Use first point of barrier as center.
-    NOMAD::TemplateAlgoSinglePass randomAlgo(this,
-                                             getMegaIterationBarrier()->getFirstPoint());
-    randomAlgo.start();
-    randomAlgo.end();
-
-    // Pass the generated trial pts to this
-    auto trialPtsNM = randomAlgo.getTrialPoints();
-    for (auto point : trialPtsNM)
-    {
-        insertTrialPoint(point);
+        init(evaluators, evalContParams);
     }
     
-}
+    virtual ~COOPMads()
+    {
+    }
+    
+    virtual void startImp() override {};
+    virtual bool runImp() override;
+    virtual void endImp() override;
+
+    void readInformationForHotRestart() override {}
+
+private:
+    
+    /// Helper for constructor
+    void init(const std::vector<EvaluatorPtr>& evaluators,
+              const std::shared_ptr<EvaluatorControlParameters>& evalContParams);
+
+
+
+};
+
+#include "../../nomad_nsend.hpp"
+
+#endif // __NOMAD_4_5_COOPMADS__

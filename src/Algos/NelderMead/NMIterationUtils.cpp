@@ -96,13 +96,13 @@ int NOMAD::NMIterationUtils::getRankDZ( ) const
     // The dimension of DZ (k) is related to Y
     size_t k = _nmY->size() - 1 ;
 
-    std::set<NOMAD::EvalPoint>::iterator itY = _nmY->begin();
+    auto itY = _nmY->begin();
 
     const NOMAD::Point & y0 = (*itY);
     const size_t dim = y0.size();
 
     // DZ : vector of yk-y0 (multidimensional array)
-    double ** DZ = new double *[k];
+    auto DZ = new double *[k];
     for (size_t i = 0 ; i < k ; ++i )
         DZ[i]=new double [dim];
 
@@ -152,7 +152,7 @@ int NOMAD::NMIterationUtils::getRankDZ( ) const
     OUTPUT_DEBUG_END
 
     for (size_t i=0 ; i < k ; ++i)
-        delete [] DZ[i];;
+        delete [] DZ[i];
     delete [] DZ;
 
     return rank;
@@ -175,7 +175,7 @@ void NOMAD::NMIterationUtils::updateYCharacteristics()
     _simplexVon = -1;
     _simplexVol = -1;
 
-    std::set<NOMAD::EvalPoint>::iterator it1 = _nmY->begin();
+    auto it1 = _nmY->begin();
     const size_t dim = (*it1).size();
 
     if ( _nmY->size() != dim + 1 )
@@ -190,7 +190,7 @@ void NOMAD::NMIterationUtils::updateYCharacteristics()
     //---------------
 
     // V : vector of yk-y0 ( for determinant, need square array (n x n) )
-    double ** V = new double *[dim];
+    auto V = new double *[dim];
     for (size_t i = 0 ; i < dim ; i++ )
     {
         V[i] = new double [dim];
@@ -227,9 +227,9 @@ void NOMAD::NMIterationUtils::updateYCharacteristics()
         double nfact = 1;
 
         // !n
-        for ( size_t i=2 ; i < dim+1 ; i++)
+        for ( size_t i = 2 ; i < dim + 1; i++)
         {
-            nfact*=i;
+            nfact*= (double)i;
         }
 
         _simplexVol = fabs(det) / nfact;  // Use fact(n) for volume
@@ -250,7 +250,6 @@ void NOMAD::NMIterationUtils::updateYCharacteristics()
         NOMAD::OutputQueue::Add("Cannot get the volume of simplex Y because determinant failed. Continue", NOMAD::OutputLevel::LEVEL_DEBUG);
         OUTPUT_DEBUG_END
     }
-    return ;
 }
 
 
@@ -280,8 +279,6 @@ void NOMAD::NMIterationUtils::updateYDiameter()
             ++it2;
         }
     }
-
-    return ;
 }
 
 

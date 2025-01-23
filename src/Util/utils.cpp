@@ -87,16 +87,10 @@ void NOMAD::toupper(std::string &s)
 {
     // Warning: strings like "é" do not get converted.
     // Even when using locale.
-    // This is a widechar issue, not investigating in it right now.
+    // This is a wide char issue, not investigating in it right now.
     // There is no easy way to show a clear warning, so do not do
     // anything about it - just file it is as a known issue.
 
-// So 98
-//    size_t ns = s.size();
-//    for ( size_t i = 0 ; i < ns ; ++i )
-//    {
-//        s[i] = std::toupper(s[i]);
-//    }
 
 // modern obfuscated C++
     for_each(s.begin(), s.end(), [](char& in){ in = std::toupper(in); });
@@ -108,7 +102,7 @@ void NOMAD::toupper(std::string &s)
 void NOMAD::toupper(std::list<std::string> &ls)
 {
     std::list<std::string>::iterator       it;
-    std::list<std::string>::const_iterator end = ls.end();
+    auto end = ls.end();
     for ( it = ls.begin() ; it != end ; ++it )
     {
         NOMAD::toupper(*it);
@@ -123,7 +117,7 @@ void NOMAD::trim(std::string &s)
 {
     // Trim extra spaces at the beginning
     size_t space_index = s.find(' ');
-    while (s.size() > 0 && 0 == space_index)
+    while (!s.empty() && 0 == space_index)
     {
         s.replace(0, 1, "");
         space_index = s.find(' ');
@@ -131,7 +125,7 @@ void NOMAD::trim(std::string &s)
 
     // Trim extra spaces at the end
     size_t space_rindex = s.rfind(' ');
-    while (s.size() > 0 && s.size()-1 == space_rindex)
+    while (!s.empty() && s.size()-1 == space_rindex)
     {
         s.replace(space_rindex, 1, "");
         space_rindex = s.rfind(' ');
@@ -274,7 +268,7 @@ bool NOMAD::stringToIndexRange(const std::string & s           ,
     if ( s.empty() )
         return false;
 
-// For now we accept only range i-j and -j
+// For now, we accept only range i-j and -j
 //    if ( s == "*" )
 //    {
 //        if ( !n )
@@ -317,7 +311,7 @@ bool NOMAD::stringToIndexRange(const std::string & s           ,
         for ( k = 0 ; k < n1 ; ++k )
             if (!isdigit(s1[k]))
                 return false;
-        size_t ist = (size_t)i;
+        auto ist = (size_t)i;
         if ( ! atost ( s1 , ist ) )
             return false;
         i = (int)ist;
@@ -340,8 +334,8 @@ bool NOMAD::stringToIndexRange(const std::string & s           ,
         if ( !isdigit(s2[k]) )
             return false;
 
-    size_t ist = (size_t)i;
-    size_t jst = (size_t)j;
+    auto ist = (size_t)i;
+    auto jst = (size_t)j;
     if ( ! atost ( s1, ist ) || ! atost ( s2 , jst ) )
         return false;
     i = (int)ist;
@@ -391,7 +385,7 @@ std::size_t NOMAD::nbDecimals(const std::string& s)
 {
     std::size_t nbDec;
 
-    std::size_t ptPos = s.rfind(".");
+    std::size_t ptPos = s.rfind('.');
     if (std::string::npos == ptPos)
     {
         nbDec = 0;
@@ -412,7 +406,7 @@ std::size_t NOMAD::nbDecimals(const std::string& s)
 // Ex. 5.12 with a prec of 6 will return as "5.12    " (with padding).
 void NOMAD::getFormat(const std::string &s, const size_t prec, size_t &width, size_t &spacePadding)
 {
-    // These values non modifiable for now.
+    // These values non-modifiable for now.
     const size_t nbDigitsBeforePoint = NOMAD::NB_DIGITS_BEFORE_POINT;
     const size_t intWidth = NOMAD::INT_DISPLAY_WIDTH;
 
@@ -425,7 +419,7 @@ void NOMAD::getFormat(const std::string &s, const size_t prec, size_t &width, si
     {
         // Double
         width = nbDigitsBeforePoint + 1 + prec;
-        size_t pointPos = s.find(".");
+        size_t pointPos = s.find('.');
         spacePadding = 1 + prec; // Including one space for the decimal point
         if (pointPos != std::string::npos)
         {
@@ -488,8 +482,8 @@ bool NOMAD::separateFormat(const std::string &s, std::string &format, std::strin
 
 // c may be in 'e', 'E', 'f', 'g', 'G', 'd', or 'i'
 
-// e Scientific notation (mantise/exponent) using e character 3.9265e+2
-// E Scientific notation (mantise/exponent) using E character 3.9265E+2
+// e Scientific notation (mantissa/exponent) using e character 3.9265e+2
+// E Scientific notation (mantissa/exponent) using E character 3.9265E+2
 // f Decimal floating point                                   392.65
 // g Use the shorter of %e or %f                              392.65
 // G Use the shorter of %E or %f                              392.65

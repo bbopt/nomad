@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_4_EVCINTERFACE__
-#define __NOMAD_4_4_EVCINTERFACE__
+#ifndef __NOMAD_4_5_EVCINTERFACE__
+#define __NOMAD_4_5_EVCINTERFACE__
 
 #include "../Algos/Step.hpp"
 #include "../Eval/EvaluatorControl.hpp"
@@ -56,7 +56,6 @@
 
 /// Class interface with EvaluatorControl, used by an Algorithm step through IterationUtils
 /**
- \todo Complete documentation
  */
 class EvcInterface
 {
@@ -105,7 +104,7 @@ public:
     /**
      Set the barrier. Can be a full space or subspace barrier. Evaluator control cares only of outputs for detecting success.
      */
-    void setBarrier(const std::shared_ptr<BarrierBase> subBarrier);
+    void setBarrier(const std::shared_ptr<BarrierBase>& subBarrier);
 
 
     /// Get all evaluated points
@@ -176,7 +175,7 @@ public:
      This method will convert a point from subspace to full space
      before calling EvaluatorControl's method of the same name.
 
-     \param evalPoint   The poin to evaluate -- \b IN/OUT.
+     \param evalPoint   The point to evaluate -- \b IN/OUT.
      \param hMax        The max infeasibility for keeping points in barrier -- \b IN.
      \return            \c true if evaluation worked (evalOk), \c false otherwise.
     */
@@ -202,4 +201,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_EVCINTERFACE__
+#endif // __NOMAD_4_5_EVCINTERFACE__

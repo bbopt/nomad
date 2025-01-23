@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_SGTELIB_MODEL_FILTER_CACHE__
-#define __NOMAD_4_4_SGTELIB_MODEL_FILTER_CACHE__
+#ifndef __NOMAD_4_5_SGTELIB_MODEL_FILTER_CACHE__
+#define __NOMAD_4_5_SGTELIB_MODEL_FILTER_CACHE__
 
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #include "../../Output/OutputInfo.hpp"  // for OutputLevel
@@ -59,8 +59,8 @@ enum class FilterSelectionMethod
     METHOD_MOST_DISTANT,        // Method 1: Select the most distant point
     METHOD_BEST_MIN_DIST,       // Method 2: Select the best point but with a minimum distance to points already selected
     METHOD_BEST_GOOD_HMAX,      // Method 3: Select the best points with a good enough value of hmax
-    METHOD_HIGHEST_ISOLATION,   // Method 4: Select point with highest isolation number
-    METHOD_HIGHEST_DENSITY,     // Method 5: Select point with highest density number
+    METHOD_HIGHEST_ISOLATION,   // Method 4: Select point with the highest isolation number
+    METHOD_HIGHEST_DENSITY,     // Method 5: Select point with the highest density number
     NB_METHODS
 };
 
@@ -158,4 +158,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_SGTELIB_MODEL_FILTER_CACHE__
+#endif // __NOMAD_4_5_SGTELIB_MODEL_FILTER_CACHE__

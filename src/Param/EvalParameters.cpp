@@ -109,7 +109,7 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
 
         if (!surrogateUsed)
         {
-            throw NOMAD::InvalidParameter(__FILE__, __LINE__, "Parameter SURROGATE_EXE is defined but not used. To fix this, unset SURROGATE_EXE (if set by mystake), or set parameter EVAL_QUEUE_SORT to SURROGATE, or set parameter EVAL_SURROGATE_OPTIMIZATION to true.");
+            throw NOMAD::InvalidParameter(__FILE__, __LINE__, "Parameter SURROGATE_EXE is defined but not used. To fix this, unset SURROGATE_EXE (if set by mistake), or set parameter EVAL_QUEUE_SORT to SURROGATE, or set parameter EVAL_SURROGATE_OPTIMIZATION to true.");
         }
     }
 
@@ -122,9 +122,9 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
     /*----------------*/
     // The default value is empty: set a single OBJ
     auto bbOutputList = getAttributeValueProtected<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE", false);
-    if ( bbOutputList.size() == 0 )
+    if ( bbOutputList.empty() )
     {
-        bbOutputList.push_back(NOMAD::BBOutputType::Type::OBJ);
+        bbOutputList.emplace_back(NOMAD::BBOutputType::Type::OBJ);
         setAttributeValue("BB_OUTPUT_TYPE", bbOutputList );
     }
     
@@ -149,9 +149,9 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
             
             // Warn user if a EB constraint is set as revealing output
             bool EBConstRevealing = false;
-            for (size_t i = 0; i < bbOutputList.size(); i++)
+            for (const auto& bbot : bbOutputList)
             {
-                if (bbOutputList[i].isRevealing()&& bbOutputList[i]==NOMAD::BBOutputType::EB)
+                if (bbot.isRevealing()&&  bbot ==NOMAD::BBOutputType::EB)
                 {
                     EBConstRevealing = true;
                     break;
@@ -159,7 +159,7 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
             }
             if(EBConstRevealing)
             {
-                std::cerr << "At least one EB constraint is set as revealing. This is ok but be aware that revelation will only be conducted for points satisfying all EB contraints."<<  std::endl;
+                std::cerr << "At least one EB constraint is set as revealing. This is ok but be aware that revelation will only be conducted for points satisfying all EB constraints."<<  std::endl;
             }
         }
 
@@ -167,15 +167,15 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
         // For suboptimization, updated BBoutputTypeList is passed -> not need to add another one
         if ( itBBO_RPB == bbOutputList.end())
         {
-            bbOutputList.push_back(NOMAD::BBOutputType::RPB);
+            bbOutputList.emplace_back(NOMAD::BBOutputType::RPB);
             setAttributeValue("BB_OUTPUT_TYPE", bbOutputList);
         }        
     }
     // User should not be able to set RPB constraint (internal).
-   else if (itBBO_RPB != bbOutputList.end())
-   {
-       throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: User cannot set RPB constraint. Done internally for DISCO_MADS_OPTIMIZATION." );
-   }
+    else if (itBBO_RPB != bbOutputList.end())
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: User cannot set RPB constraint. Done internally for DISCO_MADS_OPTIMIZATION." );
+    }
     
     /*---------------------------*/
     /* BB_EVAL_FORMAT (internal) */

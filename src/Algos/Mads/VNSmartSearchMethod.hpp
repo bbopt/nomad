@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_VNSMARTALGOSEARCHMETHOD__
-#define __NOMAD_4_4_VNSMARTALGOSEARCHMETHOD__
+#ifndef __NOMAD_4_5_VNSMARTALGOSEARCHMETHOD__
+#define __NOMAD_4_5_VNSMARTALGOSEARCHMETHOD__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/SearchMethodAlgo.hpp"
@@ -116,5 +116,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_VNSMARTALGOSEARCHMETHOD__
+#endif // __NOMAD_4_5_VNSMARTALGOSEARCHMETHOD__
 

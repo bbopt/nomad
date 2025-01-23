@@ -51,8 +51,8 @@
  \date   June 2017
  \see    fileutils.cpp
  */
-#ifndef __NOMAD_4_4_FILEUTILS__
-#define __NOMAD_4_4_FILEUTILS__
+#ifndef __NOMAD_4_5_FILEUTILS__
+#define __NOMAD_4_5_FILEUTILS__
 
 // use of 'access' or '_access', and getpid() or _getpid():
 #ifdef _MSC_VER
@@ -232,4 +232,4 @@ DLL_UTIL_API bool readAllFile(std::string &info, const std::string &filename);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_FILEUTILS__
+#endif // __NOMAD_4_5_FILEUTILS__

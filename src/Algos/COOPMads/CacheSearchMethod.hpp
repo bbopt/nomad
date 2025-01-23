@@ -44,46 +44,58 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_SSDMADS__
-#define __NOMAD_4_4_SSDMADS__
+#ifndef __NOMAD_4_5_CACHESEARCHMETHOD__
+#define __NOMAD_4_5_CACHESEARCHMETHOD__
 
 #include "../../Algos/AlgoStopReasons.hpp"
-#include "../../Algos/Algorithm.hpp"
+#include "../../Algos/Mads/SearchMethodSimple.hpp"
+
 
 #include "../../nomad_nsbegin.hpp"
 
-/// Class for SSD-Mads
-class SSDMads: public Algorithm
+/// Class to perform a Cache Search for COOP-Mads optimization algorithm.
+class CacheSearchMethod final : public SearchMethodSimple
 {
+private:
 
+    
 public:
     /// Constructor
     /**
-     \param parentStep    The parent of this step -- \b IN.
-     \param stopReasons   The SSD Mads stop reasons -- \b IN/OUT.
-     \param runParams     Parameters for algorithm -- \b IN.
-     \param refPbParams   Parameters for original optimization problem. SSD-Mads use its own copy -- \b IN.
+     /param parentStep      The parent of this search step -- \b IN.
      */
-    explicit SSDMads(const Step* parentStep,
-                     std::shared_ptr<AlgoStopReasons<MadsStopType>> stopReasons,
-                     const std::shared_ptr<RunParameters>& runParams,
-                     const std::shared_ptr<PbParameters>& refPbParams)
-      : Algorithm(parentStep, stopReasons, runParams, std::make_shared<PbParameters>(*refPbParams))
+    explicit CacheSearchMethod(const Step* parentStep)
+      : SearchMethodSimple(parentStep)
     {
         init();
     }
-    virtual ~SSDMads() {}
-
-    virtual bool runImp()   override;
-
-    virtual void readInformationForHotRestart() override {}
+    
+    virtual bool evalTrialPoints(const Step* step,
+                                 const size_t keepN = INF_SIZE_T,
+                                 StepType removeStepType = StepType::UNDEFINED) override;
 
 private:
-    /// Helper for constructor
+    
+    
+
+    /// Helper for constructor.
+    /**
+     Test if the quad model search is enabled or not. 
+     */
     void init();
+
+    /// Generate new points (no evaluation)
+    /**
+     \copydoc SearchMethodAlgo::generateTrialPointsFinal 
+     Perform one quad model optimization to produce trial points.
+     */
+     virtual void generateTrialPointsFinal() override;
+    
+
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_SSDMADS__
+#endif // __NOMAD_4_5_CACHESEARCHMETHOD__
+

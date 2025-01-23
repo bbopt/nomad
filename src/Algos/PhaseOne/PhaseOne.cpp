@@ -68,7 +68,7 @@ void NOMAD::PhaseOne::startImp()
     // Default algorithm start
     NOMAD::Algorithm::startImp();
     
-    // Setup the run parameters to stop once a point that satisfies EB constraints is obtained
+    // Set up the run parameters to stop once a point that satisfies EB constraints is obtained
     _runParams = std::make_shared<NOMAD::RunParameters>(*_runParams);
     _runParams->setAttributeValue("STOP_IF_PHASE_ONE_SOLUTION", true);
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
@@ -87,6 +87,13 @@ bool NOMAD::PhaseOne::runImp()
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
 
     auto previousComputeType = evc->getComputeType();
+    
+    // Override default STANDARD compute type
+    if (previousComputeType != NOMAD::ComputeType::STANDARD)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"Cannot change compute type to PHASE_ONE if default compute type is not standard");
+    }
+        
     evc->setComputeType(NOMAD::ComputeType::PHASE_ONE);
 
     // Run Mads on Phase One.
@@ -122,18 +129,25 @@ void NOMAD::PhaseOne::endImp()
     NOMAD::Algorithm::endImp();
     
     // Ensure evaluation of queue will continue
-    NOMAD::EvcInterface::getEvaluatorControl()->restart();
-    NOMAD::EvcInterface::getEvaluatorControl()->setLastSuccessfulFeasDir(nullptr);
-    NOMAD::EvcInterface::getEvaluatorControl()->setLastSuccessfulInfDir(nullptr);
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    evc->restart();
+    evc->setLastSuccessfulFeasDir(nullptr);
+    evc->setLastSuccessfulInfDir(nullptr);
 
     // Re-enable writing in Solution file
     NOMAD::OutputDirectToFile::getInstance()->enableSolutionFile();
 
-    if (solHasFeas())
+    auto evalType = evc->getCurrentEvalType(); // Can be BB or SURROGATE
+    auto hNormType = evc->getHNormType();
+    NOMAD::FHComputeTypeS computeTypeS; // Initialized with default from structure init
+    computeTypeS.hNormType = hNormType;
+    NOMAD::FHComputeType computeType = {evalType, computeTypeS};
+    // Write feasible solution (standard computation, not phase one) in stats and solution
+    if (solHasFeas(computeType))
     {
         std::vector<NOMAD::EvalPoint> evalPointList;
         NOMAD::CacheInterface cacheInterface(this);
-        size_t numFeas = cacheInterface.findBestFeas(evalPointList, NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+        size_t numFeas = cacheInterface.findBestFeas(evalPointList, computeType);
         if (numFeas > 0)
         {
             // Evaluation info for output

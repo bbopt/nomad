@@ -101,14 +101,12 @@ void NOMAD::MegaSearchPoll::generateTrialPointsImp()
 {
     verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, true);
 
-    NOMAD::EvalPointSet trialPoints;
-
     // Generate trial points for Search (all enabled search methods) and Poll.
     // Note: Search and Poll generateTrialPoints() methods both
     // take care of verifying that the generated are on mesh, and also
     // update the "PointFrom" with the frame center.
     _search->generateTrialPoints();
-    auto trialPointsSearch = _search->getTrialPoints();
+    const auto& trialPointsSearch = _search->getTrialPoints();
 
     _poll->generateTrialPoints();
     _poll->generateTrialPointsSecondPass();
@@ -118,17 +116,17 @@ void NOMAD::MegaSearchPoll::generateTrialPointsImp()
     _poll->countTrialPointsThatNeedEval(this);
     _poll->generateTrialPointsExtra();
     
-    auto trialPointsPoll = _poll->getTrialPoints();
+    const auto& trialPointsPoll = _poll->getTrialPoints();
 
     // Merge two sets and remove duplicates
     // Naive implementation. Easier to understand - I could not make std::merge,
     // std::unique or std::set_union work fine.
     // Caveat: Multiple EvalPoints copy.
-    for (auto point : trialPointsSearch)
+    for (const auto& point : trialPointsSearch)
     {
         insertTrialPoint(point);
     }
-    for (auto point : trialPointsPoll)
+    for (const auto& point : trialPointsPoll)
     {
         insertTrialPoint(point);
     }

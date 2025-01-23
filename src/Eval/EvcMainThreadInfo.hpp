@@ -52,14 +52,15 @@
  \see    EvcMainThreadInfo.cpp
  */
 
-#ifndef __NOMAD_4_4_EVCMAINTHREADINFO__
-#define __NOMAD_4_4_EVCMAINTHREADINFO__
+#ifndef __NOMAD_4_5_EVCMAINTHREADINFO__
+#define __NOMAD_4_5_EVCMAINTHREADINFO__
 
 #include <atomic>   // for atomic
 
 #include "../Eval/BarrierBase.hpp"
 #include "../Eval/ComputeSuccessType.hpp"
 #include "../Eval/Evaluator.hpp"
+#include "../Eval/SuccessStats.hpp"
 #include "../Param/EvaluatorControlParameters.hpp"
 #include "../Type/EvalSortType.hpp"
 #include "../Util/AllStopReasons.hpp"
@@ -87,8 +88,8 @@ private:
     size_t                          _lapMaxBbEval;      ///< The maximum number of blackbox evaluations that can be performed by a sub algorithm.
     std::atomic<size_t>             _lapBbEval;         ///< The number of blackbox evaluations performed by a given sub algorithm (reset at Algorithm start).
     std::atomic<size_t>             _modelEval;         ///< The number of quad or sgtelib model evaluations performed (since last reset)
-    std::atomic<size_t>             _subBbEval;         ///< The number of bb eval for a subproblem (e.g. SSD-Mads context)
-    ComputeType                     _computeType;       ///< How to compute f and h
+    std::atomic<size_t>             _subBbEval;         ///< The number of bb eval for a subproblem (e.g. PSD-Mads context)
+    FHComputeTypeS                  _FHComputeType; ///< Aggregation of eval type, compute type and h norm type
     std::shared_ptr<Direction>      _lastSuccessfulFeasDir; ///< Direction of last success for feasible points. May be used to sort points before evaluation.
     std::shared_ptr<Direction>      _lastSuccessfulInfDir; ///< Direction of last success for infeasible points. May be used to sort points before evaluation.
     StopReason<EvalMainThreadStopType> _stopReason;
@@ -105,6 +106,8 @@ private:
     size_t _subPbMaxBBEval;
     
     bool _evalSurrogateOptimization;
+    
+    SuccessStats _successStats; ///< Collect stats for SuccessType and trial point generating step type.
     
 public:
     /// Constructor
@@ -125,7 +128,7 @@ public:
         _lapBbEval(0),
         _modelEval(0),
         _subBbEval(0),
-        _computeType(ComputeType::STANDARD),
+        _FHComputeType(defaultFHComputeTypeS),
         _lastSuccessfulFeasDir(nullptr),
         _lastSuccessfulInfDir(nullptr),
         _stopReason()
@@ -154,7 +157,7 @@ public:
     /**
      \param evaluator       The evaluator for blackbox, surrogate blackbox or model evaluations)-- \b IN.
      */
-    void addEvaluator(EvaluatorPtr evaluator );
+    void addEvaluator(const EvaluatorPtr& evaluator);
 
     const Evaluator* getEvaluator(EvalType evalType)
     { setCurrentEvaluatorType(evalType) ; return getCurrentEvaluator() ; }
@@ -200,8 +203,8 @@ public:
     const std::shared_ptr<BarrierBase> getBarrier() const { return _barrier; }
     void setBarrier(const std::shared_ptr<BarrierBase> barrier) { _barrier = barrier; }
 
-    const EvalPointPtr getBestIncumbent() const;
-    void setBestIncumbent(const EvalPointPtr bestIncumbent);
+    EvalPointPtr getBestIncumbent() const;
+    void setBestIncumbent(const EvalPointPtr& bestIncumbent);
     void resetBestIncumbent() { _bestIncumbent = nullptr; }
     
     std::vector<EvalPoint> retrieveAllEvaluatedPoints();
@@ -212,13 +215,26 @@ public:
 
     const SuccessType& getSuccessType() const { return _success; }
     void setSuccessType(const SuccessType& success);
+    
+    /// Access to collected success type stats
+    const SuccessStats & getSuccessStats() const { return _successStats;}
+    
+    void updateSuccessStats(SuccessType successType, StepType stepType , size_t val) { _successStats.updateStats(successType, stepType, val); }
+    
+    /// Reset success stats (done once transferred to Step success stats)
+    void resetSuccessStats() { _successStats.resetCurrentStats();}
 
     size_t getCurrentlyRunning() const { return _currentlyRunning; }
-    void incCurrentlyRunning();
-    void decCurrentlyRunning();
+    void incCurrentlyRunning(size_t k=1);
+    void decCurrentlyRunning(size_t k=1);
 
-    void setComputeType(ComputeType computeType) { _computeType = computeType; }
-    const ComputeType& getComputeType() const { return _computeType; }
+    void setComputeType(ComputeType computeType, const singleOutputComputeFType & singleObjCompute, const singleOutputComputeFType & infeasHCompute) { _FHComputeType.computeType = computeType; _FHComputeType.singleObjectiveCompute = singleObjCompute ; _FHComputeType.infeasHCompute = infeasHCompute;  }
+    const ComputeType& getComputeType() const { return _FHComputeType.computeType; }
+    
+    void setHNormType(HNormType hNormType){ _FHComputeType.hNormType = hNormType; }
+    const HNormType& getHNormType() const { return _FHComputeType.hNormType;}
+    
+    const FHComputeTypeS& getFHComputeTypeS() const { return _FHComputeType; }
 
     void setLastSuccessfulFeasDir(const std::shared_ptr<Direction> &feasDir) { _lastSuccessfulFeasDir = feasDir; }
     const std::shared_ptr<Direction>& getLastSuccessfulFeasDir() const { return _lastSuccessfulFeasDir; }
@@ -239,4 +255,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_EVCMAINTHREADINFO__
+#endif // __NOMAD_4_5_EVCMAINTHREADINFO__

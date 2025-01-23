@@ -55,10 +55,13 @@ void NOMAD::NMMegaIteration::init()
     setStepType(NOMAD::StepType::MEGA_ITERATION);
 
     // Get barrier from upper MegaIteration, if available.
-    auto megaIter = getParentOfType<NOMAD::MegaIteration*>(false);
-    if (nullptr != megaIter)
+    if (nullptr == _barrier)
     {
-        _barrier = megaIter->getBarrier();
+        auto megaIter = getParentOfType<NOMAD::MegaIteration*>(false);
+        if (nullptr != megaIter)
+        {
+            _barrier = megaIter->getBarrier();
+        }
     }
 }
 
@@ -67,7 +70,7 @@ void NOMAD::NMMegaIteration::startImp()
 {
     // Create a Nelder Mead iteration for a simplex center.
     // Use xIncFeas or xIncInf if XIncFeas is not available.
-    // During NM we use a single iteration object with several start, run, end for the various iterations of the algorithm.
+    // During NM, we use a single iteration object with several start, run, end for the various iterations of the algorithm.
 
     if ( ! _stopReasons->checkTerminate() )
     {
@@ -136,7 +139,7 @@ bool NOMAD::NMMegaIteration::runImp()
     }
 
 
-    const size_t maxIter = (size_t)NOMAD::D_INT_MAX; // Could be a parameter.
+    const auto maxIter = (size_t)NOMAD::D_INT_MAX; // Could be a parameter.
     size_t nbMegaIter = 0;
     while ( ! _stopReasons->checkTerminate() && nbMegaIter < maxIter )
     {

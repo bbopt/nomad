@@ -51,8 +51,8 @@
  \date   2010-04-05
  \see    ParameterEntries.cpp
  */
-#ifndef __NOMAD_4_4_PARAMETERENTRIES__
-#define __NOMAD_4_4_PARAMETERENTRIES__
+#ifndef __NOMAD_4_5_PARAMETERENTRIES__
+#define __NOMAD_4_5_PARAMETERENTRIES__
 
 #include <set>
 #include <vector>
@@ -95,13 +95,13 @@ public:
     /**
      \param entry A pointer to the new ParameterEntry object -- \b IN.
      */
-    void insert(std::shared_ptr<ParameterEntry> entry);
+    void insert(const std::shared_ptr<ParameterEntry>& entry);
 
     /// Erase an entry from the list of entries.
     /**
      \param entry A pointer to the ParameterEntry object to erase -- \b IN.
      */
-    void erase(std::shared_ptr<ParameterEntry> entry);
+    void erase(const std::shared_ptr<ParameterEntry>&entry);
 
     /// Erase all entries.
     void eraseAll();
@@ -139,4 +139,4 @@ inline std::ostream& operator<< (std::ostream &out,
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_PARAMETERENTRIES__
+#endif // __NOMAD_4_5_PARAMETERENTRIES__

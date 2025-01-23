@@ -55,10 +55,6 @@
 #include "../Algos/IterationUtils.hpp"
 #include "../Algos/TrialPointStats.hpp"
 
-#ifdef _OPENMP
-omp_lock_t NOMAD::TrialPointStats::_updateLock  ;
-#endif
-
 void NOMAD::TrialPointStats::init()
 {    
     _nbCalls = 0;
@@ -150,27 +146,19 @@ void NOMAD::TrialPointStats::updateParentStats()
         if (nullptr != dynamic_cast<NOMAD::IterationUtils*>(step))
         {
             auto iu = dynamic_cast<NOMAD::IterationUtils*>(step);
-            #ifdef _OPENMP
-			    omp_init_lock(&_updateLock);
-                omp_set_lock(&_updateLock);
-            #endif // _OPENMP
-                iu->updateStats(*this);
-            #ifdef _OPENMP
-                omp_unset_lock(&_updateLock);
-            #endif // _OPENMP
+            iu->updateStats(*this); 
             break;
         }
         else if (nullptr != dynamic_cast<NOMAD::Algorithm*>(step))
         {
             auto algo = dynamic_cast<NOMAD::Algorithm*>(step);
-            #ifdef _OPENMP
-			    omp_init_lock(&_updateLock);
-                omp_set_lock(&_updateLock);
-            #endif // _OPENMP
+#ifdef _OPENMP
+            // Critical region is needed for parallel algo like psdmads. PSDMads algo gets update from multiple Mads
+#pragma omp critical(updateLock)
+#endif // _OPENMP
+            {
                 algo->updateStats(*this);
-            #ifdef _OPENMP
-                omp_unset_lock(&_updateLock);
-            #endif // _OPENMP
+            }
             break;
         }
         step = const_cast<Step*>(step->getParentStep());

@@ -89,7 +89,7 @@ void NOMAD::Algorithm::init()
     {
         _isSubAlgo = true;
     }
-
+    
     // Check pbParams if needed, ex. if a copy of PbParameters was given to the Algorithm constructor.
     _pbParams->checkAndComply();
 
@@ -105,16 +105,23 @@ void NOMAD::Algorithm::init()
     NOMAD::SubproblemManager::getInstance()->addSubproblem(this, subproblem);
     _pbParams = subproblem.getPbParams();
     _pbParams->checkAndComply();
+    
+    // Set some compute type and h norm type in evaluator control only if not sub algo
+    // otherwise it is inherited.
+    // Compute type in evaluator control can be used to initialized barrier compute type
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    if (! _isSubAlgo && nullptr != evc)
+    {
+        auto hNormType = _runParams->getAttributeValue<NOMAD::HNormType>("H_NORM");
+        auto computeType = NOMAD::ComputeType::STANDARD; // Default compute type is set here. Override only by PhaseOne algo.
+        evc->setHNormType(hNormType);
+        evc->setComputeType(computeType);
+    }
 
     /** Step::userInterrupt() will be called if CTRL-C is pressed.
      * Currently, the main thread will wait for all evaluations to be complete.
-     * \todo Propage interruption to all threads, for all parallel evaluations of blackbox.
      */
     signal(SIGINT, userInterrupt);
-
-    // This signal handling is problematic with Matlab.
-    // Let's test without it.
-    // signal(SIGSEGV, debugSegFault);
 
 }
 
@@ -134,16 +141,16 @@ void NOMAD::Algorithm::startImp()
         _startTime = NOMAD::Clock::getCPUTime();
     }
 #endif // TIME_STATS
-
-    // Reset the current counters. The total counters are not reset (done only once when algo constructor is called.
+    
+    // Reset the current counters. The total counters are not reset (done only once when algo constructor is called).
     _trialPointStats.resetCurrentStats();
-
-
+    
+    
     // All stop reasons are reset.
     _stopReasons->setStarted();
 
     // Default success is reset
-    // Success type is initialized in Step::defautStart()
+    // Success type is initialized in Step::defaultStart()
     _algoSuccessful = false;
 
     if (isRootAlgo())
@@ -153,7 +160,7 @@ void NOMAD::Algorithm::startImp()
         NOMAD::CacheBase::getInstance()->setStopWaiting(false);
     }
 
-    // By default reset the lap counter for BbEval and set the lap maxBbEval to INF
+    // By default, reset the lap counter for BbEval and set the lap maxBbEval to INF
     NOMAD::EvcInterface::getEvaluatorControl()->resetLapBbEval();
     NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval( NOMAD::INF_SIZE_T );
     NOMAD::EvcInterface::getEvaluatorControl()->resetModelEval();
@@ -194,10 +201,10 @@ void NOMAD::Algorithm::startImp()
         if (!bestPoints.empty())
         {
             std::transform(bestPoints.begin(), bestPoints.end(), std::back_inserter(x0s),
-                       [](NOMAD::EvalPoint evalPoint) -> NOMAD::EvalPoint { return evalPoint; });
+                           [](const NOMAD::EvalPoint& evalPoint) -> NOMAD::EvalPoint { return evalPoint; });
 
         }
-        _pbParams->setAttributeValue<NOMAD::ArrayOfPoint>("X0", x0s);
+        _pbParams->setAttributeValue<NOMAD::ArrayOfPoint>("X0", std::move(x0s));
         _pbParams->checkAndComply();
     }
 }
@@ -205,7 +212,7 @@ void NOMAD::Algorithm::startImp()
 
 void NOMAD::Algorithm::endImp()
 {
-
+    
     if ( _endDisplay )
     {
         displayBestSolutions();
@@ -219,23 +226,23 @@ void NOMAD::Algorithm::endImp()
 
         displayEvalCounts();
     }
-
+    
     // Update parent if it exists (can be Algo or IterationUtils)  with this stats
     _trialPointStats.updateParentStats();
 
-
+ 
     // Reset user algo stop reason
     if (_stopReasons->testIf(NOMAD::IterStopType::USER_ALGO_STOP))
     {
         _stopReasons->set(NOMAD::IterStopType::STARTED);
     }
-
-
+    
+    
     // Update the parent success
     Step * parentStep = const_cast<Step*>(_parentStep);
     parentStep->setSuccessType(_success);
-
-    // By default reset the lap counter for BbEval and set the lap maxBbEval to INF
+    
+    // By default, reset the lap counter for BbEval and set the lap maxBbEval to INF
     NOMAD::EvcInterface::getEvaluatorControl()->resetLapBbEval();
     NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval( NOMAD::INF_SIZE_T );
 
@@ -281,7 +288,7 @@ void NOMAD::Algorithm::saveInformationForHotRestart() const
     // ignore initial values, only take latest values down the Parameter tree.
     // For now, using initial parameters.
 
-    // Cache file is treated independently from hot restart file.
+    // Cache file is treated independently of hot restart file.
     // As long as the cache file name is set, it is written.
     // This is the behavior of NOMAD 3.
     std::string cacheFile = NOMAD::CacheBase::getInstance()->getFileName();
@@ -301,15 +308,20 @@ void NOMAD::Algorithm::saveInformationForHotRestart() const
 void NOMAD::Algorithm::displayBestSolutions() const
 {
     std::vector<NOMAD::EvalPoint> evalPointList;
-    // Display best feasible solutions.
+    // Display the best feasible solutions.
     std::string sFeas;
     // Output level is very high if there are no parent algorithm
     // Output level is info if this algorithm is a sub part of another algorithm.
     NOMAD::OutputLevel outputLevel = _isSubAlgo ? NOMAD::OutputLevel::LEVEL_INFO
                                                  : NOMAD::OutputLevel::LEVEL_VERY_HIGH;
     auto solFormat = NOMAD::OutputQueue::getInstance()->getSolFormat();
-    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+    
+    // Complete compute type
+    NOMAD::FHComputeTypeS computeType = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
+    //auto hNormType = NOMAD::EvcInterface::getEvaluatorControl()->getHNormType();
+    NOMAD::FHComputeType  completeComputeType = {evalType, computeType};
+    
     auto surrogateAsBB = NOMAD::EvcInterface::getEvaluatorControl()->getSurrogateOptimization();
     if (isRootAlgo())
     {
@@ -320,8 +332,8 @@ void NOMAD::Algorithm::displayBestSolutions() const
 
     sFeas = "Best feasible solution";
     auto barrier = getMegaIterationBarrier();
-
-    // Let try to build a progressive barrier from the cache
+    
+    // Let's try to build a progressive barrier from the cache
     if (nullptr == barrier)
     {
         barrier = std::make_shared<NOMAD::ProgressiveBarrier>(NOMAD::INF,
@@ -331,6 +343,7 @@ void NOMAD::Algorithm::displayBestSolutions() const
     }
     if (nullptr != barrier)
     {
+        barrier->checkForFHComputeType(completeComputeType);
         for (auto const & p : barrier->getAllXFeas())
         {
             evalPointList.push_back(*p);
@@ -348,17 +361,17 @@ void NOMAD::Algorithm::displayBestSolutions() const
     {
         sFeas += ":     ";
         displaySolFeas.addMsg(sFeas + evalPointList[0].display(computeType,
-                                                        solFormat,
-                                                        NOMAD::DISPLAY_PRECISION_FULL,
-                                                        surrogateAsBB));
+                                                               solFormat,
+                                                               NOMAD::DISPLAY_PRECISION_FULL,
+                                                               surrogateAsBB));
     }
     else
     {
         sFeas += "s:    ";
         displaySolFeas.addMsg(sFeas + evalPointList[0].display(computeType,
-                                                        solFormat,
-                                                        NOMAD::DISPLAY_PRECISION_FULL,
-                                                        surrogateAsBB));
+                                                               solFormat,
+                                                               NOMAD::DISPLAY_PRECISION_FULL,
+                                                               surrogateAsBB));
     }
 
 
@@ -392,7 +405,7 @@ void NOMAD::Algorithm::displayBestSolutions() const
     evalPointList.clear();
 
 
-    // Display best infeasible solutions.
+    // Display the best infeasible solutions.
     std::string sInf;
     NOMAD::OutputInfo displaySolInf(getName(), sInf, outputLevel);
     sInf = "Best infeasible solution";
@@ -415,17 +428,17 @@ void NOMAD::Algorithm::displayBestSolutions() const
     {
         sInf += ":   ";
         displaySolInf.addMsg(sInf + evalPointList[0].display(computeType,
-                                                        solFormat,
-                                                        NOMAD::DISPLAY_PRECISION_FULL,
-                                                        surrogateAsBB));
+                                                             solFormat,
+                                                             NOMAD::DISPLAY_PRECISION_FULL,
+                                                             surrogateAsBB));
     }
     else
     {
         sInf += "s:  ";
         displaySolInf.addMsg(sInf + evalPointList[0].display(computeType,
-                                                        solFormat,
-                                                        NOMAD::DISPLAY_PRECISION_FULL,
-                                                        surrogateAsBB));
+                                                             solFormat,
+                                                             NOMAD::DISPLAY_PRECISION_FULL,
+                                                             surrogateAsBB));
     }
 
     if (nbBestInf > 1)
@@ -440,9 +453,9 @@ void NOMAD::Algorithm::displayBestSolutions() const
                 continue;   // First element already added
             }
             displaySolInf.addMsg("                            " + it->display(computeType,
-                                                                        solFormat,
-                                                                        NOMAD::DISPLAY_PRECISION_FULL,
-                                                                        surrogateAsBB));
+                                                                              solFormat,
+                                                                              NOMAD::DISPLAY_PRECISION_FULL,
+                                                                              surrogateAsBB));
             if (solCount >= maxSolCount)
             {
                 // We printed enough solutions already.
@@ -461,7 +474,7 @@ void NOMAD::Algorithm::displayEvalCounts() const
     // Display evaluation information
 
     // _isSubAlgo is used to display or not certain values
-
+    
     // Output levels will be modulated depending on the counts and on the Algorithm level.
     NOMAD::OutputLevel outputLevelHigh = _isSubAlgo ? NOMAD::OutputLevel::LEVEL_INFO
                                                : NOMAD::OutputLevel::LEVEL_HIGH;
@@ -590,7 +603,7 @@ void NOMAD::Algorithm::displayEvalCounts() const
     {
         surrogateCost = evc->getEvaluatorControlGlobalParams()->getAttributeValue<size_t>("EVAL_SURROGATE_COST");
     }
-
+    
     std::string sBbEval           = "Blackbox evaluations: " + sFeedBbEval + NOMAD::itos(bbEval);
     std::string sBbEvalFromCacheForRerun = "Blackbox evaluations from cache (rerun): " + sFeedBbEvalFromCacheForRerun + NOMAD::itos(bbEvalFromCacheForRerun);
     std::string sLapBbEval        = "Sub-optimization blackbox evaluations: " + sFeedLapBbEval + NOMAD::itos(lapBbEval);
@@ -689,7 +702,7 @@ NOMAD::EvalPoint NOMAD::Algorithm::getBestSolution(bool bestFeas) const
             bestSol = bestSolPtr->makeFullSpacePointFromFixed(fixedVariable);
         }
     }
-
+    
     return bestSol;
 }
 

@@ -60,6 +60,10 @@
 bool NOMAD::Step::_userInterrupt = false;
 bool NOMAD::Step::_userTerminate = false;
 
+
+// IMPORTANT
+// Reset callbacks by calling in resetCallbacks()
+//
 NOMAD::StepCbFunc NOMAD::Step::_cbIterationEnd = defaultStepCB;
 NOMAD::StepCbFunc NOMAD::Step::_cbMegaIterationEnd = defaultStepCB;
 NOMAD::StepCbFunc NOMAD::Step::_cbMegaIterationStart = defaultStepCB;
@@ -151,6 +155,7 @@ void NOMAD::Step::addCallback(const NOMAD::CallbackType& callbackType,
             break;
         case NOMAD::CallbackType::MEGA_ITERATION_START:
             _cbMegaIterationStart = stepCbFunc;
+            break;
         case NOMAD::CallbackType::MEGA_ITERATION_END:
             _cbMegaIterationEnd = stepCbFunc;
             break;
@@ -180,6 +185,9 @@ void NOMAD::Step::runCallback(NOMAD::CallbackType callbackType,
     // Default stop value.
     stop = false;
     
+    
+    // IMPORTANT
+    // New added callback functions should also be in resetCallbacks.
     switch(callbackType)
     {
         case NOMAD::CallbackType::ITERATION_END:
@@ -209,7 +217,14 @@ void NOMAD::Step::runCallback(NOMAD::CallbackType callbackType,
     }
 }
 
-
+void NOMAD::Step::resetCallbacks()
+{
+    _cbIterationEnd= defaultStepCB;
+    _cbMegaIterationEnd = defaultStepCB;
+    _cbMegaIterationStart = defaultStepCB;
+    _cbPostprocessingCheck = defaultStepCB;
+    
+}
 void NOMAD::Step::AddOutputInfo(const std::string& s, bool isBlockStart, bool isBlockEnd) const
 {
     // NB. Set the output level as LEVEL_INFO by default.
@@ -355,7 +370,7 @@ void NOMAD::Step::verifyGenerateAllPointsBeforeEval(const std::string& method, c
 
 bool NOMAD::Step::isAnAlgorithm() const
 {
-    NOMAD::Step* step = const_cast<Step*>(this);
+    auto* step = const_cast<Step*>(this);
     return (nullptr != dynamic_cast<NOMAD::Algorithm*>(step));
 }
 
@@ -365,6 +380,9 @@ const NOMAD::Algorithm* NOMAD::Step::getRootAlgorithm() const
     auto algo = isAnAlgorithm() ? dynamic_cast<const NOMAD::Algorithm*>(this)
                                 : getParentOfType<NOMAD::Algorithm*>();
 
+    if ( nullptr == algo)
+        return nullptr;
+    
     auto parentAlgo = algo->getParentOfType<NOMAD::Algorithm*>();
     while (nullptr != parentAlgo)
     {
@@ -387,7 +405,7 @@ const NOMAD::Algorithm* NOMAD::Step::getFirstAlgorithm() const
 
 std::string NOMAD::Step::getAlgoName() const
 {
-    std::string s = "";
+    std::string s;
     auto algo = getFirstAlgorithm();
     if (nullptr != algo)
     {
@@ -451,9 +469,10 @@ const std::shared_ptr<NOMAD::BarrierBase> NOMAD::Step::getMegaIterationBarrier()
 }
 
 
-bool NOMAD::Step::solHasFeas() const
+bool NOMAD::Step::solHasFeas(const NOMAD::FHComputeType& computeType) const
 {
-    bool hasFeas = NOMAD::CacheBase::getInstance()->hasFeas(NOMAD::EvalType::BB);
+
+    bool hasFeas = NOMAD::CacheBase::getInstance()->hasFeas(computeType);
 
     if (!hasFeas)
     {
@@ -463,7 +482,7 @@ bool NOMAD::Step::solHasFeas() const
         {
             for (const auto & xFeas : barrier->getAllXFeas())
             {
-                if (xFeas->isEvalOk(NOMAD::EvalType::BB) && xFeas->isFeasible(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD))
+                if (xFeas->isEvalOk(computeType.evalType) && xFeas->isFeasible(computeType))
                 {
                     hasFeas = true;
                     break;
@@ -500,10 +519,16 @@ bool NOMAD::Step::hasPhaseOneSolution() const
     if (nullptr != barrier)
     {
         auto xIncFeas = barrier->getCurrentIncumbentFeas();
-        if (nullptr != xIncFeas && NOMAD::EvalStatusType::EVAL_OK == xIncFeas->getEvalStatus(NOMAD::EvalType::BB))
+        auto completeComputeType = barrier->getFHComputeType();
+        if (NOMAD::ComputeType::PHASE_ONE != barrier->getComputeType())
         {
-            NOMAD::Double h = xIncFeas->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
-            hasPhaseOneSol = NOMAD::EvalPoint::isPhaseOneSolution(*xIncFeas) && (h <= hMax);
+            std::string err = "Barrier compute type should be PHASE_ONE";
+            throw NOMAD::Exception(__FILE__, __LINE__, err);
+        }
+        if (nullptr != xIncFeas && NOMAD::EvalStatusType::EVAL_OK == xIncFeas->getEvalStatus(completeComputeType.evalType))
+        {
+            NOMAD::Double h = xIncFeas->getH(completeComputeType);
+            hasPhaseOneSol = NOMAD::EvalPoint::isPhaseOneSolution(*xIncFeas, completeComputeType) && (h <= hMax);
         }
     }
     
@@ -557,7 +582,7 @@ void NOMAD::Step::hotRestartEndHelper()
 void NOMAD::Step::debugShowCallStack() const
 {
     std::vector<std::string> stepNameStack;
-    NOMAD::Step* step = const_cast<NOMAD::Step*>(this);
+    auto* step = const_cast<NOMAD::Step*>(this);
     while (nullptr != step)
     {
         stepNameStack.push_back(step->getName());
@@ -572,7 +597,7 @@ void NOMAD::Step::debugShowCallStack() const
     // Show the steps in order, this is why we created the stack.
     std::cout << "Call stack:" << std::endl;
     // NOTE: Using "i < stepNameStack.size()" as condition for loop,
-    // since i is a size_t (it is always >= 0).
+    // since value i is a size_t (it is always >= 0).
     for (size_t i = stepNameStack.size()-1; i < stepNameStack.size(); i--)
     {
         for (size_t j = 0; j < (stepNameStack.size()-i-1); j++)
@@ -591,7 +616,7 @@ void NOMAD::Step::updateParentSuccessStats()
     if (nullptr == _parentStep)
         return;
     
-    // Update this stats from evaluated trial points
+    // Update these stats from evaluated trial points
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     
     NOMAD::EvalType evalType;
@@ -605,11 +630,11 @@ void NOMAD::Step::updateParentSuccessStats()
     }
     
     
-    // Update this stats for BB eval only
+    // Update these stats for BB eval only
     if (NOMAD::EvalType::BB == evalType)
     {
         
-        // Update this stats from step successs
+        // Update these stats from step success
         _successStats.updateStats(_success, _stepType);
         
         // Propagate to parent stats
@@ -619,7 +644,13 @@ void NOMAD::Step::updateParentSuccessStats()
             Step* parentStep = const_cast<Step*>(_parentStep);
             NOMAD::SuccessStats & parentStats = parentStep->getSuccessStats();
             
-            parentStats.updateStats(_successStats);
+            // Can be critical if the parent step is the MainStep and we have several algorithms running in parallel
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+            {
+                parentStats.updateStats(_successStats);
+            }
         }
     }
         

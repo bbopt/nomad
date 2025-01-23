@@ -65,8 +65,8 @@ NOMAD::LHSearchType::LHSearchType(const std::string& entries)
             throw NOMAD::Exception(__FILE__, __LINE__, err);
         }
         int lhsearch0, lhsearch1;
-        std::string s0 = aos[0];
-        std::string s1 = aos[1];
+        const std::string& s0 = aos[0];
+        const std::string& s1 = aos[1];
         NOMAD::atoi(s0, lhsearch0);
         NOMAD::atoi(s1, lhsearch1);
         _lhsearch0 = lhsearch0;

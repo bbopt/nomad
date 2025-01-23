@@ -51,8 +51,8 @@
  \date   September 2018
  \see    BBOutput.hpp
  */
-#ifndef __NOMAD_4_4_BB_OUTPUT_TYPE__
-#define __NOMAD_4_4_BB_OUTPUT_TYPE__
+#ifndef __NOMAD_4_5_BB_OUTPUT_TYPE__
+#define __NOMAD_4_5_BB_OUTPUT_TYPE__
 
 #include <string>
 #include <sstream>
@@ -70,7 +70,7 @@ struct DLL_UTIL_API BBOutputType
         OBJ,        ///< Objective value
         EB,         ///< Extreme barrier constraint
         PB,         ///< Progressive barrier constraint
-        RPB,         ///<  Revealed constraint (obtained from DiscoMads revealing mechanism, not from blackbox evaluation). Similari to BBO_Undefined but it is considered in H calculation.
+        RPB,         ///<  Revealed constraint (obtained from DiscoMads revealing mechanism, not from blackbox evaluation). Similar to BBO_Undefined but it is considered in H calculation.
         CNT_EVAL,   ///< Output set to 0 or 1 to count the blackbox evaluation or not
         BBO_UNDEFINED ///< Output ignored
     };
@@ -101,7 +101,7 @@ struct DLL_UTIL_API BBOutputType
         _isRevealing = isRevealing;
     }
     
-    // Assignement operator
+    // Assignment operator
     BBOutputType(const BBOutputType & b)
     {
         _type = b._type;
@@ -136,6 +136,7 @@ struct DLL_UTIL_API BBOutputType
     }
     
     std::string display() const;
+    
     
     bool operator==(const BBOutputType& bbo) const
     {
@@ -226,4 +227,4 @@ DLL_UTIL_API std::istream& operator>>(std::istream& is, BBOutputTypeList& bbOutp
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_BB_OUTPUT_TYPE__
+#endif // __NOMAD_4_5_BB_OUTPUT_TYPE__

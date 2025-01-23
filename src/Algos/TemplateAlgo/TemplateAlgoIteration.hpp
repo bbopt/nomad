@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_TEMPLATEALGOITERATION__
-#define __NOMAD_4_4_TEMPLATEALGOITERATION__
+#ifndef __NOMAD_4_5_TEMPLATEALGOITERATION__
+#define __NOMAD_4_5_TEMPLATEALGOITERATION__
 
 #include "../../Algos/Iteration.hpp"
 #include "../../Algos/TemplateAlgo/TemplateAlgoRandom.hpp"
@@ -118,4 +118,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_TEMPLATEALGOITERATION__
+#endif // __NOMAD_4_5_TEMPLATEALGOITERATION__

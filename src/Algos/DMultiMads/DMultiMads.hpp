@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_DMULTIMADS__
-#define __NOMAD_4_4_DMULTIMADS__
+#ifndef __NOMAD_4_5_DMULTIMADS__
+#define __NOMAD_4_5_DMULTIMADS__
 
 
 #include "../../Algos/Algorithm.hpp"
@@ -90,7 +90,7 @@ private:
     /**
      - Algorithm execution for single-objective.
      - Loop on DMultiMadsMegaIteration (start, run, end) until a stop reason to terminate is obtained.
-     - Update the succes type
+     - Update the success type
      - Perform Termination tasks (start, run, end)
      - Update the SearchMethod success type with best success found.
      \return \c true
@@ -101,4 +101,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_DMULTIMADS__
+#endif // __NOMAD_4_5_DMULTIMADS__

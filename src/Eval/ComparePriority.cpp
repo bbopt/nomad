@@ -55,7 +55,7 @@ bool NOMAD::OrderByDirection::comp(NOMAD::EvalQueuePointPtr& point1,
 {
     std::string err;
     bool lowerPriority = false; // Sorting from less interesting to most interesting point, so return true if point1 is less interesting than point2.
-    bool useTag = false;    // If tie, or anything preventing computation, use tag.
+    bool useTag = false;    // If tied, or anything preventing computation, use tag.
 
     if (nullptr == point1 || nullptr == point2)
     {
@@ -69,14 +69,14 @@ bool NOMAD::OrderByDirection::comp(NOMAD::EvalQueuePointPtr& point1,
     auto point1From = point1->getPointFrom();
     auto point2From = point2->getPointFrom();
 
-    if (nullptr != point1From && NOMAD::EvalStatusType::EVAL_OK == point1From->getEvalStatus(NOMAD::EvalType::BB))
+    if (nullptr != point1From && NOMAD::EvalStatusType::EVAL_OK == point1From->getEvalStatus(_computeType.evalType))
     {
-        lastSuccessfulDir1 = (point1From->isFeasible(NOMAD::EvalType::BB)) ? _lastSuccessfulFeasDirs[point1->getThreadAlgo()]
+        lastSuccessfulDir1 = (point1From->isFeasible(_computeType)) ? _lastSuccessfulFeasDirs[point1->getThreadAlgo()]
                                                                            : _lastSuccessfulInfDirs[point1->getThreadAlgo()];
     }
-    if (nullptr != point2From && NOMAD::EvalStatusType::EVAL_OK == point2From->getEvalStatus(NOMAD::EvalType::BB))
-    {
-        lastSuccessfulDir2 = (point2From->isFeasible(NOMAD::EvalType::BB)) ? _lastSuccessfulFeasDirs[point2->getThreadAlgo()]
+    if (nullptr != point2From && NOMAD::EvalStatusType::EVAL_OK == point2From->getEvalStatus(_computeType.evalType))
+    { 
+        lastSuccessfulDir2 = (point2From->isFeasible(_computeType)) ? _lastSuccessfulFeasDirs[point2->getThreadAlgo()]
                                                                            : _lastSuccessfulInfDirs[point2->getThreadAlgo()];
     }
 
@@ -86,7 +86,7 @@ bool NOMAD::OrderByDirection::comp(NOMAD::EvalQueuePointPtr& point1,
         || 0 == lastSuccessfulDir1->norm() || 0 == lastSuccessfulDir2->norm())
     {
         // If no valid last direction of success revert to tag ordering
-        // Note: This is different than Nomad 3.
+        // Note: This is different from Nomad 3.
         useTag = true;
     }
     else
@@ -193,18 +193,22 @@ bool NOMAD::BasicComp::comp(NOMAD::EvalQueuePointPtr& point1,
 bool NOMAD::OrderByEval::comp(NOMAD::EvalQueuePointPtr& point1,
                             NOMAD::EvalQueuePointPtr& point2) const
 {
-    bool useTag = false;    // If tie, or anything preventing computation, use tag.
+    bool useTag = false;    // If tied, or anything preventing computation, use tag.
     bool lowerPriority = false; // Sorting from less interesting to most interesting point, so return true if point1 is less interesting than point2.
 
-    auto eval1 = point1->getEval(_evalTypeForOrder);
-    auto eval2 = point2->getEval(_evalTypeForOrder);
+    auto evalType = _computeType.evalType;
+    auto computeTypeS = _computeType.Short();
+    
+    
+    auto eval1 = point1->getEval(evalType);
+    auto eval2 = point2->getEval(evalType);
     if (nullptr == eval1)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "OrderByEval: " + evalTypeToString(_evalTypeForOrder) + " evaluation missing for point " + point1->displayAll());
+        throw NOMAD::Exception(__FILE__, __LINE__, "OrderByEval: " + evalTypeToString(evalType) + " evaluation missing for point " + point1->displayAll(computeTypeS));
     }
     else if (nullptr == eval2)
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "OrderBySurrogate: " + evalTypeToString(_evalTypeForOrder) + " evaluation missing for point " + point2->displayAll());
+        throw NOMAD::Exception(__FILE__, __LINE__, "OrderBySurrogate: " + evalTypeToString(evalType) + " evaluation missing for point " + point2->displayAll(computeTypeS));
     }
     
     // Manage failed evaluations
@@ -227,20 +231,20 @@ bool NOMAD::OrderByEval::comp(NOMAD::EvalQueuePointPtr& point1,
     {
         
         // two cases to compare when both are feasible or both are infeasible. Dominance based on fs and hs.
-        if (eval1->dominates(*eval2))
+        if (eval1->dominates(*eval2,computeTypeS))
         {
             lowerPriority = false;
         }
-        else if (eval2->dominates(*eval1))
+        else if (eval2->dominates(*eval1,computeTypeS))
         {
             lowerPriority = true;
         }
         // two cases where one is feasible and the other is not (no need to compare fs and hs
-        else if (eval1->isFeasible(ComputeType::STANDARD) && !eval2->isFeasible(ComputeType::STANDARD))
+        else if (eval1->isFeasible(computeTypeS) && !eval2->isFeasible(computeTypeS))
         {
             lowerPriority = false;
         }
-        else if (! eval1->isFeasible(ComputeType::STANDARD) && eval2->isFeasible(ComputeType::STANDARD))
+        else if (! eval1->isFeasible(computeTypeS) && eval2->isFeasible(computeTypeS))
         {
             lowerPriority = true;
         }

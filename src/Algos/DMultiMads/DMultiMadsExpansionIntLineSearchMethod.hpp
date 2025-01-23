@@ -44,70 +44,71 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+#ifndef __NOMAD_4_5_DMULTIMADSEXPANSIONINTLINESEARCHMETHOD__
+#define __NOMAD_4_5_DMULTIMADSEXPANSIONINTLINESEARCHMETHOD__
 
-#include "../../Algos/Mads/MadsInitialization.hpp"
-#include "../../Algos/SSDMads/SSDMads.hpp"
-#include "../../Algos/SSDMads/SSDMadsMegaIteration.hpp"
+#include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Algos/Mads/SearchMethodSimple.hpp"
+#include "../../Algos/DMultiMads/DMultiMadsBarrier.hpp"
 
+#include "../../nomad_nsbegin.hpp"
 
-void NOMAD::SSDMads::init()
+/// Expansion integer linesearch method for DMultiMads
+/**
+ The expansion integer linesearch method is a backtracking linesearch method.
+ It tries to expand the current set of solutions by exploring along a direction
+ for integer variables only.
+ */
+class DMultiMadsExpansionIntLineSearchMethod final : public SearchMethodSimple
 {
-    setStepType(NOMAD::StepType::ALGORITHM_SSD_MADS);
-    verifyParentNotNull();
+private:
+    std::shared_ptr<NOMAD::BarrierBase> _ref_dmads_barrier;
 
-    // Instantiate Mads initialization class
-    _initialization = std::make_unique<NOMAD::MadsInitialization>( this );
-}
+    NOMAD::ArrayOfDouble _lb;
+    NOMAD::ArrayOfDouble _ub;
+    std::vector<NOMAD::BBInputType> _bbInputTypes;
 
-
-bool NOMAD::SSDMads::runImp()
-{
-    size_t k = 0;   // Iteration number
-    NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::UNDEFINED;
-
-    bool runOk = true;
-
-    // Note: _initialization is run in Algorithm::startImp().
-
-    if (!_termination->terminate(k))
+public:
+    /// Constructor
+    /**
+     /param parentStep      The parent of this search step -- \b IN.
+     */
+    explicit DMultiMadsExpansionIntLineSearchMethod(const NOMAD::Step* parentStep)
+      : SearchMethodSimple(parentStep)
     {
-        std::shared_ptr<NOMAD::MeshBase> mesh = dynamic_cast<NOMAD::MadsInitialization*>(_initialization.get())->getMesh();
-
-
-        auto barrier = _initialization->getBarrier();
-
-        // Mads member _megaIteration is used for hot restart (read and write),
-        // as well as to keep values used in Mads::end(), and may be used for _termination.
-        // Update it here.
-        _refMegaIteration = std::make_shared<NOMAD::SSDMadsMegaIteration>(this, k, barrier, mesh, megaIterSuccess);
-
-        // Create a MegaIteration to manage the pollster worker and the regular workers.
-        NOMAD::SSDMadsMegaIteration ssdMegaIteration(this, k, barrier, mesh, megaIterSuccess);
-        while (!_termination->terminate(k))
-        {
-
-            ssdMegaIteration.start();
-            ssdMegaIteration.run();
-            ssdMegaIteration.end();
-
-            k       = ssdMegaIteration.getK();
-            megaIterSuccess = ssdMegaIteration.getSuccessType();
-
-            if (getUserInterrupt())
-            {
-                hotRestartOnUserInterrupt();
-            }
-        }
+        init();
     }
 
-    else
-    {
-        runOk = false;
-    }
+private:
 
-    _termination->start();
-    _termination->run();
-    _termination->end();
+    /// Helper for constructor.
+    /**
+     Test if the DmultiMads expansion integer linesearch is enabled or not.
+     */
+    void init();
 
-    return runOk;
-}
+    void preRunValidations();
+
+    NOMAD::Direction computePrimitiveDirection(const NOMAD::Point& frameCenter,
+                                               const NOMAD::Point& pointFrom,
+                                               int& initStepSize) const;
+
+    int computeMaxStepSize(const NOMAD::Point& frameCenter,
+                           const NOMAD::Direction& dir,
+                           const NOMAD::ArrayOfDouble& lb,
+                           const NOMAD::ArrayOfDouble& ub) const;
+
+    bool isInBarrier(const NOMAD::Point& x) const;
+
+    /// Generate new points (no evaluation)
+    /**
+     \copydoc SearchMethodAlgo::generateTrialPointsFinal 
+     The expansion integer linesearch method generates points along a direction
+     for integer variables only.
+     */
+     void generateTrialPointsFinal() override;
+};
+
+#include "../../nomad_nsend.hpp"
+
+#endif // __NOMAD_4_5_DMULTIMADSEXPANSIONINTLINESEARCHMETHOD__

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_LHSEARCHMETHOD__
-#define __NOMAD_4_4_LHSEARCHMETHOD__
+#ifndef __NOMAD_4_5_LHSEARCHMETHOD__
+#define __NOMAD_4_5_LHSEARCHMETHOD__
 
 #include "../../Algos/Mads/SearchMethodSimple.hpp"
 
@@ -71,7 +71,8 @@ private:
 
     /**
      \copydoc SearchMethodSimple::generateTrialPointsFinal \n
-     \note For the LH search method for Mads, the generation of points uses LHS with bounds determined from the frame size and frame center of the currrent iteration of Mads.
+     \note For the LH search method for Mads, the generation of points uses LHS with bounds determined from the frame
+     size and frame center of the current iteration of Mads.
      */
     void generateTrialPointsFinal() override;
 
@@ -79,5 +80,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_LHSEARCHMETHOD__
+#endif // __NOMAD_4_5_LHSEARCHMETHOD__
 

@@ -140,7 +140,7 @@ void NOMAD::DisplayParameters::checkAndComply(
 
     // The default value is empty: set a basic display stats: BBE OBJ
     auto displayStats = getAttributeValueProtected<NOMAD::ArrayOfString>("DISPLAY_STATS",false);
-    if ( displayStats.size() == 0 )
+    if ( displayStats.empty() )
     {
         NOMAD::ArrayOfString aos("BBE OBJ");
         setAttributeValue("DISPLAY_STATS", aos );
@@ -153,7 +153,7 @@ void NOMAD::DisplayParameters::checkAndComply(
 
     auto statsFileParam = getAttributeValueProtected<NOMAD::ArrayOfString>("STATS_FILE",false) ;
     std::string statsFileName;
-    if (statsFileParam.size() > 0)
+    if (!statsFileParam.empty())
     {
         statsFileName = statsFileParam[0];
         if (statsFileParam.size() == 1)

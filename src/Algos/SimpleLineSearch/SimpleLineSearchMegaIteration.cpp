@@ -97,6 +97,12 @@ bool NOMAD::SimpleLineSearchMegaIteration::runImp()
     
     std::vector<NOMAD::EvalPoint> frameCenters;
     
+    if (nullptr == _barrier)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"SimpleLineSearchMethod: null barrier");
+    }
+    auto computeType = _barrier->getFHComputeType();
+    
     // DMultiMadsBarrier may contain too many points. Use only the current incumbents.
     if (nullptr != dMultiMadsBarrier)
     {
@@ -151,7 +157,7 @@ bool NOMAD::SimpleLineSearchMegaIteration::runImp()
                 bool inserted = insertTrialPoint(evalPoint);
                 
                 OUTPUT_INFO_START
-                std::string s = "Speculative point:";
+                s = "Speculative point:";
                 s += (inserted) ? " inserted " : " not inserted: ";
                 s += evalPoint.display();
                 AddOutputInfo(s);
@@ -183,7 +189,7 @@ bool NOMAD::SimpleLineSearchMegaIteration::runImp()
                 continue;
             }
             
-            if ( ! frameCenter.isEvalOk(evalType) || !frameCenter.isFeasible(evalType))
+            if ( ! frameCenter.isEvalOk(evalType) || !frameCenter.isFeasible(computeType))
             {
                 continue;
             }
@@ -194,7 +200,7 @@ bool NOMAD::SimpleLineSearchMegaIteration::runImp()
             {
                 throw NOMAD::Exception(__FILE__,__LINE__,"SimpleLineSearchMethod: point from not found in cache");
             }
-            if ( !pointFromInCache.isEvalOk(evalType) || !pointFromInCache.isFeasible(evalType))
+            if ( !pointFromInCache.isEvalOk(evalType) || !pointFromInCache.isFeasible(computeType))
             {
                 continue;
             }
@@ -203,9 +209,9 @@ bool NOMAD::SimpleLineSearchMegaIteration::runImp()
             nbFound = NOMAD::CacheBase::getInstance()->find(*evalPoint.getX(), evaluatedPointFromCache, evalType);
             if (nbFound == 0)
             {
-                throw NOMAD::Exception(__FILE__,__LINE__,"SimpleLineSearchMethod: evaluted point not found in cache");
+                throw NOMAD::Exception(__FILE__,__LINE__,"SimpleLineSearchMethod: evaluated point not found in cache");
             }
-            if ( !evaluatedPointFromCache.isEvalOk(evalType) || !evaluatedPointFromCache.isFeasible(evalType))
+            if ( !evaluatedPointFromCache.isEvalOk(evalType) || !evaluatedPointFromCache.isFeasible(computeType))
             {
                 continue;
             }
@@ -226,15 +232,15 @@ bool NOMAD::SimpleLineSearchMegaIteration::runImp()
             if (u == 0 || v == 0 || u == v)
             {
                 OUTPUT_INFO_START
-                std::string s = "Line search point: u=0 or v=0 or u=v. Cannot generate point.";
+                s = "Line search point: u=0 or v=0 or u=v. Cannot generate point.";
                 AddOutputInfo(s);
                 OUTPUT_INFO_END
                 return successful;
             }
             
-            double f0 = pointFromInCache.getF().todouble();
-            double fu = frameCenter.getF().todouble();
-            double fv = evaluatedPointFromCache.getF().todouble();
+            double f0 = pointFromInCache.getF(computeType).todouble();
+            double fu = frameCenter.getF(computeType).todouble();
+            double fv = evaluatedPointFromCache.getF(computeType).todouble();
             
             
             // Identify where is the minimum of the quad model of f along the direction of success (1D).
@@ -245,7 +251,7 @@ bool NOMAD::SimpleLineSearchMegaIteration::runImp()
             if (a == 0)
             {
                 OUTPUT_INFO_START
-                std::string s = "Line search point: a=0. Cannot generate point.";
+                s = "Line search point: a=0. Cannot generate point.";
                 AddOutputInfo(s);
                 OUTPUT_INFO_END
                 return successful;
@@ -253,7 +259,7 @@ bool NOMAD::SimpleLineSearchMegaIteration::runImp()
             if (b == 0)
             {
                 OUTPUT_INFO_START
-                std::string s = "Line search point: b=0. Same as frame center.";
+                s = "Line search point: b=0. Same as frame center.";
                 AddOutputInfo(s);
                 OUTPUT_INFO_END
                 return successful;
@@ -283,7 +289,7 @@ bool NOMAD::SimpleLineSearchMegaIteration::runImp()
                 bool inserted = insertTrialPoint(evalPointLS);
                 
                 OUTPUT_INFO_START
-                std::string s = "Line search point:";
+                s = "Line search point:";
                 s += (inserted) ? " inserted " : " not inserted: ";
                 s += evalPointLS.display();
                 AddOutputInfo(s);
@@ -300,8 +306,8 @@ bool NOMAD::SimpleLineSearchMegaIteration::runImp()
             clearTrialPoints();
             
             NOMAD::EvalPoint evaluatedPointLSFromCache;
-            nbFound = NOMAD::CacheBase::getInstance()->find(*evalPointLS.getX(), evaluatedPointLSFromCache, evalType);
-            double ft = evaluatedPointLSFromCache.getF().todouble();
+            NOMAD::CacheBase::getInstance()->find(*evalPointLS.getX(), evaluatedPointLSFromCache, evalType);
+            double ft = evaluatedPointLSFromCache.getF(computeType).todouble();
             
             OUTPUT_DEBUGDEBUG_START
             AddOutputError("point from: " + pointFromInCache.display());

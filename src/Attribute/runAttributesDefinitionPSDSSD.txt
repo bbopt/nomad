@@ -1,5 +1,5 @@
 ###############################################################################
-#######     Definition of Run Parameters attributes (PSD-SSD)      ############
+#######     Definition of Run Parameters attributes (PSD)          ############
 #####
 ##### . Each definition must be separated by at least a comment line
 #####     (starting by #)
@@ -82,7 +82,7 @@ INF
 
 . When using Parallel Space Decomposition (PSD) MADS algorithm, select the number of
   Mads subproblems. By default (INF), the number of subproblems is adjusted to
-  cover all variables.
+  cover all variables after one pass.
 
 . Argument: a positive integer.
 
@@ -159,108 +159,6 @@ NOMAD::Double
 
 \)
 \( advanced parallel space mads parallel subproblem \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SSD_MADS_OPTIMIZATION
-bool
-0
-\( SSD-MADS optimization algorithm \)
-\(
-
-. Use SSD-MADS algorithm.
-
-. Argument: bool
-
-. Description: Sequential Space Decomposition with Mads (no parallelism)
-
-. This option deactivates any other optimization strategy.
-
-. Example: SSD_MADS_OPTIMIZATION true
-
-\)
-\( advanced ssd mads sequential decomposition \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SSD_MADS_NB_VAR_IN_SUBPROBLEM
-size_t
-2
-\( Number of variables in SSD-MADS subproblems \)
-\(
-
-. When using Sequential Space Decomposition (SSD) MADS algorithm, select the
-  number of variables in Mads subproblems.
-
-. Argument: a positive integer < INF.
-
-. Description: Size of subproblems in SSD-Mads.
-
-. This attribute is used only when SSD-Mads optimization is active.
-
-. Example: SSD_MADS_NB_VAR_IN_SUBPROBLEM 3
-
-\)
-\( advanced ssd mads sequential decomposition subproblem \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SSD_MADS_NB_SUBPROBLEM
-size_t
-INF
-\( Number of SSD-MADS subproblems \)
-\(
-
-. When using Sequential Space Decomposition (SSD) MADS algorithm, select the number of
-  Mads subproblems. By default (INF), the number of subproblems is adjusted to
-  cover all variables.
-
-. Argument: a positive integer. 
-
-. This attribute is used only when SSD-Mads optimization is active.
-
-. Example: SSD_MADS_NB_SUBPROBLEM 2
-
-\)
-\( advanced ssd mads sequential decomposition subproblem \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SSD_MADS_RESET_VAR_PICKUP_SUBPROBLEM
-bool
-false
-\( Reset random variable pick-up for each subproblem \)
-\(
-
-. Argument: bool
-
-. This attribute is used only when SSD-Mads optimization is active.
-
-. Example: SSD_MADS_RESET_VAR_PICKUP_SUBPROBLEM true
-
-\)
-\( advanced ssd mads sequential decomposition subproblem \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
-SSD_MADS_ITER_OPPORTUNISTIC
-bool
-true
-\( Opportunistic strategy between the Mads subproblems in SSD-MADS \)
-\(
-
-. When using Sequential Space Decomposition (SSD) MADS algorithm, the sequence
-  of Mads subproblems during an iteration can be opportunistically stopped when
-  a success is obtained by a Mads subproblem.
-
-. Argument: bool
-
-. This attribute is used only when SSD-Mads optimization is active.
-
-. Example: SSD_MADS_OPPORTUNISTIC false
-
-\)
-\( advanced sequential space ssd mads decomposition subproblem opportunistic \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################

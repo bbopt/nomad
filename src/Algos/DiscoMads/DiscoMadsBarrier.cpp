@@ -67,12 +67,12 @@ bool NOMAD::DiscoMadsBarrier::proximityTest(const NOMAD::Point & x1, const NOMAD
 
 
 
-const NOMAD::Double NOMAD::DiscoMadsBarrier::getKiemeHvalue(const std::vector<EvalPointPtr>& evalPointList, const size_t k, NOMAD::EvalType evalType) const
+NOMAD::Double NOMAD::DiscoMadsBarrier::getKiemeHvalue(const std::vector<EvalPointPtr>& evalPointList, const size_t k) const
 {
     NOMAD::Double kiemeHValue = NaN;
     std::string s; // for info output
 
-    if (evalPointList.size() == 0)
+    if (evalPointList.empty())
     {
         OUTPUT_INFO_START
         s = "Warning: DiscoMadsBarrier::getKiemeHvalue called on an empty evalPoints list";
@@ -84,32 +84,32 @@ const NOMAD::Double NOMAD::DiscoMadsBarrier::getKiemeHvalue(const std::vector<Ev
 
     // Get hvalues of all points
     std::vector<NOMAD::Double> hValues;
-    for(auto it:evalPointList)
+    for(const auto& it:evalPointList)
     {   
-        hValues.push_back(it->getEval(evalType)->getH());
+        hValues.push_back(it->getH(_computeType));
     }
     if(evalPointList.size()!= hValues.size())
     {
-        throw NOMAD::Exception(__FILE__, __LINE__, "Problem to compute k-ieme h value of the evalPoint list.");
+        throw NOMAD::Exception(__FILE__, __LINE__, "Problem to compute k-th h value of the evalPoint list.");
     }
 
     // Order points with increasing h values
     std::vector<EvalPointPtr> sortedEvalPointList = evalPointList;
-    std::sort(sortedEvalPointList.begin(), sortedEvalPointList.end(), [](const NOMAD::EvalPointPtr& x1,const NOMAD::EvalPointPtr& x2) {
-      return x1->getEval(NOMAD::EvalType::BB)->getH() < x2->getEval(NOMAD::EvalType::BB)->getH() ;
+    std::sort(sortedEvalPointList.begin(), sortedEvalPointList.end(), [this](const NOMAD::EvalPointPtr& x1,const NOMAD::EvalPointPtr& x2) {
+      return x1->getH(_computeType) < x2->getH(_computeType) ;
    });
 
-    // Get k-ieme value
-    kiemeHValue = sortedEvalPointList.at(k-1)->getEval(NOMAD::EvalType::BB)->getH();
+    // Get k-th value
+    kiemeHValue = sortedEvalPointList.at(k-1)->getH(_computeType);
 
     OUTPUT_DEBUG_START
     s = "List of evalPoints sorted with increasing h values: \n ";
-    for(auto point: sortedEvalPointList)
+    for(const auto& point: sortedEvalPointList)
     {   
         s +=point->display()+"\n";
     }
     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-    s = "h-value of k-ieme point (k= "+std::to_string(k) +"): "+kiemeHValue.tostring();
+    s = "h-value of k-th point (k= "+std::to_string(k) +"): "+kiemeHValue.tostring();
     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
     NOMAD::OutputQueue::Flush();
     OUTPUT_DEBUG_END
@@ -118,17 +118,17 @@ const NOMAD::Double NOMAD::DiscoMadsBarrier::getKiemeHvalue(const std::vector<Ev
 }
 
 
-const size_t NOMAD::DiscoMadsBarrier::getNonDominatedInfPoints(std::vector<NOMAD::EvalPointPtr> &evalPointList,const NOMAD::EvalType evalType,const NOMAD::ComputeType computeType) 
+size_t NOMAD::DiscoMadsBarrier::getNonDominatedInfPoints(std::vector<NOMAD::EvalPointPtr> &evalPointList)
 {
     evalPointList.clear();
 
-    if (_xInf.size()> 0)
+    if (!_xInf.empty())
     {
         std::vector<NOMAD::EvalPointPtr>::const_iterator it1= _xInf.begin(), it2;
         while ( it1 !=_xInf.end() )
             {
                 // Do not consider points with h>hMax
-                if ((*it1)->getEval(evalType)->getH(computeType) > _hMax)
+                if ((*it1)->getH(_computeType) > _hMax)
                 {
                     continue;
                 }
@@ -142,7 +142,7 @@ const size_t NOMAD::DiscoMadsBarrier::getNonDominatedInfPoints(std::vector<NOMAD
                         continue;
                     }
                 // Case ep2 dominates ep1 --> ep1 is dominated
-                    if ((*it2)->dominates(*(*it1), evalType, computeType))
+                    if ((*it2)->dominates(*(*it1),_computeType))
                     {
                         isDominated = true;
                         break;
@@ -158,23 +158,15 @@ const size_t NOMAD::DiscoMadsBarrier::getNonDominatedInfPoints(std::vector<NOMAD
             }
     }
     return evalPointList.size();
-};
+}
 
 
 
 // Points from evalPointList are already in subproblem dimension.
 bool NOMAD::DiscoMadsBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalPointList,
-                                      NOMAD::EvalType evalType,
-                                      NOMAD::ComputeType computeType,
-                                      const bool keepAllPoints /* Not used here */,
-                                      const bool updateIncumbentsAndHmax )
+                                               const bool keepAllPoints /* Not used here */,
+                                               const bool updateIncumbentsAndHmax )
 {
-
-    // Just in case
-    if(evalType==NOMAD::EvalType::MODEL)
-    {
-        throw NOMAD::Exception(__FILE__, __LINE__, "DiscoMAdsBarrier:: shoudl not be used on quadratic model optimization because it may be very slow.");
-    }
 
     bool updatedInc = false;
     bool revealingIteration = false;
@@ -186,12 +178,12 @@ bool NOMAD::DiscoMadsBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoin
     auto crittestNewRevealing = [&](const EvalPoint& x){ return x.getRevealingStatus()==2;};
     cache->find(crittestNewRevealing,newRevealingPoints);
 
-    if (newRevealingPoints.size()>0){
+    if (!newRevealingPoints.empty()){
         revealingIteration=true;
 
         OUTPUT_DEBUG_START
         s = "Iteration is revealing; tags of "+ std::to_string(newRevealingPoints.size()) +" new revealing points seen by the DiscoMadsBarrier: ";
-        for(auto point: newRevealingPoints)
+        for(const auto& point: newRevealingPoints)
         {   
             s+= std::to_string(point.getTag())+" ";
         }
@@ -204,7 +196,7 @@ bool NOMAD::DiscoMadsBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoin
     // If the iteration is revealing, special update of the barrier 
     if (revealingIteration){
         // In case of revelation, evaluations at this iteration are stopped. 
-        // Then do the update of incumbents and hmax reggardless of updateIncumbentsAndHmax, which may be false if revelation occurs during a search for example
+        // Then do the update of incumbents and hmax regardless of updateIncumbentsAndHmax, which may be false if revelation occurs during a search for example
         //(_updateIncumbentsAndHmax is set to True in search only if full success)
 
         // --- Step 1 : store information of current barrier
@@ -213,13 +205,12 @@ bool NOMAD::DiscoMadsBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoin
         // Non dominated infeasible points with h<hmax
         size_t nbNonDomInfPtsBelowHmaxBeforeUpdate = 0;
         std::vector<EvalPointPtr> nonDomInfPtsBelowHmaxBeforeUpdate;     
-        nbNonDomInfPtsBelowHmaxBeforeUpdate = getNonDominatedInfPoints(nonDomInfPtsBelowHmaxBeforeUpdate, evalType, computeType);
+        nbNonDomInfPtsBelowHmaxBeforeUpdate = getNonDominatedInfPoints(nonDomInfPtsBelowHmaxBeforeUpdate);
 
         // --- Step 2 : update RPB constraints considering revealed information
         for (auto & revealingPoint : newRevealingPoints)
         {// For each new revealing point...
             // set revealed constraint to 1.0 (only the constraint of the current evaluated point was updated in callbackCheckIfRevealingAndUpdate)
-            const NOMAD::Double valeur=revealingPoint.getRevealedConstraint();
             revealingPoint.setRevealedConstraint(1.0);
         
             // reset revealing status to 1
@@ -233,7 +224,7 @@ bool NOMAD::DiscoMadsBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoin
 
             OUTPUT_DEBUG_START
                 s = "Points close to revealing point "+ std::to_string(revealingPoint.getTag())+": ";
-                for(auto point: evalPointToUpdate)
+                for(const auto& point: evalPointToUpdate)
                 {   
                     s+= std::to_string(point.getTag())+" ";
                 }
@@ -294,13 +285,13 @@ bool NOMAD::DiscoMadsBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoin
         setHMax(INF);
 
         // reinsert all points (no points discarded as hmax = Inf)
-        ProgressiveBarrier::updateWithPoints(cachePoints, evalType, computeType, true, true /*true update infeasible incumbent and hmax*/ );  
+        ProgressiveBarrier::updateWithPoints(cachePoints, true, true /*true update infeasible incumbent and hmax*/ );
             // Important : hmax stays at INF cause barrier was reset just before
 
         // get number of infeasible non dominated points(these points may have changed because of increase in RPB constraint)
         size_t nbNonDomInfPts =0;
         std::vector<EvalPointPtr> nonDomInfPoints;    // U^{k+1} in paper  
-        nbNonDomInfPts = getNonDominatedInfPoints(nonDomInfPoints, evalType, computeType);   // no points discarded as hmax = Inf
+        nbNonDomInfPts = getNonDominatedInfPoints(nonDomInfPoints);   // no points discarded as hmax = Inf
 
         // determine number of infeasible points to keep in the barrier (p. 1850 of paper) // H1 : faire test unitaire sur ça
         size_t nbInfPointsToKeep;                        // N(k+,h(bar(x))) in paper
@@ -316,7 +307,7 @@ bool NOMAD::DiscoMadsBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoin
         OUTPUT_DEBUG_START
         s= "Number of non dominated infeasible points below hmax at beginning of iteration: "+std::to_string(nbNonDomInfPtsBelowHmaxBeforeUpdate);
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-        s= "Number of non dominated infeasible points regarless hmax: "+std::to_string(nbNonDomInfPts);
+        s= "Number of non dominated infeasible points regardless of hmax: "+std::to_string(nbNonDomInfPts);
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
         s= "Number of non dominated infeasible points to keep below hmax for next iteration: " +std::to_string(nbInfPointsToKeep);
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
@@ -324,7 +315,7 @@ bool NOMAD::DiscoMadsBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoin
 
 
         // Set hMax to the hvalue of the nbInfPointsToKeep-eme infeasible undominated point of the barrier (bar(x) in paper)
-        NOMAD::Double hValueToSet = getKiemeHvalue(nonDomInfPoints, nbInfPointsToKeep, evalType); // H1 do print for debug
+        NOMAD::Double hValueToSet = getKiemeHvalue(nonDomInfPoints, nbInfPointsToKeep); // H1 do print for debug
         setHMax(hValueToSet);
 
         OUTPUT_DEBUG_START
@@ -334,10 +325,10 @@ bool NOMAD::DiscoMadsBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoin
 
         NOMAD::OutputQueue::Flush();
         // Recompute infeasible incumbents with the new hmax
-        setInfeasibleIncumbents(evalType, computeType);
+        setInfeasibleIncumbents();
 
         // --- Step 4: update solution file, which was written before update of revealed constraints of neighbours points 
-        // so best may have changed
+        // so the best solutions may have changed
         OUTPUT_DIRECTTOFILE_START
         // Access best feas
         std::vector<EvalPointPtr> bestFeasPoints;
@@ -363,8 +354,6 @@ bool NOMAD::DiscoMadsBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoin
     else
     {
         updatedInc = ProgressiveBarrier::updateWithPoints(evalPointList,
-                                                        evalType,
-                                                        computeType,
                                                         keepAllPoints /* Not used here */,
                                                         updateIncumbentsAndHmax);
         }

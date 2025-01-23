@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_TEMPLATEALGORANDOM__
-#define __NOMAD_4_4_TEMPLATEALGORANDOM__
+#ifndef __NOMAD_4_5_TEMPLATEALGORANDOM__
+#define __NOMAD_4_5_TEMPLATEALGORANDOM__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/Step.hpp"
@@ -63,7 +63,7 @@ private:
     
     NOMAD::EvalPointPtr _center; // The point around which we sample randomly
     
-    NOMAD::ArrayOfDouble _boxSize; // The sample is made within boxes of size {1..k}*Delta
+    NOMAD::ArrayOfDouble _boxSize; // The sample is made within boxes of size {1...k}*Delta
     
     
 public:
@@ -118,4 +118,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_TEMPLATEALGORANDOM__
+#endif // __NOMAD_4_5_TEMPLATEALGORANDOM__

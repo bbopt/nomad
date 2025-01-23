@@ -69,9 +69,7 @@ void NOMAD::QuadModelAlgo::init()
 /*-------------------------*/
 /*       Destructor        */
 /*-------------------------*/
-NOMAD::QuadModelAlgo::~QuadModelAlgo()
-{
-}
+NOMAD::QuadModelAlgo::~QuadModelAlgo() = default;
 
 bool NOMAD::QuadModelAlgo::runImp()
 {
@@ -92,8 +90,8 @@ bool NOMAD::QuadModelAlgo::runImp()
             // Create a single objective progressive barrier
             barrier = std::make_shared<NOMAD::ProgressiveBarrier>(hMax,
                                                        NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
-                                                       NOMAD::EvalType::BB,
-                                                       NOMAD::EvcInterface::getEvaluatorControl()->getComputeType());
+                                                       NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType(),
+                                                       NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS());
         }
         
         NOMAD::SuccessType megaIterSuccessType = NOMAD::SuccessType::UNDEFINED;

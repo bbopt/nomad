@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_DEPRECATEDPARAMETERS__
-#define __NOMAD_4_4_DEPRECATEDPARAMETERS__
+#ifndef __NOMAD_4_5_DEPRECATEDPARAMETERS__
+#define __NOMAD_4_5_DEPRECATEDPARAMETERS__
 
 #include "../Param/Parameters.hpp"
 
@@ -65,7 +65,7 @@ public:
     {
         init();
     }
-    /// Read and detect explicity set deprecated parameter. Trigger exception.
+    /// Read and detect explicitly set deprecated parameter. Trigger exception.
     void readAndDetectExplicitlySet( );
 
 private:
@@ -79,5 +79,5 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_DEPRECATEDPARAMETERS__
+#endif // __NOMAD_4_5_DEPRECATEDPARAMETERS__
 

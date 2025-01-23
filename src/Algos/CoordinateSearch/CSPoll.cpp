@@ -91,7 +91,7 @@ void NOMAD::CSPoll::startImp()
     
 }
 
-void NOMAD::CSPoll::createPollMethods(const bool isPrimary, const EvalPointPtr frameCenter)
+void NOMAD::CSPoll::createPollMethods(const bool isPrimary, const EvalPointPtr& frameCenter)
 {
     _frameCenters.push_back(frameCenter);
     auto pollMethod = std::make_shared<NOMAD::CSPollMethod>(this, frameCenter);

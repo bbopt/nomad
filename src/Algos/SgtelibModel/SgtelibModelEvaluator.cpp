@@ -54,7 +54,7 @@
 
 // Constructor
 // Usually, Evaluators work in full dimension.
-// In this case, the models may work better in subdimension.
+// In this case, the models may work better in sub dimension.
 // This is why a fixed variable is used.
 NOMAD::SgtelibModelEvaluator::SgtelibModelEvaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams,
                                    const NOMAD::SgtelibModel* modelAlgo,
@@ -77,17 +77,15 @@ NOMAD::SgtelibModelEvaluator::SgtelibModelEvaluator(const std::shared_ptr<NOMAD:
 
 
 // Destructor
-NOMAD::SgtelibModelEvaluator::~SgtelibModelEvaluator()
-{
-}
+NOMAD::SgtelibModelEvaluator::~SgtelibModelEvaluator() = default;
 
 
 void NOMAD::SgtelibModelEvaluator::init()
 {
-    _displayLevel = (std::string::npos != _modelDisplay.find("X"))
+    _displayLevel = (std::string::npos != _modelDisplay.find('X'))
                         ? NOMAD::OutputLevel::LEVEL_INFO
                         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
-
+    
 }
 
 
@@ -121,7 +119,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     // --------------------- //
     // In/Out Initialisation //
     // --------------------- //
-    // Declaration of the stastistical measurements
+    // Declaration of the statistical measurements
     NOMAD::Double pf = 1; // P[x]
     NOMAD::Double f = 0; // predicted mean of the objective
     NOMAD::Double sigma_f = 0; // predicted variance of the objective
@@ -131,12 +129,11 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
     NOMAD::Double pfi = 0; // probability of feasible improvement
     NOMAD::Double mu = 0; // uncertainty on the feasibility
     NOMAD::Double penalty = 0; // exclusion area penalty
-    NOMAD::Double d = 0; // Distance to closest point of the cache
-    NOMAD::Double h = 0; // Constraint violation
+    NOMAD::Double d = 0; // Distance to the closest point of the cache
 
     // Creation of matrix for input / output of SGTELIB model
     SGTELIB::Matrix X_predict("X_predict", 1, static_cast<int>(n));
-    // Shall we compute statistical criterias
+    // Shall we compute statistical criteria
     bool useStatisticalCriteria = false;
     // FORMULATION USED IN THIS EVAL_X
     const NOMAD::SgtelibModelFormulationType formulation = _modelAlgo->getFormulation();
@@ -184,7 +181,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             case NOMAD::SgtelibModelFormulationType::EXTERN:
             case NOMAD::SgtelibModelFormulationType::UNDEFINED:
             default:
-                throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Forbiden formulation" );
+                throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Forbidden formulation" );
                 break;
         }
 
@@ -322,13 +319,13 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
         if ( useStatisticalCriteria )
         {
             pf = 1; // General probability of feasibility
-            NOMAD::Double pfj; // Probability of feasibility for constrait cj
+            NOMAD::Double pfj; // Probability of feasibility for constraint cj
             NOMAD::Double L2 = 0;
 
             if (nbConstraints > 0)
             {
                 // Use the CDF of each output in C
-                // If there is only one output in C (models B, H and M) then pf = CDF)
+                // If there is only one output in C (models B, H and M) then pf = CDF
                 for (size_t i = 1; i < nbModels; i++)
                 {
                     pfj = CDF_predict.get(0,static_cast<int>(i));
@@ -425,12 +422,6 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             break;
 
         case NOMAD::SgtelibModelFormulationType::EXTERN:
-            OUTPUT_INFO_START
-            s = "SgtelibModel formulation: " + NOMAD::SgtelibModelFormulationTypeToString(formulation);
-            NOMAD::OutputQueue::Add(s, _displayLevel);
-            OUTPUT_INFO_END
-            break;
-
         case NOMAD::SgtelibModelFormulationType::UNDEFINED:
         default:
             OUTPUT_INFO_START
@@ -459,7 +450,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             newbbo[i] = obj;
         }
     }
-    x.setBBO(newbbo.display(), _bbOutputTypeList, NOMAD::EvalType::MODEL);
+    x.setBBO(newbbo.tostring(), _bbOutputTypeList, NOMAD::EvalType::MODEL);
 
     // ================== //
     //       DISPLAY      //
@@ -475,7 +466,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
         NOMAD::OutputQueue::Add(s, _displayLevel);
         s = "Probability Improvement    PI  = " + pi.display();
         NOMAD::OutputQueue::Add(s, _displayLevel);
-        s = "Exptected Improvement      EI  = " + ei.display();
+        s = "Expected Improvement      EI  = " + ei.display();
         NOMAD::OutputQueue::Add(s, _displayLevel);
         s = "Proba. of Feasible Imp.    PFI = " + pfi.display();
         NOMAD::OutputQueue::Add(s, _displayLevel);

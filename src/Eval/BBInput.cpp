@@ -64,7 +64,7 @@ NOMAD::BBInput::BBInput(const NOMAD::BBInputTypeList& bbInputTypeList,
 
 void NOMAD::BBInput::display(std::ostream &out) const
 {
-    // _rawBBI not implemented. Currently nothing to display.
+    // _rawBBI not implemented. Currently, nothing to display.
     //out << _rawBBI;
 }
 

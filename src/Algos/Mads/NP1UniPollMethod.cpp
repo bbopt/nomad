@@ -65,15 +65,15 @@ void NOMAD::NP1UniPollMethod::generateUnitPollDirections(std::list<Direction> &d
     // Ortho MADS 2n
     // Householder Matrix
     // A vintage piece of code
-    NOMAD::Direction** H = new NOMAD::Direction*[2*n];
+    auto H = new NOMAD::Direction*[2*n];
 
     // Ordering D_k alternates Hk and -Hk instead of [H_k -H_k]
     std::list<Direction> vDirs;
     for (size_t i = 0; i < n; ++i)
     {
-        vDirs.push_back(NOMAD::Direction(n, 0.0));
+        vDirs.emplace_back(n, 0.0);
         H[i]   = &(vDirs.back());
-        vDirs.push_back(NOMAD::Direction(n, 0.0));
+        vDirs.emplace_back(n, 0.0);
         H[i+n] = &(vDirs.back());
     }
     // Householder transformations on the 2n directions on a unit n-sphere

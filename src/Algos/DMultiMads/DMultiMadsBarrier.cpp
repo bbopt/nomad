@@ -54,11 +54,16 @@
 
 // Initialization from cache
 void NOMAD::DMultiMadsBarrier::init(const NOMAD::Point& fixedVariables,
-                            NOMAD::EvalType evalType,
-                            NOMAD::ComputeType computeType,
-                            bool barrierInitializedFromCache)
+                                    bool barrierInitializedFromCache)
 {
     std::vector<NOMAD::EvalPoint> cachePoints;
+    
+    
+    if (_computeType.evalType != NOMAD::EvalType::BB || _computeType.fhComputeTypeS.computeType != NOMAD::ComputeType::STANDARD )
+    {
+        std::string s = "Error: Eval type must be BB and Compute Type must be standard";
+        throw NOMAD::Exception(__FILE__,__LINE__,s);
+    }
 
     if (fixedVariables.isEmpty())
     {
@@ -69,13 +74,23 @@ void NOMAD::DMultiMadsBarrier::init(const NOMAD::Point& fixedVariables,
     {
         checkCache();
 
+        // Order lexicographically a set of non dominated points.
+        auto lexicographicallyObjOrder = [](const NOMAD::FHComputeType& computeType,
+                                            std::vector<EvalPointPtr>& xSet)
+        {
+            std::sort(xSet.begin(), xSet.end(),
+                      [computeType](const EvalPointPtr& evalPoint1, const EvalPointPtr& evalPoint2)->bool
+                      {
+                          return evalPoint1->getFs(computeType).lexicographicalCmp(evalPoint2->getFs(computeType));
+                      });
+        };
 
-        // Get best feasible and infeasible solutions from cache.
+        // Get the best feasible and infeasible solutions from cache.
         // Point from cache are in full dimension.
         // Convert them to subproblem dimension.
         // NB: all solutions (and not only the non dominated ones are considered)
         auto cache = CacheBase::getInstance().get();
-        if (cache->findBestFeas(cachePoints, fixedVariables, evalType, computeType) > 0)
+        if (cache->findBestFeas(cachePoints, fixedVariables, _computeType) > 0)
         {
             for (const auto & evalPoint : cachePoints)
             {
@@ -83,25 +98,27 @@ void NOMAD::DMultiMadsBarrier::init(const NOMAD::Point& fixedVariables,
                 _xFeas.push_back(evalPointSub);
             }
             cachePoints.clear();
+            lexicographicallyObjOrder(_computeType, _xFeas);
         }
-        if (cache->findFilterInf(cachePoints, _hMax, fixedVariables, evalType, computeType) > 0)
+        if (cache->findFilterInf(cachePoints, _hMax, fixedVariables, _computeType) > 0)
         {
             for (const auto &evalPoint : cachePoints)
             {
                 // Consider points with h < INF. That is, points that are not excluded by extreme barrier constraints.
-                if (evalPoint.getH(evalType,computeType) < NOMAD::INF)
+                if (evalPoint.getH(_computeType) < NOMAD::INF)
                 {
                     NOMAD::EvalPointPtr evalPointSub = std::make_shared<EvalPoint>( evalPoint.makeSubSpacePointFromFixed(fixedVariables));
                     _xInf.push_back(evalPointSub);
                 }
             }
             cachePoints.clear();
+            lexicographicallyObjOrder(_computeType, _xInf);
         }
 
         // Get non dominated infeasible points from cache.
         // Points from cache are in full dimension.
         // Convert them to subproblem dimension.
-        if (cache->findFilterInf(cachePoints, _hMax, fixedVariables, evalType, computeType) > 0)
+        if (cache->findFilterInf(cachePoints, _hMax, fixedVariables, _computeType) > 0)
         {
             for (const auto & evalPoint : cachePoints)
             {
@@ -109,10 +126,11 @@ void NOMAD::DMultiMadsBarrier::init(const NOMAD::Point& fixedVariables,
                 _xFilterInf.push_back(evalPointSub);
             }
             cachePoints.clear();
+            lexicographicallyObjOrder(_computeType, _xFilterInf);
         }
     }
 
-    if (_xFeas.size() > 0 || _xInf.size() > 0)
+    if (!_xFeas.empty() || !_xInf.empty())
     {
         setN();
 
@@ -127,19 +145,15 @@ void NOMAD::DMultiMadsBarrier::init(const NOMAD::Point& fixedVariables,
         
         // Update the incumbents used by DMultiMads algo as frameCenter
         updateCurrentIncumbents();
-        
     }
 }
 
 
 // And from the list of points given
 void NOMAD::DMultiMadsBarrier::init(const NOMAD::Point& fixedVariables,
-                            NOMAD::EvalType evalType,
-                            const std::vector<NOMAD::EvalPoint>& evalPointList,
-                            NOMAD::ComputeType computeType)
+                                    const std::vector<NOMAD::EvalPoint>& evalPointList)
 {
-
-    bool updated = updateWithPoints(evalPointList, evalType, computeType, true); // All points are considered.
+    bool updated = updateWithPoints(evalPointList, true); // All points are considered.
 
     if (! updated)
          return;
@@ -150,6 +164,13 @@ void NOMAD::DMultiMadsBarrier::init(const NOMAD::Point& fixedVariables,
     {
         _bbInputsType = BBInputTypeList(_n, NOMAD::BBInputType::CONTINUOUS);
     }
+    
+    if (_computeType.evalType != NOMAD::EvalType::BB || _computeType.fhComputeTypeS.computeType != NOMAD::ComputeType::STANDARD )
+    {
+        std::string s = "Error: Eval type must be BB and Compute Type must be standard";
+        throw NOMAD::Exception(__FILE__,__LINE__,s);
+    }
+    
     if (_bbInputsType.size() != _n)
     {
         std::string s = "Error: Inputs dimensions of DMultiMadsBarrier do not match dimensions of provided input types.";
@@ -157,21 +178,21 @@ void NOMAD::DMultiMadsBarrier::init(const NOMAD::Point& fixedVariables,
     }
 
     // Check: xFeas or xInf could be non-evaluated, but not both.
-    if (   (_xFeas.empty() || nullptr == _xFeas[0]->getEval(evalType))
-        && (_xInf.empty() || nullptr == _xInf[0]->getEval(evalType)))
+    if (   (_xFeas.empty() || nullptr == _xFeas[0]->getEval(_computeType.evalType))
+        && (_xInf.empty() || nullptr == _xInf[0]->getEval(_computeType.evalType)))
     {
         std::string s = "Barrier constructor: xFeas or xInf must be in the barrier.\n";
         if (!_xFeas.empty())
         {
             s += "There are " + std::to_string(_xFeas.size()) + " xFeas, the first one is:\n";
-            s += _xFeas[0]->displayAll();
+            s += _xFeas[0]->displayAll(NOMAD::defaultFHComputeTypeS);
         }
         if (!_xInf.empty())
         {
             s += "There are " + std::to_string(_xInf.size()) + " xInf, the first one is:\n";
-            s += _xInf[0]->displayAll();
+            s += _xInf[0]->displayAll(NOMAD::defaultFHComputeTypeS);
         }
-        if (_xFeas.size() == 0 && _xInf.size() == 0)
+        if (_xFeas.empty() && _xInf.empty())
         {
             s += "There are no xFeas and no xInf defined.";
         }
@@ -179,6 +200,9 @@ void NOMAD::DMultiMadsBarrier::init(const NOMAD::Point& fixedVariables,
     }
 
     checkHMax();
+
+    // Update the incumbents used by DMultiMads algo as frame centers and bounds.
+    updateCurrentIncumbents();
 }
 
 
@@ -193,8 +217,10 @@ void NOMAD::DMultiMadsBarrier::setHMax(const NOMAD::Double &hMax)
     {
         updateXInfAndFilterInfAfterHMaxSet();
     }
-    // Always update the current incumbent infeasible after changing hmax.
+    // Always update the current infeasible incumbents after changing hmax.
+    updateCurrentIncumbentInfMaxH();
     updateCurrentIncumbentInf();
+    updateCurrentIdealInf();
 }
 
 
@@ -248,47 +274,48 @@ void NOMAD::DMultiMadsBarrier::clearXFeas()
 {
     _xFeas.clear();
     
-    // Update the current incumbents. Both the feasible and  infeasible ones.
+    // Update the current incumbents. Both the feasible and infeasible ones.
     updateCurrentIncumbents();
-    
+    updateCurrentIdealFeas();
 }
 
 
 
-void NOMAD::DMultiMadsBarrier::checkXFeasIsFeas(const NOMAD::EvalPoint &xFeas,
-                                        NOMAD::EvalType  evalType,
-                                        NOMAD::ComputeType computeType)
+void NOMAD::DMultiMadsBarrier::checkXFeasIsFeas(const NOMAD::EvalPoint &xFeas)
 {
+    const auto evalType = _computeType.evalType;
+
     // If evalType is UNDEFINED, skip this check.
-    if (NOMAD::EvalType::UNDEFINED != evalType)
+    if (evalType == NOMAD::EvalType::UNDEFINED)
+        return;
+
+    const auto eval = xFeas.getEval(evalType);
+    if (eval == nullptr || eval->getEvalStatus() != NOMAD::EvalStatusType::EVAL_OK)
+        return;
+
+    const auto computeTypeS = _computeType.Short();
+    const NOMAD::Double h = eval->getH(computeTypeS);
+    if (!h.isDefined() || 0.0 != h)
     {
-        auto eval = xFeas.getEval(evalType);
-        if (nullptr != eval && NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
-        {
-            NOMAD::Double h = eval->getH(computeType);
-            if (!h.isDefined() || 0.0 != h)
-            {
-                std::string err = "Error: DMultiMadsBarrier: xFeas' h value must be 0.0, got: " + h.display();
-                throw NOMAD::Exception(__FILE__,__LINE__,err);
-            }
-            if (computeType == NOMAD::ComputeType::STANDARD && eval->getFs(computeType).size() != _nobj)
-            {
-                std::string err = "Error: DMultiMadsBarrier: xFeas' F must be of size " + std::to_string(_nobj);
-                err += ", got: F.size() = " + std::to_string(eval->getFs(computeType).size());
-                err += " with following F values " + eval->getFs(computeType).display();
-                throw NOMAD::Exception(__FILE__,__LINE__,err);
-            }
-        }
+        std::string err = "Error: DMultiMadsBarrier: xFeas' h value must be 0.0, got: " + h.display();
+        throw NOMAD::Exception(__FILE__,__LINE__,err);
+    }
+
+    if (computeTypeS.computeType == NOMAD::ComputeType::STANDARD && eval->getFs(computeTypeS).size() != _nobj)
+    {
+        std::string err = "Error: DMultiMadsBarrier: xFeas' F must be of size " + std::to_string(_nobj);
+        err += ", got: F.size() = " + std::to_string(eval->getFs(computeTypeS).size());
+        err += " with following F values " + eval->getFs(computeTypeS).display();
+        throw NOMAD::Exception(__FILE__,__LINE__,err);
     }
 }
 
 
 NOMAD::EvalPointPtr NOMAD::DMultiMadsBarrier::getFirstXIncInfNoXFeas() const
 {
-    NOMAD::EvalPointPtr xInf = nullptr;
-    if (_xFilterInf.size() == 0)
+    if (_xFilterInf.empty())
     {
-        return xInf;
+        return nullptr;
     }
 
     // Select candidates
@@ -308,9 +335,10 @@ NOMAD::EvalPointPtr NOMAD::DMultiMadsBarrier::getFirstXIncInfNoXFeas() const
     // The selection must always work
     if (nbSelectedCandidates == 0)
     {
-        xInf = _xInf[0];
+        return _xInf[0];
     }
-    else if (nbSelectedCandidates == 1)
+
+    if (nbSelectedCandidates == 1)
     {
         auto it = std::find(canBeFrameCenter.begin(), canBeFrameCenter.end(), true);
         if (it == canBeFrameCenter.end())
@@ -318,156 +346,145 @@ NOMAD::EvalPointPtr NOMAD::DMultiMadsBarrier::getFirstXIncInfNoXFeas() const
             std::string s = "Error: DMultiMadsBarrier, should not reach this condition";
             throw NOMAD::Exception(__FILE__,__LINE__,s);
         }
-        else
-        {
-            size_t selectedInd = std::distance(canBeFrameCenter.begin(), it);
-            xInf = _xInf[selectedInd];
-        }
+        const size_t selectedInd = std::distance(canBeFrameCenter.begin(), it);
+        return _xInf[selectedInd];
     }
-    else if ((nbSelectedCandidates == 2) && (_xInf.size() == 2))
+
+    if ((nbSelectedCandidates == 2) && (_xInf.size() == 2))
     {
-        const NOMAD::Eval* eval1 = _xInf[0]->getEval(NOMAD::EvalType::BB);
-        const NOMAD::Eval* eval2 = _xInf[1]->getEval(NOMAD::EvalType::BB);
-        auto objv1 = eval1->getFs();
-        auto objv2 = eval2->getFs();
-        if (objv1.abs().max() > objv2.abs().max())
-        {
-            xInf = _xInf[0];
-        }
-        else
-        {
-            xInf = _xInf[1];
-        }
+        const auto& objv1 = _xInf[0]->getFs(_computeType);
+        const auto& objv2 = _xInf[1]->getFs(_computeType);
+        const EvalPointPtr xInf = (objv1.abs().max() > objv2.abs().max()) ? _xInf[0] : _xInf[1];
+        return xInf;
     }
+
     // More than two points in the barrier.
-    else
+    // First case: biobjective optimization. Points are already ranked by lexicographic order.
+    if (_nobj == 2)
     {
-        // First case: biobjective optimization. Points are already ranked by lexicographic order.
-        if (_nobj == 2)
+        size_t currentBestInd = 0;
+        NOMAD::Double maxGap = -1.0;
+        NOMAD::Double currentGap;
+        for (size_t obj = 0; obj < _nobj; ++obj)
         {
-            size_t currentBestInd = 0;
-            NOMAD::Double maxGap = -1.0;
-            NOMAD::Double currentGap;
-            for (size_t obj = 0; obj < _nobj; ++obj)
+            // Get extreme values value according to one objective
+            const NOMAD::Double fmin = _xInf[0]->getFs(_computeType)[obj];
+            const NOMAD::Double fmax = _xInf[_xInf.size()-1]->getFs(_computeType)[obj];
+
+            // In this case, it means all elements of _xInf are equal.
+            // We return the first one.
+            if (fmin == fmax)
             {
-                // Get extreme values value according to one objective
-                NOMAD::Double fmin = _xInf[0]->getEval(NOMAD::EvalType::BB)->getFs()[obj];
-                NOMAD::Double fmax = _xInf[_xInf.size()-1]->getEval(NOMAD::EvalType::BB)->getFs()[obj];
+                return _xInf[0];
+            }
 
-                // In this case, it means all elements of _xInf are equal (return the first one)
-                if (fmin == fmax)
-                {
-                    break;
-                }
+            // Intermediate points
+            for (size_t i = 1; i < _xInf.size()-1;++i)
+            {
+                if (!canBeFrameCenter[i])
+                    continue;
 
-                // Intermediate points
-                for (size_t i = 1; i < _xInf.size()-1;++i)
-                {
-                    currentGap = _xInf[i+1]->getEval(NOMAD::EvalType::BB)->getFs()[obj] -
-                        _xInf[i-1]->getEval(NOMAD::EvalType::BB)->getFs()[obj];
-                    currentGap /= (fmax -fmin);
-                    if (canBeFrameCenter[i] && currentGap >= maxGap)
-                    {
-                        maxGap = currentGap;
-                        currentBestInd = i;
-                    }
-                }
-
-                // Extreme points
-                currentGap = 2 * (_xInf[_xInf.size() - 1]->getEval(NOMAD::EvalType::BB) ->getFs()[obj] -
-                                  _xInf[_xInf.size() - 2] ->getEval(NOMAD::EvalType::BB) ->getFs()[obj]);
-                currentGap /= (fmax - fmin);
-                if (canBeFrameCenter[_xInf.size() - 1] && currentGap > maxGap)
-                {
-                    maxGap = currentGap;
-                    currentBestInd = _xInf.size()-1;
-                }
-
-                currentGap = 2 * (_xInf[1]->getEval(NOMAD::EvalType::BB)->getFs()[obj] -
-                                  _xInf[0]->getEval(NOMAD::EvalType::BB)->getFs()[obj]);
+                currentGap = _xInf[i+1]->getFs(_computeType)[obj] -
+                    _xInf[i-1]->getFs(_computeType)[obj];
                 currentGap /= (fmax -fmin);
-                if (canBeFrameCenter[0] && currentGap > maxGap)
+                if (currentGap >= maxGap)
                 {
                     maxGap = currentGap;
-                    currentBestInd = 0;
+                    currentBestInd = i;
                 }
             }
-            xInf = _xInf[currentBestInd];
-        }
-        // More than 2 objectives
-        else
-        {
-            std::vector<std::pair<EvalPoint, size_t> > tmpXInfPInd(_xInf.size());
 
-            // Initialize it.
-            for (size_t i = 0; i < tmpXInfPInd.size(); ++i)
+            // Extreme points
+            currentGap = 2 * (_xInf[_xInf.size() - 1]->getFs(_computeType)[obj] -
+                              _xInf[_xInf.size() - 2]->getFs(_computeType)[obj]);
+            currentGap /= (fmax - fmin);
+            if (canBeFrameCenter[_xInf.size() - 1] && currentGap > maxGap)
             {
-                tmpXInfPInd[i] = std::make_pair(*_xInf[i], i);
+                maxGap = currentGap;
+                currentBestInd = _xInf.size() - 1;
             }
 
-            size_t currentBestInd = 0;
-            NOMAD::Double maxGap = -1.0;
-            NOMAD::Double currentGap;
-
-            for (size_t obj = 0; obj < _nobj; ++obj)
+            currentGap = 2 * (_xInf[1]->getFs(_computeType)[obj] -
+                              _xInf[0]->getFs(_computeType)[obj]);
+            currentGap /= (fmax -fmin);
+            if (canBeFrameCenter[0] && currentGap > maxGap)
             {
-                // Sort elements of tmpXInfPInd according to objective obj (in ascending order)
-                std::sort(tmpXInfPInd.begin(), tmpXInfPInd.end(),
-                          [obj](const std::pair<EvalPoint, size_t>& t1, const std::pair<EvalPoint, size_t> t2)->bool
-                          {
-                              const NOMAD::Eval* eval1 = t1.first.getEval(NOMAD::EvalType::BB);
-                              const NOMAD::Eval* eval2 = t2.first.getEval(NOMAD::EvalType::BB);
-                              return eval1->getFs()[obj] < eval2->getFs()[obj];
-                          });
-
-                // Get extreme values value according to one objective
-                NOMAD::Double fmin = tmpXInfPInd[0].first.getEval(NOMAD::EvalType::BB)->getFs()[obj];
-                NOMAD::Double fmax = tmpXInfPInd[tmpXInfPInd.size()-1].first.getEval(NOMAD::EvalType::BB)->getFs()[obj];
-
-                // Can happen for exemple when we have several minima or for more than three objectives
-                if (fmin == fmax)
-                {
-                    fmin = 0.0;
-                    fmax = 1.0;
-                }
-
-                // Intermediate points
-                for (size_t i = 1; i < tmpXInfPInd.size()-1;++i)
-                {
-                    currentGap = tmpXInfPInd[i+1].first.getEval(NOMAD::EvalType::BB)->getFs()[obj] -
-                        tmpXInfPInd[i-1].first.getEval(NOMAD::EvalType::BB)->getFs()[obj];
-                    currentGap /= (fmax -fmin);
-                    if (canBeFrameCenter[tmpXInfPInd[i].second] && currentGap >= maxGap)
-                    {
-                        maxGap = currentGap;
-                        currentBestInd = tmpXInfPInd[i].second;
-                    }
-                }
-
-                // Extreme points
-                currentGap = 2 * (tmpXInfPInd[tmpXInfPInd.size() - 1].first.getEval(NOMAD::EvalType::BB) ->getFs()[obj] -
-                                  tmpXInfPInd[tmpXInfPInd.size() - 2].first.getEval(NOMAD::EvalType::BB) ->getFs()[obj]);
-                currentGap /= (fmax - fmin);
-                if (canBeFrameCenter[tmpXInfPInd[tmpXInfPInd.size()-1].second] && currentGap > maxGap)
-                {
-                    maxGap = currentGap;
-                    currentBestInd = tmpXInfPInd[tmpXInfPInd.size()-1].second;
-                }
-
-                currentGap = 2 * (tmpXInfPInd[1].first.getEval(NOMAD::EvalType::BB) ->getFs()[obj] -
-                                  tmpXInfPInd[0].first.getEval(NOMAD::EvalType::BB) ->getFs()[obj]);
-                currentGap /= (fmax -fmin);
-                if (canBeFrameCenter[tmpXInfPInd[0].second] && currentGap > maxGap)
-                {
-                    maxGap = currentGap;
-                    currentBestInd = tmpXInfPInd[0].second;
-                }
+                maxGap = currentGap;
+                currentBestInd = 0;
             }
-            xInf = _xInf[currentBestInd];
         }
-
+        return _xInf[currentBestInd];
     }
-    return xInf;
+
+    // Case 2 : more than 2 objectives
+    std::vector<std::pair<EvalPointPtr, size_t> > tmpXInfPInd(_xInf.size());
+
+    // Initialize it.
+    for (size_t i = 0; i < tmpXInfPInd.size(); ++i)
+    {
+        tmpXInfPInd[i] = std::make_pair(_xInf[i], i);
+    }
+
+    size_t currentBestInd = 0;
+    NOMAD::Double maxGap = -1.0;
+    NOMAD::Double currentGap;
+
+    for (size_t obj = 0; obj < _nobj; ++obj)
+    {
+        // Sort elements of tmpXInfPInd according to objective obj (in ascending order)
+        std::sort(tmpXInfPInd.begin(), tmpXInfPInd.end(),
+                  [obj, this](const std::pair<EvalPointPtr, size_t>& t1, const std::pair<EvalPointPtr, size_t>& t2)->bool
+                  {
+                      return t1.first->getFs(_computeType)[obj] < t2.first->getFs(_computeType)[obj];
+                  });
+
+        // Get extreme values value according to one objective
+        NOMAD::Double fmin = tmpXInfPInd[0].first->getFs(_computeType)[obj];
+        NOMAD::Double fmax = tmpXInfPInd[tmpXInfPInd.size()-1].first->getFs(_computeType)[obj];
+
+        // Can happen for example when we have several minima or for more than three objectives
+        if (fmin == fmax)
+        {
+            fmin = 0.0;
+            fmax = 1.0;
+        }
+
+        // Intermediate points
+        for (size_t i = 1; i < tmpXInfPInd.size()-1;++i)
+        {
+            if (!canBeFrameCenter[tmpXInfPInd[i].second])
+                continue;
+
+            currentGap = tmpXInfPInd[i+1].first->getFs(_computeType)[obj] -
+                tmpXInfPInd[i-1].first->getFs(_computeType)[obj];
+            currentGap /= (fmax -fmin);
+            if (currentGap >= maxGap)
+            {
+                maxGap = currentGap;
+                currentBestInd = tmpXInfPInd[i].second;
+            }
+        }
+
+        // Extreme points
+        currentGap = 2 * (tmpXInfPInd[tmpXInfPInd.size() - 1].first->getFs(_computeType)[obj] -
+                          tmpXInfPInd[tmpXInfPInd.size() - 2].first->getFs(_computeType)[obj]);
+        currentGap /= (fmax - fmin);
+        if (canBeFrameCenter[tmpXInfPInd[tmpXInfPInd.size()-1].second] && currentGap > maxGap)
+        {
+            maxGap = currentGap;
+            currentBestInd = tmpXInfPInd[tmpXInfPInd.size()-1].second;
+        }
+
+        currentGap = 2 * (tmpXInfPInd[1].first->getFs(_computeType)[obj] -
+                          tmpXInfPInd[0].first->getFs(_computeType)[obj]);
+        currentGap /= (fmax -fmin);
+        if (canBeFrameCenter[tmpXInfPInd[0].second] && currentGap > maxGap)
+        {
+            maxGap = currentGap;
+            currentBestInd = tmpXInfPInd[0].second;
+        }
+    }
+    return _xInf[currentBestInd];
 }
 
 
@@ -478,8 +495,7 @@ NOMAD::EvalPointPtr NOMAD::DMultiMadsBarrier::getXInfMinH() const
 
     for (size_t i = 0; i < _xInf.size(); ++i)
     {
-        const NOMAD::Eval* eval = _xInf[i]->getEval(NOMAD::EvalType::BB);
-        NOMAD::Double h = eval->getH();
+        const NOMAD::Double h = _xInf[i]->getH(_computeType);
 
         // By definition, all elements of _xInf or _xFilterInf have a well-defined
         // h value. So, no need to check.
@@ -499,9 +515,10 @@ void NOMAD::DMultiMadsBarrier::clearXInf()
     _xInf.clear();
     _xFilterInf.clear();
     
-    // Update the current incumbent inf. Only the infeasible one depends on XInf (not the case for the feasible one).
+    // Update the current infeasible incumbents.
+    updateCurrentIncumbentInfMaxH();
     updateCurrentIncumbentInf();
-    
+    updateCurrentIdealInf();
 }
 
 
@@ -513,9 +530,7 @@ void NOMAD::DMultiMadsBarrier::updateRefBests()
 
 // The code is the very similar to what is in Barrier. Here we use current incumbents.
 NOMAD::SuccessType NOMAD::DMultiMadsBarrier::getSuccessTypeOfPoints(const EvalPointPtr xFeas,
-                                                            const EvalPointPtr xInf,
-                                                            EvalType evalType,
-                                                            ComputeType computeType)
+                                                                    const EvalPointPtr xInf)
 {
     NOMAD::SuccessType successType = SuccessType::UNSUCCESSFUL;
     NOMAD::SuccessType successType2 = SuccessType::UNSUCCESSFUL;
@@ -529,7 +544,7 @@ NOMAD::SuccessType NOMAD::DMultiMadsBarrier::getSuccessTypeOfPoints(const EvalPo
         // Compute success
         // Get which of newBestFeas and newBestInf is improving
         // the solution. Check newBestFeas first.
-        NOMAD::ComputeSuccessType computeSuccess(evalType, computeType);
+        NOMAD::ComputeSuccessType computeSuccess(_computeType);
 
         if (nullptr != _currentIncumbentFeas)
         {
@@ -548,346 +563,372 @@ NOMAD::SuccessType NOMAD::DMultiMadsBarrier::getSuccessTypeOfPoints(const EvalPo
 }
 
 
-bool NOMAD::DMultiMadsBarrier::updateFeasWithPoint(const EvalPoint & evalPoint,
-                                               EvalType evalType,
-                                               ComputeType computeType,
-                                               const bool keepAllPoints)
+NOMAD::CompareType NOMAD::DMultiMadsBarrier::updateFeasWithPoint(const EvalPoint & evalPoint,
+                                                                 const bool keepAllPoints)
 {
-
-    bool updated = false;
-
-    auto eval = evalPoint.getEval(evalType);
-    if (eval->isFeasible(computeType))
+    // Dealing with Non Standard computing order
+    const auto computeTypeS = _computeType.Short();
+    if (computeTypeS.computeType != ComputeType::STANDARD)
     {
-        std::string s; // for output info
+        throw NOMAD::Exception(__FILE__, __LINE__, "Update using non standard compute type is not yet implemented");
+    }
+    
+    const auto eval = evalPoint.getEval(_computeType.evalType);
+    if (!eval->isFeasible(computeTypeS))
+        return NOMAD::CompareType::UNDEFINED;
+
+    std::string s; // for output info
         
+    OUTPUT_DEBUG_START
+    s = "Point suggested to update DMultiMadsBarrier (feasible): " + evalPoint.display();
+    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    OUTPUT_DEBUG_END
+        
+    if (eval->getFs(computeTypeS).size() != _nobj)
+    {
+        s = "DMultiMadsBarrier update: number of objectives is equal to " + std::to_string(_nobj);
+        s += ". Trying to add this point with number of objectives " + std::to_string(eval->getFs(computeTypeS).size());
+        s += ": " + evalPoint.display();
+        throw NOMAD::Exception(__FILE__, __LINE__, s);
+    }
+
+    if (_xFeas.empty())
+    {
+        _xFeas.push_back(std::make_shared<NOMAD::EvalPoint>(evalPoint));
         OUTPUT_DEBUG_START
-        s = "Point suggested to update DMultiMadsBarrier (feasible): " + evalPoint.display();
+        s = "New dominating xFeas: " + evalPoint.display();
         NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
         OUTPUT_DEBUG_END
-        
-        if (eval->getFs(computeType).size() != _nobj)
+        return NOMAD::CompareType::DOMINATING;
+    }
+
+    // Ensure evalPoint is as good as previous points in xFeas
+    std::vector<bool> keepInXFeas(_xFeas.size(), true);
+    int currentInd = 0;
+    auto compFlag = NOMAD::CompareType::INDIFFERENT;
+    for (const auto& xFeas: _xFeas)
+    {
+        const auto currentCompFlag = evalPoint.compMO(*xFeas, _computeType);
+        if (currentCompFlag == CompareType::DOMINATED)
         {
-            s = "DMultiMadsBarrier update: number of objectives is equal to " + std::to_string(_nobj);
-            s += ". Trying to add this point with number of objectives " + std::to_string(eval->getFs(computeType).size());
-            s += ": " + evalPoint.display();
-            throw NOMAD::Exception(__FILE__, __LINE__, s);
-        }
-        
-        // Ensure evalPoint is as good as previous points in xFeas
-        if (_xFeas.empty())
-        {
-            // New point is first point
-            _xFeas.push_back(std::make_shared<NOMAD::EvalPoint>(evalPoint));
-            updated = true;
             OUTPUT_DEBUG_START
-            s = "New dominating xFeas: " + evalPoint.display();
+            s = "evalPoint is dominated by " + xFeas->display();
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            s = "evalPoint is rejected";
             NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
             OUTPUT_DEBUG_END
-            
-            // Update new best feasible point.
-            _currentIncumbentFeas = _xFeas[0];
+            return currentCompFlag;
         }
-        else
+        if (currentCompFlag == CompareType::EQUAL)
         {
-            // Dealing with Non Standard computing order
-            if (computeType != ComputeType::STANDARD)
+            if (!keepAllPoints)
+                return currentCompFlag;
+
+            // If new point is not already there, add it
+            // One should never add two times the same point into the barrier.
+            if (findEvalPoint(_xFeas.begin(), _xFeas.end(), evalPoint) != _xFeas.end())
             {
-                throw NOMAD::Exception(__FILE__, __LINE__, "Update using non standard compute type is not yet implemented");
+                OUTPUT_DEBUG_START
+                s = "EvalPoint " + evalPoint.display() + "is already in xFeas";
+                NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+                OUTPUT_DEBUG_END
+                return NOMAD::CompareType::UNDEFINED;
             }
-            else
+            compFlag = NOMAD::CompareType::EQUAL;
+        }
+        if (currentCompFlag == CompareType::DOMINATING)
+        {
+            OUTPUT_DEBUG_START
+            s = "EvalPoint " + xFeas->display() + "in xFeas is dominated by " + evalPoint.display();
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
+            keepInXFeas[currentInd] = false;
+            compFlag = NOMAD::CompareType::DOMINATING;
+        }
+        currentInd++;
+    }
+
+    // Remove all dominated elements.
+    currentInd = 0;
+    const size_t prevNbFeasElements = _xFeas.size();
+    _xFeas.erase(std::remove_if(_xFeas.begin(), _xFeas.end(),
+                                [&currentInd, &keepInXFeas](const EvalPointPtr& evalPoint)
+                                {
+                                const bool isRemoved = !keepInXFeas[currentInd];
+                                ++currentInd;
+                                return isRemoved;
+                                }), _xFeas.end());
+    OUTPUT_DEBUG_START
+    s = "Removing " + std::to_string(std::max((int) prevNbFeasElements - (int)_xFeas.size(), 0));
+    s += " dominating feasible eval points";
+    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    OUTPUT_DEBUG_END
+                    
+    // Update mesh and insert the new element.
+    OUTPUT_DEBUG_START
+    s = "Adding new non dominated eval point in xFeas: " + evalPoint.display();
+    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    OUTPUT_DEBUG_END
+
+    const bool updateMesh = [&]() -> bool
+    {
+        if (compFlag == NOMAD::CompareType::DOMINATING)
+            return true;
+
+        // Check if evalPoint extends the current Pareto front approximation.
+        bool extends = false;
+        for (size_t obj = 0; obj < _nobj; ++obj)
+        {
+            if (_currentIdealFeas[obj] > evalPoint.getFs(_computeType)[obj])
             {
-                bool insert = true;
-                std::vector<bool> keepInXFeas(_xFeas.size(), true);
-                int currentInd = 0;
-                for (const auto& xFeas : _xFeas)
-                {
-                    auto compFlag = evalPoint.compMO(*xFeas, evalType);
-                    if (compFlag == CompareType::DOMINATED)
-                    {
-                        OUTPUT_DEBUG_START
-                        s = "evalPoint is dominated by " + xFeas->display() + "\n";
-                        s += "evalPoint is rejected";
-                        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-                        OUTPUT_DEBUG_END
-                        insert = false;
-                        break;
-                    }
-                    else if (compFlag == CompareType::DOMINATING)
-                    {
-                        OUTPUT_DEBUG_START
-                        s = "At least a point in xFeas is dominated by " + evalPoint.display();
-                        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-                        OUTPUT_DEBUG_END
-                        updated = true;
-                        keepInXFeas[currentInd] = false;
-                    }
-                    else if (compFlag == CompareType::EQUAL)
-                    {
-                        if (!keepAllPoints)
-                        {
-                            insert = false;
-                            break;
-                        }
-                        
-                        // If new point is not already there, add it
-                        if (findEvalPoint(_xFeas.begin(), _xFeas.end(), evalPoint) != _xFeas.end())
-                        {
-                            OUTPUT_DEBUG_START
-                            s = "EvalPoint " + evalPoint.display() + "is already in xFeas";
-                            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-                            OUTPUT_DEBUG_END
-                            insert = false;
-                        }
-                        else
-                        {
-                            updated = true;
-                        }
-                        break;
-                    }
-                    currentInd++;
-                }
-                if (insert)
-                {
-                    // Remove all dominated elements.
-                    currentInd = 0;
-                    _xFeas.erase(std::remove_if(_xFeas.begin(), _xFeas.end(),
-                                                [&currentInd, &keepInXFeas](const EvalPointPtr evalPoint)
-                        {
-                            bool isRemoved = !keepInXFeas[currentInd];
-                            ++currentInd;
-                            return isRemoved;
-                        }), _xFeas.end());
-                    
-                    // Update mesh and insert the new element.
-                    OUTPUT_DEBUG_START
-                    s = "Adding new non dominated eval point in xFeas: " + evalPoint.display();
-                    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-                    s = "Update the mesh of eval point to be added";
-                    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-                    OUTPUT_DEBUG_END
-                    updated = true;
-                    
-                    // Update the mesh -> success
-                    auto dir = evalPoint.getDirection();
-                    if (nullptr != dir)
-                    {
-                        evalPoint.getMesh()->enlargeDeltaFrameSize(*dir);
-                    }
-                    
-                    // insert new element
-                    _xFeas.push_back(std::make_shared<NOMAD::EvalPoint>(evalPoint));
-                    
-                    // Sort according to lexicographic order.
-                    std::sort(_xFeas.begin(), _xFeas.end(),
-                              [&evalType](const EvalPointPtr evalPoint1, const EvalPointPtr evalPoint2)
-                              {
-                        const NOMAD::Eval* eval1 = evalPoint1->getEval(evalType);
-                        const NOMAD::Eval* eval2 = evalPoint2->getEval(evalType);
-                        return eval1->getFs().lexicographicalCmp(eval2->getFs());
-                    });
-                }
+                extends = true;
+                _currentIdealFeas[obj] = evalPoint.getFs(_computeType)[obj];
             }
+        }
+        return extends;
+    }(); // IIFE
+
+    // Update the mesh -> success
+    if (updateMesh)
+    {
+        const auto dir = evalPoint.getDirection();
+        if (nullptr != dir)
+        {
+            OUTPUT_DEBUG_START
+            s = "Update the mesh of eval point to be added";
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
+
+            evalPoint.getMesh()->enlargeDeltaFrameSize(*dir);
         }
     }
-    return updated;
+                    
+    // Insert new element
+    _xFeas.push_back(std::make_shared<NOMAD::EvalPoint>(evalPoint));
+                    
+    return compFlag;
 }
 
-bool NOMAD::DMultiMadsBarrier::updateInfWithPoint(const EvalPoint & evalPoint,
-                                               EvalType evalType,
-                                               ComputeType computeType,
-                                               const bool keepAllPoints,
-                                               const bool feasHasBeenUpdated)
+NOMAD::CompareType NOMAD::DMultiMadsBarrier::updateInfWithPoint(const EvalPoint & evalPoint,
+                                                                const bool keepAllPoints)
 {
+    const auto eval = evalPoint.getEval(_computeType.evalType);
+    const auto computeTypeS = _computeType.Short();
+    if (eval->isFeasible(computeTypeS))
+        return NOMAD::CompareType::UNDEFINED;
+
+    std::string s; // for output info
     
-    bool updated = false;
-    
-    auto eval = evalPoint.getEval(evalType);
-    if (!eval->isFeasible(computeType))
+    const NOMAD::Double h = eval->getH(computeTypeS);
+    if (!h.isDefined())
     {
-        std::string s; // for output info
-    
-        
-        NOMAD::Double h = eval->getH(computeType);
-        if (!h.isDefined() || h == NOMAD::INF ||
-            ((_hMax < NOMAD::INF) && (h > _hMax)))
+        OUTPUT_DEBUG_START
+        s = "H is undefined";
+        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+        OUTPUT_DEBUG_END
+        return NOMAD::CompareType::UNDEFINED;
+    }
+    if (h == NOMAD::INF || ((_hMax < NOMAD::INF) && (h > _hMax)))
+    {
+        OUTPUT_DEBUG_START
+        s = "H is too large: ";
+        s += h.display(NOMAD::DISPLAY_PRECISION_FULL) + " > " + _hMax.display(NOMAD::DISPLAY_PRECISION_FULL) + ", continue.";
+        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+        OUTPUT_DEBUG_END
+        return NOMAD::CompareType::UNDEFINED;
+    }
+
+    if (_xInf.empty())
+    {
+        // New point is first point
+        _xInf.push_back(std::make_shared<NOMAD::EvalPoint>(evalPoint));
+        _xFilterInf.push_back(std::make_shared<NOMAD::EvalPoint>(evalPoint));
+        OUTPUT_DEBUG_START
+        s = "New current incumbent infeasible: " + evalPoint.display();
+        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+        OUTPUT_DEBUG_END
+        return NOMAD::CompareType::DOMINATING;
+    }
+
+    // Insertion into the two sets of infeasible non dominated points.
+    // 1- Try to insert into _xInfFilter.
+    std::vector<bool> isInXinfFilter(_xFilterInf.size(), true);
+    int currentInd = 0;
+    for (const auto& xFilterInf: _xFilterInf)
+    {
+        const auto currentCompFlag = evalPoint.compMO(*xFilterInf, _computeType);
+        if (currentCompFlag == CompareType::DOMINATED)
         {
             OUTPUT_DEBUG_START
-            if (h.isDefined())
-            {
-                s = "H is too large: ";
-                s += h.display(NOMAD::DISPLAY_PRECISION_FULL) + " > " + _hMax.display(NOMAD::DISPLAY_PRECISION_FULL) + ", continue.";
-                NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-            }
-            else
-            {
-                s = "H is undefined";
-                NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-            }
-            OUTPUT_DEBUG_END
-            return false;
-        }
-        
-        if (_xInf.empty())
-        {
-            // New point is first point
-            _xInf.push_back(std::make_shared<NOMAD::EvalPoint>(evalPoint));
-            _xFilterInf.push_back(std::make_shared<NOMAD::EvalPoint>(evalPoint));
-            _currentIncumbentInf = _xInf[0];
-            updated = true;
-            OUTPUT_DEBUG_START
-            s = "New current incumbent infeasible: " + evalPoint.display();
+            s = "evalPoint is dominated by " + xFilterInf->display();
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            s = "evalPoint is rejected";
             NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
             OUTPUT_DEBUG_END
+            return currentCompFlag;
         }
-        // Insertion into the two sets of infeasible non dominated points.
-        else
+        if (currentCompFlag == CompareType::DOMINATING)
         {
-            // Try to insert into _xInfFilter.
-            bool insert = true;
-            std::vector<bool> isInXinfFilter(_xFilterInf.size(), true);
-            int currentInd = 0;
-            
-            for (const auto& xFilterInf : _xFilterInf)
+            OUTPUT_DEBUG_START
+            s = "xInf dominates the filter element " + xFilterInf->display();
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
+            isInXinfFilter[currentInd] = false;
+        }
+        if (currentCompFlag == CompareType::EQUAL)
+        {
+            if (!keepAllPoints)
+                return NOMAD::CompareType::EQUAL;
+
+            // If new point is not already there, add it.
+            // One should never insert several times the same point into the barrier.
+            if (findEvalPoint(_xFilterInf.begin(), _xFilterInf.end(), evalPoint) != _xFilterInf.end())
             {
-                auto compFlag = evalPoint.compMO(*xFilterInf, evalType);
-                if (compFlag == CompareType::DOMINATED)
-                {
-                    insert = false;
-                    break;
-                }
-                else if (compFlag == CompareType::DOMINATING)
-                {
-                    OUTPUT_DEBUG_START
-                    s = "xInf dominates the filter element " + xFilterInf->display();
-                    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-                    OUTPUT_DEBUG_END
-                    updated = true;
-                    isInXinfFilter[currentInd] = false;
-                }
-                else if (compFlag == CompareType::EQUAL)
-                {
-                    if (!keepAllPoints)
-                    {
-                        insert = false;
-                        break;
-                    }
-                    
-                    // If new point is not already there, add it.
-                    if (findEvalPoint(_xFilterInf.begin(), _xFilterInf.end(), evalPoint) != _xFilterInf.end())
-                    {
-                        OUTPUT_DEBUG_START
-                        s = "xInf is already here: " + evalPoint.display();
-                        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-                        OUTPUT_DEBUG_END
-                        insert = false;
-                    }
-                    else
-                    {
-                        updated = true;
-                        break;
-                    }
-                }
-                currentInd++;
+                OUTPUT_DEBUG_START
+                s = "xInf is already here: " + evalPoint.display();
+                NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+                OUTPUT_DEBUG_END
+                return NOMAD::CompareType::UNDEFINED;
             }
+        }
+        currentInd++;
+    }
             
-            if (insert)
+    // Remove all dominated elements of _xFilterInf
+    currentInd = 0;
+    const size_t prevNbFilterInfElements = _xFilterInf.size();
+    _xFilterInf.erase(std::remove_if(_xFilterInf.begin(), _xFilterInf.end(),
+                                     [&currentInd, &isInXinfFilter](const EvalPointPtr& ev)
+                                     {
+                                         bool isRemoved = !isInXinfFilter[currentInd];
+                                         currentInd++;
+                                         return isRemoved;
+                                     }), _xFilterInf.end());
+    OUTPUT_DEBUG_START
+    s = "Removing " + std::to_string(std::max((int) prevNbFilterInfElements - (int)_xFilterInf.size(), 0));
+    s += " dominating filter infeasible eval points";
+    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    OUTPUT_DEBUG_END
+
+    OUTPUT_DEBUG_START
+    s = "Adding new non dominated eval point in xFilterInf: " + evalPoint.display();
+    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    OUTPUT_DEBUG_END
+    auto evalPointPtr = std::make_shared<NOMAD::EvalPoint>(evalPoint);
+    _xFilterInf.push_back(evalPointPtr);
+
+    // 2- Try to insert the point into _xInf.
+    currentInd = 0;
+    std::vector<bool> isInXinf(_xInf.size(), true);
+    auto compFlag = NOMAD::CompareType::INDIFFERENT;
+    for (const auto& xInf: _xInf)
+    {
+        const auto currentCompFlag = evalPoint.compMO(*xInf, _computeType, true);
+        if (currentCompFlag == CompareType::DOMINATED)
+        {
+
+            OUTPUT_DEBUG_START
+            s = "evalPoint is dominated by " + xInf->display();
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            s = "evalPoint is rejected";
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
+            return currentCompFlag;
+        }
+        // The points could be only equal according to the f values
+        if ((currentCompFlag == CompareType::DOMINATING) ||
+            (evalPoint.compMO(*xInf, _computeType) == CompareType::DOMINATING))
+        {
+            OUTPUT_DEBUG_START
+            s = "xInf dominates the filter element " + xInf->display();
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
+            isInXinf[currentInd] = false;
+            compFlag = NOMAD::CompareType::DOMINATING;
+        }
+        currentInd++;
+    }
+
+    // Remove all dominated elements of _xInf.
+    currentInd = 0;
+    const size_t prevNbInfElements = _xInf.size();
+    _xInf.erase(std::remove_if(_xInf.begin(), _xInf.end(),
+                               [&currentInd, &isInXinf](const EvalPointPtr& ev)
+                               {
+                                   bool isRemoved = !isInXinf[currentInd];
+                                   currentInd++;
+                                   return isRemoved;
+                               }), _xInf.end());
+    OUTPUT_DEBUG_START
+    s = "Removing " + std::to_string(std::max((int) prevNbInfElements - (int)_xInf.size(), 0));
+    s += " non dominated infeasible eval points";
+    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    OUTPUT_DEBUG_END
+
+    OUTPUT_DEBUG_START
+    s = "Adding new non dominated eval point in xInf: " + evalPoint.display();
+    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    OUTPUT_DEBUG_END
+
+    // Update mesh and insert evalPoint into the set of infeasible solutions.
+    const bool updateMesh = [&]() -> bool
+    {
+        if (compFlag == NOMAD::CompareType::DOMINATING)
+            return true;
+
+        // Check if evalPoint extends the current Pareto front approximation.
+        bool extends = false;
+        for (size_t obj = 0; obj < _nobj; ++obj)
+        {
+            if (_currentIdealInf[obj] > evalPoint.getFs(_computeType)[obj])
             {
-                // Remove all dominated elements of _xInfFilter
-                currentInd = 0;
-                _xFilterInf.erase(std::remove_if(_xFilterInf.begin(), _xFilterInf.end(),
-                                                 [&currentInd, &isInXinfFilter](const EvalPointPtr ev)
-                                                 {
-                    bool isRemoved = !isInXinfFilter[currentInd];
-                    currentInd++;
-                    return isRemoved;
-                }), _xFilterInf.end());
-                _xFilterInf.push_back(std::make_shared<NOMAD::EvalPoint>(evalPoint));
-                
-                // Order by lexicographic ordering.
-                std::sort(_xFilterInf.begin(), _xFilterInf.end(),
-                          [&evalType](const EvalPointPtr evalPoint1, const EvalPointPtr evalPoint2)->bool
-                          {
-                    const NOMAD::Eval* eval1 = evalPoint1->getEval(evalType);
-                    const NOMAD::Eval* eval2 = evalPoint2->getEval(evalType);
-                    return eval1->getFs().lexicographicalCmp(eval2->getFs());
-                });
-                
-                // Try to insert the point into _xInf.
-                insert = true;
-                
-                currentInd = 0;
-                std::vector<bool> isInXinf(_xInf.size(), true);
-                
-                for (const auto& xInf : _xInf)
-                {
-                    auto compFlag = evalPoint.compMO(*xInf, evalType, true);
-                    if (compFlag == CompareType::DOMINATED)
-                    {
-                        insert = false;
-                        break;
-                    }
-                    // The points could be only equal according to the f values
-                    else if ((compFlag == CompareType::DOMINATING) ||
-                             (evalPoint.compMO(*xInf, evalType) == CompareType::DOMINATING))
-                    {
-                        OUTPUT_DEBUG_START
-                        s = "xInf dominates the filter element " + xInf->display();
-                        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-                        OUTPUT_DEBUG_END
-                        updated = true;
-                        isInXinf[currentInd] = false;
-                    }
-                    currentInd++;
-                }
-                
-                if (insert)
-                {
-                    // Remove all dominated elements of _xInf.
-                    currentInd = 0;
-                    _xInf.erase(std::remove_if(_xInf.begin(), _xInf.end(),
-                                               [&currentInd, &isInXinf](const EvalPointPtr ev)
-                                               {
-                        bool isRemoved = !isInXinf[currentInd];
-                        currentInd++;
-                        return isRemoved;
-                    }), _xInf.end());
-                    updated = true;
-                    _xInf.push_back(std::make_shared<NOMAD::EvalPoint>(evalPoint));
-                    
-                    
-                    std::sort(_xInf.begin(), _xInf.end(),
-                              [&evalType](const EvalPointPtr evalPoint1, const EvalPointPtr evalPoint2)->bool
-                              {
-                        const NOMAD::Eval* eval1 = evalPoint1->getEval(evalType);
-                        const NOMAD::Eval* eval2 = evalPoint2->getEval(evalType);
-                        return eval1->getFs().lexicographicalCmp(eval2->getFs());
-                    });
-                    
-                }
+                extends = true;
+                _currentIdealInf[obj] = evalPoint.getFs(_computeType)[obj];
             }
+        }
+        return extends;
+    }(); // IIFE
+
+    // Update the mesh -> success
+    if (updateMesh)
+    {
+        const auto dir = evalPoint.getDirection();
+        if (nullptr != dir)
+        {
+            OUTPUT_DEBUG_START
+            s = "Update the mesh of eval point to be added";
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
+
+            evalPointPtr->getMesh()->enlargeDeltaFrameSize(*dir);
         }
     }
-    return updated;
-    
+
+    // Insert new element.
+    // NB: It is important that evalPoint be the same into xFilterInf and
+    // xInf; most specifically, it should have the same mesh in both sets.
+    _xInf.push_back(evalPointPtr);
+                    
+    return compFlag;
 }
 
 
 // Update the barrier (feas and inf). Once done calls for update the current best feas and inf.
 bool NOMAD::DMultiMadsBarrier::updateWithPoints(
                                         const std::vector<EvalPoint>& evalPointList,
-                                        EvalType evalType,
-                                        ComputeType computeType,
                                         const bool keepAllPoints,
-                                            const bool updateInfeasibleIncumbentAndHmax)
+                                        const bool updateInfeasibleIncumbentsAndHmax)
 {
-    bool updated = false;
     bool updatedFeas = false;
     bool updatedInf = false;
-    std::string s; // for output info
+    bool updatedIncFeas = false;
+    bool updatedIncInf = false;
+    bool rejectInf = false;
 
-    // Temporary infeasible incumbent. For insertion of more than one improving/full success
-    NOMAD::EvalPoint xInfTmp;
+    const auto evalType = _computeType.evalType;
+    const auto computeTypeS = _computeType.Short();
+
+    std::string s; // for output info
 
     OUTPUT_DEBUG_START
     s = "Updating DMultiMadsBarrier (" + std::to_string(_nobj) + " objectives)";
@@ -895,23 +936,35 @@ bool NOMAD::DMultiMadsBarrier::updateWithPoints(
     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
     s = "Current barrier: ";
     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
-    std::vector<std::string> vs = display(4);
-    for (const auto & s: vs)
+    std::vector<std::string> vs = display(4, false);
+    for (const auto& elt: vs)
     {
-        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+        NOMAD::OutputQueue::Add(elt, NOMAD::OutputLevel::LEVEL_DEBUG);
     }
     OUTPUT_DEBUG_END
 
+    // Order lexicographically a set of non dominated points.
+    auto lexicographicallyObjOrder = [](const NOMAD::FHComputeType& computeType,
+                                        std::vector<EvalPointPtr>& xSet)
+    {
+        std::sort(xSet.begin(), xSet.end(),
+                  [computeType](const EvalPointPtr& evalPoint1, const EvalPointPtr& evalPoint2)->bool
+                  {
+                      return evalPoint1->getFs(computeType).lexicographicalCmp(evalPoint2->getFs(computeType));
+                  });
+    };
+
     // do separate loop on evalPointList
     // First loop update the bestFeasible.
-    // If a point is a full success setupdatedFeas = true.
-    // This flag is used in the second loop.
+    // The flag below is set to update the barrier threshold in a second pass.
+    NOMAD::SuccessType feasSuccessType = NOMAD::SuccessType::UNSUCCESSFUL;
+    size_t nbFeasiblePts = 0;
     for (const auto & evalPoint : evalPointList)
     {
         // All points must have mesh parameters defined.
         checkMeshParameters(evalPoint);
 
-        auto eval = evalPoint.getEval(evalType);
+        const auto eval = evalPoint.getEval(evalType);
         if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
         {
             OUTPUT_DEBUG_START
@@ -932,51 +985,203 @@ bool NOMAD::DMultiMadsBarrier::updateWithPoints(
             continue;
         }
         
-        if (computeType == ComputeType::STANDARD && eval->getFs(computeType).size() != _nobj)
+        if (computeTypeS.computeType == ComputeType::STANDARD && eval->getFs(computeTypeS).size() != _nobj)
         {
             s = "DMultiMadsBarrier update: number of objectives is equal to " + std::to_string(_nobj);
-            s += ". Trying to add this point with number of objectives " + std::to_string(eval->getFs(computeType).size());
+            s += ". Trying to add this point with number of objectives " + std::to_string(eval->getFs(computeTypeS).size());
             s += ": " + evalPoint.display();
             throw NOMAD::Exception(__FILE__, __LINE__, s);
         }
-        
-        updatedFeas = updateFeasWithPoint(evalPoint,evalType, computeType, keepAllPoints) || updatedFeas ;
 
+        if (!eval->isFeasible(computeTypeS))
+            continue;
+
+        nbFeasiblePts += 1;
+
+        // Add feasible point into the barrier.
+        const auto FkCompFlag = updateFeasWithPoint(evalPoint, keepAllPoints);
+        const bool insertEqual = (FkCompFlag == NOMAD::CompareType::EQUAL) && !keepAllPoints;
+        updatedFeas = ((FkCompFlag != NOMAD::CompareType::UNDEFINED) && !insertEqual) || updatedFeas;
+
+        updatedIncFeas = (FkCompFlag == NOMAD::CompareType::INDIFFERENT) ||
+                         (FkCompFlag == NOMAD::CompareType::DOMINATING) ||
+                         ((FkCompFlag == NOMAD::CompareType::EQUAL) && keepAllPoints) ||
+                         updatedIncFeas;
+
+        // Set the success type according to the current infeasible incumbent.
+        if (feasSuccessType == NOMAD::SuccessType::FULL_SUCCESS)
+            continue;
+
+        // If the set of feasible incumbents is empty, we follow the same approach as for the
+        // progressive barrier. The iteration is then considered as a success.
+        if (_currentIncumbentFeas == nullptr)
+        {
+            feasSuccessType = NOMAD::SuccessType::FULL_SUCCESS;
+            continue;
+        }
+
+        const auto compFlag = evalPoint.compMO(*_currentIncumbentFeas, _computeType);
+        if (compFlag == NOMAD::CompareType::DOMINATING)
+            feasSuccessType = NOMAD::SuccessType::FULL_SUCCESS;
     }
+
+    // Lexicographically order the set of feasible non-dominated solutions.
+    if (updatedIncFeas)
+        lexicographicallyObjOrder(_computeType, _xFeas);
 
     // Do separate loop on evalPointList
     // Second loop update the bestInfeasible.
-    // Use the flag oneFeasEvalFullSuccess.
-    // If the flag is true hmax will not change. A point improving the best infeasible should not replace it.
-
+    // The flag below is set to update the barrier threshold in a second pass.
+    NOMAD::SuccessType infSuccessType = NOMAD::SuccessType::UNSUCCESSFUL;
+    const bool areAllFeasible = nbFeasiblePts == evalPointList.size();
     for (const auto & evalPoint : evalPointList)
     {
-        auto eval = evalPoint.getEval(evalType);
+        // No need to continue.
+        if (areAllFeasible)
+            break;
 
+        const auto eval = evalPoint.getEval(evalType);
         if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
         {
             // Suggested point is not good.
             continue;
         }
-        
-        updatedInf = updateInfWithPoint(evalPoint, evalType, computeType, keepAllPoints, updatedFeas) || updatedInf ;
 
+        if (eval->isFeasible(computeTypeS))
+            continue;
+
+        const NOMAD::Double h = eval->getH(computeTypeS);
+        if (!h.isDefined() || (h == NOMAD::INF) ||
+            ((_hMax < NOMAD::INF) && (h > _hMax)))
+        {
+            OUTPUT_DEBUG_START
+            s = !h.isDefined() ? "H is undefined" : "H is too large: ";
+            if (h.isDefined())
+            {
+                s += h.display(NOMAD::DISPLAY_PRECISION_FULL) + " > " + _hMax.display(NOMAD::DISPLAY_PRECISION_FULL) + ", continue.";
+            }
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
+            rejectInf = true;
+            continue;
+        }
+
+        // Add infeasible point into the barrier.
+        const auto IkCompFlag = updateInfWithPoint(evalPoint, keepAllPoints);
+        const bool insertEqual = (IkCompFlag == NOMAD::CompareType::EQUAL) && !keepAllPoints;
+        updatedInf = ((IkCompFlag != NOMAD::CompareType::UNDEFINED) && !insertEqual) || updatedInf;
+
+        updatedIncInf = (IkCompFlag == NOMAD::CompareType::INDIFFERENT) ||
+                        (IkCompFlag == NOMAD::CompareType::DOMINATING) ||
+                        ((IkCompFlag == NOMAD::CompareType::EQUAL) && keepAllPoints) ||
+                        updatedIncInf;
+
+        // Set the success type according to the current infeasible incumbent.
+        if (feasSuccessType == NOMAD::SuccessType::FULL_SUCCESS ||
+            infSuccessType == NOMAD::SuccessType::FULL_SUCCESS)
+            continue;
+
+        // If the set of infeasible incumbents is empty, we follow the same approach as for the
+        // progressive barrier. The iteration is then considered as a success.
+        if (_currentIncumbentInf == nullptr)
+        {
+            infSuccessType = NOMAD::SuccessType::FULL_SUCCESS;
+            continue;
+        }
+
+        const auto compFlag = evalPoint.compMO(*_currentIncumbentInf, _computeType);
+        if (compFlag == NOMAD::CompareType::DOMINATING)
+        {
+            infSuccessType = NOMAD::SuccessType::FULL_SUCCESS;
+            continue;
+        }
+
+        const NOMAD::Double hXInf = _currentIncumbentInf->getH(_computeType);
+        if (h.isDefined() && h < hXInf)
+            infSuccessType = NOMAD::SuccessType::PARTIAL_SUCCESS;
     }
 
-    updated = updated || updatedFeas || updatedInf;
-    
-    if (updated)
+    // Lexicographically order the set of filter points and infeasible points.
+    if (updatedInf)
     {
-        // Set n and check that all points have the same dimension
-        setN();
-        
-        // Update incumbents
-        updateCurrentIncumbents();
-        
+        lexicographicallyObjOrder(_computeType, _xFilterInf);
+        lexicographicallyObjOrder(_computeType, _xInf);
     }
 
-    
-    
+    const bool incumbentsAndHMaxUpToDate = ! (updatedFeas || updatedInf);
+
+    // Update hMax: when some infeasible points are rejected, the iteration is considered
+    // as a failure. We still update hMax.
+    NOMAD::Double hMaxPrev = _hMax;
+    NOMAD::Double hMax = _hMax;
+    if (updateInfeasibleIncumbentsAndHmax && (!incumbentsAndHMaxUpToDate || rejectInf))
+    {
+        if (infSuccessType == NOMAD::SuccessType::PARTIAL_SUCCESS &&
+            feasSuccessType < NOMAD::SuccessType::FULL_SUCCESS)
+        {
+            // hMax <- max_{x \in Uk+1} {h(x) : h(x) < h(xinf)}
+            // Note : An improving point (with respect to the infeasible incumbent)
+            // must have been generated.
+            hMax = 0.0;
+            const NOMAD::Double hCurrentXInf = _currentIncumbentInf->getH(_computeType);
+            for (const auto& xFilterInf: _xFilterInf)
+            {
+                const auto eval = xFilterInf->getEval(_computeType.evalType);
+                const NOMAD::Double h = eval->getH(_computeType.Short());
+                if (h < hCurrentXInf)
+                    hMax = std::max(hMax, h);
+            }
+
+            OUTPUT_DEBUG_START
+            s = "Partial success";
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
+        }
+        else
+        {
+            OUTPUT_DEBUG_START
+            s = ((feasSuccessType == NOMAD::SuccessType::FULL_SUCCESS) ||
+                 (infSuccessType == NOMAD::SuccessType::FULL_SUCCESS)) ? "Full success" : "no success";
+            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+            OUTPUT_DEBUG_END
+
+            if (!_xInf.empty())
+            {
+                // hMax <- max_{x \in Uk+1} {h(x) : h(xinf) <= h(x) < max_{x in Ik} h(x)}
+                // When _currentIncumbentInfHmaxH does not exist, set hMax to
+                // hMax := max_{x in Ik+1} h(x).
+                const NOMAD::Double hMaxLimSup =
+                    _currentIncumbentInfMaxH == nullptr ? hMaxPrev
+                                                        : _currentIncumbentInfMaxH->getH(_computeType);
+                hMax = _currentIncumbentInf == nullptr ? 0.0 : _currentIncumbentInf->getH(_computeType);
+                for (const auto& xFilterInf: _xFilterInf)
+                {
+                const auto eval = xFilterInf->getEval(_computeType.evalType);
+                const NOMAD::Double h = eval->getH(_computeType.Short());
+                if (h < hMaxLimSup)
+                    hMax = std::max(hMax, h);
+                }
+            }
+        }
+        // If there is a problem, reset it to hMaxPrev;
+        if (hMax == 0)
+            hMax = hMaxPrev;
+
+        // Set hMax and remove infeasible points above the threshold.
+        if (hMax != hMaxPrev)
+        {
+            setHMax(hMax);
+        }
+    }
+
+    // Set n and check that all points have the same dimension
+    const bool updatedInc = updatedIncFeas || updatedIncInf;
+    if (updatedInc)
+    {
+        setN();
+    }
+
+    const bool updated = updatedFeas || updatedInf;
     OUTPUT_DEBUG_START
     if (updated)
     {
@@ -1005,21 +1210,36 @@ bool NOMAD::DMultiMadsBarrier::updateWithPoints(
 }
 
 
+void NOMAD::DMultiMadsBarrier::updateCurrentIncumbentInfMaxH()
+{
+    _currentIncumbentInfMaxH = nullptr;
+    NOMAD::Double currentHMax = 0.0;
+    for (const auto& xInf: _xInf)
+    {
+        const NOMAD::Double h = xInf->getH(_computeType);
+        if (h.isDefined() && h > currentHMax)
+        {
+            currentHMax = h;
+            _currentIncumbentInfMaxH = xInf;
+        }
+    }
+}
+
+
 void NOMAD::DMultiMadsBarrier::updateXInfAndFilterInfAfterHMaxSet()
 {
-    if (_xInf.size() == 0)
+    if (_xInf.empty())
     {
         return;
     }
 
     size_t currentInd = 0;
-
-    // Remove all infeasible incumbent solutions below the threshold _hMax.
+    
+    // Remove all infeasible incumbent solutions above the threshold _hMax.
     std::vector<bool> isInXInf(_xInf.size(), true);
-    for (const auto& xInf : _xInf)
+    for (const auto& xInf: _xInf)
     {
-        const NOMAD::Eval* eval = xInf->getEval(NOMAD::EvalType::BB);
-        NOMAD::Double h = eval->getH();
+        const NOMAD::Double h = xInf->getH(_computeType);
 
         if (h > _hMax)
         {
@@ -1031,20 +1251,19 @@ void NOMAD::DMultiMadsBarrier::updateXInfAndFilterInfAfterHMaxSet()
 
     currentInd = 0;
     _xInf.erase(std::remove_if(_xInf.begin(), _xInf.end(),
-                               [&currentInd, &isInXInf](const EvalPointPtr evalPoint)
+                               [&currentInd, &isInXInf](const EvalPointPtr& evalPoint)
                                {
                                    bool isRemoved = !isInXInf[currentInd];
                                    ++currentInd;
                                    return isRemoved;
                                }), _xInf.end());
 
+    // Remove all infeasible non dominated solutions above the threshold _hMax.
     currentInd = 0;
-    // Remove all infeasible non dominated solutions below the threshold _hMax.
     std::vector<bool> isInXFilterInf(_xFilterInf.size(), true);
-    for (const auto& xFilterInf : _xFilterInf)
+    for (const auto& xFilterInf: _xFilterInf)
     {
-        const NOMAD::Eval* eval = xFilterInf->getEval(NOMAD::EvalType::BB);
-        NOMAD::Double h = eval->getH();
+        const NOMAD::Double h = xFilterInf->getH(_computeType);
 
         if (h > _hMax)
         {
@@ -1056,7 +1275,7 @@ void NOMAD::DMultiMadsBarrier::updateXInfAndFilterInfAfterHMaxSet()
 
     currentInd = 0;
     _xFilterInf.erase(std::remove_if(_xFilterInf.begin(), _xFilterInf.end(),
-                                     [&currentInd, &isInXFilterInf](const EvalPointPtr evalPoint)
+                                     [&currentInd, &isInXFilterInf](const EvalPointPtr& evalPoint)
                                      {
                                          bool isRemoved = !isInXFilterInf[currentInd];
                                          ++currentInd;
@@ -1064,43 +1283,47 @@ void NOMAD::DMultiMadsBarrier::updateXInfAndFilterInfAfterHMaxSet()
                                      }), _xFilterInf.end());
 
     std::sort(_xFilterInf.begin(), _xFilterInf.end(),
-              [](const EvalPointPtr evalPoint1, const EvalPointPtr evalPoint2) -> bool
+              [this](const EvalPointPtr& evalPoint1, const EvalPointPtr& evalPoint2) -> bool
               {
-                  const NOMAD::Eval* eval1 = evalPoint1->getEval(NOMAD::EvalType::BB);
-                  const NOMAD::Eval* eval2 = evalPoint2->getEval(NOMAD::EvalType::BB);
-                  return eval1->getFs().lexicographicalCmp(eval2->getFs());
+                  return evalPoint1->getFs(_computeType).lexicographicalCmp(evalPoint2->getFs(_computeType));
               });
 
     // And reinsert potential infeasible non dominated points into the set of infeasible
     // solutions.
     currentInd = 0;
     isInXInf = std::vector<bool>(_xFilterInf.size(), false);
-    for (const auto& evalPoint : _xFilterInf)
+    for (const auto& evalPoint: _xFilterInf)
     {
-        // If new point is not in _xInf, check if it is not dominated
-        if (findEvalPoint(_xInf.begin(), _xInf.end(), *evalPoint) == _xInf.end())
+        if (findEvalPoint(_xInf.begin(), _xInf.end(), *evalPoint) != _xInf.end())
         {
-            size_t currentIndTmp = 0;
-            bool insert = true;
-            for (const auto& evalPointInf : _xFilterInf)
-            {
-                if (currentIndTmp != currentInd)
-                {
-                    auto compFlag = evalPoint->compMO(*evalPointInf, NOMAD::EvalType::BB, true);
-                    if (compFlag == CompareType::DOMINATED)
-                    {
-                        insert = false;
-                        break;
-                    }
-                    else if (compFlag == CompareType::DOMINATING)
-                    {
-                        isInXInf[currentIndTmp] = false;
-                    }
-                }
-                currentIndTmp++;
-            }
-            isInXInf[currentInd] = insert;
+            currentInd++;
+            continue;
         }
+
+        // If new point is not in _xInf, check if it is not dominated
+        size_t currentIndTmp = 0;
+        bool insert = true;
+        for (const auto& evalPointInf: _xFilterInf)
+        {
+            if (currentIndTmp == currentInd)
+            {
+                currentIndTmp++;
+                continue;
+            }
+
+            const auto compFlag = evalPoint->compMO(*evalPointInf, _computeType, true);
+            if (compFlag == CompareType::DOMINATED)
+            {
+                insert = false;
+                break;
+            }
+            if (compFlag == CompareType::DOMINATING)
+            {
+                isInXInf[currentIndTmp] = false;
+            }
+            currentIndTmp++;
+        }
+        isInXInf[currentInd] = insert;
         currentInd++;
     }
 
@@ -1113,18 +1336,15 @@ void NOMAD::DMultiMadsBarrier::updateXInfAndFilterInfAfterHMaxSet()
     }
 
     std::sort(_xInf.begin(), _xInf.end(),
-              [](const EvalPointPtr evalPoint1, const EvalPointPtr evalPoint2) -> bool
+              [this](const EvalPointPtr& evalPoint1, const EvalPointPtr& evalPoint2) -> bool
               {
-                  const NOMAD::Eval* eval1 = evalPoint1->getEval(NOMAD::EvalType::BB);
-                  const NOMAD::Eval* eval2 = evalPoint2->getEval(NOMAD::EvalType::BB);
-                  return eval1->getFs().lexicographicalCmp(eval2->getFs());
+                  return evalPoint1->getFs(_computeType).lexicographicalCmp(evalPoint2->getFs(_computeType));
               });
-    return;
 }
 
 
 // Nice formatting display.
-std::vector<std::string> NOMAD::DMultiMadsBarrier::display(const size_t max) const
+std::vector<std::string> NOMAD::DMultiMadsBarrier::display(const size_t max, const bool displayMeshes) const
 {
     std::vector<std::string> vs;
 
@@ -1134,7 +1354,13 @@ std::vector<std::string> NOMAD::DMultiMadsBarrier::display(const size_t max) con
 
     for (const auto & xFeas : _xFeas)
     {
-        vs.push_back("X_FEAS " + xFeas->displayAll());
+        vs.push_back("X_FEAS " + xFeas->displayAll(NOMAD::defaultFHComputeTypeS));
+        if (displayMeshes)
+        {
+            const auto mesh = xFeas->getMesh();
+            vs.push_back("delta mesh size = " + mesh->getdeltaMeshSize().display());
+            vs.push_back("Delta mesh size = " + mesh->getDeltaFrameSize().display());
+        }
         nbXFeas++;
         if (nbXFeas >= max && _xFeas.size() > max)
         {
@@ -1144,7 +1370,13 @@ std::vector<std::string> NOMAD::DMultiMadsBarrier::display(const size_t max) con
     }
     for (const auto &xInf : _xInf)
     {
-        vs.push_back("X_INF " + xInf->displayAll() );
+        vs.push_back("X_INF " + xInf->displayAll(NOMAD::defaultFHComputeTypeS) );
+        if (displayMeshes)
+        {
+            const auto mesh = xInf->getMesh();
+            vs.push_back("delta mesh size = " + mesh->getdeltaMeshSize().display());
+            vs.push_back("Delta mesh size = " + mesh->getDeltaFrameSize().display());
+        }
         nbXInf++;
 
         if (nbXInf >= max && _xInf.size() > max)
@@ -1155,7 +1387,13 @@ std::vector<std::string> NOMAD::DMultiMadsBarrier::display(const size_t max) con
     }
     for (const auto &xFilterInf: _xFilterInf)
     {
-        vs.push_back("X_FILTER" + xFilterInf->displayAll());
+        vs.push_back("X_FILTER" + xFilterInf->displayAll(NOMAD::defaultFHComputeTypeS));
+        if (displayMeshes)
+        {
+            const auto mesh = xFilterInf->getMesh();
+            vs.push_back("delta mesh size = " + mesh->getdeltaMeshSize().display());
+            vs.push_back("Delta mesh size = " + mesh->getDeltaFrameSize().display());
+        }
         nbXFilterInf++;
 
         if (nbXFilterInf >= max && _xFilterInf.size() > max)
@@ -1166,15 +1404,15 @@ std::vector<std::string> NOMAD::DMultiMadsBarrier::display(const size_t max) con
     }
 
     vs.push_back("H_MAX " + getHMax().display(NOMAD::DISPLAY_PRECISION_FULL));
-    vs.push_back("Ref Best Feasible:   " + (_refBestFeas ? _refBestFeas->displayAll() : "NULL") );
-    vs.push_back("Ref Best Infeasible: " + (_refBestInf ? _refBestInf->displayAll() : "NULL"));
+    vs.push_back("Ref Best Feasible:   " + (_refBestFeas ? _refBestFeas->displayAll(NOMAD::defaultFHComputeTypeS) : "NULL") );
+    vs.push_back("Ref Best Infeasible: " + (_refBestInf ? _refBestInf->displayAll(NOMAD::defaultFHComputeTypeS) : "NULL"));
 
     return vs;
 }
 
 
 
-NOMAD::Double NOMAD::DMultiMadsBarrier::getMeshMaxFrameSize(const NOMAD::EvalPointPtr pt) const
+NOMAD::Double NOMAD::DMultiMadsBarrier::getMeshMaxFrameSize(const NOMAD::EvalPointPtr& pt) const
 {
     NOMAD::Double maxRealVal = -1.0;
     NOMAD::Double maxIntegerVal = -1.0;
@@ -1226,111 +1464,99 @@ NOMAD::Double NOMAD::DMultiMadsBarrier::getMeshMaxFrameSize(const NOMAD::EvalPoi
 void NOMAD::DMultiMadsBarrier::updateCurrentIncumbentInf()
 {
     _currentIncumbentInf = nullptr;
-    if (_xFeas.size() > 0 && _xInf.size() > 0)
-    {
-        // Get the infeasible solution with maximum dominance move below the _hMax threshold,
-        // according to the set of best feasible incumbent solutions.
-        size_t currentInd = 0;
-        double maxDomMove = -NOMAD::INF;
-
-        for (size_t j = 0; j < _xInf.size(); ++j)
-        {
-            // Compute dominance move
-            // = min \sum_{1}^m max(fi(y) - fi(x), 0)
-            //   y \in Fk
-            double tmpDomMove = NOMAD::INF;
-            const NOMAD::Eval* evalInf = _xInf[j]->getEval(NOMAD::EvalType::BB);
-            NOMAD::Double h = evalInf->getH();
-
-            if (h.isDefined() && h <= _hMax)
-            {
-                for (const auto &xFeas : _xFeas)
-                {
-
-                    double sumVal = 0.0;
-                    const NOMAD::Eval *evalFeas = xFeas->getEval(NOMAD::EvalType::BB);
-
-                    // Compute \sum_{1}^m max (fi(y) - fi(x), 0)
-                    for (size_t i = 0; i < _nobj; i++)
-                    {
-                        sumVal += std::max(evalFeas->getFs()[i].todouble() -
-                                           evalInf->getFs()[i].todouble(),
-                                           0.0);
-                    }
-                    if (tmpDomMove > sumVal)
-                    {
-                        tmpDomMove = sumVal;
-                    }
-                }
-
-                // Get the maximum dominance move index
-                if (maxDomMove < tmpDomMove) {
-                    maxDomMove = tmpDomMove;
-                    currentInd = j;
-                }
-            }
-        }
-
-        // In this case, all infeasible solutions are "dominated" in terms of fvalues
-        // by at least one element of Fk
-        if (NOMAD::Double(maxDomMove) == 0.0)
-        {
-            // In this case, get the infeasible solution below the _hMax threshold which has
-            // minimal dominance move, when considered a maximization problem.
-            double minDomMove = NOMAD::INF;
-            currentInd = 0;
-
-            for (size_t j = 0; j < _xInf.size(); ++j)
-            {
-                // Compute dominance move
-                // = min \sum_{1}^m max(fi(x) - fi(y), 0)
-                //   y \in Fk
-                double tmpDomMove = NOMAD::INF;
-                const NOMAD::Eval* evalInf = _xInf[j]->getEval(NOMAD::EvalType::BB);
-
-                NOMAD::Double h = evalInf->getH();
-                if (h.isDefined() && h <= _hMax)
-                {
-                    for (const auto& xFeas : _xFeas)
-                    {
-
-                        double sumVal = 0.0;
-                        const NOMAD::Eval* evalFeas = xFeas->getEval(NOMAD::EvalType::BB);
-
-                        // Compute \sum_{1}^m max (fi(x) - fi(y), 0)
-                        for (size_t i = 0; i < _nobj; i++)
-                        {
-                            sumVal += std::max(evalInf->getFs()[i].todouble() -
-                                               evalFeas->getFs()[i].todouble(), 0.0);
-                        }
-                        if (tmpDomMove > sumVal)
-                        {
-                            tmpDomMove = sumVal;
-                        }
-                    }
-
-                    // Get the minimal dominance move index
-                    if (minDomMove > tmpDomMove)
-                    {
-                        minDomMove = tmpDomMove;
-                        currentInd = j;
-                    }
-                }
-            }
-        }
-        _currentIncumbentInf = _xInf[currentInd];
-    }
-    else
+    if (_xFeas.empty() || _xInf.empty())
     {
         _currentIncumbentInf = getFirstXIncInfNoXFeas();
+        return;
     }
 
+    const auto evalType = _computeType.evalType;
+    const auto computeTypeS = _computeType.fhComputeTypeS;
+
+    auto computeDomMove = [evalType, computeTypeS](const size_t nobj,
+                                                   const EvalPointPtr& xInf,
+                                                   const std::vector<EvalPointPtr>& xFeasElems,
+                                                   const bool domXFeasElems) -> double
+    {
+        double minDomMove = std::numeric_limits<double>::infinity();
+        for (const auto& xFeas: xFeasElems)
+        {
+            const NOMAD::Eval* evalFeas = xFeas->getEval(evalType);
+            const NOMAD::Eval* evalInf = xInf->getEval(evalType);
+            double domMove = 0.0;
+            for (size_t i = 0; i < nobj; ++i)
+            {
+                const double fFeasVal = evalFeas->getFs(computeTypeS)[i].todouble();
+                const double fInfVal = evalInf->getFs(computeTypeS)[i].todouble();
+                const double diffVal = domXFeasElems ? fFeasVal - fInfVal
+                                                     : fInfVal - fFeasVal;
+                domMove += std::max(diffVal, 0.0);
+            }
+            minDomMove = std::min(minDomMove, domMove);
+        }
+        return minDomMove;
+    };
+
+    // Get the infeasible solution with maximum dominance move below the _hMax threshold,
+    // according to the set of best feasible incumbent solutions.
+    size_t currentInd = 0;
+    double maxDomMove = -NOMAD::INF;
+    for (size_t j = 0; j < _xInf.size(); ++j)
+    {
+        const NOMAD::Eval* evalInf = _xInf[j]->getEval(evalType);
+        const NOMAD::Double h = evalInf->getH(computeTypeS);
+        if (!h.isDefined() || h > _hMax)
+            continue;
+
+        // Compute dominance move
+        // = min \sum_{1}^m max(fi(y) - fi(x), 0)
+        //   y \in Fk
+        const double domMove = computeDomMove(_nobj, _xInf[j], _xFeas, true /*domXFeasElems*/);
+
+        // Get the maximum dominance move index
+        if (maxDomMove < domMove) {
+            maxDomMove = domMove;
+            currentInd = j;
+        }
+    }
+    if (NOMAD::Double(maxDomMove) > 0.0)
+    {
+        _currentIncumbentInf = _xInf[currentInd];
+        return;
+    }
+
+    // In this case, all infeasible solutions are "dominated" in terms of fvalues
+    // by at least one element of Fk. Get the infeasible solution below the _hMax
+    // threshold which has minimal dominance move, when considered a maximization
+    // problem.
+    double minDomMove = NOMAD::INF;
+    currentInd = 0;
+    for (size_t j = 0; j < _xInf.size(); ++j)
+    {
+        const NOMAD::Eval* evalInf = _xInf[j]->getEval(evalType);
+        const NOMAD::Double h = evalInf->getH(computeTypeS);
+        if (!h.isDefined() || h > _hMax)
+            continue;
+
+        // Compute dominance move
+        // = min \sum_{1}^m max(fi(x) - fi(y), 0)
+        //   y \in Fk
+        const double domMove = computeDomMove(_nobj, _xInf[j], _xFeas, false /*domXFeasElems*/);
+
+        // Get the minimal dominance move index
+        if (minDomMove > domMove)
+        {
+            minDomMove = domMove;
+            currentInd = j;
+        }
+    }
+    _currentIncumbentInf = _xInf[currentInd];
 }
 
 
 void NOMAD::DMultiMadsBarrier::updateCurrentIncumbentFeas()
 {
-    if (_xFeas.size() == 0)
+    if (_xFeas.empty())
     {
         _currentIncumbentFeas = nullptr;
         return;
@@ -1339,8 +1565,7 @@ void NOMAD::DMultiMadsBarrier::updateCurrentIncumbentFeas()
     if (_xFeas.size() == 1)
     {
         _currentIncumbentFeas =_xFeas[0];
-        return ;
-        
+        return;
     }
     
     // Set max frame size of all elements
@@ -1354,11 +1579,11 @@ void NOMAD::DMultiMadsBarrier::updateCurrentIncumbentFeas()
     std::vector<bool> canBeFrameCenter(_xFeas.size(), false);
     size_t nbSelectedCandidates = 0;
     
-    // see article DMultiMads Algorithm 4.
+    // See article DMultiMads Algorithm 4.
     for (size_t i = 0; i < _xFeas.size(); ++i)
     {
         
-        NOMAD::Double maxFrameSizeElt = getMeshMaxFrameSize(_xFeas[i]);
+        const NOMAD::Double maxFrameSizeElt = getMeshMaxFrameSize(_xFeas[i]);
         
         // Casting is required to avoid an integer overflow.
         if ((std::pow(10.0, -(double)_incumbentSelectionParam) * maxFrameSizeFeasElts <= maxFrameSizeElt) )
@@ -1379,154 +1604,177 @@ void NOMAD::DMultiMadsBarrier::updateCurrentIncumbentFeas()
         }
         else
         {
-            size_t selectedInd = std::distance(canBeFrameCenter.begin(), it);
+            const size_t selectedInd = std::distance(canBeFrameCenter.begin(), it);
             _currentIncumbentFeas =_xFeas[selectedInd];
         }
+        return;
     }
-    // Only two points in the barrier.
-    else if ((nbSelectedCandidates == 2) && (_xFeas.size() == 2))
-    {
-        const NOMAD::Eval* eval1 = _xFeas[0]->getEval(NOMAD::EvalType::BB);
-        const NOMAD::Eval* eval2 = _xFeas[1]->getEval(NOMAD::EvalType::BB);
-        auto objv1 = eval1->getFs();
-        auto objv2 = eval2->getFs();
-        if (objv1.abs().max() > objv2.abs().max())
-        {
-            _currentIncumbentFeas =_xFeas[0];
-        }
-        else
-        {
-            _currentIncumbentFeas =_xFeas[1];
-        }
-    }
-    // More than three points in the barrier.
-    else
-    {
-        // First case: biobjective optimization. Points are already ranked by lexicographic order.
-        if (_nobj == 2)
-        {
-            size_t currentBestInd = 0;
-            NOMAD::Double maxGap = -1.0;
-            NOMAD::Double currentGap;
-            for (size_t obj = 0; obj < _nobj; ++obj)
-            {
-                // Get extreme values value according to one objective
-                NOMAD::Double fmin = _xFeas[0]->getEval(NOMAD::EvalType::BB)->getFs()[obj];
-                NOMAD::Double fmax = _xFeas[_xFeas.size()-1]->getEval(NOMAD::EvalType::BB)->getFs()[obj];
-                
-                // In this case, it means all elements of _xFeas are equal (return the first one)
-                if (fmin == fmax)
-                {
-                    break;
-                }
-                
-                // Intermediate points
-                for (size_t i = 1; i < _xFeas.size()-1;++i)
-                {
-                    currentGap = _xFeas[i+1]->getEval(NOMAD::EvalType::BB)->getFs()[obj] -
-                    _xFeas[i-1]->getEval(NOMAD::EvalType::BB)->getFs()[obj];
-                    currentGap /= (fmax -fmin);
-                    if (canBeFrameCenter[i] && currentGap >= maxGap)
-                    {
-                        maxGap = currentGap;
-                        currentBestInd = i;
-                    }
-                }
-                
-                // Extreme points
-                currentGap = 2 * (_xFeas[_xFeas.size() - 1]->getEval(NOMAD::EvalType::BB) ->getFs()[obj] -
-                                  _xFeas[_xFeas.size() - 2] ->getEval(NOMAD::EvalType::BB) ->getFs()[obj]);
-                currentGap /= (fmax - fmin);
-                if (canBeFrameCenter[_xFeas.size()-1] && currentGap > maxGap)
-                {
-                    maxGap = currentGap;
-                    currentBestInd = _xFeas.size()-1;
-                }
-                
-                currentGap = 2 * (_xFeas[1]->getEval(NOMAD::EvalType::BB)->getFs()[obj] -
-                                  _xFeas[0]->getEval(NOMAD::EvalType::BB)->getFs()[obj]);
-                currentGap /= (fmax -fmin);
-                if (canBeFrameCenter[0] && currentGap > maxGap)
-                {
-                    maxGap = currentGap;
-                    currentBestInd = 0;
-                }
-            }
-            _currentIncumbentFeas =_xFeas[currentBestInd];
-        }
-        // More than 2 objectives
-        else
-        {
-            std::vector<std::pair<EvalPoint, size_t> > tmpXFeasPInd(_xFeas.size());
-            
-            // Initialize it.
-            for (size_t i = 0; i < tmpXFeasPInd.size(); ++i)
-            {
-                tmpXFeasPInd[i] = std::make_pair(*_xFeas[i], i);
-            }
 
-            size_t currentBestInd = 0;
-            NOMAD::Double maxGap = -1.0;
-            NOMAD::Double currentGap;
-            
-            for (size_t obj = 0; obj < _nobj; ++obj)
+    // Only two points in the barrier.
+    if ((nbSelectedCandidates == 2) && (_xFeas.size() == 2))
+    {
+        const auto objv1 = _xFeas[0]->getFs(_computeType);
+        const auto objv2 = _xFeas[1]->getFs(_computeType);
+        _currentIncumbentFeas = (objv1.abs().max() > objv2.abs().max()) ? _xFeas[0] : _xFeas[1];
+        return;
+    }
+
+    // More than three points in the barrier.
+    // First case: biobjective optimization. Points are already ranked by lexicographic order.
+    if (_nobj == 2)
+    {
+        size_t currentBestInd = 0;
+        NOMAD::Double maxGap = -1.0;
+        NOMAD::Double currentGap;
+        for (size_t obj = 0; obj < _nobj; ++obj)
+        {
+            // Get extreme values value according to one objective
+            const NOMAD::Double fmin = _xFeas[0]->getFs(_computeType)[obj];
+            const NOMAD::Double fmax = _xFeas[_xFeas.size()-1]->getFs(_computeType)[obj];
+                
+            // For biobjective optimization, it means all elements of _xFeas are equal.
+            // We return the first one.
+            if (fmin == fmax)
             {
-                // Sort elements of tmpXFeasPInd according to objective obj (in ascending order)
-                std::sort(tmpXFeasPInd.begin(), tmpXFeasPInd.end(),
-                          [obj](const std::pair<EvalPoint, size_t>& t1, const std::pair<EvalPoint, size_t> t2)->bool
-                          {
-                    const NOMAD::Eval* eval1 = t1.first.getEval(NOMAD::EvalType::BB);
-                    const NOMAD::Eval* eval2 = t2.first.getEval(NOMAD::EvalType::BB);
-                    return eval1->getFs()[obj] < eval2->getFs()[obj];
-                });
+                _currentIncumbentFeas =_xFeas[currentBestInd];
+                return;
+            }
                 
-                // Get extreme values value according to one objective
-                NOMAD::Double fmin = tmpXFeasPInd[0].first.getEval(NOMAD::EvalType::BB)->getFs()[obj];
-                NOMAD::Double fmax = tmpXFeasPInd[tmpXFeasPInd.size()-1].first.getEval(NOMAD::EvalType::BB)->getFs()[obj];
-                
-                // Can happen for exemple when we have several minima or for more than three objectives
-                if (fmin == fmax)
-                {
-                    fmin = 0.0;
-                    fmax = 1.0;
-                }
-                
-                // Intermediate points
-                for (size_t i = 1; i < tmpXFeasPInd.size()-1;++i)
-                {
-                    currentGap = tmpXFeasPInd[i+1].first.getEval(NOMAD::EvalType::BB)->getFs()[obj] -
-                    tmpXFeasPInd[i-1].first.getEval(NOMAD::EvalType::BB)->getFs()[obj];
-                    currentGap /= (fmax -fmin);
-                    if (canBeFrameCenter[tmpXFeasPInd[i].second] && currentGap >= maxGap)
-                    {
-                        maxGap = currentGap;
-                        currentBestInd = tmpXFeasPInd[i].second;
-                    }
-                }
-                
-                // Extreme points
-                currentGap = 2 * (tmpXFeasPInd[tmpXFeasPInd.size() - 1].first.getEval(NOMAD::EvalType::BB) ->getFs()[obj] -
-                                  tmpXFeasPInd[tmpXFeasPInd.size() - 2].first.getEval(NOMAD::EvalType::BB) ->getFs()[obj]);
-                currentGap /= (fmax - fmin);
-                if (canBeFrameCenter[tmpXFeasPInd[tmpXFeasPInd.size()-1].second] && currentGap > maxGap)
-                {
-                    maxGap = currentGap;
-                    currentBestInd = tmpXFeasPInd[tmpXFeasPInd.size()-1].second;
-                }
-                
-                currentGap = 2 * (tmpXFeasPInd[1].first.getEval(NOMAD::EvalType::BB) ->getFs()[obj] -
-                                  tmpXFeasPInd[0].first.getEval(NOMAD::EvalType::BB) ->getFs()[obj]);
+            // Intermediate points
+            for (size_t i = 1; i < _xFeas.size()-1;++i)
+            {
+                if (!canBeFrameCenter[i])
+                    continue;
+
+                currentGap = _xFeas[i+1]->getFs(_computeType)[obj] -
+                    _xFeas[i-1]->getFs(_computeType)[obj];
                 currentGap /= (fmax -fmin);
-                if (canBeFrameCenter[tmpXFeasPInd[0].second] && currentGap > maxGap)
+                if (currentGap >= maxGap)
                 {
                     maxGap = currentGap;
-                    currentBestInd = tmpXFeasPInd[0].second;
+                    currentBestInd = i;
                 }
             }
-            _currentIncumbentFeas = _xFeas[currentBestInd];
+                
+            // Extreme points
+            currentGap = 2 * (_xFeas[_xFeas.size() - 1]->getFs(_computeType)[obj] -
+                              _xFeas[_xFeas.size() - 2]->getFs(_computeType)[obj]);
+            currentGap /= (fmax - fmin);
+            if (canBeFrameCenter[_xFeas.size()-1] && currentGap > maxGap)
+            {
+                maxGap = currentGap;
+                currentBestInd = _xFeas.size()-1;
+            }
+                
+            currentGap = 2 * (_xFeas[1]->getFs(_computeType)[obj] -
+                              _xFeas[0]->getFs(_computeType)[obj]);
+            currentGap /= (fmax -fmin);
+            if (canBeFrameCenter[0] && currentGap > maxGap)
+            {
+                maxGap = currentGap;
+                currentBestInd = 0;
+            }
         }
-        
+        _currentIncumbentFeas =_xFeas[currentBestInd];
+        return;
     }
-    
-    
+
+    // Second case: more than 2 objectives
+    std::vector<std::pair<EvalPointPtr, size_t> > tmpXFeasPInd(_xFeas.size());
+            
+    // Initialize it.
+    for (size_t i = 0; i < tmpXFeasPInd.size(); ++i)
+    {
+        tmpXFeasPInd[i] = std::make_pair(_xFeas[i], i);
+    }
+
+    size_t currentBestInd = 0;
+    NOMAD::Double maxGap = -1.0;
+    NOMAD::Double currentGap;
+            
+    for (size_t obj = 0; obj < _nobj; ++obj)
+    {
+        // Sort elements of tmpXFeasPInd according to objective obj (in ascending order)
+        std::sort(tmpXFeasPInd.begin(), tmpXFeasPInd.end(),
+                  [obj,this](const std::pair<EvalPointPtr, size_t>& t1, const std::pair<EvalPointPtr, size_t>& t2)->bool
+                  {
+                      return t1.first->getFs(_computeType)[obj] < t2.first->getFs(_computeType)[obj];
+                  });
+                
+        // Get extreme values value according to one objective
+        NOMAD::Double fmin = tmpXFeasPInd[0].first->getFs(_computeType)[obj];
+        NOMAD::Double fmax = tmpXFeasPInd[tmpXFeasPInd.size()-1].first->getFs(_computeType)[obj];
+                
+        // Can happen for example when we have several minima or for more than three objectives
+        if (fmin == fmax)
+        {
+            fmin = 0.0;
+            fmax = 1.0;
+        }
+                
+        // Intermediate points
+        for (size_t i = 1; i < tmpXFeasPInd.size()-1;++i)
+        {
+            if (!canBeFrameCenter[tmpXFeasPInd[i].second])
+                continue;
+
+            currentGap = tmpXFeasPInd[i+1].first->getFs(_computeType)[obj] -
+                tmpXFeasPInd[i-1].first->getFs(_computeType)[obj];
+            currentGap /= (fmax -fmin);
+            if (currentGap >= maxGap)
+            {
+                maxGap = currentGap;
+                currentBestInd = tmpXFeasPInd[i].second;
+            }
+        }
+                
+        // Extreme points
+        currentGap = 2 * (tmpXFeasPInd[tmpXFeasPInd.size() - 1].first->getFs(_computeType)[obj] -
+                          tmpXFeasPInd[tmpXFeasPInd.size() - 2].first->getFs(_computeType)[obj]);
+        currentGap /= (fmax - fmin);
+        if (canBeFrameCenter[tmpXFeasPInd[tmpXFeasPInd.size()-1].second] && currentGap > maxGap)
+        {
+            maxGap = currentGap;
+            currentBestInd = tmpXFeasPInd[tmpXFeasPInd.size()-1].second;
+        }
+                
+        currentGap = 2 * (tmpXFeasPInd[1].first->getFs(_computeType)[obj] -
+                          tmpXFeasPInd[0].first->getFs(_computeType)[obj]);
+        currentGap /= (fmax -fmin);
+        if (canBeFrameCenter[tmpXFeasPInd[0].second] && currentGap > maxGap)
+        {
+            maxGap = currentGap;
+            currentBestInd = tmpXFeasPInd[0].second;
+        }
+    }
+    _currentIncumbentFeas = _xFeas[currentBestInd];
+}
+
+
+void NOMAD::DMultiMadsBarrier::updateCurrentIdealFeas()
+{
+    _currentIdealFeas = std::vector<NOMAD::Double>(_nobj, NOMAD::INF);
+    for (const auto& xFeas: _xFeas)
+    {
+        for (size_t obj = 0; obj < _nobj; ++obj)
+        {
+            if (_currentIdealFeas[obj] > xFeas->getFs(_computeType)[obj])
+                _currentIdealFeas[obj] = xFeas->getFs(_computeType)[obj];
+        }
+    }
+}
+
+
+void NOMAD::DMultiMadsBarrier::updateCurrentIdealInf()
+{
+    _currentIdealInf = std::vector<NOMAD::Double>(_nobj, NOMAD::INF);
+    for (const auto& xInf: _xInf)
+    {
+        const auto& fvaluesXinf = xInf->getFs(_computeType);
+        for (size_t obj = 0; obj < _nobj; ++obj)
+        {
+            if (_currentIdealInf[obj] > fvaluesXinf[obj])
+                _currentIdealInf[obj] = xInf->getFs(_computeType)[obj];
+        }
+    }
 }

@@ -64,56 +64,44 @@ std::string NOMAD::DMultiMadsUpdate::getName() const
 
 bool NOMAD::DMultiMadsUpdate::runImp()
 {
-    
+    std::string s;
     // Select the current incumbent (See Algo 4)
     // Two cases depending on previous iteration success:
     // - Success (full and partial success): select a possibly new incumbent point.
     // - Failure: decrease the mesh and select the current incumbent point
-    
-    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    NOMAD::EvalType evalType = NOMAD::EvalType::BB;
-    NOMAD::ComputeType computeType = NOMAD::ComputeType::STANDARD;
-    std::string s;  // for output
-    if (nullptr != evc)
-    {
-        evalType = evc->getCurrentEvalType();
-        computeType = evc->getComputeType();
-    }
-    
-    if (NOMAD::EvalType::BB != evalType)
-    {
-        s = "DMultiMadsUpdate: Only BB eval type is handled";
-        throw NOMAD::Exception(__FILE__, __LINE__, s);
-        
-    }
-    if (NOMAD::ComputeType::STANDARD != computeType)
-    {
-        s = "DMultiMadsUpdate: Only STANDARD compute type is handled";
-        throw NOMAD::Exception(__FILE__, __LINE__, s);
-        
-    }
-    
+
     // megaIter is already in subproblem.
     // So no need to convert from full dimension to subproblem.
     auto megaIter = getParentOfType<NOMAD::DMultiMadsMegaIteration*>();
     auto iter = getParentOfType<NOMAD::DMultiMadsIteration*>();
     auto barrier = std::dynamic_pointer_cast<NOMAD::DMultiMadsBarrier>(megaIter->getBarrier());
-    
-    OUTPUT_DEBUG_START
-    s = "Running " + getName() + ". Barrier: ";
-    AddOutputDebug(s);
-    std::vector<std::string> vs = barrier->display(4);
-    for (const auto & si : vs)
+
+    if (nullptr == barrier)
     {
-        AddOutputDebug(si);
+        throw NOMAD::Exception(__FILE__, __LINE__, "DMultiMadsUpdate: No barrier available");
     }
-    OUTPUT_DEBUG_END
     
+    if (NOMAD::EvalType::BB != barrier->getEvalType())
+    {
+        s = "DMultiMadsUpdate: Only BB eval type is handled";
+    }
+
+    if (NOMAD::ComputeType::STANDARD != barrier->getComputeType())
+    {
+        s = "DMultiMadsUpdate: Only STANDARD compute type is handled";
+        throw NOMAD::Exception(__FILE__, __LINE__, s);
+    }
+
+    OUTPUT_DEBUG_START
+    s = "Running " + getName();
+    AddOutputDebug(s);
+    OUTPUT_DEBUG_END
+
     // If the previous iteration is not a success, the meshes of current incumbents are refined (no success). If not, the current incumbents may change.
     NOMAD::SuccessType previousSuccess = iter->getPreviousSuccessType();
     
     // If previous success type is not a success (partial or full), reduce the mesh associated to the current frame center.
-    // The frame center can be set if it does not already exists (just after initialization)
+    // The frame center can be set if it does not already exist (just after initialization)
     if (previousSuccess < NOMAD::SuccessType::PARTIAL_SUCCESS)
     {
         OUTPUT_DEBUG_START
@@ -125,12 +113,7 @@ bool NOMAD::DMultiMadsUpdate::runImp()
         if ( nullptr != iter->getFrameCenter())
         {
             iter->getFrameCenter()->getMesh()->refineDeltaFrameSize();
-            
-            // Need to update incumbents because mesh of one incumbent has changed.
-            barrier->updateCurrentIncumbents();
         }
-        
-        
     }
     else
     {
@@ -142,9 +125,21 @@ bool NOMAD::DMultiMadsUpdate::runImp()
         AddOutputDebug(s);
         OUTPUT_DEBUG_END
     }
-    
 
-    
+    OUTPUT_DEBUG_START
+    s = "Barrier: ";
+    AddOutputDebug(s);
+    std::vector<std::string> vs = barrier->display(100, true);
+    for (const auto & si : vs)
+    {
+        AddOutputDebug(si);
+    }
+    OUTPUT_DEBUG_END
+
+    // Before selecting new frame centers, update current incumbents.
+    barrier->updateCurrentIncumbents();
+
+
     // Select frame center. Can change if iteration is successful or not.
     // Current incumbents may have changed because barrier is updated by adding points or by because the frame size of a barrier point has changed (see above).
     auto currentBestFeas =  barrier->getCurrentIncumbentFeas();

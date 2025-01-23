@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_CSSITERATION__
-#define __NOMAD_4_4_CSSITERATION__
+#ifndef __NOMAD_4_5_CSSITERATION__
+#define __NOMAD_4_5_CSSITERATION__
 
 #include "../../Algos/CoordinateSearch/CSPoll.hpp"
 #include "../../Algos/Iteration.hpp"
@@ -65,6 +65,7 @@ private:
     const MeshBasePtr  _mesh;        ///< Mesh on which the points are
 
     std::unique_ptr<CSPoll> _csPoll;
+
 
 public:
     /// Constructor
@@ -112,7 +113,7 @@ private:
 
     /// Implementation of the run tasks of CS algorithm.
     /**
-     Run a CS  iteration: a sinle CS Poll step is performed.
+     Run a CS  iteration: a single CS Poll step is performed.
      */
     virtual bool runImp() override;
 
@@ -123,4 +124,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_CSITERATION__
+#endif // __NOMAD_4_5_CSITERATION__

@@ -76,19 +76,18 @@ std::string NOMAD::CSUpdate::getName() const
 
 bool NOMAD::CSUpdate::runImp()
 {
-    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    NOMAD::EvalType evalType = NOMAD::EvalType::BB;
-    NOMAD::ComputeType computeType = NOMAD::ComputeType::STANDARD;
-    if (nullptr != evc)
-    {
-        evalType = evc->getCurrentEvalType();
-        computeType = evc->getComputeType();
-    }
     // megaIter barrier is already in subproblem.
     // So no need to convert refBestFeas and refBestInf
     // from full dimension to subproblem.
     auto megaIter = getParentOfType<NOMAD::CSMegaIteration*>();
     auto barrier = megaIter->getBarrier();
+    
+    auto computeType = barrier->getFHComputeType();
+    NOMAD::EvalType evalType = computeType.evalType;
+    NOMAD::FHComputeTypeS computeTypeS = computeType.fhComputeTypeS;
+    
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    
     auto mesh = megaIter->getMesh();
     std::string s;  // for output
 
@@ -103,7 +102,7 @@ bool NOMAD::CSUpdate::runImp()
     OUTPUT_DEBUG_END
 
     // Barrier is already updated from previous steps.
-    // Get ref best feasible and infeasible, and then update
+    // Get the best feasible and infeasible reference points, and then update
     // reference values.
     auto refBestFeas = barrier->getRefBestFeas();
     auto refBestInf  = barrier->getRefBestInf();
@@ -118,7 +117,7 @@ bool NOMAD::CSUpdate::runImp()
         // Compute success
         // Get which of newBestFeas and newBestInf is improving
         // the solution. Check newBestFeas first.
-        NOMAD::ComputeSuccessType computeSuccess(evalType, computeType);
+        NOMAD::ComputeSuccessType computeSuccess(computeType);
         NOMAD::EvalPointPtr newBest;
         NOMAD::SuccessType success = computeSuccess(newBestFeas, refBestFeas);
         
@@ -201,19 +200,19 @@ bool NOMAD::CSUpdate::runImp()
             s += ". Is different than computed success type: " + NOMAD::enumStr(success);
             if (refBestFeas)
             {
-                s += "\nRef best feasible:   " + refBestFeas->displayAll();
+                s += "\nRef best feasible:   " + refBestFeas->displayAll(computeTypeS);
             }
             if (newBestFeas)
             {
-                s += "\nNew best feasible:   " + newBestFeas->displayAll();
+                s += "\nNew best feasible:   " + newBestFeas->displayAll(computeTypeS);
             }
             if (refBestInf)
             {
-                s += "\nRef best infeasible: " + refBestInf->displayAll();
+                s += "\nRef best infeasible: " + refBestInf->displayAll(computeTypeS);
             }
             if (newBestInf)
             {
-                s += "\nNew best infeasible: " + newBestInf->displayAll();
+                s += "\nNew best infeasible: " + newBestInf->displayAll(computeTypeS);
             }
             AddOutputWarning(s);
         }

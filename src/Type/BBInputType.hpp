@@ -53,8 +53,8 @@
  */
 
 
-#ifndef __NOMAD_4_4_BB_INPUT_TYPE__
-#define __NOMAD_4_4_BB_INPUT_TYPE__
+#ifndef __NOMAD_4_5_BB_INPUT_TYPE__
+#define __NOMAD_4_5_BB_INPUT_TYPE__
 
 #include <sstream>
 #include <vector>
@@ -92,8 +92,6 @@ DLL_UTIL_API BBInputType stringToBBInputType(const std::string &s);
 /// Utility for BBInputTypes
 /**
  * Convert a string containing multiple BBInputTypes (ex "( R I B R )") to a BBInputTypeList or a single 'all of the same type (*)' BBInputType to BBInputTypeList of a single element. When have a single 'all of the same type (*)', the list of full dimension is created when calling PbParameters::checkAndComply. \n
- *
- *\todo Support the syntax 1-4 I
  *
  */
 DLL_UTIL_API BBInputTypeList stringToBBInputTypeList(const std::string &s);
@@ -137,4 +135,4 @@ inline std::ostream& operator<<(std::ostream& out, const BBInputTypeList &bbinpu
 }
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_4_BB_INPUT_TYPE__
+#endif  // __NOMAD_4_5_BB_INPUT_TYPE__

@@ -52,8 +52,8 @@
 //  Copyright (c) 2017 GERAD. All rights reserved.
 //
 
-#ifndef __NOMAD_4_4_TYPEATTRIBUTE__
-#define __NOMAD_4_4_TYPEATTRIBUTE__
+#ifndef __NOMAD_4_5_TYPEATTRIBUTE__
+#define __NOMAD_4_5_TYPEATTRIBUTE__
 
 #include "../Param/Attribute.hpp"
 #include "../Util/defines.hpp"
@@ -75,8 +75,8 @@ public:
     TypeAttribute ( ) = delete;
 
     /// Constructor call by the AttributeFactory::Create
-    template<typename ... ARGS>TypeAttribute(std::string Name,
-                                             T initValue,
+    template<typename ... ARGS>TypeAttribute(const std::string& Name,
+                                             const T& initValue,
                                              bool algoCompatibilityCheck,
                                              bool restartAttribute,
                                              bool uniqueEntry,
@@ -95,7 +95,7 @@ public:
 
     const T& getValue() const { return _value; }
     const T& getInitValue() const { return _initValue; }
-    void setValue(T v) { _value=v; }
+    void setValue(const T& v) { _value=v; }
     bool uniqueEntry() const { return _uniqueEntry; }
 
     /**
@@ -118,4 +118,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_TYPEATTRIBUTE__
+#endif // __NOMAD_4_5_TYPEATTRIBUTE__

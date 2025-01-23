@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_MADSITERATION__
-#define __NOMAD_4_4_MADSITERATION__
+#ifndef __NOMAD_4_5_MADSITERATION__
+#define __NOMAD_4_5_MADSITERATION__
 
 #include "../../Algos/Iteration.hpp"
 #include "../../Algos/Mads/MegaSearchPoll.hpp"
@@ -145,4 +145,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_MADSITERATION__
+#endif // __NOMAD_4_5_MADSITERATION__

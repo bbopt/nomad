@@ -55,7 +55,7 @@ void NOMAD::QuadModelSinglePass::generateTrialPointsImp ()
 {
     
     // Select the sample points to construct the model. Use a center pt and the cache
-    NOMAD::QuadModelUpdate update(this,_scalingDirections,emptyEvalPointSet /* No trial points -> for search */);
+    NOMAD::QuadModelUpdate update(this,_scalingDirections,emptyEvalPointSet /* No trial points -> for search */, _flagPriorCombineObjsForModel);
         
     update.start();
     bool updateSuccess = update.run();
@@ -69,14 +69,14 @@ void NOMAD::QuadModelSinglePass::generateTrialPointsImp ()
 
         // Optimize to generate oracle points on this model
         // Initialize optimize member - model optimizer on sgte
-        bool scaledBounds = (_scalingDirections.size() > 0);
-        NOMAD::QuadModelOptimize optimize (this, _pbParams , scaledBounds);
+        bool scaledBounds = (!_scalingDirections.empty());
+        NOMAD::QuadModelOptimize optimize (this, _pbParams , scaledBounds, _flagPriorCombineObjsForModel);
 
         optimize.start();
         // No run, the trial points are evaluated somewhere else.
         optimize.end();
 
-        auto trialPts = optimize.getTrialPoints();
+        const auto& trialPts = optimize.getTrialPoints();
         
         // Manage all trial points
         for ( const auto & pt : trialPts )
@@ -99,7 +99,7 @@ void NOMAD::QuadModelSinglePass::generateTrialPointsImp ()
             }
         }
         
-        // Manage best feasible point and best infeasible point
+        // Manage the best feasible point and best infeasible point
         _bestXFeas = optimize.getBestFeas();
         _bestXInf = optimize.getBestInf();
         if (scaledBounds)

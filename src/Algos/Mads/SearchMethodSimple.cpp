@@ -51,7 +51,7 @@ bool NOMAD::SearchMethodSimple::runImp()
 {
 
     bool foundBetter = false;
-    if ( ! _stopReasons->checkTerminate() && _trialPoints.size() > 0 )
+    if ( ! _stopReasons->checkTerminate() && !_trialPoints.empty())
     {
         foundBetter = evalTrialPoints(this);
     }
@@ -71,7 +71,7 @@ void NOMAD::SearchMethodSimple::startImp()
     // Reset the current counters. The total counters are not reset (done only once when constructor is called).
     _trialPointStats.resetCurrentStats();
     
-    if ( ! _stopReasons->checkTerminate() )
+    if ( ! _stopReasons->checkTerminate() && _dynamicEnabled)
     {
         // Create EvalPoints and snap to bounds and snap on mesh
         generateTrialPoints();
@@ -79,4 +79,16 @@ void NOMAD::SearchMethodSimple::startImp()
         // Complete trial points information to get ready for sorting and evaluation
         completeTrialPointsInformation();
     }
+}
+
+void NOMAD::SearchMethodSimple::endImp()
+{
+    NOMAD::SearchMethodBase::endImp();
+
+    // For now, only simple search method can be set dynamically enabled/disabled.
+    updateDynamicEnabled();
+    
+    // When users apply some changes to the problem (for example, fixed variables), it may be required to revert the change.
+    // Some changes can be made after trial points evaluations
+    updateAtStepEnd();
 }

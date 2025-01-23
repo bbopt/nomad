@@ -57,7 +57,7 @@ void NOMAD::GMesh::init()
     _initFrameSizeExp.reset(_n);
     _initFrameSizeExp = _frameSizeExp;
     
-    // Compute finest mesh size once init frame size is set
+    // Compute the finest mesh size once init frame size is set
     _finestMeshSize = getdeltaMeshSize();
     
     // Set _allGranular
@@ -356,7 +356,7 @@ void NOMAD::GMesh::refineDeltaFrameSize(NOMAD::Double &frameSizeMant,
 }
 
 
-// Initialize frame size mantisse and exponent according to initial
+// Initialize frame size mantissa and exponent according to initial
 // frame size and granularity.
 void NOMAD::GMesh::initFrameSizeGranular(const NOMAD::ArrayOfDouble &initialFrameSize)
 {
@@ -549,7 +549,7 @@ void NOMAD::GMesh::setDeltas(const size_t i,
     NOMAD::Double mant;
     NOMAD::Double exp;
 
-    // Compute mantisse first
+    // Compute mantissa first
     // There are only 3 cases: 1, 2, 5, so compute all
     // 3 possibilities and then assign the values that work.
     NOMAD::Double mant1 = deltaFrameSize / (1.0 * gran);
@@ -743,24 +743,14 @@ NOMAD::Point NOMAD::GMesh::projectOnMesh(const NOMAD::Point& point,
                                          const NOMAD::Point& frameCenter) const
 {
     // Projection on the mesh
-    NOMAD::Point proj = point;
+    const NOMAD::Point& proj = point;
     auto delta = getdeltaMeshSize();
     // To avoid running around in circles
     const size_t maxNbTry = 10;
 
-//    for (size_t i = 0; i < point.size(); ++i)
-//    {
-//
-//        NOMAD::Double diffProjFrameCenter = proj[i] - frameCenter[i];
-//        // Value which will be used in verifyPointIsOnMesh
-//        proj[i] = diffProjFrameCenter / delta[i];
-//        proj[i] = proj[i].round();
-//        proj[i] = frameCenter[i] + proj[i] * delta[i];
-//    }
-
     for (size_t i = 0; i < point.size(); ++i)
     {
-        const NOMAD::Double deltaI = delta[i];
+        const NOMAD::Double& deltaI = delta[i];
         bool frameCenterIsOnMesh = (frameCenter[i].isMultipleOf(deltaI));
 
         NOMAD::Double diffProjFrameCenter = proj[i] - frameCenter[i];
@@ -836,7 +826,7 @@ NOMAD::Point NOMAD::GMesh::projectOnMesh(const NOMAD::Point& point,
 
         if (nbTry >= maxNbTry && !verifValueI.isMultipleOf(deltaI))
         {
-            // Some values are just ill-conditionned.
+            // Some values are just ill-conditioned.
             std::string s = "Warning: Could not project point (index " + std::to_string(i) + ") ";
             s += point.display() + " on mesh " + delta.display();
             s += " with frame center " + frameCenter.display();

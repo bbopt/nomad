@@ -77,7 +77,7 @@ void NOMAD::QPSolverAlgoSinglePass::generateTrialPointsImp ()
         // No run, the trial points are evaluated somewhere else.
         optimize.end();
 
-        auto trialPts = optimize.getTrialPoints();
+        const auto& trialPts = optimize.getTrialPoints();
 
         // Manage all trial points
         for ( const auto & pt : trialPts )

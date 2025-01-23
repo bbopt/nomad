@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_VNS__
-#define __NOMAD_4_4_VNS__
+#ifndef __NOMAD_4_5_VNS__
+#define __NOMAD_4_5_VNS__
 
 
 #include "../../Algos/Algorithm.hpp"
@@ -102,8 +102,8 @@ public:
 
     std::shared_ptr<BarrierBase> getBarrier() {return _barrier; }
     
-    /// The frame center is used as initial point for the sub-obptimization
-    void setFrameCenter(const EvalPointPtr frameCenter);
+    /// The frame center is used as initial point for the sub-optimization
+    void setFrameCenter(const EvalPointPtr& frameCenter);
     
 private:
     
@@ -115,7 +115,7 @@ private:
      - Algorithm execution.
      - Shake current incumbents.
      - Perform mads.
-     - Update the succes type
+     - Update the success type
      - Perform Termination tasks (start, run, end)
      - Update the SearchMethod success type with best success found.
      \return \c true
@@ -140,4 +140,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_VNS__
+#endif // __NOMAD_4_5_VNS__

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_MADSMEGAITERATION__
-#define __NOMAD_4_4_MADSMEGAITERATION__
+#ifndef __NOMAD_4_5_MADSMEGAITERATION__
+#define __NOMAD_4_5_MADSMEGAITERATION__
 
 #include "../../Eval/BarrierBase.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
@@ -68,7 +68,7 @@ Manager for Mads iterations.
   It is also preferable to keep parallelization to the only place where
   it matters the most to avoid errors.
   There is no parallelization at the algorithmic level.
-  Algorithms are run in main thread(s) only; Secundary threads are available for evaluations.
+  Algorithms are run in main thread(s) only; secondary threads are available for evaluations.
 */
 class MadsMegaIteration: public MegaIteration
 {
@@ -142,4 +142,4 @@ std::istream& operator>>(std::istream& is, MadsMegaIteration& megaIteration);
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_MADSMEGAITERATION__
+#endif // __NOMAD_4_5_MADSMEGAITERATION__

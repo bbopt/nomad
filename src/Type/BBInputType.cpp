@@ -107,7 +107,7 @@ NOMAD::BBInputTypeList NOMAD::stringToBBInputTypeList(const std::string &s)
     if (arraysize >= 2 && aos[0] == "(" && aos[arraysize-1] == ")")
     {
         // * is not supported inside the vector notation
-        if (s.find("*") < std::string::npos)
+        if (s.find('*') < std::string::npos)
         {
             throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized string for NOMAD::BBInputType: " + s);
         }
@@ -123,7 +123,7 @@ NOMAD::BBInputTypeList NOMAD::stringToBBInputTypeList(const std::string &s)
     }
 
     // Manage the 'all of the same type (*)' situation
-    if (s.find("*") < std::string::npos)
+    if (s.find('*') < std::string::npos)
     {
         // Concatenate all strings together before interpretation to BBInputType
         std::string ss;
@@ -135,7 +135,7 @@ NOMAD::BBInputTypeList NOMAD::stringToBBInputTypeList(const std::string &s)
         bbInputType.push_back(NOMAD::stringToBBInputType(ss));
     }
 
-    if (arraysize > 0 && bbInputType.size() == 0)
+    if (arraysize > 0 && bbInputType.empty())
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized string for NOMAD::BBInputType: " + s);
     }

@@ -52,8 +52,8 @@
  \see    Evaluator.cpp
  */
 
-#ifndef __NOMAD_4_4_EVALUATOR__
-#define __NOMAD_4_4_EVALUATOR__
+#ifndef __NOMAD_4_5_EVALUATOR__
+#define __NOMAD_4_5_EVALUATOR__
 
 #include "../Eval/BBOutput.hpp"
 #include "../Eval/EvalPoint.hpp"
@@ -84,12 +84,11 @@ enum class EvalXDefined
 class DLL_EVAL_API Evaluator
 {
 protected:
-    const std::shared_ptr<EvalParameters>                 _evalParams;    ///< The parameters controlling the behavior of the evaluator
+    const std::shared_ptr<EvalParameters>                 _evalParams;    ///< The parameters controlling the behavior of the evaluator, the evaluation of outputs and the computation of h.
     
     const EvalType _evalType;
     
     const BBOutputTypeList _bbOutputTypeList;
-    
 
 private:
        
@@ -124,7 +123,7 @@ public:
     virtual ~Evaluator();
 
     /// Initialize one tmp file by thread
-    static void initializeTmpFiles(const std::string& tmpDir);
+    static void initializeTmpFiles(const std::string& tmpDir, const int & nbThreadsForParallelEval);
 
     /// Delete tmp files when we are done
     static void removeTmpFiles();
@@ -153,7 +152,7 @@ public:
      \param x           The point to evaluate -- \b IN/OUT.
      \param countEval   Indicates if the evaluation has to be counted or not -- \b OUT.
      \param hMax        Maximum h acceptable for constraint violation -- b IN.
-     \return            \c true if the evaluation succeded, \c false otherwise.
+     \return            \c true if the evaluation succeeded, \c false otherwise.
      */
     virtual bool eval_x(EvalPoint &x,
                         const Double& hMax,
@@ -167,7 +166,7 @@ public:
      \param block       The block of points to evaluate -- \b IN/OUT.
      \param hMax        Maximum h acceptable for constraint violation -- \b IN.
      \param countEval   Indicates if the evaluation has to be counted or not -- \b OUT.
-     \return            \c true if the evaluation succeded, \c false otherwise.
+     \return            \c true if the evaluation succeeded, \c false otherwise.
      */
     virtual std::vector<bool> eval_block(Block &block,
                                          const Double &hMax,
@@ -193,4 +192,4 @@ typedef std::shared_ptr<Evaluator> EvaluatorPtr;
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_EVALUATOR__
+#endif // __NOMAD_4_5_EVALUATOR__

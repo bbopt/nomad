@@ -68,7 +68,7 @@ void NOMAD::RevealingPoll::init()
     setStepType(NOMAD::StepType::REVEALING_POLL);
     verifyParentNotNull();
 
-    // Corret Poll attribute (from base class)
+    // Correct Poll attribute (from base class)
     _hasSecondPass = false;
 
     // Set revealing search parameters
@@ -96,7 +96,7 @@ void NOMAD::RevealingPoll::generateTrialPointsImp()
 
     //Warning about groups of variables.
     auto varGroups = _pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP");
-    if (varGroups.size() > 0)
+    if (!varGroups.empty())
     {
         OUTPUT_INFO_START
         AddOutputInfo("VARIABLE_GROUP parameter is disabled during RevealingPoll to ensure density properties.");
@@ -134,13 +134,13 @@ void NOMAD::RevealingPoll::generateTrialPointsImp()
     OUTPUT_DEBUG_END
 
     // 3. Create trial points   
-    for (std::list<NOMAD::Direction>::iterator it = directionsFullSpace.begin(); it != directionsFullSpace.end() ; ++it)
+    for (auto& it : directionsFullSpace)
     {
         NOMAD::Point pt(n);
         //trial pt = revealing search center + direction
         for (size_t i = 0 ; i < n ; ++i )
         {
-            pt[i] = (*centerRevealingPoll)[i] + (*it)[i];
+            pt[i] = (*centerRevealingPoll)[i] + it[i];
         }
 
         auto evalPoint = NOMAD::EvalPoint(pt);
@@ -153,7 +153,7 @@ void NOMAD::RevealingPoll::generateTrialPointsImp()
 
 
     // Snap the points to bounds and mesh
-    auto searchMethodPoints = getTrialPoints();
+    const auto& searchMethodPoints = getTrialPoints();
 
     std::list<NOMAD::EvalPoint> snappedTrialPoints;
 
@@ -173,7 +173,7 @@ void NOMAD::RevealingPoll::generateTrialPointsImp()
 
     // Re-insert snapped trial points
     clearTrialPoints();
-    for (auto evalPoint : snappedTrialPoints)
+    for (const auto& evalPoint : snappedTrialPoints)
     {
         insertTrialPoint(evalPoint);
     }
@@ -218,9 +218,9 @@ void NOMAD::RevealingPoll::generateDirections(std::list<NOMAD::Direction> &direc
     // Output
     OUTPUT_INFO_START
     AddOutputInfo("Direction(s) of revealing search method: ");
-    for (std::list<NOMAD::Direction>::iterator it = directions.begin(); it != directions.end() ; ++it)
+    for (auto& direction : directions)
     {
-        AddOutputInfo(it->display());
+        AddOutputInfo(direction.display());
         
     }
     OUTPUT_INFO_END
@@ -233,7 +233,7 @@ void NOMAD::RevealingPoll::endImp()
     verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 
     // Compute hMax and update Barrier. 
-    // Only update hmax and incuments if full success (because in this case Revealing Poll is the last step of iteration)
+    // Only update hmax and incumbents if full success (because in this case Revealing Poll is the last step of iteration)
     _updateIncumbentsAndHMax = (_trialPointsSuccess >= NOMAD::SuccessType::FULL_SUCCESS);
     postProcessing();
 }

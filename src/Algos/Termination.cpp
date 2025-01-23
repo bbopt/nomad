@@ -82,9 +82,13 @@ bool NOMAD::Termination::terminate(size_t iteration)
         return stop;
     }
 
-    // Set stopReason due to criterions other than AlgoStopReasons<>
+    // Set stopReason due to criteria other than AlgoStopReasons<>
 
-
+    // Compute type for testing feasibility
+    auto computeTypeS = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
+    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
+    NOMAD::FHComputeType computeType = {evalType, computeTypeS};
+    
     // Termination conditions go here.
     // This is also tested in EvaluatorControl
     if (NOMAD::Step::getUserTerminate())
@@ -102,7 +106,7 @@ bool NOMAD::Termination::terminate(size_t iteration)
         // Max time reached
         _stopReasons->set(NOMAD::BaseStopType::MAX_TIME_REACHED);
     }
-    else if (_stopIfFeasible->getValue() && solHasFeas())
+    else if (_stopIfFeasible->getValue() && solHasFeas(computeType))
     {
         _stopReasons->set(NOMAD::IterStopType::STOP_ON_FEAS);
     }

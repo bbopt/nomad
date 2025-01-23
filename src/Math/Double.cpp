@@ -60,6 +60,7 @@
 /*   static members initialization   */
 /*-----------------------------------*/
 double      NOMAD::Double::_epsilon         = NOMAD::DEFAULT_EPSILON;
+double      NOMAD::Double::_hMin            = 0;
 std::string NOMAD::Double::_infStr          = NOMAD::DEFAULT_INF_STR;
 std::string NOMAD::Double::_undefStr        = NOMAD::DEFAULT_UNDEF_STR;
 #ifdef MEMORY_DEBUG
@@ -139,6 +140,18 @@ void NOMAD::Double::setEpsilon (double eps)
     NOMAD::Double::_epsilon = eps;
 }
 
+/*-----------------------------------------------*/
+/*               set epsilon (static)            */
+/*-----------------------------------------------*/
+void NOMAD::Double::setHMin (const double & hMin)
+{
+    if (hMin < 0.0)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__,
+                               "NOMAD::Double::setHMin(): invalid negative hMin");
+    }
+    NOMAD::Double::_hMin = hMin;
+}
 
 /*-----------------------------------------------*/
 /*            get the value as double            */
@@ -147,8 +160,7 @@ const double & NOMAD::Double::todouble() const
 {
     if (! _defined)
     {
-        throw NotDefined(__FILE__, __LINE__,
-                          "NOMAD::Double::todouble(): value not defined");
+        throw NotDefined(__FILE__, __LINE__, "NOMAD::Double::todouble(): value not defined");
     }
     return _value;
 }
@@ -171,14 +183,14 @@ double NOMAD::Double::trunk() const
 
 }
 
-bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision )
+bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision, const NOMAD::Double & lb, const NOMAD::Double & ub)
 {
     if (! _defined)
     {
         throw NotDefined(__FILE__, __LINE__,
                           "NOMAD::Double::roundToPrecision(): value not defined");
     }
-    
+
     bool modif = false;
     if (precision.isDefined())
     {
@@ -186,6 +198,17 @@ bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision )
         {
             double powprec = std::pow(10,precision.round());
             _value = std::round(_value * powprec) / powprec;
+
+            // During the arithmetic operations we may have rounded _value slightly below or above (wrt EPSILON) lb or ub
+            // This can trigger an exception later
+            if (lb.isDefined() && _value < lb.todouble())
+            {
+                _value = lb.todouble();
+            }
+            else if (ub.isDefined() && _value > ub.todouble())
+            {
+                _value = ub.todouble();
+            }
         }
         else
         {
@@ -194,7 +217,7 @@ bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision )
         }
         modif = true;
     }
-    
+
     return modif;
 
 }
@@ -209,9 +232,9 @@ bool NOMAD::Double::weakLess(const NOMAD::Double &d1, const NOMAD::Double &d2)
 /*-----------------------------------------------*/
 /*            get the value as string            */
 /*-----------------------------------------------*/
-const std::string NOMAD::Double::tostring() const
+std::string NOMAD::Double::tostring() const
 {
-    return display(NOMAD::DISPLAY_PRECISION_STD);
+    return display(NOMAD::DISPLAY_PRECISION_FULL);
 }
 
 
@@ -328,7 +351,7 @@ bool NOMAD::Double::relativeAtof ( const std::string & s , bool & relative )
 /*-----------------------------------------------*/
 /*            is the value an integer?           */
 /*-----------------------------------------------*/
-bool NOMAD::Double::isInteger ( void ) const
+bool NOMAD::Double::isInteger () const
 {
     if ( !_defined )
         return false;
@@ -338,7 +361,7 @@ bool NOMAD::Double::isInteger ( void ) const
 /*-----------------------------------------------*/
 /*             is the value binary ?             */
 /*-----------------------------------------------*/
-bool NOMAD::Double::isBinary ( void ) const
+bool NOMAD::Double::isBinary () const
 {
     if ( !_defined )
         return false;
@@ -348,8 +371,8 @@ bool NOMAD::Double::isBinary ( void ) const
 /*-------------------------------------*/
 /*               d = d1/d2             */
 /*-------------------------------------*/
-const NOMAD::Double NOMAD::operator / ( const NOMAD::Double & d1 ,
-                                       const NOMAD::Double & d2   )
+NOMAD::Double NOMAD::operator / ( const NOMAD::Double & d1 ,
+                                  const NOMAD::Double & d2)
 {
     if ( !d1.isDefined() || !d2.isDefined() )
         throw NOMAD::Double::NotDefined ( "Double.cpp" , __LINE__ ,
@@ -414,7 +437,7 @@ const NOMAD::Double & NOMAD::Double::operator /= ( const NOMAD::Double & d2 )
 /*-------------------------------------*/
 /*                  ++d                */
 /*-------------------------------------*/
-NOMAD::Double & NOMAD::Double::operator++ ( void )
+NOMAD::Double & NOMAD::Double::operator++ ()
 {
     if ( !_defined )
         throw NotDefined ( "Double.cpp" , __LINE__ , "NOMAD::Double: ++d: d not defined" );
@@ -439,7 +462,7 @@ NOMAD::Double NOMAD::Double::operator++ ( int n )
 /*-------------------------------------*/
 /*                --d                  */
 /*-------------------------------------*/
-NOMAD::Double & NOMAD::Double::operator-- ( void )
+NOMAD::Double & NOMAD::Double::operator-- ( )
 {
     if ( !_defined )
         throw NotDefined ( "Double.cpp" , __LINE__ , "NOMAD::Double: --d: d not defined" );
@@ -554,7 +577,7 @@ std::string NOMAD::Double::display(const int prec, const size_t refWidth) const
             width = refWidth;
         }
 
-        // If the number of decimals in _value is greater then prec, then
+        // If the number of decimals in _value is greater than prec, then
         // output it as is so it gets truncated.
         // Ex: 447.000774493 -> 447.000774
         // If it is smaller, use the string and complete with space padding.
@@ -575,7 +598,7 @@ std::string NOMAD::Double::display(const int prec, const size_t refWidth) const
         }
 
         // Replace superfluous 0's with spaces
-        size_t pos0 = oss.str().find_last_not_of("0");
+        size_t pos0 = oss.str().find_last_not_of('0');
         if (std::string::npos != pos0 && nbDec > 0)
         {
             s = oss.str();
@@ -620,12 +643,12 @@ std::string NOMAD::Double::display(const std::string& format) const
 
     // c may be in 'e', 'E', 'f', 'g', 'G', 'd', or 'i'
 
-    // e Scientific notation (mantise/exponent) using e character 3.9265e+2
-    // E Scientific notation (mantise/exponent) using E character 3.9265E+2
-    // f Decimal floating point                                   392.65
-    // g Use the shorter of %e or %f                              392.65
-    // G Use the shorter of %E or %f                              392.65
-    // d or i Integer rounded value                               393
+    // e Scientific notation (mantissa/exponent) using e character 3.9265e+2
+    // E Scientific notation (mantissa/exponent) using E character 3.9265E+2
+    // f Decimal floating point                                    392.65
+    // g Use the shorter of %e or %f                               392.65
+    // G Use the shorter of %E or %f                               392.65
+    // d or i Integer rounded value                                393
 
     std::string format2 = format;
 
@@ -651,7 +674,7 @@ std::string NOMAD::Double::display(const std::string& format) const
         {
             std::string sw, sprec;
 
-            size_t k = format2.find(".");
+            size_t k = format2.find('.');
 
             if ( k > 0 && k < n-1 )
             {
@@ -791,7 +814,7 @@ std::string NOMAD::Double::display(const std::string& format) const
 /*------------------------------------------*/
 /*                round to int              */
 /*------------------------------------------*/
-int NOMAD::Double::round ( void ) const
+int NOMAD::Double::round () const
 {
     if ( !_defined )
         throw NotDefined ( "Double.cpp" , __LINE__ ,
@@ -844,7 +867,7 @@ std::size_t NOMAD::Double::nbDecimals() const
 /*------------------------------------------*/
 /*              round to double             */
 /*------------------------------------------*/
-const NOMAD::Double NOMAD::Double::roundd () const
+NOMAD::Double NOMAD::Double::roundd () const
 {
     if ( !_defined )
     {
@@ -860,7 +883,7 @@ const NOMAD::Double NOMAD::Double::roundd () const
 /*------------------------------------------*/
 /*                  Ceil                  */
 /*------------------------------------------*/
-const NOMAD::Double NOMAD::Double::ceil ( void ) const
+NOMAD::Double NOMAD::Double::ceil () const
 {
     if ( !_defined )
         throw NotDefined ( "Double.cpp" , __LINE__ ,
@@ -871,7 +894,7 @@ const NOMAD::Double NOMAD::Double::ceil ( void ) const
 /*------------------------------------------*/
 /*                  Floor                  */
 /*------------------------------------------*/
-const NOMAD::Double NOMAD::Double::floor ( void ) const
+NOMAD::Double NOMAD::Double::floor () const
 {
     if ( !_defined )
         throw NotDefined ( "Double.cpp" , __LINE__ ,
@@ -882,7 +905,7 @@ const NOMAD::Double NOMAD::Double::floor ( void ) const
 /*------------------------------------------*/
 /*                    abs                   */
 /*------------------------------------------*/
-const NOMAD::Double NOMAD::Double::abs ( void ) const
+NOMAD::Double NOMAD::Double::abs () const
 {
     if ( !_defined )
         throw NotDefined ( "Double.cpp" , __LINE__ ,
@@ -893,7 +916,7 @@ const NOMAD::Double NOMAD::Double::abs ( void ) const
 /*------------------------------------------*/
 /*                  square                  */
 /*------------------------------------------*/
-const NOMAD::Double NOMAD::Double::pow2 ( void ) const
+NOMAD::Double NOMAD::Double::pow2 () const
 {
     if ( !_defined )
         throw NotDefined ( "Double.cpp" , __LINE__ ,
@@ -904,7 +927,7 @@ const NOMAD::Double NOMAD::Double::pow2 ( void ) const
 /*------------------------------------------*/
 /*                square root               */
 /*------------------------------------------*/
-const NOMAD::Double NOMAD::Double::sqrt ( void ) const
+NOMAD::Double NOMAD::Double::sqrt () const
 {
     if ( !_defined )
         throw NotDefined ( "Double.cpp" , __LINE__ ,
@@ -926,7 +949,7 @@ const NOMAD::Double NOMAD::Double::sqrt ( void ) const
 // of Computation, 39(160):563–569, 1982. doi:10.1090/S0025-5718-1982-0669649-2.
 //
 // The error will be in [0;2]
-const NOMAD::Double NOMAD::Double::relErr ( const NOMAD::Double & x ) const
+NOMAD::Double NOMAD::Double::relErr ( const NOMAD::Double & x ) const
 {
     if ( !_defined || !x._defined )
         throw NotDefined ( "Double.cpp" , __LINE__ ,
@@ -1018,7 +1041,7 @@ bool NOMAD::Double::isMultipleOf(const NOMAD::Double &granularity) const
 }
 
 
-const NOMAD::Double NOMAD::Double::nextMult(const NOMAD::Double &granularity) const
+NOMAD::Double NOMAD::Double::nextMult(const NOMAD::Double &granularity) const
 {
     NOMAD::Double d;
 
@@ -1048,7 +1071,7 @@ const NOMAD::Double NOMAD::Double::nextMult(const NOMAD::Double &granularity) co
 }
 
 
-const NOMAD::Double NOMAD::Double::previousMult(const NOMAD::Double &granularity) const
+NOMAD::Double NOMAD::Double::previousMult(const NOMAD::Double &granularity) const
 {
     NOMAD::Double d;
 
@@ -1085,13 +1108,13 @@ void NOMAD::Double::truncateToGranMultiple ( const NOMAD::Double & ref   ,
 {
     if ( !_defined )
         return;
-    
+
     NOMAD::Double v0 = ( ref._defined ) ? ref : 0.0;
-    
+
     if ( granularity._defined && granularity != 0.0 )
     {
-        
+
         *this = v0 + ( (*this-v0) / granularity).roundd() * granularity;
-        
+
     }
 }

@@ -52,8 +52,8 @@
 //  Copyright (c) 2017 GERAD. All rights reserved.
 //
 
-#ifndef __NOMAD_4_4_ATTRIBUTEFACTORY__
-#define __NOMAD_4_4_ATTRIBUTEFACTORY__
+#ifndef __NOMAD_4_5_ATTRIBUTEFACTORY__
+#define __NOMAD_4_5_ATTRIBUTEFACTORY__
 
 #include "../Param/TypeAttribute.hpp"
 
@@ -68,8 +68,8 @@ struct AttributeFactory {
 
 public:
 
-    template <typename T, typename ... ARGS> std::shared_ptr<Attribute> Create(std::string Name,
-               T initValue,
+    template <typename T, typename ... ARGS> std::shared_ptr<Attribute> Create(const std::string& Name,
+               const T& initValue,
                bool algoCompatibilityCheck,
                bool restartAttribute,
                bool uniqueEntry,
@@ -87,4 +87,4 @@ public:
 };
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_4_ATTRIBUTEFACTORY__
+#endif  // __NOMAD_4_5_ATTRIBUTEFACTORY__

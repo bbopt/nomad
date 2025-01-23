@@ -47,8 +47,8 @@ true
 . This parameter is the value used for Poll step
 
 . In addition, a custom criterion can also be provided (library mode only) in
- a callback function (see example in 
- $NOMAD_HOME/examples/advanced/library/CustomOpportunistic ) 
+ a callback function (see example in
+ $NOMAD_HOME/examples/advanced/library/CustomOpportunistic )
 
 . Argument: one boolean (yes or no)
 
@@ -108,7 +108,7 @@ QUADRATIC_MODEL
 \( How to sort points before evaluation \)
 \(
 . Argument: One of DIR_LAST_SUCCESS, LEXICOGRAPHICAL, RANDOM, SURROGATE,
-  QUADRATIC_MODEL
+  QUADRATIC_MODEL, USER
 
 . DIR_LAST_SUCCESS: Points that are generated in a direction similar to the
   last direction that provided a successful point are evaluated first.
@@ -120,6 +120,9 @@ QUADRATIC_MODEL
 . SURROGATE: Sort points using values given by static surrogate. See parameter SURROGATE_EXE.
 
 . QUADRATIC_MODEL: Sort points using values given by dynamic quadratic models.
+
+. USER: In library mode only. See example, $NOMAD_HOME/examples/advanced/library/CustomCompOrdering.
+This is set automatically when providing the user compare priority class.
 
 . Example: EVAL_QUEUE_SORT LEXICOGRAPHICAL
 
@@ -147,28 +150,10 @@ INF
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################
-SSD_MADS_SUBPROBLEM_MAX_BB_EVAL
-size_t
-INF
-\( Max number of evaluations for each subproblem \)
-\(
-. Used in the context of Sequential Space Decomposition (SSD) MADS algorithm.
-
-. Select the max number of evaluations in each Mads subproblem.
-
-. Argument: a positive integer.
-
-. Example: SSD_MADS_SUBPROBLEM_MAX_BB_EVAL 10
-
-\)
-\( advanced ssd mads sequential decomposition subproblem \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
 SUBPROBLEM_MAX_BB_EVAL
 size_t
 INF
-\( Internal parameter for PSD_MADS_SUBPROBLEM_MAX_BB_EVAL and SSD_MADS_SUBPROBLEM_MAX_BB_EVAL \)
+\( Internal parameter for PSD_MADS_SUBPROBLEM_MAX_BB_EVAL \)
 \(
 
 . CANNOT BE MODIFIED BY USER. Internal parameter.

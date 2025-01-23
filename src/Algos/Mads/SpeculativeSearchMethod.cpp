@@ -109,8 +109,8 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsFinal()
     // as using the best feasible and best infeasible points.
     std::vector<NOMAD::EvalPoint> frameCenters;
     
-    auto firstXIncFeas = barrier->getCurrentIncumbentFeas();;
-    auto firstXIncInf  = barrier->getCurrentIncumbentInf();;
+    auto firstXIncFeas = barrier->getCurrentIncumbentFeas();
+    auto firstXIncInf  = barrier->getCurrentIncumbentInf();
     if (firstXIncFeas)
     {
         frameCenters.push_back(*firstXIncFeas);

@@ -65,17 +65,18 @@ bool NOMAD::isAlgorithm(const StepType& stepType)
         case NOMAD::StepType::ALGORITHM_CS:
         case NOMAD::StepType::ALGORITHM_DMULTIMADS:
         case NOMAD::StepType::ALGORITHM_MADS:
+        case NOMAD::StepType::ALGORITHM_SIMPLE_MADS:
         case NOMAD::StepType::ALGORITHM_NM:
         case NOMAD::StepType::ALGORITHM_PHASE_ONE:
         case NOMAD::StepType::ALGORITHM_PSD_MADS_SUBPROBLEM:
         case NOMAD::StepType::ALGORITHM_PSD_MADS:
         case NOMAD::StepType::ALGORITHM_QPSOLVER:
         case NOMAD::StepType::ALGORITHM_SGTELIB_MODEL:
-        case NOMAD::StepType::ALGORITHM_SSD_MADS:
         case NOMAD::StepType::ALGORITHM_DISCO_MADS:
         case NOMAD::StepType::ALGORITHM_QUAD_MODEL:
         case NOMAD::StepType::ALGORITHM_VNS_MADS:
         case NOMAD::StepType::ALGORITHM_RANDOM:
+        case NOMAD::StepType::ALGORITHM_COOP_MADS:
             return true;
         default:
             return false;
@@ -91,17 +92,18 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::ALGORITHM_CS, "Coordinate Search"},
         {NOMAD::StepType::ALGORITHM_DMULTIMADS, "DMultiMADS"},
         {NOMAD::StepType::ALGORITHM_MADS, "MADS"},
+        {NOMAD::StepType::ALGORITHM_SIMPLE_MADS, "Simple MADS"},
         {NOMAD::StepType::ALGORITHM_NM, "Nelder-Mead"},
         {NOMAD::StepType::ALGORITHM_PHASE_ONE, "Phase One"},
         {NOMAD::StepType::ALGORITHM_PSD_MADS_SUBPROBLEM, "PSD-Mads subproblem"},
         {NOMAD::StepType::ALGORITHM_PSD_MADS, "PSD-Mads"},
         {NOMAD::StepType::ALGORITHM_QPSOLVER, "Algorithm for Quad Model"},
         {NOMAD::StepType::ALGORITHM_SGTELIB_MODEL, "Sgtelib Model"},
-        {NOMAD::StepType::ALGORITHM_SSD_MADS, "SSD-Mads"},
         {NOMAD::StepType::ALGORITHM_DISCO_MADS, "DiscoMads"},
         {NOMAD::StepType::ALGORITHM_RANDOM, "Random algorithm"},
         {NOMAD::StepType::ALGORITHM_QUAD_MODEL, "Quad Model"},
         {NOMAD::StepType::ALGORITHM_VNS_MADS, "VNS Mads"},
+        {NOMAD::StepType::ALGORITHM_COOP_MADS, "COOP-Mads"},
         {NOMAD::StepType::INITIALIZATION, "Initialization"},
         {NOMAD::StepType::ITERATION, "Iteration"},
         {NOMAD::StepType::MAIN, "Main"},
@@ -124,23 +126,28 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
 
         {NOMAD::StepType::MODEL_OPTIMIZE, "Model optimize"},
         {NOMAD::StepType::POLL, "Poll"},
+        {NOMAD::StepType::SIMPLE_POLL, "Simple Poll"},
         {NOMAD::StepType::CS_POLL, "Coordinate Search Poll"},
         {NOMAD::StepType::REVEALING_POLL, "Revealing Poll"},
         {NOMAD::StepType::POLL_METHOD_DOUBLE, "Double Poll Method"},
         {NOMAD::StepType::POLL_METHOD_ORTHO_NPLUS1_NEG, "Ortho N+1 Neg Poll Method"},
         {NOMAD::StepType::POLL_METHOD_ORTHO_NPLUS1_QUAD, "Ortho N+1 Quad Poll Method"},
         {NOMAD::StepType::POLL_METHOD_ORTHO_2N, "Ortho 2N Poll Method"},
+        {NOMAD::StepType::POLL_METHOD_QR_2N, "QR 2N Poll Method"},
         {NOMAD::StepType::POLL_METHOD_SINGLE, "Single Poll Method"},
         {NOMAD::StepType::POLL_METHOD_UNI_NPLUS1, "Uniform N+1 Poll Method"},
+        {NOMAD::StepType::POLL_METHOD_USER, "User-Defined Poll Method"},
         {NOMAD::StepType::CS_POLL_METHOD, "Coordinate Search Poll Method"},
         {NOMAD::StepType::SEARCH, "Search"},
         {NOMAD::StepType::SEARCH_METHOD_ALGO_RANDOM, "Search method using a random algorithm (iteration)"},
+        {NOMAD::StepType::SEARCH_METHOD_CACHE, "Cache search method (use to sync algos)"},
+        {NOMAD::StepType::SEARCH_METHOD_DMULTIMADS_MIDDLEPOINT, "DMultiMads Middle Point Search Method"},
+        {NOMAD::StepType::SEARCH_METHOD_DMULTIMADS_EXPANSIONINT_LINESEARCH, "DMultiMads Expansion integer Linesearch"},
+        {NOMAD::StepType::SEARCH_METHOD_DMULTIMADS_QUAD_DMS, "DMultiMads Quad DMS search method"},
         {NOMAD::StepType::SEARCH_METHOD_LH, "Latin Hypercube Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_NM, "Nelder-Mead Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_QUAD_MODEL, "Quadratic Model Search Method"},
-        {NOMAD::StepType::SEARCH_METHOD_QUAD_MODEL_SLD, "Quadratic Model (SLD) Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_SGTELIB_MODEL, "Sgtelib Model Search Method"},
-        {NOMAD::StepType::SEARCH_METHOD_SIMPLE_RANDOM, "Simple (no iter.) random search method"},
         {NOMAD::StepType::SEARCH_METHOD_SIMPLE_LINE_SEARCH, "Simple line search Method"},
         {NOMAD::StepType::SEARCH_METHOD_SPECULATIVE, "Speculative Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_USER, "User-Defined Search Method"},
@@ -162,7 +169,7 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
 // Convert a NOMAD::StepType to a string for display.
 std::string NOMAD::stepTypeToString(const NOMAD::StepType& stepType)
 {
-    std::map<NOMAD::StepType, std::string>::iterator it = dictStepType().find(stepType);
+    auto it = dictStepType().find(stepType);
     return it->second;
 }
 

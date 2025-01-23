@@ -231,7 +231,7 @@ NOMAD::Point NOMAD::Point::makeSubSpacePointFromFixed(const NOMAD::Point &fixedV
     if (0 == nbFixed)
     {
         // Fallback case.
-        // no fixed variable defined - sub space point is equal to this.
+        // no fixed variable defined - subspace point is equal to this.
         subSpacePoint = *this;
     }
     else
@@ -258,6 +258,8 @@ NOMAD::Point NOMAD::Point::makeSubSpacePointFromFixed(const NOMAD::Point &fixedV
             {
                 std::string s = "Error converting point " + this->display();
                 s += " to subspace defined by fixed variable " + fixedVariable.display();
+                s += ".\n For index i=" + itos(i) + " fixed variable=" + fixedVariable[i].display(NOMAD::DISPLAY_PRECISION_FULL);
+                s += " and point coordinate value=" + _array[i].display(NOMAD::DISPLAY_PRECISION_FULL);
                 throw NOMAD::Exception(__FILE__,__LINE__,s);
             }
         }

@@ -44,13 +44,18 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-
 #include <algorithm>    // For std::merge and std::unique
 
 #include "../../nomad_platform.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Algos/DMultiMads/DMultiMadsExpansionIntLineSearchMethod.hpp"
 #include "../../Algos/DMultiMads/DMultiMadsIteration.hpp"
 #include "../../Algos/DMultiMads/DMultiMadsMegaIteration.hpp"
+#include "../../Algos/DMultiMads/DMultiMadsMiddlePointSearchMethod.hpp"
+#include "../../Algos/DMultiMads/DMultiMadsNMSearchMethod.hpp"
+#include "../../Algos/DMultiMads/DMultiMadsQuadDMSSearchMethod.hpp"
+#include "../../Algos/DMultiMads/DMultiMadsQuadModSearchMethod.hpp"
+
 
 void NOMAD::DMultiMadsIteration::init()
 {
@@ -60,34 +65,56 @@ void NOMAD::DMultiMadsIteration::init()
     
     _poll = std::make_unique<NOMAD::Poll>(this);
     _search = std::make_unique<NOMAD::Search>(this);
-    
 
+    // 1- First (at position 10), quad model search method for DMultiMads
+    auto quadDMSSearch = std::make_shared<NOMAD::DMultiMadsQuadDMSSearchMethod>(this);
+    _search->insertSearchMethod(10, quadDMSSearch);
+    auto qmSearch = std::make_shared<NOMAD::DMultiMadsQuadModSearchMethod>(this);
+    _search->insertSearchMethod(11, qmSearch);
+
+    // 2- Nelder-Mead (NM) search for DMultiMads (at position 12)
+    auto nmSearch = std::make_shared<NOMAD::DMultiMadsNMSearchMethod>(this);
+    _search->insertSearchMethod(12,nmSearch);
+
+    // 3- Special Middle Point search method for DMultiMads (at position 13)
+    auto middlePtSearch = std::make_shared<NOMAD::DMultiMadsMiddlePointSearchMethod>(this);
+    _search->insertSearchMethod(13, middlePtSearch);
+
+    // 4- Special line search method for DMultiMads.
+    auto expansionLinesearch = std::make_shared<NOMAD::DMultiMadsExpansionIntLineSearchMethod>(this);
+    _search->insertSearchMethod(13, expansionLinesearch);
 }
 
 void NOMAD::DMultiMadsIteration::startImp()
 {
-    // Update the center point (best feasible or best infeasible) around which the trial points are generated.
+    // Update the center point (the best feasible or best infeasible) around which the trial points are generated.
     _DMultiMadsAlgoUpdate->start();
     bool updateSuccess = _DMultiMadsAlgoUpdate->run();
     _DMultiMadsAlgoUpdate->end();
     
+    if ( ! updateSuccess )
+    {
+        auto stopReason = NOMAD::AlgoStopReasons<NOMAD::MadsStopType>::get ( getAllStopReasons() );
+
+        // The update is not a success. If the global stop reason is not set to terminate we set a default stop reason for initialization.
+        if ( !_stopReasons->checkTerminate() )
+            stopReason->set( NOMAD::MadsStopType::UPDATE_FAILED);
+    }
+    
+    // Verify mesh stop conditions.
     // For DMultiMads, the mesh associated to a frame center is used by poll and search
     // Note: Mads keeps a single mesh
-    // Note: The mesh could be updated when calling setFrameCenter but it is more clear to do it explicitely.
+    // Note: The mesh could be updated when calling setFrameCenter, but it is clearer to do it explicitly.
     auto frameCenterMesh = _frameCenter->getMesh();
     if ( nullptr != frameCenterMesh)
     {
         _mesh = frameCenterMesh;
     }
+    _mesh->checkMeshForStopping(_stopReasons);
     
-    if ( ! updateSuccess )
-    {
-        auto stopReason = NOMAD::AlgoStopReasons<NOMAD::RandomAlgoStopType>::get ( getAllStopReasons() );
-
-        // The update is not a success. If the global stop reason is not set to terminate we set a default stop reason for initialization.
-        if ( !_stopReasons->checkTerminate() )
-            stopReason->set( NOMAD::RandomAlgoStopType::UPDATE_FAILED);
-    }
+    OUTPUT_DEBUG_START
+    AddOutputDebug("Mesh Stop Reason: " + _stopReasons->getStopReasonAsString());
+    OUTPUT_DEBUG_END
 }
 
 
@@ -101,11 +128,7 @@ bool NOMAD::DMultiMadsIteration::runImp()
     // 1. Search
     if ( nullptr != _search && ! _stopReasons->checkTerminate() )
     {
-    
-        _search->start();
-        iterationSuccess = _search->run();
-        _search->end();
-
+        
         if (iterationSuccess)
         {
             // If success, update MegaIteration best success type with success found. No poll will be performed.
@@ -121,6 +144,7 @@ bool NOMAD::DMultiMadsIteration::runImp()
     {
         if (! iterationSuccess)
         {
+
             // 2. Poll
             _poll->start();
             
@@ -138,6 +162,8 @@ bool NOMAD::DMultiMadsIteration::runImp()
             
         }
     }
+
+    
 
     // End of the iteration: iterationSuccess is true if we have a partial or full success.
     return iterationSuccess;

@@ -49,14 +49,12 @@
 #include "../../Output/OutputQueue.hpp"
 
 // Destructor
-NOMAD::QuadModelEvaluator::~QuadModelEvaluator()
-{
-}
+NOMAD::QuadModelEvaluator::~QuadModelEvaluator() = default;
 
 
 void NOMAD::QuadModelEvaluator::init()
 {
-    _displayLevel = (std::string::npos != _modelDisplay.find("X"))
+    _displayLevel = (std::string::npos != _modelDisplay.find('X'))
                         ? NOMAD::OutputLevel::LEVEL_INFO
                         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
 
@@ -66,7 +64,8 @@ void NOMAD::QuadModelEvaluator::init()
     }
     
     _nbConstraints = NOMAD::getNbConstraints(_bbOutputTypeList);
-    _nbModels = _nbConstraints+1;
+    
+    _nbModels = _bbOutputTypeList.size();
     
 }
 
@@ -84,7 +83,7 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
     //
     // Case with undefined fixed variables
     // 1- The evaluator and the component requesting quad model evaluations are on the same local space.
-    // 2- The values of variables detected as fixed when building the training set are visible.  There is no fixed_variables per say. No need to convert.
+    // 2- The values of variables detected as fixed when building the training set are visible.  There is no fixed_variables per se. No need to convert.
     // 2- sgtelib identifies fixed variables from the training set when building models.
     // 3- If the original definition of the problem has fixed variable, they are not 'seen' by models (training set, quad model evaluator and optimization).
     //
@@ -98,7 +97,7 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
     countEval.clear();
 
     // Verify there is at least one point to evaluate
-    if (0 == block.size())
+    if (block.empty())
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: eval_block called with an empty block");
     }
@@ -107,9 +106,9 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
     // Convert points to subspace, because model is in subspace.
     if (!_fixedVariable.isEmpty())
     {
-        for (size_t i = 0; i < block.size(); i++)
+        for (auto& evPt : block)
         {
-            block[i] = std::make_shared<NOMAD::EvalPoint>(block[i]->makeSubSpacePointFromFixed(_fixedVariable));
+            evPt = std::make_shared<NOMAD::EvalPoint>(evPt->makeSubSpacePointFromFixed(_fixedVariable));
         }
     }
     
@@ -192,8 +191,7 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
         {
             newbbo[i] = M_predict.get(j,static_cast<int>(i));
         }
-        NOMAD::ArrayOfDouble fullPrecision(_bbOutputTypeList.size(), NOMAD::DISPLAY_PRECISION_FULL);
-        (*it)->setBBO(newbbo.display(fullPrecision), _bbOutputTypeList, _evalType);
+        (*it)->setBBO(newbbo.tostring(), _bbOutputTypeList, _evalType);
 
         // ================== //
         // Exit Status        //
@@ -207,9 +205,9 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
     // Convert points back to full space.
     if (!_fixedVariable.isEmpty())
     {
-        for (size_t i = 0; i < block.size(); i++)
+        for (auto& evPt : block)
         {
-            block[i] = std::make_shared<NOMAD::EvalPoint>(block[i]->makeFullSpacePointFromFixed(_fixedVariable));
+            evPt = std::make_shared<NOMAD::EvalPoint>(evPt->makeFullSpacePointFromFixed(_fixedVariable));
         }
     }
     

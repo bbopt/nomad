@@ -61,7 +61,7 @@ bool NOMAD::NMInitialization::runImp()
 {
     bool doContinue = ! _stopReasons->checkTerminate();
 
-    if (doContinue && _trialPoints.size() > 0)
+    if (doContinue && !_trialPoints.empty())
     {
         // For a standalone NM, evaluate the trial points generated during start (simplex is created later)
         // Otherwise, there are no trial points available
@@ -94,16 +94,17 @@ void NOMAD::NMInitialization::endImp()
 {
     // Construct _barrier member with evaluated _trialPoints for future use
     // _trialPoints are already updated with Evals.
-    if (_trialPoints.size() > 0)
+    if (!_trialPoints.empty())
     {
+        
         std::vector<NOMAD::EvalPoint> evalPointList;
         std::copy(_trialPoints.begin(), _trialPoints.end(),
                           std::back_inserter(evalPointList));
-        auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+        const auto& hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
         _barrier = std::make_shared<NOMAD::ProgressiveBarrier>(hMax,
                                 NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
                                 NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType(),
-                                NOMAD::EvcInterface::getEvaluatorControl()->getComputeType(),
+                                NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS(),
                                 evalPointList);
     }
 }

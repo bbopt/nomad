@@ -113,7 +113,7 @@ int main (int argc, char ** argv)
             // Display developer help if option '-d' has been specified
             else if (option == "-D" || option == "-DEVHELP" || option == "--DEVHELP")
             {
-                std::string helpSubject ="";
+                std::string helpSubject;
                 if (3 == argc)
                 {
                     helpSubject = argv[2];

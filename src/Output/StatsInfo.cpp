@@ -86,8 +86,8 @@ NOMAD::StatsInfo::StatsInfo()
     _threadAlgoNum(0),
     _threadNum(0),
     _relativeSuccess(false),
-    _comment(""),
-    _genStep(""),
+    _comment(),
+    _genStep(),
     _success(NOMAD::SuccessType::UNDEFINED)
 {
 }

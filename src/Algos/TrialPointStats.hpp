@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_TRIALPOINTSTATS__
-#define __NOMAD_4_4_TRIALPOINTSTATS__
+#ifndef __NOMAD_4_5_TRIALPOINTSTATS__
+#define __NOMAD_4_5_TRIALPOINTSTATS__
 
 #include <map>
 #ifdef _OPENMP
@@ -70,12 +70,6 @@ Counters are available for trial points generated and points that have been eval
 class  DLL_ALGO_API TrialPointStats
 {
 private:
-    
-        /// Lock for multithreading
-    #ifdef _OPENMP
-        static omp_lock_t _updateLock;
-    #endif // _OPENMP
-
     
     const Step* _parentStep;    ///< The parent step of the step having this trial point stats.
     
@@ -142,4 +136,4 @@ std::ostream& operator<<(std::ostream& os, const TrialPointStats& stats);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_TRIALPOINTSTATS__
+#endif // __NOMAD_4_5_TRIALPOINTSTATS__

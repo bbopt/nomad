@@ -52,8 +52,8 @@
  \see    ListOfVariableGroup.cpp
  */
 
-#ifndef __NOMAD_4_4_LIST_OF_VARIABLE_GROUP__
-#define __NOMAD_4_4_LIST_OF_VARIABLE_GROUP__
+#ifndef __NOMAD_4_5_LIST_OF_VARIABLE_GROUP__
+#define __NOMAD_4_5_LIST_OF_VARIABLE_GROUP__
 
 #include <set>
 #include <sstream>
@@ -79,4 +79,4 @@ std::ostream& operator<<(std::ostream& out, const ListOfVariableGroup& lvg);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_4_LIST_OF_VARIABLE_GROUP__
+#endif // __NOMAD_4_5_LIST_OF_VARIABLE_GROUP__

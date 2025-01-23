@@ -62,7 +62,7 @@ NOMAD::Direction& NOMAD::Direction::operator=(const NOMAD::Direction& dir)
 }
 
 /*-----------------------------------------*/
-/* Operators for addition and substraction */
+/* Operators for addition and subtraction */
 /*-----------------------------------------*/
 const NOMAD::Direction& NOMAD::Direction::operator+=(const Direction& dir1)
 {
@@ -87,7 +87,7 @@ const NOMAD::Direction& NOMAD::Direction::operator-=(const Direction& dir1)
 /*------------------------------------------------------*/
 /* Squared Norm of this direction, viewed as a vector.  */
 /*------------------------------------------------------*/
-const NOMAD::Double NOMAD::Direction::squaredL2Norm() const
+NOMAD::Double NOMAD::Direction::squaredL2Norm() const
 {
     NOMAD::Double sqL2 = 0;
 
@@ -104,7 +104,7 @@ const NOMAD::Double NOMAD::Direction::squaredL2Norm() const
 /* Norm of this direction X, viewed as a vector.  */
 /* Norm type may be L1, L2, or LINF.              */
 /*------------------------------------------------*/
-const NOMAD::Double NOMAD::Direction::norm(NOMAD::NormType normType) const
+NOMAD::Double NOMAD::Direction::norm(NOMAD::NormType normType) const
 {
     NOMAD::Double retNorm = 0;
 
@@ -134,14 +134,14 @@ const NOMAD::Double NOMAD::Direction::norm(NOMAD::NormType normType) const
 
 
 /// Infinite norm
-const NOMAD::Double NOMAD::Direction::infiniteNorm() const
+NOMAD::Double NOMAD::Direction::infiniteNorm() const
 {
     return norm(NormType::LINF);
 }
 
 
-const NOMAD::Double NOMAD::Direction::dotProduct(const NOMAD::Direction& dir1,
-                                                 const NOMAD::Direction& dir2)
+NOMAD::Double NOMAD::Direction::dotProduct(const NOMAD::Direction& dir1,
+                                           const NOMAD::Direction& dir2)
 {
     NOMAD::Double dot = 0.0;
 
@@ -163,11 +163,9 @@ const NOMAD::Double NOMAD::Direction::dotProduct(const NOMAD::Direction& dir1,
 }
 
 
-const NOMAD::Double NOMAD::Direction::cos(const NOMAD::Direction& dir1,
-                                          const NOMAD::Direction& dir2)
+NOMAD::Double NOMAD::Direction::cos(const NOMAD::Direction& dir1,
+                                    const NOMAD::Direction& dir2)
 {
-    NOMAD::Double cos = 0.0;
-
     double norm1 = dir1.norm().todouble();
     double norm2 = dir2.norm().todouble();
     if (0.0 == norm1 || 0.0 == norm2)
@@ -176,7 +174,7 @@ const NOMAD::Double NOMAD::Direction::cos(const NOMAD::Direction& dir1,
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
-    cos = dotProduct(dir1, dir2) / (norm1 * norm2);
+    NOMAD::Double cos = dotProduct(dir1, dir2) / (norm1 * norm2);
 
     return cos;
 }
@@ -184,8 +182,8 @@ const NOMAD::Double NOMAD::Direction::cos(const NOMAD::Direction& dir1,
 /*-----------------------------------------------------------*/
 /*      computation of the angle with another direction      */
 /*-----------------------------------------------------------*/
-const NOMAD::Double NOMAD::Direction::angle(const NOMAD::Direction& dir1,
-                                            const NOMAD::Direction& dir2)
+NOMAD::Double NOMAD::Direction::angle(const NOMAD::Direction& dir1,
+                                      const NOMAD::Direction& dir2)
 {
     if (dir1.size() != dir2.size())
     {
@@ -226,7 +224,7 @@ const NOMAD::Double NOMAD::Direction::angle(const NOMAD::Direction& dir1,
 void NOMAD::Direction::computeDirOnUnitSphere(NOMAD::Direction &randomDir)
 {
     size_t i;
-    NOMAD::Double norm, d;
+    NOMAD::Double norm;
     size_t n = randomDir.size();
 
     for (i = 0; i < n; ++i)

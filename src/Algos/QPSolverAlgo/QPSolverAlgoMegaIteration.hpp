@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_QPSOLVERALGOMEGAITERATION__
-#define __NOMAD_4_4_QPSOLVERALGOMEGAITERATION__
+#ifndef __NOMAD_4_5_QPSOLVERALGOMEGAITERATION__
+#define __NOMAD_4_5_QPSOLVERALGOMEGAITERATION__
 
 #include "../../Algos/MegaIteration.hpp"
 #include "../../Algos/QPSolverAlgo/QPSolverAlgoIteration.hpp"
@@ -122,4 +122,4 @@ std::istream& operator>>(std::istream& is, QPSolverAlgoMegaIteration& megaIterat
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_QPSOLVERALGOMEGAITERATION__
+#endif // __NOMAD_4_5_QPSOLVERALGOMEGAITERATION__
