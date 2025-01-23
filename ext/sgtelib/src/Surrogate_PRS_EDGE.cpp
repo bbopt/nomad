@@ -29,7 +29,7 @@
 /*         constructor        */
 /*----------------------------*/
 SGTELIB::Surrogate_PRS_EDGE::Surrogate_PRS_EDGE ( SGTELIB::TrainingSet & trainingset,
-                                                  SGTELIB::Surrogate_Parameters param) :
+                                                  const SGTELIB::Surrogate_Parameters& param) :
   SGTELIB::Surrogate_PRS ( trainingset , param ){
   #ifdef SGTELIB_DEBUG
     std::cout << "constructor PRS_EDGE\n";

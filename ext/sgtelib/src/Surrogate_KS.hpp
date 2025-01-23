@@ -54,7 +54,7 @@ namespace SGTELIB {
 
     // Constructor
     Surrogate_KS ( SGTELIB::TrainingSet & trainingset ,   
-                   SGTELIB::Surrogate_Parameters param) ;
+                   const SGTELIB::Surrogate_Parameters& param) ;
 
     // destructor:
     virtual ~Surrogate_KS ( void );

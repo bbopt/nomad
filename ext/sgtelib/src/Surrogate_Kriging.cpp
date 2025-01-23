@@ -29,7 +29,7 @@
 /*         constructor        */
 /*----------------------------*/
 SGTELIB::Surrogate_Kriging::Surrogate_Kriging ( SGTELIB::TrainingSet & trainingset,
-                                                SGTELIB::Surrogate_Parameters param) :
+                                                const SGTELIB::Surrogate_Parameters& param) :
   SGTELIB::Surrogate ( trainingset , param ),
   _R                 ( "R",0,0             ),  
   _Ri                ( "Ri",0,0            ),  
