@@ -52,50 +52,42 @@
 #include <omp.h>
 #endif
 
-// Number of threads to be used in parallel
-#define NUM_THREADS   6 
-
-// A structure to pass arguments to the evaluation wrapper function
-class My_Evaluator;
-typedef struct Arg_Eval_tag {
-    std::shared_ptr<NOMAD::EvalPoint> x;
-    NOMAD::Double hMax;
-    bool countEval;
-} Arg_Eval_t;
-
+// Number of threads to be used for evaluation of a block of points in parallel
+#define NUM_THREADS_EVAL  6
 
 // Wrapper of eval_x used for parallel evaluation.
-bool wrapper_eval_x(Arg_Eval_t& eval_arg)
+bool wrapper_eval_x(std::shared_ptr<NOMAD::EvalPoint> & x, const NOMAD::Double& hmax, bool & countEval)
 {
+
+    // std::cout << "Thread #" << omp_get_thread_num() << std::endl;
+    
     NOMAD::Double c1 = 0.0, c2 = 0.0;
-    NOMAD::EvalPoint& x = *(eval_arg.x);
 
     for (int i = 0; i < 5; i++)
     {
-        c1 += (x[i]-1).pow2();
-        c2 += (x[i]+1).pow2();
+        c1 += ((*x)[i]-1).pow2();
+        c2 += ((*x)[i]+1).pow2();
     }
-    NOMAD::Double f = x[4]; // objective value
+    NOMAD::Double f = (*x)[4]; // objective value
     c1 = c1-25;             // constraint 1
     c2 = 25-c2;             // constraint 2
     std::string bbo = f.tostring() + " " + c1.tostring() + " " + c2.tostring();
-    eval_arg.x->setBBO(bbo);
+    x->setBBO(bbo);
 
-    eval_arg.countEval = true; // count a black-box evaluation
+    countEval = true; // count a black-box evaluation
 
     return true;    // Eval ok
 }
 
 
-
 class My_Evaluator : public NOMAD::Evaluator
 {
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
+    explicit My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
         : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
 
-    ~My_Evaluator() {}
+    ~My_Evaluator() override = default;
 
     // Implementation
     std::vector<bool> eval_block(std::vector<std::shared_ptr<NOMAD::EvalPoint>> &block,
@@ -105,40 +97,31 @@ public:
     {
         std::vector<bool> evalOk(block.size(), false);
         listCountEval.resize(block.size(), false);  //  Evaluations are not counted until eval_x is called and sets countEval
-
-        // Arguments passed to the evaluation wrapper
-        Arg_Eval_t* eval_arg = new Arg_Eval_t[block.size()];
-
-        std::vector<std::shared_ptr<NOMAD::EvalPoint>>::iterator it_x = block.begin(), end_x = block.end();
-        size_t i = 0;
+        
+        int i;
 #ifdef _OPENMP
-        #pragma omp parallel
+        #pragma omp parallel for num_threads(NUM_THREADS_EVAL) shared(block,evalOk,listCountEval, hMax) private(i)
 #endif
-        for (it_x = block.begin(); it_x != end_x; ++it_x, ++i)
+        for(i = 0; i < (int)block.size(); i++)
         {
-            // A thread is created for each x in the block.
-            eval_arg[i].x = (*it_x);
-            eval_arg[i].hMax = hMax.todouble();
-            evalOk[i] = wrapper_eval_x(eval_arg[i]);
-            listCountEval[i] = eval_arg[i].countEval;
+            bool countEval = false;
+            evalOk[i] = wrapper_eval_x(block[i],hMax, countEval);
+            listCountEval[i] = countEval;
         }
-        // End of parallel block
-
-        delete[] eval_arg;
 
         return evalOk;
     }
 };
 
 
-void initParams(std::shared_ptr<NOMAD::AllParameters>& params)
+void initParams(const std::shared_ptr<NOMAD::AllParameters>& params)
 {
     params->setAttributeValue("DIMENSION", 5);             // number of variables
 
     NOMAD::BBOutputTypeList bbot;   // Definition of output types
-    bbot.push_back(NOMAD::BBOutputType::OBJ);
-    bbot.push_back(NOMAD::BBOutputType::PB);
-    bbot.push_back(NOMAD::BBOutputType::EB);
+    bbot.emplace_back(NOMAD::BBOutputType::OBJ);
+    bbot.emplace_back(NOMAD::BBOutputType::PB);
+    bbot.emplace_back(NOMAD::BBOutputType::EB);
     params->setAttributeValue("BB_OUTPUT_TYPE", bbot);
 
     // params->setAttributeValue("DISPLAY_ALL_EVAL", true);   // displays all evaluations.
@@ -149,7 +132,7 @@ void initParams(std::shared_ptr<NOMAD::AllParameters>& params)
     params->setAttributeValue("SPECULATIVE_SEARCH", false);
     params->setAttributeValue("NM_SEARCH", false);
     params->setAttributeValue("QUAD_MODEL_SEARCH", false);
-    // Use single pass poll method with n+1 points -> 6 trial points in a block per poll 
+    // Use poll method n+1 uni -> 6 trial points per poll on a single pass
     params->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::NP1_UNI);
 
     params->setAttributeValue("X0", NOMAD::Point(5,0.0));  // starting point
@@ -165,17 +148,15 @@ void initParams(std::shared_ptr<NOMAD::AllParameters>& params)
     // 100 black-box evaluations
 
     // Max number of points to be given as a block for evaluation
-    // This option is required to perform parallel evaluations in eval_block
-    // function above
-    params->setAttributeValue("BB_MAX_BLOCK_SIZE", NUM_THREADS);
+    // This option is required to perform parallel evaluations
+    // All points in a block will be evaluated in parallel
+    params->setAttributeValue("BB_MAX_BLOCK_SIZE", NUM_THREADS_EVAL);
     
-    // A single thread is used for Nomad "parallel" evaluation queue.
-    params->setAttributeValue("NB_THREADS_OPENMP", 1);
+    // NOTE: A single thread is used for Nomad "parallel" evaluation queue.
 
     // parameters validation:
     params->checkAndComply();
 }
-
 
 /*------------------------------------------*/
 /*            NOMAD main function           */
@@ -184,13 +165,21 @@ int main(int argc, char ** argv)
 {
     try
     {
+
+#ifdef _OPENMP
+        // This is important for nested parallel regions. Nomad parallel region
+        // for evaluation queue and a parallel region for block evaluation.
+        omp_set_nested(true);
+        omp_set_dynamic(false);
+#endif
+        
         auto TheMainStep = std::make_unique<NOMAD::MainStep>();
 
         // Parameters creation
         auto params = std::make_shared<NOMAD::AllParameters>();
         initParams(params);
         TheMainStep->setAllParameters(params);
-
+        
         // Custom Evaluator
         auto ev = std::make_unique<My_Evaluator>(params->getEvalParams());
         TheMainStep->addEvaluator(std::move(ev));

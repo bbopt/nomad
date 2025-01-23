@@ -28,9 +28,6 @@ MAX_BB_EVAL 100
 # Use surrogate executable to sort points before evaluating them with the blackbox
 EVAL_QUEUE_SORT SURROGATE
 
-# Using only one thread for clarity and reproducibility
-NB_THREADS_OPENMP 1
-
 # Display parameters
 ####################
 DISPLAY_DEGREE 2

@@ -1,3 +1,4 @@
+#!/bin/bash
 #Batch executable to run a problem using a series of fixed values.
 
 # Argument #1: path to Nomad install dir

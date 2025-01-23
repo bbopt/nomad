@@ -6,6 +6,4 @@ Then, you have to use the files "create_set" or "create_set_with_volume" to crea
 
 However, if you don't want to create the Set, you can only provide the system file name thanks to the attribute SYSTEM_FILE_NAME and the Set will be created automatically in NOMAD. The argument SET_FILE (bool) defines if you already created the Set or if you only want to pass the system file.
 
-Two different use of NOMAD with IBEX are available. You can either call the Set in the BB file and project directly in the this file (see bb.cpp) or you can project the point in NOMAD, and in this case you give the informations needed thanks to the param.txt file, such as explained above.
-
-IMPORTANT: Modify the path to IBEX in bb.cpp before building the example
+Two differents use of NOMAD with IBEX are available. You can either call the Set in the BB file and project directly in the this file (see bb.cpp) or you can project the point in NOMAD, and in this case you give the informations needed thanks to the param.txt file, such as explained above.

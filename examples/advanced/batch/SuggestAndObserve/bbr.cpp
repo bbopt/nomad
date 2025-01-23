@@ -54,7 +54,7 @@
 
 #define DIMENSION 2
 
-bool eval_xs(const std::vector<std::vector<double>> &xs, std::vector<double>& fxs)
+bool eval_xs(const std::vector<std::vector<double> > &xs, std::vector<double>& fxs)
 {
     bool eval_ok = false;
 
@@ -90,13 +90,13 @@ bool eval_xs(const std::vector<std::vector<double>> &xs, std::vector<double>& fx
 }
 
 
-std::vector<std::vector<double>> readXFile(const std::string& xFileName)
+std::vector<std::vector<double> > readXFile(const std::string& xFileName)
 {
-    std::vector<std::vector<double>> xs;
+    std::vector<std::vector<double> > xs;
     std::ifstream in(xFileName);
 
     // Get the input points
-    while (!in.eof())
+    while (!in.eof() && in.good())
     {
         std::vector<double> x(DIMENSION);
         for (size_t i = 0; i < DIMENSION; i++)
@@ -106,6 +106,7 @@ std::vector<std::vector<double>> readXFile(const std::string& xFileName)
         xs.push_back(x);
     }
     in.close();
+    
     xs.pop_back();
 
     return xs;

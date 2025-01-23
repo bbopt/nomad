@@ -58,7 +58,7 @@
 #include "Util/AllStopReasons.hpp"
 
 // # The problem is described sec. 5.3 "5.3. Design of a styrene production process."
-// of [1] and more detailled in section 2.5.4, p.61 of [2].
+// of [1] and more detailed in section 2.5.4, p.61 of [2].
 //
 // IMPORTANT
 //
@@ -76,7 +76,7 @@
 // Solène Kojtych, Ph.D. thesis 2022
 // doi/10.1137/21M1420915
 
-void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams)
+void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 {
     const int n = 8;
     
@@ -120,8 +120,6 @@ void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->setAttributeValue("DISCO_MADS_REVEALING_POLL_NB_POINTS", n);
 
     // ------- Recommended parameters for DiscoMads
-    // no parallelism
-    allParams->setAttributeValue("NB_THREADS_OPENMP",1); // DiscoMads works with OpenMP but has not been extensively tested
 
     // quad models are desactivated as they may be slow with DiscoMads
     allParams->getRunParams()->setAttributeValue("QUAD_MODEL_SEARCH", false);
@@ -143,14 +141,11 @@ void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams)
 }
 
 
-
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main ( int argc , char ** argv )
+int main()
 {
-
-    
     NOMAD::MainStep TheMainStep;
         
     // Set parameters
@@ -171,5 +166,5 @@ int main ( int argc , char ** argv )
         std::cerr << "\nNOMAD has been interrupted (" << e.what() << ")\n\n";
     }
         
-    return 1;
+    return 0;
 }

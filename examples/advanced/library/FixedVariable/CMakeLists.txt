@@ -19,19 +19,16 @@ install(TARGETS fixedVariable.exe ufl.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Add a test for this example
-if(BUILD_TESTS MATCHES ON)
-    message(STATUS "    Add example test for fixed variables") 
-    # Can run this test after install
+message(STATUS "    Add example for fixed variables") 
 
-    if (WIN32)
-        add_test(NAME ExampleAdvancedFixedVariables
+if (WIN32)
+     add_test(NAME ExampleAdvancedFixedVariables
 	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./fixedVariable.exe
 	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
         )
-    else()
-        add_test(NAME ExampleAdvancedFixedVariables
+else()
+     add_test(NAME ExampleAdvancedFixedVariables
 	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./fixedVariable.exe
 	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
         )
-    endif()
 endif()

@@ -51,8 +51,6 @@
 #include "Eval/Evaluator.hpp"
 #include "Param/AllParameters.hpp"
 
-
-
 void initParams1(NOMAD::AllParameters &p)
 {
     // parameters creation
@@ -165,7 +163,7 @@ void initParamsFinal(NOMAD::AllParameters &p, const NOMAD::Point& x0)
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main (int argc, char **argv)
+int main()
 {
     auto TheMainStep = std::make_unique<NOMAD::MainStep>();
 
@@ -174,6 +172,11 @@ int main (int argc, char **argv)
     auto params = std::make_shared<NOMAD::AllParameters>();
     initParams1(*params);
     TheMainStep->setAllParameters(params);
+    
+    auto computeTypeS = NOMAD::ComputeType::STANDARD;
+    auto hNormType = params->getAttributeValue<NOMAD::HNormType>("H_NORM");
+    auto evalType = NOMAD::EvalType::BB;
+    NOMAD::FHComputeType computeType = {evalType, {computeTypeS, hNormType}};
 
     try
     {
@@ -195,8 +198,9 @@ int main (int argc, char **argv)
     NOMAD::CacheBase::getInstance()->resetNbCacheHits();
     NOMAD::EvcInterface::getEvaluatorControl()->setNbEval(0);
     std::vector<NOMAD::EvalPoint> bestFeasList;
-    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
-                                                  NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+
+    
+    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(), computeType);
     // NB. Assuming the list is non-empty.
     NOMAD::Point x02 = *(bestFeasList[0].getX());
     initParams2(*params, x02);
@@ -214,8 +218,7 @@ int main (int argc, char **argv)
     // Part 3: FIXED_VARIABLE 3-4
     NOMAD::CacheBase::getInstance()->resetNbCacheHits();
     NOMAD::EvcInterface::getEvaluatorControl()->setNbEval(0);
-    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
-                                                  NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(), computeType);
     NOMAD::Point x03 = *(bestFeasList[0].getX());
     initParams3(*params , x03);
     try
@@ -230,8 +233,7 @@ int main (int argc, char **argv)
     }
 
     // Final part: No fixed variable
-    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(),
-                                                  NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+    NOMAD::CacheBase::getInstance()->findBestFeas(bestFeasList, NOMAD::Point(), computeType);
     NOMAD::Point x0final = *(bestFeasList[0].getX());
     initParamsFinal(*params,x0final);
     try
@@ -244,7 +246,6 @@ int main (int argc, char **argv)
     {
         std::cerr << "\nFinal run has been interrupted (" << e.what() << ")\n\n";
     }
-
 
     return 0;
 }

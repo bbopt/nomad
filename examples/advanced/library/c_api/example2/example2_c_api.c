@@ -39,6 +39,7 @@ int solve_moustache_pb()
 
     // create Nomad problem
     NomadProblem nomad_pb = createNomadProblem(moustache_bb,
+                                               NULL,
                                                nb_inputs,
                                                nb_outputs);
 
@@ -59,20 +60,23 @@ int solve_moustache_pb()
     // run problem
     double x0[2] = {0, 2.0}; // starting point
 
-    double x_feas_sol[2] = {0.0, 0.0}; // feasible solution
+    NomadResult nomad_result = createNomadResult();
+    int run_flag = solveNomadProblem(nomad_result, nomad_pb, 1, x0, NULL);
+    printf("Run status: %d\n", run_flag);
+    const int nb_solutions = nbSolutionsNomadResult(nomad_result);
+    const bool exists_feas = feasibleSolutionsFoundNomadResult(nomad_result);
+    printf("The solver has found %d solutions ", nb_solutions);
+    if (exists_feas)
+    {
+        printf("and they are feasible\n");
+    }
+    else
+    {
+        printf("and they are infeasible\n");
+    }
 
-    double x_inf_sol[2] = {0.0, 0.0}; // infeasible solution
-
-    double outputs_feas_sol[3] = {0.0, 0.0, 0.0}; // feasible solution outputs
-
-    double outputs_inf_sol[3] = {0.0, 0.0, 0.0}; // infeasible solution outputs
-
-    bool exists_feas, exists_infeas = false; // flag which indicates if the solution exists or not
-
-    solveNomadProblem(nomad_pb, 1, x0,
-                      &exists_feas, x_feas_sol, outputs_feas_sol,
-                      &exists_infeas, x_inf_sol, outputs_inf_sol,
-                      NULL);
+    freeNomadProblem(nomad_pb);
+    freeNomadResult(nomad_result);
     return 0;
 }
 
@@ -127,6 +131,33 @@ bool speedreducer_bb(int nb_inputs, double *x, int nb_outputs, double *bb_output
     return true;
 }
 
+void speedreducer_bb_block(int block_size, int nb_inputs, double *x,
+                            int nb_outputs, double *bb_outputs,
+                            bool *count_eval, bool *eval_ok, NomadUserDataPtr data)
+{
+    double *inputs = malloc(nb_inputs * sizeof(double));
+    double *outputs = malloc(nb_outputs * sizeof(double));
+    for (int index = 0; index < block_size; ++index)
+    {
+        for (int i = 0; i < nb_inputs; ++i)
+        {
+            inputs[i] = x[index * nb_inputs + i];
+        }
+        // Call the blackbox on each element of the block
+        // There could be some applications where it is faster
+        // to parallelize the blocks
+        eval_ok[index] = speedreducer_bb(nb_inputs, inputs,
+                                         nb_outputs, outputs,
+                                         &count_eval[index], data);
+        for (int i = 0; i < nb_outputs; ++i)
+        {
+            bb_outputs[index * nb_outputs + i] = outputs[i];
+        }
+    }
+    free(inputs);
+    free(outputs);
+}
+
 int solve_speedreducer_pb()
 {
     // fix essential parameters of the blackbox
@@ -143,6 +174,7 @@ int solve_speedreducer_pb()
 
     // create Nomad problem
     NomadProblem nomad_pb = createNomadProblem(speedreducer_bb,
+                                               speedreducer_bb_block,
                                                dim,
                                                nb_outputs);
 
@@ -163,6 +195,9 @@ int solve_speedreducer_pb()
     // set non opportunistic eval
     addNomadBoolParam(nomad_pb, "EVAL_OPPORTUNISTIC", false);
 
+    // Activate evaluation per block
+    addNomadValParam(nomad_pb, "BB_MAX_BLOCK_SIZE", 4);
+
     // run problem
     double x0[7] = {3.000000000000000e+00,
                     7.500000000000000e-01,
@@ -172,25 +207,30 @@ int solve_speedreducer_pb()
                     3.400000000000000e+00,
                     5.250000000000000e+00};
 
-    double x_feas_sol[7] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // feasible solution
+    NomadResult nomad_result = createNomadResult();
+    int run_flag = solveNomadProblem(nomad_result,
+                                     nomad_pb, 1, x0,
+                                     NULL);
+    printf("Run status: %d\n", run_flag);
+    const int nb_solutions = nbSolutionsNomadResult(nomad_result);
+    const bool exists_feas = feasibleSolutionsFoundNomadResult(nomad_result);
+    printf("The solver has found %d solutions ", nb_solutions);
+    if (exists_feas)
+    {
+        printf("and they are feasible\n\n");
+    }
+    else
+    {
+        printf("and they are infeasible\n\n");
+    }
 
-    double x_inf_sol[7] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // infeasible solution
-
-    double outputs_feas_sol[12] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // feasible solution outputs
-
-    double outputs_inf_sol[12] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // infeasible solution outputs
-
-    bool exists_feas, exists_infeas = false; // flag which indicates if the solution exists or not
-
-    solveNomadProblem(nomad_pb, 1, x0,
-                      &exists_feas, x_feas_sol, outputs_feas_sol,
-                      &exists_infeas, x_inf_sol, outputs_inf_sol,
-                      NULL);
+    freeNomadProblem(nomad_pb);
+    freeNomadResult(nomad_result);
 
     return 0;
 }
 
-int main(int argc, char **argv)
+int main()
 {
     solve_moustache_pb();
     solve_speedreducer_pb();

@@ -13,7 +13,6 @@ bool example1_bb(int nb_inputs, double *x, int nb_outputs, double *bb_outputs, b
     bool eval_ok = true;
 
     // based on G2
-    double f = 1e+20, g1 = 1e+20, g2 = 1e+20;
     double sum1 = 0.0, sum2 = 0.0, sum3 = 0.0, prod1 = 1.0, prod2 = 1.0;
 
     for (int i = 0; i < nb_inputs; ++i)
@@ -35,10 +34,10 @@ bool example1_bb(int nb_inputs, double *x, int nb_outputs, double *bb_outputs, b
         }
     }
 
-    g1 = -prod2 + 0.75;
-    g2 = sum2 - 7.5 * nb_inputs;
+    const double g1 = -prod2 + 0.75;
+    const double g2 = sum2 - 7.5 * nb_inputs;
 
-    f = 10 * g1 + 10 * g2;
+    double f = 10 * g1 + 10 * g2;
     if (0.0 != sum3)
     {
         f -= fabs(((sum1 - 2 * prod1) / sqrt(sum3)));
@@ -71,6 +70,7 @@ int main(int argc, char **argv)
 
     // create Nomad problem
     NomadProblem nomad_pb = createNomadProblem(example1_bb,
+                                               NULL,
                                                nb_inputs,
                                                nb_outputs);
 
@@ -90,9 +90,6 @@ int main(int argc, char **argv)
     addNomadParam(nomad_pb, "DISPLAY_ALL_EVAL true");
     addNomadParam(nomad_pb, "DISPLAY_UNSUCCESSFUL false");
 
-    // for reproducibility
-    addNomadValParam(nomad_pb, "NB_THREADS_OPENMP", 1);
-
     // and the number of blackbox allowed
     addNomadParam(nomad_pb, "MAX_BB_EVAL 1000");
 
@@ -100,24 +97,22 @@ int main(int argc, char **argv)
     double x0[10] = {7.0, 7.0, 7.0, 7.0, 7.0,
                      7.0, 7.0, 7.0, 7.0, 7.0}; // starting point
 
-    double x_feas_sol[10] = {0.0, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 0.0, 0.0, 0.0, 0.0}; // feasible solution
+    NomadResult nomad_result = createNomadResult();
 
-    double x_inf_sol[10] = {0.0, 0.0, 0.0, 0.0, 0.0,
-                            0.0, 0.0, 0.0, 0.0, 0.0}; // infeasible solution
+    int run_flag = solveNomadProblem(nomad_result, nomad_pb, 1, x0, NULL);
+    printf("Run status: %d\n", run_flag);
 
-    double outputs_feas_sol[10] = {0.0, 0.0, 0.0, 0.0, 0.0,
-                                   0.0, 0.0, 0.0, 0.0, 0.0}; // feasible solution outputs
+    int nb_solutions = nbSolutionsNomadResult(nomad_result);
+    printf("The algorithm has found %d solutions\n", nb_solutions);
 
-    double outputs_inf_sol[10] = {0.0, 0.0, 0.0, 0.0, 0.0,
-                                  0.0, 0.0, 0.0, 0.0, 0.0}; // infeasible solution outputs
+    // Get a solution
+    double x_sol[10];
+    double outputs_sol[4];
 
-    bool exists_feas, exists_infeas = false; // flag which indicates if the solution exists or not
-
-    solveNomadProblem(nomad_pb, 1, x0,
-                      &exists_feas, x_feas_sol, outputs_feas_sol,
-                      &exists_infeas, x_inf_sol, outputs_inf_sol,
-                      NULL);
+    bool exists_feas = feasibleSolutionsFoundNomadResult(nomad_result) &&
+                       nb_solutions > 0;
+    loadInputSolutionsNomadResult(x_sol, 1, nomad_result);
+    loadOutputSolutionsNomadResult(outputs_sol, 1, nomad_result);
 
     // display found solutions
     if (exists_feas)
@@ -126,24 +121,27 @@ int main(int argc, char **argv)
         printf("x_feas = [ ");
         for (int i = 0; i < nb_inputs; ++i)
         {
-            printf("%f ", x_feas_sol[i]);
+            printf("%f ", x_sol[i]);
         }
         printf(" ]\n");
         printf("f_feas = ");
-        printf("%f \n", outputs_feas_sol[2]);
+        printf("%f \n", outputs_sol[2]);
+        printf("Constraints = [ %f %f %f ]\n",
+               outputs_sol[0], outputs_sol[1], outputs_sol[3]);
     }
-
-    if (exists_infeas) // as a feasible solution has been found, no infeasible solution is given
+    else
     {
         printf("Best infeasible solution found (least infeasible with lowest f): \n");
         printf("x_infeas = [ ");
         for (int i = 0; i < nb_inputs; ++i)
         {
-            printf("%f ", x_inf_sol[i]);
+            printf("%f ", x_sol[i]);
         }
         printf(" ]\n");
         printf("f_infeas = ");
-        printf("%f \n", outputs_inf_sol[2]);
+        printf("%f \n", outputs_sol[2]);
+        printf("Constraints = [ %f %f %f ]\n",
+               outputs_sol[0], outputs_sol[1], outputs_sol[3]);
     }
 
     // NB: relaunch the problem will restart from the beginning
@@ -152,13 +150,19 @@ int main(int argc, char **argv)
     printf("\n");
 
     addNomadBoolParam(nomad_pb, "DISPLAY_ALL_EVAL", false);
+    // Set the dependant parameters to their default value
+    // Needed because they have been set in the previous run and are not reset by default
+    addNomadBoolParam(nomad_pb, "DISPLAY_INFEASIBLE", true);
+    addNomadBoolParam(nomad_pb, "DISPLAY_UNSUCCESSFUL", false);
 
-    exists_feas = false;
-    exists_infeas = false;
-    solveNomadProblem(nomad_pb, 1, x0,
-                      &exists_feas, x_feas_sol, outputs_feas_sol,
-                      &exists_infeas, x_inf_sol, outputs_inf_sol,
-                      NULL);
+    run_flag = solveNomadProblem(nomad_result, nomad_pb, 1, x0, NULL);
+    printf("Run status: %d\n", run_flag);
+
+    nb_solutions = nbSolutionsNomadResult(nomad_result);
+    exists_feas = feasibleSolutionsFoundNomadResult(nomad_result) &&
+                  nb_solutions > 1;
+    loadInputSolutionsNomadResult(x_sol, 1, nomad_result);
+    loadOutputSolutionsNomadResult(outputs_sol, 1, nomad_result);
 
     // display found solutions
     if (exists_feas)
@@ -167,27 +171,31 @@ int main(int argc, char **argv)
         printf("x_feas = [ ");
         for (int i = 0; i < nb_inputs; ++i)
         {
-            printf("%f ", x_feas_sol[i]);
+            printf("%f ", x_sol[i]);
         }
         printf(" ]\n");
         printf("f_feas = ");
-        printf("%f \n", outputs_feas_sol[2]);
+        printf("%f \n", outputs_sol[2]);
+        printf("c(x) = [ %f %f %f ]\n",
+               outputs_sol[0], outputs_sol[1], outputs_sol[3]);
     }
-
-    if (exists_infeas) // as a feasible solution has been found, no infeasible solution is given
+    else
     {
         printf("Best infeasible solution found: \n");
         printf("x_infeas = [ ");
         for (int i = 0; i < nb_inputs; ++i)
         {
-            printf("%f ", x_inf_sol[i]);
+            printf("%f ", x_sol[i]);
         }
         printf(" ]\n");
         printf("f_infeas = ");
-        printf("%f \n", outputs_inf_sol[2]);
+        printf("%f \n", outputs_sol[2]);
+        printf("c(x) = [ %f %f %f ]\n",
+               outputs_sol[0], outputs_sol[1], outputs_sol[3]);
     }
 
     freeNomadProblem(nomad_pb);
+    freeNomadResult(nomad_result);
 
     return EXIT_SUCCESS;
 }

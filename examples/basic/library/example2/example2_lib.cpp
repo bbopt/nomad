@@ -57,13 +57,12 @@
 /* equality constraint.                   */
 /*                                        */
 /* Modified problem:                      */
-/* Geometric constraint x1+...+x4+d=10    */
 /* Pb dimension is set to n=4             */
 /* Set an inequality constraint:          */
 /*         x1+...+x4<=10                  */
 /* If constraint is verified              */
 /*   - Pick up   d = 10-(x1+...+x4)       */
-/*   - Compute f=-(x1^2+...+x^4^2+d^2)    */
+/*   - Compute f=-(x1^2+...+x4^2+d^2)     */
 /*   - Count eval                         */
 /* If constraint is not verified          */
 /*   - f=Inf                              */
@@ -74,11 +73,11 @@
 class My_Evaluator : public NOMAD::Evaluator
 {
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
+    explicit My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
         : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
 
-    ~My_Evaluator() {}
+    ~My_Evaluator() override = default;
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double& hMax, bool &countEval) const override
     {
@@ -98,7 +97,7 @@ public:
                 if (s1 > 10)
                 {
                     c1 = s1;
-                    std::string bbo = f.tostring() + " " + c1.tostring(); // f is not really computed. But the point is infeasible and we handle the constraint with EB, so it does not matter. The point is simply discarded.
+                    std::string bbo = f.tostring() + " " + c1.tostring(); // f is not really computed. But the point is infeasible, and we handle the constraint with EB, so it does not matter. The point is simply discarded.
                     
                     x.setBBO(bbo);
                     countEval = false; // DO NOT count as a blackbox evaluation when geometric constraint is not verified
@@ -143,14 +142,14 @@ void initParams(NOMAD::AllParameters &p)
     // parameters creation
     size_t n = 4;   // Number of variables of the modified problem
     p.setAttributeValue("DIMENSION", n);
-    p.setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ EB")); // EB constraint: If a point is infeasible it is simply discarded. F (costly part) is not computed. 
+    p.setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ EB")); // EB constraint: If a point is infeasible it is simply discarded. F (costly part) is not computed.
 
     p.setAttributeValue("X0", NOMAD::Point(n,5.0));  // starting point (0.0 0.0 0.0 0.0 0.0)
     p.setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, 0.0)); // all var. >= 0
     p.setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(n, 5.0)); // all var. >= 0);
 
     // the algorithm terminates after 100 black-box evaluations,
-    // or 10000 total evaluations, including cache hits and evalutions for
+    // or 10000 total evaluations, including cache hits and evaluations for
     // which countEval was false.
     p.setAttributeValue("MAX_BB_EVAL", 200);
     p.setAttributeValue("MAX_EVAL", 10000);
@@ -166,7 +165,7 @@ void initParams(NOMAD::AllParameters &p)
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main (int argc, char **argv)
+int main()
 {
     auto TheMainStep = std::make_unique<NOMAD::MainStep>();
 

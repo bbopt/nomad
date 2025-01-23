@@ -54,7 +54,7 @@
 /*----------------------------------------*/
 /*               The problem              */
 /*----------------------------------------*/
-// The problem is described sec. 5.1 "Results of a typical run" of [1] and more detailled 
+// The problem is described sec. 5.1 "Results of a typical run" of [1] and more detailed
 // following eq. 2.52, p.53 in [2].
 
 // [1] Escaping Unknown Discontinuous Regions in Blackbox Optimization
@@ -65,21 +65,19 @@
 // Solène Kojtych, Ph.D. thesis 2022
 // doi/10.1137/21M1420915
 
-
 class My_Evaluator : public NOMAD::Evaluator
 {
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams, NOMAD::EvalType evalType)
+    explicit My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams, NOMAD::EvalType evalType)
         : NOMAD::Evaluator(evalParams, evalType)
     {}
 
-    ~My_Evaluator() {}
+    ~My_Evaluator() override = default;
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double& hMax, bool &countEval) const override
     {
-    bool eval_ok = false;
-    NOMAD::Double f = 1e+20, c1 = 1e+20;
-    size_t n = x.size();
+        bool eval_ok = false;
+        NOMAD::Double f = 1e+20, c1 = 1e+20;
 
         try
         {
@@ -124,8 +122,6 @@ public:
 };
 
 
-
-
 void initParams(NOMAD::AllParameters &p)
 {
     // parameters creation
@@ -166,14 +162,11 @@ void initParams(NOMAD::AllParameters &p)
     p.setAttributeValue("DISCO_MADS_REVEALING_POLL_NB_POINTS", n);
 
     // ------- Recommended parameters for DiscoMads
-    // no parallelism
-    p.setAttributeValue("NB_THREADS_OPENMP",1); // DiscoMads works with OpenMP but has not been extensively tested
 
-    // quad models are desactivated as they may be slow with DiscoMads
+    // quad models are deactivated as they may be slow with DiscoMads
     p.getRunParams()->setAttributeValue("QUAD_MODEL_SEARCH", false);
     p.getRunParams()->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_2N);
     p.getEvaluatorControlParams()->setAttributeValue("EVAL_QUEUE_SORT",NOMAD::EvalSortType::DIR_LAST_SUCCESS);
-
 
     // ------- Specific thesis parameters
     // Uncomment the following parameters to reproduce the thesis parameters
@@ -183,7 +176,6 @@ void initParams(NOMAD::AllParameters &p)
     //p.getRunParams()->setAttributeValue("NM_SEARCH", false);
     //p.setAttributeValue("SPECULATIVE_SEARCH", true);
 
-
     // parameters validation
     p.checkAndComply();
 }
@@ -191,7 +183,7 @@ void initParams(NOMAD::AllParameters &p)
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main (int argc, char **argv)
+int main()
 {
     auto TheMainStep = std::make_unique<NOMAD::MainStep>();
 

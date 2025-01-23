@@ -25,7 +25,6 @@ NM_SEARCH no
 SPECULATIVE_SEARCH no
 
 DISPLAY_DEGREE 2
-DISPLAY_ALL_EVAL yes
 DISPLAY_STATS BBE ( SOL ) BBO  # Display the number of evaluation (BBE),
 		     		  # the current solution ( SOL ) and the objectives
 
