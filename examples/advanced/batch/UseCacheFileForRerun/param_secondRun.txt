@@ -22,7 +22,7 @@ UPPER_BOUND *  20.0
 ######################
 
 # The algorithm terminates after that number black-box evaluations
-MAX_BB_EVAL 100
+MAX_BB_EVAL 150
 
 # If cache.txt exits it will be used.
 # Possible Use Case:
