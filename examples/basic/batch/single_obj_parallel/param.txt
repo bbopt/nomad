@@ -2,6 +2,11 @@ DIMENSION      5              # number of variables
 
 BB_EXE         bb_s.exe
 
+# Blocks of points are provided to the BB.
+# BB evaluate points in parallel.
+# Nomad queue for parallel evaluations is not
+# used in this example. Look into example 2 for
+# using this feature.
 BB_MAX_BLOCK_SIZE 4
 
 BB_OUTPUT_TYPE OBJ PB EB

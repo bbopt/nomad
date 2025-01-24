@@ -44,16 +44,22 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-/*-----------------------------------------------------*/
-/*  how to use the NOMAD library with a user function  */
-/*-----------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*  How to use the NOMAD library with a user eval function  */
+/*  that take a block of points and evaluate them in        */
+/*  parallel (OpenMP).                                      */
+/*-------------------------------------     ----------------*/
 #include "Nomad/nomad.hpp"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-// Number of threads to be used for evaluation of a block of points in parallel
-#define NUM_THREADS_EVAL  6
+// Number of threads to be used for evaluation of a block of points in parallel.
+// NOMAD queue for parallel evaluation is not used in this example. To
+// perform parallel evaluations using NOMAD queue, the user must set
+// the Nomad parameter NB_THREADS_EVAL to a value greater than 1.
+
+#define THREADS_EVAL_X  6
 
 // Wrapper of eval_x used for parallel evaluation.
 bool wrapper_eval_x(std::shared_ptr<NOMAD::EvalPoint> & x, const NOMAD::Double& hmax, bool & countEval)
@@ -100,7 +106,7 @@ public:
         
         int i;
 #ifdef _OPENMP
-        #pragma omp parallel for num_threads(NUM_THREADS_EVAL) shared(block,evalOk,listCountEval, hMax) private(i)
+        #pragma omp parallel for num_threads(THREADS_EVAL_X) shared(block,evalOk,listCountEval, hMax) private(i)
 #endif
         for(i = 0; i < (int)block.size(); i++)
         {
@@ -150,7 +156,7 @@ void initParams(const std::shared_ptr<NOMAD::AllParameters>& params)
     // Max number of points to be given as a block for evaluation
     // This option is required to perform parallel evaluations
     // All points in a block will be evaluated in parallel
-    params->setAttributeValue("BB_MAX_BLOCK_SIZE", NUM_THREADS_EVAL);
+    params->setAttributeValue("BB_MAX_BLOCK_SIZE", THREADS_EVAL_X);
     
     // NOTE: A single thread is used for Nomad "parallel" evaluation queue.
 
