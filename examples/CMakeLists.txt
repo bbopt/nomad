@@ -17,6 +17,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/DiscoMads/EscapeDi
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/DiscoMads/EscapeHiddenConstraints)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/HandlingHiddenConstraints)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/StopIfBBFails)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/NestedOptim)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/StopOnConsecutiveFails)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/CustomCompForOrdering)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/CustomStatSum)
