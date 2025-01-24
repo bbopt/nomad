@@ -25,7 +25,9 @@ DISPLAY_INFEASIBLE,bool,advanced," Flag to display infeasible ",true
 DISPLAY_MAX_STEP_LEVEL,size_t,advanced," Depth of the step after which info is not printed ",20
 DISPLAY_STATS,NOMAD::ArrayOfString,basic," Format for displaying the evaluation points ",BBE OBJ
 DISPLAY_UNSUCCESSFUL,bool,advanced," Flag to display unsuccessful ",false
+DMULTIMADS_NM_STRATEGY,NOMAD::DMultiMadsNMSearchType,advanced,"Nelder-Mead search strategies for DMultiMads",DOM
 DMULTIMADS_OPTIMIZATION,bool,advanced," DMultiMads solves multiobjective optimization problems ",false
+DMULTIMADS_QUAD_MODEL_STRATEGY,NOMAD::DMultiMadsQuadSearchType,advanced,"Quadratic model search strategies for DMultiMads",MULTI
 EVAL_OPPORTUNISTIC,bool,advanced," Opportunistic strategy: Terminate evaluations as soon as a success is found ",true
 EVAL_QUEUE_CLEAR,bool,advanced," Opportunistic strategy: Flag to clear EvaluatorControl queue between each run ",true
 EVAL_QUEUE_SORT,NOMAD::EvalSortType,advanced," How to sort points before evaluation ",QUADRATIC_MODEL
