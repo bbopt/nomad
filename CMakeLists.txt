@@ -7,10 +7,10 @@ cmake_minimum_required(VERSION 3.15...3.15)
 
 # Warning. This must be consistent with src/nomad_version.hpp
 set(NOMAD_VERSION_MAJOR 4)
-set(NOMAD_VERSION_MINOR 4)
-set(NOMAD_VERSION_PATCH 0)  
-set(NOMAD_VERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}.${NOMAD_VERSION_PATCH})
+set(NOMAD_VERSION_MINOR 5)
+set(NOMAD_VERSION_PATCH beta1)  # The beta version betaX is for develop branch of the public repo. 
 
+set(NOMAD_VERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}.${NOMAD_VERSION_PATCH})
 
 # name of the project
 # Need to update when version changes
@@ -29,8 +29,8 @@ endif()
 # Need to update when version changes
 set(NOMAD_SRC_TEMPLATE NOMAD_${NOMAD_VERSION_MAJOR}_${NOMAD_VERSION_MINOR})
 
-# use standard compilers parameters for c++14
-SET(CMAKE_CXX_STANDARD 14 )
+# use standard compilers parameters for c++17
+SET(CMAKE_CXX_STANDARD 17 )
 SET(CMAKE_CXX_STANDARD_REQUIRED ON )
 
 # Disable in-source builds to prevent source tree corruption.
@@ -42,7 +42,7 @@ endif()
 
 #check compiler version
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    # require at least gcc 4
+    # require at least gcc 8
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8)
         message(FATAL_ERROR "GCC version < 8 has not been tested for Nomad")
     endif()
@@ -53,7 +53,7 @@ elseif (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
         message(FATAL_ERROR "Clang version has not been tested for Nomad")
     endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    # require at least 15.0 (MSVC 2017) for C++14 support
+    # require at least 15.8 (MSVC 2017) for C++17 support
     if (MSVC_TOOLSET_VERSION VERSION_LESS 141)
         message(FATAL_ERROR "MSVC version ${CMAKE_CXX_COMPILER_VERSION} has not been tested for Nomad")
     endif()
@@ -72,8 +72,24 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 #
 # Message for starting configuration
 #
-message(CHECK_START " Configuring custom options")
+message(CHECK_START "Configuring custom options")
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
+
+# 
+# Modify the build type if not specified on the command
+#
+if (CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "  Multi-configuration generator detected. Use the --config option during build to specify the build type (Release, Debug, ...).")
+else()
+   if (NOT CMAKE_BUILD_TYPE)
+      set(CMAKE_BUILD_TYPE "Release" CACHE PATH "..." FORCE)
+      message(STATUS "  Build type not set explicitly. Default is set to Release. To force build type selection, use --DCMAKE_BUILD_TYPE=xxx, options are Debug Release RelWithDebInfo MinSizeRel.")
+   else()
+      message(STATUS "  Build type is ${CMAKE_BUILD_TYPE}")
+   endif()
+endif()
+
+
 
 #
 # Modify the install prefix if not specified on the command
@@ -82,6 +98,7 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
    set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR} CACHE PATH "..." FORCE) 
 endif()
 message(STATUS "  Installation prefix set to ${CMAKE_INSTALL_PREFIX}")
+
 
 #
 # Choose to build with time stats enabled
@@ -123,6 +140,7 @@ else()
    message(STATUS "  Examples NOT built")
 endif()
 
+
 #
 # Choose to build the C interface
 #
@@ -140,15 +158,11 @@ endif()
 #
 option(BUILD_INTERFACE_PYTHON "Option to build Python interface to Nomad" OFF)
 if(BUILD_INTERFACE_PYTHON MATCHES ON)
-   if(OpenMP_FOUND)
-       message(STATUS "  Warning: Cannot build Python interface with OpenMP enabled")
-   else()
-       set(Python3_FIND_VIRTUALENV "First")
-       find_package(Python 3.6 QUIET REQUIRED)
+       set(Python3_FIND_VIRTUALENV "First") # Using virtualenv to have cython and wheel is easy
+       find_package(Python 3.8 QUIET REQUIRED)
        message(CHECK_START "  Configuring build for Python interface (Python ${Python_VERSION})")
        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/PyNomad)
        message(CHECK_PASS " done")
-   endif()
 else()
    message(STATUS "  Python interface to Nomad NOT built")
 endif()
@@ -240,13 +254,12 @@ else()
    message(STATUS "  Sgtelib library will NOT be used\n")
 endif()
 
-
-
 #
 # Custom options final message
 #
 list(REMOVE_ITEM CMAKE_MESSAGE_INDENT "  ")
 message(CHECK_PASS " done")
+
 
 #
 # Add nomad app directory for building 

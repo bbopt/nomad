@@ -51,8 +51,8 @@
   \date   2010-04-05
   \see    ParameterEntry.cpp
 */
-#ifndef __NOMAD_4_4_ParameterEntry__
-#define __NOMAD_4_4_ParameterEntry__
+#ifndef __NOMAD_4_5_ParameterEntry__
+#define __NOMAD_4_5_ParameterEntry__
 
 #include "../Util/utils.hpp"
 
@@ -72,7 +72,7 @@ private:
     std::list<std::string> _values; ///< List of values for the parameter.
     bool                   _ok;     ///< If the parameter is valid.
     bool                   _unique; ///< If the parameter is unique.
-    std::shared_ptr<ParameterEntry> _next;   ///< Acces to the next parameter.
+    std::shared_ptr<ParameterEntry> _next;   ///< Access to the next parameter.
 
     std::string            _paramFile; ///< File from which this parameter was read
     int                    _line;       ///< Line for this parameter in _paramFile
@@ -170,7 +170,7 @@ public:
     /**
        \param p A pointer to the next ParameterEntry to be inserted -- \b IN.
     */
-    void setNext   ( std::shared_ptr<ParameterEntry> p ) { _next = p; }
+    void setNext   (const std::shared_ptr<ParameterEntry>& p ) { _next = p; }
 
     /// Set the \c _unique flag.
     /**
@@ -211,7 +211,7 @@ public:
        \param  p2 Pointer to the second ParameterEntry -- \b IN.
        \return A boolean equal to \c true if \c *p1 \c < \c *p2.
     */
-    bool operator() ( const std::shared_ptr<ParameterEntry> p1 , const std::shared_ptr<ParameterEntry> p2 ) const
+    bool operator() ( const std::shared_ptr<ParameterEntry>& p1 , const std::shared_ptr<ParameterEntry>& p2 ) const
     {
         return (*p1 < *p2);
     }
@@ -233,4 +233,4 @@ inline std::ostream& operator<< (std::ostream &out,
 #include "../nomad_nsend.hpp"
 
 
-#endif  // __NOMAD_4_4_ParameterEntry__
+#endif  // __NOMAD_4_5_ParameterEntry__

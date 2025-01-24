@@ -51,16 +51,17 @@
 
 #include <algorithm>    // for for_each
 #include <cctype>       // for toupper, isdigit
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
+#include <utility>
 
 // Registered attribute definition names
-const std::string attributeDefinitionNames[18] = { "deprecatedAttributesDefinition",
+const std::string attributeDefinitionNames[20] = { "deprecatedAttributesDefinition",
     "displayAttributesDefinition",
     "evalAttributesDefinition",
     "cacheAttributesDefinition",
@@ -68,6 +69,7 @@ const std::string attributeDefinitionNames[18] = { "deprecatedAttributesDefiniti
     "evaluatorControlGlobalAttributesDefinition",
     "pbAttributesDefinition",
     "runAttributesDefinition",
+    "runAttributesDefinitionDMulti",
     "runAttributesDefinitionIBEX",
     "runAttributesDefinitionLH",
     "runAttributesDefinitionCS",
@@ -77,7 +79,8 @@ const std::string attributeDefinitionNames[18] = { "deprecatedAttributesDefiniti
     "runAttributesDefinitionQuadModel",
     "runAttributesDefinitionSgtelibModel",
     "runAttributesDefinitionVNS",
-    "runAttributesDefinitionDisco"   
+    "runAttributesDefinitionDisco",
+    "runAttributesDefinitionCOOP"
 };
 
 const std::string forbiddenWords[3] = {"SOLVER", "NOMAD", "RUNNER"};
@@ -109,12 +112,12 @@ private:
 
 public:
 
-    Exception ( size_t line , const std::string & msg )
-    : _what ( msg  ) ,
+    Exception ( size_t line , std::string  msg )
+    : _what (std::move( msg  )) ,
     _line ( line )  {}
 
     /// Destructor.
-    virtual ~Exception ( void ) {}
+    virtual ~Exception () = default;
 
     /// Access to the error message.
     /**
@@ -275,8 +278,8 @@ int main(int argc, char *argv[])
         oss << "//////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////" << std::endl;
         oss << "//////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////" << std::endl << std::endl;
 
-        oss << "#ifndef __NOMAD_4_4_"<< UpperAttDefName << "__" << std::endl;
-        oss << "#define __NOMAD_4_4_"<< UpperAttDefName << "__" << std::endl << std::endl;
+        oss << "#ifndef __NOMAD_4_5_"<< UpperAttDefName << "__" << std::endl;
+        oss << "#define __NOMAD_4_5_"<< UpperAttDefName << "__" << std::endl << std::endl;
         oss << "_definition = {" ;
 
         bool flagInFile;
@@ -312,7 +315,7 @@ int main(int argc, char *argv[])
                     lineNumber++;
                 }
 
-                // the previous getline may have reached end of file
+                // the previous getline call may have reached end of file
                 if ( fin.eof() )
                 {
                     continue;
@@ -409,7 +412,7 @@ int main(int argc, char *argv[])
 
                 // Read attribute short info
                 // The block delimiter string must be "\(" and "\)" in the text
-                // file but the string passed to the function must be preceeded
+                // file but the string passed to the function must be preceded
                 // by the escape symbol "\"
                 // We use raw string literals (R) to avoid escaping of any character. Anything between the delimiters becomes part of the string.
                 std::string attributeShortInfo = readBlockOfLines( fin, lineNumber ,R"f(\()f" , R"f(\))f" );
@@ -418,7 +421,7 @@ int main(int argc, char *argv[])
 
                 // Read attribute help info
                 // The block delimiter string must be "\(" and "\)" in the text
-                // file but the string passed to the function must be preceeded
+                // file but the string passed to the function must be preceded
                 // by the escape symbol "\"
                 // We use raw string literals (R) to avoid escaping of any character. Anything between the delimiters becomes part of the string.
                 std::string attributeHelpInfo = readBlockOfLines( fin , lineNumber , R"f(\()f", R"f(\))f");
@@ -446,7 +449,7 @@ int main(int argc, char *argv[])
 
                 // Read keywords
                 // The block delimiter string must be "\(" and "\)" in the text
-                // file but the string passed to the function must be preceeded
+                // file but the string passed to the function must be preceded
                 // by the escape symbol "\"
                 // We use raw string literals (R) to avoid escaping of any character. Anything between the delimiters becomes part of the string.
                 std::string attributeKeywords = readBlockOfLines( fin , lineNumber , R"f(\()f", R"f(\))f");

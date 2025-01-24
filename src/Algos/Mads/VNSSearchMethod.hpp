@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_VNSSEARCHMETHOD__
-#define __NOMAD_4_4_VNSSEARCHMETHOD__
+#ifndef __NOMAD_4_5_VNSSEARCHMETHOD__
+#define __NOMAD_4_5_VNSSEARCHMETHOD__
 
 #include <string>
 
@@ -113,5 +113,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_VNSSEARCHMETHOD__
+#endif // __NOMAD_4_5_VNSSEARCHMETHOD__
 

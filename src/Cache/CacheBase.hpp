@@ -51,8 +51,8 @@
  * \date   April 2017
  */
 
-#ifndef __NOMAD_4_4_CACHEBASE__
-#define __NOMAD_4_4_CACHEBASE__
+#ifndef __NOMAD_4_5_CACHEBASE__
+#define __NOMAD_4_5_CACHEBASE__
 
 #include <atomic>       // For atomic
 #include <vector>
@@ -123,7 +123,7 @@ protected:
     /// Signals that the cache should stop waiting for points to be evaluated.
     /**
      * For methods that allow waiting for a point to be evaluated:
-     * If the whole optimization is done, stop waitings for points
+     * If the whole optimization is done, stop waiting for points
      * that will never be evaluated.
      */
     std::atomic<bool> _stopWaiting;
@@ -173,10 +173,10 @@ public:
         if (nullptr != _single)
         {
             _single->clear();
-            _single.release();
+            _single.release() ; // NOT SURE. No need to release the unique ptr. When running multiple time, with a singleton we have multiple unique_ptr created.
         }
     }
-
+    
     /// Destructor
     virtual ~CacheBase(void) = default;
 
@@ -254,7 +254,7 @@ public:
     virtual size_t find(const Point & x, EvalPoint &evalPoint,
                         EvalType evalType = EvalType::UNDEFINED,
                         bool waitIfNotYetAvailable = true ) const = 0;
-
+    
     /// Get eval point at point x from the cache for rerun (there can be only one in CacheSet).
     /**
      \param x           The point to find                   -- \b IN.
@@ -263,7 +263,7 @@ public:
      */
     virtual bool findInCacheForRerun(const Point & x,
                                     NOMAD::EvalPoint &evalPoint ) const = 0;
-
+    
 
     /// Insert evalPoint in cache.
     /**
@@ -291,7 +291,7 @@ public:
      \param evalPointList   The list of eval points found in cache -- \b OUT.
      \return                The number of points found.
      */
-    virtual size_t find(const Point x,
+    virtual size_t find(const Point& x,
                         std::vector<EvalPoint> &evalPointList) const = 0;
 
 
@@ -300,16 +300,13 @@ public:
      The comparison function tests if an eval point's eval is inferior to refeval.
      \param refeval         The point of reference                                      -- \b IN.
      \param comp            The comparison function                                     -- \b IN.
-     \param evalPointList   The list of eval points found in cache that match comp()    -- \b OUT.
-     \param evalType        Which Eval of the EvalPoint to look at                      -- \b IN.
-     \param computeType   Which type of computation                            -- \b IN.
+     \param computeType   Which type of f, h computation (eval type, compute type and h norm type)  -- \b IN.
      \return                The number of points found.
      */
     virtual size_t find(const Eval &refeval,
-                        std::function<bool(const Eval&, const Eval&, ComputeType)> comp,
+                        std::function<bool(const Eval&, const Eval&, const FHComputeTypeS&)> comp,
                         std::vector<EvalPoint> &evalPointList,
-                        EvalType evalType = EvalType::BB,
-                        ComputeType computeType = ComputeType::STANDARD) const = 0;
+                        const FHComputeType& computeType) const = 0;
 
 
     /// Get best eval points, using comp(). Only the points with eval status EVAL_OK are considered.
@@ -319,34 +316,30 @@ public:
      \param findFeas        The flag to find feasible points                           -- \b IN.
      \param hMax            The hmax to detect feasibility                             -- \b IN.
      \param fixedVariable   Searching for a subproblem defined by this point           -- \b IN.
-     \param evalType        Which Eval of the EvalPoint to look at                     -- \b IN.
-     \param computeType     Which compute type of the EvalPoint to look at                     -- \b IN.
+     \param computeType   Which type of f, h computation (eval type, compute type and h norm type)  -- \b IN.
      \return                The number of eval points found.
      */
     virtual size_t findBest(std::function<bool(const Eval&,
                                                const Eval&,
-                                               ComputeType)> comp,
+                                               const FHComputeTypeS&)> comp,
                             std::vector<EvalPoint> &evalPointList,
                             const bool findFeas,
                             const Double& hMax,
                             const Point& fixedVariable,
-                            EvalType  evalType,
-                            ComputeType computeType) const = 0;
+                            const FHComputeType& computeType) const = 0;
 
 
     /// Test if cache contains feasible points.
     /**
       \return \c true if the cache contains at least one feasible point, \c false otherwise.
      */
-    virtual bool hasFeas(EvalType evalType = EvalType::BB,
-                         ComputeType computeType = ComputeType::STANDARD) const = 0;
-
+    virtual bool hasFeas(const FHComputeType& completeComputeType) const = 0;
+    
     /// Test if cache contains an infeasible points.
     /**
       \return \c true if the cache contains at least one infeasible point, \c false otherwise.
      */
-    virtual bool hasInfeas(EvalType evalType = EvalType::BB,
-                         ComputeType computeType = ComputeType::STANDARD) const = 0;
+    virtual bool hasInfeas(const FHComputeType& completeComputeType) const = 0;
 
 
     /// Get all eval points within a distance of point X.
@@ -375,9 +368,14 @@ public:
     virtual size_t find(std::function<bool(const EvalPoint&)> crit,
                         std::vector<EvalPoint> &evalPointList) const = 0;
 
+    /// Browse cache using criteria. The function can have access to remote info using the lambda
+    /// function capture by reference.
+    /**
+    \param crit            The criteria function                               -- \b IN.
+    */
+    virtual void browse(std::function<void(const EvalPoint&)> crit) const =0;
 
-
-    /// Get all eval points using two custom criterions.
+    /// Get all eval points using two custom criteria.
     /**
      All the points for which the two crit() functions return \c true are put in evalPointList.
 
@@ -393,57 +391,51 @@ public:
 
     /// Get all non dominated (or equal) best feasible eval points using dominance criterion
     /// Used for multiobjective optimization
-    /// NB: To use with precaution, computationaly costly (n log n for two objectives).
+    /// NB: To use with precaution, computationally costly (n log n for two objectives).
     /**
      \param evalPointList   The best non dominated feasible eval points in a list  -- \b OUT.
      \param fixedVariable   Searching for a subproblem defined by this point -- \b IN.
-     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
-     \param computeType     Which compute type of the EvalPoint to look at                     -- \b IN.
+     \param computeType   Which type of f, h computation (eval type, compute type and h norm type)  -- \b IN.
      \return                The number of eval points found.
      */
     virtual size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
-                                const Point& fixedVariable,
-                                EvalType evalType,
-                                ComputeType computeType) const = 0;
+                                const Point& fixedVariable = Point(),
+                                const FHComputeType& computeType  = defaultFHComputeType) const = 0;
 
 
     /// Find best infeasible points with h<=hmax:
-    ///  -> index 0 and above if doublons, least infeasible point with smallest f
-    ///  -> last index and below if doublons, best f with smallest h
-    /// All best f points have the same bboutputs. Idem for the least infeasible points.
+    ///  -> index 0 and above if duplicates, least infeasible point with smallest f
+    ///  -> last index and below if duplicates, best f with smallest h
+    /// All best f points have the same blackbox outputs. Idem for the least infeasible points.
     /// Works also for multiobjective optimization
     /**
      \param evalPointList   The best infeasible eval points   -- \b OUT.
      \param fixedVariable   Searching for a subproblem defined by this point -- \b IN.
      \param hMax            Select a point if h <= hMax                                                 -- \b IN.
-     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
-     \param computeType     Which compute type of the EvalPoint to look at                     -- \b IN.
+     \param computeType   Which type of f, h computation (eval type, compute type and h norm type)  -- \b IN.
      \return                The number of eval points found.
      */
     virtual size_t findBestInf(std::vector<EvalPoint> &evalPointList,
-                               const Double& hMax,
-                               const Point& fixedVariable,
-                               EvalType evalType,
-                               ComputeType computeType) const = 0;
+                               const Double& hMax = INF ,
+                               const Point& fixedVariable = Point(),
+                               const FHComputeType& computeType = defaultFHComputeType) const = 0;
 
 
     /// Get all non dominated (or equal) infeasible eval points using dominance criterion
     /// Used for multiobjective optimization
-    /// NB: To use with precaution, computationaly costly (O(n^2 m) where n is the number
+    /// NB: To use with precaution, computationally costly (O(n^2 m) where n is the number
     /// of points in the cache and m the number of objectives)
     /**
      \param evalPointList   The best non dominated feasible eval points in a list  -- \b OUT.
      \param fixedVariable   Searching for a subproblem defined by this point -- \b IN.
      \param hMax            Select a point if h <= hMax                                                 -- \b IN.
-     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
-     \param computeType     Which compute type of the EvalPoint to look at                     -- \b IN.
+     \param computeType   Which type of f, h computation (eval type, compute type and h norm type)  -- \b IN.
      \return                The number of eval points found.
      */
     virtual size_t findFilterInf(std::vector<NOMAD::EvalPoint> &evalPointList,
                                  const Double& hMax,
                                  const Point& fixedVariable,
-                                 EvalType evalType,
-                                 ComputeType computeType) const = 0;
+                                 const FHComputeType& computeType) const = 0;
 
 
     // More find() methods can be added here.
@@ -505,8 +497,8 @@ public:
 
     /// Read a cache file and load it.
     virtual bool read() = 0;
-
-
+    
+    
     /// Move eval points from cache set to cache set for rerun
     virtual void moveEvalPointToCacheForRerun() = 0;
 
@@ -522,4 +514,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_CACHEBASE__
+#endif // __NOMAD_4_5_CACHEBASE__

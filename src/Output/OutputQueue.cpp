@@ -62,7 +62,7 @@ bool NOMAD::OutputQueue::_hasBeenInitialized = false;
 NOMAD::OutputQueue::OutputQueue()
   : _queue(),
     _params(),
-    _statsFile(""),
+    _statsFile(),
     _statsWritten(false),
     _totalEval(0),
     _statsFileFormat(),
@@ -170,13 +170,13 @@ void NOMAD::OutputQueue::initParameters(const std::shared_ptr<NOMAD::DisplayPara
     // Remaining items is the format.
     auto statsFileParam = _params->getAttributeValue<NOMAD::DisplayStatsTypeList>("STATS_FILE");
 
-    std::string statsFileName = "";
+    std::string statsFileName;
     NOMAD::DisplayStatsTypeList statsFileFormat = statsFileParam;
     if (statsFileParam.size() > 1)
     {
         statsFileName = statsFileParam[0];
         statsFileFormat.erase(0);
-        if (statsFileFormat.size() == 0)
+        if (statsFileFormat.empty())
         {
             // A default stats type is provided: BBE OBJ
             statsFileFormat.add(NOMAD::StatsInfo::displayStatsTypeToString(NOMAD::DisplayStatsType::DS_BBE));
@@ -265,7 +265,7 @@ void NOMAD::OutputQueue::add(NOMAD::OutputInfo outputInfo)
 #endif // _OPENMP
 }
 
-void NOMAD::OutputQueue::add(const std::string & s, NOMAD::OutputLevel outputLevel)
+void NOMAD::OutputQueue::add(const std::string & s, NOMAD::OutputLevel outputLevel) const
 {
     if (!goodLevel(outputLevel))
     {
@@ -299,10 +299,9 @@ void NOMAD::OutputQueue::flush()
 #endif // _OPENMP
 
     // Info goes to Standard output
-    for (std::vector<NOMAD::OutputInfo>::iterator out_it = _queue.begin();
-         out_it != _queue.end(); ++out_it)
+    for (auto & out_it : _queue)
     {
-        flushBlock(std::move(*out_it));
+        flushBlock(out_it);
     }
     _queue.clear();
 #ifdef _OPENMP
@@ -349,7 +348,7 @@ void NOMAD::OutputQueue::flushBlock(const NOMAD::OutputInfo &outputInfo)
         return;
     }
 
-    NOMAD::ArrayOfString msg = outputInfo.getMsg();
+    const NOMAD::ArrayOfString& msg = outputInfo.getMsg();
     if (outputLevel == NOMAD::OutputLevel::LEVEL_STATS)
     {
         flushStatsToStdout(statsInfo);
@@ -424,6 +423,7 @@ void NOMAD::OutputQueue::flushStatsToStdout(const NOMAD::StatsInfo *statsInfo)
         throw NOMAD::Exception(__FILE__, __LINE__, "OutputQueue: Display Parameters are NULL");
     }
 
+    // Maybe we can do it once in initParameters.
     bool displayFailed      = _params->getAttributeValue<bool>("DISPLAY_FAILED");
     bool displayInfeasible      = _params->getAttributeValue<bool>("DISPLAY_INFEASIBLE");
     bool displayUnsuccessful    = _params->getAttributeValue<bool>("DISPLAY_UNSUCCESSFUL");

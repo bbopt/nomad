@@ -90,12 +90,20 @@ bool NOMAD::QPSolverAlgo::runImp()
             // Barrier constructor automatically finds the best points in the cache.
             
             auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+            auto hNormType = _runParams->getAttributeValue<NOMAD::HNormType>("H_NORM");
+            
+            // Compute type for this optim
+            FHComputeTypeS computeType; // Default from struct initializer
+            computeType.hNormType = hNormType; // REM: No PhaseOne search for this algo!
+        
+            // Eval type for this optim
+            auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
             
             // Create a single objective progressive barrier
             barrier = std::make_shared<NOMAD::ProgressiveBarrier>(hMax,
                                                        NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
-                                                       NOMAD::EvalType::BB,
-                                                       NOMAD::EvcInterface::getEvaluatorControl()->getComputeType());
+                                                       evalType,
+                                                       computeType);
         }
 
         // Create a single MegaIteration: manage multiple iterations.
@@ -138,7 +146,7 @@ void NOMAD::QPSolverAlgo::readInformationForHotRestart()
     if (_runParams->getAttributeValue<bool>("HOT_RESTART_READ_FILES"))
     {
         // Verify the files exist and are readable.
-        std::string hotRestartFile = _runParams->getAttributeValue<std::string>("HOT_RESTART_FILE");
+        const std::string& hotRestartFile = _runParams->getAttributeValue<std::string>("HOT_RESTART_FILE");
         if (NOMAD::checkReadFile(hotRestartFile))
         {
             std::cout << "Read hot restart file " << hotRestartFile << std::endl;

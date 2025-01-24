@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_ALLSTOPREASONS__
-#define __NOMAD_4_4_ALLSTOPREASONS__
+#ifndef __NOMAD_4_5_ALLSTOPREASONS__
+#define __NOMAD_4_5_ALLSTOPREASONS__
 
 #include "../nomad_platform.hpp"
 #include "../Util/StopReason.hpp"
@@ -78,7 +78,7 @@ public:
 
 private:
     static StopReason<BaseStopType> _baseStopReason; ///< A single base stop reason is considered for NOMAD.
-    static StopReason<EvalGlobalStopType> _evalGlobalStopReason; ///< An eval stop reason valable for the whole of NOMAD.
+    static StopReason<EvalGlobalStopType> _evalGlobalStopReason; ///< An eval stop reason valuable for the whole of NOMAD.
     StopReason<IterStopType> _iterStopReason; ///< An iteration stop reason.
 
 public:
@@ -171,4 +171,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_ALLSTOPREASONS__
+#endif // __NOMAD_4_5_ALLSTOPREASONS__

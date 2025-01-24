@@ -59,11 +59,11 @@
 class My_Evaluator : public NOMAD::Evaluator
 {
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
+    explicit My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB) // Evaluator for true blackbox evaluations only
     {}
 
-    ~My_Evaluator() {}
+    ~My_Evaluator() override = default;
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override
     {
@@ -95,7 +95,7 @@ public:
             }
 
             g1 = -prod2 + 0.75;
-            g2 = sum2 -7.5 * n;
+            g2 = sum2 -7.5 * (double)n;
 
             f = 10*g1 + 10*g2;
             if (0.0 != sum3)
@@ -109,6 +109,7 @@ public:
             }
 
             NOMAD::Double c2000 = -f-2000;
+            // Double::tostring function uses FULL precision
             std::string bbo = g1.tostring();
             bbo += " " + g2.tostring();
             bbo += " " + f.tostring();
@@ -141,7 +142,7 @@ public:
 };
 
 
-void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
+void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 {
     // Parameters creation
     // Number of variables
@@ -157,10 +158,10 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
 
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes;
-    bbOutputTypes.push_back(NOMAD::BBOutputType::PB);     // g1
-    bbOutputTypes.push_back(NOMAD::BBOutputType::PB);     // g2
-    bbOutputTypes.push_back(NOMAD::BBOutputType::OBJ);    // f
-    bbOutputTypes.push_back(NOMAD::BBOutputType::EB);     // c2000
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::PB);     // g1
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::PB);     // g2
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::OBJ);    // f
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::EB);     // c2000
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
     allParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_2N);
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
@@ -181,21 +182,22 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main (int argc, char **argv)
+int main()
 {
-
     NOMAD::MainStep TheMainStep;
 
     try
     {
+        // Set parameters
         auto params = std::make_shared<NOMAD::AllParameters>();
         initAllParams(params);
         TheMainStep.setAllParameters(params);
-        
+
+        // Set evaluator
         auto ev = std::make_unique<My_Evaluator>(params->getEvalParams());
         TheMainStep.addEvaluator(std::move(ev));
-        
-        
+
+        // Run optimization
         TheMainStep.start();
         TheMainStep.run();
         TheMainStep.end();

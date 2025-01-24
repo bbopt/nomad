@@ -96,7 +96,7 @@ void NOMAD::IterationUtils::init()
                                    _parentStep);
     }
     
-    const NOMAD::Search * search = dynamic_cast<const NOMAD::Search*>(_parentStep);
+    const auto* search = dynamic_cast<const NOMAD::Search*>(_parentStep);
     if ( nullptr == search)
     {
         if ( nullptr != _iterAncestor)
@@ -192,7 +192,7 @@ bool NOMAD::IterationUtils::snapPointToBoundsAndProjectOnMesh(
 
     // Round to POINT_FORMAT number of decimals
     NOMAD::Point pointPrecision = _pointPrecisionFull.projectPointToSubspace(fixedVariable);
-    bool modif = point.roundToPrecision(pointPrecision);
+    bool modif = point.roundToPrecision(pointPrecision, lowerBound, upperBound);
     
     if (modif || *evalPoint0.getX() != point )
     {
@@ -229,7 +229,7 @@ bool NOMAD::IterationUtils::verifyPointsAreOnMesh(const std::string& name) const
         throw NOMAD::StepException(__FILE__,__LINE__,err, _parentStep);
     }
 
-    for (auto point : _trialPoints)
+    for (const auto& point : _trialPoints)
     {
         auto meshCenter = *point.getPointFrom();
         if (point.size() < meshCenter.size())
@@ -252,24 +252,26 @@ bool NOMAD::IterationUtils::evalTrialPoints(const NOMAD::Step *step,
                                             NOMAD::StepType removeStepType)
 {
     bool foundBetter = false;
-
+    
+    
+    
     // Put the trial points into the evaluation queue
     keepTrialPointsThatNeedEval(step, keepN, removeStepType);
     
     // Send trial EvalPoints to EvaluatorControl
     NOMAD::EvcInterface evcInterface(step);
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-
+    
     if (_nbEvalPointsThatNeedEval > 0)
     {
-                
+        
         _trialPointsSuccess = evcInterface.startEvaluation();
-
+        
         if (_trialPointsSuccess >= NOMAD::SuccessType::PARTIAL_SUCCESS)
         {
             foundBetter = true;
         }
-
+        
         // Update trial points with evaluated trial points.
         // Note: If cache is not used, Points that are not evaluated yet
         // will be forgotten.
@@ -287,7 +289,7 @@ bool NOMAD::IterationUtils::evalTrialPoints(const NOMAD::Step *step,
         s = "Number of evaluated points: " + std::to_string(evalPointSet.size());
         _parentStep->AddOutputDebug(s);
         OUTPUT_DEBUG_END
-
+        
         _trialPoints.clear();
         _trialPoints = evalPointSet;
     }
@@ -319,9 +321,10 @@ void NOMAD::IterationUtils::keepTrialPointsThatNeedEval(const Step *step,
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     
     // Pass the barrier to the evaluator control for detecting success.
-    evcInterface.setBarrier(step->getMegaIterationBarrier());
+    evc->setBarrier(step->getMegaIterationBarrier());
     
-    // Queue will be unlocked one points that need eval are put in the queue
+    
+    // Queue will be unlocked when points that need eval are put in the queue
     // Note: lock without unlocking first jams the thread
     evc->lockQueue();
 
@@ -372,11 +375,11 @@ bool NOMAD::IterationUtils::postProcessing()
     {
         bool stop=false;     // should be initialized to false or may lead to strange behaviour if empty callback
         step->runCallback(NOMAD::CallbackType::POSTPROCESSING_CHECK, *step, stop);
-        
+
         // Convert CUSTOM_OPPORTUNISTIC_ITER_STOP (evc) into USER_ITER_STOP (iter)
         updateStopReasonForIterStop(step);
         
-        // Do we have a global stop?
+        // Do we have a global stop ?
         // This can only be from a custom callback because default callback returns stop=false;
         if (!step->getAllStopReasons()->checkTerminate() && stop)
         {
@@ -388,25 +391,23 @@ bool NOMAD::IterationUtils::postProcessing()
         throw NOMAD::Exception(__FILE__, __LINE__,"An instance of class IterationUtils must also be a step");
     }
     
-    // No post processing required when no trial points available
-    if ( _trialPoints.size() == 0 )
+    // No post-processing required when no trial points available
+    if ( _trialPoints.empty())
     {
         return false;
     }
-    
+
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     auto evalType = NOMAD::EvalType::BB;
-    auto computeType = NOMAD::ComputeType::STANDARD;
     if (nullptr != evc)
     {
         evalType = evc->getCurrentEvalType();
-        computeType = evc->getComputeType();
     }
 
     bool changeOccured = false;
     auto megaIterBarrier = _megaIterAncestor->getBarrier();
 
-    // The post processing is done when a MegaIteration is used
+    // The post-processing is done when a MegaIteration is used
     if ( megaIterBarrier == nullptr )
     {
         return false;
@@ -427,8 +428,6 @@ bool NOMAD::IterationUtils::postProcessing()
         
          barrierModified = megaIterBarrier->updateWithPoints(
                                 evalPointList,
-                                evalType,
-                                computeType,
                                 _frameCenterUseCache /* not used by progressive barrier */,
                                 _updateIncumbentsAndHMax /* set by trial point generating method */);
         
@@ -492,13 +491,18 @@ void NOMAD::IterationUtils::updateStepSuccessStats(const Step* step)
     // Important: For steps directly generating/evaluating trial points, each evaluated trial point is counted (UNSUCCESSFUL, PARTIAL_SUCCESS, FULL_SUCCESS). Unevaluated trial points are not counted.
     if (NOMAD::EvalType::BB == evalType)
     {
-        const SuccessStats & evcSuccessStats= evc->getSuccessStats();
-        
-        if (evcSuccessStats.hasStatsForPropagation())
+#ifdef _OPENMP
+#pragma omp critical
+#endif
         {
-            Step* stepToUpdate = const_cast<Step*>(step);
-            NOMAD::SuccessStats & stepStats = stepToUpdate->getSuccessStats();
-            stepStats.updateStats(evcSuccessStats); // Update the stats of current step
+            const SuccessStats & evcSuccessStats= evc->getSuccessStats();
+            
+            if (evcSuccessStats.hasStatsForPropagation())
+            {
+                Step* stepToUpdate = const_cast<Step*>(step);
+                NOMAD::SuccessStats & stepStats = stepToUpdate->getSuccessStats();
+                stepStats.updateStats(evcSuccessStats); // Update the stats of current step
+            }
         }
         
         // Each evaluated trial point should only be counted once. Reset evaluator control stats after transfer.
@@ -539,7 +543,7 @@ void NOMAD::IterationUtils::generateTrialPoints()
     generateTrialPointsImp();
     
     // Update success type if no points are generated
-    if (_trialPoints.size() == 0)
+    if (_trialPoints.empty())
     {
         _trialPointsSuccess = NOMAD::SuccessType::NO_TRIALS;
     }
@@ -629,6 +633,14 @@ void NOMAD::IterationUtils::completeTrialPointsInformation()
     {
         surrogateEvaluation = std::make_unique<NOMAD::SurrogateEvaluation>(_parentStep,_trialPoints, NOMAD::EvalType::SURROGATE);
     }
+    // If sort type is USER, use the user comparison method to complete trial points information
+    else if ( NOMAD::EvalSortType::USER == evc->getEvalSortType()
+        && NOMAD::EvalType::MODEL != evc->getCurrentEvalType()
+        && _trialPoints.size() > 1
+        && evc->getOpportunisticEval())
+    {
+        evc->getUserCompMethod()->completeTrialPointsInformation(_parentStep,_trialPoints);
+    }
     
     if (nullptr != surrogateEvaluation)
     {
@@ -641,32 +653,33 @@ void NOMAD::IterationUtils::completeTrialPointsInformation()
 #ifdef USE_IBEX
 NOMAD::Point NOMAD::IterationUtils::projectWithIbex(NOMAD::Point point)
 {
-	auto mainStepAncestorConst = _parentStep->getParentOfType<NOMAD::MainStep*>(false);
-	auto mainStepAncestor = const_cast<NOMAD::MainStep*>(mainStepAncestorConst);
-	auto set = mainStepAncestor->getIbexSet();
-	
+    auto mainStepAncestorConst = _parentStep->getParentOfType<NOMAD::MainStep*>(false);
+    auto mainStepAncestor = const_cast<NOMAD::MainStep*>(mainStepAncestorConst);
+    auto set = mainStepAncestor->getIbexSet();
+    
     size_t n = point.size();
         
     ibex::Vector v(n);
     for (size_t i = 0; i < n; i++)
     {
-    	v[i] = point[i].trunk();
+        v[i] = point[i].trunk();
     }
     
     ibex::Vector v_projected = (*set).move_inside(v);
     
     for (size_t i = 0; i < n; i++)
     {
-    	point[i] = v_projected[i];
+        point[i] = v_projected[i];
     }
 
     return point;
 }
 #endif
 
+
 void NOMAD::IterationUtils::updateStopReasonForIterStop(const Step* step)
 {
-    // Test for NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP)
+    // Test for NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP
     // and transform into NOMAD::IterStopType::USER_ITER_STOP
     
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
@@ -680,6 +693,7 @@ void NOMAD::IterationUtils::updateStopReasonForIterStop(const Step* step)
     
     if (evcStopReason.checkStopType(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP))
     {
+        
         // Reset evcStopReason
         evc->setStopReason(-1, NOMAD::EvalMainThreadStopType::STARTED);
         
@@ -693,7 +707,5 @@ void NOMAD::IterationUtils::updateStopReasonForIterStop(const Step* step)
             NOMAD::OutputQueue::Flush();
             OUTPUT_INFO_END
         }
-        
     }
 }
-

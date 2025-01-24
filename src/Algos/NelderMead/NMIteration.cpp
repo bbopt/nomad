@@ -105,7 +105,7 @@ bool NOMAD::NMIteration::runImp()
 
 
     // Running an NM iteration consists in performing
-    // 1) A Reflect
+    // 1) A Reflection
     // 2) An Expansion or an Inside contraction or an Outside contraction or Continue to next iteration (no shrink).
     // 3) Possibly a Shrink.
     while (  ! _stopReasons->checkTerminate() && stepType != NOMAD::StepType::NM_CONTINUE && stepType != NOMAD::StepType::NM_SHRINK )

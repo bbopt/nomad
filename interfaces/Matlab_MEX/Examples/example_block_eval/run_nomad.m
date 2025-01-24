@@ -13,7 +13,7 @@ params = struct('display_degree','2','max_bb_eval','100','direction_type','ortho
 % Start optimization
 
 % Without callback
-[x,fval,hinf,exit_status,nfeval] = nomadOpt(@fun,x0,lb,ub,params);
+% [x,fval,hinf,exit_status,nfeval] = nomadOpt(@fun,x0,lb,ub,params);
 
 % With callback
-% [x,fval,hinf,exit_status,nfeval] = nomadOpt(@fun,x0,lb,ub,params,@cbFun);
+[x,fval,hinf,exit_status,nfeval] = nomadOpt(@fun,x0,lb,ub,params,@cbFun);

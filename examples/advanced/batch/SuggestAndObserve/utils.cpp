@@ -77,9 +77,9 @@ void readXFile(const std::string& xFileName, NOMAD::ArrayOfPoint &aop)
     readXFile(xFileName, xs);
 
     aop.clear();
-    for (auto x : xs)
+    for (const auto& x : xs)
     {
-        aop.push_back(NOMAD::Point(x));
+        aop.emplace_back(x);
     }
 }
 
@@ -94,19 +94,18 @@ void initParams(std::shared_ptr<NOMAD::AllParameters>& params,
     params->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(DIMENSION, 10.0));
 
     NOMAD::BBOutputTypeList bbot;   // Definition of output types
-    bbot.push_back(NOMAD::BBOutputType::OBJ);
+    bbot.emplace_back(NOMAD::BBOutputType::OBJ);
     params->setAttributeValue("BB_OUTPUT_TYPE", bbot);
-
 
     params->setAttributeValue("CACHE_FILE", cacheFileName);
 
-    for (auto paramAsString : additionalParams)
+    for (const auto& paramAsString : additionalParams)
     {
         params->readParamLine(paramAsString);
     }
 
     // Display parameters
-    params->setAttributeValue("DISPLAY_DEGREE", 0);
+    //params->setAttributeValue("DISPLAY_DEGREE", 4);
 
     // parameters validation
     params->getPbParams()->doNotShowWarnings();

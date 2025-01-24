@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_TERMINATION__
-#define __NOMAD_4_4_TERMINATION__
+#ifndef __NOMAD_4_5_TERMINATION__
+#define __NOMAD_4_5_TERMINATION__
 
 #include "../Algos/Step.hpp"
 
@@ -53,7 +53,7 @@
 
 ///  Class for termination of an algorithm.
 /**
- The terminate function checks for termination criterions such as MAX_ITERATIONS, MAX_TIME, STOP_IF_FEASIBLE and set the stop reason.
+ The terminate function checks for termination criteria such as MAX_ITERATIONS, MAX_TIME, STOP_IF_FEASIBLE and set the stop reason.
  */
 class Termination: public Step
 {
@@ -102,4 +102,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_TERMINATION__
+#endif // __NOMAD_4_5_TERMINATION__

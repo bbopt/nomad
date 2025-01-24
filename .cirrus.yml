@@ -2,13 +2,13 @@ task:
   matrix:
     - name: FreeBSD -- gcc | g++
       freebsd_instance:
-        image: freebsd-13-1-release-amd64
+        image: freebsd-14-1-release-amd64
       env:
-        cc: gcc12
-        cxx: g++12
+        cc: gcc14
+        cxx: g++14
     - name: FreeBSD -- clang | clang++
       freebsd_instance:
-        image: freebsd-13-1-release-amd64
+        image: freebsd-14-1-release-amd64
       env:
         cc: clang
         cxx: clang++
@@ -16,8 +16,8 @@ task:
       macos_instance:
         image: ghcr.io/cirruslabs/macos-monterey-base:latest
       env:
-        cc: gcc-12
-        cxx: g++-12
+        cc: gcc-14
+        cxx: g++-14
     - name: MacOS M1 -- clang | clang++
       macos_instance:
         image: ghcr.io/cirruslabs/macos-monterey-base:latest
@@ -40,7 +40,6 @@ task:
       -DCMAKE_CXX_COMPILER=$cxx \
       -DTEST_OPENMP=OFF \
       -DBUILD_INTERFACE_C=ON \
-      -DBUILD_TESTS=ON \
       -DCMAKE_INSTALL_PREFIX=../instdir \
       ..
   build_script: |

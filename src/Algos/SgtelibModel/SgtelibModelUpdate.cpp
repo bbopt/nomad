@@ -56,9 +56,7 @@
 #include "../../Type/SgtelibModelFormulationType.hpp"
 
 
-NOMAD::SgtelibModelUpdate::~SgtelibModelUpdate()
-{
-}
+NOMAD::SgtelibModelUpdate::~SgtelibModelUpdate() = default;
 
 
 void NOMAD::SgtelibModelUpdate::init()
@@ -79,7 +77,7 @@ std::string NOMAD::SgtelibModelUpdate::getName() const
 
 void NOMAD::SgtelibModelUpdate::startImp()
 {
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
+    const auto& modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
     _displayLevel = (std::string::npos != modelDisplay.find("U"))
     ? NOMAD::OutputLevel::LEVEL_INFO
     : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
@@ -185,7 +183,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
              centerIndex < nbCenters && !pointAdded;
              centerIndex++)
         {
-            NOMAD::EvalPoint center = allCenters[centerIndex];
+            const NOMAD::EvalPoint& center = allCenters[centerIndex];
             auto distances = NOMAD::Point::vectorize(*(center.getX()), evalPoint);
             distances = distances.abs();
             if (distances <= radius)
@@ -246,7 +244,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
     AddOutputInfo(s);
     OUTPUT_INFO_END
 
-    for (auto evalPoint : evalPointList)
+    for (const auto& evalPoint : evalPointList)
     {
         NOMAD::Point x = *evalPoint.getX();
         OUTPUT_INFO_START
@@ -263,7 +261,9 @@ bool NOMAD::SgtelibModelUpdate::runImp()
 
         // Objective
         // Update uses blackbox values
-        row_Z.set(0, 0, evalPoint.getF(NOMAD::EvalType::BB, NOMAD::EvcInterface::getEvaluatorControl()->getComputeType()).todouble()); // 1st column: constraint model
+        auto computeTypeS = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
+        NOMAD::FHComputeType completeComputeType = {NOMAD::EvalType::BB, computeTypeS};
+        row_Z.set(0, 0, evalPoint.getF(completeComputeType).todouble()); // 1st column: constraint model
 
         NOMAD::ArrayOfDouble bbo = evalPoint.getEval(NOMAD::EvalType::BB)->getBBOutput().getBBOAsArrayOfDouble();
         // Constraints
@@ -286,7 +286,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
                 break;
 
             case NOMAD::SgtelibModelFeasibilityType::B:
-                row_Z.set(0, 1, evalPoint.isFeasible(NOMAD::EvalType::BB, NOMAD::EvcInterface::getEvaluatorControl()->getComputeType())); // 2nd column: constraint model
+                row_Z.set(0, 1, evalPoint.isFeasible(completeComputeType)); // 2nd column: constraint model
                 break;
 
             case NOMAD::SgtelibModelFeasibilityType::M:
@@ -309,7 +309,7 @@ bool NOMAD::SgtelibModelUpdate::runImp()
 
         add_Z->add_rows(row_Z);
 
-        if (evalPoint.isFeasible(NOMAD::EvalType::BB, NOMAD::EvcInterface::getEvaluatorControl()->getComputeType()))
+        if (evalPoint.isFeasible(completeComputeType))
         {
             if (!modelAlgo->getFoundFeasible())
             {
@@ -393,17 +393,18 @@ bool NOMAD::SgtelibModelUpdate::validForUpdate(const NOMAD::EvalPoint& evalPoint
     }
     else
     {
-        auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+        const auto& computeTypeS = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
+
 
         // Note: it could be discussed if points that have h > hMax should still be used
         // to build the model. We validate them to comply with Nomad 3.
         // If f or h greater than MODEL_MAX_OUTPUT (default=1E10) the point is not valid (same as Nomad 3)
         if (   ! eval->isBBOutputComplete()
             || !(NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
-            || !eval->getF(computeType).isDefined()
-            || !eval->getH(computeType).isDefined()
-            || eval->getF(computeType) > NOMAD::MODEL_MAX_OUTPUT
-            || eval->getH(computeType) > NOMAD::MODEL_MAX_OUTPUT)
+            || !eval->getF(computeTypeS).isDefined()
+            || !eval->getH(computeTypeS).isDefined()
+            || eval->getF(computeTypeS) > NOMAD::MODEL_MAX_OUTPUT
+            || eval->getH(computeTypeS) > NOMAD::MODEL_MAX_OUTPUT)
         {
             validPoint = false;
         }

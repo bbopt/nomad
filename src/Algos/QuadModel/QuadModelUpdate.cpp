@@ -55,30 +55,35 @@
 
 #include "../../../ext/sgtelib/src/Surrogate_PRS.hpp"
 
-NOMAD::QuadModelUpdate::~QuadModelUpdate()
-{
-}
+NOMAD::QuadModelUpdate::~QuadModelUpdate() = default;
 
 void NOMAD::QuadModelUpdate::init()
 {
     setStepType(NOMAD::StepType::UPDATE);
     verifyParentNotNull();
-    
+
     // Clear old model info from cache.
     // Very important because we need to update model info with new bb evaluations info.
     NOMAD::CacheBase::getInstance()->clearModelEval(NOMAD::getThreadNum());
-    
-    _flagUseTrialPointsToDefineBox = ( _trialPoints.size() > 0);
-    
-    _flagUseScaledModel = (_scalingDirections.size() > 0);
-    
+
+    _flagUseTrialPointsToDefineBox = !_trialPoints.empty();
+
+    _flagUseScaledModel = !_scalingDirections.empty();
+
     _boxFactor = NOMAD::INF;
     if (nullptr != _pbParams)
     {
         _boxFactor = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_BOX_FACTOR");
     }
     _n = _pbParams->getAttributeValue<size_t>("DIMENSION");
-    
+
+
+    // Fixed groups of variables.
+    if ( nullptr != _pbParams)
+    {
+        _listFixVG = _runParams->getListFixVGForQuadModelSearch();
+    }
+
 }
 
 
@@ -108,15 +113,22 @@ bool NOMAD::QuadModelUpdate::runImp()
     bool updateSuccess = false;
 
     const NOMAD::QuadModelIteration * iter = getParentOfType<NOMAD::QuadModelIteration*>();
-
     if (nullptr == iter)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Update must have a Iteration among its ancestors.");
     }
 
+    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType(); // Can be BB or SURROGATE
+
+    // Number of models
     const auto bbot = NOMAD::Algorithm::getBbOutputType();
-    size_t nbConstraints = NOMAD::getNbConstraints(bbot);
-    size_t nbModels = nbConstraints+1; /// Constraint plus a single objective
+    auto nbModels = bbot.size(); // one output, one quad "model"
+    if ( _flagPriorCombineObjsForModel )
+    {
+        // Case where we combine obj outputs into a single objective function f.
+        // We have nbCons + 1 quad model
+        nbModels = NOMAD::getNbConstraints(bbot) + 1;
+    }
 
     // row_X and row_Z are one-liner matrices to stock current point.
     SGTELIB::Matrix row_X("row_X", 1, static_cast<int>(_n));
@@ -134,7 +146,6 @@ bool NOMAD::QuadModelUpdate::runImp()
     OUTPUT_INFO_START
     AddOutputInfo("Review of the cache");
     OUTPUT_INFO_END
-    NOMAD::Double v;
 
     //
     // 1- Get relevant points in cache, around current frame centers.
@@ -142,7 +153,7 @@ bool NOMAD::QuadModelUpdate::runImp()
     std::vector<NOMAD::EvalPoint> evalPointList;
     if (NOMAD::EvcInterface::getEvaluatorControl()->getUseCache())
     {
-        
+
         // Select valid points that are close enough to model center.
         // Compute distances that must not be violated for each variable (box size).
         // For Quad Model Search: Get a Delta (frame size) if available and multiply by factor
@@ -150,8 +161,8 @@ bool NOMAD::QuadModelUpdate::runImp()
         if (_flagUseTrialPointsToDefineBox)
         {
             // Case of Quad Model used for SORT
-            
-            NOMAD::ArrayOfDouble minVal(_n,INF), maxVal(_n,M_INF);
+
+            NOMAD::ArrayOfDouble minVal(_n,NOMAD::INF), maxVal(_n,NOMAD::M_INF);
             for (const auto & pt: _trialPoints)
             {
                 for (size_t i=0; i < _n ; i++)
@@ -162,9 +173,9 @@ bool NOMAD::QuadModelUpdate::runImp()
             }
             _modelCenter.reset(_n);
             _boxSize.reset(_n);
-            
 
-            
+
+
             // Model center is obtained by averaging min and max of the trial points.
             // Multiply box size by box factor parameter
             for (size_t i=0; i < _n ; i++)
@@ -175,27 +186,39 @@ bool NOMAD::QuadModelUpdate::runImp()
         }
         else if (nullptr != iter->getMesh())
         {
-            
+
             // Case of Quad Model used for SEARCH
             _modelCenter = *iter->getRefCenter()->getX();
             if (! _modelCenter.isComplete() )
             {
                 throw NOMAD::Exception(__FILE__,__LINE__,"Update must have a model center.");
             }
-            
+
+
+            // Forced fixed variables from selected variable groups
+            _forcedFixVG = NOMAD::Point(_n);
+            for (const auto & vg: _listFixVG)
+            {
+                for (const auto & i: vg)
+                {
+                    _forcedFixVG[i] = _modelCenter[i];
+                }
+            }
+
+
             // Box size is the current frame size
             _boxSize = iter->getMesh()->getDeltaFrameSize();
-            
+
             // Multiply by box factor parameter
             _boxSize *= _boxFactor;
-            
+
             OUTPUT_INFO_START
             s = "Mesh size: " + iter->getMesh()->getdeltaMeshSize().display();
             AddOutputInfo(s);
             s = "Frame size: " + iter->getMesh()->getDeltaFrameSize().display();
             AddOutputInfo(s);
             OUTPUT_INFO_END
-            
+
         }
         else
         {
@@ -205,12 +228,12 @@ bool NOMAD::QuadModelUpdate::runImp()
                throw NOMAD::Exception(__FILE__,__LINE__,"Update must have a model center.");
            }
             _boxSize = NOMAD::ArrayOfDouble(_n,NOMAD::INF);
-            
+
             OUTPUT_INFO_START
             AddOutputInfo("Box size set to infinity. All evaluated points in cache will be used for update.");
             OUTPUT_INFO_END
         }
-        
+
         if ( ! _modelCenter.isComplete() || ! _boxSize.isComplete() )
         {
             throw NOMAD::Exception(__FILE__,__LINE__,"Update must have complete frame center and box size.");
@@ -221,44 +244,55 @@ bool NOMAD::QuadModelUpdate::runImp()
         AddOutputInfo(s);
         s = "Model center: " + _modelCenter.display();
         AddOutputInfo(s);
+        if (_forcedFixVG.nbDefined() > 0)
+        {
+            s = "Forced fixed variables: " + _forcedFixVG.display();
+        }
+        AddOutputInfo(s);
         OUTPUT_INFO_END
-        
-        
+
+
         // Get valid points: notably, they have a BB evaluation.
         // Use CacheInterface to ensure the points are converted to subspace
         NOMAD::CacheInterface cacheInterface(this);
-        
-    
-        
+
         // Get number of valid points in cache
+
+        std::vector<NOMAD::EvalPoint> evalPointListInCache;
         auto crit0 = [&](const NOMAD::EvalPoint& evalPoint){return this->isValidForUpdate(evalPoint);};
-        cacheInterface.find(crit0, evalPointList, true /*find in subspace*/);
-        size_t nbMaxCache = evalPointList.size();
-        
-        // Get points in the box
-        auto crit = [&](const NOMAD::EvalPoint& evalPoint){return this->isValidForIncludeInModel(evalPoint);};
-        cacheInterface.find(crit, evalPointList, true /*find in subspace*/);
-        
-        //        // If the number of points is less than n, enlarge the box size and repeat
-        //        if (evalPointList.size()<_n)
-        //        {
-        //            evalPointList.clear();
-        //            _boxSize *= 2;
-        //            cacheInterface.find(crit, evalPointList, true /*find in subspace*/);
-        //            OUTPUT_INFO_START
-        //            s = "Enlarge box size to get more points: " + _boxSize.display();
-        //            AddOutputInfo(s);
-        //            OUTPUT_INFO_END
-        //        }
-        // If the number of points is less than 0.5*(n+2)*(n+1), enlarge the box size and repeat
-        if ( nbMaxCache >= 0.5*(_n+2)*(_n+1))
+        cacheInterface.find(crit0, evalPointListInCache, true /*find in subspace*/);
+        size_t nbMaxCache = evalPointListInCache.size();
+
+        evalPointList.clear();
+        for (const auto & evalPoint: evalPointListInCache)
+        {
+            if (isValidForIncludeInModel(evalPoint))
+            {
+                evalPointList.push_back(evalPoint);
+            }
+        }
+
+
+        size_t nbEvalTarget = 0.5*(_n+2)*(_n+1); // Best target to build a quadratic model
+        if (nbMaxCache < nbEvalTarget)
+        {
+            nbEvalTarget = _n;  // Target to build at leat a linear model
+        }
+        if ( nbMaxCache >= nbEvalTarget )
         {
             size_t nbIncrease = 0;
-            while (nbIncrease < 10 && evalPointList.size() < 0.5*(_n+2)*(_n+1))
+            while (nbIncrease < 20 && evalPointList.size() < nbEvalTarget)
             {
                 nbIncrease++;
                 _boxSize *= 2.0;
-                cacheInterface.find(crit, evalPointList, true /*find in subspace*/);
+                evalPointList.clear();
+                for (const auto & evalPoint: evalPointListInCache)
+                {
+                    if (isValidForIncludeInModel(evalPoint))
+                    {
+                        evalPointList.push_back(evalPoint);
+                    }
+                }
                 OUTPUT_INFO_START
                 s = "Enlarge box size to get more points: " + _boxSize.display();
                 AddOutputInfo(s);
@@ -274,7 +308,7 @@ bool NOMAD::QuadModelUpdate::runImp()
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"SGTELIB_MIN_POINTS_FOR_MODEL cannot be infinite.");
     }
-    
+
     const size_t maxNbPoints = _runParams->getAttributeValue<size_t>("SGTELIB_MAX_POINTS_FOR_MODEL");
 
     size_t nbValidPoints = evalPointList.size();
@@ -291,7 +325,7 @@ bool NOMAD::QuadModelUpdate::runImp()
                  );
         // Keep only the first maxNbPoints elements of list
         evalPointList.resize(maxNbPoints);
-                 
+
         OUTPUT_INFO_START
         s = "QuadModel found " + std::to_string(nbValidPoints);
         s += " valid points to build model. Keep only ";
@@ -303,7 +337,7 @@ bool NOMAD::QuadModelUpdate::runImp()
 
     if (nbValidPoints < 2 || nbValidPoints < minNbPoints || nbValidPoints < _n)
     {
-        
+
         // If no points available, it is impossible to build a model, a stop reason is set.
         if (!_flagUseTrialPointsToDefineBox)
         {
@@ -334,18 +368,20 @@ bool NOMAD::QuadModelUpdate::runImp()
         AddOutputInfo(s, NOMAD::OutputLevel::LEVEL_DEBUG);
     }
     OUTPUT_DEBUG_END
-    
-    
-    for (auto evalPoint : evalPointList)
+
+    auto fhComputeType = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
+    NOMAD::FHComputeType computeType = { evalType,fhComputeType};
+
+    for (const auto& evalPoint : evalPointList)
     {
         NOMAD::Point x = *evalPoint.getX();
-                
+
         bool success = true;
         if (_flagUseScaledModel)
         {
             success = scalingByDirections(x);
         }
-        if (! success)
+        if (!success)
         {
             s = "xNew = " + evalPoint.display() + " cannot be scaled";
             AddOutputInfo(s, OutputLevel::LEVEL_DEBUG);
@@ -364,29 +400,43 @@ bool NOMAD::QuadModelUpdate::runImp()
         }
         add_X->add_rows(row_X);
 
-        // Objective
-        // Update uses blackbox values
-        if (!evalPoint.getF(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD).isDefined())
+        if (_flagPriorCombineObjsForModel)
         {
-            s = "Error: In QuadModelUpdate, this point should have a BB Eval: ";
-            s += evalPoint.displayAll();
-            throw NOMAD::Exception(__FILE__,__LINE__,s);
-        }
-        row_Z.set(0, 0, evalPoint.getF(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD).todouble()); // 1st column: constraint model
 
-        NOMAD::ArrayOfDouble bbo = evalPoint.getEval(NOMAD::EvalType::BB)->getBBOutput().getBBOAsArrayOfDouble();
-        // Constraints
-        int k = 1;
-        for (size_t j = 0; j < bbo.size(); j++)
-        {
-            if (bbot[j].isConstraint())
+            // Objective is put FIRST
+            // Update uses blackbox values
+            auto f = evalPoint.getF(computeType);
+            if (!f.isDefined())
             {
-                row_Z.set(0, k, bbo[j].todouble());
-                k++;
+                s = "Error: In QuadModelUpdate, this point should have a BB Eval: ";
+                s += evalPoint.displayAll();
+                throw NOMAD::Exception(__FILE__,__LINE__,s);
             }
-        }
-        add_Z->add_rows(row_Z);
+            row_Z.set(0, 0, f.todouble()); // 1st column: constraint model
 
+            // Constraints are put AFTER OBJECTIVE
+            NOMAD::ArrayOfDouble bbo = evalPoint.getEval(computeType.evalType)->getBBOutput().getBBOAsArrayOfDouble();
+            int k = 1;
+            for (size_t j = 0; j < bbo.size(); j++)
+            {
+                if (bbot[j].isConstraint())
+                {
+                    row_Z.set(0, k, bbo[j].todouble());
+                    k++;
+                }
+            }
+            add_Z->add_rows(row_Z);
+        }
+        else
+        {
+            NOMAD::ArrayOfDouble bbo = evalPoint.getEval(evalType)->getBBOutput().getBBOAsArrayOfDouble();
+            for (size_t j = 0; j < bbo.size(); j++)
+            {
+                row_Z.set(0, static_cast<int>(j), bbo[j].todouble());
+            }
+            add_Z->add_rows(row_Z);
+
+        }
     }   // Done going through valid points
 
     //
@@ -411,7 +461,7 @@ bool NOMAD::QuadModelUpdate::runImp()
             OUTPUT_INFO_START
             AddOutputInfo("OK.", _displayLevel);
             OUTPUT_INFO_END
-            
+
         }
         else
         {
@@ -427,9 +477,7 @@ bool NOMAD::QuadModelUpdate::runImp()
     // Check if the model is ready
     if ( model->is_ready() )
     {
-        {
-             updateSuccess = true;
-        }
+        updateSuccess = true;
     }
     // updateSuccess default is "false"
 
@@ -447,17 +495,13 @@ bool NOMAD::QuadModelUpdate::runImp()
 bool NOMAD::QuadModelUpdate::isValidForIncludeInModel(const NOMAD::EvalPoint& evalPoint) const
 {
 
-    if(! isValidForUpdate(evalPoint))
-        return false;
-    
     NOMAD::ArrayOfDouble diff = (*evalPoint.getX() - _modelCenter);
-    
+
     diff *= 2.0; // Comparison with half of the box size. But instead we multiply the diff by two.
-    
+
     return diff.abs() <= _boxSize ;
 
 }
-
 
 bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint) const
 {
@@ -466,19 +510,17 @@ bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint)
     // - Not a fail
     // - All outputs defined
     // - Blackbox OBJ available (Not MODEL)
-    bool validPoint = true;
-    NOMAD::ArrayOfDouble bbo;
 
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
     auto eval = evalPoint.getEval(evalType);
     if (NOMAD::EvalType::BB != evalType)
     {
-        validPoint = false;
+        return false;
     }
     else if (nullptr == eval)
     {
         // Eval must be available
-        validPoint = false;
+        return false;
     }
     else
     {
@@ -486,55 +528,60 @@ bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint)
         // to build the model (Nomad 3). We validate them to comply with Nomad 3.
         // If f or h greater than MODEL_MAX_OUTPUT (default=1E10) the point is not valid (same as Nomad 3)
         if (   ! eval->isBBOutputComplete()
-            || !(NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
-            || !eval->getF(NOMAD::ComputeType::STANDARD).isDefined()
-            || !eval->getH(NOMAD::ComputeType::STANDARD).isDefined()
-            || eval->getF(NOMAD::ComputeType::STANDARD) > NOMAD::MODEL_MAX_OUTPUT
-            || eval->getH(NOMAD::ComputeType::STANDARD) > NOMAD::MODEL_MAX_OUTPUT)
+            || !(NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus()))
         {
-            validPoint = false;
+            return false;
+
+        }
+
+        auto bbo = eval->getBBOutput().getBBOAsArrayOfDouble() ;
+        for (size_t i =0 ; i < bbo.size() ; i++)
+        {
+            if ( ! bbo[i].isDefined()
+                 || bbo[i] > NOMAD::MODEL_MAX_OUTPUT)
+            {
+                return false;
+            }
         }
     }
 
-    return validPoint;
+    return true;
 }
-
 
 bool NOMAD::QuadModelUpdate::scalingByDirections ( NOMAD::Point & x )
 {
-    
-    if (_scalingDirections.size() <= 0)
+
+    if (_scalingDirections.empty())
     {
         // For now, we expect to have scaling directions to do scaling. Maybe we could just return.
         throw NOMAD::Exception(__FILE__,__LINE__,"Scaling directions not provided");
-        
+
     }
     if (! _modelCenter.isComplete())
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Defining the scaling requires a model center");
     }
-    
+
     size_t n = _modelCenter.size();
     if (_scalingDirections.size() != n)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Number of scaling directions must be n");
     }
-    
 
-    
+
+
     // Scale with rotation based on direction and center (see paper Reducing the number of function evaluations in Mesh Adaptive Direct Search algorithms, Audet, Ianni, LeDigabel, Tribes, 2014
     // T(y)=(D')^-1*(center-x)/delta_m/(1-epsilon) - epsilon*1/(1-epsilon)
     // (D')^-1=(D')^T/normCol^2
     NOMAD::Point temp(n,0.0);
-    std::vector<NOMAD::Direction>::const_iterator itDir=_scalingDirections.begin();
     for ( size_t i = 0 ; i < n ; ++i )
     {
         temp[i]=(_modelCenter[i].todouble()-x[i].todouble())/(1.0-epsilon);
-        
+
         x[i]=0.0;
     }
     size_t j=0;
-    for (itDir=_scalingDirections.begin(); itDir != _scalingDirections.end(); itDir++,j++)
+    for (auto itDir=_scalingDirections.begin(); itDir != _scalingDirections.end(); itDir++,j++)
     {
         double normCol2= (*itDir).squaredL2Norm().todouble();
         if (normCol2 == 0)
@@ -548,26 +595,26 @@ bool NOMAD::QuadModelUpdate::scalingByDirections ( NOMAD::Point & x )
         x[j]-=epsilonDelta;
     }
 
-    
+
     return true;
 }
 
 void NOMAD::QuadModelUpdate::unscalingByDirections( NOMAD::EvalPoint & x)
 {
-    if (_scalingDirections.size() <= 0)
+    if (_scalingDirections.empty())
     {
         // For now, we expect to have scaling directions to do unscaling. Maybe we could just return.
         throw NOMAD::Exception(__FILE__,__LINE__,"Scaling directions not provided");
-        
+
     }
     if (! _modelCenter.isComplete())
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Defining the scaling requires a model center");
     }
-    
+
     size_t n = _modelCenter.size();
-    
-    
+
+
     // UnScale with rotation see paper Reducing the number of function evaluations in Mesh Adaptive Direct Search algorithms, Audet, Ianni, LeDigabel, Tribes, 2014
     //T^−1(x) = center + Dp ((ε−1)x−ε1)
     NOMAD::Point temp(n,0.0);

@@ -23,9 +23,8 @@ UPPER_BOUND *  20.0
 # The algorithm terminates after that number surrogate evaluations
 MAX_SURROGATE_EVAL_OPTIMIZATION 100
 
-# Use surrogate evaluation for optimization 
+# Use surrogate evaluation for optimization
 EVAL_SURROGATE_OPTIMIZATION yes
-
 
 # Display parameters
 ####################

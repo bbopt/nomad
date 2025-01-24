@@ -45,8 +45,10 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+#include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
+#include "../../Algos/SubproblemManager.hpp"
 #include "../../Eval/ProgressiveBarrier.hpp"
 #include "../../Util/fileutils.hpp"
 
@@ -54,6 +56,9 @@
 #include "../../Algos/NelderMead/NM.hpp"
 #include "../../Algos/NelderMead/NMInitialization.hpp"
 #include "../../Algos/NelderMead/NMMegaIteration.hpp"
+
+// DMultiMads Specific
+#include "../../Algos/DMultiMads/DMultiMadsBarrier.hpp"
 
 void NOMAD::NM::init()
 {
@@ -73,8 +78,10 @@ bool NOMAD::NM::runImp()
         size_t k = 0;   // Iteration number
 
         std::shared_ptr<NOMAD::BarrierBase> barrier = nullptr;
+        
+        auto nmOpt = _runParams->getAttributeValue<bool>("NM_OPTIMIZATION");
 
-        if (_runParams->getAttributeValue<bool>("NM_OPTIMIZATION"))
+        if (nmOpt)
         {
             // Barrier was computed by Initialization.
             barrier = _initialization->getBarrier();
@@ -87,8 +94,9 @@ bool NOMAD::NM::runImp()
             {
                 barrier = megaIter->getBarrier();
             }
+            
         }
-
+        
         NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::UNDEFINED;
         
         // Create a MegaIteration: manage multiple iterations.
@@ -110,7 +118,7 @@ bool NOMAD::NM::runImp()
                 hotRestartOnUserInterrupt();
             }
         }
-
+        
         // Issue #372: For hot restart make sure to save the simplex (maybe as X0s)
         // _refMegaIteration is used for hot restart (read
         // and write), as well as to keep values used in Mads::end(). Update it here.
@@ -129,12 +137,12 @@ void NOMAD::NM::readInformationForHotRestart()
 {
     // Restart from where we were before.
     // For this, we need to read some files.
-    // Note: Cache file is treated independently from hot restart file.
+    // Note: Cache file is treated independently of hot restart file.
 
     if (_runParams->getAttributeValue<bool>("HOT_RESTART_READ_FILES"))
     {
         // Verify the files exist and are readable.
-        std::string hotRestartFile = _runParams->getAttributeValue<std::string>("HOT_RESTART_FILE");
+        const std::string& hotRestartFile = _runParams->getAttributeValue<std::string>("HOT_RESTART_FILE");
         if (NOMAD::checkReadFile(hotRestartFile))
         {
             std::cout << "Read hot restart file " << hotRestartFile << std::endl;
@@ -142,7 +150,7 @@ void NOMAD::NM::readInformationForHotRestart()
             // Create a GMesh and a MegaIteration with default values, to be filled
             // by istream is.
             // Issue #372: Fix potential bug with Hot Restart
-            // Note: Assuming the progessive barrier read is in the same subspace as the current subspace.
+            // Note: Assuming the progressive barrier read is in the same subspace as the current subspace.
             // This could be fixed if we write and read the progressive barrier in full subspace.
             
             // Create a single objective barrier

@@ -29,7 +29,7 @@
 /*         constructor        */
 /*----------------------------*/
 SGTELIB::Surrogate_CN::Surrogate_CN ( SGTELIB::TrainingSet & trainingset,
-                                      SGTELIB::Surrogate_Parameters param) :
+                                      const SGTELIB::Surrogate_Parameters& param) :
   SGTELIB::Surrogate ( trainingset , param  ) {
   #ifdef SGTELIB_DEBUG
     std::cout << "constructor CN\n";

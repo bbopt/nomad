@@ -78,7 +78,7 @@ namespace SGTELIB {
   public:
     // Constructor
     Surrogate_LOWESS ( SGTELIB::TrainingSet & trainingset ,   
-                    SGTELIB::Surrogate_Parameters param) ;
+                       const SGTELIB::Surrogate_Parameters& param) ;
 
     // destructor:
     virtual ~Surrogate_LOWESS ( void );

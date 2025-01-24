@@ -99,7 +99,6 @@ bool NOMAD::VNSmartAlgoSearchMethod::runImp()
     if (isEnabled())
     {
         // Collect the information needed from the current iteration
-        auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
         auto madsMegaIter = getParentOfType<NOMAD::MadsMegaIteration*>(false);
         auto nbConsecutiveFail = madsMegaIter->getConstSuccessStats().getStatsNbConsecutiveFail();
         
@@ -112,36 +111,42 @@ bool NOMAD::VNSmartAlgoSearchMethod::runImp()
             
             // Check that mesh from upper MadsMegaIteration is finer than initial
             auto megaIter = getParentOfType<NOMAD::MegaIteration*>(false);
+            if (megaIter == nullptr)
+            {
+                throw NOMAD::Exception(__FILE__,__LINE__,"VNS Mads needs a MegaIteration parent");
+            }
+            auto mesh = megaIter->getMesh();
+            if (mesh == nullptr)
+            {
+                throw NOMAD::Exception(__FILE__,__LINE__,"VNS Mads needs a mesh");
+            }
             auto frameSize = megaIter->getMesh()->getDeltaFrameSize();
             auto initialFrameSize = megaIter->getMesh()->getInitialFrameSize();
 
             // Get barrier from upper MadsMegaIteration, if available.
-            if (nullptr != megaIter)
-            {
-                barrier = megaIter->getBarrier();
-            }
-            else
+            barrier = megaIter->getBarrier();
+            if (barrier == nullptr)
             {
                 throw NOMAD::Exception(__FILE__,__LINE__,"VNS Mads needs a barrier");
             }
-            
+
             // MegaIteration's barrier member is already in sub dimension.
             auto bestXFeas = barrier->getCurrentIncumbentFeas();
             auto bestXInf  = barrier->getCurrentIncumbentInf();
             
             // Get the frame center for VNS sub optimization
-            auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+            auto computeType = barrier->getFHComputeType();
             if (nullptr != bestXFeas
-                && bestXFeas->getF(evalType, computeType).isDefined()
-                && bestXFeas->getF(evalType, computeType) < MODEL_MAX_OUTPUT)
+                && bestXFeas->getF(computeType).isDefined()
+                && bestXFeas->getF(computeType) < MODEL_MAX_OUTPUT)
             {
                 frameCenter = bestXFeas;
             }
             else if (nullptr != bestXInf
-                     && bestXInf->getF(evalType, computeType).isDefined()
-                     && bestXInf->getF(evalType, computeType) < MODEL_MAX_OUTPUT
-                     && bestXInf->getH(evalType, computeType).isDefined()
-                     && bestXInf->getH(evalType, computeType) < MODEL_MAX_OUTPUT)
+                     && bestXInf->getF(computeType).isDefined()
+                     && bestXInf->getF(computeType) < MODEL_MAX_OUTPUT
+                     && bestXInf->getH(computeType).isDefined()
+                     && bestXInf->getH(computeType) < MODEL_MAX_OUTPUT)
             {
                 frameCenter = bestXInf;
             }
@@ -168,9 +173,7 @@ bool NOMAD::VNSmartAlgoSearchMethod::runImp()
                     auto vnsBestFeas = vnsBarrier->getCurrentIncumbentFeas();
                     auto vnsBestInf = vnsBarrier->getCurrentIncumbentInf();
                     NOMAD::SuccessType success = barrier->getSuccessTypeOfPoints(vnsBestFeas,
-                                                                                 vnsBestInf,
-                                                                                 NOMAD::EvalType::BB,
-                                                                                 NOMAD::ComputeType::STANDARD);
+                                                                                 vnsBestInf);
                     
                     setSuccessType(success);
                     if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
@@ -180,9 +183,7 @@ bool NOMAD::VNSmartAlgoSearchMethod::runImp()
                     
                     // Update the barrier
                     barrier->updateWithPoints(vnsBarrier->getAllPoints(),
-                                                                    NOMAD::EvalType::BB,
-                                                                    NOMAD::ComputeType::STANDARD,
-                                                                    _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"),
+                                              _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"),
                                                                     true /* true: update incumbents and hMax */);
                     
                 }

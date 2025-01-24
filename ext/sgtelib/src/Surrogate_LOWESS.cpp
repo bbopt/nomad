@@ -35,7 +35,7 @@ const int GAMMA_EXP = 2;
 /*         constructor        */
 /*----------------------------*/
 SGTELIB::Surrogate_LOWESS::Surrogate_LOWESS ( SGTELIB::TrainingSet & trainingset,
-                                        SGTELIB::Surrogate_Parameters param) :
+                                              const SGTELIB::Surrogate_Parameters& param) :
   SGTELIB::Surrogate ( trainingset , param ),
   _q                 ( 0        ),
   _q_old             ( 99999999 ),

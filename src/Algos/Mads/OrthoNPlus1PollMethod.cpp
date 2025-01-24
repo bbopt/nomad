@@ -107,7 +107,7 @@ void NOMAD::OrthoNPlus1PollMethod::generateSecondPassDirections(std::list<Direct
         OUTPUT_DEBUG_END
         return;
     }
-    for (auto trialPoint : _trialPoints)
+    for (const auto& trialPoint : _trialPoints)
     {
         
         auto dir = trialPoint.getDirection();
@@ -157,8 +157,9 @@ void NOMAD::OrthoNPlus1PollMethod::trialPointsReduction()
     
 
     // If the mesh is finest we don't want to order the direction based on some informed rule. Some informed ordering can select always the same directions.
-    // Forcing random will ensure that the Ortho n+1 direction will grows asymptotically dense
+    // Forcing random will ensure that the Ortho n+1 direction will grow asymptotically dense
     // NOTE: With GMesh the mesh is refined less frequently then with XMesh (the Ortho N+1 paper was based on XMesh). So we more frequently force a random ordering. The quad model ordering is beneficial when opportunistic. Using the Frame size to decide is also not pertinent. When the mesh index is available we should use it instead of the mesh size.
+    // bool forceRandom = meshIsFinest();
     bool forceRandom = false;
     std::vector<EvalPoint> sortedEvalPoints=evcInterface.getSortedTrialPoints(_trialPoints,forceRandom);
     
@@ -231,8 +232,6 @@ bool NOMAD::OrthoNPlus1PollMethod::optimizeQuadModel(const std::vector<NOMAD::Di
     // Reset the counter
     evc->resetModelEval();
     
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
-    
     auto fullFixedVar = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
     OUTPUT_INFO_START
     std::string s = "Create QuadModelEvaluator with fixed variable = ";
@@ -243,19 +242,19 @@ bool NOMAD::OrthoNPlus1PollMethod::optimizeQuadModel(const std::vector<NOMAD::Di
     // The trial points are generated for the frame center.
     
     auto madsIteration = getParentOfType<Iteration*>();
-    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
-
+    auto barrier = madsIteration->getMegaIterationBarrier();
+    const auto& computeType = barrier->getFHComputeType();
     
     if (nullptr != _frameCenter
-        && _frameCenter->getF(evalType).isDefined()
-        && _frameCenter->getF(evalType) < MODEL_MAX_OUTPUT)
+        && _frameCenter->getF(computeType).isDefined()
+        && _frameCenter->getF(computeType) < MODEL_MAX_OUTPUT)
     {
         NOMAD::QuadModelSinglePass singlePass(this, _frameCenter, madsIteration->getMesh(), allGeneratingDirs);
         
         // Generate the trial points (but we just need the points coordinates to output the direction)
         singlePass.generateTrialPoints();
         
-        // Get a single n+1 th direction from best feasible or best infeasible
+        // Get a single n+1 th direction from the best feasible or best infeasible
         auto bestFeas = singlePass.getBestFeas();
         auto bestInf = singlePass.getBestInf();
         if(nullptr != bestFeas)

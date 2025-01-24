@@ -147,7 +147,7 @@ bool NOMAD::NMReflective::runImp()
     }
 
     // Update reference point according to the current step (if a trial point was evaluated).
-    if (getTrialPoints().size() > 0)
+    if (!getTrialPoints().empty())
     {
         // Update the eval points by step type
         switch ( _currentStepType )
@@ -205,7 +205,7 @@ void NOMAD::NMReflective::generateTrialPointsImp()
 
     // Determine the centroid of Y
     std::set<NOMAD::EvalPoint>::iterator it;
-    std::set<NOMAD::EvalPoint>::iterator itBeforeEnd = _nmY->end();
+    auto itBeforeEnd = _nmY->end();
     --itBeforeEnd;
     int i=0;
     NOMAD::Point yc(_n,0);
@@ -219,7 +219,7 @@ void NOMAD::NMReflective::generateTrialPointsImp()
             yc[k] += (*it)[k];
         }
     }
-    yc *= 1.0/_n;
+    yc *= 1.0/ (double)_n;
 
     const NOMAD::Point & yn = *itBeforeEnd;
     OUTPUT_INFO_START
@@ -306,15 +306,15 @@ void NOMAD::NMReflective::setNextNMStepType()
             break;
     }
 
-    // Unset the currectStepType.
-    // The currentStepType must be set explicitely before each sequence Start, Run, End
+    // Unset the currentStepType.
+    // The currentStepType must be set explicitly before each sequence Start, Run, End
     _currentStepType = NOMAD::StepType::NM_UNSET;
 }
 
-void NOMAD::NMReflective::setAfterReflect( void )
+void NOMAD::NMReflective::setAfterReflect()
 {
     // Reflect is always the first step of NM iteration.
-    // Depending on which zone x_r belongs, we perform an other step
+    // Depending on which zone x_r belongs, we perform another step
 
     if ( _currentStepType != NOMAD::StepType::NM_REFLECT )
         throw NOMAD::Exception(__FILE__,__LINE__,"The current step type should be REFLECT.");
@@ -391,7 +391,7 @@ void NOMAD::NMReflective::setAfterReflect( void )
     }
 }
 
-void NOMAD::NMReflective::setAfterExpand( void )
+void NOMAD::NMReflective::setAfterExpand()
 {
 
     // Expand follows Reflect.
@@ -439,7 +439,7 @@ void NOMAD::NMReflective::setAfterExpand( void )
 }
 
 
-void NOMAD::NMReflective::setAfterOutsideContract ( void )
+void NOMAD::NMReflective::setAfterOutsideContract ()
 {
 
     // Outside contraction follows Reflect.
@@ -504,11 +504,12 @@ void NOMAD::NMReflective::setAfterOutsideContract ( void )
 }
 
 
-void NOMAD::NMReflective::setAfterInsideContract ( void )
+void NOMAD::NMReflective::setAfterInsideContract ()
 {
 
     // Inside contraction follows Reflect.
-    // In NM-Mads paper: x_r belongs to the inside contraction zone. x_ic has been evaluated. If x_ic belongs to the inside contraction zone, stop NM. Otherwise insert x_ic in Y. NM iteration is completed.
+    // In NM-Mads paper: x_r belongs to the inside contraction zone. x_ic has been evaluated. If x_ic belongs to the inside contraction zone, stop NM.
+    // Otherwise, insert x_ic in Y. NM iteration is completed.
 
     if ( _currentStepType != NOMAD::StepType::NM_INSIDE_CONTRACTION )
     {
@@ -578,7 +579,7 @@ bool NOMAD::NMReflective::insertInYBest(const NOMAD::EvalPoint& x1, const NOMAD:
 
     bool x2EvalOK = (x2.getEvalStatus(evalType) == NOMAD::EvalStatusType::EVAL_OK);
 
-    std::set<NOMAD::EvalPoint>::iterator itYn = _nmY->end();
+    auto itYn = _nmY->end();
     --itYn;
 
     OUTPUT_DEBUG_START
@@ -674,7 +675,7 @@ bool NOMAD::NMReflective::insertInYBest(const NOMAD::EvalPoint& x1, const NOMAD:
                 }
 
                 // Remove yn
-                std::set<NOMAD::EvalPoint>::iterator it = _nmY->end();
+                auto it = _nmY->end();
                 --it;
                 OUTPUT_DEBUG_START
                 AddOutputDebug("Delete yn from Y: " + (*it).display());
@@ -784,7 +785,7 @@ bool NOMAD::NMReflective::insertInY(const NOMAD::EvalPoint& x)
         OUTPUT_DEBUG_END
 
         // Remove yn
-        std::set<NOMAD::EvalPoint>::iterator it = _nmY->end();
+        auto it = _nmY->end();
         --it;
         OUTPUT_DEBUG_START
         AddOutputDebug("Delete from NM simplex: " + (*it).display() ) ;
@@ -852,11 +853,12 @@ bool NOMAD::NMReflective::insertInY(const NOMAD::EvalPoint& x)
 
 bool NOMAD::NMReflective::pointDominatesY0( const NOMAD::EvalPoint & xt ) const
 {
-    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+    auto computeTypeS = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
+    NOMAD::FHComputeType completeComputeType = {evalType, computeTypeS};
     std::string s;
 
-    if ( _nmY0.size()==0 )
+    if ( _nmY0.empty())
         throw NOMAD::Exception ( __FILE__ , __LINE__ ,"Y0 is empty" );
 
     if (nullptr == xt.getEval(evalType))
@@ -875,8 +877,8 @@ bool NOMAD::NMReflective::pointDominatesY0( const NOMAD::EvalPoint & xt ) const
 
     // xt < y ?
     if (std::any_of(_nmY0.begin(), _nmY0.end(),
-                    [xt, evalType, computeType](NOMAD::EvalPoint evalPointY0) {
-                        return xt.dominates(evalPointY0, evalType, computeType);
+                    [xt, completeComputeType](const NOMAD::EvalPoint& evalPointY0) {
+                        return xt.dominates(evalPointY0, completeComputeType);
                     }))
     {
         return true;
@@ -888,10 +890,11 @@ bool NOMAD::NMReflective::pointDominatesY0( const NOMAD::EvalPoint & xt ) const
 
 bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
 {
-    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+    auto computeTypeS = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
+    NOMAD::FHComputeType completeComputeType = {evalType, computeTypeS};
 
-    if (_nmYn.size() == 0)
+    if (_nmYn.empty())
     {
         throw NOMAD::Exception(__FILE__, __LINE__, " Yn is empty");
     }
@@ -912,8 +915,8 @@ bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
     // Without constraints, Yn contains a single point
     int flag = 0;
     if (std::any_of(_nmYn.begin(), _nmYn.end(),
-                    [xt, evalType, computeType](NOMAD::EvalPoint evalPointYn) {
-                        return evalPointYn.dominates(xt, evalType, computeType);
+                    [xt, completeComputeType](const NOMAD::EvalPoint& evalPointYn) {
+                        return evalPointYn.dominates(xt, completeComputeType);
                     }))
     {
         flag = 1;
@@ -928,14 +931,14 @@ bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
     // no point of Yn dominates xt --> check if h(yn) < h(xt) --> Yn dominates
 
     // Case with EB constraints and a point from Yn is infeasible
-    if (!evalPointYn.getH(evalType, computeType).isDefined())
+    if (!evalPointYn.getH(completeComputeType).isDefined())
     {
         return false;
     }
 
     // Test also case where xt has no value for h (case with EB constraint)
-    if (   !xt.getH(evalType, computeType).isDefined()
-        || evalPointYn.getH(evalType, computeType) < xt.getH(evalType, computeType))
+    if (   !xt.getH(completeComputeType).isDefined()
+        || evalPointYn.getH(completeComputeType) < xt.getH(completeComputeType))
     {
         return true;
     }
@@ -946,8 +949,9 @@ bool NOMAD::NMReflective::YnDominatesPoint(const NOMAD::EvalPoint& xt) const
 
 bool NOMAD::NMReflective::pointDominatesPtsInY(const NOMAD::EvalPoint& xt, size_t nbPointsToDominate) const
 {
-    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+    auto computeTypeS = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
+    NOMAD::FHComputeType completeComputeType = {evalType, computeTypeS};
 
     if (nullptr == xt.getEval(evalType))
     {
@@ -964,12 +968,12 @@ bool NOMAD::NMReflective::pointDominatesPtsInY(const NOMAD::EvalPoint& xt, size_
 
     size_t nDominates = 0;
 
-    std::set<NOMAD::EvalPoint>::const_iterator itY = _nmY->begin();
+    auto itY = _nmY->begin();
 
     while (itY != _nmY->end() && nDominates < nbPointsToDominate)
     {
         // xt < y ?
-        if (xt.dominates(*itY, evalType, computeType))
+        if (xt.dominates(*itY, completeComputeType))
         {
             nDominates++;
         }
@@ -986,13 +990,14 @@ bool NOMAD::NMReflective::pointDominatesPtsInY(const NOMAD::EvalPoint& xt, size_
 /*------------------------------------------------------------------*/
 bool NOMAD::NMReflective::makeListY0 ()
 {
-    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+    auto computeTypeS = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
+    NOMAD::FHComputeType completeComputeType = {evalType, computeTypeS};
 
     _nmY0.clear();
 
     std::set<NOMAD::EvalPoint>::const_iterator itx;
-    std::set<NOMAD::EvalPoint>::const_iterator ity = _nmY->begin();
+    auto ity = _nmY->begin();
 
     size_t maxSizeY0 = _nmY->size();
 
@@ -1009,7 +1014,7 @@ bool NOMAD::NMReflective::makeListY0 ()
             const NOMAD::EvalPoint & x = (*itx);
 
             // Case x dominates y --> y cannot be included in Y0
-            if (x.dominates(y, evalType, computeType))
+            if (x.dominates(y, completeComputeType))
             {
                 flag = 1;
                 break;
@@ -1027,7 +1032,7 @@ bool NOMAD::NMReflective::makeListY0 ()
 
         ++ity;
     }
-    if ( _nmY0.size() > 0 )
+    if ( !_nmY0.empty() )
         return true;
     else
         return false;
@@ -1038,8 +1043,10 @@ bool NOMAD::NMReflective::makeListY0 ()
 /*----------------------------------------------------------------*/
 bool NOMAD::NMReflective::makeListYn ()
 {
-    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+    auto computeTypeS = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
+    NOMAD::FHComputeType completeComputeType = {evalType, computeTypeS};
+    
     _nmYn.clear();
 
     auto ity = _nmY->begin();
@@ -1054,7 +1061,7 @@ bool NOMAD::NMReflective::makeListYn ()
             const NOMAD::EvalPoint & x = (*itx);
 
             // Case y dominates x --> y cannot be included in Yn
-            if (y.dominates(x, evalType, computeType))
+            if (y.dominates(x, completeComputeType))
             {
                 flag = true;
                 break;
@@ -1072,7 +1079,7 @@ bool NOMAD::NMReflective::makeListYn ()
         ++ity;
     }
 
-    return (_nmYn.size() > 0);
+    return (!_nmYn.empty());
 }
 
 
@@ -1087,13 +1094,13 @@ void NOMAD::NMReflective::displayY0nInfo() const
     OUTPUT_DEBUG_START
     NOMAD::OutputInfo dbgInfo("Display Y0 and Yn info", "The vector Y0 contains:", NOMAD::OutputLevel::LEVEL_DEBUG);
 
-    for (auto y0 : _nmY0)
+    for (const auto& y0 : _nmY0)
     {
         dbgInfo.addMsg(y0.display());
     }
 
     dbgInfo.addMsg ( "The vector Yn contains: ");
-    for (auto yn : _nmYn)
+    for (const auto& yn : _nmYn)
     {
         dbgInfo.addMsg(yn.display());
     }

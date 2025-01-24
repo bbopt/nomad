@@ -52,8 +52,8 @@
  \see    Direction.cpp
  */
 
-#ifndef __NOMAD_4_4_DIRECTION__
-#define __NOMAD_4_4_DIRECTION__
+#ifndef __NOMAD_4_5_DIRECTION__
+#define __NOMAD_4_5_DIRECTION__
 
 #include <numeric>
 #include "../Math/ArrayOfDouble.hpp"
@@ -72,7 +72,8 @@ enum class NormType
 
 /// Class for the representation of a direction.
 /**
- A direction is defined by its size and its coordinates from ArrayOfDouble. In addition, it provides functions to calculate different norms, dot product and cosinus of the angle between two directions.
+ A direction is defined by its size and its coordinates from ArrayOfDouble. In addition, it provides functions to
+ calculate different norms, dot product and cosine of the angle between two directions.
 */
 class DLL_UTIL_API Direction : public ArrayOfDouble
 {
@@ -125,8 +126,8 @@ public:
     /// Operator \c -=.
     /**
      Vector operation dir - dir1.
-     \param dir1  Direction to substract -- \b IN.
-     \return      Reference to \c *this after substracting dir1.
+     \param dir1  Direction to subtract -- \b IN.
+     \return      Reference to \c *this after subtracting dir1.
      */
     const Direction& operator-=(const Direction& dir1);
 
@@ -134,15 +135,15 @@ public:
     /*   Norm   */
     /*----------*/
     /// Squared L2 norm
-    const Double squaredL2Norm() const;
+    Double squaredL2Norm() const;
 
     /** Compute norm - L1, L2 or infinite norm.
      * Default is L2.
      */
-    const Double norm(NormType normType = NormType::L2) const;
+    Double norm(NormType normType = NormType::L2) const;
 
     /// Infinite norm
-    const Double infiniteNorm() const;
+    Double infiniteNorm() const;
 
     /*-------------*/
     /* Dot product */
@@ -154,17 +155,17 @@ public:
      \param dir2    Second \c Direction -- \b IN.
      \return        The dot product of dir1 and dir2.
      */
-    static const Double dotProduct(const Direction& dir1,
-                                   const Direction& dir2);
+    static Double dotProduct(const Direction& dir1,
+                             const Direction& dir2);
     /// Cosine of the angle between two vectors
     /**
      \param dir1    First \c Direction -- \b IN.
      \param dir2    Second \c Direction -- \b IN.
      \return        The cosine of the angle between the two \c Directions.
      */
-    static const Double cos(const Direction& dir1, const Direction& dir2);
+    static Double cos(const Direction& dir1, const Direction& dir2);
 
-    static const Double angle(const Direction& dir1, const Direction& dir2);    // From NOMAD 3
+    static Double angle(const Direction& dir1, const Direction& dir2);    // From NOMAD 3
 
     /// Compute a random direction on a unit N-Sphere
     /**
@@ -180,9 +181,9 @@ public:
     
     /// Householder transformation
     /** Householder transformation to generate n directions from a given direction. Also computes H[i+n] = -H[i] (completion to 2n directions).
-    \param dir given direciton -- \b IN.
+    \param dir given direction -- \b IN.
     \param completeTo2n completion to 2n directions -- \b IN.
-    \param H matrix for Househoulder transformation -- \b OUT.
+    \param H matrix for Householder transformation -- \b OUT.
     */
     static void householder(const Direction &dir,
                             bool completeTo2n,
@@ -203,4 +204,4 @@ DLL_UTIL_API std::ostream& operator<< (std::ostream& out, const Direction& d);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_4_DIRECTION__
+#endif // __NOMAD_4_5_DIRECTION__

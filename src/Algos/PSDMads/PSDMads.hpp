@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_PSDMADS__
-#define __NOMAD_4_4_PSDMADS__
+#ifndef __NOMAD_4_5_PSDMADS__
+#define __NOMAD_4_5_PSDMADS__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Algorithm.hpp"
@@ -66,8 +66,6 @@ private:
     std::shared_ptr<MadsMegaIteration> _masterMegaIteration;
     
     std::atomic<bool>           _lastMadsSuccessful;    ///< Used as indication to enlarge or refine the mesh. Updated by all Mads.
-
-    DLL_ALGO_API static omp_lock_t  _psdMadsLock;       ///< Lock access to the previous elements when they are updated.
 
 public:
     /// Constructor
@@ -96,7 +94,6 @@ public:
 
     virtual ~PSDMads()
     {
-        destroy();
     }
 
     virtual void startImp() override;
@@ -114,8 +111,6 @@ private:
     /// Helper for constructor
     void init(const std::vector<EvaluatorPtr>& evaluators,
               const std::shared_ptr<EvaluatorControlParameters>& evalContParams);
-    /// Helper for destructor
-    void destroy();
 
     /// Wait for _barrier to be initialized by pollster before running a worker.
     void waitForBarrier() const;
@@ -129,4 +124,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_PSDMADS__
+#endif // __NOMAD_4_5_PSDMADS__

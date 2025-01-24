@@ -46,7 +46,9 @@
 /*---------------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
 /*  Example of a program that uses a custom comparison (2 elements) for     */
-/*  ordering trial points before evaluation                                 */
+/*  ordering trial points before evaluation.                                */
+/*  The rank of points is established in the completeTrialPointsInformation */
+/*  and comp functions.                                                     */
 /*--------------------------------------------------------------------------*/
 #include "Nomad/nomad.hpp"
 #include "Algos/EvcInterface.hpp"
@@ -63,11 +65,11 @@ class My_Evaluator : public NOMAD::Evaluator
 private:
 
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
+    explicit My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
 
-    ~My_Evaluator() {}
+    ~My_Evaluator() override = default;
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override;
 };
@@ -99,11 +101,11 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
     return true;       // the evaluation succeeded
 }
 
-void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
+void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 {
     // Parameters creation
     allParams->setAttributeValue("DIMENSION", n);
-    
+
     // Starting point
     allParams->setAttributeValue("X0", NOMAD::Point(n, 0.0) );
 
@@ -117,15 +119,19 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
 
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes;
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::OBJ);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::PB);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::PB);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::OBJ);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::PB);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::PB);
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
+
+    allParams->setAttributeValue("MAX_BB_EVAL", 200);
+
+    allParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
     allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj"));
     allParams->setAttributeValue("DISPLAY_ALL_EVAL", true);
-    
+
     // Parameters validation requested to have access to their value.
     allParams->checkAndComply();
 
@@ -136,52 +142,73 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
 // The closer to 0, the lower the priority.
 class CustomOrder : public NOMAD::ComparePriorityMethod
 {
+    // The evaluation point tags are unique. Let's use
+    // them as map key. The value for ordering is the
+    // second element of the map, the distance to P0.
+    std::map<size_t,NOMAD::Double> _valByTags;
 
 public:
     bool comp(NOMAD::EvalQueuePointPtr& p1, NOMAD::EvalQueuePointPtr& p2) const override
     {
         bool lowerPriority = false;
 
-        NOMAD::Point P0(n, 0);
-        NOMAD::Double d1 = NOMAD::Point::dist(P0, *(p1.get()));
-        NOMAD::Double d2 = NOMAD::Point::dist(P0, *(p2.get()));
-
-        if (d1 < d2)
+        auto itP1 = _valByTags.find(p1->getTag());
+        auto itP2 = _valByTags.find(p2->getTag());
+        if (itP1 != _valByTags.end() && itP2 != _valByTags.end())
         {
-            lowerPriority = true;
+            lowerPriority = (itP1->second < itP2->second);
         }
+
         return lowerPriority;
+
+    }
+
+
+    void completeTrialPointsInformation(const NOMAD::Step *step, NOMAD::EvalPointSet & trialPoints) override
+    {
+        NOMAD::Point P0(n, 0);
+
+        _valByTags.clear();
+
+        // We could std::copy_if but it is not worth it. Clarity is better.
+        for ( const auto & evalQueuePoint : trialPoints)
+        {
+            // Let use a reference point to compute a distance.
+            // The distance is used in comp function to order the points.
+            auto tag = evalQueuePoint.getTag();
+            NOMAD::Double d1 = NOMAD::Point::dist(P0, evalQueuePoint);
+            _valByTags.insert(std::pair<size_t,NOMAD::Double>(tag,d1));
+        }
     }
 };
-
 
 
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main ( int argc , char ** argv )
+int main()
 {
-
-    
     NOMAD::MainStep TheMainStep;
-        
+
     // Set parameters
     auto params = std::make_shared<NOMAD::AllParameters>();
     initAllParams(params);
     TheMainStep.setAllParameters(params);
-    
+
     // Custom Evaluator creation
     auto ev = std::make_unique<My_Evaluator>(params->getEvalParams());
     TheMainStep.addEvaluator(std::move(ev));
-    
-    // Define new sort function and sort according to that function
-    auto customOrder = std::make_shared<CustomOrder>();
-    NOMAD::EvcInterface::getEvaluatorControl()->setUserCompMethod(customOrder);
 
     // The run
     TheMainStep.start();
+
+    // Define new sort function and sort according to that function
+    // Must be done after main step start.
+    auto customOrder = std::make_shared<CustomOrder>();
+    NOMAD::EvcInterface::getEvaluatorControl()->setUserCompMethod(customOrder);
+
     TheMainStep.run();
     TheMainStep.end();
-        
-    return 1;
+
+    return 0;
 }

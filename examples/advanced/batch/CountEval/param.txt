@@ -1,0 +1,38 @@
+#
+# Example: count eval flag is provided by the blackbox
+# If a hidden constraint is not verified, the remaining constraints are not computed,
+# the objective is set to infinity and the evaluation is not counted.
+# NOTE: For library mode, the countEval flag is an output argument of the eval_x function.
+
+
+# PROBLEM PARAMETERS
+####################
+
+# Number of variables
+DIMENSION 10
+
+# Black box
+BB_EXE bb_cnt_eval.exe
+BB_OUTPUT_TYPE CNT_EVAL OBJ PB PB # CNT_EVAL is for the flag passed from the bb to Nomad
+ 
+# Starting point
+X0 ( 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 )
+
+# Bounds are useful to avoid extreme values
+LOWER_BOUND * -20.0
+UPPER_BOUND *  20.0
+
+
+# ALGORITHM PARAMETERS
+######################
+
+# The algorithm terminates after that number black-box evaluations
+MAX_BB_EVAL 100
+
+# Formatted stats into a file
+STATS_FILE stats.txt BBE SOL BBO
+
+DISPLAY_ALL_EVAL yes
+
+
+

@@ -52,6 +52,7 @@
 
 void NOMAD::NMSearchMethod::init()
 {
+    
     // For some testing, it is possible that _runParams is null or evaluator control is null
     bool nmSearch = false;
     if ( nullptr != _runParams && nullptr != NOMAD::EvcInterface::getEvaluatorControl() )
@@ -68,12 +69,24 @@ void NOMAD::NMSearchMethod::init()
     }
     setEnabled(nmSearch);
     
+    if (isEnabled())
+    {
+        const auto nbObj = NOMAD::Algorithm::getNbObj();
+        if (nbObj > 1)
+        {
+            OUTPUT_INFO_START
+            AddOutputInfo(getName() + " not performed on multi-objective function");
+            OUTPUT_INFO_END
+            setEnabled(false);
+            return;
+        }
+    }
     
     if (nmSearch)
     {
         // Set the lap counter
-        auto nmFactor = _runParams->getAttributeValue<size_t>("NM_SEARCH_MAX_TRIAL_PTS_NFACTOR");
-        auto dim = _pbParams->getAttributeValue<size_t>("DIMENSION");
+        const auto nmFactor = _runParams->getAttributeValue<size_t>("NM_SEARCH_MAX_TRIAL_PTS_NFACTOR");
+        const auto dim = _pbParams->getAttributeValue<size_t>("DIMENSION");
         if (nmFactor < NOMAD::INF_SIZE_T)
         {
             NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval( dim*nmFactor );
@@ -122,8 +135,8 @@ void NOMAD::NMSearchMethod::generateTrialPointsFinal()
     allReflective.end();
 
     // Pass the generated trial pts to this
-    auto trialPtsNM = allReflective.getTrialPoints();
-    for (auto point : trialPtsNM)
+    const auto& trialPtsNM = allReflective.getTrialPoints();
+    for (const auto& point : trialPtsNM)
     {
         insertTrialPoint(point);
     }

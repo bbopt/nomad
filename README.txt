@@ -126,12 +126,10 @@ cmake -S . -B build/release
               addpath(strcat(getenv('NOMAD_HOME'),'/build/release/bin'))
 
          To enable *Python* interface (PyNomad) building:
-              cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release
+              cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release
 
               ! Before proceeding, have a look into 
               $NOMAD_HOME/interfaces/PyNomad/readme.txt
-
-	      ! The Python interface will not be built if OpenMP is enabled.
 
               ! More details are provided in $NOMAD_HOME/interfaces/PyNomad/readme.txt 
              
@@ -151,8 +149,10 @@ cmake --build build/release (for *OSX* and *Linux*)
     
          Option --parallel xx can be added for faster build.
 
-         The option --config Release should be used on *Windows* to build only
+         The option --config Release should be used on *Windows* 
+         multi-configuration build environment (VisualStudio) to build only
          Release configuration. The default configuration is Debug.
+         The same option should be used for *OSX* when using a *Xcode* project. 
 
 cmake --install build/release --config Release (for *Windows*)
 or

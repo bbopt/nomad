@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_PARAMETERS__
-#define __NOMAD_4_4_PARAMETERS__
+#ifndef __NOMAD_4_5_PARAMETERS__
+#define __NOMAD_4_5_PARAMETERS__
 
 #include <algorithm>
 #include <fstream>
@@ -70,7 +70,7 @@ typedef std::shared_ptr<Attribute> SPtrAtt;
 
 /// Alias to a template shared_ptr to a CONST TypeAttribute.
 /**
- Used to access attribute valeu but no modification permitted.
+ Used to access attribute value but no modification permitted.
  */
 template<typename T>
 using SPAttribute = std::shared_ptr<const TypeAttribute<T>>;
@@ -78,7 +78,7 @@ using SPAttribute = std::shared_ptr<const TypeAttribute<T>>;
 /// Comparator of shared_ptr<Attribute>
 struct lessThanAttribute
 {
-    bool operator()(SPtrAtt lhs, SPtrAtt rhs) const
+    bool operator()(const SPtrAtt& lhs, const SPtrAtt& rhs) const
     {
         return (lhs->getName() < rhs->getName());
     }
@@ -616,6 +616,12 @@ public:
 
         // Dynamic cast to the selected TypeAttribute
         std::shared_ptr<TypeAttribute<T>> sp = std::dynamic_pointer_cast<TypeAttribute<T>>( att );
+        if (sp == nullptr)
+        {
+            std::string err = "In isAttributeDefaultValue<T> : the attribute " + name;
+            err += " is not of type T = " + typeTName;
+            throw Exception(__FILE__,__LINE__, err);
+        }
 
         return sp->isDefaultValue();
     }
@@ -681,7 +687,7 @@ public:
      Called by setAttributeValue. Generic template function for attribute of type T. The generic version of the function is called when no template specialization is available (partial specialization).
      */
     template<typename T>
-    void setSpValue(const std::string& name, T value)
+    void setSpValue(const std::string& name, const T& value)
     {
         setSpValueDefault(name, value);
     }
@@ -690,7 +696,7 @@ public:
      Overload of setSpValue for Point -> ArrayOfPoint case.
      Value is of type Point, and it might need to be converted to an ArrayOfPoint for parameter name.
      */
-    void setSpValue(const std::string& name, Point value)
+    void setSpValue(const std::string& name, const Point& value)
     {
         if (typeid(ArrayOfPoint).name() == _typeOfAttributes.at(name))
         {
@@ -725,7 +731,7 @@ public:
             DirectionTypeList dirTypeList;
             dirTypeList.push_back(value);
 
-            setSpValue(name, dirTypeList);
+            setSpValue(name, std::move(dirTypeList));
         }
         else
         {
@@ -738,7 +744,7 @@ public:
      Overload of setSpValue for std::string -> ArrayOfString case.
      Value is of type std::string, and it might need to be converted to an ArrayOfString for parameter name.
      */
-    void setSpValue(const std::string& name, std::string value)
+    void setSpValue(const std::string& name, const std::string& value)
     {
         if (typeid(ArrayOfString).name() == _typeOfAttributes.at(name))
         {
@@ -829,15 +835,15 @@ public:
 
 protected:
     // Helpers
-    void checkFormat1(const std::shared_ptr<ParameterEntry> pe) const;
-    void checkFormatNbEntries(const std::shared_ptr<ParameterEntry> pe, const size_t nbEntries) const;
-    void checkFormatBool(const std::shared_ptr<ParameterEntry> pe) const;
-    void checkFormatSizeT(const std::shared_ptr<ParameterEntry> pe, size_t &sz) const;
-    void checkFormatAllSizeT(const std::shared_ptr<ParameterEntry> pe) const;
-    void checkFormatInt(const std::shared_ptr<ParameterEntry> pe, int &i) const;
-    void checkFormatString(const std::shared_ptr<ParameterEntry> pe) const;
-    void checkFormatArrayOfString(const std::shared_ptr<ParameterEntry> pe) const;
-    void checkFormatDouble(const std::shared_ptr<ParameterEntry> pe, Double &d) const;
+    void checkFormat1(const std::shared_ptr<ParameterEntry>& pe) const;
+    void checkFormatNbEntries(const std::shared_ptr<ParameterEntry>& pe, const size_t nbEntries) const;
+    void checkFormatBool(const std::shared_ptr<ParameterEntry>& pe) const;
+    void checkFormatSizeT(const std::shared_ptr<ParameterEntry>& pe, size_t &sz) const;
+    void checkFormatAllSizeT(const std::shared_ptr<ParameterEntry>& pe) const;
+    void checkFormatInt(const std::shared_ptr<ParameterEntry>& pe, int &i) const;
+    void checkFormatString(const std::shared_ptr<ParameterEntry>& pe) const;
+    void checkFormatArrayOfString(const std::shared_ptr<ParameterEntry>& pe) const;
+    void checkFormatDouble(const std::shared_ptr<ParameterEntry>& pe, Double &d) const;
 
     void checkInfo() const ;
 
@@ -846,4 +852,4 @@ protected:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_4_PARAMETERS__
+#endif // __NOMAD_4_5_PARAMETERS__

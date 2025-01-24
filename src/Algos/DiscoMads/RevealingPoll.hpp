@@ -56,8 +56,8 @@
 
 /// Class for RevealingPoll of DiscoMads algorithm
 /**
- * The "revealing poll" in DiscoMads theory is implemented as heritated from Poll as it is required for the convergence analysis
- Generate the trial points (RevealingPoll::startImp), launch evaluation (RevealingPoll::runImp) and postprocecssing (RevealingPoll::endImp).
+ * The "revealing poll" in DiscoMads theory is implemented as inherited from Poll as it is required for the convergence analysis
+ Generate the trial points (RevealingPoll::startImp), launch evaluation (RevealingPoll::runImp) and postprocessing (RevealingPoll::endImp).
  */
 class RevealingPoll: public Poll
 {
@@ -105,7 +105,7 @@ private:
      Implementation called by IterationUtils::generateTrialPoints.
      The trial points are obtained by:
         - adding poll directions (Poll::setPollDirections) to the poll center (frame center).
-        - snaping points (and directions) to bounds.
+        - snapping points (and directions) to bounds.
         - projecting points on mesh.
      */
     void generateTrialPointsImp() override;

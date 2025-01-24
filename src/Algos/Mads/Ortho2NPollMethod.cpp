@@ -59,7 +59,7 @@ void NOMAD::Ortho2NPollMethod::init()
 void NOMAD::Ortho2NPollMethod::generateUnitPollDirections(std::list<NOMAD::Direction> &directions, const size_t n) const
 {
     directions.clear();
-
+    
     generate2NDirections(directions, n);
 
 }

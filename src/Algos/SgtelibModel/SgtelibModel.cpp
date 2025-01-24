@@ -204,7 +204,7 @@ void NOMAD::SgtelibModel::info()
 
 // Used during SgtelibModelUpdate step.
 // Update the bounds of the model.
-void NOMAD::SgtelibModel::setModelBounds(std::shared_ptr<SGTELIB::Matrix> X)
+void NOMAD::SgtelibModel::setModelBounds(std::shared_ptr<SGTELIB::Matrix>& X)
 {
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     if (n != (size_t)X->get_nb_cols())
@@ -321,8 +321,8 @@ bool NOMAD::SgtelibModel::runImp()
         {
             auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
             barrier = std::make_shared<NOMAD::ProgressiveBarrier>(hMax, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
-                                                       NOMAD::EvalType::BB,
-                                                       NOMAD::EvcInterface::getEvaluatorControl()->getComputeType());
+                                                       NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType(),
+                                                       NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS());
         }
         NOMAD::SuccessType megaIterSuccess = NOMAD::SuccessType::UNDEFINED;
         
@@ -364,7 +364,7 @@ bool NOMAD::SgtelibModel::runImp()
 /*------------------------------------------------------------------------*/
 /*          Compute which formulation must be used in the evalX           */
 /*------------------------------------------------------------------------*/
-const NOMAD::SgtelibModelFormulationType NOMAD::SgtelibModel::getFormulation() const
+NOMAD::SgtelibModelFormulationType NOMAD::SgtelibModel::getFormulation() const
 {
     auto formulation = _runParams->getAttributeValue<NOMAD::SgtelibModelFormulationType>("SGTELIB_MODEL_FORMULATION");
     if ( (formulation != NOMAD::SgtelibModelFormulationType::EXTERN) && ( ! _ready) )
@@ -441,7 +441,8 @@ size_t NOMAD::SgtelibModel::getNbModels(const NOMAD::SgtelibModelFeasibilityType
 }
 
 
-// To be used outside of SgtelibModel, e.g., in SgtelibSearchMethod.
+// To be used outside SgtelibModel, e.g., in SgtelibSearchMethod.
+// To be used outside SgtelibModel, e.g., in SgtelibSearchMethod.
 NOMAD::EvalPointSet NOMAD::SgtelibModel::createOraclePoints()
 {
     // Create one MegaIteration. It will not be run. It is used to

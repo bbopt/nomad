@@ -188,7 +188,7 @@ void NOMAD::CSMesh::refineDeltaFrameSize()
 
 
 void NOMAD::CSMesh::refineDeltaFrameSize(NOMAD::Double &frameSize,
-                                        const NOMAD::Double &granularity) const
+                                        const NOMAD::Double& /*granularity*/) const
 {
     frameSize *= 0.5;
 }
@@ -262,7 +262,7 @@ NOMAD::Double NOMAD::CSMesh::getdeltaMeshSize(size_t i) const
 
 
 NOMAD::Double NOMAD::CSMesh::getdeltaMeshSize(const NOMAD::Double& frameSize,
-                                             const NOMAD::Double& granularity) const
+                                              const NOMAD::Double& /*granularity*/) const
 {
     NOMAD::Double delta = frameSize * 0.5;
 
@@ -319,8 +319,8 @@ NOMAD::Double NOMAD::CSMesh::getDeltaFrameSizeCoarser(const size_t i) const
 
 // This method is used by the input operator>>
 void NOMAD::CSMesh::setDeltas(const size_t i,
-                             const NOMAD::Double &deltaMeshSize,
-                             const NOMAD::Double &deltaFrameSize)
+                              const NOMAD::Double &deltaMeshSize,
+                              const NOMAD::Double &deltaFrameSize)
 {
     
     // Value to use for granularity (division so default = 1.0)
@@ -328,7 +328,7 @@ void NOMAD::CSMesh::setDeltas(const size_t i,
     NOMAD::Double gran = 1.0;
     if (0.0 < _granularity[i])
     {
-        gran = _granularity[i];
+        _granularity[i] = gran;
     }
 
     _frameSize[i] = deltaFrameSize;
@@ -399,14 +399,14 @@ NOMAD::Point NOMAD::CSMesh::projectOnMesh(const NOMAD::Point& point,
                                          const NOMAD::Point& frameCenter) const
 {
     // Projection on the mesh
-    NOMAD::Point proj = point;
+    const NOMAD::Point& proj = point;
     auto delta = getdeltaMeshSize();
     // To avoid running around in circles
     const size_t maxNbTry = 10;
 
     for (size_t i = 0; i < point.size(); ++i)
     {
-        const NOMAD::Double deltaI = delta[i];
+        const NOMAD::Double& deltaI = delta[i];
         bool frameCenterIsOnMesh = (frameCenter[i].isMultipleOf(deltaI));
 
         NOMAD::Double diffProjFrameCenter = proj[i] - frameCenter[i];
@@ -482,7 +482,7 @@ NOMAD::Point NOMAD::CSMesh::projectOnMesh(const NOMAD::Point& point,
 
         if (nbTry >= maxNbTry && !verifValueI.isMultipleOf(deltaI))
         {
-            // Some values are just ill-conditionned.
+            // Some values are just ill-conditioned.
             std::string s = "Warning: Could not project point (index " + std::to_string(i) + ") ";
             s += point.display() + " on mesh " + delta.display();
             s += " with frame center " + frameCenter.display();

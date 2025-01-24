@@ -53,8 +53,8 @@
  */
 
 
-#ifndef __NOMAD_4_4_BB_OUTPUT__
-#define __NOMAD_4_4_BB_OUTPUT__
+#ifndef __NOMAD_4_5_BB_OUTPUT__
+#define __NOMAD_4_5_BB_OUTPUT__
 
 #include "../Type/BBOutputType.hpp"
 #include "../Math/ArrayOfDouble.hpp"
@@ -93,7 +93,14 @@ public:
      \param rawBBO  The outputs of the blackbox as a string -- \b IN.
      \param evalOk  The eval ok flag -- \b IN.
      */
-    explicit BBOutput(const std::string &rawBBO, const bool evalOk = true);
+    explicit BBOutput(std::string rawBBO, const bool evalOk = true);
+    
+    /// Constructor #2
+    /**
+     Usually if we have an array of double well defined for BBO, the evaluation went well.
+     \param bbo  The outputs of the blackbox as a array of double -- \b IN.
+     */
+    explicit BBOutput(const ArrayOfDouble &bbo);
 
     /*---------*/
     /* Get/Set */
@@ -187,4 +194,4 @@ DLL_EVAL_API std::istream& operator>>(std::istream& is, BBOutput &bbo);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_4_BB_OUTPUT__
+#endif // __NOMAD_4_5_BB_OUTPUT__

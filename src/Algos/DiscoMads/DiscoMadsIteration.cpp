@@ -57,12 +57,12 @@
 
 void NOMAD::DiscoMadsIteration::init()
 {
-        // Initiliaze revealing poll for discoMads
-            // For some testing, it is possible that _runParams is null
-        if (nullptr == _runParams || !_runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
-        {
-           _revealingPoll = std::make_unique<NOMAD::RevealingPoll>(this);
-        }
+    // Initialize revealing poll for discoMads
+    // For some testing, it is possible that _runParams is null
+    if (nullptr == _runParams || !_runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
+    {
+        _revealingPoll = std::make_unique<NOMAD::RevealingPoll>(this);
+    }
 }
 
 

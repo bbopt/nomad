@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_SEARCHMETHODBASE__
-#define __NOMAD_4_4_SEARCHMETHODBASE__
+#ifndef __NOMAD_4_5_SEARCHMETHODBASE__
+#define __NOMAD_4_5_SEARCHMETHODBASE__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/Step.hpp"
@@ -61,10 +61,13 @@ class SearchMethodBase: public Step, public IterationUtils
 private:
 
     bool _enabled; ///< Should this search method be used? Modified by parameters.
-
+    
     std::string _comment; ///<  Comment shown when a search method is used
 
+protected:
+    
     ArrayOfDouble _lb, _ub;
+
     
 public:
     /// Constructor
@@ -87,6 +90,13 @@ public:
     bool hasComment() const { return (!_comment.empty()); }
     void setComment(const std::string& comment) { _comment = comment; }
 
+    /// Reset the parent step. This is used when search methods are created outside of Search.
+    void setParentStep(const Step* parentStep)
+    {
+        IterationUtils::_parentStep = parentStep;
+        Step::_parentStep = parentStep;
+        updateMegaIterAncestor();
+    }
     
     /**
      - Pure virtual function.
@@ -100,11 +110,11 @@ public:
      */
     virtual bool runImp() override = 0 ;
 
-    /// Implementation of endImp (not virtual)
+    /// Implementation of endImp (virtual)
     /**
         Call to the postProcessing function to update the Barrier
     */
-    void endImp() override ;
+    virtual void endImp() override ;
 
     /// The name of the search method
     /**
@@ -113,6 +123,11 @@ public:
     std::string getName() const override
     {
         return NOMAD::stepTypeToString(_stepType) + " #" + std::to_string(_trialPointStats.getNbCalls());
+    }
+    
+    size_t getNbTrialPointsGenerated(const NOMAD::EvalType evalType) const
+    {
+        return _trialPointStats.getNbTrialPointsGenerated(evalType);
     }
     
 protected:
@@ -139,5 +154,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_SEARCHMETHODBASE__
+#endif // __NOMAD_4_5_SEARCHMETHODBASE__
 

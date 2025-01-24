@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_4_ITERATIONUTILS__
-#define __NOMAD_4_4_ITERATIONUTILS__
+#ifndef __NOMAD_4_5_ITERATIONUTILS__
+#define __NOMAD_4_5_ITERATIONUTILS__
 
 #include <stdexcept>
 
@@ -115,6 +115,11 @@ protected:
      */
     bool _frameCenterUseCache ;
     Point _pointPrecisionFull; ///< Point format in full dimension (not subspace)
+
+    
+    SuccessType _trialPointsSuccess; ///< Success type of trial points evaluation.
+    
+    bool _updateIncumbentsAndHMax;
     
 private:
     /**
@@ -122,14 +127,6 @@ private:
      Used when evaluating trial points without mesh and frame center.
      */
     bool _fromAlgo;
-    
-    
-
-protected:
-    
-    SuccessType _trialPointsSuccess; ///< Success type of trial points evaluation.
-    
-    bool _updateIncumbentsAndHMax;
     
 public:
     /// Constructor
@@ -168,8 +165,6 @@ public:
     const EvalPointSet& getTrialPoints() const      { return _trialPoints; }
     
     
-    
-
     /*---------------*/
     /* Other methods */
     /*---------------*/
@@ -223,15 +218,15 @@ public:
     
     /// Start evaluation of the trial points
     /**
-     * Called by run.
+     * Called by run. Can be re-implemented by search method (for example,  cache search method)
      \param step    Current step.
      \param keepN   Number of points to keep (by default keep all)
      \param removeStepType Remove trial points of this type after evaluation (default UNDEFINED, do not remove).
      \return true if a success was found, false otherwise.
      */
-    bool evalTrialPoints(const Step* step,
-                         const size_t keepN = INF_SIZE_T,
-                         StepType removeStepType = StepType::UNDEFINED);
+    virtual bool evalTrialPoints(const Step* step,
+                                 const size_t keepN = INF_SIZE_T,
+                                 StepType removeStepType = StepType::UNDEFINED);
 
     /// Get the number of evaluation points in the queue for evaluation
     size_t getNbEvalPointsThatNeededEval() const { return _nbEvalPointsThatNeedEval; }
@@ -263,15 +258,22 @@ public:
     
 protected:
     bool meshIsFinest() const;
-
     
+    /// Helper for evalTrialPoints
+    void updateStepSuccessStats(const Step* step);
+    
+    /// Update the mega iter ancestor using the parent step
+    void updateMegaIterAncestor()
+    {
+        // Check if there is a MegaIteration among ancestors
+        _megaIterAncestor = _parentStep->getParentOfType<NOMAD::MegaIteration*>();
+    }
+
 private:
        
     /// Helper for constructor
     void init();
-    
-    /// Helper for evalTrialPoints
-    void updateStepSuccessStats(const Step* step);
+
     
     /// Helper to update stopReason
     void updateStopReasonForIterStop(const Step* step);
@@ -292,4 +294,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_ITERATIONUTILS__
+#endif // __NOMAD_4_5_ITERATIONUTILS__

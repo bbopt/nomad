@@ -47,7 +47,7 @@
 #include "../Eval/MeshBase.hpp"
 #include "../Type/BBInputType.hpp"
 
-NOMAD::MeshBase::MeshBase(const std::shared_ptr<NOMAD::PbParameters> pbParams, int limitMinMeshIndex, int limitMaxMeshIndex)
+NOMAD::MeshBase::MeshBase(const std::shared_ptr<NOMAD::PbParameters>& pbParams, int limitMinMeshIndex, int limitMaxMeshIndex)
       : _n(pbParams->getAttributeValue<size_t>("DIMENSION")),
         _pbParams(pbParams),
         _initialMeshSize(pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_MESH_SIZE")),
@@ -75,7 +75,7 @@ void NOMAD::MeshBase::init()
     }
 }
 
-NOMAD::ArrayOfDouble NOMAD::MeshBase::getRho(void) const
+NOMAD::ArrayOfDouble NOMAD::MeshBase::getRho() const
 {
     NOMAD::ArrayOfDouble rho(_n);
     for (size_t i = 0; i < _n; i++)
@@ -86,7 +86,7 @@ NOMAD::ArrayOfDouble NOMAD::MeshBase::getRho(void) const
 }
 
 
-NOMAD::ArrayOfDouble NOMAD::MeshBase::getdeltaMeshSize(void) const
+NOMAD::ArrayOfDouble NOMAD::MeshBase::getdeltaMeshSize() const
 {
     NOMAD::ArrayOfDouble delta(_n);
     for (size_t i = 0; i < _n; i++)
@@ -162,7 +162,7 @@ bool NOMAD::MeshBase::verifyPointIsOnMesh(const NOMAD::Point& point, const NOMAD
     for (size_t i = 0; i < point.size(); i++)
     {
         NOMAD::Double pointRebaseI = point[i];
-        NOMAD::Double centerI = center[i];
+        const NOMAD::Double& centerI = center[i];
         NOMAD::Double deltaI = getdeltaMeshSize(i);
 
         if (   (_lowerBound[i].isDefined() && _lowerBound[i] == pointRebaseI)
@@ -238,7 +238,6 @@ void NOMAD::MeshBase::setLimitMeshIndices(int limitMinMeshIndex, int limitMaxMes
 {
     _limitMaxMeshIndex = limitMaxMeshIndex;
     _limitMinMeshIndex = limitMinMeshIndex;
-
 
     // Not yet defined for MeshBase.
     throw NOMAD::Exception(__FILE__, __LINE__, "setLimitMeshIndices not yet implemented.");

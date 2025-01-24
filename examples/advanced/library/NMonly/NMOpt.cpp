@@ -55,18 +55,17 @@
 class My_Evaluator : public NOMAD::Evaluator
 {
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
+    explicit My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
 
-    ~My_Evaluator() {}
+    ~My_Evaluator() override = default;
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override
     {
         bool eval_ok = false;
         // Based on G2.
         NOMAD::Double f, c1 = 0, c2 = 0;
-        size_t n = x.size();
 
         try
         {
@@ -125,12 +124,12 @@ void initParams1(NOMAD::AllParameters &p)
     p.getDispParams()->setAttributeValue("DISPLAY_UNSUCCESSFUL", false);
     p.getDispParams()->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("BBE ( SOL ) OBJ"));
 
-
     p.getEvalParams()->setAttributeValue("BB_OUTPUT_TYPE", NOMAD::stringToBBOutputTypeList("OBJ PB PB"));
 
     p.getEvaluatorControlParams()->setAttributeValue("EVAL_OPPORTUNISTIC", false);
+    
+    // Activating NM optimization deactivates the default Mads optimization (default)
     p.getRunParams()->setAttributeValue("NM_OPTIMIZATION",true);
-
 
     // parameters validation
     p.checkAndComply();
@@ -140,7 +139,7 @@ void initParams1(NOMAD::AllParameters &p)
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main (int argc, char **argv)
+int main()
 {
     auto TheMainStep = std::make_unique<NOMAD::MainStep>();
 

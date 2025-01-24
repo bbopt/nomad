@@ -91,7 +91,8 @@ bool NOMAD::NMInitializeSimplex::runImp()
 bool NOMAD::NMInitializeSimplex::createSimplex()
 {
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
-    auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+    auto computeTypeS = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
+    NOMAD::FHComputeType completeComputeType = {evalType, computeTypeS};
 
     auto iter = dynamic_cast<const NOMAD::NMIteration*>( NOMAD::Step::_parentStep );
     if (nullptr == iter)
@@ -106,6 +107,10 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
     {
         evalPointList = barrier->getAllPoints();
         centerPt = std::make_shared<NOMAD::EvalPoint>(evalPointList[0]);
+   
+        // Check consistence for compute type between evaluator and barrier
+        barrier->checkForFHComputeType(completeComputeType);
+        
     }
     if (nullptr == centerPt)
     {
@@ -130,7 +135,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
 
     NOMAD::OutputInfo dbgInfo(getName(),"Insertion of potential points to include in initial Y: ", NOMAD::OutputLevel::LEVEL_DEBUG);
 
-    // If a mesh and include factor are supplied: the max distance is include factor times Delta
+    // If a mesh and include factor are supplied: the max distance is included factor times Delta
     // Else we use include length
     auto mesh = iter->getMesh(); // The mesh can be null
     auto includeFactor = _runParams->getAttributeValue<size_t>("NM_SIMPLEX_INCLUDE_FACTOR");
@@ -180,12 +185,11 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
                 // the center point has been found and put in list
                 if ( *centerPt == cur )
                 {
-                    NOMAD::EvalPoint Y ( cur );
-                    T.insert ( Y );
+                    T.insert ( cur );
                     if (nbPoints < maxPointsToDisplay)
                     {
                         OUTPUT_DEBUG_START
-                        dbgInfo.addMsg(Y.display());
+                        dbgInfo.addMsg(cur.display());
                         OUTPUT_DEBUG_END
                         nbPoints++;
                     }
@@ -207,14 +211,13 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
                     {
 
                         // Issue #382: make sure to evaluate f or h for points in cache (important if cache is loaded from file) see
-                        NOMAD::EvalPoint Y ( cur );
-                        std::pair<NMSimplexEvalPointSetIterator,bool> ret = T.insert ( Y );
+                        std::pair<NMSimplexEvalPointSetIterator,bool> ret = T.insert ( cur );
 
 
                         if ( ! ret.second )
                         {
                             OUTPUT_DEBUG_START
-                            dbgInfo.addMsg("Cannot insert a point in Y (probably tied with another point): " + Y.display() );
+                            dbgInfo.addMsg("Cannot insert a point in Y (probably tied with another point): " + cur.display() );
                             OUTPUT_DEBUG_END
                         }
                         else
@@ -222,7 +225,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
                             if (nbPoints <= maxPointsToDisplay)
                             {
                                 OUTPUT_DEBUG_START
-                                dbgInfo.addMsg( ((nbPoints < maxPointsToDisplay) ? Y.display() : "...") );
+                                dbgInfo.addMsg( ((nbPoints < maxPointsToDisplay) ? cur.display() : "...") );
                                 OUTPUT_DEBUG_END
                                 nbPoints++;
                             }
@@ -255,8 +258,8 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
 
 
 
-    // Add points in simplex to obtain dim = n+1 and simplex affinely independant
-    NOMAD::NMSimplexEvalPointSetIterator itT = T.begin();
+    // Add points in simplex to obtain dim = n+1 and simplex affinely independent
+    auto itT = T.begin();
 
     // For debugging
     NOMAD::OutputInfo dbgInfo2(getName(),"Proceed to simplex creation", NOMAD::OutputLevel::LEVEL_DEBUG);
@@ -265,14 +268,14 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
     _nmY->insert ( *itT );
 
     OUTPUT_DEBUG_START
-    dbgInfo2.addMsg("k=0: Point z0:" + (*itT).display() ) ;
-    dbgInfo2.addMsg(" ---> z0 KEPT in Y ");;
+    dbgInfo2.addMsg("k=0: Point z0:" + (*itT).display() );
+    dbgInfo2.addMsg(" ---> z0 KEPT in Y ");
     OUTPUT_DEBUG_END
 
     int count_feasible = 0;
 
-    if ( (*itT).getH(evalType, computeType).isDefined()
-        && (*itT).isFeasible(evalType, computeType) )
+    if ( (*itT).getH(completeComputeType).isDefined()
+        && (*itT).isFeasible(completeComputeType) )
         count_feasible = 1 ;
 
     itT++;
@@ -323,7 +326,7 @@ bool NOMAD::NMInitializeSimplex::createSimplex()
             OUTPUT_DEBUG_START
             dbgInfo2.addMsg( " ---> zk KEPT in Y " );
             OUTPUT_DEBUG_END
-            if ( (*itT).isFeasible(evalType, computeType) )
+            if ( (*itT).isFeasible(completeComputeType) )
                 count_feasible++;
             k++;
             itT++;

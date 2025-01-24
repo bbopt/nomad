@@ -51,6 +51,8 @@
  \date   January 2018
  \see    BBOutput.hpp
  */
+#include <utility>
+
 #include "../Eval/BBOutput.hpp"
 
 // Initialize static variables
@@ -59,11 +61,11 @@ const std::string NOMAD::BBOutput::bboEnd = ")";
 
 
 /*---------------------------------------------------------------------*/
-/*                            Constructor                              */
+/*                            Constructors                              */
 /*---------------------------------------------------------------------*/
 // Reading BBOutput from string
-NOMAD::BBOutput::BBOutput(const std::string &rawBBO, const bool evalOk)
-  : _rawBBO(rawBBO),
+NOMAD::BBOutput::BBOutput(std::string rawBBO, const bool evalOk)
+  : _rawBBO(std::move(rawBBO)),
     _evalOk(evalOk)
 {
     NOMAD::ArrayOfString array(_rawBBO);
@@ -73,6 +75,20 @@ NOMAD::BBOutput::BBOutput(const std::string &rawBBO, const bool evalOk)
         NOMAD::Double d;
         d.atof(array[i]);
         _BBO[i] = d;
+    }
+}
+// Reading BBOutput from ArrayOfDouble
+NOMAD::BBOutput::BBOutput(const ArrayOfDouble & bbo)
+  : _BBO(bbo)
+{
+    _evalOk = true;
+    for (size_t i = 0; i < _BBO.size(); i++)
+    {
+        if (!_BBO.isDefined())
+        {
+            _evalOk = false;
+            break;
+        }
     }
 }
 

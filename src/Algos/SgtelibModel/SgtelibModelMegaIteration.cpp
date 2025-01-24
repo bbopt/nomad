@@ -253,7 +253,7 @@ void NOMAD::SgtelibModelMegaIteration::generateTrialPointsImp()
 
 void NOMAD::SgtelibModelMegaIteration::filterCache()
 {
-    // Select additonal candidates out of the cache
+    // Select additional candidates out of the cache
     int nbCandidates = _runParams->getAttributeValue<int>("SGTELIB_MODEL_SEARCH_CANDIDATES_NB");
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
 

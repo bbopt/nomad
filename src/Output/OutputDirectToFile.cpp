@@ -62,8 +62,8 @@ bool NOMAD::OutputDirectToFile::_hasBeenInitialized = false;
 NOMAD::OutputDirectToFile::OutputDirectToFile()
   : _outputSize(0),
     _outputFileFormat(DisplayStatsTypeList("SOL BBO")),
-    _solutionFile(""),
-    _historyFile(""),
+    _solutionFile(),
+    _historyFile(),
     _enabledSolutionFile(true)
 {
 }

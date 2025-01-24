@@ -123,9 +123,9 @@ add_library(
     SHARED 
       ${ALGOS_SOURCES} ${CS_SOURCES} 
       ${DMULTIMADS_SOURCES} ${DISCOMADS_SOURCES} 
-      ${MADS_SOURCES} ${LH_SOURCES}
+      ${MADS_SOURCES} ${MADSLOGBARRIER_SOURCES} ${SIMPLE_MADS_SOURCES} ${LH_SOURCES}
       ${NM_SOURCES} ${PHASEONE_SOURCES} 
-      ${PSDMADS_SOURCES} 
+      ${PSDMADS_SOURCES} ${COOPMADS_SOURCES} 
       ${QPSOLVER_SOURCES} ${SSDMADS_SOURCES} 
       ${TEMPLATE_ALGO_SOURCES} ${SIMPLELINESEARCH_ALGO_SOURCES} 
       ${VNSMADS_SOURCES}
@@ -141,9 +141,12 @@ target_include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/DiscoMads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/Mads
+	${CMAKE_CURRENT_SOURCE_DIR}/Algos/MadsMixedPenaltyLogBarrier
+        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SimpleMads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/NelderMead
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PhaseOne
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
+	${CMAKE_CURRENT_SOURCE_DIR}/Algos/COOPMads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QPSolverAlgo
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/TemplateAlgo
@@ -161,6 +164,7 @@ if(USE_SGTELIB MATCHES ON)
     nomadAlgos
     PRIVATE
       ${QUADMODEL_SOURCES}
+      ${QUADMODELSLD_SOURCES} 
       ${SGTELIBMODEL_SOURCES} 
   )
 
@@ -169,6 +173,7 @@ if(USE_SGTELIB MATCHES ON)
     PUBLIC
       $<BUILD_INTERFACE: 
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModel
+        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModelSLD
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SgtelibModel
       >
   )
@@ -235,6 +240,7 @@ set_target_properties(
        NO_SONAME ${NO_SONAME}
        OUTPUTNAME nomadAlgos
 )
+
 
 if (WIN32)
     target_compile_definitions(

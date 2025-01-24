@@ -47,7 +47,7 @@
 #include "../Math/MatrixUtils.hpp"
 #include "../Util/utils.hpp"
 
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 
 bool NOMAD::getDeterminant(double ** M,
@@ -58,7 +58,7 @@ bool NOMAD::getDeterminant(double ** M,
 
     double d = 1 ;
 
-    double ** LU = new double *[n];
+    auto LU = new double *[n];
     for (size_t i = 0 ; i < n ; i++ )
     {
         LU[i]=new double [n];
@@ -96,8 +96,8 @@ int NOMAD::getRank(double ** M,
                     size_t n,
                     double    eps)
 {
-    double  * W = new double  [n];
-    double ** V = new double *[n];
+    auto W = new double  [n];
+    auto V = new double *[n];
     for (size_t i = 0 ; i < n ; ++i )
     {
         V[i]=new double [n];
@@ -170,7 +170,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
         return false;
     }
 
-    double * rv1   = new double[n];
+    auto     rv1   = new double[n];
     double   scale = 0.0;
     double   g     = 0.0;
     double   norm  = 0.0;
@@ -492,8 +492,8 @@ bool NOMAD::LU_decomposition ( std::string & error_msg,
 
     double big, temp;
 
-    double * vv = new double[n]; // stores the implicit scaling of each row
-    int *indx = new int[n]; // stores the permutations
+    auto vv = new double[n]; // stores the implicit scaling of each row
+    auto indx = new int[n]; // stores the permutations
 
     d = 1; // No row interchange yet
 
@@ -565,109 +565,508 @@ bool NOMAD::LU_decomposition ( std::string & error_msg,
 /*                                                              */
 /*           M ( m x n )                                        */
 /*           Q ( m x m ): ....                                  */
-/*           R ( m x n ): lower triangular                      */
+/*           R ( m x n ): upper triangular                      */
 /*                                                              */
 /*--------------------------------------------------------------*/
-bool NOMAD::qr_factorization ( std::string & error_msg,
-                              double     ** M,
-                              double     ** Q,
-                              double     ** R,
-                              int           m,
-                              int           n,
-                              int           max_n     ) // default = 1500
+bool NOMAD::qr_factorization(std::string & error_msg,
+                             double** M,
+                             double** Q,
+                             double** R,
+                             const int m,
+                             const int n,
+                             const int max_n) // default = 1500
 {
     error_msg.clear();
 
-    if ( max_n > 0 && (n > max_n || m > max_n) )
+    if (max_n > 0 && (n > max_n || m > max_n))
     {
-        error_msg = "qr_factorization() error: min(m,n) > " + NOMAD::itos ( max_n );
+        error_msg = "qr_factorization() error: min(m,n) > " + NOMAD::itos(max_n);
+        return false;
+    }
+    if (n > m)
+    {
+        error_msg = "qr_factorization() error: n > m: " + NOMAD::itos(n) + " > " + NOMAD::itos(m);
         return false;
     }
 
-    int  i, j, k;
-    bool chk = true;
-
-    double ** v = new double *[m]; // size m x n
-    for ( i = 0 ; i < m ; ++i )
-        v[i] = new double [n];
-    double * normv = new double [n];
-
-    // Gram-Schmidt (GS): First step: v1=u1 (first column of A):
-    normv[0] = 0.0;
-    for ( i = 0 ; i < m ; ++i )
+    // Initialization: R := M and Q := Imxm.
+    for (int i = 0; i < m; ++i)
     {
-        v[i][0] = M[i][0];
-        normv[0] += pow(v[i][0], 2.0);
-    }
-    if ( normv[0] == 0.0 )
-        chk = false;
-
-    // GS: Compute vj=uj-projections:
-    for ( j = 1 ; j < n ; ++j )
-    {
-
-        if ( !chk )
-            break;
-
-        // Init: vj=uj:
-        for ( i = 0 ; i < m ; ++i )
-            v[i][j] = M[i][j];
-
-        // Compute projections:
-        for ( k = 0 ; k < j ; ++k )
+        for (int j = 0; j < n; ++j)
         {
-            // pk: projection of uj to vk:
-            double tmp = 0.0;
-            for ( i = 0 ; i < m ; ++i )
-                tmp += v[i][k] * M[i][j];
-            for ( i = 0 ; i < m ; ++i )
-                v[i][j] -= tmp * v[i][k] / normv[k];
+            R[i][j] = M[i][j];
         }
-
-        // Compute norm of vj:
-        normv[j] = 0.0;
-        for ( i = 0 ; i < m ; ++i )
-            normv[j] += pow(v[i][j], 2.0);
-        if ( normv[j] == 0.0 )
-            chk = false;
     }
-
-    // Final step of GS: Normalize the v vectors into the Q matrix:
-    if ( chk )
-        for ( j = 0 ; j < n ; ++j )
-            for ( i = 0 ; i < m ; ++i )
-                Q[i][j] = v[i][j] / pow(normv[j],0.5);
-
-    // Delete v and normv:
-    for ( i = 0 ; i < m ; ++i )
-        delete [] v[i];
-    delete [] v;
-    delete [] normv;
-
-    // Final step of the QR decomposition: Compute R:
-    for ( i = 0 ; i < n ; ++i )
+    for (int i = 0; i < m; ++i)
     {
-        for ( j = 0 ; j < i ; ++j )
-            R[i][j] = 0.0;
-        for ( j = i ; j < n ; ++j )
+        for (int j = 0; j < m; ++j)
         {
-            R[i][j] = 0.0;
-            for ( k = 0 ; k < m ; ++k )
-                R[i][j] += Q[k][i] * M[k][j];
+            if (i == j)
+            {
+                Q[i][j] = 1.0;
+            }
+            else
+            {
+                Q[i][j] = 0;
+            }
         }
     }
 
-    // Reset Q and R in case of failure:
-    if ( !chk )
+    // Solve:
+    // [ c  s ] [ a ] = [ rho ]
+    // [ s -c ] [ b ] = [ 0 ]
+    //
+    // This code is adapted from the julia package Krylov.jl
+    // (see the file krylov_utils.jl).
+    auto sym_givens = [](const double a, const double b,
+                         double& c, double& s, double& rho)
     {
-        for ( j = 0 ; j < n ; ++j )
+        if (b == 0)
         {
-            for ( i = 0 ; i < m ; ++i )
-                Q[i][j] = 0.0;
-            for ( i = 0 ; i < n ; ++i )
-                R[i][j] = 0.0;
+            // NB: sign(x) = (x > 0) - (x < 0) with sign(0) = 0
+            c = (a == 0) ? 1.0 : (a > 0) - (a < 0);
+            s = 0;
+            rho = std::abs(a);
         }
+        else if (a == 0)
+        {
+            c = 0;
+            s = (b > 0) - (b < 0);
+            rho = std::abs(b);
+        }
+        else if (std::abs(b) > std::abs(a))
+        {
+            const double t = a / b;
+            s = ((b > 0) - (b < 0)) / std::sqrt(1.0 + t * t);
+            c = s * t;
+            rho = b / s; // Computationally better than d = a / c since |c| <= |s|.
+        }
+        else
+        {
+            const double t = b / a;
+            c = ((a > 0) - (a < 0)) / std::sqrt(1.0 + t * t);
+            s = c * t;
+            rho = a / c; // Computationally better than d = b / s since |s| <= |c|.
+        }
+    };
+
+    // To explain the code, we will consider a 3 x 3 matrix.
+    //     [ m11 m12 m13 ]
+    // M = [ m21 m22 m23 ]
+    //     [ m31 m32 m33 ]
+    for (int j = 0; j < n; ++j)
+    {
+        for (int i = j+1; i < m; ++i)
+        {
+            // For each column, we want to eliminate the coefficients below the diagonal one by one.
+            //
+            // For the first column of a 3x3 matrix, we have 2 coefficients to eliminate below the diagonal.
+            // We will obtain the first row of R at the end of the process.
+            //
+            //       G1
+            // [ c1  s1  0 ]     [ x   x   x   ]
+            // [ s1 -c1  0 ] M = [ 0   x   x   ]
+            // [ 0   0   1 ]     [ m33 m32 m33 ]
+            //
+            //       G2             G1
+            // [ c2  0   s2 ] [ c1  s1  0 ]     [ r11 r12 r13 ]
+            // [ 0   1   0  ] [ s1 -c1  0 ] M = [  0   x   x  ]
+            // [ s2  0  -c2 ] [ 0   0   1 ]     [  0   x   x  ]
+            //
+            // For the second column of a 3x3 matrix, we have 1 coefficient to eliminate below the diagonal.
+            // We will obtain the second row of R at the end of the process.
+            //
+            //      G3             G2             G1
+            // [ 1  0   0  ] [ c2  0   s2 ] [ c1  s1  0 ]     [ r11 r12 r13 ]
+            // [ 0  c3  s3 ] [ 0   1   0  ] [ s1 -c1  0 ] M = [  0  r22 r23 ]
+            // [ 0  s3 -c3 ] [ s2  0  -c2 ] [ 0   0   1 ]     [  0   0   #  ]
+            //
+            // Since m = n, we do not need to apply any reflections to the third column.
+            // We only need to update the last column if m > n.
+            //
+            // Because each reflection is orthogonal, we have the relation Q^T A = R.
+            //
+            // Q = G1 x G2 x G3 and Q^T = G3^T x G2^T x G1^T.
+            //
+            // NB: a future amelioration should be to do these operations in a cache friendly way.
+
+            // Annihilate the coefficient R[i,j] and update the diagonal coefficient of the current column j.
+            double c, s, rho = 0;
+            sym_givens(R[j][j], R[i][j], c, s, rho);
+            R[j][j] = rho;
+            R[i][j] = 0;
+
+            // Apply the reflection on rows i and j for all columns j+1,..., m.
+            // It is not needed to apply it to columns 1, ..., j-1 because we already have zeros in positions i and j.
+            for (int col = j+1; col < n; ++col)
+            {
+                // For example, the coefficient M[4,2] of a 4x4 matrix is annihilated.
+                // Columns 3 and 4 are updated.
+                //         j     i
+                //    [ 1  0  0  0 ] [ x x x x ]    [ x x x x ]
+                //  j [ 0  c  0  s ] [   x x x ] =  [   # # # ]
+                //    [ 0  0  1  0 ] [     x x ]    [     x x ]
+                //  i [ 0  s  0 -c ] [   x x x ]    [     # # ]
+                const double tmp1 = c * R[j][col] + s * R[i][col];
+                const double tmp2 = s * R[j][col] - c * R[i][col];
+                R[j][col] = tmp1;
+                R[i][col] = tmp2;
+            }
+
+            // Update Q by applying the reflections on the right.
+            // All rows of Q will be updated, but only columns i and j.
+            for (int row = 0; row < m; ++row)
+            {
+                //                    j     i         j   i
+                //   [ x x x x ] [ 1  0  0  0 ]   [ x # x # ]
+                // j [ x x x x ] [ 0  c  0  s ] = [ x # x # ]
+                //   [ x x x x ] [ 0  0  1  0 ]   [ x # x # ]
+                // i [ x x x x ] [ 0  s  0 -c ]   [ x # x # ]
+                const double tmp1 = c * Q[row][j] + s * Q[row][i];
+                const double tmp2 = s * Q[row][j] - c * Q[row][i];
+                Q[row][j] = tmp1;
+                Q[row][i] = tmp2;
+            }
+        }
+    }
+
+    return true;
+}
+
+/*--------------------------------------------------------------*/
+/*                        LDLt factorization                    */
+/*                                                              */
+/*--------------------------------------------------------------*/
+/*                                                              */
+/*           M = L.D.L^T                                        */
+/*                                                              */
+/*           M ( n x n )                                        */
+/*           D ( n x n ): block-diagonal of size 1 x 1 or 2 x 2 */
+/*           L ( n x n ): lower triangular with unit diagonal   */
+/*                                                              */
+/*--------------------------------------------------------------*/
+bool NOMAD::LDLt_factorization(std::string &error_msg,
+                               double** M,
+                               int* pivots,
+                               const int n,
+                               const int max_mpn)
+{
+    error_msg.clear();
+
+    if (max_mpn > 0 && n > max_mpn)
+    {
+        error_msg = "LDLt_decomposition() error: n > " + NOMAD::itos(max_mpn);
         return false;
+    }
+
+    // Set the permutation vector to identity (with Lapack format)
+    for (int i = 0; i < n; ++i)
+    {
+        pivots[i] = i + 1;
+    }
+
+    const double alpha = (1.0 + std::sqrt(17.0)) / 8.0;
+
+    auto interchangeRowsAndCols = [](double **A, const int k, const int kp, const int kstep, const int n)
+    {
+        const int kk = k + kstep - 1; // kk = k if kstep = 1, k+1 if kstep = 2.
+        if (kk == kp)
+            return;
+
+        // For general real symmetric matrix M, suppose we want to change mk1k1 <-> mk2k2,
+        // i.e. in this case, k1 = kk and k2 = kp
+        // Step 1: interchange columns k1 (i.e., kk) and k2 (i.e., kp) below row k2 + 1 (i.e., kp + 1)
+        // [ mk1k1                             ]        [ mk1k1                            ]
+        // [   o     x                         ]        [   o    x                         ]
+        // [   :    ... .                      ]        [   :   ... .                      ]
+        // [   o     x  ... x                  ]   -->  [   o    x  ... x                  ]
+        // [ mk2k1   *  ... *  mk2k2           ]        [ mk2k1  *  ... *  mk2k2           ]
+        // [   $    ... ... :    c    .        ]        [   c   ... ... :    $    .        ]
+        // [   :    ...  .  x    :   ...  x    ]        [   :   ...  .  x    :   ...  x    ]
+        // [   $     x  ... x    c    x  ... x ]        [   c    x  ... x    $    x  ... x ]
+        if (kp > 0)
+        {
+            for (int i = kp + 1; i < n; ++i)
+            {
+                std::swap(A[i][kk], A[i][kp]);
+            }
+        }
+
+        // Step 2: interchanges columns k1 (i.e. kk) and row k2 (i.e. k2)
+        // [ mk1k1                             ]        [ mk1k1                            ]
+        // [   o     x                         ]        [   *    x                         ]
+        // [   :    ... .                      ]        [   :   ... .                      ]
+        // [   o     x  ... x                  ]   -->  [   *    x  ... x                  ]
+        // [ mk2k1   *  ... *  mk2k2           ]        [ mk2k1  o  ... o  mk2k2           ]
+        // [   $    ... ... :    c    .        ]        [   c   ... ... :    $    .        ]
+        // [   :    ...  .  x    :   ...  x    ]        [   :   ...  .  x    :   ...  x    ]
+        // [   $     x  ... x    c    x  ... x ]        [   c    x  ... x    $    x  ... x ]
+        for (int j = kk + 1; j < kp; ++j)
+        {
+            std::swap(A[j][kk], A[kp][j]);
+        }
+
+        // Step 3: interchange mk1k1 <-> mk2k2
+        std::swap(A[kk][kk], A[kp][kp]);
+        // [ mk1k1                             ]        [ mk2k2                            ]
+        // [   *     x                         ]        [   *    x                         ]
+        // [   :    ... .                      ]        [   :   ... .                      ]
+        // [   *     x  ... x                  ]   -->  [   *    x  ... x                  ]
+        // [ mk2k1   o  ... o  mk2k2           ]        [ mk2k1  o  ... o  mk1k1           ]
+        // [   $    ... ... :    c    .        ]        [   c   ... ... :    $    .        ]
+        // [   :    ...  .  x    :   ...  x    ]        [   :   ...  .  x    :   ...  x    ]
+        // [   $     x  ... x    c    x  ... x ]        [   c    x  ... x    $    x  ... x ]
+
+        if (kstep == 2)
+        {
+            std::swap(A[k+1][k], A[kp][k]);
+        }
+    };
+
+    int k = 0;
+    while (k < n)
+    {
+        const int knext = k+1;
+
+        double absmkk = std::abs(M[k][k]);
+
+        // Determine largest off-diagonal element in column k: lambda = max(|M[k+1:n, k]|),
+        // with r its corresponding index.
+        double lambda = 0;
+        int r = 0;
+        if (k < n - 1)
+        {
+            for (int i = knext; i < n; ++i)
+            {
+                const double lambda_val = std::abs(M[i][k]);
+                if (lambda_val >= lambda)
+                {
+                    lambda = lambda_val;
+                    r = i;
+                }
+            }
+        }
+
+        // Column k is zero or underflow, or contains a NaN: continue
+        if (std::max(absmkk, lambda) == 0 || std::isnan(lambda))
+        {
+            k += 1;
+            continue;
+        }
+
+        // Determine if the pivoting block is of size 1x1 or 2x2.
+        bool onebyone = true;
+        if (absmkk >= alpha * lambda)
+        {
+            // No interchange, use 1x1 pivot block
+            onebyone = true;
+        }
+        else
+        {
+            // Determine largest off-diagonal element in row r
+            // sigma = max(|M[r, j]| with k <= j <= n, j != r
+            double sigma = 0;
+            for (int j = k; j < r; ++j)
+            {
+                sigma = std::max(sigma, std::abs(M[r][j]));
+            }
+            // We only consider the lower triangular part of the symmetric matrix.
+            // we inspect this part of the row by iterating over the corresponding
+            // part of the transpose column.
+            for (int i = r + 1; i < n; ++i)
+            {
+                sigma = std::max(sigma, std::abs(M[i][r]));
+            }
+
+            // Conditions to choose the pivot
+            if (absmkk * sigma >=  alpha * lambda * lambda)
+            {
+                // No interchange, use 1x1 pivot block
+                onebyone = true;
+            }
+            else if (std::abs(M[r][r]) >= alpha * sigma)
+            {
+                // Interchange columns/rows k and r in submatrix M[k:n, k:n]
+                interchangeRowsAndCols(M, k, r, 1, n);
+
+                // Store details of the interchange in pivots
+                pivots[k] = r + 1;
+                onebyone = true;
+            }
+            else
+            {
+                // Interchange columns/rows k+1 and r in submatrix M[k:n, k:n]
+                interchangeRowsAndCols(M, k, r, 2, n);
+
+                // Store details of the interchange in pivots
+                pivots[k] = -(r + 1);
+                pivots[k+1] = -(r + 1);
+                onebyone = false;
+            }
+        }
+
+        // Do pivot
+        if (onebyone)
+        {
+            // Do 1x1 pivot block: column k now holds W[k] = L[k] * D[k]
+            // where L[k] is the k-th column of L
+            // Rank-1 update of submatrix M[k+1:n, k+1:n]:
+            // M := M - L[k] * D[k] * L[k]' = M - W[k] * 1 / D[k] * W[k]'
+            const double pivotVal = 1 / M[k][k];
+            for (int j = k+1; j < n; ++j)
+            {
+                if (M[j][k] != 0)
+                {
+                    const double tmp = -pivotVal * M[j][k];
+                    for (int i = j; i < n; ++i)
+                    {
+                        M[i][j] += tmp * M[i][k];
+                    }
+                }
+            }
+
+            // Store L[k] in column k
+            for (int i = k + 1; i < n; ++i)
+            {
+                M[i][k] *= pivotVal;
+            }
+        }
+        else
+        {
+            if (k < n - 2)
+            {
+                // Do 2x2 pivot block: columns k and k+1 now hold
+                // [ W[k] W[k+1] ] = [ L[k] L[k+1] ] * D[k]
+                // where L[k] and L[k+1] are the k and k+1 columns of L.
+                // Rank-2 update of submatrix M[k+2:n, k+2:n] as
+                // M := M - [ L[k] L[k+1] ] * D[k] * [ L[k] L[k+1] ]
+                //   := M - [ W[k] W[k+1] ] * inv(D[k]) * [ W[k] W[k+1] ]
+
+                // Mysterious formula for inv(D[k]) taken from LAPACK: numerically more robust
+                // than the classical formula:
+                // [ a  b ]^-1  = 1 / (ad - bc) [  d -b ]
+                // [ c  d ]                     [ -c  a ]
+                double dxk = M[knext][k];
+                const double dkk = M[k][k] / dxk;
+                const double dxx = M[knext][knext] / dxk;
+                const double t = 1.0 / (dkk * dxx - 1.0);
+                dxk = t / dxk;
+                const double dkx = dxk;
+
+                for (int j = k + 2; j < n; ++j)
+                {
+                    const double wk = dkx * (dxx * M[j][k] - M[j][knext]);
+                    const double wknext = dxk * (dkk * M[j][knext] - M[j][k]);
+                    for (int i = j; i < n; ++i)
+                    {
+                        M[i][j] -= (M[i][k] * wk + M[i][k + 1] * wknext);
+                    }
+                    M[j][k] = wk;
+                    M[j][knext] = wknext;
+                }
+            }
+        }
+
+        // Increase k and return to the beginning of main loop
+        k = onebyone ? knext : k+2;
+    }
+
+    return true;
+}
+
+bool NOMAD::LDLt_extract(std::string& error_msg,
+                         double** M,
+                         const int* perm_lapack,
+                         double** L,
+                         double** D,
+                         int* p,
+                         const int n,
+                         const int max_mpn)
+{
+    error_msg.clear();
+
+    if (max_mpn > 0 && n > max_mpn)
+    {
+        error_msg = "LDLt_extract() error: n > " + NOMAD::itos(max_mpn);
+        return false;
+    }
+
+    // Initialize the permutation vector
+    for (int i = 0; i < n; ++i)
+    {
+        p[i] = i;
+    }
+
+    // Initialize L and D
+    for (int i = 0; i < n; ++i)
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            D[i][j] = (i == j) ? M[i][j] : 0;
+            L[i][j] = (j <= i) ? M[i][j] : 0;
+        }
+    }
+
+    // Extract D
+    int i = 0;
+    while (i < n - 1)
+    {
+        const bool onebyone = perm_lapack[i] > 0;
+        if (!onebyone)
+        {
+            const int ix = i + 1;
+            D[ix][i] = M[ix][i];
+            D[i][ix] = D[ix][i];
+            L[ix][i] = 0;
+            i += 1;
+        }
+        i += 1;
+    }
+
+    // Extract L
+    i = 0;
+    while (i < n)
+    {
+        const int ip = perm_lapack[i];
+        if (ip > 0)
+        {
+            // Swap rows i and abs(i) - 1 of L
+            for (int j = 0; j < i; ++j)
+            {
+                std::swap(L[i][j], L[std::abs(ip) - 1][j]);
+            }
+        }
+        if (ip <= 0)
+        {
+            const int ix = i + 1;
+            for (int j = 0; j < i; ++j)
+            {
+                std::swap(L[ix][j], L[-perm_lapack[ix] - 1][j]);
+            }
+            i += 1;
+        }
+
+        i += 1;
+    }
+    for (int j = 0; j < n; ++j)
+    {
+        L[j][j] = 1.0;
+    }
+
+    i = 0;
+    while (i < n)
+    {
+        const int plapacki = perm_lapack[i];
+        if (plapacki > 0)
+        {
+            std::swap(p[i], p[plapacki - 1]);
+            i += 1;
+        }
+        else
+        {
+            std::swap(p[i+1], p[-plapacki - 1]);
+            i += 2;
+        }
     }
 
     return true;
@@ -728,8 +1127,8 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
             }
     }
 
-    double * Mik = new double[n];
-    double * Mki = new double[n];
+    auto Mik = new double[n];
+    auto Mki = new double[n];
 
     double detE;
     double tmp;
@@ -812,6 +1211,8 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
                     }
                     if (m1 < 0 || m1 >= n || m2 < 0 || m2 >= n)
                     {
+                        delete [] Mik;
+                        delete [] Mki;
                         return false;
                     }
                     if (swap)
@@ -843,10 +1244,6 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
                         pp[m1] = pp[m2];
                         pp[m2] = static_cast<int>(tmp);
                     }
-
-                }
-                else if (piv == 2) // piv = 'p'
-                {
 
                 }
                 else
@@ -901,6 +1298,8 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
             {
                 if (k >= n)
                 {
+                    delete [] Mik;
+                    delete [] Mki;
                     return false;
                 }
                 // E = A[k:k+1, k:k+1]
@@ -917,6 +1316,8 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
                 if (detE == 0)
                 {
                     error_msg = "Error in pivoting: determinant of block diagonal is 0.";
+                    delete [] Mik;
+                    delete [] Mki;
                     return false;
                 }
 
@@ -1000,7 +1401,7 @@ bool NOMAD::DiagRegularization(double ** D, int n)
     int s; // it is either 1 or 2
     double detE; // determinant of the 2x2 block matrix
     double traceE; // trace of the 2x2 block matrix
-    double * l = new double [2]; // eigenvalues of the 2x2 block matrix
+    double l[] = {0, 0};; // eigenvalues of the 2x2 block matrix
 
     double diag;
     double findmin = 0; // min(0, smallest_eigenvalue) <= 0
@@ -1048,7 +1449,7 @@ bool NOMAD::DiagRegularization(double ** D, int n)
 
     if (findmin < 0)
     {
-        int k = 0;
+        k = 0;
         while (k < n)
         {
             if (n == 1 || k == n - 1 || (D[k][k + 1] == 0 && D[k + 1][k] == 0))
@@ -1075,8 +1476,6 @@ bool NOMAD::DiagRegularization(double ** D, int n)
         }
     }
 
-    delete [] l;
-
     return true;
 }
 
@@ -1085,7 +1484,7 @@ double NOMAD::FindSmallestEigenvalue(double ** D, int n)
     int s; // it is either 1 or 2
     double detE; // determinant of the 2x2 block matrix
     double traceE; // trace of the 2x2 block matrix
-    double * l = new double [2]; // eigenvalues of the 2x2 block matrix
+    double l[] = {0, 0}; // eigenvalues of the 2x2 block matrix
 
     double diag;
     double findmin = std::numeric_limits<double>::infinity();
@@ -1119,12 +1518,10 @@ double NOMAD::FindSmallestEigenvalue(double ** D, int n)
         k += s;
     }
 
-    delete [] l;
-
     return findmin;
 }
 
-bool NOMAD::ldl_lsolve( double ** L, double * rhs, double * Ly, int n)
+bool NOMAD::ldl_lsolve( double ** L, const double * rhs, double * Ly, int n)
 {
     for(int k = 0; k < n; k++)
     {
@@ -1137,7 +1534,7 @@ bool NOMAD::ldl_lsolve( double ** L, double * rhs, double * Ly, int n)
     return true;
 }
 
-bool NOMAD::ldl_ltsolve( double ** L, double * rhs, double * Ly, int n)
+bool NOMAD::ldl_ltsolve( double ** L, const double * rhs, double * Ly, int n)
 {
     for(int k = n - 1; k > -1; k--)
     {
@@ -1150,7 +1547,7 @@ bool NOMAD::ldl_ltsolve( double ** L, double * rhs, double * Ly, int n)
     return true;
 }
 
-bool NOMAD::ldl_dsolve( double ** D,  double * rhs, double * Ly, int n)
+bool NOMAD::ldl_dsolve( double ** D, const double * rhs, double * Ly, int n)
 {
     int s; // it is either 1 or 2
     double detE; // determinant of the 2x2 block matrix
@@ -1188,20 +1585,162 @@ bool NOMAD::ldl_dsolve( double ** D,  double * rhs, double * Ly, int n)
     return true;
 }
 
+bool NOMAD::ldl_solve(std::string& error_msg,
+                      double** M,
+                      const double* rhs,
+                      double* sol,
+                      const int* pivots,
+                      const int n)
+{
+    error_msg.clear();
+
+    // Initialize y
+    auto y = new double[n];
+    for (int i = 0; i < n; ++i)
+    {
+        y[i] = rhs[i];
+    }
+
+    // Solve A x = y, where P A P' = L D L'
+    // First solve LD x = y, overwriting y with x
+    int k = 0;
+    while (k < n)
+    {
+        const bool onebyone = pivots[k] > 0;
+
+        // 1x1 diagonal block
+        if (onebyone)
+        {
+            const int kp = pivots[k] - 1;
+
+            // Step 1: interchange rows k and kp (P A x = P y)
+            std::swap(y[k], y[kp]);
+
+            // Step 2: solve LD x = y
+            // Multiply by inv(L[k]), where L[k] is the transformation stored
+            // in column k of M.
+            if (y[k] != 0)
+            {
+                for (int i = k+1; i < n; ++i)
+                {
+                    y[i] -= y[k] * M[i][k];
+                }
+            }
+
+            // Multiply by the inverse of the diagonal block
+            y[k] *= 1 / M[k][k];
+
+            k += 1;
+        }
+        // 2x2 diagonal block
+        else
+        {
+            const int knext = k+1;
+            const int kp = -pivots[knext] - 1;
+
+            // Step 1: interchange rows knext and kp (P A x = P y)
+            std::swap(y[knext], y[kp]);
+
+            // Step 2: solve LD x = y
+            // Multiply by inv(L[k]), where L[k] is the transformation stored
+            // in column k  and k+1 of M.
+            if (y[k] != 0)
+            {
+                for (int i = k + 2; i < n; ++i)
+                {
+                    y[i] -= y[k] * M[i][k];
+                }
+            }
+            if (y[knext] != 0)
+            {
+                for (int i = k + 2; i < n; ++i)
+                {
+                    y[i] -= y[knext] * M[i][knext];
+                }
+            }
+
+            // Multiply by the inverse of diagonal block
+            const double mxk = M[knext][k];
+            const double mxx = M[knext][knext] / mxk;
+            const double mkk = M[k][k] / mxk;
+            const double denom = mxx * mkk - 1.0;
+            const double yx = y[knext] / mxk;
+            const double yk = y[k] / mxk;
+            y[knext] = (mkk * yx - yk) / denom;
+            y[k] = (mxx * yk - yx) / denom;
+
+            k += 2;
+        }
+    }
+
+    // Next, solve L' x = y, overwriting y with x.
+    k = n - 1;
+    while (k >= 0)
+    {
+        const bool onebyone = pivots[k] > 0;
+
+        // 1 x 1 diagonal block
+        if (onebyone)
+        {
+            // Multiply by inv(L'[k]), where L[k] is the transformation stored in column k of M
+            for (int i = k + 1; i < n; ++i)
+            {
+                y[k] -= M[i][k] * y[i];
+            }
+
+            // Interchange rows k and kp to recover P A P'
+            const int kp = pivots[k] - 1;
+            std::swap(y[k], y[kp]);
+            k -= 1;
+        }
+        // 2 x 2 diagonal block
+        else
+        {
+            const int knext = k - 1;
+
+            // Multiply by inv(L'(k+1)), where L[k+1] is the transformation stored in
+            // columns k and k-1 of A.
+            for (int i = k + 1; i < n; ++i)
+            {
+                y[k] -= M[i][k] * y[i];
+            }
+
+            for (int i = k + 1; i < n; ++i)
+            {
+                y[knext] -= M[i][knext] * y[i];
+            }
+
+            // Interchange rows k and pivots[k]
+            const int kp = -pivots[k] - 1;
+            std::swap(y[k], y[kp]);
+
+            k -= 2;
+        }
+    }
+
+    for (int i = 0; i < n; ++i)
+    {
+        sol[i] = y[i];
+    }
+    delete [] y;
+
+    return true;
+}
+
 bool NOMAD::ldl_solve( std::string & error_msg,
-    double     ** D,
-    double     ** L,
-    double     * rhs,
-    double     * sol,
-    int        * pp,
+    double       ** D,
+    double       ** L,
+    const double * rhs,
+    double       * sol,
+    const int    * pp,
     int            n
 )
 {
     error_msg.clear();
     bool success;
 
-    double * prhs = new double [n];
-    double * Lz = new double [n];
+    auto prhs = new double [n];
+    auto Lz = new double [n];
     for (int i = 0; i < n; i++)
     {
         prhs[i] = rhs[pp[i]];
@@ -1212,7 +1751,7 @@ bool NOMAD::ldl_solve( std::string & error_msg,
     {
         return false;
     }
-    double * Dy = new double [n];
+    auto Dy = new double [n];
     for (int i = 0; i < n; i++)
     {
         Dy[i] = 0.0;
@@ -1220,10 +1759,13 @@ bool NOMAD::ldl_solve( std::string & error_msg,
     success = ldl_dsolve(D, Lz, Dy, n); // Dy = z
     if (!success)
     {
+        delete [] prhs;
+        delete [] Lz;
+        delete [] Dy;
         return false;
     }
 
-    double * psol = new double [n];
+    auto psol = new double [n];
     for (int i = 0; i < n; i++)
     {
         psol[i] = 0.0;

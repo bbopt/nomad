@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_SGTELIB_MODEL__
-#define __NOMAD_4_4_SGTELIB_MODEL__
+#ifndef __NOMAD_4_5_SGTELIB_MODEL__
+#define __NOMAD_4_5_SGTELIB_MODEL__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Algorithm.hpp"
@@ -140,7 +140,7 @@ public:
     ArrayOfDouble getExtendedLowerBound() const;
     ArrayOfDouble getExtendedUpperBound() const;
     Double getFMin() const;
-    const SgtelibModelFormulationType getFormulation() const;
+    SgtelibModelFormulationType getFormulation() const;
 
     MeshBasePtr getMesh() const { return _mesh; }
     Double getDeltaMNorm() const;
@@ -153,7 +153,7 @@ public:
     static size_t getNbModels(const SgtelibModelFeasibilityType modelFeasibility,
                               const size_t nbConstraints);
 
-    void setModelBounds(std::shared_ptr<SGTELIB::Matrix> X);
+    void setModelBounds(std::shared_ptr<SGTELIB::Matrix>& X);
 
     void readInformationForHotRestart() override {}
 
@@ -172,5 +172,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_SGTELIB_MODEL__
+#endif // __NOMAD_4_5_SGTELIB_MODEL__
 

@@ -199,6 +199,7 @@ namespace SGTELIB {
     // Norm
     double norm ( void ) const;
     double normsquare ( void ) const;
+    double norm_inf ( void ) const;
     void normalize_cols ( void );
     SGTELIB::Matrix col_norm ( const norm_t nt ) const;
 
@@ -405,6 +406,8 @@ namespace SGTELIB {
     static SGTELIB::Matrix get_distances_norminf ( const SGTELIB::Matrix & A ,
                                                    const SGTELIB::Matrix & B );
 
+    static double distNorm2(const SGTELIB::Matrix& v1, const SGTELIB::Matrix & v2);
+
     int find_row (SGTELIB::Matrix & R);
 
     // nan
@@ -423,16 +426,16 @@ namespace SGTELIB {
   };
 }
 
-SGTELIB::Matrix operator * (const SGTELIB::Matrix & A , const double v           );
-SGTELIB::Matrix operator * (const double v            , const SGTELIB::Matrix & A);
-SGTELIB::Matrix operator * (const SGTELIB::Matrix & A , const SGTELIB::Matrix & B);
-SGTELIB::Matrix operator + (const SGTELIB::Matrix & A , const SGTELIB::Matrix & B);
-SGTELIB::Matrix operator + (const SGTELIB::Matrix & A , const double v           );
-SGTELIB::Matrix operator + (const double v            , const SGTELIB::Matrix & A);
-SGTELIB::Matrix operator - (const SGTELIB::Matrix & A , const SGTELIB::Matrix & B);
-SGTELIB::Matrix operator - (const SGTELIB::Matrix & A , const double v);
-SGTELIB::Matrix operator - (const double v            , const SGTELIB::Matrix & A);
-SGTELIB::Matrix operator - (const SGTELIB::Matrix & A);
-SGTELIB::Matrix operator / (const SGTELIB::Matrix & A , const double v           );
+DLL_API SGTELIB::Matrix operator * (const SGTELIB::Matrix & A , const double v           );
+DLL_API SGTELIB::Matrix operator * (const double v            , const SGTELIB::Matrix & A);
+DLL_API SGTELIB::Matrix operator * (const SGTELIB::Matrix & A , const SGTELIB::Matrix & B);
+DLL_API SGTELIB::Matrix operator + (const SGTELIB::Matrix & A , const SGTELIB::Matrix & B);
+DLL_API SGTELIB::Matrix operator + (const SGTELIB::Matrix & A , const double v           );
+DLL_API SGTELIB::Matrix operator + (const double v            , const SGTELIB::Matrix & A);
+DLL_API SGTELIB::Matrix operator - (const SGTELIB::Matrix & A , const SGTELIB::Matrix & B);
+DLL_API SGTELIB::Matrix operator - (const SGTELIB::Matrix & A , const double v);
+DLL_API SGTELIB::Matrix operator - (const double v            , const SGTELIB::Matrix & A);
+DLL_API SGTELIB::Matrix operator - (const SGTELIB::Matrix & A);
+DLL_API SGTELIB::Matrix operator / (const SGTELIB::Matrix & A , const double v           );
 
 #endif

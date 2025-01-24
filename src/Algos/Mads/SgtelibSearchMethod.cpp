@@ -96,7 +96,7 @@ void NOMAD::SgtelibSearchMethod::init()
             setEnabled(false);
         }
 
-        auto modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
+        const auto& modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
         _displayLevel = modelDisplay.empty()
                             ? NOMAD::OutputLevel::LEVEL_DEBUGDEBUG
                             : NOMAD::OutputLevel::LEVEL_INFO;
@@ -155,14 +155,14 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsFinal()
         /*----------------*/
         /*  oracle points */
         /*----------------*/
-
+        
         _modelAlgo->start();
         
         oraclePoints = _modelAlgo->createOraclePoints();
         
         _modelAlgo->end();
 
-        if (0 == oraclePoints.size())
+        if (oraclePoints.empty())
         {
             OUTPUT_INFO_START
             s = "Failed generating points. Stop " + getName();

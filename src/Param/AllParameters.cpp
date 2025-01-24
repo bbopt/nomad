@@ -197,7 +197,7 @@ void NOMAD::AllParameters::displayHelp(const std::string &helpSubject , bool dev
                 os << "manage the outputs." << std::endl << std::endl;
                 os << "For example, to obtain help on problem bounds: " << std::endl ;
                 os << "      nomad -h bounds OR nomad -h bound." << std::endl << std::endl;
-                os << "To obtain help on mesh stoping criterions or mesh initialization: " << std::endl ;
+                os << "To obtain help on mesh stopping criteria or mesh initialization: " << std::endl ;
                 os << "      nomad -h mesh."  << std::endl << std::endl;
                 os << "Please note that the help will scan all subjects that mention " << std::endl;
                 os << "the keyword. Hence, for a given keyword, help on several " << std::endl;

@@ -47,7 +47,7 @@ namespace SGTELIB {
 
     // Constructor
     Surrogate_PRS_EDGE ( SGTELIB::TrainingSet & trainingset ,   
-                         SGTELIB::Surrogate_Parameters param) ;
+                         const SGTELIB::Surrogate_Parameters& param) ;
     // destructor:
     virtual ~Surrogate_PRS_EDGE ( void );
 

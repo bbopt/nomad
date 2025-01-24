@@ -24,27 +24,27 @@ endif()
 
 # check compiler version
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    # require at least gcc 4
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4)
-        message(FATAL_ERROR "GCC version < 4 has not been tested for Nomad")
+    # require at least gcc 8
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8)
+        message(FATAL_ERROR "GCC version < 8 has not been tested for sgtelib")
     endif()
 elseif (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") 
     OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
     # require at least clang 5
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5)
-        message(FATAL_ERROR "Clang version has not been tested for Nomad")
+        message(FATAL_ERROR "Clang version has not been tested for sgtelib")
     endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    # require at least 15.0 (MSVC 2017) for C++14 support
+    # require at least 15.8 (MSVC 2017) for C++17 support
     if (MSVC_TOOLSET_VERSION VERSION_LESS 141)
-        message(FATAL_ERROR "MSVC version ${CMAKE_CXX_COMPILER_VERSION} has not been tested for Nomad")
+        message(FATAL_ERROR "MSVC version ${CMAKE_CXX_COMPILER_VERSION} has not been tested for sgtelib")
     endif()
 else()
     message(WARNING "You are using an unsupported compiler. Compilation has only been tested with Clang, GCC, and MSVC.")
 endif()
 
-# require c++14
-set(CXX_STANDARD_REQUIRED 14)
+# require c++17
+set(CXX_STANDARD_REQUIRED 17)
 
 
 # header files
@@ -111,6 +111,7 @@ if(BUILD_INTERFACE_PYTHON MATCHES ON)
   message(STATUS "  Warning: build sgtelib static libraries for Python interface.")
   include(./CMakeListsLibsStatic.txt)
 endif()
+
 
 
 # install header files

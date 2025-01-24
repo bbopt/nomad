@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_SIMPLELINESEARCHMEGAITERATION__
-#define __NOMAD_4_4_SIMPLELINESEARCHMEGAITERATION__
+#ifndef __NOMAD_4_5_SIMPLELINESEARCHMEGAITERATION__
+#define __NOMAD_4_5_SIMPLELINESEARCHMEGAITERATION__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/MegaIteration.hpp"
@@ -130,4 +130,4 @@ std::istream& operator>>(std::istream& is, SimpleLineSearchMegaIteration& megaIt
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_SIMPLELINESEARCHMEGAITERATION__
+#endif // __NOMAD_4_5_SIMPLELINESEARCHMEGAITERATION__

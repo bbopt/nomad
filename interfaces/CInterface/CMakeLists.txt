@@ -12,26 +12,26 @@ set(
 )
 
 
-# 
-# Build 
+#
+# Build
 #
 add_library(
-  nomadCInterface 
+  nomadCInterface
   SHARED ${INTERFACE_SOURCES}
 ) 
 
 target_include_directories(
-  nomadCInterface 
+  nomadCInterface
   PUBLIC
     $<BUILD_INTERFACE: ${CMAKE_BINARY_DIR}/interfaces/CInterface>
     $<INSTALL_INTERFACE: ${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_link_libraries(
-  nomadCInterface 
-  PUBLIC 
-    nomadAlgos 
-    nomadUtils 
+  nomadCInterface
+  PUBLIC
+    nomadAlgos
+    nomadUtils
     nomadEval
 )
 
@@ -49,15 +49,15 @@ if(OpenMP_CXX_FOUND)
   )
 endif()
 
-if (NOT WIN32)   
+if (NOT WIN32)
   target_link_libraries(
-    nomadCInterface 
+    nomadCInterface
     PRIVATE m
   )
 endif()
 
 set_target_properties(
-  nomadCInterface 
+  nomadCInterface
   PROPERTIES 
     INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
     VERSION "${NOMAD_VERSION}"
@@ -66,7 +66,7 @@ set_target_properties(
 )
 
 
-# 
+#
 # Install binary and header
 #
 install(

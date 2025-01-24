@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_4_ALGORITHM__
-#define __NOMAD_4_4_ALGORITHM__
+#ifndef __NOMAD_4_5_ALGORITHM__
+#define __NOMAD_4_5_ALGORITHM__
 
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Initialization.hpp"
@@ -91,9 +91,9 @@ protected:
 
     TrialPointStats                        _trialPointStats;   ///< The trial point counters stats for algo execution
     
-    bool _useOnlyLocalFixedVariables ; ///< When this flag is true, we force an algo to use only local fixed variable. The original problem fixed variables are not considered. This is usefull when we change the design space like when doing quad model search. The evaluation of the quad model are only in the sub space and maybe there are some local fixed variables.
+    bool _useOnlyLocalFixedVariables ; ///< When this flag is true, we force an algo to use only local fixed variable. The original problem fixed variables are not considered. This is useful when we change the design space like when doing quad model search. The evaluation of the quad model are only in the sub space and maybe there are some local fixed variables.
     
-    bool _evalOpportunistic;  ///< This flag is used to force non opportunistic eval for some algo. The evaluator control function setOpportunisticEval is called with this flag. The parameter EVAL_OPPORTUNISTIC can be temporarily superceeded (example, LH_EVAL + MADS)
+    bool _evalOpportunistic;  ///< This flag is used to force non opportunistic eval for some algo. The evaluator control function setOpportunisticEval is called with this flag. The parameter EVAL_OPPORTUNISTIC can be temporarily superseded (example, LH_EVAL + MADS)
     
     
 public:
@@ -209,7 +209,7 @@ public:
     virtual void display(std::ostream& os) const;
 
     /// Access to the best solution (can be undefined)
-    EvalPoint getBestSolution (bool bestFeas = false) const;
+    virtual EvalPoint getBestSolution (bool bestFeas = false) const;
     
 private:
 
@@ -233,4 +233,4 @@ std::istream& operator>>(std::istream& is, Algorithm& algo);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_ALGORITHM__
+#endif // __NOMAD_4_5_ALGORITHM__

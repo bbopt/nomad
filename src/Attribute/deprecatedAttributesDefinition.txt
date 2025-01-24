@@ -109,22 +109,6 @@ false
 \)
 \( internal \)
 ################################################################################
-H_MIN
-NOMAD::Double
-0.0
-\( Deprecated from Nomad 3: Not implemented \)
-\(
-\)
-\( internal \)
-################################################################################
-H_NORM
-std::string
-L2
-\( Deprecated from Nomad 3: Not implemented \)
-\(
-\)
-\( internal \)
-################################################################################
 INITIAL_MESH_INDEX
 int
 0
@@ -756,6 +740,16 @@ bool
 false
 \( Replaced by VNS_MADS_SEARCH \)
 \(
+\)
+\( internal \)
+################################################################################
+NB_THREADS_OPENMP
+int
+1
+\( Deprecated from Nomad 4.4. Check NB_THREADS_PARALLEL_EVAL.\)
+\(
+     Replaced by NB_THREADS_PARALLEL_EVAL to control explictlty the number of
+     threads used for parallel evaluations in evaluator control.
 \)
 \( internal \)
 ################################################################################

@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_4_SUBPROBLEMMANAGER__
-#define __NOMAD_4_4_SUBPROBLEMMANAGER__
+#ifndef __NOMAD_4_5_SUBPROBLEMMANAGER__
+#define __NOMAD_4_5_SUBPROBLEMMANAGER__
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -73,6 +73,8 @@ private:
 
     DLL_ALGO_API static std::unique_ptr<SubproblemManager> _single; ///< The singleton
 
+    bool updateSubproblemFixedVariable;
+    
     /// Constructor
     explicit SubproblemManager()
     {
@@ -111,15 +113,14 @@ public:
     const Subproblem& getSubproblem(const Step* step);
 
     const Point& getSubFixedVariable(const Step* step);
-
+    
     void addSubproblem(const Algorithm* algo, const Subproblem& subproblem);
 
     void removeSubproblem(const Algorithm* algo);
     void reset();
 
-
 };
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_SUBPROBLEMMANAGER__
+#endif // __NOMAD_4_5_SUBPROBLEMMANAGER__

@@ -62,11 +62,11 @@ class My_Evaluator : public NOMAD::Evaluator
 private:
 
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
+    explicit My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
 
-    ~My_Evaluator() {}
+    ~My_Evaluator() override = default;
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override;
 };
@@ -98,9 +98,8 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
     return true;       // the evaluation succeeded
 }
 
-void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
+void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 {
-
     const size_t n = 5;
     
     // Parameters creation
@@ -119,9 +118,9 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
 
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes;
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::OBJ);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::PB);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::PB);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::OBJ);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::PB);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::PB);
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
@@ -130,7 +129,6 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     
     // Parameters validation requested to have access to their value.
     allParams->checkAndComply();
-
 }
 
 
@@ -165,14 +163,11 @@ void userIterationCallback(const NOMAD::Step& step,
 }
 
 
-
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main ( int argc , char ** argv )
+int main()
 {
-
-    
     NOMAD::MainStep TheMainStep;
         
     // Set parameters
@@ -186,12 +181,11 @@ int main ( int argc , char ** argv )
     
     // Set main step callback
     TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_END, userIterationCallback);
-    
-    
+
     // The run
     TheMainStep.start();
     TheMainStep.run();
     TheMainStep.end();
         
-    return 1;
+    return 0;
 }

@@ -51,7 +51,7 @@
 %shared_ptr(NOMAD::Evaluator)
 
 %template(EvalPointVector) std::vector<NOMAD::EvalPoint>;
-%template(EvalPointList) std::list<NOMAD::EvalPoint>;
+// %template(EvalPointList) std::list<NOMAD::EvalPoint>;
 
 namespace NOMAD{
 
@@ -75,19 +75,6 @@ namespace NOMAD{
       explicit Point ( const size_t n = 0 , const NOMAD::Double & d = NOMAD::Double() ) : ArrayOfDouble (n, d);
       explicit Point ( const std::vector<double> & v) : ArrayOfDouble (v);
       void set ( size_t j , const NOMAD::Double & v, bool relative = false, const NOMAD::Double & lb = NOMAD::Double(), const NOMAD::Double & ub = NOMAD::Double() );
-  };
-
-  enum class DLL_UTIL_API ComputeType
-  {
-      STANDARD,           ///< f is OBJ. h is the squared sum of violations of
-                          ///< all constraints. EB constraint violation result
-                          ///< in h being INF.
-      PHASE_ONE,          ///< f is computed based on the violation of EB
-                          ///< constraints only. h is always 0. OBJ and PB
-                          ///< constraints are ignored.
-      USER,               ///< f and h are computed by a user-provided function.
-      UNDEFINED           ///< Undefined: This value may be used when the
-                          ///< ComputeType is not mandatory
   };
 
 //  enum class DLL_UTIL_API BBOutputType
@@ -322,22 +309,15 @@ namespace NOMAD{
   }
 
   size_t findBestFeas(
-    std::vector<EvalPoint> &evalPointList,
-    const Point& fixedVariable,
-    EvalType evalType,
-    ComputeType computeType
+    std::vector<EvalPoint> &evalPointList
   ) const {
-    return $self->findBestFeas(evalPointList, fixedVariable, evalType, computeType);
+    return $self->findBestFeas(evalPointList);
   }
 
   size_t findBestInf(
-    std::vector<EvalPoint> &evalPointList,
-    const Double& hMax,
-    const Point& fixedVariable,
-    EvalType evalType,
-    ComputeType computeType
+    std::vector<EvalPoint> &evalPointList
   ) const {
-    return $self->findBestInf(evalPointList, hMax, fixedVariable, evalType, computeType);
+    return $self->findBestInf(evalPointList);
   }
 
 }

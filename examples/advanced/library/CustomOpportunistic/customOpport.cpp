@@ -45,7 +45,6 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-
 /*--------------------------------------------------------------------------*/
 /*  Example of a program that makes NOMAD do a local opportunistic stop     */
 /*  of queued evaluations from a Poll step when a user criterion is met     */
@@ -64,6 +63,9 @@
 // for custom opportunistic stop of step
 NOMAD::Double currentBestFeasF;
 
+// Default F and H compute type used for custom oppportunistic stop 
+NOMAD::FHComputeType computeType = NOMAD::defaultFHComputeType;
+
 /*----------------------------------------*/
 /*               The problem              */
 /*----------------------------------------*/
@@ -74,11 +76,11 @@ class My_Evaluator : public NOMAD::Evaluator
 private:
 
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
+    explicit My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
 
-    ~My_Evaluator() {}
+    ~My_Evaluator() override = default;
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override;
 };
@@ -91,7 +93,6 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
                           const NOMAD::Double &hMax,
                           bool &countEval) const
 {
-    
     if (N%2 != 0)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Dimension N should be an even number");
@@ -102,16 +103,16 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
         f += pow ( 10 * (x[2*i-1].todouble() - pow(x[2*i-2].todouble(),2) ) , 2 );
         f += pow ( 1 - x[2*i-2].todouble() , 2 );
     }
-    x.setBBO(std::to_string(f));
+    NOMAD::Double F(f);
+    x.setBBO(F.tostring());
     countEval = true;
 
     return true;       // the evaluation succeeded
 }
 
 
-void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams)
+void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 {
-
     // Parameters creation
     allParams->setAttributeValue("DIMENSION", N);
     // 100 black-box evaluations
@@ -125,14 +126,14 @@ void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams)
 
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes;
-    bbOutputTypes.push_back(NOMAD::BBOutputType::OBJ);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::OBJ);
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 3);
     allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj"));
     allParams->setAttributeValue("DISPLAY_ALL_EVAL", true);
 
-    //  Opportunistic eval must be activated (rem: activated by default!). Let us sort with a poor sorting strategy (quadratic model is much better). Default criterion for opportunism is disabled and replaced by a custom opportunistic criterion provided by a user callback (see below).
+    //  Opportunistic eval must be activated (rem: activated by default!). Let us sort with a poor sorting strategy (quadratic model is much better than lexicographical). Default criterion for opportunism is disabled and replaced by a custom opportunistic criterion provided by a user callback (see below).
     allParams->setAttributeValue("EVAL_OPPORTUNISTIC", true);
     allParams->setAttributeValue("EVAL_QUEUE_SORT",NOMAD::EvalSortType::LEXICOGRAPHICAL);
 
@@ -143,7 +144,6 @@ void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams)
 
     // Parameters validation
     allParams->checkAndComply();
-
 
 }
 
@@ -158,39 +158,38 @@ void customEvalCB(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool &opportunistic
     if (NOMAD::EvalType::BB == evalQueuePoint->getEvalType() )
     {
         // Consider only feasible points
-        if (evalQueuePoint->isFeasible(NOMAD::EvalType::BB))
+        if (evalQueuePoint->isFeasible(computeType))
     {
             // Update my current best feasible point
             if (!currentBestFeasF.isDefined())
             {
-                currentBestFeasF = evalQueuePoint->getF(NOMAD::EvalType::BB);
+                currentBestFeasF = evalQueuePoint->getF(computeType);
                 return;
             }
 
             auto mystep = evalQueuePoint->getGenStep();
 
             // Opportunism only if enough reduction is obtained (optim f is 0)
-            auto FMinOpport = currentBestFeasF - 0.01*currentBestFeasF.abs();
+            auto FMinOpport = currentBestFeasF - 0.1*currentBestFeasF.abs();
             if (NOMAD::stepTypeToString(mystep).find("Poll") != string::npos &&
-                evalQueuePoint->getF(NOMAD::EvalType::BB) < FMinOpport)
+                evalQueuePoint->getF(computeType) < FMinOpport)
             {
                 opportunisticEvalStop=true;
                 std::cout<<"*****************************************************"<< std::endl;
                 std::cout<<"Opportunistic stop in Poll on f sufficient decrease. "<< std::endl;
                 std::cout<<"*****************************************************"<< std::endl;
                 
-                currentBestFeasF = evalQueuePoint->getF(NOMAD::EvalType::BB);
+                currentBestFeasF = evalQueuePoint->getF(computeType);
             }
         }
     }
 }
 
 
-
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main ( int argc , char ** argv )
+int main()
 {
     NOMAD::MainStep TheMainStep;
 
@@ -213,5 +212,5 @@ int main ( int argc , char ** argv )
     TheMainStep.run();
     TheMainStep.end();
 
-    return 1;
+    return 0;
 }

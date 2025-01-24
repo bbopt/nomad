@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_MEGASEARCHPOLL__
-#define __NOMAD_4_4_MEGASEARCHPOLL__
+#ifndef __NOMAD_4_5_MEGASEARCHPOLL__
+#define __NOMAD_4_5_MEGASEARCHPOLL__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/Mads/Search.hpp"
@@ -56,8 +56,8 @@
 /// Class for the mega search and poll of MADS
 /**
  Calling the start function generates search and poll trial points at the same time before starting evaluation.
- Calling the run function starts the evaluaions.
- The postprocessing is performed when calling the end funcion.
+ Calling the run function starts the evaluations.
+ The postprocessing is performed when calling the end function.
  */
 class MegaSearchPoll: public Step, public IterationUtils
 {
@@ -89,7 +89,7 @@ private:
 
     
     
-    /// Generate the trial poins for the search and poll steps.
+    /// Generate the trial points for the search and poll steps.
     /**
      Call MegaSearchPoll::generateTrialPoints.
      */
@@ -117,4 +117,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_MEGASEARCHPOLL__
+#endif // __NOMAD_4_5_MEGASEARCHPOLL__

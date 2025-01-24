@@ -23,12 +23,12 @@ DMULTIMADS_OPTIMIZATION yes
 # For multiobjctive, sort should not use the default quad model info
 EVAL_QUEUE_SORT DIR_LAST_SUCCESS
 
-# Let's deactivate all default search methods
+# Let's deactivate all default search methods except NM (prototype)
 # and do ORTHO 2n for more intense poll (default is n+1)
 DIRECTION_TYPE ORTHO 2n
 QUAD_MODEL_SEARCH no
-NM_SEARCH no
 SPECULATIVE_SEARCH no
+DMULTIMADS_NM_STRATEGY MULTI
 
 DISPLAY_DEGREE 2
 DISPLAY_ALL_EVAL yes

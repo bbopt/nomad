@@ -42,21 +42,4 @@ install(TARGETS example2_c_api.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 
-# Add a test for this example
-if(BUILD_EXAMPLES MATCHES ON)
-    message(STATUS "    Add example test for c-api 2") 
-    # Can run this test after install
-
-    if (WIN32)
-# MAYBE enable when script works for windows
-#        add_test(NAME ExampleAdvancedC-API2
-#	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./example2_c_api.exe
-#	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-#        )
-    else()
-        add_test(NAME ExampleAdvancedC-API2
-	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./example2_c_api.exe
-	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-        )
-    endif()
-endif()
+# No test for this example

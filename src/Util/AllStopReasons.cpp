@@ -60,7 +60,7 @@ void NOMAD::AllStopReasons::setStarted()
 
 std::string NOMAD::AllStopReasons::getStopReasonAsString() const
 {
-    std::string stopReason="";
+    std::string stopReason;
     bool flagTerminate = false;
 
     if (_baseStopReason.checkTerminate())

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_STOPREASON__
-#define __NOMAD_4_4_STOPREASON__
+#ifndef __NOMAD_4_5_STOPREASON__
+#define __NOMAD_4_5_STOPREASON__
 
 #include <map>
 #include "../Util/Exception.hpp"
@@ -80,6 +80,7 @@ enum class MadsStopType : int
     MIN_FRAME_SIZE_REACHED   , ///< Min frame size stop criterion
     X0_FAIL                 ,  ///< Problem with starting point evaluation
     PONE_SEARCH_FAILED      ,  ///< Phase one search did not return a feasible point.
+    UPDATE_FAILED           ,  ///< Update failed (DMultiMads only).
     LAST
 };
 
@@ -90,15 +91,6 @@ enum class PhaseOneStopType : int
     STARTED                 ,  ///< Started (no stop)
     NO_FEAS_PT              ,  ///< No feasible solution obtained during PhaseOne search
     MADS_FAIL               ,  ///< Mads fail
-    LAST
-};
-
-/// Stop type that happen during SSD-Mads (super-algo)
-enum class SSDMadsStopType : int
-{
-    STARTED                 ,  ///< Started (no stop)
-    X0_FAIL                 ,  ///< Problem with starting point evaluation
-    SUBPB_MADS_FAIL         ,  ///< Subproblem Mads fail
     LAST
 };
 
@@ -140,9 +132,6 @@ enum class ModelStopType : int
 
 
 /// Stop type for Nelder Mead
-/**
- \todo check the stop type
- */
 enum class NMStopType : int
 {
     STARTED                     ,  ///< Started (no stop)
@@ -164,9 +153,6 @@ enum class NMStopType : int
 };
 
 /// Stop type for Template Algorithm
-/**
- \todo check the stop type
- */
 enum class RandomAlgoStopType : int
 {
     STARTED                     ,  ///< Started (no stop)
@@ -180,9 +166,6 @@ enum class RandomAlgoStopType : int
 };
 
 /// Stop type for Simple Line Search
-/**
- \todo check the stop type
- */
 enum class SimpleLineSearchStopType : int
 {
     STARTED                     ,  ///< Started (no stop)
@@ -223,7 +206,7 @@ enum class EvalMainThreadStopType : int
 {
     STARTED                 ,  ///< Started (no stop)
     LAP_MAX_BB_EVAL_REACHED,   ///< Max number of blackbox evaluations for a sub algorithm run (lap run)
-    SUBPROBLEM_MAX_BB_EVAL_REACHED,   ///< Max number of blackbox evaluations for a subproblem run (E.g. SSD-Mads)
+    SUBPROBLEM_MAX_BB_EVAL_REACHED,   ///< Max number of blackbox evaluations for a subproblem run (E.g. PSD-Mads)
     OPPORTUNISTIC_SUCCESS         ,  ///< Success found and opportunistic strategy is used
     CUSTOM_OPPORTUNISTIC_ITER_STOP,  ///< Custom opportunistic iteration stop has been detected via a callback
     CUSTOM_OPPORTUNISTIC_EVAL_STOP,  ///< Custom opportunistic evaluation stop has been detected via a callback
@@ -262,7 +245,7 @@ private:
 
     T _stopReason;  ///< The stop reason stored as a stop type
 
-    /// Dictionnary to translate a stop type into a string.
+    /// Dictionary to translate a stop type into a string.
     /**
      We have template specializations of this function for each stop type.
      This function is called to display the stop reason.
@@ -323,7 +306,7 @@ public:
         return _stopReason;
     }
 
-    /// Set the stop reason if it is listed in dictionnary
+    /// Set the stop reason if it is listed in dictionary
     void set (T s)
     {
         typename std::map<T,std::string>::iterator it = dict().find(s);
@@ -380,4 +363,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_STOPREASON__
+#endif // __NOMAD_4_5_STOPREASON__

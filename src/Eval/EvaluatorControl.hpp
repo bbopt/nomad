@@ -52,16 +52,8 @@
  \see    EvaluatorControl.cpp
  */
 
-/**
- \file   EvaluatorControl.hpp
- \brief  Management for evaluation.
- \author Viviane Rochon Montplaisir
- \date   November 2017
- \see    EvaluatorControl.cpp
- */
-
-#ifndef __NOMAD_4_4_EVALUATORCONTROL__
-#define __NOMAD_4_4_EVALUATORCONTROL__
+#ifndef __NOMAD_4_5_EVALUATORCONTROL__
+#define __NOMAD_4_5_EVALUATORCONTROL__
 
 #include "../Eval/BarrierBase.hpp"
 #include "../Eval/SuccessStats.hpp"
@@ -79,7 +71,7 @@
 #include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
 
-// Generic funtion with a  mandatory eval queue point (in/out) and a variable number of in/out bool arguments
+// Generic function with a  mandatory eval queue point (in/out) and a variable number of in/out bool arguments
 template<class ... Types>
 using EvalCbFunc = std::function<void(EvalQueuePointPtr & EvalQueuePoint, Types ...)>;  ///< Type definitions for callback functions during evaluation.
 
@@ -104,9 +96,24 @@ struct CallbackFuncType<CallbackType::EVAL_STOP_CHECK>
     typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, bool&)> funcType;
 };
 
-// Callback function type for update just after point evaluation. jus No argument apart from eval queue point.
+// Callback function type for pre evaluation check. Same as eval_x. 1 double for hmax, 1 bool for count eval + eval queue point
 template<>
-struct CallbackFuncType<CallbackType::EVAL_UPDATE>
+struct CallbackFuncType<CallbackType::PRE_EVAL_UPDATE>
+{
+    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, const Double &, bool&)> funcType;
+};
+
+// Callback function type for pre evaluation check of a block of point.
+template<>
+struct CallbackFuncType<CallbackType::PRE_EVAL_BLOCK_UPDATE>
+{
+    typedef std::function<void(BlockForEval & block)> funcType;
+};
+
+
+// Callback function type for update just after point evaluation. No argument apart from eval queue point.
+template<>
+struct CallbackFuncType<CallbackType::POST_EVAL_UPDATE>
 {
     typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint)> funcType;
 };
@@ -123,25 +130,43 @@ template<CallbackType type>
 using EvalCallbackFunc = typename CallbackFuncType<type>::funcType;
 
 
+// Define the default single objective compute function
+// For now, it is used only by SimpleMads that does not use the evaluator control.
+// The compute function is defined in the Eval class and depends on the compute type (STANDARD, PHASE_ONE).
+// For NOMAD::ComputeType::DMULTI_COMBINE_F the default single objective compute function is replaced when doing NM or QuadModeSearch when DMultiMads is used.
+const singleOutputComputeFType defaultSingleObjectiveCompute = [](const BBOutputTypeList &bbOutputTypeList , const BBOutput & bbOutput) -> Double
+{
+    NOMAD::Double obj;
+
+    if (bbOutput.getEvalOk() && !bbOutputTypeList.empty() && bbOutput.checkSizeMatch(bbOutputTypeList))
+    {
+        for (size_t i = 0; i < bbOutputTypeList.size(); i++)
+        {
+            if (bbOutputTypeList[i].isObjective())
+            {
+                obj = (bbOutput.getBBOAsArrayOfDouble())[i];
+                break;
+            }
+        }
+    }
+    return obj;
+
+};
+
+
 
 /// \brief Class to control the evaluation of points using a queue.
-/**
- * \todo Complete the description.
- */
 class DLL_EVAL_API EvaluatorControl {
 private:
     const std::shared_ptr<EvaluatorControlGlobalParameters> _evalContGlobalParams;  ///< The parameters controlling the behavior of the class
 
     const std::shared_ptr<EvaluatorControlParameters> _evalContParams;
-    
+
     std::set<int> _mainThreads;     // Thread numbers of main threads
 
     mutable std::map<int, EvcMainThreadInfo> _mainThreadInfo;  ///< Info about main threads
 
     /// The queue of points to be evaluated.
-      /**
-       \todo Have means to reorder the queue and change the comparison function during the run. \n
-     */
     /**
      * The queue is implemented as a vector. Points are added at the end of
       the queue. Points are sorted using ComparePriority which is called
@@ -165,7 +190,7 @@ private:
      * I find it clearer to declare it atomic from the start.
      */
     std::atomic<size_t> _bbEval;
-    
+
     /// The number of blackbox evaluations obtained from a cache file (rerun)
     /**
      \remark
@@ -204,7 +229,7 @@ private:
 
     /// The number of static surrogate evaluations performed
     std::atomic<size_t> _surrogateEval;
-    
+
     /// The number of static surrogate evaluations obtained from cache (rerun mode)
     std::atomic<size_t> _surrogateEvalFromCacheForRerun;
 
@@ -217,7 +242,7 @@ private:
      */
     std::atomic<size_t> _blockEval;
 
-    /// The index of the last successfull evaluation block
+    /// The index of the last successful evaluation block
     /**
      \remark Atomic for thread-safety.
      */
@@ -251,42 +276,51 @@ private:
      The number of PhaseOne success evaluations performed through \c this.
      */
     std::atomic<size_t> _nbPhaseOneSuccess;
-    
+
     /**
      The number of revealing  iterations performed through \c this. (currently only used for DiscoMads)
      */
     std::atomic<size_t> _nbRevealingIter;
 
-
     bool _allDoneWithEval;     ///< All evaluations done. The queue can be destroyed.
-    
+
     SuccessStats _successStats; ///< Collect stats for SuccessType and trial point generating step type.
 
-    
+
     // Global evaluator control attributes
     SPAttribute<size_t> _bbMaxBlockSize, _surrogateMaxBlockSize, _modelMaxBlockSize, _maxModelEval;
     SPAttribute<size_t>  _maxBBEval, _maxSurrogateEval, _maxEval, _maxBlockEval;
     SPAttribute<bool> _useCacheFileForRerun; ///< Flag to use cache file for evaluation during rerun.
-    
-    
+    SPAttribute<int> _nbThreadsForParallelEval; ///< The number of threads for parallel run evaluations. Parallel eval available only when OpenMP is available.
+
+
     // Default callback function. Does nothing.
     template<typename... ARGS>
     static void defaultEvalCB(EvalQueuePointPtr & evalQueuePoint, ARGS&&... args) {}
 
-    
-    // Callback function definition for eval opportunistic check. Requires two out bool attributes for opportunistic stop
+    // Default callback function for a block. Does nothing.
+    static void defaultEvalBlockCB(BlockForEval & block) {}
+
+
+    // Callback function definition for eval opportunistic check. Requires two out bool attribute for opportunistic stop
     static EvalCallbackFunc<CallbackType::EVAL_OPPORTUNISTIC_CHECK> _cbEvalOpportunisticCheck ;
-    static bool _customOpportunisticCheck;
+    static bool _customOpportunisticOnlyCheck;
+
+    // Callback function definition for a special pre eval update defined by the user run just before evaluation.
+    static EvalCallbackFunc<CallbackType::PRE_EVAL_UPDATE> _cbPreEvalUpdate;
+
+    // Callback function definition for a special pre eval update of a block defined by the user run just before evaluation.
+    static EvalCallbackFunc<CallbackType::PRE_EVAL_BLOCK_UPDATE> _cbPreEvalBlockUpdate;
 
     // Callback function definition for a special update defined by the user run just after evaluation.
-    static EvalCallbackFunc<CallbackType::EVAL_UPDATE> _cbEvalUpdate;
-    
+    static EvalCallbackFunc<CallbackType::POST_EVAL_UPDATE> _cbPostEvalUpdate;
+
     // Callback function definition for global stop check. Requires one in/out bool attributes for global stop
     static EvalCallbackFunc<CallbackType::EVAL_STOP_CHECK> _cbEvalStopCheck ;
-    
+
     // Callback function definition for eval fail check and manage. Requires no in/out attribute
     static EvalCallbackFunc<CallbackType::EVAL_FAIL_CHECK> _cbFailEvalCheck ;
-    
+
     // Flag to indicate if callback for eval fail check has been set by user
     static bool _cbFailEvalCheckIsDefault;
 
@@ -302,7 +336,9 @@ public:
     static void resetCallbacks()
     {
         _cbEvalOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&,bool&>;
-        _cbEvalUpdate = NOMAD::EvaluatorControl::defaultEvalCB<>;
+        _cbPreEvalUpdate = NOMAD::EvaluatorControl::defaultEvalCB<const Double &, bool &>;
+        _cbPreEvalBlockUpdate = NOMAD::EvaluatorControl::defaultEvalBlockCB;
+        _cbPostEvalUpdate = NOMAD::EvaluatorControl::defaultEvalCB<>;
         _cbEvalStopCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
         _cbFailEvalCheck = NOMAD::EvaluatorControl::defaultEvalCB<>;
     }
@@ -338,8 +374,7 @@ public:
         _nbRelativeSuccess(0),
         _nbPhaseOneSuccess(0),
         _nbRevealingIter(0),
-        _allDoneWithEval(false),
-        _successStats()
+        _allDoneWithEval(false)
 #ifdef TIME_STATS
         ,_evalTime(0.0)
 #endif // TIME_STATS
@@ -380,8 +415,7 @@ public:
         _nbRelativeSuccess(0),
         _nbPhaseOneSuccess(0),
         _nbRevealingIter(0),
-        _allDoneWithEval(false),
-        _successStats()
+        _allDoneWithEval(false)
 #ifdef TIME_STATS
         ,_evalTime(0.0)
 #endif // TIME_STATS
@@ -390,8 +424,6 @@ public:
         addEvaluator(evaluator);
     }
 
-    
-    
     /// Destructor.
     virtual ~EvaluatorControl()
     {
@@ -402,7 +434,7 @@ public:
     /* Get/Set       */
     /*---------------*/
     void addMainThread(const int threadNum,
-                       const std::shared_ptr<EvaluatorControlParameters> evalContParams);
+                       const std::shared_ptr<EvaluatorControlParameters>& evalContParams);
     bool isMainThread(const int threadNum) const { return (_mainThreads.end() != _mainThreads.find(threadNum)); }
 
     const std::set<int>& getMainThreads() const { return _mainThreads; }
@@ -411,15 +443,15 @@ public:
     bool hasEvaluator(EvalType evalType) const ;
     void setCurrentEvaluatorType(EvalType evalType);
     void setCurrentEvaluatorType(EvalType evalType, const int mainThreadNum);
-    void addEvaluator(EvaluatorPtr evaluator);
-    void addEvaluator(EvaluatorPtr evaluator, const int mainThreadNum);
+    void addEvaluator(const EvaluatorPtr& evaluator);
+    void addEvaluator(const EvaluatorPtr& evaluator, const int mainThreadNum);
 
     /// Get the number of blackbox evaluations.
     size_t getBbEval() const { return _bbEval; }
 
     /// Set blackbox evaluations number.
     void setBbEval(const size_t bbEval) { _bbEval = bbEval; }
-    
+
     /// Get the number of blackbox evaluations.
     size_t getBbEvalFromCacheForRerun() const { return _bbEvalFromCacheForRerun; }
 
@@ -495,19 +527,23 @@ public:
     bool getDoneWithEval(const int mainThreadNum) const;
     void setDoneWithEval(const int mainThreadNum, const bool doneWithEval);
 
-    void setBarrier(const std::shared_ptr<BarrierBase> barrier);
-    const std::shared_ptr<BarrierBase> getBarrier(const int threadNum = -1) const;
+    void setBarrier(const std::shared_ptr<BarrierBase>& barrier);
+    std::shared_ptr<BarrierBase> getBarrier(const int threadNum = -1) const;
 
-    void setBestIncumbent(const int mainThreadNum, const EvalPointPtr bestIncumbent);
+    void setBestIncumbent(const int mainThreadNum, const EvalPointPtr& bestIncumbent);
     void resetBestIncumbent(const int mainThreadNum);
-    const EvalPointPtr getBestIncumbent(const int mainThreadNum) const;
+    EvalPointPtr getBestIncumbent(const int mainThreadNum) const;
 
+    const std::shared_ptr<ComparePriorityMethod>& getUserCompMethod() const { return _userCompMethod; }
+    void setUserCompMethod(const std::shared_ptr<ComparePriorityMethod>& compMethod) { _userCompMethod = compMethod; setEvalSortType(NOMAD::EvalSortType::USER); }
 
-    
-    void setUserCompMethod(const std::shared_ptr<ComparePriorityMethod>& compMethod) { _userCompMethod = compMethod; }
-
-    void setComputeType(ComputeType computeType);
+    void setComputeType(const ComputeType computeType, const singleOutputComputeFType& = defaultSingleObjectiveCompute, const singleOutputComputeFType& = defaultEmptySingleOutputCompute );
     const ComputeType& getComputeType(const int mainThreadNum = -1) const;
+
+    void setHNormType(const HNormType hNormType);
+    const HNormType& getHNormType(const int mainThreadNum = -1) const;
+
+    const FHComputeTypeS& getFHComputeTypeS(const int mainThreadNum = -1) const;
 
     void setLastSuccessfulFeasDir(const std::shared_ptr<Direction>& feasDir);
     void setLastSuccessfulInfDir(const std::shared_ptr<Direction>& infDir);
@@ -537,29 +573,25 @@ public:
 
     /// Get the global parameters for \c *this
     const std::shared_ptr<EvaluatorControlGlobalParameters> getEvaluatorControlGlobalParams() const { return _evalContGlobalParams; }
-    
+
     /// Get the specific parameters for \c *this
     const std::shared_ptr<EvaluatorControlParameters> getEvaluatorControlParams() const { return _evalContParams; }
 
     /// Get the Evaluator's eval params
     std::shared_ptr<NOMAD::EvalParameters> getCurrentEvalParams(const int threadNum = -1) const;
-    
+
     /// Get the Evaluator's BB_OUTPUT_TYPE
     const BBOutputTypeList & getCurrentBBOutputTypeList(const int threadNum = -1) const;
 
     /// Access to collected success type stats
-    const SuccessStats & getSuccessStats() const { return _successStats; }
-    
+    const SuccessStats & getSuccessStats(const int threadNum = -1) const;
+
+    /// Helper to update success stats
+    void updateSuccessStats(const int threadNum, SuccessType successType, StepType stepType , size_t val=1);
+
     /// Reset success stats (done once transferred to Step success stats)
-    void resetSuccessStats()
-    {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-        _successStats.resetCurrentStats();
-    }
-    
-    
+    void resetSuccessStats(const int threadNum = -1);
+
     /// Get or Set the value of some parameters (those are associated to a Main Thread)
     EvalSortType getEvalSortType(const int mainThreadNum =-1) const;
     void setEvalSortType(EvalSortType evalSortType);
@@ -568,6 +600,7 @@ public:
     bool getUseCache(const int mainThreadNum = -1) const;
     void setUseCache(const bool usecache);
     bool getUseCacheForRerun() const { return _useCacheFileForRerun->getValue() ;}
+    int getNbThreadsForParallelEval() const { return _nbThreadsForParallelEval->getValue(); }
     EvalType getCurrentEvalType(const int mainThreadNum = -1) const;
     size_t getMaxBbEvalInSubproblem(const int mainThreadNum = -1) const;
     void setMaxBbEvalInSubproblem(const size_t maxBbEval);
@@ -595,24 +628,23 @@ public:
     /**
      \return \c true if point was inserted in queue
     **/
-    bool addToQueue(const EvalQueuePointPtr evalQueuePoint);
-    
+    bool addToQueue(const EvalQueuePointPtr& evalQueuePoint);
+
 
     /// Get the top point from the queue and pop it.
     /**
     \param evalQueuePoint   The eval point popped from the queue -- \b OUT.
-    \param evaluator        Evaluator with which this point must be evaluated -- \b IN/OUT
-    \param hMax             hMax for evaluation of this point -- \b IN/OUT
+    \param mainThreadNum   The main thread number that generated this point -- \b IN.
     \return                 \c true if it worked, \c false otherwise.
     */
-    bool popEvalPoint(EvalQueuePointPtr &evalQueuePoint, Evaluator*& evaluator, Double& hMax);
+    bool popEvalPointForMainThread(EvalQueuePointPtr &evalQueuePoint, const int &mainThreadNum);
 
     /// Pop eval points from the queue to fill a block of size BB_MAX_BLOCK_SIZE.
     /**
     \param block   The eval queue point block created -- \b OUTr.
     \return        \c true if the block has at least one point, \c false otherwise.
     */
-    bool popBlock(BlockForEval &block);
+    bool popBlockForMainThread(BlockForEval &block, const int &mainThreadNum);
 
     /// Clear queue.
     /**
@@ -627,7 +659,7 @@ public:
 
     /// Continuous evaluation - running on all threads simultaneously.
     /**
-     * Stop reasons may be controled by parameters MAX_BB_EVAL, MAX_EVAL, EVAL_OPPORTUNISTIC. \n
+     * Stop reasons may be controlled by parameters MAX_BB_EVAL, MAX_EVAL, EVAL_OPPORTUNISTIC. \n
      * If strategy is opportunistic, stop as soon as a successful point is found. \n
      \return    The success type of the evaluations.
      */
@@ -668,12 +700,12 @@ public:
      \remark Updates only the Eval members.
      \param block   The block of points to evaluate -- \b IN/OUT.
      \param evaluator   Evaluator to be used for all these points
-     \param hMax    The max infeasibilyt to keep a point in barrier -- \b IN.
+     \param hMax    The max infeasibility threshold to keep a point in barrier -- \b IN.
      \return        A vector of booleans, of the same size as block.
      */
     std::vector<bool> evalBlockOfPoints(Block &block,
                                         const Evaluator& evaluator,
-                                        const Double &hMax = INF);
+                                        const Double &hMax );
 
     /// Updates eval status.
     /**
@@ -682,16 +714,16 @@ public:
      \param evalPoint   The evaluation point -- \b IN/OUT.
      \return \c true if the point must be evaluated, \c false otherwise.
      */
-    bool updateEvalStatusBeforeEval(EvalPoint &evalPoint);
+    bool updateEvalStatusBeforeEval(EvalPoint &evalPoint) const;
 
     /// Updates eval status.
     /**
      Update point's evalStatus, knowing that the evaluation has just ended.
      \param evalPoint       The evalPoint -- \b IN/OUT.
-     \param evalOk          Status of evaluation -- \b IN.
+     \param itEvalOk          Status of evaluation -- \b IN/OUT.
      */
     void updateEvalStatusAfterEval(EvalPoint &evalPoint,
-                                   bool evalOk);
+                                   std::vector<bool>::iterator itEvalOk);
 
     /// Did we reach one of the evaluation parameters: MAX_EVAL, MAX_BB_EVAL, MAX_BLOCK_EVAL ?
     bool reachedMaxEval() const;
@@ -704,20 +736,23 @@ public:
 
     /// For debugging purposes. Show the contents of the evaluation queue.
     void debugDisplayQueue() const;
-    
+
     /// Sort provided points.
     /**
      Can be eval points in the queue ready for evaluation or eval points that need to be sorted before some are removed like in Ortho Mads N+1.
      The option to force a random ordering is for Ortho Mads n+1. So we have guarantee that the direction will grow asymptotically dense.
      */
     void sort(std::vector<EvalQueuePointPtr> & evalPointsPtrToSort, bool forceRandom);
-        
+
     /*
      Callback function can be added for checking if a special condition that is not a SuccessType (defined by an algo for example) is obtained after evaluating each point.
      Callback function can be added for checking a fail evaluation and manage it (no stop will be called after this callback).
      */
     template<CallbackType type>
     void DLL_EVAL_API addEvalCallback(const NOMAD::EvalCallbackFunc<type>& evalCbFunc);
+
+    template<CallbackType type>
+    void DLL_EVAL_API addEvalCallback(const NOMAD::EvalCallbackFunc<type>& evalCbFunc, bool);
     // Template specializations in .cpp
 
     /// Update local variables
@@ -734,7 +769,7 @@ public:
      \param evalQueuePoint The queue point of interest -- \b IN/OUT.
      \param evalOk         Flag to specific if evaluation was OK -- \b IN.
      */
-    void computeSuccess(EvalQueuePointPtr evalQueuePoint,
+    void computeSuccess(const EvalQueuePointPtr& evalQueuePoint,
                         const bool evalOk,
                         bool pointFromCache = false);
 
@@ -742,7 +777,7 @@ private:
 
     /// Helper for constructor #1
     void init();
-    
+
     /// Helper for destructor
     void destroy();
 
@@ -753,8 +788,8 @@ private:
     \param evaluator The current evaluator -- \b IN
     \param evalInfoPtr to display warning messages-- \b IN/OUT.
      */
-    bool checkIfEvalOk(const NOMAD::Evaluator& evaluator, NOMAD::EvalPointPtr evalPoint, NOMAD::OutputInfo* evalInfoPtr);
-    
+    bool checkIfEvalOk(const NOMAD::Evaluator& evaluator, const NOMAD::EvalPointPtr& evalPoint, NOMAD::OutputInfo* evalInfoPtr) const;
+
     /// Get the EvcMainThreadInfo associated with this thread number.
     /**
      * Get EvcMainThreadInfo associated with this thread number.
@@ -768,7 +803,7 @@ private:
     bool evalTypeAsBB(EvalType evalType, const int mainThreadNum) const;
     /// Helper for EvalType: BB OR SURROGATE. MODEL does not count for some counters.
     bool evalTypeCounts(EvalType evalType) const;
-    
+
 
     /// Helper for unlockQueue(), to validate if a point may be removed from the queue after sort.
     bool canErase(const EvalQueuePointPtr &evalQueuePoint,
@@ -788,24 +823,32 @@ private:
     void addStatsInfo(const BlockForEval& block) ;
 
     /// History and Solution file output
-    void addDirectToFileInfo(EvalQueuePointPtr evalQueuePoint) const;
-    
+    void addDirectToFileInfo(const EvalQueuePointPtr& evalQueuePoint) const;
+
     /// Helper for sort
-    std::shared_ptr<NOMAD::OrderByDirection> makeCompMethodOrderByDirection() const ;
-    
+    std::shared_ptr<NOMAD::OrderByDirection> makeCompMethodOrderByDirection(const FHComputeType & computeType) const ;
+
     bool checkModelEvals() const;
-    
+
     /// \brief Generic run user eval callback (no extra argument)
     template<CallbackType callback>
     void runEvalCallback(EvalQueuePointPtr & evalQueuePoint);
 
+    /// \brief Generic run user eval callback for a block (no extra argument)
+    template<CallbackType callback>
+    void runEvalCallback(BlockForEval & block);
+
     /// \brief Generic run user eval callback (1 extra bool argument)
     template<CallbackType callback>
     void runEvalCallback(EvalQueuePointPtr & evalQueuePoint, bool &);
-    
+
     /// \brief Generic run user eval callback (2 extra bool argument)
     template<CallbackType callback>
     void runEvalCallback(EvalQueuePointPtr & evalQueuePoint, bool &, bool &);
+
+    /// \brief Generic run user eval callback (1 Double and 1 extra bool argument)
+    template<CallbackType callback>
+    void runEvalCallback(EvalQueuePointPtr & evalQueuePoint, const Double &, bool &);
 
     // Template specializations in .cpp
 };
@@ -814,4 +857,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_EVALUATORCONTROL__
+#endif // __NOMAD_4_5_EVALUATORCONTROL__

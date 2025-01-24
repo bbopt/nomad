@@ -72,7 +72,7 @@ void NOMAD::DiscoMads::init(bool barrierInitializedFromCache)
 
 
     // -- Display discoMads parameters
-    bool detectHiddConst = _runParams->getAttributeValue<bool>("DISCO_MADS_HID_CONST");                   // only for hidden constraints revealation
+    bool detectHiddConst = _runParams->getAttributeValue<bool>("DISCO_MADS_HID_CONST");                   // only for hidden constraints revaluation
 
     if(detectHiddConst)
     {   // use to reveal hidden constraints
@@ -218,7 +218,7 @@ void NOMAD::DiscoMads::readInformationForHotRestart()
 {
     // Restart from where we were before.
     // For this, we need to read some files.
-    // Note: Cache file is treated independently from hot restart file.
+    // Note: Cache file is treated independently of hot restart file.
 
     if (_runParams->getAttributeValue<bool>("HOT_RESTART_READ_FILES"))
     {

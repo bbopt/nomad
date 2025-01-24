@@ -52,8 +52,8 @@
  \see    EvalSortType.cpp
  */
 
-#ifndef __NOMAD_4_4_EVAL_SORT_TYPE__
-#define __NOMAD_4_4_EVAL_SORT_TYPE__
+#ifndef __NOMAD_4_5_EVAL_SORT_TYPE__
+#define __NOMAD_4_5_EVAL_SORT_TYPE__
 
 #include <sstream>
 
@@ -67,7 +67,8 @@ enum class EvalSortType
     LEXICOGRAPHICAL,    ///< Sort using lexicographical order
     RANDOM,             ///< Mix points randomly instead of sorting them
     SURROGATE,          ///< Sort using static surrogate evaluator
-    QUADRATIC_MODEL     ///< Sort using dynamic quadratic model
+    QUADRATIC_MODEL,    ///< Sort using dynamic quadratic model
+    USER                ///< Sort comparison operator provided by user
 };
 
 
@@ -87,4 +88,4 @@ inline std::ostream& operator<<(std::ostream& out, EvalSortType evalSortType)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_4_EVAL_SORT_TYPE__
+#endif  // __NOMAD_4_5_EVAL_SORT_TYPE__

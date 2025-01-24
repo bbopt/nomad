@@ -64,7 +64,7 @@ NOMAD::ParameterEntry::ParameterEntry ( const std::string & entry           ,
 : _ok                 ( false ) ,
 _unique               ( true  ) ,
 _next                 ( nullptr  ) ,
-_paramFile            ( "" ),
+_paramFile            (),
 _line                 ( 0 ) ,
 _hasBeenInterpreted   ( false )
 {
@@ -73,7 +73,7 @@ _hasBeenInterpreted   ( false )
     std::istringstream in ( entry );
     in >> _name;
 
-    if (_name.size()==0)
+    if (_name.empty())
         return;
 
     if ( removeComments && _name[0] == '#' )
@@ -122,14 +122,14 @@ _hasBeenInterpreted   ( false )
                         return;
                     }
 
-                    s = s + ss;
+                    s += ss;
                 }
             }
 
             // vector:
             if ( s.size() > 1 && ( s[0] == '[' || s[0] == '(' ) )
             {
-                _values.push_back ( s[0]=='[' ? "[" : "(" );
+                _values.emplace_back(s[0]=='[' ? "[" : "(" );
                 s.erase(s.begin());
             }
             size_t  sm1 = s.size() - 1;
@@ -138,7 +138,7 @@ _hasBeenInterpreted   ( false )
             {
                 s.resize(sm1);
                 _values.push_back (s);
-                _values.push_back ( c==']' ? "]" : ")" );
+                _values.emplace_back(c==']' ? "]" : ")" );
                 continue;
             }
 
@@ -159,13 +159,13 @@ void NOMAD::ParameterEntry::display(std::ostream &out) const
     if ( _ok )
     {
         out << _name << ": ";
-        std::list<std::string>::const_iterator end = _values.end();
-        for ( std::list<std::string>::const_iterator it = _values.begin() ; it != end ; ++it )
+        auto end = _values.end();
+        for ( auto it = _values.begin() ; it != end ; ++it )
             out << "[" << *it << "] ";
     }
 }
 
-std::string NOMAD::ParameterEntry::getAllValues( void ) const
+std::string NOMAD::ParameterEntry::getAllValues() const
 {
     std::string all;
 

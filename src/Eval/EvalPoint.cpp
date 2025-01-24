@@ -51,6 +51,8 @@
  \date   March 2017
  \see    EvalPoint.hpp
  */
+#include <memory>
+
 #include "../Eval/EvalPoint.hpp"
 #include "../Output/OutputQueue.hpp"
 #include "../Math/MatrixUtils.hpp"
@@ -128,9 +130,9 @@ NOMAD::EvalPoint::EvalPoint(const NOMAD::Point &x)
 /*---------------------------------------------------------------------*/
 void NOMAD::EvalPoint::initEval()
 {
-    for (size_t i = 0; i < (size_t)NOMAD::EvalType::LAST; i++)
+    for (auto& i : _eval)
     {
-        _eval[i].reset();
+        i.reset();
     }
 }
 
@@ -149,7 +151,7 @@ NOMAD::EvalPoint::EvalPoint(const NOMAD::EvalPoint &evalPoint)
 /*---------------------------------------------------------------------*/
 /* Helper for copy constructor                                         */
 /* Copy all members except Point.                                      */
-/* Useful when converting from full to sub dimension and vice-versa.   */
+/* Useful when converting from full to sub dimension and vice versa.   */
 /*---------------------------------------------------------------------*/
 void NOMAD::EvalPoint::copyMembers(const NOMAD::EvalPoint &evalPoint)
 {
@@ -166,7 +168,7 @@ void NOMAD::EvalPoint::copyMembers(const NOMAD::EvalPoint &evalPoint)
         if (nullptr != eval)
         {
             // deep copy.
-            _eval[(size_t) evalType].reset(new NOMAD::Eval(*eval));
+            _eval[(size_t) evalType] = std::make_unique<NOMAD::Eval>(*eval);
         }
     }
 
@@ -225,7 +227,7 @@ NOMAD::EvalPoint & NOMAD::EvalPoint::operator=(const NOMAD::EvalPoint &evalPoint
         else
         {
             // deep copy.
-            _eval[(size_t) evalType].reset(new NOMAD::Eval(*evalPoint.getEval(evalType)));
+            _eval[(size_t) evalType] = std::make_unique<NOMAD::Eval>(*evalPoint.getEval(evalType));
         }
     }
 
@@ -236,9 +238,7 @@ NOMAD::EvalPoint & NOMAD::EvalPoint::operator=(const NOMAD::EvalPoint &evalPoint
 /*---------------------------------------------------------------------*/
 /*                               Destructor                            */
 /*---------------------------------------------------------------------*/
-NOMAD::EvalPoint::~EvalPoint ()
-{
-}
+NOMAD::EvalPoint::~EvalPoint () = default;
 
 
 /*-----------------------------------------------------------*/
@@ -285,20 +285,6 @@ bool NOMAD::EvalPoint::operator== (const NOMAD::EvalPoint &evalPoint) const
 }
 
 
-/*--------------------------------*/
-/*  Comparison operator '<':      */
-/*  Compare eval values           */
-/*      (f and h).                */
-/*  To be used for filter         */
-/*  Warning: only BB eval is      */
-/*      considered                */
-/*--------------------------------*/
-bool NOMAD::EvalPoint::operator<(const NOMAD::EvalPoint & ep) const
-{
-    return this->dominates(ep, NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
-}
-
-
 /*---------------------*/
 /* Other class methods */
 /*---------------------*/
@@ -316,14 +302,14 @@ bool NOMAD::EvalPoint::isEvalOk(NOMAD::EvalType evalType) const
 }
 
 
-void NOMAD::EvalPoint::setMesh(std::shared_ptr<MeshBase> mesh)
+void NOMAD::EvalPoint::setMesh(const std::shared_ptr<MeshBase>& mesh)
 {
 
     if ( nullptr == mesh )
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Cannot clone a null mesh" );
     }
-    
+
     _mesh = mesh->clone();
 }
 
@@ -332,7 +318,7 @@ void NOMAD::EvalPoint::setMesh(std::shared_ptr<MeshBase> mesh)
 /*---------*/
 NOMAD::Eval* NOMAD::EvalPoint::getEval(NOMAD::EvalType evalType) const
 {
-    size_t indMap = (size_t) evalType;
+    auto indMap = (size_t) evalType;
     if (indMap >= (size_t) NOMAD::EvalType::LAST)
     {
         return nullptr;
@@ -346,7 +332,7 @@ NOMAD::Eval* NOMAD::EvalPoint::getEval(NOMAD::EvalType evalType) const
 NOMAD::EvalType NOMAD::EvalPoint::getSingleEvalType(NOMAD::EvalStatusType evalStatusType) const
 {
 
-    size_t foundIndMap = (size_t) NOMAD::EvalType::LAST;
+    auto foundIndMap = (size_t) NOMAD::EvalType::LAST;
     for (size_t indMap = 0 ; indMap < (size_t) NOMAD::EvalType::LAST ; indMap++ )
     {
         if ( nullptr != _eval[indMap] && evalStatusType == _eval[indMap]->getEvalStatus())
@@ -367,50 +353,46 @@ NOMAD::EvalType NOMAD::EvalPoint::getSingleEvalType(NOMAD::EvalStatusType evalSt
 void NOMAD::EvalPoint::setEval(const NOMAD::Eval& eval,
                                NOMAD::EvalType evalType)
 {
-    _eval[(size_t) evalType].reset(new NOMAD::Eval(eval));
+    _eval[(size_t) evalType] = std::make_unique<NOMAD::Eval>(eval);
 }
 
 
-NOMAD::Double NOMAD::EvalPoint::getF(NOMAD::EvalType evalType,
-                                     NOMAD::ComputeType computeType) const
+NOMAD::Double NOMAD::EvalPoint::getF(const FHComputeType& computeType) const
 {
-    auto eval = getEval(evalType);
+    auto eval = getEval(computeType.evalType);
     if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
     {
         return NOMAD::INF;
         // throw NOMAD::Exception(__FILE__,__LINE__,"EvalPoint::getF() called for an EvalPoint that is not EVAL_OK");
     }
 
-    return eval->getF(computeType);
+    return eval->getF(computeType.Short());
 }
 
 
-NOMAD::ArrayOfDouble NOMAD::EvalPoint::getFs(NOMAD::EvalType evalType,
-                                             NOMAD::ComputeType computeType) const
+const NOMAD::ArrayOfDouble& NOMAD::EvalPoint::getFs(const FHComputeType& computeType) const
 {
-    auto eval = getEval(evalType);
+    auto eval = getEval(computeType.evalType);
     if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
     {
-              throw NOMAD::Exception(__FILE__,__LINE__,"EvalPoint::getFs() called for an EvalPoint that is not EVAL_OK");  
+              throw NOMAD::Exception(__FILE__,__LINE__,"EvalPoint::getFs() called for an EvalPoint that is not EVAL_OK");
     }
 
-    return eval->getFs(computeType);
+    return eval->getFs(computeType.Short());
 }
 
 
-NOMAD::Double NOMAD::EvalPoint::getH(NOMAD::EvalType evalType,
-                                     NOMAD::ComputeType computeType) const
+NOMAD::Double NOMAD::EvalPoint::getH(const FHComputeType& computeType) const
 {
     NOMAD::Double h;
 
-    auto eval = getEval(evalType);
+    auto eval = getEval(computeType.evalType);
     if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
     {
         return NOMAD::INF;
-        // throw NOMAD::Exception(__FILE__,__LINE__,"EvalPoint::getH() called for an EvalPoint that is not EVAL_OK");
     }
 
-    return eval->getH(computeType);
+    return eval->getH(computeType.Short());
 }
 
 
@@ -432,10 +414,10 @@ void NOMAD::EvalPoint::setBBO(const std::string &bbo,
                               const NOMAD::BBOutputTypeList &bbOutputTypeList,
                               NOMAD::EvalType evalType,
                               const bool evalOk)
-{  
-    // The default (unset) eval type is passed (see library mode examples using simple setBBO(bbo) function. This function is used for simplicity BUT we need to check which eval is in progress. It should not be too costly.
-    // Quad model evaluator passes the eval type explicitely.
-    // Also Evaluator::evalXBBExe passes the eval type explicitely.
+{
+    // The default (unset) eval type is passed (see library mode examples using simple setBBO(bbo) function). This function is used for simplicity BUT we need to check which eval is in progress. It should not be too costly.
+    // Quad model evaluator passes the eval type explicitly.
+    // Also Evaluator::evalXBBExe passes the eval type explicitly.
     NOMAD::Eval * eval = nullptr;
     if (NOMAD::EvalType::LAST == evalType)
     {
@@ -446,7 +428,7 @@ void NOMAD::EvalPoint::setBBO(const std::string &bbo,
 
     if (nullptr == eval)
     {
-        _eval[(size_t) evalType].reset(new NOMAD::Eval());
+        _eval[(size_t) evalType] = std::make_unique<NOMAD::Eval>(NOMAD::Eval());
         eval = getEval(evalType);
     }
 
@@ -473,7 +455,7 @@ void NOMAD::EvalPoint::setBBO(const std::string &bbo,
 
 
 void NOMAD::EvalPoint::setBBOutputType(const NOMAD::BBOutputTypeList& bbOutputType,
-                                       NOMAD::EvalType evalType)
+                                       const NOMAD::EvalType evalType) const
 {
     auto eval = getEval(evalType);
     if (nullptr != eval)
@@ -484,11 +466,11 @@ void NOMAD::EvalPoint::setBBOutputType(const NOMAD::BBOutputTypeList& bbOutputTy
 
 void NOMAD::EvalPoint::setBBOutputType(const NOMAD::BBOutputTypeList& bbOutputType)
 {
-    for (size_t indMap=0; indMap < (size_t) NOMAD::EvalType::LAST ; indMap ++)
+    for (const auto& indMap : _eval)
     {
-        if (nullptr != _eval[indMap])
+        if (nullptr != indMap)
         {
-            _eval[indMap]->setBBOutputTypeList(bbOutputType);
+            indMap->setBBOutputTypeList(bbOutputType);
         }
     }
 }
@@ -501,6 +483,20 @@ NOMAD::EvalStatusType NOMAD::EvalPoint::getEvalStatus(NOMAD::EvalType evalType) 
     if (nullptr != eval)
     {
         evalStatus = eval->getEvalStatus();
+    }
+
+    return evalStatus;
+}
+
+NOMAD::EvalStatusType NOMAD::EvalPoint::getPreEvalStatus(NOMAD::EvalType evalType) const
+{
+
+    NOMAD::EvalStatusType evalStatus = NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED;
+
+    auto eval = getEval(evalType);
+    if (nullptr != eval)
+    {
+        evalStatus = eval->getPreEvalStatus();
     }
 
     return evalStatus;
@@ -519,7 +515,7 @@ void NOMAD::EvalPoint::setEvalStatus(NOMAD::EvalStatusType evalStatus,
 
     if (nullptr == eval)
     {
-        _eval[(size_t) evalType].reset(new NOMAD::Eval());
+        _eval[(size_t) evalType] = std::make_unique<NOMAD::Eval>();
         eval = getEval(evalType);
     }
 
@@ -533,6 +529,37 @@ void NOMAD::EvalPoint::setEvalStatus(NOMAD::EvalStatusType evalStatus,
     }
 }
 
+void NOMAD::EvalPoint::setPreEvalStatus(NOMAD::EvalStatusType evalStatus,
+                                        NOMAD::EvalType evalType)
+{
+    if (NOMAD::EvalType::BB != evalType)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "EvalPoint::setPreEvalStatus: Eval type should be BB");
+    }
+
+    if (((size_t) evalType) >= ((size_t) NOMAD::EvalType::LAST))
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "EvalPoint::setEvalStatus: Could not create new Eval");
+    }
+
+    auto eval = getEval(evalType);
+
+    if (nullptr == eval)
+    {
+        _eval[(size_t) evalType] = std::make_unique<NOMAD::Eval>();
+        eval = getEval(evalType);
+    }
+
+    if (nullptr == eval)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "EvalPoint::setEvalStatus: Could not create new Eval");
+    }
+    else
+    {
+        eval->setPreEvalStatus(evalStatus);
+    }
+}
+
 NOMAD::Double NOMAD::EvalPoint::getRevealedConstraint() const
 {
     // Return value of revealed constraint
@@ -542,10 +569,10 @@ NOMAD::Double NOMAD::EvalPoint::getRevealedConstraint() const
     {
         if (nullptr != eval)
         {
-            auto allBbot = eval->getBBOutputTypeList(); 
+            auto allBbot = eval->getBBOutputTypeList();
 
             // Index of revealed constraint
-            auto it = std::find(allBbot.begin(),allBbot.end(), NOMAD::BBOutputType::RPB);  
+            auto it = std::find(allBbot.begin(),allBbot.end(), NOMAD::BBOutputType::RPB);
             if (it != allBbot.end())
                 {
                     // Access value
@@ -565,23 +592,24 @@ NOMAD::Double NOMAD::EvalPoint::getRevealedConstraint() const
     }
 }
 
-void NOMAD::EvalPoint::setRevealedConstraint(const NOMAD::Double &constraintValue){
+void NOMAD::EvalPoint::setRevealedConstraint(const NOMAD::Double &constraintValue) const
+{
 
     auto eval = getEval(NOMAD::EvalType::BB);
     {
         if (nullptr != eval)
         {
-            auto allBbot = eval->getBBOutputTypeList(); 
+            auto allBbot = eval->getBBOutputTypeList();
 
             // Index of revealed constraint
-            auto it = std::find(allBbot.begin(),allBbot.end(), NOMAD::BBOutputType::RPB);  
+            auto it = std::find(allBbot.begin(),allBbot.end(), NOMAD::BBOutputType::RPB);
             if (it != allBbot.end())
                 {
                     // Update value
                     size_t index = it - allBbot.begin();
                     auto bbo = eval->getBBOutput().getBBOAsArrayOfDouble();
                     bbo[index]=constraintValue;
-                    eval->setBBO(bbo.display(), allBbot);
+                    eval->setBBO(bbo.tostring(), allBbot);
                 }
             else
             {
@@ -599,6 +627,9 @@ void NOMAD::EvalPoint::setRevealedConstraint(const NOMAD::Double &constraintValu
 void NOMAD::EvalPoint::updateTag() const
 {
     if (-1 == _tag)
+#ifdef OPENMP
+#pragma omp critical
+#endif
     {
         _currentTag++;
         _tag = _currentTag;
@@ -612,7 +643,7 @@ void NOMAD::EvalPoint::resetCurrentTag()
 }
 
 
-const std::shared_ptr<NOMAD::EvalPoint> NOMAD::EvalPoint::getPointFrom(const NOMAD::Point& fixedVariable) const
+std::shared_ptr<NOMAD::EvalPoint> NOMAD::EvalPoint::getPointFrom(const NOMAD::Point& fixedVariable) const
 {
     auto pointFrom = _pointFrom;
     if (nullptr != pointFrom)
@@ -624,7 +655,7 @@ const std::shared_ptr<NOMAD::EvalPoint> NOMAD::EvalPoint::getPointFrom(const NOM
 }
 
 
-void NOMAD::EvalPoint::setPointFrom(const std::shared_ptr<NOMAD::EvalPoint> pointFrom, const NOMAD::Point& fixedVariable)
+void NOMAD::EvalPoint::setPointFrom(const std::shared_ptr<NOMAD::EvalPoint>& pointFrom, const NOMAD::Point& fixedVariable)
 {
     auto pointFromFull = pointFrom;
     if (pointFromFull->size() < fixedVariable.size())
@@ -648,9 +679,14 @@ void NOMAD::EvalPoint::setPointFrom(const std::shared_ptr<NOMAD::EvalPoint> poin
 }
 
 
-void NOMAD::EvalPoint::addGenStep(const NOMAD::StepType& genStep)
+void NOMAD::EvalPoint::addGenStep(const NOMAD::StepType& genStep, bool inherit)
 {
-    // Do not add doublons.
+    if (!inherit)
+    {
+        _genSteps.clear();
+    }
+
+    // Do not add duplicates.
     size_t nbSteps = _genSteps.size();
     if (nbSteps >= 1 && _genSteps[nbSteps-1] == genStep)
     {
@@ -706,15 +742,15 @@ std::string NOMAD::EvalPoint::getComment() const
 }
 
 
-bool NOMAD::EvalPoint::isFeasible(NOMAD::EvalType evalType, NOMAD::ComputeType computeType) const
+bool NOMAD::EvalPoint::isFeasible(const FHComputeType& computeType) const
 {
-    auto eval = getEval(evalType);
+    auto eval = getEval(computeType.evalType);
     if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
     {
-        throw NOMAD::Exception(__FILE__,__LINE__,"EvalPoint::isFeasible: Needs eval status to be EVAL_OK.");
+        throw NOMAD::Exception(__FILE__,__LINE__,"EvalPoint::isFeasible: Needs eval to be defined and status to be EVAL_OK.");
     }
 
-    return eval->isFeasible(computeType);
+    return eval->isFeasible(computeType.Short());
 }
 
 bool NOMAD::EvalPoint::isEBOk(NOMAD::EvalType evalType) const
@@ -723,11 +759,12 @@ bool NOMAD::EvalPoint::isEBOk(NOMAD::EvalType evalType) const
     auto eval = getEval(evalType);
     if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
     {
-        throw NOMAD::Exception(__FILE__,__LINE__,"EvalPoint::isEBOK: Needs eval status to be EVAL_OK.");
+        throw NOMAD::Exception(__FILE__,__LINE__,"EvalPoint::isEBOk: Needs eval to be defined and status to be EVAL_OK.");
     }
-    
+
     // Infeasibility measure accounting for EB constraints only is computed with phase one compute type
-    NOMAD::Double EBconstraintsInfeasibility = eval->getF(NOMAD::ComputeType::PHASE_ONE); 
+    const FHComputeTypeS computeType = {NOMAD::ComputeType::PHASE_ONE, NOMAD::HNormType::L2, NOMAD::defaultEmptySingleOutputCompute /* not used*/};
+    NOMAD::Double EBconstraintsInfeasibility = eval->getF(computeType);
 
     if(EBconstraintsInfeasibility>0)
     {
@@ -793,7 +830,7 @@ bool NOMAD::EvalPoint::toEval(short maxPointBBEval, NOMAD::EvalType evalType) co
 
 
 // Displaying only bb eval
-std::string NOMAD::EvalPoint::display(NOMAD::ComputeType computeType,
+std::string NOMAD::EvalPoint::display(const NOMAD::FHComputeTypeS& computeType,
                                       const NOMAD::ArrayOfDouble &pointFormat,
                                       const int &solFormat,
                                       const bool surrogateAsBB) const
@@ -818,11 +855,11 @@ std::string NOMAD::EvalPoint::display(NOMAD::ComputeType computeType,
 std::string NOMAD::EvalPoint::display(const NOMAD::ArrayOfDouble &pointFormat,
                                       const int &solFormat) const
 {
-    return display(NOMAD::ComputeType::STANDARD, pointFormat, solFormat);
+    return display(defaultFHComputeTypeS, pointFormat, solFormat);
 }
 
 // Display only BB and SURROGATE. Model is not displayed
-std::string NOMAD::EvalPoint::displayForCache(const NOMAD::ArrayOfDouble &pointFormat)
+std::string NOMAD::EvalPoint::displayForCache(const NOMAD::ArrayOfDouble &pointFormat) const
 {
     // Example:
     // ( 1.7 2.99 -2.42 2.09 -36 2.33 ) EVAL_FAILED ( NaN 0 -20 )
@@ -847,13 +884,13 @@ std::string NOMAD::EvalPoint::displayForCache(const NOMAD::ArrayOfDouble &pointF
         }
     }
     s += oss.str();
-    
+
     return s;
 }
 
 
 // Show all evals. For debugging purposes.
-std::string NOMAD::EvalPoint::displayAll(NOMAD::ComputeType computeType) const
+std::string NOMAD::EvalPoint::displayAll(const NOMAD::FHComputeTypeS & computeType) const
 {
     std::string s;
     if (_tag >= 0)
@@ -877,7 +914,7 @@ std::string NOMAD::EvalPoint::displayAll(NOMAD::ComputeType computeType) const
 }
 
 
-// Determine if an evalpoint has a bb (regular) eval.
+// Determine if an eval point has a bb (regular) eval.
 bool NOMAD::EvalPoint::hasBbEval(const NOMAD::EvalPoint& evalPoint)
 {
     return (nullptr != evalPoint.getEval(NOMAD::EvalType::BB));
@@ -891,21 +928,22 @@ bool NOMAD::EvalPoint::hasModelEval(const NOMAD::EvalPoint& evalPoint)
 }
 
 
-// Determine if an evalpoint has a static surrogate eval.
+// Determine if an eval point has a static surrogate eval.
 bool NOMAD::EvalPoint::hasSurrogateEval(const NOMAD::EvalPoint& evalPoint)
 {
     return (nullptr != evalPoint.getEval(NOMAD::EvalType::SURROGATE));
 }
 
 
-bool NOMAD::EvalPoint::isPhaseOneSolution(const NOMAD::EvalPoint& evalPoint)
+bool NOMAD::EvalPoint::isPhaseOneSolution(const NOMAD::EvalPoint& evalPoint, const NOMAD::FHComputeType & completeComputeType)
 {
     bool issol = false;
 
-    auto eval = evalPoint.getEval(NOMAD::EvalType::BB);
+    auto eval = evalPoint.getEval(completeComputeType.evalType);
+    auto computeType = completeComputeType.Short();
     if (nullptr != eval && NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
     {
-        issol = (0.0 == eval->getF(NOMAD::ComputeType::PHASE_ONE).todouble());
+        issol = (0.0 == eval->getF(computeType).todouble());
     }
 
     return issol;
@@ -948,7 +986,7 @@ std::ostream& NOMAD::operator<<(std::ostream& os, const NOMAD::EvalPoint &evalPo
         os << " " << NOMAD::BBOutput::bboStart << " " ;
         os << " " << NOMAD::BBOutput::bboEnd;
     }
-    
+
 
     return os;
 }
@@ -983,20 +1021,20 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalPoint &evalPoint)
             is >> evalStatus;
             if (NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED != evalStatus)
             {
-                
+
                 // Read BBOutput. EvalType is BB. Bb output types is determined later.
                 NOMAD::BBOutput bbo("");
                 is >> bbo;
-             
+
                 // No need to set eval if eval not started (no evaluation performed)
                 if (NOMAD::EvalStatusType::EVAL_NOT_STARTED == evalStatus)
                     continue;
-                
+
                 // Never use model eval in input/output stream operators
                 evalPoint.setEvalStatus(evalStatus, NOMAD::EvalType(indMap));
-                
+
                 evalPoint.setBBO(bbo.getBBO(), NOMAD::BBOutputTypeList(), NOMAD::EvalType(indMap));
-                
+
                 // For now, set numEval to 1 if Eval exists. Currently,
                 // only 1 Eval is correctly supported.
                 evalPoint.setNumberBBEval(1);
@@ -1101,31 +1139,31 @@ bool std::equal_to<NOMAD::EvalPoint>::operator()(const NOMAD::EvalPoint& lhs, co
 
     return (lhs == rhs);
 }
-#endif // USE_UNORDERED_SET
+#endif // USE_UNORDEREDSET
 
 
 bool NOMAD::EvalPoint::dominates(const NOMAD::EvalPoint &ep,
-                                 NOMAD::EvalType evalType,
-                                 NOMAD::ComputeType computeType) const
+                                 const FHComputeType& completeComputeType) const
 {
     bool dom = false;
+    auto evalType = completeComputeType.evalType;
     if (this != &ep && nullptr != getEval(evalType) && nullptr != ep.getEval(evalType))
     {
-        dom = getEval(evalType)->dominates(*ep.getEval(evalType), computeType);
+        dom = getEval(evalType)->dominates(*ep.getEval(evalType), completeComputeType.Short());
     }
 
     return dom;
 }
 
 NOMAD::CompareType NOMAD::EvalPoint::compMO(const EvalPoint &ep,
-                                            NOMAD::EvalType evalType,
-                                            bool onlyfvalues,
-                                            ComputeType computeType) const
+                                            const NOMAD::FHComputeType& completeComputeType,
+                                            bool onlyfvalues) const
 {
     NOMAD::CompareType compareFlag = NOMAD::CompareType::UNDEFINED;
+    auto evalType = completeComputeType.evalType;
     if (this != &ep && nullptr != getEval(evalType) && nullptr != ep.getEval(evalType))
     {
-        compareFlag = getEval(evalType)->compMO(*ep.getEval(evalType), onlyfvalues, computeType);
+        compareFlag = getEval(evalType)->compMO(*ep.getEval(evalType), completeComputeType.Short(), onlyfvalues);
     }
 
     return compareFlag;
@@ -1136,12 +1174,12 @@ NOMAD::CompareType NOMAD::EvalPoint::compMO(const EvalPoint &ep,
 size_t NOMAD::EvalPoint::getRank(const std::vector<NOMAD::EvalPoint> & vectEvalPoints )
 {
 
-    if ( 0 == vectEvalPoints.size() )
+    if ( vectEvalPoints.empty() )
         throw NOMAD::Exception(__FILE__, __LINE__, "There is no generating directions "); // Maybe replace exception by return 0;
-    
+
     // The dimension of DV (k)
     size_t k = vectEvalPoints.size() ;
-    
+
     if (k == 1)
     {
         if ((*(vectEvalPoints[0].getDirection())).norm() > 0)
@@ -1153,11 +1191,11 @@ size_t NOMAD::EvalPoint::getRank(const std::vector<NOMAD::EvalPoint> & vectEvalP
             return 0;
         }
     }
-        
+
     const size_t n = vectEvalPoints[0].size();
 
     // DV : vector generating direction (2D array)
-    double ** DV = new double *[k];
+    auto DV = new double *[k];
     for (size_t i = 0 ; i < k ; ++i )
         DV[i]=new double [n];
 
@@ -1170,7 +1208,7 @@ size_t NOMAD::EvalPoint::getRank(const std::vector<NOMAD::EvalPoint> & vectEvalP
     while ( j < k )
     {
         outDbg << " (" ;
-    
+
         for ( size_t i = 0; i < n ; i++ )
         {
             DV[j][i] = (*(vectEvalPoints[j].getDirection()))[i].todouble();
@@ -1191,8 +1229,31 @@ size_t NOMAD::EvalPoint::getRank(const std::vector<NOMAD::EvalPoint> & vectEvalP
     OUTPUT_DEBUGDEBUG_END
 
     for (size_t i=0 ; i < k ; ++i)
-        delete [] DV[i];;
+        delete [] DV[i];
     delete [] DV;
 
     return rank;
+}
+
+
+void NOMAD::EvalPoint::resetDMultiCombineFValue()
+{
+    for (const auto& i : _eval)
+    {
+        if (i != nullptr)
+        {
+            i->resetDMultiCombineFValue();
+        }
+    }
+}
+
+void NOMAD::EvalPoint::resetFValues()
+{
+    for (const auto& evalType : _eval)
+    {
+        if (evalType != nullptr)
+        {
+            evalType->resetFValues();
+        }
+    }
 }

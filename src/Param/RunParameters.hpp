@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_RUNPARAMETERS__
-#define __NOMAD_4_4_RUNPARAMETERS__
+#ifndef __NOMAD_4_5_RUNPARAMETERS__
+#define __NOMAD_4_5_RUNPARAMETERS__
 
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
 #include "../Param/Parameters.hpp"
@@ -64,6 +64,10 @@ class DLL_UTIL_API RunParameters final : public Parameters
 {
 private:
     static bool _warningUnknownParamShown;
+    
+    // Map direction type and variable group for poll
+    std::map<NOMAD::DirectionType,NOMAD::ListOfVariableGroup> _mapDirTypeToVG;
+    NOMAD::ListOfVariableGroup _fixVGForQMS;
 
 public:
     // Constructor: init() will be called.
@@ -75,8 +79,8 @@ public:
     }
 
     /// The copy constructor is not implemented in the parent class
-    RunParameters& operator=(const RunParameters& params) { copyParameters(params) ; return *this; }
-    RunParameters(const RunParameters& params) : RunParameters() { copyParameters(params); }
+    RunParameters& operator=(const RunParameters& params) { copyParameters(params) ; _mapDirTypeToVG =  params.getMapDirTypeToVG(); return *this; }
+    RunParameters(const RunParameters& params) : RunParameters() { copyParameters(params); _mapDirTypeToVG =  params.getMapDirTypeToVG(); }
 
     /// Check the sanity of parameters.
     /**
@@ -84,6 +88,11 @@ public:
     */
     void checkAndComply(const std::shared_ptr<EvaluatorControlGlobalParameters>& evaluatorControlGlobalParams,
                         const std::shared_ptr<PbParameters>& pbParams);
+    
+    bool setMapDirTypeToVG(const std::shared_ptr<NOMAD::PbParameters>& pbParams, std::map<NOMAD::DirectionType,NOMAD::ListOfVariableGroup> &mapDirTypeToVG);
+    const std::map<NOMAD::DirectionType,NOMAD::ListOfVariableGroup> & getMapDirTypeToVG() const  {return _mapDirTypeToVG;}
+    bool setListFixVGForQuadModelSearch(const std::shared_ptr<NOMAD::PbParameters>& pbParams, const NOMAD::ListOfVariableGroup & _fixVGForQMS);
+    const NOMAD::ListOfVariableGroup &  getListFixVGForQuadModelSearch() const {return _fixVGForQMS;}
 
 private:
     /// Initialization
@@ -99,4 +108,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_RUNPARAMETERS__
+#endif // __NOMAD_4_5_RUNPARAMETERS__

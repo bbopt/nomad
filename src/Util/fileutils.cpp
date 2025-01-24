@@ -117,7 +117,7 @@ std::string NOMAD::curdir()
 // If there is no directory, return current directory using getcwd().
 std::string NOMAD::dirname(const std::string &filename)
 {
-    std::string dir = "";
+    std::string dir;
 
     size_t sepIndex = filename.find_last_of(NOMAD::DIR_SEP);
     if (sepIndex < filename.size())
@@ -137,10 +137,10 @@ std::string NOMAD::dirname(const std::string &filename)
 // Ex. "/path/toto.txt" returns "toto"
 std::string NOMAD::rootname(const std::string &filename)
 {
-    std::string root = "";
+    std::string root;
 
     size_t sepIndex = filename.find_last_of(NOMAD::DIR_SEP);
-    size_t pointIndex = filename.find_last_of(".");
+    size_t pointIndex = filename.find_last_of('.');
     // For cleaner comparisons
     if (std::string::npos == sepIndex)
     {
@@ -177,12 +177,12 @@ std::string NOMAD::rootname(const std::string &filename)
 // Ex. "/path/toto.txt" returns ".txt"
 std::string NOMAD::extension(const std::string &filename)
 {
-    std::string ext = "";
+    std::string ext;
 
     size_t sepIndex = filename.find_last_of(NOMAD::DIR_SEP);
-    size_t pointIndex = filename.find_last_of(".");
+    size_t pointIndex = filename.find_last_of('.');
 
-    if (!(std::string::npos == pointIndex))
+    if (std::string::npos != pointIndex)
     {
         if ((std::string::npos == sepIndex) || (sepIndex < pointIndex))
         {
@@ -198,7 +198,7 @@ std::string NOMAD::extension(const std::string &filename)
 // If it doesn't, add dirname() to it.
 std::string NOMAD::fullpath(const std::string &filename)
 {
-    std::string full = "";
+    std::string full;
 
     size_t k = filename.find_last_of(NOMAD::DIR_SEP);
     if (k < filename.size())
@@ -215,7 +215,7 @@ std::string NOMAD::fullpath(const std::string &filename)
 
 
 // Return true if a filename is absolute.
-// On Linux/MacOS, check if the filename start with '/'.
+// On Linux/macOS, check if the filename start with '/'.
 // On Windows, naively check if the filename starts with a letter
 // followed by a colon.
 // Return false otherwise (filename is relative, or filename is file only).
@@ -228,7 +228,7 @@ bool NOMAD::isAbsolute(const std::string &filename)
     }
     return (std::isalpha(filename[0]) && ':' == filename[1]);
 #else
-    if (filename.size() < 1)
+    if (filename.empty())
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"isAbsolute: Empty file name");
     }
@@ -358,8 +358,8 @@ void NOMAD::addSeedToFileName(size_t nSeed,
         return;
     }
 
-    size_t lastPoint = filename.find_last_of(".");
-    std::string ext = "";
+    size_t lastPoint = filename.find_last_of('.');
+    std::string ext;
     std::string fic = filename;
 
     if (lastPoint < filenameSize)

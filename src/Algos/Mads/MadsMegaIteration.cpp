@@ -79,7 +79,7 @@ void NOMAD::MadsMegaIteration::observe(const std::vector<NOMAD::EvalPoint>& eval
 {
     // Update cache with new points.
     NOMAD::EvalPoint evalPointFound;
-    for (auto evalPoint : evalPointList)
+    for (const auto& evalPoint : evalPointList)
     {
         if (NOMAD::CacheBase::getInstance()->find(evalPoint, evalPointFound))
         {
@@ -96,7 +96,7 @@ void NOMAD::MadsMegaIteration::observe(const std::vector<NOMAD::EvalPoint>& eval
 
     // Update barrier with new points.
     _barrier->updateRefBests();
-    _barrier->updateWithPoints(evalPointList, NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD, _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"), true /* true: update incumbents and hMax */);
+    _barrier->updateWithPoints(evalPointList, _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"), true /* true: update incumbents and hMax */);
 
     // Update main mesh
     NOMAD::MadsUpdate update(this);

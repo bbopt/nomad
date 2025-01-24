@@ -113,6 +113,9 @@ bool NOMAD::PSDMadsMegaIteration::runImp()
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     int mainThreadNum = NOMAD::getThreadNum();
 
+    // Prevent use of Model
+    evc->setEvalSortType(NOMAD::EvalSortType::DIR_LAST_SUCCESS);
+    
     OUTPUT_INFO_START
     std::string s = "Running " + _madsOnSubPb->getName();
     s += " on thread " + NOMAD::itos(mainThreadNum);
@@ -147,6 +150,7 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
 
     // Note: If n >= 50, models are disabled. They could be re-enabled on
     // subproblems with lesser dimension.
+
     subProblemPbParams->doNotShowWarnings();
     if (isPollster)
     {
@@ -160,7 +164,8 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
         subProblemRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
         subProblemRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
         subProblemRunParams->setAttributeValue("SPECULATIVE_SEARCH", false);
-        subProblemRunParams->setAttributeValue("VNS_MADS_SEARCH", false); 
+        subProblemRunParams->setAttributeValue("VNS_MADS_SEARCH", false);  // VNS has static member. Problematic with threads.
+        
     }
     else
     {

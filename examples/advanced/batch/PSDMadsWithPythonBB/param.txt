@@ -1,7 +1,3 @@
-# NOTE: Nomad executable needs openMP support 
-# for this example to work
-
-
 DIMENSION 50
 
 BB_EXE         '$python3 bb.py '
@@ -13,10 +9,10 @@ LOWER_BOUND    * -10
 UPPER_BOUND    * 10
 
 
-MAX_BB_EVAL    10000
+MAX_BB_EVAL    1000
 
 PSD_MADS_OPTIMIZATION yes
-NB_THREADS_OPENMP 4
+PSD_MADS_NB_SUBPROBLEM 4
 
 DISPLAY_DEGREE 2 
 DISPLAY_STATS BBE ( SOL ) OBJ

@@ -49,38 +49,43 @@
 #include "../../Algos/NelderMead/NMSimplexEvalPoint.hpp"
 #include "../../Eval/ComputeSuccessType.hpp"
 
+
 bool NOMAD::NMSimplexEvalPointCompare::operator()(const NOMAD::EvalPoint& lhs,
                                                   const NOMAD::EvalPoint& rhs) const
 {
     // Workaround to get EvalType for ComputeSuccessType.
     NOMAD::EvalType evalType = NOMAD::EvalType::BB;
-    NOMAD::ComputeType computeType = NOMAD::ComputeType::STANDARD;
+    NOMAD::FHComputeTypeS computeType /* default initializer*/;
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     if (nullptr != evc)
     {
         evalType = evc->getCurrentEvalType();
-        computeType = evc->getComputeType();
+        computeType = evc->getFHComputeTypeS();
     }
-    NOMAD::ComputeSuccessType computeSuccess(evalType, computeType);
+    NOMAD::FHComputeType completeComputeType = {evalType, computeType};
+    
+    NOMAD::ComputeSuccessType computeSuccess(completeComputeType);
 
-    NOMAD::SuccessType success = computeSuccess(std::make_shared<NOMAD::EvalPoint>(lhs),
-                                                std::make_shared<NOMAD::EvalPoint>(rhs));
+    // Create a "temporary" shared_ptr from an existing eval point. Do not copy. Call empty deleter at exit of this function.
+    NOMAD::EvalPointCstPtr lhsPtr(&lhs, [](const NOMAD::EvalPoint* p){});
+    NOMAD::EvalPointCstPtr rhsPtr(&rhs, [](const NOMAD::EvalPoint* p){});
+    NOMAD::SuccessType success = computeSuccess(lhsPtr, rhsPtr);
 
     if (success >= NOMAD::SuccessType::FULL_SUCCESS)
     {
         return true;
     }
 
-    success = computeSuccess(std::make_shared<NOMAD::EvalPoint>(rhs),
-                             std::make_shared<NOMAD::EvalPoint>(lhs));
+    success = computeSuccess(rhsPtr, lhsPtr);
     if (success >= NOMAD::SuccessType::FULL_SUCCESS)
     {
         return false;
     }
+    
 
     // No dominance, compare h values.
-    NOMAD::Double h1 = lhs.getH(evalType, computeType);
-    NOMAD::Double h2 = rhs.getH(evalType, computeType);
+    NOMAD::Double h1 = lhs.getH(completeComputeType);
+    NOMAD::Double h2 = rhs.getH(completeComputeType);
     if (h1.isDefined() && h2.isDefined())
     {
         if (h1 < h2)

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_NMINITIALIZESIMPLEX__
-#define __NOMAD_4_4_NMINITIALIZESIMPLEX__
+#ifndef __NOMAD_4_5_NMINITIALIZESIMPLEX__
+#define __NOMAD_4_5_NMINITIALIZESIMPLEX__
 
 #include "../../Algos/NelderMead/NMIterationUtils.hpp"
 
@@ -92,7 +92,7 @@ private:
     /// Helper for run
     /**
      From the Cache or from the Barrier, a set of points within a radius of the current frame center is considered before creating the initial simplex. The radius depends on a two given parameters and the frame size.
-     The initial simplex is obtained by adding points to obtain dim=n+1 and simplex being affinely independant. We use the rank of DZ=[(y1-y0 (y2-y0) ...(yk-y0)] to decide if a point yk increases the rank or not.
+     The initial simplex is obtained by adding points to obtain dim=n+1 and simplex being affinely independent. We use the rank of DZ=[(y1-y0 (y2-y0) ...(yk-y0)] to decide if a point yk increases the rank or not.
      The characteristics of the initial simplex (volumes and diameter) are updated.
      */
     bool createSimplex();
@@ -102,4 +102,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_NMINITIALIZESIMPLEX__
+#endif // __NOMAD_4_5_NMINITIALIZESIMPLEX__

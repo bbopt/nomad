@@ -51,6 +51,7 @@ Attribute/evaluatorControlAttributesDefinition.txt
 Attribute/evaluatorControlGlobalAttributesDefinition.txt
 Attribute/pbAttributesDefinition.txt
 Attribute/runAttributesDefinition.txt
+Attribute/runAttributesDefinitionDMulti.txt
 Attribute/runAttributesDefinitionIBEX.txt
 Attribute/runAttributesDefinitionNM.txt
 Attribute/runAttributesDefinitionCS.txt
@@ -60,6 +61,7 @@ Attribute/runAttributesDefinitionQuadModel.txt
 Attribute/runAttributesDefinitionSgtelibModel.txt
 Attribute/runAttributesDefinitionVNS.txt
 Attribute/runAttributesDefinitionDisco.txt
+Attribute/runAttributesDefinitionCOOP.txt
 )
 
 set(ATTRIBUTE_HEADERS
@@ -71,13 +73,17 @@ ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evaluatorControlAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/evaluatorControlGlobalAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/pbAttributesDefinition.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinition.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionDMulti.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionIBEX.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionNM.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionCS.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionPSDSSD.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionQuadModel.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionSgtelibModel.hpp
-${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionVNS.hpp)
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionVNS.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionDisco.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/Attribute/runAttributesDefinitionCOOP.hpp
+)
 
 set(ATTRIBUTE_HEADERS_GENERATOR
 Attribute/WriteAttributeDefinitionFile.cpp
@@ -100,6 +106,7 @@ Cache/CacheSet.cpp
 # Eval
 #
 set(EVAL_HEADERS
+#Eval/Barrier.hpp
 Eval/BarrierBase.hpp
 Eval/BBInput.hpp
 Eval/BBOutput.hpp
@@ -116,6 +123,7 @@ Eval/ProgressiveBarrier.hpp
 Eval/SuccessStats.hpp)
 
 set(EVAL_SOURCES
+#Eval/Barrier.cpp
 Eval/BarrierBase.cpp
 Eval/BBInput.cpp
 Eval/BBOutput.cpp
@@ -141,6 +149,7 @@ Math/ArrayOfPoint.hpp
 Math/Direction.hpp
 Math/Double.hpp
 Math/LHS.hpp
+Math/MathUtils.hpp
 Math/MatrixUtils.hpp
 Math/Point.hpp
 Math/RandomPickup.hpp
@@ -152,6 +161,7 @@ Math/ArrayOfPoint.cpp
 Math/Direction.cpp
 Math/Double.cpp
 Math/LHS.cpp
+Math/MathUtils.cpp
 Math/MatrixUtils.cpp
 Math/Point.cpp
 Math/RandomPickup.cpp
@@ -237,6 +247,7 @@ Type/CallbackType.hpp
 Type/CompareType.hpp
 Type/ComputeType.hpp
 Type/DirectionType.hpp
+Type/DMultiMadsSearchStrategyType.hpp
 Type/EvalSortType.hpp
 Type/EvalType.hpp
 Type/LHSearchType.hpp
@@ -253,6 +264,7 @@ Type/CallbackType.cpp
 Type/CompareType.cpp
 Type/ComputeType.cpp
 Type/DirectionType.cpp
+Type/DMultiMadsSearchStrategyType.cpp
 Type/EvalSortType.cpp
 Type/EvalType.cpp
 Type/LHSearchType.cpp
@@ -331,16 +343,26 @@ Algos/LatinHypercubeSampling/LH.cpp
 set(DMULTIMADS_HEADERS
 Algos/DMultiMads/DMultiMads.hpp
 Algos/DMultiMads/DMultiMadsBarrier.hpp
+Algos/DMultiMads/DMultiMadsExpansionIntLineSearchMethod.hpp
 Algos/DMultiMads/DMultiMadsIteration.hpp
 Algos/DMultiMads/DMultiMadsMegaIteration.hpp
+Algos/DMultiMads/DMultiMadsMiddlePointSearchMethod.hpp
+Algos/DMultiMads/DMultiMadsNMSearchMethod.hpp
+Algos/DMultiMads/DMultiMadsQuadDMSSearchMethod.hpp
+Algos/DMultiMads/DMultiMadsQuadModSearchMethod.hpp
 Algos/DMultiMads/DMultiMadsUpdate.hpp
 )
 
 set(DMULTIMADS_SOURCES
 Algos/DMultiMads/DMultiMads.cpp
 Algos/DMultiMads/DMultiMadsBarrier.cpp
+Algos/DMultiMads/DMultiMadsExpansionIntLineSearchMethod.cpp
 Algos/DMultiMads/DMultiMadsIteration.cpp
 Algos/DMultiMads/DMultiMadsMegaIteration.cpp
+Algos/DMultiMads/DMultiMadsMiddlePointSearchMethod.cpp
+Algos/DMultiMads/DMultiMadsNMSearchMethod.cpp
+Algos/DMultiMads/DMultiMadsQuadDMSSearchMethod.cpp
+Algos/DMultiMads/DMultiMadsQuadModSearchMethod.cpp
 Algos/DMultiMads/DMultiMadsUpdate.cpp
 )
 
@@ -384,6 +406,7 @@ Algos/Mads/OrthoNPlus1PollMethod.hpp
 Algos/Mads/Poll.hpp
 Algos/Mads/PollMethodBase.hpp
 Algos/Mads/QPSolverAlgoSearchMethod.hpp
+Algos/Mads/QR2NPollMethod.hpp
 Algos/Mads/QuadSearchMethod.hpp
 Algos/Mads/Search.hpp
 Algos/Mads/SearchMethodAlgo.hpp
@@ -394,8 +417,8 @@ Algos/Mads/SimpleLineSearchMethod.hpp
 Algos/Mads/SinglePollMethod.hpp
 Algos/Mads/SpeculativeSearchMethod.hpp
 Algos/Mads/TemplateAlgoSearchMethod.hpp
-Algos/Mads/TemplateSimpleSearchMethod.hpp
 Algos/Mads/UserSearchMethod.hpp
+Algos/Mads/UserPollMethod.hpp
 Algos/Mads/VNSmartSearchMethod.hpp
 Algos/Mads/VNSSearchMethod.hpp
 )
@@ -417,6 +440,7 @@ Algos/Mads/OrthoNPlus1PollMethod.cpp
 Algos/Mads/Poll.cpp
 Algos/Mads/PollMethodBase.cpp
 Algos/Mads/QPSolverAlgoSearchMethod.cpp
+Algos/Mads/QR2NPollMethod.cpp
 Algos/Mads/QuadSearchMethod.cpp
 Algos/Mads/Search.cpp
 Algos/Mads/SearchMethodAlgo.cpp
@@ -427,10 +451,27 @@ Algos/Mads/SimpleLineSearchMethod.cpp
 Algos/Mads/SinglePollMethod.cpp
 Algos/Mads/SpeculativeSearchMethod.cpp
 Algos/Mads/TemplateAlgoSearchMethod.cpp
-Algos/Mads/TemplateSimpleSearchMethod.cpp
 Algos/Mads/UserSearchMethod.cpp
+Algos/Mads/UserPollMethod.cpp
 Algos/Mads/VNSmartSearchMethod.cpp
 Algos/Mads/VNSSearchMethod.cpp
+)
+
+#
+# Simple Mads
+#
+set(SIMPLE_MADS_HEADERS
+Algos/SimpleMads/SimpleEvalPoint.hpp
+Algos/SimpleMads/SimpleMads.hpp
+Algos/SimpleMads/SimplePoll.hpp
+Algos/SimpleMads/SimpleProgressiveBarrier.hpp
+)
+
+set(SIMPLE_MADS_SOURCES
+Algos/SimpleMads/SimpleEvalPoint.cpp
+Algos/SimpleMads/SimpleMads.cpp
+Algos/SimpleMads/SimplePoll.cpp
+Algos/SimpleMads/SimpleProgressiveBarrier.cpp
 )
 
 #
@@ -488,6 +529,20 @@ if(OpenMP_CXX_FOUND)
    )
 endif()
 
+#
+# COOP Mads
+#
+if(OpenMP_CXX_FOUND)
+   set(COOPMADS_HEADERS
+   Algos/COOPMads/COOPMads.hpp
+   Algos/COOPMads/CacheSearchMethod.hpp
+   )
+   set(COOPMADS_SOURCES
+   Algos/COOPMads/COOPMads.cpp
+   Algos/COOPMads/CacheSearchMethod.cpp
+   )
+endif()
+
 
 #
 # QuadModel
@@ -520,19 +575,31 @@ Algos/QuadModel/QuadModelUpdate.cpp
 # QP Solvers
 #
 set(QPSOLVER_HEADERS
+Algos/QPSolverAlgo/DoglegTRSolver.hpp
+Algos/QPSolverAlgo/LevenbergMarquardtSolver.hpp
+Algos/QPSolverAlgo/L1AugLagSolver.hpp
+Algos/QPSolverAlgo/ProjectedConjugateGradientSolver.hpp
+Algos/QPSolverAlgo/QPModelUtils.hpp
 Algos/QPSolverAlgo/QPSolverAlgo.hpp
 Algos/QPSolverAlgo/QPSolverAlgoIteration.hpp
 Algos/QPSolverAlgo/QPSolverAlgoMegaIteration.hpp
 Algos/QPSolverAlgo/QPSolverOptimize.hpp
 Algos/QPSolverAlgo/QPSolverAlgoSinglePass.hpp
+Algos/QPSolverAlgo/TRIPMSolver.hpp
 )
 
 set(QPSOLVER_SOURCES
+Algos/QPSolverAlgo/DoglegTRSolver.cpp
+Algos/QPSolverAlgo/LevenbergMarquardtSolver.cpp
+Algos/QPSolverAlgo/L1AugLagSolver.cpp
+Algos/QPSolverAlgo/ProjectedConjugateGradientSolver.cpp
+Algos/QPSolverAlgo/QPModelUtils.cpp
 Algos/QPSolverAlgo/QPSolverAlgo.cpp
 Algos/QPSolverAlgo/QPSolverAlgoIteration.cpp
 Algos/QPSolverAlgo/QPSolverAlgoMegaIteration.cpp
 Algos/QPSolverAlgo/QPSolverOptimize.cpp
 Algos/QPSolverAlgo/QPSolverAlgoSinglePass.cpp
+Algos/QPSolverAlgo/TRIPMSolver.cpp
 )
 
 #
@@ -558,19 +625,6 @@ Algos/SgtelibModel/SgtelibModelIteration.cpp
 Algos/SgtelibModel/SgtelibModelMegaIteration.cpp
 Algos/SgtelibModel/SgtelibModelOptimize.cpp
 Algos/SgtelibModel/SgtelibModelUpdate.cpp
-)
-
-#
-# SSD Mads
-#
-set(SSDMADS_HEADERS
-Algos/SSDMads/SSDMads.hpp
-Algos/SSDMads/SSDMadsMegaIteration.hpp
-)
-
-set(SSDMADS_SOURCES
-Algos/SSDMads/SSDMads.cpp
-Algos/SSDMads/SSDMadsMegaIteration.cpp
 )
 
 #
@@ -658,13 +712,14 @@ include(./CMakeListsLibs.txt)
 
 # build statically linked library (nomadStatic) for PyNomad interface
 if(BUILD_INTERFACE_PYTHON MATCHES ON)
-   message(STATUS "  Warning: build nomad static library for Python interface.")
    include(./CMakeListsLibsStatic.txt)
 endif()
 
 # Build dynamically linked executables (nomad)
 include(./CMakeListsExes.txt)
 
+# Build statically linked executable (nomad)
+# include(./CMakeListsExesStatic.txt)
 
 # Install header files
 install(
@@ -743,6 +798,16 @@ install(
 )
 
 install(
+  FILES ${MADSLOGBARRIER_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/MadsMixedPenaltyLogBarrier
+)
+
+install(
+  FILES ${SIMPLE_MADS_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SimpleMads
+)
+
+install(
   FILES ${NM_HEADERS}
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/NelderMead
 )
@@ -756,6 +821,12 @@ install(
   FILES ${PSDMADS_HEADERS}
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/PSDMads
 )
+
+install(
+  FILES ${COOPMADS_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/COOPMads
+)
+
 
 install(
   FILES ${QPSOLVER_HEADERS}

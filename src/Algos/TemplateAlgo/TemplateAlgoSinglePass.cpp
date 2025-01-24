@@ -82,7 +82,7 @@ void NOMAD::TemplateAlgoSinglePass::generateTrialPointsImp ()
     // Create trial points but no evaluation
     _templateAlgoRandom->start();
     _templateAlgoRandom->end();
-    auto trialPts = _templateAlgoRandom->getTrialPoints();
+    const auto& trialPts = _templateAlgoRandom->getTrialPoints();
     for (auto evalPoint : trialPts)
     {
         evalPoint.addGenStep(getStepType());

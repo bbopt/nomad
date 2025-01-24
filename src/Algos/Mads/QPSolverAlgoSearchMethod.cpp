@@ -92,7 +92,7 @@ void NOMAD::QPSolverAlgoSearchMethod::init()
             setEnabled(false);
         }
 
-        auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
+        const auto& modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
         _displayLevel = modelDisplay.empty()
                             ? NOMAD::OutputLevel::LEVEL_DEBUGDEBUG
                             : NOMAD::OutputLevel::LEVEL_INFO;
@@ -113,11 +113,10 @@ void NOMAD::QPSolverAlgoSearchMethod::generateTrialPointsFinal()
         auto bestXFeas = madsIteration->getMegaIterationBarrier()->getCurrentIncumbentFeas();
         auto bestXInf  = madsIteration->getMegaIterationBarrier()->getCurrentIncumbentInf();
 
-        auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
-        auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+        const auto& computeType = madsIteration->getMegaIterationBarrier()->getFHComputeType();
         if (nullptr != bestXFeas
-            && bestXFeas->getF(evalType, computeType).isDefined()
-            && bestXFeas->getF(evalType, computeType) < MODEL_MAX_OUTPUT)
+            && bestXFeas->getF(computeType).isDefined()
+            && bestXFeas->getF(computeType) < MODEL_MAX_OUTPUT)
         {
             NOMAD::QPSolverAlgoSinglePass singlePassFeas(this, bestXFeas, madsIteration->getMesh(),{} /* no scaling direction */);
 
@@ -125,7 +124,7 @@ void NOMAD::QPSolverAlgoSearchMethod::generateTrialPointsFinal()
             singlePassFeas.generateTrialPoints();
 
             // Pass the generated trial pts to this
-            auto trialPtsSinglePassFeas = singlePassFeas.getTrialPoints();
+            const auto& trialPtsSinglePassFeas = singlePassFeas.getTrialPoints();
             for (auto evalPoint : trialPtsSinglePassFeas)
             {
                 evalPoint.setPointFrom(bestXFeas, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
@@ -133,10 +132,10 @@ void NOMAD::QPSolverAlgoSearchMethod::generateTrialPointsFinal()
             }
         }
         if (nullptr != bestXInf
-            && bestXInf->getF(evalType, computeType).isDefined()
-            && bestXInf->getF(evalType, computeType) < MODEL_MAX_OUTPUT
-            && bestXInf->getH(evalType, computeType).isDefined()
-            && bestXInf->getH(evalType, computeType) < MODEL_MAX_OUTPUT)
+            && bestXInf->getF(computeType).isDefined()
+            && bestXInf->getF(computeType) < MODEL_MAX_OUTPUT
+            && bestXInf->getH(computeType).isDefined()
+            && bestXInf->getH(computeType) < MODEL_MAX_OUTPUT)
         {
             NOMAD::QPSolverAlgoSinglePass singlePassInf(this, bestXInf, madsIteration->getMesh(),{} /* no scaling direction */);
 
@@ -144,7 +143,7 @@ void NOMAD::QPSolverAlgoSearchMethod::generateTrialPointsFinal()
             singlePassInf.generateTrialPoints();
 
             // Pass the generated trial pts to this
-            auto trialPtsSinglePassInf = singlePassInf.getTrialPoints();
+            const auto& trialPtsSinglePassInf = singlePassInf.getTrialPoints();
             for (auto evalPoint : trialPtsSinglePassInf)
             {
                 evalPoint.setPointFrom(bestXInf, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
@@ -154,3 +153,4 @@ void NOMAD::QPSolverAlgoSearchMethod::generateTrialPointsFinal()
     }
 #endif
 }
+

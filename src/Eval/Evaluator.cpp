@@ -47,8 +47,8 @@
 #include "../Eval/Evaluator.hpp"
 #include "../Output/OutputQueue.hpp"
 #include "../Util/fileutils.hpp"
+#include <cstdio>  // For popen
 #include <fstream>  // For ofstream
-#include <stdio.h>  // For popen
 #ifndef _WIN32
 #include <unistd.h> // for getpid
 #else
@@ -59,10 +59,12 @@
 #endif
 
 // Initialize tmp files. NOTE: static variables for those are not working when building for Windows VS.
-/// Vector is used to store one file per thread.
+/// Vector is used to store one file per thread (thread for eval and algo thread).
 std::vector<std::string> _tmpFiles = std::vector<std::string>();
 std::vector<std::string> _tmpOutFilesWithoutRedirection = std::vector<std::string>();
 std::vector<std::string> _tmpLogFilesWithoutRedirection = std::vector<std::string>();
+size_t _tmpFilesForParEval = 1;  // number of tmp files for parallel eval. Total number depends on number of main threads.
+
 
 // Initialize static var
 bool NOMAD::Evaluator::_bbRedirection = true;
@@ -114,38 +116,71 @@ void NOMAD::Evaluator::init()
     }
 }
 
-NOMAD::Evaluator::~Evaluator()
-{
-}
+NOMAD::Evaluator::~Evaluator() = default;
 
 
-void NOMAD::Evaluator::initializeTmpFiles(const std::string& tmpDir)
+void NOMAD::Evaluator::initializeTmpFiles(const std::string& tmpDir, const int & nbThreadsForParallelEval)
 {
     // Initialize tmp files for Evaluators
     int nbThreads = 1;
 #ifdef _OPENMP
-    nbThreads = omp_get_max_threads();
-#endif
-    std::string tmppath = tmpDir;
-    NOMAD::ensureDirPath(tmppath);
-    // Use the pid in the file name in case two nomad run at the same time.
-    int pid = getpid();
-    // Create a temporary file fo blackbox input. One for each thread number,
-    // for each nomad pid. Add the file names to _tmpFiles.
-    _tmpFiles.clear();
-    for (auto threadNum = 0; threadNum < nbThreads; threadNum++)
+    if (nbThreadsForParallelEval > 1)
     {
-        std::string tmpfilestr = tmppath + "nomadtmp." + std::to_string(pid) + "." + std::to_string(threadNum);
-        _tmpFiles.push_back(tmpfilestr);
-        if (! _bbRedirection)
+        nbThreads = nbThreadsForParallelEval;
+    }
+#endif
+    _tmpFilesForParEval = static_cast<size_t>(nbThreads); // Store the number of threads for parallel eval.
+
+    // Case where no tmp files exist
+    if (_tmpFiles.empty())
+    {
+
+        std::string tmppath = tmpDir;
+        NOMAD::ensureDirPath(tmppath);
+        // Use the pid in the file name in case two nomad run at the same time.
+        int pid = getpid();
+        // Create a temporary file fo blackbox input. One for each thread number,
+        // for each nomad pid. Add the file names to _tmpFiles.
+        for (auto threadNum = 0; threadNum < nbThreads; threadNum++)
         {
-            std::string tmpfilestrOut = tmpfilestr + ".output";
-            _tmpOutFilesWithoutRedirection.push_back(tmpfilestrOut);
-            std::string tmpfilestrLog = tmpfilestr + ".tmplog";
-            _tmpLogFilesWithoutRedirection.push_back(tmpfilestrLog);
+            std::string tmpfilestr = tmppath + "nomadtmp." + std::to_string(pid) + "." + std::to_string(threadNum);
+            _tmpFiles.push_back(tmpfilestr);
+            if (! _bbRedirection)
+            {
+                std::string tmpfilestrOut = tmpfilestr + ".output";
+                _tmpOutFilesWithoutRedirection.push_back(tmpfilestrOut);
+                std::string tmpfilestrLog = tmpfilestr + ".tmplog";
+                _tmpLogFilesWithoutRedirection.push_back(tmpfilestrLog);
+            }
+        }
+    }
+    else
+    {
+        // Some tmp files already exist. Use them as template
+        size_t posPid = _tmpFiles[0].find_last_of('.');
+        size_t len = _tmpFiles[0].length();
+
+        if (len == 0 || posPid==std::string::npos)
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: Tmp files should have been defined.");
+        }
+        for (auto threadNum = 0; threadNum < nbThreads; threadNum++)
+        {
+            std::string tmpfilestr = _tmpFiles[0];
+            tmpfilestr.replace(posPid+1,len, std::to_string(threadNum+_tmpFiles.size()));
+            _tmpFiles.push_back(tmpfilestr);
+
+            if (! _bbRedirection)
+            {
+                std::string tmpfilestrOut = tmpfilestr + ".output";
+                _tmpOutFilesWithoutRedirection.push_back(tmpfilestrOut);
+                std::string tmpfilestrLog = tmpfilestr + ".tmplog";
+                _tmpLogFilesWithoutRedirection.push_back(tmpfilestrLog);
+            }
         }
     }
 }
+
 
 
 void NOMAD::Evaluator::removeTmpFiles()
@@ -164,7 +199,7 @@ void NOMAD::Evaluator::removeTmpFiles()
     _tmpFiles.clear();
     _tmpOutFilesWithoutRedirection.clear();
     _tmpLogFilesWithoutRedirection.clear();
-    
+
 }
 
 
@@ -174,12 +209,12 @@ bool NOMAD::Evaluator::eval_x(NOMAD::EvalPoint &x,
                               const NOMAD::Double& hMax,
                               bool &countEval) const
 {
-    
+
     if (NOMAD::EvalXDefined::UNDEFINED == _evalXDefined)
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: this is a fake evaluator with no evaluation capability.");
     }
-    
+
     // The user might have defined his own eval_x() for NOMAD::EvalPoint.
     // In the NOMAD code, we do not use this method.
     //
@@ -222,36 +257,38 @@ std::vector<bool> NOMAD::Evaluator::eval_block(NOMAD::Block &block,
     countEval.resize(block.size(), false);
 
     // Verify there is at least one point to evaluate
-    if (0 == block.size())
+    if (block.empty())
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: eval_block called with an empty block");
     }
-    
+
     if (NOMAD::EvalXDefined::UNDEFINED == _evalXDefined)
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: this is a fake evaluator with no evaluation capability.");
     }
 
     // Verify all points are completely defined
-    for (auto it = block.begin(); it != block.end(); it++)
+    for (auto& it : block)
     {
-        if (!(*it)->isComplete())
+        if (!it->isComplete())
         {
-            throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: Incomplete point " + (*it)->display());
+            throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: Incomplete point " + it->display());
         }
     }
 
     // Start evaluation
-    for (auto it = block.begin(); it != block.end(); it++)
+    for (auto& it : block)
     {
-        // Debugging. EVAL should already be IN_PROGRESS.
-        if (NOMAD::EvalStatusType::EVAL_IN_PROGRESS != (*it)->getEvalStatus(_evalType))
+        // Debugging. EVAL should already be IN_PROGRESS or EVAL_WAIT.
+        // EVAL_WAIT -> no need to evaluate, it is already in progress by another thread.
+        if (NOMAD::EvalStatusType::EVAL_IN_PROGRESS != it->getEvalStatus(_evalType) &&
+            NOMAD::EvalStatusType::EVAL_WAIT != it->getEvalStatus(_evalType))
         {
 #ifdef _OPENMP
             #pragma omp critical(warningEvalX)
 #endif
             {
-                throw NOMAD::Exception(__FILE__, __LINE__, "EVAL should already be IN_PROGRESS for point" + (*it)->display());
+                throw NOMAD::Exception(__FILE__, __LINE__, "EVAL should already be IN_PROGRESS for point" + it->display());
             }
         }
     }
@@ -267,6 +304,7 @@ std::vector<bool> NOMAD::Evaluator::eval_block(NOMAD::Block &block,
 
     if (NOMAD::EvalXDefined::USE_BB_EVAL == _evalXDefined)
     {
+        // EVAL_WAIT is managed inside the function
         evalOk = evalXBBExe(block, hMax, countEval);
     }
     else if (NOMAD::EvalXDefined::EVAL_X_DEFINED_BY_USER == _evalXDefined)
@@ -274,7 +312,16 @@ std::vector<bool> NOMAD::Evaluator::eval_block(NOMAD::Block &block,
         for (size_t index = 0; index < block.size(); index++)
         {
             bool countEval1 = false;
-            evalOk[index] = eval_x(*block[index], hMax, countEval1);
+
+            // EVAL_WAIT -> no need to evaluate, it is already in progress by another thread.
+            if ( NOMAD::EvalStatusType::EVAL_WAIT == block[index]->getEvalStatus(_evalType) )
+            {
+                evalOk[index] = true;
+            }
+            else
+            {
+                evalOk[index] = eval_x(*block[index], hMax, countEval1);
+            }
             countEval[index] = countEval1;
         }
     }
@@ -307,24 +354,26 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
-    const int threadNum = NOMAD::getThreadNum();
+    const int mainThreadNum = block[0]->getThreadAlgo();
+
+    const size_t indexTmpFile = mainThreadNum*_tmpFilesForParEval + NOMAD::getThreadNum();
 
     // Write a temp file for x0 and give that file as argument to bbExe.
-    if ((size_t)threadNum >= _tmpFiles.size())
+    if (indexTmpFile >= _tmpFiles.size())
     {
-        std::cout << "Error: Evaluator: No temp file available." << std::endl;
+        std::cout << "Error: Evaluator: No enough temp file available." << std::endl;
         // Ugly early return
         return evalOk;
     }
-    std::string tmpfile = _tmpFiles[threadNum];
+    const std::string& tmpfile = _tmpFiles[indexTmpFile];
     std::string tmpoutfile, tmplogfile;
     if (! _bbRedirection)
     {
-        tmpoutfile = _tmpOutFilesWithoutRedirection[threadNum];
-        tmplogfile = _tmpLogFilesWithoutRedirection[threadNum];
+        tmpoutfile = _tmpOutFilesWithoutRedirection[indexTmpFile];
+        tmplogfile = _tmpLogFilesWithoutRedirection[indexTmpFile];
     }
 
-    
+
 
     // System command
     std::ofstream xfile;
@@ -332,29 +381,41 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
     xfile.open(tmpfile.c_str(), std::ofstream::trunc);
     if (xfile.fail())
     {
-        for (auto it = block.begin(); it != block.end(); it++)
+        for (auto& it : block)
         {
-            (*it)->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
-            std::cout << "Error writing point " << (*it)->display() << " to temporary file \"" << tmpfile << "\"" << std::endl;
+            it->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
+            std::cout << "Error writing point " << it->display() << " to temporary file \"" << tmpfile << "\"" << std::endl;
         }
         // Ugly early return
         return evalOk;
     }
 
-    for (auto it = block.begin(); it != block.end(); it++)
+    bool flagHasEvalInProgress = false;
+    for (auto& it : block)
     {
-        std::shared_ptr<NOMAD::EvalPoint> x = (*it);
+        const std::shared_ptr<NOMAD::EvalPoint>& x = it;
         for (size_t i = 0; i < x->size(); i++)
         {
-            if (i != 0)
+            if ( x->getEvalStatus(_evalType) == NOMAD::EvalStatusType::EVAL_IN_PROGRESS)
             {
-                xfile << " ";
+                if (i != 0)
+                {
+                    xfile << " ";
+                }
+                xfile << (*x)[i].display(static_cast<int>(_bbEvalFormat[i].todouble()));
+                flagHasEvalInProgress = true;
             }
-            xfile << (*x)[i].display(static_cast<int>(_bbEvalFormat[i].todouble()));
         }
         xfile << std::endl;
     }
     xfile.close();
+
+    // No need to launch bb command in that case.
+    if (!flagHasEvalInProgress)
+    {
+        std::fill(countEval.begin(), countEval.end(), false); // no eval should be counted
+        return std::vector<bool>(countEval.size(),true); // no eval is ok
+    }
 
     std::string cmd = _bbExe + " " + tmpfile;
     std::string s;
@@ -362,39 +423,38 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
     s = "System command: " + cmd;
     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUGDEBUG);
     OUTPUT_DEBUG_END
-    
+
     // Stream for output file when bb manages output files (no redirection)
     std::ifstream finWithoutRedirection;
-    
+
     FILE *fresult = popen(cmd.c_str(), "r");
     if (!fresult)
     {
         // Something went wrong with the evaluation.
         // Point could be re-submitted.
-        for (auto it = block.begin(); it != block.end(); it++)
+        for (auto& it : block)
         {
-            (*it)->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
+            it->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
 #ifdef _OPENMP
             #pragma omp critical(warningEvalX)
 #endif
             {
-                std::cout << "Warning: Evaluation error with point " << (*it)->display() << std::endl;
+                std::cout << "Warning: Evaluation error with point " << it->display() << std::endl;
             }
         }
     }
-
     else
     {
-    
+
         if (!_bbRedirection)
         {
             char buffer[BUFFER_SIZE];
             char *outputline = nullptr;
-            
+
             outputline = fgets(buffer, sizeof(buffer), fresult);
             if ( nullptr != outputline) // Something to log
             {
-            
+
                 // BB log file
                 std::ofstream foutLogWithoutRedirection;
                 foutLogWithoutRedirection.open(tmplogfile.c_str(), std::ofstream::app );
@@ -405,7 +465,7 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
                 else
                 {
                     // Get blackbox standard and error outputs (not yet bb_output) and write into log file.
-                    // If something is output then do at least once with the base message. Otherwise no file is created.
+                    // If something is output then do at least once with the base message. Otherwise, no file is created.
                     foutLogWithoutRedirection << "####### Blackbox evaluation output log (no redirection)  ######## " <<std::endl;
                     std::string out;
                     do
@@ -420,40 +480,46 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
                 }
                 foutLogWithoutRedirection.close();
             }
-            
+
             // Test bb outputs file
             finWithoutRedirection.open( tmpoutfile.c_str() );
-            if (! finWithoutRedirection.is_open())
+            if (!finWithoutRedirection.is_open())
             {
-                for (auto it = block.begin(); it != block.end(); it++)
+                for (auto& it : block)
                 {
-                    (*it)->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
+                    it->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
 #ifdef _OPENMP
 #pragma omp critical(warningEvalX)
 #endif
                     {
-                        std::cout << "Warning: Cannot open output file " << tmpoutfile << " for point " << (*it)->display() << std::endl;
+                        std::cout << "Warning: Cannot open output file " << tmpoutfile << " for point " << it->display() << std::endl;
                     }
                 }
             }
-            
+
             // Read bb outputs in file
             for (size_t index = 0; index < block.size(); index++)
             {
-                std::shared_ptr<NOMAD::EvalPoint> x = block[index];
-                
-                std::string bbo;
-                std::getline(finWithoutRedirection, bbo);
-                
-                // When several points are evaluated, an empty line is a failed evaluation
-                if (!bbo.empty())
+                const std::shared_ptr<NOMAD::EvalPoint>& x = block[index];
+
+                // Only EVAL_IN_PROGRESS are managed.
+                // EVAL_WAIT points are not evaluated
+                if (x->getEvalStatus(_evalType) != NOMAD::EvalStatusType::EVAL_WAIT)
                 {
-                    // Process blackbox output
-                    x->setBBO(bbo, _bbOutputTypeList, _evalType);
-                    auto bbOutput = x->getEval(_evalType)->getBBOutput();
-                    
-                    evalOk[index] = bbOutput.getEvalOk();
-                    countEval[index] = bbOutput.getCountEval(_bbOutputTypeList);
+
+                    std::string bbo;
+                    std::getline(finWithoutRedirection, bbo);
+
+                    // When several points are evaluated, an empty line is a failed evaluation
+                    if (!bbo.empty())
+                    {
+                        // Process blackbox output
+                        x->setBBO(bbo, _bbOutputTypeList, _evalType);
+                        auto bbOutput = x->getEval(_evalType)->getBBOutput();
+
+                        evalOk[index] = bbOutput.getEvalOk();
+                        countEval[index] = bbOutput.getCountEval(_bbOutputTypeList);
+                    }
                 }
             }
             finWithoutRedirection.close();
@@ -462,94 +528,98 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
         {
             for (size_t index = 0; index < block.size(); index++)
             {
-                std::shared_ptr<NOMAD::EvalPoint> x = block[index];
-                
-                char buffer[BUFFER_SIZE];
-                char *outputLine = nullptr;
-                
-                size_t nbTries=0;
-                while (nbTries < 5)
+                const std::shared_ptr<NOMAD::EvalPoint>& x = block[index];
+
+                // Only EVAL_IN_PROGRESS are managed.
+                // EVAL_WAIT points are not evaluated
+                if (x->getEvalStatus(_evalType) != NOMAD::EvalStatusType::EVAL_WAIT)
                 {
-                    nbTries++;
-                    
-                    outputLine = fgets(buffer, sizeof(buffer), fresult);
-                    
-                    if( feof(fresult) )
-                    { // c-stream eof detected. Output is empty, break the loop
-                        x->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
-#ifdef _OPENMP
-#pragma omp critical(warningEvalX)
-#endif
-                        {
-                            std::cout << "Warning: Evaluation error with point " << x->display() << ": output is empty. Let's count eval anyway." << std::endl;
+
+                    char buffer[BUFFER_SIZE];
+                    char *outputLine = nullptr;
+
+                    size_t nbTries=0;
+                    while (nbTries < 20)
+                    {
+                        nbTries++;
+
+                        outputLine = fgets(buffer, sizeof(buffer), fresult);
+
+                        if( feof(fresult) )
+                        { // c-stream eof detected. Output is empty, break the loop
+                            x->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
+                            s = "Warning: Evaluation error with point " + x->display();
+                            s += ": output is empty. Let's count eval anyway (I).";
+                            NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_WARNING);
+                            countEval[index] = true;
+                            break;
                         }
+
+                        if (nullptr != outputLine)
+                        {
+                            // Evaluation succeeded. Get and process blackbox output.
+                            std::string bbo(outputLine);
+                            // delete trailing '\n'
+                            bbo.erase(bbo.size() - 1);
+
+                            // Process blackbox output
+                            x->setBBO(bbo, _bbOutputTypeList, _evalType);
+                            auto bbOutput = x->getEval(_evalType)->getBBOutput();
+
+                            evalOk[index] = bbOutput.getEvalOk();
+                            countEval[index] = bbOutput.getCountEval(_bbOutputTypeList);
+
+                            break;
+                        }
+                    }
+                    if( ! feof(fresult) && nullptr == outputLine )
+                    {
+                        // Something went wrong with the evaluation.
+                        // Point could be re-submitted.
+                        x->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
+                        s = "Warning: Evaluation error with point " + x->display();
+                        s += ": output is empty. Let's count eval anyway (II). Nb Tries to read output: " + std::to_string(nbTries) + ". You may consider increasing the number of tries in the code and rebuild." ;
+                        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_WARNING);
                         countEval[index] = true;
-                        break;
                     }
-                    
-                    if (NULL != outputLine)
-                    {
-                        // Evaluation succeeded. Get and process blackbox output.
-                        std::string bbo(outputLine);
-                        // delete trailing '\n'
-                        bbo.erase(bbo.size() - 1);
-                        
-                        // Process blackbox output
-                        x->setBBO(bbo, _bbOutputTypeList, _evalType);
-                        auto bbOutput = x->getEval(_evalType)->getBBOutput();
-                        
-                        evalOk[index] = bbOutput.getEvalOk();
-                        countEval[index] = bbOutput.getCountEval(_bbOutputTypeList);
-                        
-                        break;
-                    }
-                }
-                if( ! feof(fresult) && NULL == outputLine )
-                {
-                    // Something went wrong with the evaluation.
-                    // Point could be re-submitted.
-                    x->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
-    #ifdef _OPENMP
-    #pragma omp critical(warningEvalX)
-    #endif
-                    {
-                        std::cout << "Warning: Evaluation error with point " << x->display() << ": output is empty. Let's count eval anyway." << std::endl;
-                        
-                    }
-                    countEval[index] = true;
                 }
             }
         }
 
         // Get exit status of the bb.exe. If it is not 0, there was an error.
         int exitStatus = pclose(fresult);
-        
+
         size_t index = 0;   // used to update evalOk
-        for (auto it = block.begin(); it != block.end(); it++)
+        for (auto& it : block)
         {
-            std::shared_ptr<NOMAD::EvalPoint> x = (*it);
-            if (exitStatus)
+
+            const std::shared_ptr<NOMAD::EvalPoint>& x = it;
+
+            // Points with EVAL_WAIT status have been managed before. Their status should remain EVAL_WAIT.
+            if ( NOMAD::EvalStatusType::EVAL_WAIT != x->getEvalStatus(_evalType) )
             {
-                evalOk[index] = false;
-                x->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
-                s = "Warning: Evaluator returned exit status ";
-                s += std::to_string(exitStatus);
-                s += " for point: " + x->getX()->NOMAD::Point::display();
-                NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_WARNING);
-#ifdef _OPENMP
-                #pragma omp critical(warningEvalX)
-#endif
+
+                if (exitStatus)
                 {
-                    std::cout << s << std::endl;
+                    evalOk[index] = false;
+                    // Test eval status to prevent multiple error display (see above)
+                    if (x->getEvalStatus(_evalType) != NOMAD::EvalStatusType::EVAL_ERROR)
+                    {
+                        x->setEvalStatus(NOMAD::EvalStatusType::EVAL_ERROR, _evalType);
+                        s = "Warning: Evaluator returned exit status ";
+                        s += std::to_string(exitStatus);
+                        s += " for point: " + x->getX()->NOMAD::Point::display();
+                        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_WARNING);
+                    }
                 }
-            }
-            else if (!evalOk[index])
-            {
-                x->setEvalStatus(NOMAD::EvalStatusType::EVAL_FAILED, _evalType);
-            }
-            else
-            {
-                x->setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, _evalType);
+                else if (!evalOk[index])
+                {
+                    x->setEvalStatus(NOMAD::EvalStatusType::EVAL_FAILED, _evalType);
+                }
+                else
+                {
+                    x->setEvalStatus(NOMAD::EvalStatusType::EVAL_OK, _evalType);
+                }
             }
 
             index++;

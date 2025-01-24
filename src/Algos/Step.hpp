@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_4_STEP__
-#define __NOMAD_4_4_STEP__
+#ifndef __NOMAD_4_5_STEP__
+#define __NOMAD_4_5_STEP__
 
 #include "../Eval/MeshBase.hpp"
 #include "../Eval/SuccessStats.hpp"
@@ -197,10 +197,10 @@ public:
 	/// Interruption requested
     static void setUserTerminate() ; // not inline (dll pb)
 
-	/// Reset user terminate (called by mainstep to prevent invalid stop (Python or Matlab interface)
+	/// Reset user terminate (called by main step to prevent invalid stop (Python or Matlab interface)
     static void resetUserTerminate() ; // not inline (dll pb)
     
-    /// Reset user interrupt (called by mainstep to prevent invalid stop (Python or Matlab interface)
+    /// Reset user interrupt (called by main step to prevent invalid stop (Python or Matlab interface)
     static void resetUserInterrupt() ; // not inline (dll pb)
     
 
@@ -223,6 +223,8 @@ public:
      \param name    The name is provided as a \c string -- \b IN.
      */
     //void setName(const std::string& name) { _name = name; }
+    
+    /// Set and get the step type of this step
     const StepType& getStepType() const { return _stepType; }
     void setStepType(const StepType &stepType) { _stepType = stepType; }
 
@@ -253,6 +255,9 @@ public:
                             bool &stop);
     static void runCallback(CallbackType callbackType,
                             std::vector<std::string>& paramLines);
+    
+    /// \brief Reset user callbacks to default
+    static void resetCallbacks();
 
     static void disableWarnings() ;
 
@@ -325,10 +330,11 @@ public:
     const std::shared_ptr<BarrierBase> getMegaIterationBarrier() const;
 
     /**
+     \param computeType        Which type of f, h computation (eval type, compute type and h norm type)  -- \b IN.
      \return \c true if either the cache has a feasible solution,
        or the MegaIteration ancestor's barrier has a feasible solution.
      */
-    bool solHasFeas() const;
+    bool solHasFeas(const NOMAD::FHComputeType & computeType) const;
 
     /**
      \return \c true if either the cache has a phase one solution,
@@ -454,4 +460,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_STEP__
+#endif // __NOMAD_4_5_STEP__

@@ -116,7 +116,7 @@ void NOMAD::NMShrink::generateTrialPointsImp ()
 
 
     // Shrink simplex Y
-    std::set<NOMAD::EvalPoint>::const_iterator it = _nmY->begin() ;
+    auto it = _nmY->begin() ;
     const NOMAD::EvalPoint & y0 = (*it);
     int i=0;
     for ( ; it !=_nmY->end(); ++it, ++i )

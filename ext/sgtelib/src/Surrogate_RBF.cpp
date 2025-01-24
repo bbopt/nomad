@@ -30,7 +30,7 @@
 /*         constructor        */
 /*----------------------------*/
 SGTELIB::Surrogate_RBF::Surrogate_RBF ( SGTELIB::TrainingSet & trainingset,
-                                        SGTELIB::Surrogate_Parameters param) :
+                                        const SGTELIB::Surrogate_Parameters& param) :
   SGTELIB::Surrogate ( trainingset , param ),
   _q                 ( -1                  ),
   _qrbf              ( -1                  ),

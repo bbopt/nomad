@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_MATRIXUTILS__
-#define __NOMAD_4_4_MATRIXUTILS__
+#ifndef __NOMAD_4_5_MATRIXUTILS__
+#define __NOMAD_4_5_MATRIXUTILS__
 
 #include <string>
 #include "../Util/defines.hpp"
@@ -61,7 +61,6 @@ const double SVD_MAX_COND = NOMAD::INF; ///< Max. acceptable cond. number
 /// Utilities for matrix.
 /**
  Utilities for Matrix. Not everything that would be expected for a Matrix class is here. The methods are added when they are necessary for the code.
- \todo Implement a Matrix class.
 */
 
 /// SVD decomposition.
@@ -104,31 +103,99 @@ DLL_UTIL_API bool LU_decomposition(std::string & error_msg,
 
 /// QR decomposition.
 /**
- * QR factorization for a rectangular mxn matrx.
+ * QR factorization for a rectangular m x n matrix.
 
- - The \c mxn \c M matrix is decomposed into \c M=Q.R
+ - The \c mxn \c M matrix is decomposed into \c M = Q x R
  \param error_msg Error message when the function returns \c false    -- \b OUT.
  \param M         The input \c nxn matrix;  -- \b IN.
  \param Q         The input \c mxm matrix;  -- \b OUT.
  \param R         The input \c mxn matrix;  -- \b OUT.
- \param m         Number of rows in M -- \b IN.   
+ \param m         Number of rows in M -- \b IN.
  \param n         Number of columns in M -- \b IN.
  \param max_mpn   Maximum allowed value for \c m or \c n; ignored if \c <=0 -- \b IN.
  \return          \c true if the decomposition worked.
 
- Using Gram-Schmidt process
+ The QR factorization is done using a variant of the method of Givens rotations, proposed
+ by Alexis Montoison.
+
+ Also it is slower than the QR factorization using Householder reflections for dense matrices
+ (this is the default implementation in LAPACK library), it is also more stable numerically,
+ and easier to parallelize than the Householder approach.
+
+ This implementation could be improved, especially in the storing of the reflection matrices
+ coefficients. For the small matrix sizes involved in this context, the memory cost is not
+ a problem.
  */
-DLL_UTIL_API bool qr_factorization (std::string & error_msg,
-                        double ** M, 
-                        double ** Q, 
-                        double ** R, 
-                        int m, 
-                        int n,
-                        int       max_mpn = 1500 );
+DLL_UTIL_API bool qr_factorization(std::string & error_msg,
+                                   double ** M,
+                                   double ** Q,
+                                   double ** R,
+                                   const int m,
+                                   const int n,
+                                   const int max_mpn = 1500);
 
 /// LDLt decomposition.
 /**
- * Block LDL^T factorization for a symmetric indefinite matrx.
+ * Block LDL' factorization for a symmetric indefinite matrix
+
+ This code is adapted from LAPACK linear library and bunchkaufmann native implementation from
+ the Julia project.
+
+ Given a symmetric matrix M of order n, this procedure computes the decomposition
+ P' M P = L D L'
+ where L is a unit lower triangular matrix. D is a block diagonal matrix with blocks
+ of order 1 or 2 and L[i+1,i] = 0 when D[i+1,i] is non-zero, and P a permutation matrix.
+
+ This procedure uses the `partial pivoting` strategy of Bunch-Kaufman to form the decomposition.
+ M is assumed to be stored only in its lower triangular part. L and D are written over M, and the
+ diagonal of M will be destroyed. On output, the real array change of length n contains a record
+ of the interchanges performed, i.e. the permutation matrix P. This permutation matrix contains the
+ ``block indices'', following the convention of LAPACK:
+         | k + 1 if ind corresponds to block of size 1x1,
+ P[ind] =| else
+         | -(k + 1) if ind corresponds to block of size 2x2
+ where k is the corresponding permutation index.
+
+ It is then possible to explicitly recompute L and D from the overwritten matrix M.
+
+ \param error_msg Error message when the function returns \c false -- \b OUT.
+ \param M         The input-output \c nxn matrix; -- \b IN OUT.
+ \param pivots    Permutation vector of size \c n ; -- \b OUT.
+ \param n         Number of columns and rows in M   -- \b IN.
+ \param max_mpn   Maximum allowed value for \c n; ignored if \c <= 0 -- \b IN.
+ \return          \c true if the decomposition worked.
+ */
+DLL_UTIL_API bool LDLt_factorization(std::string& error_msg,
+                                     double** M,
+                                     int* pivots,
+                                     const int n,
+                                     const int max_mpn = 1500);
+
+/**
+ * Extract the components L and D and permutation vector p from the overwritten matrix M,
+   computed by the LDLt_factorization procedure.
+
+ \param error_msg      Error message when the function returns \c false -- \b OUT.
+ \param M              The input-output \c nxn matrix; -- \b IN.
+ \param perm_lapack    Permutation vector of size \c n (in LAPACK format); -- \b IN.
+ \param L              The lower triangular matrix component \c nxn matrix; -- \b OUT.
+ \param D              The block diagonal (1x1 or 2x2) matrix component \c nxn matrix; -- \b OUT.
+ \param p              Permutation vector of size \c n; -- \b OUT.
+ \param n              Number of columns and rows in M   -- \b IN.
+ \param max_mpn        Maximum allowed value for \c n; ignored if \c <= 0 -- \b IN.
+ \return               \c true if the extraction worked worked.
+ */
+DLL_UTIL_API bool LDLt_extract(std::string& error_msg,
+                               double** M,
+                               const int* perm_lapack,
+                               double** L,
+                               double** D,
+                               int* p,
+                               const int n,
+                               const int max_mpn = 1500);
+
+/**
+ * Block LDL^T factorization for a symmetric indefinite matrix.
 
  - The \c nxn \c M matrix is decomposed into \c M=L.D.L^t
  \param error_msg Error message when the function returns \c false    -- \b OUT.
@@ -174,9 +241,31 @@ Return the smallest eigenvalue of D.
  */
 DLL_UTIL_API double FindSmallestEigenvalue(double ** D, int n);
 
+/// LDL' solve
+/**
+ Solve linear system
+ M x = rhs
+ where M has been factored by the LDLt_factorization procedure.
+ Note that only the lower triangular part of M is defined (i.e., M[i][j] with j <= i).
+
+ \param error_msg Error message when the function returns \c false    -- \b OUT.
+ \param M         The input factored \c nxn matrix; -- \b IN.
+ \param rhs       Right-hand side vector of size \c n of the linear system; -- \b IN.
+ \param sol       Solution vector of size \c n; -- \b OUT.
+ \param pivots    Permutation vector of size \c n; -- \b IN.
+ \param n         Number of columns and rows in M; -- \b IN.
+ \return          \c true if the resolution has worked.
+ */
+DLL_UTIL_API bool ldl_solve(std::string& error_msg,
+                            double** M,
+                            const double* rhs,
+                            double* sol,
+                            const int* pivots,
+                            const int n);
+
 /// LDLt solve.
 /**
- * Solve linear system given a block LDL^T factorization for a symmetric indefinite matrx.
+ * Solve linear system given a block LDL^T factorization for a symmetric indefinite matrix.
 
  - The \c nxn \c M matrix is decomposed into \c M=L.D.L^t
  \param error_msg Error message when the function returns \c false    -- \b OUT.
@@ -191,18 +280,18 @@ DLL_UTIL_API double FindSmallestEigenvalue(double ** D, int n);
 This function successively uses ldl_dsolve, ldl_ltsolve and ldl_lsolve.
  */
 DLL_UTIL_API bool ldl_solve(std::string & error_msg,
-    double     ** D,
-    double     ** L,
-    double     * rhs,
-    double     * sol,
-    int        * pp,
-    int            n);
+    double       ** D,
+    double       ** L,
+    const double * rhs,
+    double       * sol,
+    const int    * pp,
+    int          n);
 
-DLL_UTIL_API bool ldl_dsolve( double ** D,  double * rhs, double * Ly, int n);
+DLL_UTIL_API bool ldl_dsolve( double ** D, const double * rhs, double * Ly, int n);
 
-DLL_UTIL_API bool ldl_ltsolve( double ** L, double * rhs, double * Ly, int n);
+DLL_UTIL_API bool ldl_ltsolve( double ** L, const double * rhs, double * Ly, int n);
 
-DLL_UTIL_API bool ldl_lsolve( double ** L, double * rhs, double * Ly, int n);
+DLL_UTIL_API bool ldl_lsolve( double ** L, const double * rhs, double * Ly, int n);
 
 // Get rank of a matrix  using SVD decomposition
 /**
@@ -233,4 +322,4 @@ DLL_UTIL_API bool getDeterminant(double **M,
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_4_MATRIXUTILS__
+#endif // __NOMAD_4_5_MATRIXUTILS__

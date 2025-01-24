@@ -51,8 +51,8 @@
  \date   July 2019
  \see    SgtelibModel.hpp
  */
-#ifndef __NOMAD_4_4_SGTELIB_MODEL_FORMULATION_TYPE__
-#define __NOMAD_4_4_SGTELIB_MODEL_FORMULATION_TYPE__
+#ifndef __NOMAD_4_5_SGTELIB_MODEL_FORMULATION_TYPE__
+#define __NOMAD_4_5_SGTELIB_MODEL_FORMULATION_TYPE__
 
 #include <string>
 #include <sstream>
@@ -131,4 +131,4 @@ inline std::ostream& operator<<(std::ostream& os, const SgtelibModelFormulationT
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_SGTELIB_MODEL_FORMULATION_TYPE__
+#endif // __NOMAD_4_5_SGTELIB_MODEL_FORMULATION_TYPE__

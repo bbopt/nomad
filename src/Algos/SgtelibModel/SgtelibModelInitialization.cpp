@@ -63,9 +63,7 @@ void NOMAD::SgtelibModelInitialization::init()
 /*-------------------------*/
 /*       Destructor        */
 /*-------------------------*/
-NOMAD::SgtelibModelInitialization::~SgtelibModelInitialization()
-{
-}
+NOMAD::SgtelibModelInitialization::~SgtelibModelInitialization() = default;
 
 
 void NOMAD::SgtelibModelInitialization::startImp()
@@ -99,9 +97,8 @@ void NOMAD::SgtelibModelInitialization::validateX0s() const
     bool validX0available = false;
     std::string err;
 
-    for (size_t x0index = 0; x0index < x0s.size(); x0index++)
+    for (const auto& x0 : x0s)
     {
-        auto x0 = x0s[x0index];
         if (!x0.isComplete() || x0.size() != n)
         {
             err += "Initialization: eval_x0s: Invalid X0 " + x0.display() + ".";
@@ -158,9 +155,8 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     evc->lockQueue();
 
     NOMAD::EvalPointSet evalPointSet;
-    for (size_t x0index = 0; x0index < x0s.size(); x0index++)
+    for (const auto& x0 : x0s)
     {
-        auto x0 = x0s[x0index];
         NOMAD::EvalPoint evalPoint_x0(x0);
         
         //Set the eval point tag and increment for the next point.
@@ -188,7 +184,7 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
     evc->setOpportunisticEval(previousOpportunism);
 
     auto evalPointList = evcInterface.retrieveAllEvaluatedPoints();
-    for (auto x0 : x0s)
+    for (const auto& x0 : x0s)
     {
         if (_stopReasons->checkTerminate())
         {
@@ -216,7 +212,7 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
         _barrier = std::make_shared<NOMAD::ProgressiveBarrier>(hMax,
                                 NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
                                 evc->getCurrentEvalType(),
-                                evc->getComputeType(),
+                                evc->getFHComputeTypeS(),
                                 evalPointList);
     }
     else

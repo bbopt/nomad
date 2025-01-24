@@ -64,11 +64,11 @@ class My_Evaluator : public NOMAD::Evaluator
 private:
 
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
+    explicit My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
 
-    ~My_Evaluator() {}
+    ~My_Evaluator() override = default;
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override;
 };
@@ -105,11 +105,11 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
 class My_Surrogate_Evaluator : public NOMAD::Evaluator
 {
 public:
-    My_Surrogate_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
+    explicit My_Surrogate_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::SURROGATE)
     {}
 
-    ~My_Surrogate_Evaluator() {}
+    ~My_Surrogate_Evaluator() override = default;
 
     std::vector<bool> eval_block(NOMAD::Block &block,
                                  const NOMAD::Double &hMax,
@@ -127,22 +127,20 @@ std::vector<bool> My_Surrogate_Evaluator::eval_block(NOMAD::Block &block,
     NOMAD::Point P0(n, 0);
     
     // Start evaluation
-    for (auto it = block.begin(); it != block.end(); it++)
+    for (auto & it : block)
     {
         // Use distance to P0 for objective
-        NOMAD::Double d = NOMAD::Point::dist(P0, *(*it)->getX());
+        NOMAD::Double d = NOMAD::Point::dist(P0, *it->getX());
         std::string bbo = d.tostring();
         bbo += " 0.0 0.0";  // Both constraints are feasible
-        (*it)->setBBO(bbo);
+        it->setBBO(bbo);
 
     }
     return success;
 }
 
 
-
-
-void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
+void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 {
     // Parameters creation
     allParams->setAttributeValue("DIMENSION", n);
@@ -150,7 +148,7 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     // Starting point
     allParams->setAttributeValue("X0", NOMAD::Point(n, 0.0) );
 
-    // Bounds
+    // Set bounds
     allParams->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, -6.0 )); // all var. >= -6
     NOMAD::ArrayOfDouble ub(n);
     ub[0] = 5.0;    // x_1 <= 5
@@ -160,9 +158,9 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
 
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes;
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::OBJ);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::PB);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::PB);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::OBJ);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::PB);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::PB);
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
     
     // Use surrogate for sorting
@@ -175,25 +173,21 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->setAttributeValue("NM_SEARCH", false);
     allParams->setAttributeValue("DIRECTION_TYPE", NOMAD::DirectionType::ORTHO_NP1_NEG);
     
-    
+    // Set display parameters
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
     allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj"));
     allParams->setAttributeValue("DISPLAY_ALL_EVAL", true);
     
     // Parameters validation requested to have access to their value.
     allParams->checkAndComply();
-
 }
-
 
 
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main ( int argc , char ** argv )
+int main()
 {
-
-    
     NOMAD::MainStep TheMainStep;
         
     // Set parameters
@@ -208,7 +202,7 @@ int main ( int argc , char ** argv )
     // Custom SURROGATE evaluator creation
     auto evSurrogate = std::make_unique<My_Surrogate_Evaluator>(params->getEvalParams());
     TheMainStep.addEvaluator(std::move(evSurrogate));
-    // Warning: Need to set ordering with surrogate to use the surrogate. See EVAL_QUEUE_SORT parameter set above.
+    // Warning: Need to set ordering with surrogate to use the surrogate. See EVAL_QUEUE_SORT parameter set above
 
     // The run
     TheMainStep.start();

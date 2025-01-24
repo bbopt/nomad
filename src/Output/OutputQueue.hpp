@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_OUTPUTQUEUE__
-#define __NOMAD_4_4_OUTPUTQUEUE__
+#ifndef __NOMAD_4_5_OUTPUTQUEUE__
+#define __NOMAD_4_5_OUTPUTQUEUE__
 
 #include <vector>
 #ifdef _OPENMP
@@ -66,12 +66,9 @@
 /**
  The output queue is a singleton. Some OutputInfo can be added to the queue. The output information is displayed when calling OutputQueue::Flush and queue is emptied. \n
  The information can be send to the standard display and to a stats file. \n
- The display is formatted with indendation of blocks of information. The display parameters (DisplayParameters) are attributes of the class provided by calling OutputQueue::initParameters. \n
+ The display is formatted with indentation of blocks of information. The display parameters (DisplayParameters) are attributes of the class provided by calling OutputQueue::initParameters. \n
 
  The display can be limited to a maximum block/step level. (OutputQueue::_maxStepLevel). \n
-
- \todo Replace calls to std::cout by something more general.
-
  */
 class OutputQueue
 {
@@ -98,7 +95,7 @@ public:
     }
 
 	DLL_UTIL_API void add(const std::string& s,
-             OutputLevel outputLevel = OutputLevel::LEVEL_INFO);
+             OutputLevel outputLevel = OutputLevel::LEVEL_INFO) const;
     static void Add(const std::string& s,
                     OutputLevel outputLevel = OutputLevel::LEVEL_INFO)
     {
@@ -238,4 +235,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_OUTPUTQUEUE__
+#endif // __NOMAD_4_5_OUTPUTQUEUE__

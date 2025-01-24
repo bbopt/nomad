@@ -74,7 +74,13 @@ size_t
 \( Select the algorithm for QP solver \)
 \(
 
-. Select the algorithm for QPSolver
+. Select the algorithm for QPSolver.
+
+. #0: Augmented lagrangian
+
+. #1: Interior point method
+
+. #2: L1 penalty augmented lagrangian
 
 . Argument: size_t
 
@@ -87,11 +93,13 @@ RESTART_ATTRIBUTE yes
 ################################################################################
 QP_maxIter
 size_t
-10
-\( A quad model based search step for Mads using a QP solver \)
+20
+\( QPSolver outter loop iteration limit \)
 \(
 
-. QPSolver iteration limit
+. QPSolver outter loop iteration limit.
+
+. Common to algos #0, AugLag and #2, L1AugLag.
 
 . Argument: size_t
 
@@ -291,15 +299,15 @@ RESTART_ATTRIBUTE yes
 ################################################################################
 QP_AugLag_maxIterInner
 size_t
-10
-\( A quad model based search step for Mads using a QP solver \)
+50
+\( QPSolver inner iteration limit for the subproblem \)
 \(
 
-. QPSolver iteration limit for the subproblem
+. QPSolver augmented lagrangian inner iteration limit for the subproblem
 
 . Argument: size_t
 
-. Example: QP_AugLag_maxIterInner 50
+. Example: QP_AugLag_maxIterInner 10
 
 \)
 \( advanced algorithm search quadratic quad model programming qp \)
@@ -354,6 +362,21 @@ NOMAD::Double
 
 \)
 \( advanced algorithm search quadratic quad model programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+QP_SEARCH_MODEL_BOX_SIZE_LIMIT
+NOMAD::Double
+0
+\( QP solver generates trial points if bounds box size is above limit  \)
+\(
+
+. QP solver generates trial points if bounds box size is above limit.
+
+. Default: 0, always goes into trial point generation step.
+
+\)
+\( advanced algorithm search quadratic quad model programming qp box \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################

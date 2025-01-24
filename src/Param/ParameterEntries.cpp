@@ -56,10 +56,8 @@
 /*--------------------------------------------*/
 /*                 destructor                 */
 /*--------------------------------------------*/
-NOMAD::ParameterEntries::~ParameterEntries ( void )
-{
-    // No need to delete anything since smart pointers are used.
-}
+// No need to delete anything since smart pointers are used.
+NOMAD::ParameterEntries::~ParameterEntries ( ) = default;
 
 /*--------------------------------------------*/
 /*      finds a specific entry in the set     */
@@ -75,7 +73,7 @@ std::shared_ptr<NOMAD::ParameterEntry> NOMAD::ParameterEntries::find ( const std
 /*----------------------------------------*/
 /*      inserts an entry into the set     */
 /*----------------------------------------*/
-void NOMAD::ParameterEntries::insert(std::shared_ptr<NOMAD::ParameterEntry> entry )
+void NOMAD::ParameterEntries::insert(const std::shared_ptr<NOMAD::ParameterEntry>& entry )
 {
     std::shared_ptr<NOMAD::ParameterEntry> cur = find ( entry->getName() );
     if ( cur )
@@ -93,7 +91,7 @@ void NOMAD::ParameterEntries::insert(std::shared_ptr<NOMAD::ParameterEntry> entr
 /*----------------------------------------*/
 /*       erase an entry from the set      */
 /*----------------------------------------*/
-void NOMAD::ParameterEntries::erase(std::shared_ptr<NOMAD::ParameterEntry> entry )
+void NOMAD::ParameterEntries::erase(const std::shared_ptr<NOMAD::ParameterEntry>& entry)
 {
     _entries.erase ( entry );
 }
@@ -126,7 +124,7 @@ std::shared_ptr<NOMAD::ParameterEntry> NOMAD::ParameterEntries::findNonInterpret
 std::vector<std::shared_ptr<NOMAD::ParameterEntry>> NOMAD::ParameterEntries::findAllNonInterpreted() const
 {
     std::vector<std::shared_ptr<NOMAD::ParameterEntry>> allNonInterp;
-    for (auto it : _entries)
+    for (const auto& it : _entries)
     {
         if ( !it->hasBeenInterpreted() )
         {

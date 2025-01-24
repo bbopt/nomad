@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_4_LHS__
-#define __NOMAD_4_4_LHS__
+#ifndef __NOMAD_4_5_LHS__
+#define __NOMAD_4_5_LHS__
 
 #include <vector>
 #include "../Math/Point.hpp"
@@ -103,7 +103,7 @@ public:
     /**
      \param lowerBound  An \c ArrayOfDouble for lower bound -- \b IN.
      */
-    void setLowerBound(const ArrayOfDouble lowerBound)   { _lowerBound = lowerBound; }
+    void setLowerBound(const ArrayOfDouble& lowerBound)   { _lowerBound = lowerBound; }
 
     /// Get upper bound
     /**
@@ -115,7 +115,7 @@ public:
     /**
      \param upperBound  An \c ArrayOfDouble for upper bound -- \b IN.
      */
-    void setUpperBound(const ArrayOfDouble upperBound)   { _upperBound = upperBound; }
+    void setUpperBound(const ArrayOfDouble& upperBound)   { _upperBound = upperBound; }
 
     /// Do the sampling
     /**
@@ -133,4 +133,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_LHS__
+#endif // __NOMAD_4_5_LHS__

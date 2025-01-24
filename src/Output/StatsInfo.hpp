@@ -51,8 +51,8 @@
  * \date   February 2018
  */
 
-#ifndef __NOMAD_4_4_STATSINFO__
-#define __NOMAD_4_4_STATSINFO__
+#ifndef __NOMAD_4_5_STATSINFO__
+#define __NOMAD_4_5_STATSINFO__
 
 #include <memory>   // For unique_ptr
 #include <vector>
@@ -156,7 +156,7 @@ private:
     size_t          _surrogateEval;
     int             _threadAlgoNum;
     int             _threadNum;
-    bool            _relativeSuccess;   ///> Used for priting star, or when DISPLAY_ALL_EVAL is false.
+    bool            _relativeSuccess;   ///> Used for printing star, or when DISPLAY_ALL_EVAL is false.
     size_t          _tag;         
     std::string     _comment;   ///> General comment, ex. Algorithm from where this point was generated.
     std::string     _genStep;   ///> Step in which this point was generated
@@ -171,7 +171,7 @@ public:
     /// Constructor
     explicit StatsInfo();
 
-    // Destructor is not implemented, so the compilator creates all default functions.
+    // Destructor is not implemented, so the compiler creates all default functions.
     //virtual ~StatsInfo() {}
 
 public:
@@ -195,15 +195,15 @@ public:
     void setCacheSize(const size_t cacheSize)       { _cacheSize = cacheSize; }
     void setIterNum(const size_t iterNum)           { _iterNum = iterNum; }
     void setTime(const size_t time)                 { _time = time; }
-    void setMeshIndex(const ArrayOfDouble meshIndex) { _meshIndex = meshIndex; }
-    void setMeshSize(const ArrayOfDouble meshSize)   { _meshSize = meshSize; }
-    void setFrameSize(const ArrayOfDouble frameSize) { _frameSize = frameSize; }
-    void setFrameCenter(const Point frameCenter)    { _frameCenter = frameCenter; }
-    void setDirection(const Direction direction)    { _direction = direction; }
+    void setMeshIndex(const ArrayOfDouble& meshIndex) { _meshIndex = meshIndex; }
+    void setMeshSize(const ArrayOfDouble& meshSize)   { _meshSize = meshSize; }
+    void setFrameSize(const ArrayOfDouble& frameSize) { _frameSize = frameSize; }
+    void setFrameCenter(const Point& frameCenter)    { _frameCenter = frameCenter; }
+    void setDirection(const Direction& direction)    { _direction = direction; }
     void setLap(const size_t lap)                   { _lap = lap; }
     void setModelEval(const size_t modelEval)       { _modelEval = modelEval; }
     void setTotalModelEval(const size_t totalModelEval) { _totalModelEval = totalModelEval; }
-    void setSol(const Point sol)                    { _sol = sol; }
+    void setSol(const Point& sol)                    { _sol = sol; }
     void setSurrogateEval(const size_t surrogateEval) { _surrogateEval = surrogateEval; }
     void setThreadAlgo(const int threadAlgoNum)     { _threadAlgoNum = threadAlgoNum; }
     void setThreadNum(const int threadNum)          { _threadNum = threadNum; }
@@ -213,7 +213,7 @@ public:
     void setGenStep(const std::string& genStep)     { _genStep = genStep; }
     void setSuccessType(const SuccessType& success) { _success = success; }
 
-    // Should this stats be printed even if DISPLAY_ALL_EVAL is false
+    // Should these stats be printed even if DISPLAY_ALL_EVAL is false
     bool alwaysDisplay(const bool displayFailed,
                        const bool displayInfeasible,
                        const bool displayUnsuccessful,
@@ -252,4 +252,4 @@ inline std::ostream& operator<< (std::ostream& os, const DisplayStatsType& displ
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_STATSINFO__
+#endif // __NOMAD_4_5_STATSINFO__

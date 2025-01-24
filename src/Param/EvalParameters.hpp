@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_EVALPARAMETERS__
-#define __NOMAD_4_4_EVALPARAMETERS__
+#ifndef __NOMAD_4_5_EVALPARAMETERS__
+#define __NOMAD_4_5_EVALPARAMETERS__
 
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
 #include "../Param/EvaluatorControlParameters.hpp"
@@ -58,6 +58,7 @@
 /**
 - Register all parameters during construction.
 - Implement the checkAndComply function for sanity check.
+- The parameters control the behavior of the evaluator, the evaluation of outputs and the computation of h.
 */
 class DLL_UTIL_API EvalParameters final : public Parameters
 {
@@ -100,5 +101,5 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_EVALPARAMETERS__
+#endif // __NOMAD_4_5_EVALPARAMETERS__
 
