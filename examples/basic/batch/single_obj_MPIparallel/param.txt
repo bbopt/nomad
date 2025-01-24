@@ -1,7 +1,7 @@
 DIMENSION      5              # number of variables
 
-BB_EXE         '$/opt/homebrew/bin/mpirun $-np $4 bb4.exe'   # WARNING Adjust the path to mpirun 
-                                                          # or mpiexec according to your setup.
+BB_EXE         '$mpirun $-np $4 bb4.exe'   # WARNING Adjust the path to mpirun 
+                                           # or mpiexec according to your setup.
                                                          
 
 BB_MAX_BLOCK_SIZE 20 

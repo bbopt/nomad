@@ -255,6 +255,7 @@ int main()
 
         // 4- Other useful parameters
         params->setAttributeValue("DISPLAY_DEGREE", 2);
+        params->setAttributeValue("DISPLAY_ALL_EVAL",true);
         params->setAttributeValue("SOLUTION_FILE", std::string("sol.txt")); // Save the Pareto front approximation
         // params->setAttributeValue("HISTORY_FILE", std::string("history.txt")); // Save history. To uncomment if you want it.
 
