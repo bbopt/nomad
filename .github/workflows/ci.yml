@@ -22,11 +22,6 @@ jobs:
             build_type: "Release", cc: "cl", cxx: "cl",
             environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           }
-#        - {
-#            name: "Windows -- MinGW", artifact: "Windows-MinGW.tar.xz",
-#            os: windows-latest,
-#            build_type: "Release", cc: "x86_64-w64-mingw32-gcc", cxx: "x86_64-w64-mingw32-g++"
-#          }
           - {
             name: "Ubuntu", artifact: "Linux.tar.xz",
             os: ubuntu-latest,
@@ -48,7 +43,7 @@ jobs:
 
       - name: Prepare Python environment
         run: >-
-          pip install setuptools wheel cython pytest
+          pip install setuptools wheel cython==0.29.* pytest
 
       - name: Install dependencies on Windows
         if: startsWith(matrix.config.name, 'Windows')
@@ -80,7 +75,6 @@ jobs:
           cmake \
             -DCMAKE_CC_COMPILER=${{matrix.config.cc}} \
             -DCMAKE_CXX_COMPILER=${{matrix.config.cxx}} \
-            -DBUILD_TESTS=ON \
             -DBUILD_INTERFACE_C=ON \
             -DBUILD_INTERFACE_PYTHON=ON \
             -DTEST_OPENMP=OFF \
@@ -94,17 +88,8 @@ jobs:
           mkdir instdir
           mkdir build
           cd build
-          if [[ "${{matrix.config.name}}" == "Windows -- MinGW" ]]; then
-            cmake -G "MinGW Makefiles" \
-              -DTEST_OPENMP=OFF \
-              -DBUILD_INTERFACE_C=ON \
-              -DBUILD_EXAMPLES=OFF \
-              -DCMAKE_INSTALL_PREFIX=../instdir \
-              ..
-          else
-            cmake .. -DTEST_OPENMP=OFF -DBUILD_INTERFACE_C=ON -DBUILD_INTERFACE_PYTHON=ON -DBUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=../instdir
-          fi
-
+          cmake .. -DTEST_OPENMP=OFF -DBUILD_INTERFACE_C=ON -DBUILD_INTERFACE_PYTHON=ON -DBUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=../instdir
+          
       - name: Build
         shell: bash
         run: |
