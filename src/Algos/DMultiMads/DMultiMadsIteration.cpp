@@ -128,6 +128,10 @@ bool NOMAD::DMultiMadsIteration::runImp()
     // 1. Search
     if ( nullptr != _search && ! _stopReasons->checkTerminate() )
     {
+        // Let's do a search using the search methods.
+        _search->start();
+        iterationSuccess = _search->run();
+        _search->end();
         
         if (iterationSuccess)
         {
