@@ -281,11 +281,15 @@ void NOMAD::EvcMainThreadInfo::decCurrentlyRunning(size_t k)
 {
     if (0 == _currentlyRunning)
     {
-        // Note: we don't know the main thread number.
-        std::string s = "Error in EvaluatorControl main thread management: Trying to decrease number of currently running evaluations which is already 0";
-        throw NOMAD::Exception(__FILE__, __LINE__, s);
+        OUTPUT_DEBUG_START
+        std::string s = "Trying to decrease number of currently running evaluations which is already 0. Evaluation results probably come from previous run cache file. This is not an error.";
+        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+        OUTPUT_DEBUG_END
     }
-    _currentlyRunning -=k;
+    else
+    {
+        _currentlyRunning -=k;
+    }
 }
 
 
