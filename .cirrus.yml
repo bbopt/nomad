@@ -2,13 +2,13 @@ task:
   matrix:
     - name: FreeBSD -- gcc | g++
       freebsd_instance:
-        image: freebsd-14-1-release-amd64
+        image: freebsd-14-2-release-amd64
       env:
         cc: gcc14
         cxx: g++14
     - name: FreeBSD -- clang | clang++
       freebsd_instance:
-        image: freebsd-14-1-release-amd64
+        image: freebsd-14-2-release-amd64
       env:
         cc: clang
         cxx: clang++
@@ -27,9 +27,9 @@ task:
   dependencies_script: |
     echo $(uname)
     if [ "$(uname)" = "FreeBSD" ]; then
-      pkg install -y cmake bash gcc12
+      pkg install -y cmake bash gcc14
     else
-      brew install cmake gcc
+      brew install cmake gcc14
     fi
   configure_script: |
     mkdir instdir
