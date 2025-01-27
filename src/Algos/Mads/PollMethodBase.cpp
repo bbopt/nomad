@@ -377,7 +377,7 @@ void NOMAD::PollMethodBase::setListVariableGroups(const ListOfVariableGroup & va
     }
 
     _varGroups = varGroups;
-    size_t dimLVG = std::accumulate(varGroups.begin(), varGroups.end(), 0, [](size_t s,const NOMAD::VariableGroup & vg){ return s+vg.size();});
+	size_t dimLVG = std::accumulate(varGroups.begin(), varGroups.end(), size_t{ 0 }, [](size_t s, const NOMAD::VariableGroup & vg) { return s + vg.size(); });
     if (dimLVG < _n)
     {
         _subsetListVG = true;
