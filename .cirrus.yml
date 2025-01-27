@@ -4,8 +4,8 @@ task:
       freebsd_instance:
         image: freebsd-14-0-release-amd64-ufs
       env:
-        cc: gcc14
-        cxx: g++14
+        cc: gcc13
+        cxx: g++13
     - name: FreeBSD -- clang | clang++
       freebsd_instance:
         image: freebsd-14-0-release-amd64-ufs
@@ -16,8 +16,8 @@ task:
       macos_instance:
         image: ghcr.io/cirruslabs/macos-monterey-base:latest
       env:
-        cc: gcc-14
-        cxx: g++-14
+        cc: gcc-13
+        cxx: g++-13
     - name: MacOS M1 -- clang | clang++
       macos_instance:
         image: ghcr.io/cirruslabs/macos-monterey-base:latest
@@ -27,9 +27,9 @@ task:
   dependencies_script: |
     echo $(uname)
     if [ "$(uname)" = "FreeBSD" ]; then
-      pkg install -y cmake bash gcc14
+      pkg install -y cmake bash gcc13
     else
-      brew install cmake gcc14
+      brew install cmake gcc@13
     fi
   configure_script: |
     mkdir instdir
