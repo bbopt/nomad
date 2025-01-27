@@ -115,8 +115,8 @@ jobs:
           pip install --force-reinstall dist/*.whl
           pytest
 
-#      - name: Upload
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: ${{ matrix.config.os }}
-#          path: build
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.config.os }}
+          path: build
