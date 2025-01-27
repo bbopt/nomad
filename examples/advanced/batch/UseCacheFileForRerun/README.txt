@@ -37,6 +37,8 @@ Running two times using `param_firstRun.txt` will produce different results
 because the cache file is used. We can note that the cache hits increase between
 two runs. 
 
+For repeatability, the cache file must removed after doing the two steps of the procedure.
+
 For using the best point obtained after a first run and stored in a cache,
 the user can remove initial point provide in `X0`.
  

@@ -183,6 +183,9 @@ BBE OBJ
   example: %5.2Ef displays f in 5 columns and 2 decimals in scientific notation
 . Do not use quotes
 . The '%' character may be explicitly indicated with '\%'
+. For multi-objective optimization, OBJ displays a single objective value.
+  BBO keyword can be used to display all outputs. 
+  It is also recommended to allow DISPLAY_ALL_EVAL.  
 
 . Example:
     DISPLAY_STATS BBE EVAL ( SOL ) OBJ CONS_H
