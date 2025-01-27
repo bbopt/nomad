@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   ProjectedConjugateGradientSolver.cpp
+ \brief  Projected Conjugate Gradient algorithm: implementation
+ \author Tangi Migot and Ludovic Salomon
+ \see    ProjectedConjugateGradientSolver.hpp
+ */
 #include "ProjectedConjugateGradientSolver.hpp"
 
 #include <cstdio>

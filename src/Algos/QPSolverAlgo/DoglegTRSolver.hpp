@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   DoglegTRSolver.hpp
+ \brief  The Dogleg Trust-region method
+ \author Ludovic Salomon
+ \see    DoglegTRSolver.cpp
+ */
 #ifndef NOMAD_DOGLEGTRSOLVER_H
 #define NOMAD_DOGLEGTRSOLVER_H
 

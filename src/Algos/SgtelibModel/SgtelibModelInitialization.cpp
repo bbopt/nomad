@@ -201,7 +201,7 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
         }
         else
         {
-            AddOutputError("Evaluation failed for X0 = " + x0.display());
+            AddOutputError("Sgtelib evaluation failed for X0 = " + x0.display());
         }
     }
 

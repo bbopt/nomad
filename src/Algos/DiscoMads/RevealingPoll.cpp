@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   RevealingPoll.cpp
+ \brief  The DiscoMads algorithm poll step: implementation
+ \author Solene Kojtych
+ \see    RevealingPoll.hpp
+ */
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/DMultiMads/DMultiMadsBarrier.hpp"

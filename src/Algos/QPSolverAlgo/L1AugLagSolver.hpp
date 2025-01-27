@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   L1AugLagSolver.hpp
+ \brief  L1 Augmented Lagrangian algorithm
+ \author Tangi Migot and Ludovic Salomon
+ \see    L1AugLagSolver.cpp
+ */
 #ifndef __NOMAD_4_5_L1AUGLAG_SOLVER__
 #define __NOMAD_4_5_L1AUGLAG_SOLVER__
 

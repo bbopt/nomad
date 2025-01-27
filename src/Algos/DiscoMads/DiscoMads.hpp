@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   DiscoMads.hpp
+ \brief  The DiscoMads algorithm (main)
+ \author Solene Kojtych
+ \see    DiscoMads.cpp
+ */
 #ifndef __NOMAD_4_5_DISCOMADS__
 #define __NOMAD_4_5_DISCOMADS__
 
