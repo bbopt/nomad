@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   DiscoMadsIteration.cpp
+ \brief  The DiscoMads algorithm main iteration: implementation
+ \author Solene Kojtych
+ \see    DiscoMadsIteration.hpp
+ */
 
 #include <algorithm>    // For std::merge and std::unique
 #include "../../nomad_platform.hpp"

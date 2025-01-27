@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   DMultiMadsBarrier.cpp
+ \brief  The DMultiMads algorithm barrier: implementation
+ \author Ludovic Salomon
+ \see    DMultiMadsBarrier.hpp
+ */
 #include "../../Algos/DMultiMads/DMultiMadsBarrier.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Cache/CacheBase.hpp"
