@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   DiscoMadsMegaIteration.cpp
+ \brief  The DiscoMads algorithm iteration (more specific): implementation
+ \author Solene Kojtych
+ \see    DiscoMadsMegaIteration.hpp
+ */
 
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/SubproblemManager.hpp"

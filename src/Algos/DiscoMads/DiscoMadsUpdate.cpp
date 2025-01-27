@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   DiscoMadsUpdate.cpp
+ \brief  The DiscoMads algorithm update step: implementation
+ \author Solene Kojtych
+ \see    DiscoMadsUpdate.hpp
+ */
 
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
