@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   LevenbergMarquardtSolver.cpp
+ \brief  Levenberg-Marquardt algorithm: implementation
+ \author Tangi Migot and Ludovic Salomon
+ \see    LevenbergMarquardtSolver.hpp
+ */
 #include "LevenbergMarquardtSolver.hpp"
 
 #include "../../Algos/QPSolverAlgo/QPModelUtils.hpp"

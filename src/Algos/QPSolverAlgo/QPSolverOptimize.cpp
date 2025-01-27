@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   QPSolverOptimize.cpp
+ \brief  Class to create trial points by performing quadratic model optimization using QP solver: implementation
+ \author Tangi Migot and Ludovic Salomon
+ \see    QPSolverOptimize.hpp
+ */
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/QPSolverAlgo/DoglegTRSolver.hpp"

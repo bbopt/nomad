@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   DiscoMadsBarrier.cpp
+ \brief  The DiscoMads algorithm barrier: implementation
+ \author Solene Kojtych
+ \see    DiscoMadsBarrier.hpp
+ */
 
 #include "../../Cache/CacheBase.hpp"
 #include "../../Eval/ComputeSuccessType.hpp"

@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   QPModelUtils.cpp
+ \brief  Utilities functions for Quadratic Model: implementation
+ \author Ludovic Salomon
+ \see    QPModelUtils.hpp
+ */
 #include "QPModelUtils.hpp"
 
 #include <map>
