@@ -199,6 +199,7 @@ bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision, const NOMA
             double powprec = std::pow(10,precision.round());
             _value = std::round(_value * powprec) / powprec;
 
+
             // During the arithmetic operations we may have rounded _value slightly below or above (wrt EPSILON) lb or ub
             // This can trigger an exception later
             if (lb.isDefined() && _value < lb.todouble())
@@ -209,6 +210,7 @@ bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision, const NOMA
             {
                 _value = ub.todouble();
             }
+
         }
         else
         {

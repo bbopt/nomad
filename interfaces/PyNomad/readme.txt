@@ -27,9 +27,9 @@ https://packaging.python.org/en/latest/tutorials/installing-packages/
 
 To install the last version, from a shell command line perform:
 
-pip install PyNomad 
+pip install PyNomadBBO
 
-PyNomad from PyPI relies on Python3 version 3.8 and above.
+PyNomadBBO from PyPI relies on Python3 version 3.8 and above.
 
 **********
 HOW TO USE

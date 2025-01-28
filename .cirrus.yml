@@ -16,8 +16,8 @@ task:
       macos_instance:
         image: ghcr.io/cirruslabs/macos-runner:sonoma
       env:
-        cc: gcc-12
-        cxx: g++-12
+        cc: gcc-14
+        cxx: g++-14
     - name: MacOS M1 -- clang | clang++
       macos_instance:
         image: ghcr.io/cirruslabs/macos-runner:sonoma
