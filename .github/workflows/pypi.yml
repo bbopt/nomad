@@ -10,24 +10,24 @@ jobs:
       fail-fast: false
       matrix:
         target:
-#          - name: Windows
-#            os: windows-latest
-#            archs: AMD64
-#            msvc: 1
+          - name: Windows
+            os: windows-latest
+            archs: AMD64
+            msvc: 1
 
-#          - name: Ubuntu
-#            os: ubuntu-latest
-#            archs: x86_64
-
-          - name: macOS_X86
-            os: macos-latest
+          - name: Ubuntu
+            os: ubuntu-latest
             archs: x86_64
-            extra_option: -DCMAKE_OSX_ARCHITECTURES=x86_64
 
-#          - name: macOS_ARM
+#          - name: macOS_X86
 #            os: macos-latest
-#            archs: arm64
-#            extra_option: -DCMAKE_OSX_ARCHITECTURES=arm64
+#            archs: x86_64
+#            extra_option: -DCMAKE_OSX_ARCHITECTURES=x86_64
+
+          - name: macOS_ARM
+            os: macos-latest
+            archs: arm64
+            extra_option: -DCMAKE_OSX_ARCHITECTURES=arm64
 
     name: Wheels for ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.os }}
@@ -59,10 +59,7 @@ jobs:
       - name: Install dependencies on MacOS
         if: startsWith(matrix.target.name, 'macOS')
         run: |
-          brew install cmake llvm libomp
-          export LDFLAGS="-L/opt/homebrew/opt/llvm/lib -L-L/opt/homebrew/opt/libomp/lib"
-          export CPPFLAGS="-I/opt/homebrew/opt/llvm/include -I/opt/homebrew/opt/libomp/include"
-          
+          brew install cmake
           cmake --version
 
       - name: Build binary wheels
