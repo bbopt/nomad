@@ -57,7 +57,7 @@ jobs:
           gcc --version
 
       - name: Install dependencies on MacOS
-        if: startsWith(matrix.config.name, 'MacOS')
+        if: startsWith(matrix.config.name, 'macOS')
         run: |
           brew install cmake llvm libomp
           cmake --version
