@@ -50,8 +50,8 @@
  \author Viviane Rochon Montplaisir
  \date   February 2019
  */
-#ifndef __NOMAD_4_4_SUBPROBLEM__
-#define __NOMAD_4_4_SUBPROBLEM__
+#ifndef __NOMAD_4_5_SUBPROBLEM__
+#define __NOMAD_4_5_SUBPROBLEM__
 
 #include "../Math/Point.hpp"
 #include "../Param/PbParameters.hpp"
@@ -76,7 +76,7 @@ private:
      */
     const Point  _fixedVariable;
     size_t       _dimension;   ///< Dimension of the subproblem.
-
+    
     /**
      Reference to the original problem's PbParameters.
      */
@@ -109,7 +109,7 @@ public:
 
     const Point& getFixedVariable() const { return _fixedVariable; }
     const std::shared_ptr<PbParameters>& getPbParams() const { return _subPbParams; }
-
+    
 private:
     /// Helper for constructor calls to Subproblem::setupProblemParameters
     void init();
@@ -132,4 +132,4 @@ private:
 #include "../nomad_nsend.hpp"
 
 
-#endif  // __NOMAD_4_4_SUBPROBLEM__
+#endif  // __NOMAD_4_5_SUBPROBLEM__

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_PARAMETERSNOMAD3__
-#define __NOMAD_4_4_PARAMETERSNOMAD3__
+#ifndef __NOMAD_4_5_PARAMETERSNOMAD3__
+#define __NOMAD_4_5_PARAMETERSNOMAD3__
 
 // File to support backwards compatibility for older Parameters functions.
 // Ex. set_DISPLAY_DEGREE(), get_display_degree().
@@ -91,7 +91,7 @@ public:
     void set_EPSILON(const Double & eps);
 
     /// Access to the \c EPSILON parameter (compatibility NOMAD 3).
-    const Double get_epsilon() const;
+    Double get_epsilon() const;
 
     /// Set the \c UNDEF_STR parameter (compatibility NOMAD 3).
     void set_UNDEF_STR(const std::string &undefStr);
@@ -101,10 +101,10 @@ public:
 
 
     /// Access to the \c UNDEF_STR parameter (compatibility NOMAD 3).
-    const std::string get_undef_str() const;
+    std::string get_undef_str() const;
 
     /// Access to the \c INF_STR parameter (compatibility NOMAD 3).
-    const std::string get_inf_str() const;
+    std::string get_inf_str() const;
 
 
     // Mesh:
@@ -194,7 +194,7 @@ public:
     const ArrayOfDouble & get_ub() const;
 
     /// Reset the bounds (compatibility NOMAD 3).
-    void reset_bounds();
+    void reset_bounds() const;
 
     /// Set all lower bounds (compatibility NOMAD 3).
     /**
@@ -265,16 +265,16 @@ public:
     bool get_display_all_eval() const;
 
     /// set DISPLAY_STATS (compatibility NOMAD 3)
-    void set_DISPLAY_STATS(const ArrayOfDouble stats);
+    void set_DISPLAY_STATS(const ArrayOfDouble& stats);
 
     /// Get DISPLAY_STATS (compatibility NOMAD 3)
     ArrayOfDouble get_display_stats() const;
 
     /// Reset STATS_FILE (compatibility NOMAD 3)
-    void resetStatsFile();
+    void resetStatsFile() const;
 
     /// Set STATS_FILE (compatibility NOMAD 3)
-    void set_STATS_FILE(const ArrayOfDouble stats);
+    void set_STATS_FILE(const ArrayOfDouble& stats);
 
     /// Get STATS_FILE (compatibility NOMAD 3)
     ArrayOfDouble get_stats_file() const;
@@ -285,4 +285,4 @@ public:
     /// Get ADD_SEED_TO_FILE_NAMES (compatibility NOMAD 3)
     bool get_add_seed_to_file_names() const;
 
-#endif // __NOMAD_4_4_PARAMETERSNOMAD3__
+#endif // __NOMAD_4_5_PARAMETERSNOMAD3__

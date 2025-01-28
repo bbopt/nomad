@@ -83,7 +83,7 @@ void NOMAD::VNS::startImp()
     // Setup Mads
     _madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
 
-    // Increment the neighborood parameter
+    // Increment the neighborhood parameter
     _neighParameter ++;
     
 }
@@ -162,7 +162,7 @@ bool NOMAD::VNS::runImp()
     evalPoint.setPointFrom(_frameCenter, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
     evalPoint.addGenStep(getStepType());
 
-    // Get the current Mads frame size to be used as min frame size for suboptimization
+    // Get the current Mads frame size to be used as min frame size for sub-optimization
     NOMAD::ArrayOfDouble currentMadsFrameSize = parentMadsMegaIter->getMesh()->getDeltaFrameSize();
 
     setupPbParameters(shakePoint,currentMadsFrameSize);
@@ -251,7 +251,7 @@ void NOMAD::VNS::setupPbParameters(const NOMAD::Point & center, const NOMAD::Arr
 
 }
 
-void NOMAD::VNS::setFrameCenter(const EvalPointPtr frameCenter)
+void NOMAD::VNS::setFrameCenter(const EvalPointPtr& frameCenter)
 {
     _frameCenter=frameCenter ;
  

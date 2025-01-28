@@ -148,6 +148,7 @@ std::vector<size_t> NOMAD::LHS::Permutation(const size_t p)
     NOMAD::RandomPickup rp(p);
 
     std::vector<size_t> v;
+    v.reserve(p);
     for (size_t j = 0; j < p ; j++)
     {
         v.push_back(rp.pickup()+1);

@@ -1,4 +1,4 @@
-name: Build and publish binary wheels onto PyPi
+name: Build and publish binary wheels onto TestPyPi
 
 on:
   workflow_dispatch:
@@ -19,9 +19,15 @@ jobs:
             os: ubuntu-latest
             archs: x86_64
 
-          - name: macOS
+          - name: macOS_X86
             os: macos-latest
             archs: x86_64
+            extra_option: -DCMAKE_OSX_ARCHITECTURES=x86_64
+
+          - name: macOS_ARM
+            os: macos-latest
+            archs: arm64
+            extra_option: -DCMAKE_OSX_ARCHITECTURES=arm64
 
     name: Wheels for ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.os }}
@@ -32,14 +38,18 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Prepare Python environment
+        run: >-
+          pip install setuptools wheel cython==0.29.* pytest
+
       - name: Install dependencies on Windows
-        if: startsWith(matrix.config.name, 'Windows')
+        if: startsWith(matrix.target.name, 'Windows')
         run: |
           choco install cmake
           cmake --version
 
       - name: Install dependencies on Ubuntu
-        if: startsWith(matrix.config.name, 'Ubuntu')
+        if: startsWith(matrix.target.name, 'Ubuntu')
         run: |
           sudo apt-get update
           sudo apt-get install cmake
@@ -47,18 +57,18 @@ jobs:
           gcc --version
 
       - name: Install dependencies on MacOS
-        if: startsWith(matrix.config.name, 'MacOS')
+        if: startsWith(matrix.target.name, 'macOS')
         run: |
           brew install cmake
           cmake --version
 
       - name: Build binary wheels
-        uses: pypa/cibuildwheel@v2.20.0
+        uses: pypa/cibuildwheel@v2.16.5
         env:
           CIBW_ARCHS: >-
             ${{ matrix.target.archs }}
           CIBW_BEFORE_ALL: >-
-            cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -DBUILD_EXAMPLES=OFF -S . -B build &&
+            cmake -DBUILD_INTERFACE_PYTHON=ON -DBUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release ${{ matrix.target.extra_option }} -S . -B build &&
             cmake --build build --config Release --clean-first --target nomadStatic --parallel 2
           CIBW_ENVIRONMENT: >-
             NOMAD_SRC=../../src
@@ -70,7 +80,9 @@ jobs:
           CIBW_BUILD_FRONTEND: >-
             build
           CIBW_BUILD_VERBOSITY: >-
-            3
+            2
+          CIBW_SKIP: >-
+            pp*
         with:
           output-dir: wheelhouse
           package-dir: interfaces/PyNomad
@@ -78,12 +90,13 @@ jobs:
       - name: Collect wheels for processing
         uses: actions/upload-artifact@v4
         with:
+          name: binary-${{ matrix.target.name }}
           path: wheelhouse/*.whl
 
   # We use pypa/gh-action-pypi-publish to upload the binary wheels onto PyPi.
 
   pypi-publish:
-    name: Publish to PyPi 
+    name: Publish to PyPi (testing)
     runs-on: ubuntu-latest
     needs: build
     # Specifying a GitHub environment is optional, but strongly encouraged
@@ -96,8 +109,11 @@ jobs:
       - name: Collect wheels for publication
         uses: actions/download-artifact@v4
         with:
-          name: artifact
+          pattern: binary-*
+          merge-multiple: true
           path: dist
 
       - name: Publish wheels to PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository_url: https://pypi.org/legacy/

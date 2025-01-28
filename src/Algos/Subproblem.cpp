@@ -80,10 +80,7 @@ void NOMAD::Subproblem::init()
     setupProblemParameters();
 }
 
-
-NOMAD::Subproblem::~Subproblem()
-{
-}
+NOMAD::Subproblem::~Subproblem() = default;
 
 
 void NOMAD::Subproblem::setupProblemParameters()
@@ -139,7 +136,7 @@ void NOMAD::Subproblem::setupProblemParameters()
 
         for (size_t x0index = 0; x0index < refX0s.size(); x0index++)
         {
-            auto refX0 = refX0s[x0index];
+            const auto& refX0 = refX0s[x0index];
             x0s[x0index][i] = refX0[refIndex];
         }
         lb[i] = refLowerBound[refIndex];
@@ -173,7 +170,7 @@ void NOMAD::Subproblem::setupProblemParameters()
 
     _subPbParams->checkAndComply();
 
-    // Only now, conbine refFixedVariable into _fixedVariable.
+    // Only now, combine refFixedVariable into _fixedVariable.
     // Verify that refFixedVariable is of the dimension of the subproblem defined by _fixedVariable.
     if (refFixedVariable.size() == _fixedVariable.size())
     {
@@ -232,7 +229,7 @@ void NOMAD::Subproblem::resetVariableGroupsAgainstFixedVariables(NOMAD::ListOfVa
         auto itIndexBegin = indicesToRemove.begin();
 
         // Remove an index in a variable group. Decrement by one all indices (in all variable groups) above the index to remove.
-        for (auto vg: lvg)
+        for (const auto& vg: lvg)
         {
             NOMAD::VariableGroup updatedVariableGroup;
             for (auto index : vg)
@@ -259,7 +256,7 @@ void NOMAD::Subproblem::resetVariableGroupsAgainstFixedVariables(NOMAD::ListOfVa
 
         // Remove index from the set of indices. Decrement remaining indices that are smaller than the index to remove.
         std::set<size_t> updatedIndicesToRemove;
-        for (std::set<size_t>::iterator itIndex = ++itIndexBegin; itIndex != indicesToRemove.end() ; ++itIndex)
+        for (auto itIndex = ++itIndexBegin; itIndex != indicesToRemove.end() ; ++itIndex)
         {
             updatedIndicesToRemove.insert((*itIndex)-1);
         }

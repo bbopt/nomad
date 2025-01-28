@@ -52,8 +52,8 @@
  \see    ArrayOfDouble.cpp
  */
 
-#ifndef __NOMAD_4_4_ARRAYOFDOUBLE__
-#define __NOMAD_4_4_ARRAYOFDOUBLE__
+#ifndef __NOMAD_4_5_ARRAYOFDOUBLE__
+#define __NOMAD_4_5_ARRAYOFDOUBLE__
 
 #include <numeric>
 #include "../Math/Double.hpp"
@@ -143,7 +143,7 @@ public:
      */
     void reset(size_t n = 0, const Double &d = Double());
 
-    /// Change the dimensionof the array. The values are kept.
+    /// Change the dimension of the array. The values are kept.
     /**
      \param n New dimension of the array -- \b IN.
      \param d Initial value for new coordinates, if enlarging the array.
@@ -225,7 +225,7 @@ public:
     /// Return max of all defined values.
     Double max() const;
 
-    /// Mutiplication with a scalar.
+    /// Multiplication with a scalar.
     /**
      - This implements \c *this \c = \c d \c * \c *this.
      - The current object \c *this is modified.
@@ -249,15 +249,15 @@ public:
      \param p   The other AOD -- \b IN.
      \return    A third AOD equal to \c *this \c + \c p.
      */
-    const ArrayOfDouble operator+(const ArrayOfDouble& p) const;
+    ArrayOfDouble operator+(const ArrayOfDouble& p) const;
 
-    /// Substraction with an other array.
+    /// Subtraction with an other array.
     /**
      The current object \c *this is not modified.
      \param p   The other AOD -- \b IN.
      \return    A third AOD equal to \c *this \c - \c p.
      */
-    const ArrayOfDouble operator-(const ArrayOfDouble& p) const;
+    ArrayOfDouble operator-(const ArrayOfDouble& p) const;
 
     /**
      * Verify that all elements of this array are multiples of granularity,
@@ -324,11 +324,14 @@ public:
     /// Display with a given precision
     virtual std::string display(const ArrayOfDouble &prec = ArrayOfDouble() ,const std::string & doubleFormat = std::string()) const;
     
+    // Display with full precision, not formatted
+    virtual std::string tostring() const;
+    
 protected:
     //
 
     /// Helper function to verify that n1 == n2
-    void verifySizesMatch(size_t n1, size_t n2, std::string filename, size_t linenum) const;
+    void verifySizesMatch(size_t n1, size_t n2, const std::string& filename, size_t linenum) const;
 
     /// Helper function to compare arrays
     /**
@@ -361,4 +364,4 @@ DLL_UTIL_API std::ostream& operator<<(std::ostream& out, const ArrayOfDouble& ao
 DLL_UTIL_API std::istream& operator>>(std::istream& in, ArrayOfDouble& aod);
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_4_ARRAYOFDOUBLE__
+#endif // __NOMAD_4_5_ARRAYOFDOUBLE__

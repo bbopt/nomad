@@ -15,19 +15,17 @@ install(TARGETS rosenbrock.exe
 
 
 # Add a test for this example
-if(BUILD_TESTS MATCHES ON)
-    message(STATUS "    Add example test for PSDMads") 
-    # Can run this test after install
+message(STATUS "    Add example test for PSDMads") 
 
-    if (WIN32)
-        add_test(NAME ExampleAdvancedPSDMads
+if (WIN32)
+    add_test(NAME ExampleAdvancedPSDMads
 	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./rosenbrock.exe
 	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
         )
-    else()
-        add_test(NAME ExampleAdvancedPSDMads
+else()
+    add_test(NAME ExampleAdvancedPSDMads
 	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./rosenbrock.exe
 	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
         )
-    endif()
 endif()
+

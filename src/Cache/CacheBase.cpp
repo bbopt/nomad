@@ -63,7 +63,7 @@ void NOMAD::CacheBase::init()
     // Default cache parameters are considered if cacheParams is not set
     if (nullptr == _cacheParams)
     {
-        _cacheParams = std::shared_ptr<CacheParameters>(new NOMAD::CacheParameters());
+        _cacheParams = std::make_shared<CacheParameters>();
     }
 
     _maxSize  = _cacheParams->getAttributeValue<size_t>("CACHE_SIZE_MAX") ;

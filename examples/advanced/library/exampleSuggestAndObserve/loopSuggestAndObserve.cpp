@@ -88,7 +88,11 @@ bool eval_xs(const NOMAD::ArrayOfPoint &xs, std::vector<NOMAD::ArrayOfDouble>& f
     return eval_ok;
 }
 
-void initParams(std::shared_ptr<NOMAD::AllParameters>& params, const std::string & cacheFileName, const std::string & initialFrameSizeAsString, const std::string & hmax0AsString, bool useCacheAndMegaSearchPoll )
+void initParams(const std::shared_ptr<NOMAD::AllParameters>& params,
+                const std::string& cacheFileName,
+                const std::string& initialFrameSizeAsString,
+                const std::string& hmax0AsString,
+                bool useCacheAndMegaSearchPoll)
 {
     // Problem parameters
     params->setAttributeValue("DIMENSION", 2);             // number of variables
@@ -96,7 +100,7 @@ void initParams(std::shared_ptr<NOMAD::AllParameters>& params, const std::string
     params->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(2, 10.0));
 
     NOMAD::BBOutputTypeList bbot;   // Definition of output types
-    bbot.push_back(NOMAD::BBOutputType::Type::OBJ);
+    bbot.emplace_back(NOMAD::BBOutputType::Type::OBJ);
     params->setAttributeValue("BB_OUTPUT_TYPE", bbot);
 
     if (! useCacheAndMegaSearchPoll)
@@ -128,12 +132,10 @@ void initParams(std::shared_ptr<NOMAD::AllParameters>& params, const std::string
 }
 
 
-
-
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main(int argc, char ** argv)
+int main()
 {
     try
     {
@@ -168,7 +170,7 @@ int main(int argc, char ** argv)
 
             // MainStep runs suggest
             auto xs = SuggestMainStep->suggest();
-            if (0 == xs.size())
+            if (xs.empty())
             {
                 std::cout << "No more points to suggest at iteration " << iterationCount << "." << std::endl;
                 // Could not suggest any more points. Break.
@@ -183,7 +185,6 @@ int main(int argc, char ** argv)
 
             //THIS IS IMPORTANT (see comments in function)
             NOMAD::MainStep::resetCache();
-
 
             // Parameters creation (important to create a fresh one because Suggest modifies its params (X0 from cache))
             auto paramsForObservePtr = std::make_shared<NOMAD::AllParameters>();
@@ -214,7 +215,7 @@ int main(int argc, char ** argv)
             paramsForObservePtr.reset();
 
             std::cout << "Updated parameters: " << std::endl;
-            for (auto p : updatedParams)
+            for (const auto& p : updatedParams)
             {
                 std::cout << p << std::endl;
                 NOMAD::ParameterEntry pe(p);

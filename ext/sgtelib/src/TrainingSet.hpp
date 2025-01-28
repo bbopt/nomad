@@ -213,8 +213,10 @@ namespace SGTELIB {
     SGTELIB::bbo_t get_bbo ( int j) const { check_ready(); return _bbo[j]; };
 
     double get_X_scaling_a ( int j) const { check_ready(); return _X_scaling_a[j]; };
+    double get_X_scaling_b ( int j) const { check_ready(); return _X_scaling_b[j]; };
       
     double get_Z_scaling_a ( int j) const { check_ready(); return _Z_scaling_a[j]; };
+    double get_Z_scaling_b ( int j) const { check_ready(); return _Z_scaling_b[j]; };
 
     // Return the design matrix
     const SGTELIB::Matrix & get_matrix_Xs ( void ) const { check_ready(); return _Xs; };

@@ -1672,7 +1672,8 @@ SGTELIB::Matrix SGTELIB::Matrix::ones ( const int nbRows , const int nbCols ) {
 /*---------------------------*/
 /* rank                      */
 /*---------------------------*/
-SGTELIB::Matrix SGTELIB::Matrix::rank ( void ) const {
+SGTELIB::Matrix SGTELIB::Matrix::rank ( void ) const
+{
 
   if ((_nbRows>1) && (_nbCols>1))
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Matrix::rank: dimension error" );
@@ -1820,6 +1821,23 @@ SGTELIB::Matrix SGTELIB::Matrix::col_norm ( const norm_t nt ) const {
 double SGTELIB::Matrix::norm ( void ) const{
   return sqrt(normsquare());
 }//
+
+
+/*---------------------------*/
+/*        norm inf           */
+/*---------------------------*/
+double SGTELIB::Matrix::norm_inf ( void ) const{
+  double norm = 0;
+  for (int i = 0 ; i < _nbRows ; ++i)
+  {
+    for (int j = 0 ; j < _nbCols ; ++j)
+    {
+      norm = std::max(std::abs(_X[i][j]), norm);
+    }
+  }
+  return norm;
+}//
+
 
 /*---------------------------*/
 /*        sum                */
@@ -2966,6 +2984,30 @@ SGTELIB::Matrix SGTELIB::Matrix::get_distances_norminf ( const SGTELIB::Matrix &
   }
   return D;
 }//
+
+/*-------------------------------------------------*/
+/* Return norm2 distance between two vectors       */
+/*-------------------------------------------------*/
+double SGTELIB::Matrix::distNorm2(const SGTELIB::Matrix& v1, const SGTELIB::Matrix& v2)
+{
+    const int n = v1.get_nb_rows();
+    if (v1.get_nb_rows() != n)
+    {
+        throw SGTELIB::Exception(__FILE__ , __LINE__ , "dist: dimension error");
+    }
+
+    if (v1.get_nb_cols() != 1 || v2.get_nb_cols() != 1)
+    {
+        throw SGTELIB::Exception(__FILE__ , __LINE__ , "dist: dimension error: v1 and v2 must be column vectors");
+    }
+
+    double distValue = 0;
+    for (int i = 0; i < n; ++i)
+    {
+        distValue += (v1._X[i][0] - v2._X[i][0]) * (v1._X[i][0] - v2._X[i][0]);
+    }
+    return std::sqrt(distValue);
+}
 
 
 /*-------------------------------------------------*/

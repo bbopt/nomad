@@ -6,6 +6,7 @@ set_target_properties(bb1.exe PROPERTIES SUFFIX "")
 install(TARGETS bb1.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
+
 # Add a test for this example
 message(STATUS "    Add example batch #1") 
 

@@ -44,8 +44,14 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_DISCOMADSBARRIER
-#define __NOMAD_4_4_DISCOMADSBARRIER
+/**
+ \file   DiscoMadsBarrier.cpp
+ \brief  The DiscoMads algorithm barrier
+ \author Solene Kojtych
+ \see    DiscoMadsBarrier.hpp
+ */
+#ifndef __NOMAD_4_5_DISCOMADSBARRIER
+#define __NOMAD_4_5_DISCOMADSBARRIER
 
 
 #include "../../Eval/ProgressiveBarrier.hpp"
@@ -65,7 +71,7 @@ public:
     DiscoMadsBarrier(const Double& hMax = INF,
             const Point& fixedVariable = Point(),
             EvalType evalType = EvalType::BB,
-            ComputeType computeType = ComputeType::STANDARD,
+            FHComputeTypeS computeType = defaultFHComputeTypeS,
             const std::vector<EvalPoint>& evalPointList = std::vector<EvalPoint>(),
             bool barrierInitializedFromCache= true,
             const Double& exclusionRadius=1.0)
@@ -77,6 +83,12 @@ public:
             barrierInitializedFromCache)
     {
       _exclusionRadius = exclusionRadius;
+        
+        // Just in case
+        if(_computeType.evalType == NOMAD::EvalType::MODEL)
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__, "DiscoMAdsBarrier:: should not be used on quadratic model optimization.");
+        }
     }
     
     DiscoMadsBarrier(const DiscoMadsBarrier & b): ProgressiveBarrier(b)
@@ -91,15 +103,13 @@ public:
 
     /// Update xFeas and xInf according to given points. // H1 corriger commentaire
     /* \param evalPointList vector of EvalPoints  -- \b IN.
-     * \param keepAllPoints flag to keep all points \b IN.
+     * \param keepAllPoints flag -- \b IN.
      * \return true if the barrier feasible and/or infeasible incumbents are changed, false otherwise
      * \note Input EvalPoints are already in subproblem dimension
      */
     virtual bool updateWithPoints(const std::vector<EvalPoint>& evalPointList,
-                          EvalType evalType,
-                          ComputeType computeType,
-                          const bool keepAllPoints = false,
-                          const bool updateInfeasibleIncumbentAndHmax = false ) override;
+                                  const bool keepAllPoints = false,
+                                  const bool updateInfeasibleIncumbentAndHmax = false ) override;
 
 private:
      /** Helper for updateWithPoints
@@ -108,21 +118,19 @@ private:
     bool proximityTest(const NOMAD::Point & x1, const NOMAD::EvalPoint & x2);
 
     /** Helper for updateWithPoints
-        *  Get the h-value of the k-ieme point of a list of points sorted with increasing h values
+        *  Get the h-value of the k-th point of a list of points sorted with increasing h values
      */
-    const NOMAD::Double getKiemeHvalue(const std::vector<EvalPointPtr>& evalPointList, const size_t k, NOMAD::EvalType evalType) const;
+    NOMAD::Double getKiemeHvalue(const std::vector<EvalPointPtr>& evalPointList, const size_t k) const;
 
      /** Helper for updateWithPoints
         * Get non dominated points with h<= hmax from barrier infeasible points and return number of points
      \param evalPointList vector of non dominated infeasible points with h<= hmax  -- \b OUT.
-     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
-     \param computeType     Which compute type of the EvalPoint to look at                     -- \b IN.
      \return                The number of eval points found.
      */
-     const size_t getNonDominatedInfPoints(std::vector<EvalPointPtr>& evalPointList,const EvalType evalType,const ComputeType computeType);
+     size_t getNonDominatedInfPoints(std::vector<EvalPointPtr>& evalPointList);
 };
 
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_DISCOMADSBARRIER__
+#endif // __NOMAD_4_5_DISCOMADSBARRIER__

@@ -123,6 +123,10 @@ ORTHO N+1 QUAD
     SINGLE        : Single direction
     DOUBLE        : Two opposite directions
     CS            : Coordinate directions (only with CS_OPTIMIZATION)
+    USER_POLL     : Poll method for generating unit direction(s) must be
+                    implemented in a callback function. This is available
+                    only in library mode. See example in
+                    $NOMAD_HOME/examples/advanced/library/CustomPollMethod.
 
 . Examples:
     . DIRECTION_TYPE N+1 UNI
@@ -168,7 +172,7 @@ size_t
 \(
 . Complete the trial points obtained from the primary and secondary poll
   directions to reached the given target number.
-  
+
 . D
 
 . Added trial points are obtained by repeating SINGLE direction
@@ -178,7 +182,7 @@ size_t
 
 . When the number of trial points obtained from poll directions (primary and
   secondary) is above the given target nothing is done.
-  
+
 . This strategy can be used to complete the number of trial points in a block
   (see BB_MAX_BLOCK_SIZE). In this case, both attributes can have the same value.
 
@@ -190,7 +194,7 @@ size_t
     . BB_MAX_BLOCK_SIZE 10
     . TRIAL_POINT_MAX_ADD_UP 10
 
-. See also: DIRECTION_TYPE BB_MAX_BLOCK_SIZE 
+. See also: DIRECTION_TYPE BB_MAX_BLOCK_SIZE
 
 \)
 \( advanced poll direction primary secondary block parallel \)
@@ -218,29 +222,6 @@ size_t
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 UNIQUE_ENTRY no
-################################################################################
-DMULTIMADS_OPTIMIZATION
-bool
-false
-\( DMultiMads solves multiobjective optimization problems \)
-\(
-
-. When BB_OUTPUT_TYPE contains more than one objective, DMultiMads algorithm
-must be explicitly enabled.
-
-. Note: It is recommended to output all evaluation points into a file (use
-HISTORY_FILE). The user must do some post-processing for these results to obtain
- the approximation of the pareto front. Future version will have the option
- to output th``$NOMAD_HOME/doc/doxygen``e pareto front in a file.
-
-. Argument: bool
-
-. Example: DMULTIMADS_OPTIMIZATION true
-
-\)
-\( advanced multi objective bi algorithm pareto front \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
 ################################################################################
 FRAME_CENTER_USE_CACHE
 bool
@@ -424,27 +405,6 @@ false
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
-NB_THREADS_OPENMP
-int
-1
-\( The number of threads when OpenMP parallel evaluations
-are enabled \)
-\(
-
-. Set the number of threads to be used by OpenMP.
-
-. Default is to use a single thread.
-
-. Argument: One positive integer, or -1. A value of -1 means OpenMP decides
-  by itself.
-
-. Example: NB_THREADS_OPENMP 8
-
-\)
-\( advanced thread(s) openmp parallel eval(s) evaluation(s) \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
 REJECT_UNKNOWN_PARAMETERS
 bool
 true
@@ -497,6 +457,23 @@ int
 
 . Example: SEED 123456
            SEED -1
+
+\)
+\( advanced seed(s) random number run \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+RNG_ALT_SEEDING
+bool
+false
+\( With this option the seed is used to set xdef \)
+\(
+
+. Random number generator advanced option.
+
+. This option cannot be used with the default seed, that is 0.
+
+. Argument: one bool.
 
 \)
 \( advanced seed(s) random number run \)
@@ -578,6 +555,33 @@ size_t
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
+USER_SEARCH
+bool
+false
+\( MADS user search method provided as callback function \)
+\(
+
+. This option is only available in library mode (see NOMAD documentation).
+
+. To enable, a user search method for Mads, this parameter must be set to true
+  and a callback function must be added to Mads.
+
+. An example is provided in $NOMAD_HOME/examples/advanced/library/CustomPollMethod
+
+. The user search method is disabled within another search method using Mads.
+
+. By default the user-defined search method will position first in the list
+  of search method.
+
+. Argument: boolean
+
+. Example: USER_SEARCH true
+
+\)
+\( advanced mads user search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
 STOP_IF_FEASIBLE
 bool
 false
@@ -585,6 +589,8 @@ false
 \(
 
 . Stopping criterion on feasibility.
+
+. See H_NORM and H_MIN for computation of h and feasibility criterion.
 
 . Argument: boolean.
 
@@ -627,25 +633,6 @@ true
 \)
 \( advanced user(s) callback function(s) \)
 ALGO_COMPATIBILITY_CHECK no
-RESTART_ATTRIBUTE yes
-################################################################################
-RANDOM_SIMPLE_SEARCH
-bool
-false
-\( A template for a simple (no iteration) random search step for Mads \)
-\(
-
-. A search step for Mads that generate a trial point from the poll center
-
-. Use this as a template to develop a new search method
-
-. Argument: bool
-
-. Example: RANDOM_SIMPLE_SEARCH true
-
-\)
-\( advanced template simple search dummy \)
-ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
 RANDOM_ALGO_SEARCH
@@ -706,4 +693,51 @@ size_t
 \( advanced mads algorithm search template dummy \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
+################################################################################
+H_NORM
+NOMAD::HNormType
+L2
+\( Norm type for infeasibility measure (h) computation \)
+\(
+
+. The norm used for combining constraint violation of all PB constraints.
+
+. The norm can be L2 (default), L1 or Linf.
+
+. If a single EB constraint is violated, h is set to infinity.
+
+. If no EB constraint is violated, and the c_j are constraints evaluation, h
+  is computed as follows:
+    - for L2: h = sum(max(c_j,0)^2)
+    - for L1: h = sum(max(c_j,0))
+    - for Linf: h = max(max(c_j,0))
+
+\)
+\( advanced infeasibility norm h \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+H_MIN
+NOMAD::Double
+0
+\( Min h value for detecting infeasibility \)
+\(
+
+. H_MIN is the parameter provided to user to relax feasibility criterion.
+  The feasibility test is h(x) < h_min at a precision of epsilon.
+
+. Epsilon is used for the comparison of NOMAD::Double (epsilon = 1E-13) and
+  is hardcoded in NOMAD. Modifying epsilon is not recommended and requires to
+  rebuild NOMAD.
+
+. See parameter H_NORM for the computation of h.
+
+. Argument: one positive real.
+
+. Example: H_MIN 0.1
+
+\)
+\( advanced infeasibility norm h hmin feasibility epsilon \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
 ################################################################################

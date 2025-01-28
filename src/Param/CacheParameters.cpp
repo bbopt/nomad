@@ -71,7 +71,7 @@ void NOMAD::CacheParameters::init()
 /*----------------------------------------*/
 /*            check the parameters        */
 /*----------------------------------------*/
-void NOMAD::CacheParameters::checkAndComply( std::shared_ptr<NOMAD::RunParameters> runParams )
+void NOMAD::CacheParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParameters>& runParams)
 {
     checkInfo();
 
@@ -84,7 +84,7 @@ void NOMAD::CacheParameters::checkAndComply( std::shared_ptr<NOMAD::RunParameter
     /*----------------------------*/
     /* Update cache file names    */
     /*----------------------------*/
-    auto problemDir = runParams->getAttributeValue<std::string>("PROBLEM_DIR",false);
+    const auto& problemDir = runParams->getAttributeValue<std::string>("PROBLEM_DIR",false);
     std::string cacheFileName = getAttributeValueProtected<std::string>("CACHE_FILE",false);
     if (!cacheFileName.empty())
     {

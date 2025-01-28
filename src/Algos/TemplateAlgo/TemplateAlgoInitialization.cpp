@@ -104,16 +104,26 @@ void NOMAD::TemplateAlgoInitialization::endImp()
     // Construct _barrier member with evaluated _trialPoints for future use (by Algo)
     // _trialPoints are already updated with Evals.
     // NOTE: trial point should not be empty -> otherwise the barrier is nullptr (exception thrown later)
-    if (_trialPoints.size() > 0)
+    if (!_trialPoints.empty())
     {
         std::vector<NOMAD::EvalPoint> evalPointList;
         std::copy(_trialPoints.begin(), _trialPoints.end(),
                           std::back_inserter(evalPointList));
         auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
+        
+        // Compute type for this optim (eval type, compute type and h norm type)
+        auto hNormType = _runParams->getAttributeValue<NOMAD::HNormType>("H_NORM");
+
+        // Eval type for this optim (can be BB or SURROGATE)
+        // REM: No PhaseOne search for this algo!
+        FHComputeTypeS computeType; // Default from struct initializer
+        computeType.hNormType = hNormType; // REM: No PhaseOne search for this algo!
+        auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
+        
         _barrier = std::make_shared<NOMAD::ProgressiveBarrier>(hMax,
                                 NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
-                                NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType(),
-                                NOMAD::EvcInterface::getEvaluatorControl()->getComputeType(),
+                                evalType,
+                                computeType,
                                 evalPointList);
     }
 }
@@ -125,7 +135,7 @@ void NOMAD::TemplateAlgoInitialization::generateTrialPointsImp()
     auto x0s = _pbParams->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
 
     // It is ok if no x0 is provided, just pass
-    if( x0s.size() == 0 || ! x0s[0].isComplete() )
+    if(x0s.empty() || !x0s[0].isComplete())
     {
         OUTPUT_INFO_START
         AddOutputInfo("No X0 provided, No cache. Let's generate one trial point.");
@@ -152,7 +162,7 @@ void NOMAD::TemplateAlgoInitialization::generateTrialPointsImp()
                 NOMAD::Point point(n);
                 for (size_t i = 0; i < n; i++)
                 {
-                    point[i] = RNG::rand(-(j+1.0),j+1.0);
+                    point[i] = RNG::rand(-((double)j+1.0), (double)j+1.0);
                 }
                 x0s.push_back(point);
             }

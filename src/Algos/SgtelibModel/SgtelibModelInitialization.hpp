@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_SGTELIB_MODEL_INITIALIZATION__
-#define __NOMAD_4_4_SGTELIB_MODEL_INITIALIZATION__
+#ifndef __NOMAD_4_5_SGTELIB_MODEL_INITIALIZATION__
+#define __NOMAD_4_5_SGTELIB_MODEL_INITIALIZATION__
 
 #include "../../Algos/Initialization.hpp"
 
@@ -79,5 +79,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_SGTELIB_MODEL_INITIALIZATION__
+#endif // __NOMAD_4_5_SGTELIB_MODEL_INITIALIZATION__
 

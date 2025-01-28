@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_CS__
-#define __NOMAD_4_4_CS__
+#ifndef __NOMAD_4_5_CS__
+#define __NOMAD_4_5_CS__
 
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
@@ -55,7 +55,6 @@
 /// Class for Coordinate Search algorithm sampling.
 /**
  Generate the trial points using CS and evaluate them. CS is one of the historic ancestor of Mads. CS shares several steps with Mads.
- \todo Complete documentation
  */
 class CS: public Algorithm
 {
@@ -103,4 +102,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_CS__
+#endif // __NOMAD_4_5_CS__

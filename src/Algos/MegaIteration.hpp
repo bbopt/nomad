@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_MEGAITERATION__
-#define __NOMAD_4_4_MEGAITERATION__
+#ifndef __NOMAD_4_5_MEGAITERATION__
+#define __NOMAD_4_5_MEGAITERATION__
 
 #include "../Algos/Iteration.hpp"
 #include "../Algos/Step.hpp"
@@ -83,8 +83,6 @@ protected:
 
     size_t _k;          ///< Main counter
 
-    
-    // check if _megaIterationSuccess is needed
     /**
      Success type of this step. Initialized with the run of the previous
      mega iteration, so that the update step knows what to do
@@ -128,16 +126,6 @@ public:
      */
     virtual const MeshBasePtr getMesh() const { return nullptr; }
 
-
-
-//    /**
-//     Success is initialized with the success of the previous
-//     MegaIteration. This is useful to know for the Update step, and some Search steps.
-//     At the end of the MegaIteration, Success is updated with the latest SuccessType.
-//     */
-//    const SuccessType& getSuccessType() const       { return _megaIterationSuccess; }
-//    void setSuccessType(const SuccessType& success) { _megaIterationSuccess = success; }
-
     /// Compute the number of xFeas and xInf points to use to create iterations
     void computeMaxXFeasXInf(size_t &maxXFeas, size_t &maxXInf);
 
@@ -180,4 +168,4 @@ std::istream& operator>>(std::istream& is, MegaIteration& megaIteration);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_MEGAITERATION__
+#endif // __NOMAD_4_5_MEGAITERATION__

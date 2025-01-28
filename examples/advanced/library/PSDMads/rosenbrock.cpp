@@ -61,11 +61,11 @@ class My_Evaluator : public NOMAD::Evaluator
 private:
 
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
+    explicit My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
 
-    ~My_Evaluator() {}
+    ~My_Evaluator() override = default;
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override;
 };
@@ -78,12 +78,11 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
                           const NOMAD::Double &hMax,
                           bool &countEval) const
 {
-    
     if (N%2 != 0)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Dimension N should be an even number");
     }
-    
+
     double f=0;
     for ( size_t i = 1 ; i <= N/2 ; ++i ) {
         f += pow ( 10 * (x[2*i-1].todouble() - pow(x[2*i-2].todouble(),2) ) , 2 );
@@ -97,47 +96,55 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
 }
 
 
-void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
+void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 {
     // Parameters creation
     allParams->setAttributeValue("DIMENSION", N);
     // 100 black-box evaluations
     allParams->setAttributeValue("MAX_BB_EVAL", 100*N);
-    
-    
+
     // Starting point
     allParams->setAttributeValue("X0", NOMAD::Point(N, 0.5) );
 
     // Bounds
     allParams->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(N, -10.0 ));
     allParams->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(N, 10.0 ));
-    
+
     allParams->setAttributeValue("PSD_MADS_OPTIMIZATION",true);
     allParams->setAttributeValue("PSD_MADS_NB_VAR_IN_SUBPROBLEM",2);
     allParams->setAttributeValue("PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE",NOMAD::Double(0.0));
     allParams->setAttributeValue("PSD_MADS_SUBPROBLEM_MAX_BB_EVAL",10);
-    allParams->setAttributeValue("NB_THREADS_OPENMP",4);
+
+    allParams->setAttributeValue("PSD_MADS_NB_SUBPROBLEM",4);
+
+    // ChT Temp for debugging
+    allParams->setAttributeValue("NM_SEARCH",false);
+    allParams->setAttributeValue("QUAD_MODEL_SEARCH",false);
+    allParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
+    allParams->setAttributeValue("EVAL_QUEUE_SORT",NOMAD::EvalSortType::DIR_LAST_SUCCESS);
 
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes = {NOMAD::BBOutputType::OBJ};
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
-    allParams->setAttributeValue("DISPLAY_UNSUCCESSFUL",false);
+
+    NOMAD::ArrayOfString ds("BBE ( SOL ) OBJ");
+    allParams->setAttributeValue("DISPLAY_STATS", ds);
+    // allParams->setAttributeValue("DISPLAY_ALL_EVAL", true);
+    // allParams->setAttributeValue("DISPLAY_UNSUCCESSFUL",false);
     // allParams->setAttributeValue("STATS_FILE", NOMAD::ArrayOfString("stats.txt bbe obj"));
 
     // Parameters validation
     allParams->checkAndComply();
-
 }
 
 
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main ( int argc , char ** argv )
+int main()
 {
-
     NOMAD::MainStep TheMainStep;
 
     auto params = std::make_shared<NOMAD::AllParameters>();

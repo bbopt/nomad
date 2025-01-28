@@ -53,7 +53,6 @@
 #include "../../Algos/Mads/SimpleLineSearchMethod.hpp"
 #include "../../Algos/Mads/SpeculativeSearchMethod.hpp"
 #include "../../Algos/Mads/TemplateAlgoSearchMethod.hpp"
-#include "../../Algos/Mads/TemplateSimpleSearchMethod.hpp"
 #include "../../Algos/Mads/LHSearchMethod.hpp"
 #include "../../Algos/Mads/NMSearchMethod.hpp"
 #include "../../Algos/Mads/UserSearchMethod.hpp"
@@ -77,7 +76,7 @@ void NOMAD::Search::init()
 
     auto speculativeSearch      = std::make_shared<NOMAD::SpeculativeSearchMethod>(this);
     auto simpleLineSearch       = std::make_shared<NOMAD::SimpleLineSearchMethod>(this);
-    auto userSearch             = std::make_shared<NOMAD::UserSearchMethod>(this);
+
     auto qpsolverSearch         = std::make_shared<NOMAD::QPSolverAlgoSearchMethod>(this);
     auto quadSearch             = std::make_shared<NOMAD::QuadSearchMethod>(this);
     auto sgtelibSearch          = std::make_shared<NOMAD::SgtelibSearchMethod>(this);
@@ -85,38 +84,36 @@ void NOMAD::Search::init()
     auto nmSearch               = std::make_shared<NOMAD::NMSearchMethod>(this);
     auto vnsmartSearch          = std::make_shared<NOMAD::VNSmartAlgoSearchMethod>(this);
     auto vnsSearch              = std::make_shared<NOMAD::VNSSearchMethod>(this);
-    auto templateSimpleSearch   = std::make_shared<NOMAD::TemplateSimpleSearchMethod>(this);
     auto templateAlgoSearch     = std::make_shared<NOMAD::TemplateAlgoSearchMethod>(this);
 
 
-    // The search methods will be executed in the same order
+    // The default search methods will be executed in the same order
     // as they are inserted.
-    // This is the order for NOMAD 3:
-    // 1. speculative search
-    // 1b. simple line search
-    // 2. user search
-    // 3. trend matrix basic line search
-    // 4. cache search
-    // 5. Model Searches
-    // 6. VNS search
-    // 6b. VNS Smart search
-    // 7. Latin-Hypercube (LH) search
-    // 8. NelderMead (NM) search
-    // 9. Template Simple search (dummy search, new point=current incumbent). Can be used as a TEMPLATE example to develop a new search method (single pass creation of trial points without iteration).
-    // 10. Template Algo search (dummy iterative random search). Can be used as a TEMPLATE example to develop a new search method (iterative with creation/evaluation of trial points).
-
     _searchMethods.push_back(speculativeSearch);    // 1. speculative search
     _searchMethods.push_back(simpleLineSearch);    // 1b. speculative search
-    _searchMethods.push_back(userSearch);           // 2. user search
-    _searchMethods.push_back(quadSearch);           // 5a. Quad Model Search
+    _searchMethods.push_back(qpsolverSearch);       // 5a. QP solver on quad Model
+    _searchMethods.push_back(quadSearch);           // 5b. Mads solver Quad Model Search
     _searchMethods.push_back(sgtelibSearch);        // 5b. Sgtelib Model Search
-    _searchMethods.push_back(qpsolverSearch);       // 5c. QP solver on quad Model
     _searchMethods.push_back(vnsSearch);            // 6a. VNS Search
     _searchMethods.push_back(vnsmartSearch);        // 6b. VNSmart algo search
     _searchMethods.push_back(lhSearch);             // 7. Latin-Hypercube (LH) search
     _searchMethods.push_back(nmSearch);             // 8. NelderMead (NM) search
-    _searchMethods.push_back(templateSimpleSearch); // 9. Template simple (no iteration) search (order of search method is important; a new search method copied from this template should be carefully positioned in the list)
+
     _searchMethods.push_back(templateAlgoSearch); // 10. Template algo (iteration) search (order of search method is important; a new search method copied from this template should be carefully positioned in the list)
+
+    // Extra search method added dynamically to Mads are moved to Search
+    auto *mads = getParentOfType<NOMAD::Mads*>(NOMAD::Step::_parentStep);
+    if (nullptr !=mads )
+    {
+        auto & extraSearchMethods = mads->accessExtraSearchMethods();
+
+        for (auto & sm: extraSearchMethods)
+        {
+            // Need to update the parent step and the corresponding mega iter ancestor to have access to barrier
+            sm.second->setParentStep(this);
+            insertSearchMethod(sm.first,sm.second);
+        }
+    }
 }
 
 
@@ -129,7 +126,7 @@ void NOMAD::Search::startImp()
     // This is managed by iteration utils when using generateTrialPoint instead of the (start, run, end) sequence.
     _trialPointStats.resetCurrentStats();
     _trialPointStats.incrementNbCalls();
-    
+
 }
 
 
@@ -149,7 +146,7 @@ bool NOMAD::Search::runImp()
         OUTPUT_DEBUG_END
         return false;
     }
-    
+
     // Go through all search methods until we get a success.
     OUTPUT_DEBUG_START
     s = "Going through all search methods until we get a success";
@@ -157,34 +154,36 @@ bool NOMAD::Search::runImp()
     OUTPUT_DEBUG_END
     for (size_t i = 0; !searchSuccessful && i < _searchMethods.size(); i++)
     {
- 
+
         // A local user stop is requested. Do not perform remaining search methods. Stop type reset is done at the end of iteration/megaiteration and algorithm.
         if (_stopReasons->testIf(NOMAD::IterStopType::USER_ITER_STOP) || _stopReasons->testIf(NOMAD::IterStopType::USER_ALGO_STOP) ||
             _stopReasons->testIf(NOMAD::EvalGlobalStopType::CUSTOM_GLOBAL_STOP)) // C.T : I think we should test NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_STOP as the others are not yet triggered
         {
             break;
         }
-        
+
+
         auto searchMethod = _searchMethods[i];
         bool enabled = searchMethod->isEnabled();
         OUTPUT_DEBUG_START
         s = "Search method " + NOMAD::stepTypeToString(searchMethod->getStepType()) + (enabled ? " is enabled" : " not enabled");
 
-        
+
+
         AddOutputDebug(s);
         OUTPUT_DEBUG_END
-        
+
         if (!enabled)
         {
             continue;
         }
-        
-        
+
+
 #ifdef TIME_STATS
         double searchStartTime = NOMAD::Clock::getCPUTime();
         double searchEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
 #endif // TIME_STATS
-               
+
         searchMethod->start();
         searchMethod->run();
         searchMethod->end();
@@ -220,13 +219,13 @@ void NOMAD::Search::endImp()
 {
     // Sanity check. The endImp function should be called only when trial points are generated and evaluated for each search method separately.
     verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
-    
+
     if (!isEnabled())
     {
         // Early out
         return;
     }
-    
+
     // Update the trial stats of the parent (Mads)
     // This is directly managed by iteration utils when using generateTrialPoint instead of the (start, run, end) sequence done here.
     _trialPointStats.updateParentStats();
@@ -246,7 +245,7 @@ void NOMAD::Search::generateTrialPointsImp()
 {
     // Sanity check. The generateTrialPoints function should be called only when trial points are generated for all each search methods. Evaluations are delayed.
     verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, true);
-    for (auto searchMethod : _searchMethods)
+    for (const auto& searchMethod : _searchMethods)
     {
         if (searchMethod->isEnabled())
         {
@@ -254,15 +253,15 @@ void NOMAD::Search::generateTrialPointsImp()
 
             // Aggregation of trial points from several search methods.
             // The trial points produced by a search method are already snapped on bounds and on mesh.
-            auto searchMethodPoints = searchMethod->getTrialPoints();
-            for (auto point : searchMethodPoints)
+            const auto& searchMethodPoints = searchMethod->getTrialPoints();
+            for (const auto& point : searchMethodPoints)
             {
                 // NOTE trialPoints includes points from multiple SearchMethods.
                 insertTrialPoint(point);
             }
         }
     }
-    
+
     // NOTE: Trial points information is completed (MODEL or SURROGATE eval) after all poll and search points are produced
 }
 
@@ -270,5 +269,5 @@ void NOMAD::Search::generateTrialPointsImp()
 bool NOMAD::Search::isEnabled() const
 {
     return std::any_of(_searchMethods.begin(), _searchMethods.end(),
-                       [](std::shared_ptr<NOMAD::SearchMethodBase> searchMethod) { return searchMethod->isEnabled(); });
+                       [](const std::shared_ptr<NOMAD::SearchMethodBase>& searchMethod) { return searchMethod->isEnabled(); });
 }

@@ -82,6 +82,7 @@ void NOMAD::VNSSearchMethod::init()
             catch (NOMAD::Exception &e ) {
                 std::string error = e.what();
                 error += " VNS_MADS_SEARCH_WITH_SURROGATE is enabled but no registered surrogate evaluator is available.";
+                std::cerr << error << std::endl;
             }
             
         }
@@ -135,7 +136,7 @@ bool NOMAD::VNSSearchMethod::runImp()
         // check the VNS_trigger criterion:
         // If searchEvalType is SURROGATE, the trigger criterion must compare the surrogate equivalent cost in bb (see EVAL_SURROGATE_COST). If eval surrogate cost is INF, the trigger criterion is always true.
         size_t bbEval = evc->getBbEval();
-        if (bbEval == 0 || double(_trialPointStats.getNbEvalsDone(bbEvalType))/bbEval < _trigger)
+        if (bbEval == 0 || double(_trialPointStats.getNbEvalsDone(bbEvalType))/ (double)bbEval < _trigger)
         {
             
             EvalPointPtr frameCenter = nullptr;
@@ -173,18 +174,19 @@ bool NOMAD::VNSSearchMethod::runImp()
             auto bestXInf  = barrier->getCurrentIncumbentInf();
             
             // Get the frame center for VNS sub optimization
-            auto computeType = NOMAD::EvcInterface::getEvaluatorControl()->getComputeType();
+            auto computeType = barrier->getFHComputeType();
+    
             if (nullptr != bestXFeas
-                && bestXFeas->getF(bbEvalType, computeType).isDefined()
-                && bestXFeas->getF(bbEvalType, computeType) < MODEL_MAX_OUTPUT)
+                && bestXFeas->getF(computeType).isDefined()
+                && bestXFeas->getF(computeType) < MODEL_MAX_OUTPUT)
             {
                 frameCenter = bestXFeas;
             }
             else if (nullptr != bestXInf
-                     && bestXInf->getF(bbEvalType, computeType).isDefined()
-                     && bestXInf->getF(bbEvalType, computeType) < MODEL_MAX_OUTPUT
-                     && bestXInf->getH(bbEvalType, computeType).isDefined()
-                     && bestXInf->getH(bbEvalType, computeType) < MODEL_MAX_OUTPUT)
+                     && bestXInf->getF(computeType).isDefined()
+                     && bestXInf->getF(computeType) < MODEL_MAX_OUTPUT
+                     && bestXInf->getH(computeType).isDefined()
+                     && bestXInf->getH(computeType) < MODEL_MAX_OUTPUT)
             {
                 frameCenter = bestXInf;
             }
@@ -228,9 +230,7 @@ bool NOMAD::VNSSearchMethod::runImp()
                     }
                     
                     NOMAD::SuccessType success = barrier->getSuccessTypeOfPoints(vnsBestFeas,
-                                                                                 vnsBestInf,
-                                                                                 searchEvalType,
-                                                                                 NOMAD::ComputeType::STANDARD);
+                                                                                 vnsBestInf);
                     setSuccessType(success);
                     if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
                     {
@@ -242,8 +242,6 @@ bool NOMAD::VNSSearchMethod::runImp()
                     if ( NOMAD::EvalType::BB == searchEvalType )
                     {
                         barrier->updateWithPoints(vnsBarrier->getAllPoints(),
-                                                  NOMAD::EvalType::BB,
-                                                  NOMAD::ComputeType::STANDARD,
                                                   _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"),
                                                                     true /*true: update incumbents and hMax*/);
                     }
@@ -288,8 +286,8 @@ void NOMAD::VNSSearchMethod::generateTrialPointsFinal()
     singleVNS.end();
 
     // Pass the generated trial pts to this
-    auto trialPts = singleVNS.getTrialPoints();
-    for (auto point : trialPts)
+    const auto& trialPts = singleVNS.getTrialPoints();
+    for (const auto& point : trialPts)
     {
         insertTrialPoint(point);
     }

@@ -79,7 +79,7 @@ void NOMAD::SubproblemManager::addSubproblem(const NOMAD::Algorithm* algo, const
     omp_set_lock(&_mapLock);
 #endif // _OPENMP
     auto retPair = _map.insert(algoSubPair);
-    if (false == retPair.second)
+    if (!retPair.second)
     {
         std::string err = "Error: SubproblemManager: could not add subproblem for Algorithm ";
         err += algo->getName();
@@ -111,9 +111,9 @@ void NOMAD::SubproblemManager::removeSubproblem(const Algorithm* algo)
 
 void NOMAD::SubproblemManager::reset()
 {
-    if (_map.size() > 0)
+    if (!_map.empty())
     {
-        // Shoud not happen. Warn the user.
+        // Should not happen. Warn the user.
         std::cout << "Warning: SubproblemManager::clear() called on non-empty SubproblemManager" << std::endl;
     }
 #ifdef _OPENMP

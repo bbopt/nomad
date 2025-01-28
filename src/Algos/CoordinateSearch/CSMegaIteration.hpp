@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_4_CSMEGAITERATION__
-#define __NOMAD_4_4_CSMEGAITERATION__
+#ifndef __NOMAD_4_5_CSMEGAITERATION__
+#define __NOMAD_4_5_CSMEGAITERATION__
 
 #include "../../Algos/CoordinateSearch/CSIteration.hpp"
 #include "../../Algos/MegaIteration.hpp"
@@ -129,5 +129,5 @@ std::istream& operator>>(std::istream& is, CSMegaIteration& megaIteration);
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_CSMEGAITERATION__
+#endif // __NOMAD_4_5_CSMEGAITERATION__
 

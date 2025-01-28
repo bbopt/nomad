@@ -64,9 +64,7 @@ void NOMAD::QuadModelInitialization::init()
 /*-------------------------*/
 /*       Destructor        */
 /*-------------------------*/
-NOMAD::QuadModelInitialization::~QuadModelInitialization()
-{
-}
+NOMAD::QuadModelInitialization::~QuadModelInitialization() = default;
 
 
 void NOMAD::QuadModelInitialization::startImp()
@@ -119,7 +117,7 @@ void NOMAD::QuadModelInitialization::generateTrialPointsImp()
     bool validX0available = false;
     std::string err;
 
-    for (auto x0 : x0s )
+    for (const auto& x0 : x0s )
     {
         if (!x0.isComplete() || x0.size() != n)
         {

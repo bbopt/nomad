@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   DiscoMadsUpdate.cpp
+ \brief  The DiscoMads algorithm update step: implementation
+ \author Solene Kojtych
+ \see    DiscoMadsUpdate.hpp
+ */
 
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
@@ -96,7 +102,7 @@ bool NOMAD::DiscoMadsUpdate::runImp()
         auto mesh = megaIter->getMesh();
         std::string s;  // for output
 
-        //Step 1. Get ref best feasible and infeasible, and then update reference values.
+        //Step 1. Get the best feasible and infeasible reference points, and then update reference values.
         auto refBestFeas = barrier->getRefBestFeas();
         auto refBestInf  = barrier->getRefBestInf();
         barrier->updateRefBests();

@@ -44,9 +44,6 @@ In some occasions, CMake cannot find Matlab installation directory.
 The option -DMatlab_ROOT_DIR=/Path/To/Matlab/Install/Dir must be passed 
 during configuration.
 
-It may be required (Windows) to force the use of the 64bit version. 
-The option -A x64 must be passed during configuration.
-
 ************************
 HOW TO BUILD AND INSTALL
 ************************
@@ -72,7 +69,8 @@ The command
 must be run before using the Matlab nomadOpt function. 
 
 Also, the Matlab command 
-   addpath(strcat(getenv('NOMAD_HOME'),'/build/release/bin')) 
+   addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib')) 
+or addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib64')) 
 must be executed to have access to the libraries and run the examples.
 
 **********
@@ -98,7 +96,7 @@ command in Matlab you may obtain an error such as
 (example obtained on linux-Ubuntu). This is an indication that the versions
  of Matlab and the compiler may not be compatible (See in the preamble 
 the web site to check compatibility).
-If the versions at not too far apart a workaround can be to preload the
+If the versions at not too far apart, a workaround can be to preload the
 libstdc++ library used to build Nomad. For example we can do
 "LD_PRELOAD=/lib64/libstdc++.so.6 matlab".
 See https://github.com/bbopt/nomad/issues/159 for more details.

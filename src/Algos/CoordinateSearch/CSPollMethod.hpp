@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_4_CSPOLLMETHOD__
-#define __NOMAD_4_4_CSPOLLMETHOD__
+#ifndef __NOMAD_4_5_CSPOLLMETHOD__
+#define __NOMAD_4_5_CSPOLLMETHOD__
 
 #include "../../Algos/Mads/PollMethodBase.hpp"
 
@@ -54,7 +54,7 @@
 
 /**
  Class to perform CS Poll: generate poll directions, create the trial points and perform evaluations.
-  The CS poll directions consists of unitary direction of each coordinate separetely, that is north, south, east and west directions in 2D.
+  The CS poll directions consists of unitary direction of each coordinate separately, that is north, south, east and west directions in 2D.
  Only the generation of poll directions is implemented in this class, the remaining tasks are performed by derived classes.
 */
 class CSPollMethod final : public PollMethodBase
@@ -91,4 +91,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_CSPOLLMETHOD__
+#endif // __NOMAD_4_5_CSPOLLMETHOD__

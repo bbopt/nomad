@@ -44,8 +44,14 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_DISCOMADSITERATION__
-#define __NOMAD_4_4_DISCOMADSITERATION__
+/**
+ \file   DiscoMadsIteration.cpp
+ \brief  The DiscoMads algorithm main iteration
+ \author Solene Kojtych
+ \see    DiscoMadsIteration.hpp
+ */
+#ifndef __NOMAD_4_5_DISCOMADSITERATION__
+#define __NOMAD_4_5_DISCOMADSITERATION__
 
 
 #include "../../Algos/Mads/MadsIteration.hpp"
@@ -87,7 +93,7 @@ private:
     /// Implementation of the run tasks of DiscoMADS algorithm.
     /**
      Run a DiscoMads iteration: a Search step followed by a Revealing Poll step followed by a Poll step, depending on the stop reasons and successes.
-     If a revealation occurs, the current iteration is immediately terminated (all remaining evaluations are cancelled)
+     If a revelation occurs, the current iteration is immediately terminated (all remaining evaluations are cancelled)
      */
     virtual bool runImp() override;
 
@@ -95,4 +101,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_DISCOMADSITERATION__
+#endif // __NOMAD_4_5_DISCOMADSITERATION__

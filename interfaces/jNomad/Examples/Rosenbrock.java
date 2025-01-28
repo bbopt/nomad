@@ -31,7 +31,6 @@ import static java.lang.Math.pow;
 
 import jNomad.AllParameters;
 import jNomad.CacheBase;
-import jNomad.ComputeType;
 import jNomad.Double;
 import jNomad.EvalPoint;
 import jNomad.EvalPointVector;
@@ -151,10 +150,10 @@ public class Rosenbrock {
 			mainstep.end();
 
 			// Get the best feasibles
-			Point fixedPoint = new Point();
 			EvalPointVector bestFeas = new EvalPointVector();
 			CacheBase cacheBase = CacheBase.getInstance();
-			cacheBase.findBestFeas(bestFeas, fixedPoint, EvalType.BB, ComputeType.STANDARD);
+
+			cacheBase.findBestFeas(bestFeas);
 
 		} catch (RuntimeException e) {
 			System.err.println("\nNOMAD has been interrupted (" + e.toString() + ")\n\n");

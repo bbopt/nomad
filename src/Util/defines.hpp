@@ -50,13 +50,13 @@
  \author Sebastien Le Digabel, modified by Viviane Rochon Montplaisir
  \date   March 2017
  */
-#ifndef __NOMAD_4_4_DEFINES__
-#define __NOMAD_4_4_DEFINES__
+#ifndef __NOMAD_4_5_DEFINES__
+#define __NOMAD_4_5_DEFINES__
 
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <limits.h> // For INT_MAX
+#include <climits> // For INT_MAX
 #include <limits>   // For numeric_limits
 #include <cstdlib>
 #include <memory>   // For shared_ptr, unique_ptr
@@ -132,10 +132,10 @@ const std::string DEFAULT_UNDEF_STR_HYPHEN = "-";
 const std::string DEFAULT_UNDEF_STR_1 = "nan";
 
 const double INF = std::numeric_limits<double>::max(); ///< Infinity
-const double M_INF = std::numeric_limits<double>::min(); ///< -Infinity
+const double M_INF = std::numeric_limits<double>::lowest(); ///< -Infinity
 const double NaN = std::numeric_limits<double>::quiet_NaN(); ///< Quiet Not-A-Number
 const int P_INF_INT = std::numeric_limits<int>::max(); ///< plus infinity for int
-const int M_INF_INT = std::numeric_limits<int>::min(); ///< minus infinity for int
+const int M_INF_INT = std::numeric_limits<int>::lowest(); ///< minus infinity for int
 const size_t INF_SIZE_T = std::numeric_limits<size_t>::max();///< The infinity for \c size_t
 const size_t INF_SHORT = std::numeric_limits<short>::max();///< The infinity for \c short
 
@@ -145,11 +145,15 @@ const double D_INT_MAX = UINT32_MAX; ///< The UINT32_MAX constant as a \c double
 // Display precisions.
 const int DISPLAY_PRECISION_STD = 6;  ///< Precision after decimal point (number of digits)
 const int DISPLAY_PRECISION_FULL = 20;  ///< Display all decimals
+const int DISPLAY_PRECISION_DOUBLE = std::numeric_limits< double >::max_digits10+1; ///< Display all decimals for double in scientific format
 const int NB_DIGITS_BEFORE_POINT = 3;   // "Precision" before decimal point
 const int INT_DISPLAY_WIDTH = 3;        // Width for integers
 
 // Maximal output value for points used for models.
 const double MODEL_MAX_OUTPUT = 1E20;
+
+// Buffer size for reading BB outputs
+const size_t BUFFER_SIZE = 1024;
 
 
 // -------------------------
@@ -176,4 +180,4 @@ enum class SuccessType
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_DEFINES__
+#endif // __NOMAD_4_5_DEFINES__

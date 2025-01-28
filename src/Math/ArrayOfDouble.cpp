@@ -196,7 +196,7 @@ void NOMAD::ArrayOfDouble::resize(size_t n, const NOMAD::Double &d)
         return;
     }
 
-    NOMAD::Double *newArray = new NOMAD::Double[n];
+    auto newArray = new NOMAD::Double[n];
     if (_array)
     {
         size_t min = ( n < _n ) ? n : _n;
@@ -319,7 +319,7 @@ void NOMAD::ArrayOfDouble::readValuesAsArray(const NOMAD::ArrayOfString& strDoub
     // * -6.0
     //
 
-    std::string valueString = strDouble.display();  // For informations display
+    std::string valueString = strDouble.display();  // For information display
 
     NOMAD::Double d;
 
@@ -409,7 +409,7 @@ void NOMAD::ArrayOfDouble::readValuesAsArray(const NOMAD::ArrayOfString& strDoub
         }
         else
         {
-            size_t hyphenIndex = strDouble[0].find_first_of("-");
+            size_t hyphenIndex = strDouble[0].find_first_of('-');
             if (hyphenIndex != std::string::npos)
             {
                 // First value is an index range.
@@ -535,7 +535,7 @@ const NOMAD::ArrayOfDouble & NOMAD::ArrayOfDouble::operator /= ( const NOMAD::Do
 /*----------------------------------------------------------*/
 /*                   addition of two arrays                 */
 /*----------------------------------------------------------*/
-const NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator+(const NOMAD::ArrayOfDouble& p) const
+NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator+(const NOMAD::ArrayOfDouble& p) const
 {
     if (p._n != _n)
     {
@@ -556,9 +556,9 @@ const NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator+(const NOMAD::ArrayOfD
 
 
 /*----------------------------------------------------------*/
-/*                 substraction of two arrays               */
+/*                 subtraction of two arrays               */
 /*----------------------------------------------------------*/
-const NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator-(const NOMAD::ArrayOfDouble& p) const
+NOMAD::ArrayOfDouble NOMAD::ArrayOfDouble::operator-(const NOMAD::ArrayOfDouble& p) const
 {
     if (p._n != _n)
     {
@@ -793,11 +793,11 @@ bool NOMAD::ArrayOfDouble::toBeDefined() const
 /* Throw an exception if 2 array sizes do not match. */
 /*---------------------------------------------------*/
 void NOMAD::ArrayOfDouble::verifySizesMatch(size_t n1, size_t n2,
-                                            std::string filename,
+                                            const std::string& filename,
                                             size_t linenum) const
 {
     std::ostringstream oss;
-    if (n1 != n2 || 0 == n2)
+    if (n1 != n2)
     {
         oss << "ArrayOfDouble comparison operator: Cannot compare arrays of different sizes (";
         oss << n1;
@@ -982,4 +982,23 @@ std::string NOMAD::ArrayOfDouble::display(const NOMAD::ArrayOfDouble &precision,
     }
 
     return oss.str();
+}
+
+std::string NOMAD::ArrayOfDouble::tostring() const
+{
+    std::ostringstream oss;
+    // Fixed
+    oss.setf(std::ios::fixed, std::ios::floatfield);
+
+    for (size_t i = 0; i < size(); i++)
+    {
+        if (i > 0)
+        {
+            oss << " ";
+        }
+        oss << ((*this)[i]).tostring();  // Full precision
+    }
+    
+    return oss.str();
+    
 }

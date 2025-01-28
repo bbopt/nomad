@@ -7,7 +7,7 @@ The *SGTELIB* library is a dynamic surrogate modelling library. It is used in th
 During a *Search* step that uses *SGTELIB*, models of the objective and the constraints are constructed and a surrogate subproblem involving these models is optimized.
 The resulting solutions are the next candidates for evaluation by the true problem.
 
-| Models from the *SGTELIB* library can be used by setting the parameter ``SGTELIB_MODEL_SEARCH`` to ``yes`` or ``true``.
+Models from the *SGTELIB* library are used by default in the quadratic model search (``QUAD_MODEL_SEARCH yes``). In addition, another search method using sgtelib models can be enabled by setting the parameter ``SGTELIB_MODEL_SEARCH`` to ``yes`` or ``true``.
 
 
 Models

@@ -51,6 +51,7 @@
 #include "../../Algos/QuadModel/QuadModelEvaluator.hpp"
 #include "../../Algos/QuadModel/QuadModelIteration.hpp"
 #include "../../Algos/QuadModel/QuadModelOptimize.hpp"
+#include "../../Algos/SimpleMads/SimpleMads.hpp"
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Eval/ComputeSuccessType.hpp"
@@ -77,7 +78,7 @@ void NOMAD::QuadModelOptimize::init()
 
 void NOMAD::QuadModelOptimize::startImp()
 {
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
+    const auto& modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
     _displayLevel = (std::string::npos != modelDisplay.find("O"))
         ? NOMAD::OutputLevel::LEVEL_INFO
         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
@@ -106,7 +107,7 @@ bool NOMAD::QuadModelOptimize::runImp()
         if (_modelFixedVar.nbDefined() > 0)
         {
             NOMAD::EvalPointSet evalPointSet;
-            for (auto trialPoint : _trialPoints)
+            for (const auto& trialPoint : _trialPoints)
             {
                 evalPointSet.insert(trialPoint.makeFullSpacePointFromFixed(_modelFixedVar));
             }
@@ -163,7 +164,8 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
 
     // Set direction type to Ortho 2n
     _optRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
-
+    _optRunParams->setAttributeValue("DIRECTION_TYPE_SECONDARY_POLL",NOMAD::DirectionType::DOUBLE);
+    
     // No hMax in the context of QuadModel
     _optRunParams->setAttributeValue("H_MAX_0", NOMAD::Double(NOMAD::INF));
 
@@ -257,12 +259,11 @@ void NOMAD::QuadModelOptimize::generateTrialPointsImp()
     auto evalParams = std::make_shared<NOMAD::EvalParameters>(*(evc->getCurrentEvalParams()));
 
     auto bbot = evc->getCurrentEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
-
     
     for (auto & sbbot : bbot)
     {
         // Default: force EB constraint to PB
-        if (sbbot == NOMAD::BBOutputType::Type::EB)
+        if (!_optWithEBConstraints && sbbot == NOMAD::BBOutputType::Type::EB)
         {
             sbbot = NOMAD::BBOutputType::Type::PB;
         }
@@ -271,12 +272,32 @@ void NOMAD::QuadModelOptimize::generateTrialPointsImp()
         {
             sbbot = NOMAD::BBOutputType::Type::EB;
         }
-        
     }
+    
+    // Transform into a single objective without combine function
+    if (_flagPriorCombineObjsForModel)
+    {
+        NOMAD::BBOutputTypeList mbbot(NOMAD::getNbConstraints(bbot)+1);
+        mbbot[0] = NOMAD::BBOutputType::OBJ;
+        size_t k = 1;
+        for ( auto & sbbot : bbot)
+        {
+            if (sbbot.isConstraint())
+            {
+                mbbot[k] = sbbot;
+                k++;
+            }
+        }
+        bbot = mbbot;
+        
+        // Set standard compute type
+        evc->setComputeType(NOMAD::ComputeType::STANDARD);
+    }
+    
     evalParams->setAttributeValue("BB_OUTPUT_TYPE", bbot);
     evalParams->setAttributeValue("BB_EXE", std::string(""));  // No bb is used for sub optimization
     evalParams->setAttributeValue("SURROGATE_EXE", std::string(""));  // No surrogate is used for sub optimization
-    evalParams->setAttributeValue("BB_EXE", std::string(""));  // No bb is used for sub optimization
+
 
     // Transform RPB constraint (used for some algorithms like DiscoMads) to PB constraint, as DiscoMADS is not used in sub optimization
     if(_runParams->getAttributeValue<bool>("DISCO_MADS_OPTIMIZATION") && !_optRunParams->getAttributeValue<bool>("DISCO_MADS_OPTIMIZATION"))
@@ -332,16 +353,36 @@ void NOMAD::QuadModelOptimize::generateTrialPointsImp()
 
     // Create a Mads step
     // Parameters for mads (_optRunParams and _optPbParams) are already updated.
-    // NOTE: Mads works with fixed variables detected during construction of the training set. Fixed variable from the original problem are not considered. The evaluator works on the quad model, we don't need to map to the global full space for evaluation because this is not BB eval.
+    // NOTE: Mads works with fixed variables detected during construction of the training set. Fixed variables from the original problem are not considered. The evaluator works on the quad model, we don't need to map to the global full space for evaluation because this is not BB eval.
 
-    auto mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams, false /* false: barrier not initialized from cache */, true /* true: use only local fixed variables */);
+    std::unique_ptr<NOMAD::Mads> mads;
+    
+    if (_runParams->getAttributeValue<bool>("QUAD_MODEL_SEARCH_SIMPLE_MADS"))
+    {
+        
+        // Simple Mads for subproblem optimization has direct access to model outputs to compute f and h.
+        // The way to compute f may change (for example DMultiMads). Let's pass the compute function from evaluator control.
+        // For now, use this formula for max eval
+        size_t maxModelEval = _optPbParams->getAttributeValue<size_t>("DIMENSION")*800;
+        if (maxModelEval > 8000)
+        {
+            maxModelEval = 8000;
+        }
+        mads = std::make_unique<NOMAD::SimpleMads>(this, madsStopReasons, _optRunParams, _optPbParams, _model, bbot, evc->getFHComputeTypeS().singleObjectiveCompute, maxModelEval);
+    }
+    else
+    {
+        // Mads for subproblem optimization automatically utilizes the evaluator control for obj function computation
+        mads = std::make_unique<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams, false /* false: barrier not initialized from cache */, true /* true: use only local fixed variables */);
+        
+    }
 
     evc->resetModelEval();
-
+    
     mads->start();
     runOk = mads->run();
     mads->end();
-
+    
     evc->resetModelEval();
 
     // Note: No need to check the Mads stop reason: It is not a stop reason
@@ -410,7 +451,8 @@ void NOMAD::QuadModelOptimize::generateTrialPointsImp()
 // Set the bounds and the extra fixed variables (when lb=ub) of the model.
 void NOMAD::QuadModelOptimize::setModelBoundsAndFixedVar()
 {
-    // When optWithScaleBounds is true, the training set is scaled with some generating directions. Warning: points are not necessarilly in [0,1]^n
+    // When optWithScaleBounds is true, the training set is scaled with some generating directions.
+    // Warning: points are not necessarily in [0,1]^n
     const SGTELIB::Matrix & X = _trainingSet->get_matrix_X();
 
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
@@ -474,13 +516,13 @@ void NOMAD::QuadModelOptimize::setModelBoundsAndFixedVar()
         else
         {
             // When scaling we force the bounds to be [0,1] whatever the training set except if we have a fixed variable.
-            // If optWithScaledBounds is true and we detect a fixed variable, the modelFixedVar is not necessarily within [0,1] but the model center and the fixed variable must be equal.
+            // If optWithScaledBounds is true and if we detect a fixed variable, the modelFixedVar is not necessarily within [0,1] but the model center and the fixed variable must be equal.
             if (isFixed)
             {
                 _modelLowerBound[j] = _modelUpperBound[j] = NOMAD::Double();
                 _modelCenter[j] = _modelFixedVar[j];
             }
-            // If not fixed, the model bounds and model center are pretermined.
+            // If not fixed, the model bounds and model center are pre-determined.
             else
             {
                 _modelLowerBound[j] = 0;

@@ -51,8 +51,6 @@
 #include "../Output/OutputQueue.hpp"
 
 void NOMAD::ProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
-                          NOMAD::EvalType  evalType,
-                          NOMAD::ComputeType computeType,
                           bool barrierInitializedFromCache)
 {
     // NOTE: the _xFeas[0] and _xInf[0] are not necessarily the incumbents
@@ -73,12 +71,12 @@ void NOMAD::ProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
 
         std::vector<NOMAD::EvalPoint> cachePoints;
 
-        // Get best feasible and infeasible solutions from cache.
+        // Get the best feasible and infeasible solutions from cache.
         // Points from cache are in full dimension. Convert them
         // to subproblem dimension.
         // Update the barrier with points.
-        // Important: do not update infeasible incumbent and hmax. It is is done in the second init. We don't want to update infeasible incumbent and hmax two times!
-        if (NOMAD::CacheBase::getInstance()->findBestFeas(cachePoints, fixedVariable, evalType, computeType) > 0)
+        // Important: do not update infeasible incumbent and hmax. It is done in the second init. We don't want to update infeasible incumbent and hmax two times!
+        if (NOMAD::CacheBase::getInstance()->findBestFeas(cachePoints, fixedVariable, _computeType) > 0)
         {
             for (const auto &evalPoint : cachePoints)
             {
@@ -87,12 +85,12 @@ void NOMAD::ProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
             }
             _incumbentsAndHMaxUpToDate = false;
         }
-        if (NOMAD::CacheBase::getInstance()->findFilterInf(cachePoints, _hMax, fixedVariable, evalType, computeType) > 0)
+        if (NOMAD::CacheBase::getInstance()->findFilterInf(cachePoints, _hMax, fixedVariable, _computeType) > 0)
         {
             for (const auto &evalPoint : cachePoints)
             {
                 // Points in progressive barrier must have h < INF.
-                if (evalPoint.getH(evalType,computeType) < NOMAD::INF)
+                if (evalPoint.getH(_computeType) < NOMAD::INF)
                 {
                     NOMAD::EvalPointPtr evalPointSub = std::make_shared<NOMAD::EvalPoint>( evalPoint.makeSubSpacePointFromFixed(fixedVariable));
                     _xInf.push_back(evalPointSub);
@@ -104,30 +102,28 @@ void NOMAD::ProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
 }
 
 void NOMAD::ProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
-                          NOMAD::EvalType  evalType,
-                          const std::vector<NOMAD::EvalPoint>& evalPointList,
-                          NOMAD::ComputeType computeType)
+                          const std::vector<NOMAD::EvalPoint>& evalPointList)
 {
 
     // Constructor's call to update should not update ref best points.
-    updateWithPoints(evalPointList, evalType, computeType, true, true /*true update infeasible incumbent and hmax*/ );
+    updateWithPoints(evalPointList, true, true /*true update infeasible incumbent and hmax*/ );
 
     // Check: xIncFeas or xIncInf could be non-evaluated, but not both.
     auto xIncFeas = getCurrentIncumbentFeas();
     auto xIncInf = getCurrentIncumbentInf();
-    if (   (nullptr == xIncFeas || nullptr == xIncFeas->getEval(evalType))
-        && (nullptr == xIncInf  || nullptr == xIncInf->getEval(evalType)))
+    if (   (nullptr == xIncFeas || nullptr == xIncFeas->getEval(_computeType.evalType))
+        && (nullptr == xIncInf  || nullptr == xIncInf->getEval(_computeType.evalType)))
     {
         std::string s = "Barrier constructor: no xIncFeas and xIncInf  properly defined. This may cause problems. \n";
         if (nullptr != xIncFeas)
         {
             s += "There are " + std::to_string(_xIncFeas.size()) + " feasible incumbents, the first one is:\n";
-            s += xIncFeas->displayAll();
+            s += xIncFeas->displayAll(NOMAD::defaultFHComputeTypeS);
         }
         if (nullptr != xIncInf)
         {
             s += "There are " + std::to_string(_xInf.size()) + " infeasible incumbents, the first one is:\n";
-            s += xIncInf->displayAll();
+            s += xIncInf->displayAll(NOMAD::defaultFHComputeTypeS);
         }
     }
 
@@ -147,20 +143,16 @@ void NOMAD::ProgressiveBarrier::setHMax(const NOMAD::Double &hMax)
 
 void NOMAD::ProgressiveBarrier::updateRefBests()
 {
-    _refBestFeas = getCurrentIncumbentFeas();;
-    _refBestInf  = getCurrentIncumbentInf();;
+    _refBestFeas = getCurrentIncumbentFeas();
+    _refBestInf  = getCurrentIncumbentInf();
 }
 
 
 NOMAD::SuccessType NOMAD::ProgressiveBarrier::getSuccessTypeOfPoints(const EvalPointPtr xFeas,
-                                                          const EvalPointPtr xInf,
-                                                          NOMAD::EvalType evalType,
-                                                          NOMAD::ComputeType computeType)
+                                                          const EvalPointPtr xInf)
 {
     NOMAD::SuccessType successType = SuccessType::UNSUCCESSFUL;
     NOMAD::SuccessType successType2 = SuccessType::UNSUCCESSFUL;
-
-    NOMAD::EvalPointPtr newBestFeas,newBestInf;
 
     // Get the reference best points (should work for opportunistic or not)
     auto refBestFeas = getCurrentIncumbentFeas();
@@ -170,15 +162,15 @@ NOMAD::SuccessType NOMAD::ProgressiveBarrier::getSuccessTypeOfPoints(const EvalP
     if (nullptr != refBestFeas || nullptr != refBestInf)
     {
         // Compute success
-        // Get which of newBestFeas and newBestInf is improving
-        // the solution. Check newBestFeas first.
-        NOMAD::ComputeSuccessType computeSuccess(evalType, computeType);
+        // Get which of xFeas and xInf is improving
+        // the solution. Check xFeas first.
+        NOMAD::ComputeSuccessType computeSuccess(_computeType);
 
-        if (nullptr != refBestFeas)
+        if (nullptr != xFeas)
         {
-            successType = computeSuccess(xFeas, refBestFeas,_hMax);
+            successType = computeSuccess(xFeas, refBestFeas,_hMax); // If refBestFeas is null we get a full success
         }
-        if (nullptr != refBestInf)
+        if (nullptr != xInf)
         {
             successType2 = computeSuccess(xInf, refBestInf,_hMax);
         }
@@ -193,10 +185,8 @@ NOMAD::SuccessType NOMAD::ProgressiveBarrier::getSuccessTypeOfPoints(const EvalP
 
 // Points from evalPointList are already in subproblem dimension.
 bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoint>& evalPointList,
-                                      NOMAD::EvalType evalType,
-                                      NOMAD::ComputeType computeType,
-                                      const bool keepAllPoints /* Not used here */,
-                                      const bool updateIncumbentsAndHmax )
+                                                 const bool keepAllPoints /* Not used here */,
+                                                 const bool updateIncumbentsAndHmax )
 {
 
     bool updated = false;
@@ -205,7 +195,11 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
     bool updatedInc = false;
     bool updatedIncFeas = false;
     bool updatedIncInf = false;
+    bool rejectInf = false;
     bool updatedHMax = false;
+    
+    auto evalType = _computeType.evalType;
+    auto computeTypeS = _computeType.Short();
 
 
     std::string s;  // for output info
@@ -216,9 +210,9 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
     s = "Current barrier: ";
     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
     std::vector<std::string> vs = display(4);
-    for (const auto & s: vs)
+    for (const auto & info: vs)
     {
-        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+        NOMAD::OutputQueue::Add(info, NOMAD::OutputLevel::LEVEL_DEBUG);
     }
     OUTPUT_DEBUG_END
 
@@ -249,7 +243,7 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
         }
 
 
-        if (eval->isFeasible(computeType))
+        if (eval->isFeasible(computeTypeS))
         {
             OUTPUT_DEBUG_START
             s = "Point suggested to update barrier (feasible): " + evalPoint.display();
@@ -259,7 +253,7 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
             // If eval point is already in barrier, do not add.
             // Tag is the unique identifier of EvalPoint
             size_t tag = evalPoint.getTag();
-            std::vector<NOMAD::EvalPointPtr>::iterator it = std::find_if(_xFeas.begin(), _xFeas.end(),[tag](const NOMAD::EvalPointPtr& pt){ return pt->getTag() == tag ; });
+            auto it = std::find_if(_xFeas.begin(), _xFeas.end(),[tag](const NOMAD::EvalPointPtr& pt){ return pt->getTag() == tag ; });
             if (it !=_xFeas.end())
             {
                 OUTPUT_DEBUG_START
@@ -282,7 +276,7 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
     // Second loop updates the barrier infeasible points.
     for (const auto & evalPoint : evalPointList)
     {
-        auto eval = evalPoint.getEval(evalType);
+        auto eval = evalPoint.getEval(_computeType.evalType);
 
         // Exclude points that are not eval ok
         if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus() )
@@ -292,7 +286,7 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
             continue;
         }
         // Consider infeasible points with h < INF
-        if (!eval->isFeasible(computeType) && eval->getH(computeType) < NOMAD::INF)
+        if (!eval->isFeasible(computeTypeS) && eval->getH(computeTypeS) < NOMAD::INF)
         {
             OUTPUT_DEBUG_START
             s = "Point suggested to update barrier (infeasible): " + evalPoint.display();
@@ -302,7 +296,7 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
             // If eval point is already in barrier, do not add
             // Tag is the unique identifier of EvalPoint
             size_t tag = evalPoint.getTag();
-            std::vector<NOMAD::EvalPointPtr>::iterator it = std::find_if(_xInf.begin(), _xInf.end(),[tag](const NOMAD::EvalPointPtr& pt){ return pt->getTag() == tag ; });
+            auto it = std::find_if(_xInf.begin(), _xInf.end(),[tag](const NOMAD::EvalPointPtr& pt){ return pt->getTag() == tag ; });
             if (it !=_xInf.end())
             {
                 OUTPUT_DEBUG_START
@@ -313,7 +307,7 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
             }
 
             // Do not consider points for which h > hmax
-            NOMAD::Double h = eval->getH(computeType);
+            NOMAD::Double h = eval->getH(computeTypeS);
             if (!h.isDefined() || (h == NOMAD::INF) ||
                 ((_hMax < NOMAD::INF) && (h > _hMax)))
             {
@@ -330,6 +324,7 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
                     NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
                 }
                 OUTPUT_DEBUG_END
+                rejectInf = true;
                 continue;
             }
 
@@ -349,32 +344,35 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
 
     //
     // Ready to update hMax and the incumbents (if requested)
+    // NB: When points have been rejected, it can be considered as a failure
+    // or an improving iteration (points could have been inserted below). In
+    // this case, we need to update hMax (if requested).
     NOMAD::Double hMaxPrev = _hMax;
-    if (updateIncumbentsAndHmax && !_incumbentsAndHMaxUpToDate)
+    if (updateIncumbentsAndHmax && (!_incumbentsAndHMaxUpToDate || rejectInf))
     {
         NOMAD::SuccessType feasSuccessType = NOMAD::SuccessType::UNSUCCESSFUL;
         // Step One: Select the best xFeas (feasible incumbent) and remove points with f>f(xFeas)
         // After that step xFeas and xIncFeas contain the same points
-        if (_xFeas.size() > 0)
+        if (!_xFeas.empty())
         {
             // Detect fMin
             NOMAD::Double fMin = NOMAD::INF;
             NOMAD::Double fMinRef=fMin;
-            if (_xIncFeas.size() > 0)
+            if (!_xIncFeas.empty())
             {
-                fMinRef = _xIncFeas[0]->getEval(evalType)->getF(computeType);
+                fMinRef = _xIncFeas[0]->getF(_computeType);
             }
             std::vector<NOMAD::EvalPointPtr>::iterator it;
             for ( it = _xFeas.begin(); it < _xFeas.end(); it++ )
             {
-                fMin = min(fMin, (*it)->getEval(evalType)->getF(computeType));
+                fMin = min(fMin, (*it)->getF(_computeType));
             }
 
             // Remove all points above fMin. There could be more than one point remaining.
             _xIncFeas.clear();
             for ( it = _xFeas.begin(); it < _xFeas.end(); )
             {
-                if ((*it)->getEval(evalType)->getF(computeType) > fMin)
+                if ((*it)->getF(_computeType) > fMin)
                 {
                     it = _xFeas.erase(it);
                 }
@@ -400,19 +398,19 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
 
         // Step two: Detect the infeasible success type
         NOMAD::SuccessType infeasSuccessType = NOMAD::SuccessType::UNSUCCESSFUL;
-        if (_xIncInf.size() == 0 && _xInf.size() > 0)
+        if (_xIncInf.empty() && !_xInf.empty())
         {
             // Case with no previous incumbent (hence, no barrier point).
             infeasSuccessType = NOMAD::SuccessType::FULL_SUCCESS;
         }
-        else if (_xInf.size() > 0)
+        else if (!_xInf.empty())
         {
             // Note: An improving point (with respect to the infeasible incumbent) may have been added at the current iteration or was present from a previous iteration -> loop on _xInf
             std::vector<NOMAD::EvalPointPtr>::iterator it;
             for ( it = _xInf.begin()+1; it < _xInf.end(); it++ )
             {
-                auto eval = (*it)->getEval(evalType);
-                NOMAD::SuccessType successType = NOMAD::Eval::computeSuccessType(eval, _xIncInf[0]->getEval(evalType), computeType);
+                auto eval = (*it)->getEval(_computeType.evalType);
+                NOMAD::SuccessType successType = NOMAD::Eval::computeSuccessType(eval, _xIncInf[0]->getEval(evalType), computeTypeS);
                 if (successType > infeasSuccessType)
                 {
                     infeasSuccessType = successType;
@@ -429,21 +427,21 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
             || feasSuccessType == NOMAD::SuccessType::FULL_SUCCESS)
         {
             // We have a new incumbent: infeasSuccessType or feasSuccessType is FULL_SUCCESS
-            if (_xIncInf.size() != 0)
+            if (!_xIncInf.empty())
             {
                 // Case with a prior infeasible incumbent: it is used to set hMax.
-                _hMax = _xIncInf[0]->getEval(evalType)->getH(computeType);
+                _hMax = _xIncInf[0]->getH(_computeType);
 
             }
-            // Else. Case with no prior infeasible incumbent: we do not update hMax. Typically hMax = INF.
+            // Else. Case with no prior infeasible incumbent: we do not update hMax. Typically, hMax = INF.
         }
         else if (infeasSuccessType == NOMAD::SuccessType::PARTIAL_SUCCESS)
         {
-            _hMax = getWorstHInBarrier(evalType, computeType);
+            _hMax = getWorstHInBarrier();
         }
-        else if (infeasSuccessType == NOMAD::SuccessType::UNSUCCESSFUL && _xIncInf.size() > 0)
+        else if (infeasSuccessType == NOMAD::SuccessType::UNSUCCESSFUL && !_xIncInf.empty())
         {
-            _hMax = _xIncInf[0]->getEval(evalType)->getH(computeType);
+            _hMax = _xIncInf[0]->getH(_computeType);
         }
         if (_hMax < hMaxPrev)
         {
@@ -453,7 +451,7 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
         // Step four:
         // - remove points from xInf that have h>hMax.
         // - transfer points with h<hMax into xIncInf
-        updatedIncInf = setInfeasibleIncumbents(evalType, computeType);
+        updatedIncInf = setInfeasibleIncumbents();
 
         _incumbentsAndHMaxUpToDate = true;
     }
@@ -480,11 +478,11 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
         {
             s += "New feasible incumbent: " + _xIncFeas[0]->display();
         }
-        else if (updatedIncInf && _xInf.size() > 0)
+        else if (updatedIncInf && !_xInf.empty())
         {
             s += "New infeasible incumbent: " + _xIncInf[0]->display();
         }
-        else if (updatedIncInf && _xInf.size() == 0)
+        else if (updatedIncInf && _xInf.empty())
         {
             s += "Previous infeasible incumbent has been removed. No more infeasible incumbent";
         }
@@ -511,14 +509,14 @@ std::vector<std::string> NOMAD::ProgressiveBarrier::display(const size_t max) co
 {
     std::vector<std::string> vs;
 
-    auto allXFeas = getAllXFeas();
-    auto allXInf  = getAllXInf();
+    const auto& allXFeas = getAllXFeas();
+    const auto& allXInf  = getAllXInf();
     size_t nbXFeas = 0;
     size_t nbXInf = 0;
 
-    for (auto xFeas : allXFeas)
+    for (const auto& xFeas : allXFeas)
     {
-        vs.push_back("X_FEAS " + xFeas->displayAll());
+        vs.push_back("X_FEAS " + xFeas->displayAll(_computeType.Short()));
         nbXFeas++;
         if (nbXFeas >= max && allXFeas.size() > max)
         {
@@ -526,9 +524,9 @@ std::vector<std::string> NOMAD::ProgressiveBarrier::display(const size_t max) co
             break;
         }
     }
-    for (auto xInf : allXInf)
+    for (const auto& xInf : allXInf)
     {
-        vs.push_back("X_INF " + xInf->displayAll());
+        vs.push_back("X_INF " + xInf->displayAll(_computeType.Short()));
         nbXInf++;
 
         if (nbXInf >= max && allXInf.size() > max)
@@ -538,8 +536,8 @@ std::vector<std::string> NOMAD::ProgressiveBarrier::display(const size_t max) co
         }
     }
     vs.push_back("H_MAX " + getHMax().display(NOMAD::DISPLAY_PRECISION_FULL));
-    vs.push_back("Ref Best Feasible:   " + (_refBestFeas ? _refBestFeas->displayAll() : "NULL"));
-    vs.push_back("Ref Best Infeasible: " + (_refBestInf ? _refBestInf->displayAll() : "NULL"));
+    vs.push_back("Ref Best Feasible:   " + (_refBestFeas ? _refBestFeas->displayAll(_computeType.Short()) : "NULL"));
+    vs.push_back("Ref Best Infeasible: " + (_refBestInf ? _refBestInf->displayAll(_computeType.Short()) : "NULL"));
 
     return vs;
 }
@@ -547,32 +545,32 @@ std::vector<std::string> NOMAD::ProgressiveBarrier::display(const size_t max) co
 // Set the infeasible incumbents.
 // This function also remove points with h > hMax.
 // The infeasible incumbents are the undominated infeasible points satisfying h < hMax with the lowest f.
-bool NOMAD::ProgressiveBarrier::setInfeasibleIncumbents(NOMAD::EvalType evalType, NOMAD::ComputeType computeType)
+bool NOMAD::ProgressiveBarrier::setInfeasibleIncumbents()
 {
-    if (_xInf.size() == 0)
+    if (_xInf.empty())
     {
         return false;
     }
 
 
-    std::vector<NOMAD::EvalPointPtr>::iterator it1= _xInf.begin();
+    auto it1= _xInf.begin();
 
     std::vector<NOMAD::ArrayOfDouble> f_xInf, f_xIncInf;
     std::vector<NOMAD::Double> h_xInf, h_xIncInf;
     // Vectors for fs and hs
     while ( it1 !=_xInf.end() )
     {
-        f_xInf.push_back((*it1)->getEval(evalType)->getFs(computeType));
-        h_xInf.push_back((*it1)->getEval(evalType)->getH(computeType));
+        f_xInf.push_back((*it1)->getFs(_computeType));
+        h_xInf.push_back((*it1)->getH(_computeType));
         it1++;
     }
 
 
     NOMAD::Double prevXIncInfH = NOMAD::INF;
     NOMAD::EvalPointPtr prevXIncInf = nullptr;
-    if (_xIncInf.size() > 0 )
+    if (!_xIncInf.empty())
     {
-        prevXIncInfH = _xIncInf[0]->getEval(evalType)->getH(computeType); // Not necessarily hMax!
+        prevXIncInfH = _xIncInf[0]->getH(_computeType); // Not necessarily hMax!
         prevXIncInf = _xIncInf[0];
     }
 
@@ -583,8 +581,8 @@ bool NOMAD::ProgressiveBarrier::setInfeasibleIncumbents(NOMAD::EvalType evalType
 
 
     std::vector<NOMAD::EvalPointPtr>::iterator it2;
-    std::vector<NOMAD::ArrayOfDouble>::iterator it1_fs = f_xInf.begin() ;
-    std::vector<NOMAD::Double>::iterator it1_h = h_xInf.begin();
+    auto it1_fs = f_xInf.begin() ;
+    auto it1_h = h_xInf.begin();
 
     it1 = _xInf.begin();
 
@@ -601,8 +599,8 @@ bool NOMAD::ProgressiveBarrier::setInfeasibleIncumbents(NOMAD::EvalType evalType
 
         // Find all infeasible non-dominated points
         bool isDominated = false;
-        std::vector<NOMAD::ArrayOfDouble>::iterator it2_fs = f_xInf.begin() ;
-        std::vector<NOMAD::Double>::iterator it2_h = h_xInf.begin();
+        auto it2_fs = f_xInf.begin() ;
+        auto it2_h = h_xInf.begin();
         for ( it2 = _xInf.begin(); it2 < _xInf.end(); it2++, it2_fs++, it2_h++)
         {
             if (it1 == it2)
@@ -624,7 +622,7 @@ bool NOMAD::ProgressiveBarrier::setInfeasibleIncumbents(NOMAD::EvalType evalType
             _xIncInf.push_back(*it1);
             f_xIncInf.push_back(*it1_fs);
             h_xIncInf.push_back(*it1_h);
-            NOMAD::Double H = *it1_h;
+            const NOMAD::Double& H = *it1_h;
             maxH = max(maxH,H);
         }
         it1++;
@@ -656,7 +654,7 @@ bool NOMAD::ProgressiveBarrier::setInfeasibleIncumbents(NOMAD::EvalType evalType
                 it1_fs++;
             }
         }
-        if (_xIncInf.size() == 0)
+        if (_xIncInf.empty())
         {
             throw NOMAD::Exception(__FILE__,__LINE__,"All infeasible incumbents have been removed.");
         }
@@ -671,23 +669,23 @@ bool NOMAD::ProgressiveBarrier::setInfeasibleIncumbents(NOMAD::EvalType evalType
     return updatedInfInc;
 }
 
-NOMAD::Double NOMAD::ProgressiveBarrier::getWorstHInBarrier(NOMAD::EvalType evalType, NOMAD::ComputeType computeType) const
+NOMAD::Double NOMAD::ProgressiveBarrier::getWorstHInBarrier() const
 {
-    if (_xInf.size() == 0)
+    if (_xInf.empty())
     {
         return _hMax;
     }
     // Loop on all points to find the one with max h and h < hMax (previous hMax)
     NOMAD::Double maxH = 0.0;
-    NOMAD::Double hIncInf = _xIncInf[0]->getEval(evalType)->getH(computeType);
+    NOMAD::Double hIncInf = _xIncInf[0]->getH(_computeType);
     NOMAD::Double H;
-    for (size_t i = 0; i < _xInf.size() ; i++ )
+    for (const auto& it : _xInf)
     {
         // Detect max h infeasible barrier point such that h<hMax (the point with h just below hmax).
-        H =  _xInf[i]->getEval(evalType)->getH(computeType);
+        H =  it->getH(_computeType);
         if (H > maxH && H < hIncInf)
         {
-            maxH = _xInf[i]->getEval(evalType)->getH(computeType);
+            maxH = it->getH(_computeType);
         }
     }
     return maxH;
@@ -695,7 +693,7 @@ NOMAD::Double NOMAD::ProgressiveBarrier::getWorstHInBarrier(NOMAD::EvalType eval
 
 NOMAD::EvalPointPtr NOMAD::ProgressiveBarrier::getCurrentIncumbentFeas() const
 {
-    if (_xIncFeas.size() > 0)
+    if (!_xIncFeas.empty())
     {
         return _xIncFeas[0];
     }
@@ -708,7 +706,7 @@ NOMAD::EvalPointPtr NOMAD::ProgressiveBarrier::getCurrentIncumbentFeas() const
 
 NOMAD::EvalPointPtr NOMAD::ProgressiveBarrier::getCurrentIncumbentInf() const
 {
-    if (_xIncInf.size() > 0)
+    if (!_xIncInf.empty())
     {
         return _xIncInf[0];
     }
@@ -731,7 +729,7 @@ bool NOMAD::ProgressiveBarrier::dominates(const NOMAD::ArrayOfDouble & f1, const
         throw NOMAD::Exception(__FILE__,__LINE__,"Cannot compare vectors of different size.");
     }
 
-    // This is the same code than Eval::compMO. It is adapted for given f and h.
+    // This is the same code as Eval::compMO. It is adapted for given f and h.
     // The comparison code has been adapted from
     // Jaszkiewicz, A., & Lust, T. (2018).
     // ND-tree-based update: a fast algorithm for the dynamic nondominance problem.

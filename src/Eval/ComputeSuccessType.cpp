@@ -56,224 +56,71 @@
 /*--------------------------*/
 /* Class ComputeSuccessType */
 /*--------------------------*/
-NOMAD::SuccessType NOMAD::ComputeSuccessType::defaultComputeSuccessType(
-                                const NOMAD::EvalPointPtr evalPoint1,
-                                const NOMAD::EvalPointPtr evalPoint2,
-                                const NOMAD::Double& hMax)
-{
-    NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
-
-    if (nullptr != evalPoint1)
-    {
-        if (nullptr == evalPoint2)
-        {
-            NOMAD::Double h = evalPoint1->getH(NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
-            if (h > hMax || h == NOMAD::INF)
-            {
-                // Even if evalPoint2 is NULL, this case is still
-                // not a success.
-                success = NOMAD::SuccessType::UNSUCCESSFUL;
-            }
-            else if (evalPoint1->isFeasible(NOMAD::EvalType::BB))
-            {
-                // New feasible point: full success
-                success = NOMAD::SuccessType::FULL_SUCCESS;
-            }
-            else
-            {
-                // New infeasible makes for partial success, not full success
-                success = NOMAD::SuccessType::PARTIAL_SUCCESS;
-            }
-        }
-        else
-        {
-            success = NOMAD::Eval::computeSuccessType(evalPoint1->getEval(NOMAD::EvalType::BB),
-                                                      evalPoint2->getEval(NOMAD::EvalType::BB),
-                                                      NOMAD::ComputeType::STANDARD,
-                                                      hMax);
-        }
-    }
-
-    return success;
-}
 
 
-NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypePhaseOne(
-                                const NOMAD::EvalPointPtr evalPoint1,
-                                const NOMAD::EvalPointPtr evalPoint2,
-                                const NOMAD::Double& hMax)
-{
-    NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
-
-    if (nullptr != evalPoint1)
-    {
-        if (nullptr == evalPoint2)
-        {
-            success = NOMAD::SuccessType::FULL_SUCCESS;
-        }
-        else
-        {
-            success = NOMAD::Eval::computeSuccessType(evalPoint1->getEval(NOMAD::EvalType::BB),
-                                                      evalPoint2->getEval(NOMAD::EvalType::BB),
-                                                      NOMAD::ComputeType::PHASE_ONE,
-                                                      hMax);
-        }
-    }
-
-    return success;
-}
-
-
-NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypePhaseOneSurrogate(
-                                const NOMAD::EvalPointPtr evalPoint1,
-                                const NOMAD::EvalPointPtr evalPoint2,
-                                const NOMAD::Double& hMax)
-{
-    NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
-
-    if (nullptr != evalPoint1)
-    {
-        if (nullptr == evalPoint2)
-        {
-            success = NOMAD::SuccessType::FULL_SUCCESS;
-        }
-        else
-        {
-            success = NOMAD::Eval::computeSuccessType(evalPoint1->getEval(NOMAD::EvalType::SURROGATE),
-                                                      evalPoint2->getEval(NOMAD::EvalType::SURROGATE),
-                                                      NOMAD::ComputeType::PHASE_ONE,
-                                                      hMax);
-        }
-    }
-
-    return success;
-}
-
-
-NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeModel(
-                                const NOMAD::EvalPointPtr evalPoint1,
-                                const NOMAD::EvalPointPtr evalPoint2,
-                                const NOMAD::Double& hMax)
-{
-    NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
-    const NOMAD::EvalType evalTypeModel = NOMAD::EvalType::MODEL;
-
-    if (nullptr != evalPoint1)
-    {
-        NOMAD::Double h = evalPoint1->getH(evalTypeModel, NOMAD::ComputeType::STANDARD);
-        if (!h.isDefined() || h > hMax || h == NOMAD::INF)
-        {
-            success = NOMAD::SuccessType::UNSUCCESSFUL;
-        }
-        else if (nullptr == evalPoint2)
-        {
-            success = NOMAD::SuccessType::FULL_SUCCESS;
-        }
-        else
-        {
-            success = NOMAD::Eval::computeSuccessType(evalPoint1->getEval(evalTypeModel),
-                                                      evalPoint2->getEval(evalTypeModel),
-                                                      NOMAD::ComputeType::STANDARD,
-                                                      hMax);
-        }
-    }
-
-    return success;
-}
-
-
-NOMAD::SuccessType NOMAD::ComputeSuccessType::computeSuccessTypeSurrogate(
-                                const NOMAD::EvalPointPtr evalPoint1,
-                                const NOMAD::EvalPointPtr evalPoint2,
-                                const NOMAD::Double& hMax)
-{
-    NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
-
-    if (nullptr != evalPoint1)
-    {
-        if (nullptr == evalPoint2)
-        {
-            NOMAD::Double h = evalPoint1->getH(NOMAD::EvalType::SURROGATE, NOMAD::ComputeType::STANDARD);
-            if (!h.isDefined() || h > hMax || h == NOMAD::INF)
-            {
-                // Even if evalPoint2 is NULL, this case is still
-                // not a success.
-                success = NOMAD::SuccessType::UNSUCCESSFUL;
-            }
-            else if (evalPoint1->isFeasible(NOMAD::EvalType::SURROGATE))
-            {
-                // New feasible point: full success
-                success = NOMAD::SuccessType::FULL_SUCCESS;
-            }
-            else
-            {
-                // New infeasible makes for partial success, not full success
-                success = NOMAD::SuccessType::PARTIAL_SUCCESS;
-            }
-        }
-        else
-        {
-            success = NOMAD::Eval::computeSuccessType(evalPoint1->getEval(NOMAD::EvalType::SURROGATE),
-                                                      evalPoint2->getEval(NOMAD::EvalType::SURROGATE),
-                                                      NOMAD::ComputeType::STANDARD,
-                                                      hMax);
-        }
-    }
-
-    return success;
-}
-
-
-void NOMAD::ComputeSuccessType::setComputeSuccessTypeFunction(NOMAD::EvalType evalType,
-                                                              NOMAD::ComputeType computeType)
-{
-    if (NOMAD::EvalType::BB == evalType)
-    {
-        if (NOMAD::ComputeType::STANDARD == computeType)
-        {
-            _computeSuccessType = NOMAD::ComputeSuccessType::defaultComputeSuccessType;
-        }
-        else if (NOMAD::ComputeType::PHASE_ONE == computeType)
-        {
-            _computeSuccessType = NOMAD::ComputeSuccessType::computeSuccessTypePhaseOne;
-        }
-        else
-        {
-            
-        }
-    }
-    else if (NOMAD::EvalType::SURROGATE == evalType)
-    {
-        if (NOMAD::ComputeType::STANDARD == computeType)
-        {
-            _computeSuccessType = NOMAD::ComputeSuccessType::computeSuccessTypeSurrogate;
-        }
-        else if (NOMAD::ComputeType::PHASE_ONE == computeType)
-        {
-            _computeSuccessType = NOMAD::ComputeSuccessType::computeSuccessTypePhaseOneSurrogate;
-        }
-        else
-        {
-        
-        }
-    }
-    else if (NOMAD::EvalType::MODEL == evalType)
-    {
-        _computeSuccessType = NOMAD::ComputeSuccessType::computeSuccessTypeModel;
-    }
-    else
-    {
-        std::string err = "No compute success type function available for " + NOMAD::evalTypeToString(evalType);
-        throw NOMAD::Exception(__FILE__,__LINE__,err);
-    }
-}
-
-
-NOMAD::SuccessType NOMAD::ComputeSuccessType::operator()(const NOMAD::EvalPointPtr p1,
-                                                         const NOMAD::EvalPointPtr p2,
+NOMAD::SuccessType NOMAD::ComputeSuccessType::operator()(const NOMAD::EvalPointCstPtr &p1,
+                                                         const NOMAD::EvalPointCstPtr &p2,
                                                          const NOMAD::Double& hMax)
 {
-    return _computeSuccessType(p1, p2, hMax);
+    auto compactComputeType = _computeType.Short();
+    auto computeType = compactComputeType.computeType;
+    auto evalType = _computeType.evalType;
+    
+    if (NOMAD::EvalType::UNDEFINED == evalType)
+    {
+        std::string err = "Cannot compute success for undefined eval type";
+        throw NOMAD::Exception(__FILE__,__LINE__,err);
+    }
+    
+    NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED;
+    
+    if (nullptr != p1)
+    {
+        if (nullptr == p2)
+        {
+            if (NOMAD::ComputeType::PHASE_ONE == computeType)
+            {
+                success = NOMAD::SuccessType::FULL_SUCCESS;
+            }
+            else if (NOMAD::ComputeType::STANDARD == computeType || NOMAD::ComputeType::DMULTI_COMBINE_F == computeType || NOMAD::ComputeType::USER == computeType)
+            {
+                
+                NOMAD::Double h = p1->getH(_computeType);
+                if (!h.isDefined() || h > hMax || h == NOMAD::INF)
+                {
+                    // Even if evalPoint2 is NULL, this case is still
+                    // not a success.
+                    success = NOMAD::SuccessType::UNSUCCESSFUL;
+                }
+                else if (p1->isFeasible(_computeType))
+                {
+                    // New feasible point: full success
+                    success = NOMAD::SuccessType::FULL_SUCCESS;
+                }
+                else
+                {
+                    // New infeasible makes for partial success, not full success
+                    success = NOMAD::SuccessType::PARTIAL_SUCCESS;
+                }
+            }
+            else
+            {
+                std::string err = "Compute success type function for " + NOMAD::computeTypeToString(computeType) + " not available";
+                throw NOMAD::Exception(__FILE__,__LINE__,err);
+            }
+        }
+        else
+        {
+            success = NOMAD::Eval::computeSuccessType(p1->getEval(evalType),
+                                                      p2->getEval(evalType),
+                                                      compactComputeType,
+                                                      hMax);
+        }
+    }
+    
+    return success;
+    
+    
 }
 
 

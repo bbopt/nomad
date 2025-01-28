@@ -46,8 +46,8 @@
 /*---------------------------------------------------------------------------------*/
 
 
-#ifndef __NOMAD_4_4_CSMESH__
-#define __NOMAD_4_4_CSMESH__
+#ifndef __NOMAD_4_5_CSMESH__
+#define __NOMAD_4_5_CSMESH__
 
 #include "../../Eval/MeshBase.hpp"
 
@@ -60,6 +60,7 @@
 
  The frame size for each variable is parameterized with one or two attributes: CSMesh::_frameSize, and CSMesh::_granularity (Delta = gran * frameSize). The first attribute is for variable having a specified minimal granularity (for example, integers have a minimal granularity of 1). This ensures that variables are always a multiple of the granularity if it is defined. The mesh size is delta = Delta/2.
 
+ Note: Possible refactoring. Maybe we could derive from GMesh to avoid rewriting some functions (projectOnMesh, scaleAndProjectOnMesh, maybe more). 
  
  */
 class CSMesh: public MeshBase
@@ -142,7 +143,7 @@ private:
 public:
 
     //
-    // The documentation of overriden function is provided in the base class.
+    // The documentation of override function is provided in the base class.
     //
 
     ArrayOfDouble getDeltaFrameSize() const override;
@@ -195,5 +196,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_GMESH__
+#endif // __NOMAD_4_5_GMESH__
 

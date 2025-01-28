@@ -89,11 +89,13 @@ void NOMAD::NMAllReflective::generateTrialPointsImp ()
     // Create trial points but no evaluation
     reflect.start();
     reflect.end();
-    auto trialPts = reflect.getTrialPoints();
-    for (auto evalPoint : trialPts)
     {
-        evalPoint.addGenStep(getStepType());
-        insertTrialPoint(evalPoint);
+        const auto& trialPts = reflect.getTrialPoints();
+        for (auto evalPoint : trialPts)
+        {
+            evalPoint.addGenStep(getStepType());
+            insertTrialPoint(evalPoint);
+        }
     }
 
     // Expand simplex
@@ -102,7 +104,7 @@ void NOMAD::NMAllReflective::generateTrialPointsImp ()
         reflect.setCurrentNMStepType( NOMAD::StepType::NM_EXPAND );
         reflect.start();
         reflect.end();
-        trialPts = reflect.getTrialPoints();
+        const auto& trialPts = reflect.getTrialPoints();
         for (auto evalPoint : trialPts)
         {
             evalPoint.addGenStep(getStepType());
@@ -117,7 +119,7 @@ void NOMAD::NMAllReflective::generateTrialPointsImp ()
         reflect.setCurrentNMStepType( NOMAD::StepType::NM_INSIDE_CONTRACTION );
         reflect.start();
         reflect.end();
-        trialPts = reflect.getTrialPoints();
+        const auto& trialPts = reflect.getTrialPoints();
         for (auto evalPoint : trialPts)
         {
             evalPoint.addGenStep(getStepType());
@@ -132,7 +134,7 @@ void NOMAD::NMAllReflective::generateTrialPointsImp ()
         reflect.setCurrentNMStepType( NOMAD::StepType::NM_OUTSIDE_CONTRACTION );
         reflect.start();
         reflect.end();
-        trialPts = reflect.getTrialPoints();
+        const auto& trialPts = reflect.getTrialPoints();
         for (auto evalPoint : trialPts)
         {
             evalPoint.addGenStep(getStepType());

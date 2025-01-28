@@ -51,8 +51,8 @@
  * \date   November 2017
  */
 
-#ifndef __NOMAD_4_4_MESHBASE__
-#define __NOMAD_4_4_MESHBASE__
+#ifndef __NOMAD_4_5_MESHBASE__
+#define __NOMAD_4_5_MESHBASE__
 
 #include <memory>   // for shared_ptr
 
@@ -91,7 +91,7 @@ protected:
     /*
      The mesh index is a compact indicator of the level of mesh refinement/coarsening.
      A default stopping criterion on mesh index is available for GMesh. With this criterion, there is no need to set a default min mesh size.
-     Warning: The algebric relation between mesh/frame size and mesh index is not always maintained. When updating mesh/frame size (success/failure), the mesh index is  updated. However, when forcing values of mesh/frame size (set functions), the mesh index is not updated. Also, when forcing the mesh index, the mesh/frame size is not updated.
+     Warning: The algebraic relation between mesh/frame size and mesh index is not always maintained. When updating mesh/frame size (success/failure), the mesh index is  updated. However, when forcing values of mesh/frame size (set functions), the mesh index is not updated. Also, when forcing the mesh index, the mesh/frame size is not updated.
      */
     ArrayOfDouble    _r; ///< Mesh index per coordinate.
     ArrayOfDouble    _rMin; ///< Lowest mesh index reached per coordinate.
@@ -99,7 +99,7 @@ protected:
     
     
     /* The limit mesh indices are hardcoded (no parameters). This can trigger a stopping criterion (MIN_MESH_INDEX_REACHED) indicative of the cumulative number of mesh refinements regardless of the initial mesh size. There is a symmetric for mesh coarsening.
-       It is possible to change those criterions programmatically with
+       It is possible to change those criteria programmatically with
      setLimitMeshIndices function.
    */
     int _limitMinMeshIndex; ///< The min limit of mesh index (smaller index -> finer mesh)
@@ -117,7 +117,7 @@ public:
      \param limitMinMeshIndex    The min limit of mesh index  -- \b IN.
      \param limitMaxMeshIndex    The max limit of mesh index  -- \b IN.
      */
-    explicit MeshBase(std::shared_ptr<PbParameters> pbParams,
+    explicit MeshBase(const std::shared_ptr<PbParameters>& pbParams,
                       int limitMinMeshIndex = M_INF_INT ,
                       int limitMaxMeshIndex = P_INF_INT );
 
@@ -129,7 +129,7 @@ public:
     virtual ~MeshBase() {}
 
     /**
-     Pure virtual function. A derived calss must implement a clone function to return a pointer to MeshBase
+     Pure virtual function. A derived class must implement a clone function to return a pointer to MeshBase
      */
     virtual std::unique_ptr<MeshBase> clone() const = 0;
     
@@ -315,4 +315,4 @@ DLL_EVAL_API std::istream& operator>>(std::istream& is, MeshBase& mesh);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_MESHBASE__
+#endif // __NOMAD_4_5_MESHBASE__

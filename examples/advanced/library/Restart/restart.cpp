@@ -45,7 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
-/*  example of a program that makes NOMAD restarts after failed iterations  */
+/*  example of a program that makes NOMAD restart after failed iterations   */
 /*--------------------------------------------------------------------------*/
 #include "Nomad/nomad.hpp"
 #include "Algos/EvcInterface.hpp"
@@ -64,11 +64,11 @@ class My_Evaluator : public NOMAD::Evaluator
 private:
 
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams, NOMAD::EvalType evalType)
+    explicit My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams, NOMAD::EvalType evalType)
     : NOMAD::Evaluator(evalParams, evalType)
     {}
 
-    ~My_Evaluator() {}
+    ~My_Evaluator() override = default;
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override;
 };
@@ -102,7 +102,7 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
 }
 
 
-void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams, const size_t n)
+void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams, const size_t n)
 {
     // Parameters creation
     allParams->setAttributeValue("DIMENSION", n);
@@ -121,9 +121,9 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams, const size_t
 
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes;
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::OBJ);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::EB); // Note: pb solves easier with PB constraint. This choice is made to illustrate the custom stop and restart.
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::EB);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::OBJ);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::EB); // Note: pb solves easier with PB constraint. This choice is made to illustrate the custom stop and restart.
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::EB);
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
@@ -166,7 +166,7 @@ void userMegaIterationEnd(const NOMAD::Step& step,
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main ( int argc , char ** argv )
+int main()
 {
     // Dimension (Number of variables)
     size_t n = 5;
@@ -186,7 +186,7 @@ int main ( int argc , char ** argv )
 
     std::vector<NOMAD::EvalPoint> bf;
     std::vector<NOMAD::EvalPoint> bi;
-
+    
     // Main run
     try
     {
@@ -203,11 +203,11 @@ int main ( int argc , char ** argv )
 
                 // New starting points
                 NOMAD::ArrayOfPoint x0s;
-                if (bf.size() > 0)
+                if (!bf.empty())
                 {
                     x0s.push_back(bf[0]);
                 }
-                if (bi.size() > 0)
+                if (!bi.empty())
                 {
                     x0s.push_back(bi[0]);
                 }
@@ -231,8 +231,8 @@ int main ( int argc , char ** argv )
 
             bf.clear();
             bi.clear();
-            NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB,NOMAD::ComputeType::STANDARD);
-            NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);
+            NOMAD::CacheBase::getInstance()->findBestFeas(bf);
+            NOMAD::CacheBase::getInstance()->findBestInf(bi);
         }
     }
 

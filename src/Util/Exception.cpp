@@ -56,7 +56,7 @@
 /*----------------------------------------------------------------*/
 /*                     NOMAD::Exception::what()                   */
 /*----------------------------------------------------------------*/
-const char * NOMAD::Exception::what() const throw()
+const char * NOMAD::Exception::what() const noexcept
 {
     std::ostringstream oss;
     if ( ! _file.empty() || _line > 0 )

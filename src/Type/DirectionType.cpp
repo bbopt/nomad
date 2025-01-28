@@ -63,18 +63,18 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::string & s)
 {
     std::list<std::string> ls;
     std::size_t current, previous = 0;
-    current = s.find(" ");
+    current = s.find(' ');
     while (current != std::string::npos)
     {
         ls.push_back(s.substr(previous, current - previous));
         previous = current + 1;
-        current = s.find(" ", previous);
+        current = s.find(' ', previous);
     }
     ls.push_back(s.substr(previous, current - previous));
     return stringToDirectionType(ls);
 }
 
-// Convert a list of strings ("ORTHO 2N", "ORTHO N+1 NEG", ...)
+// Convert a list of strings ("ORTHO 2N", "ORTHO N+1 NEG", ..., "QR 2N")
 // to a NOMAD::DirectionType.
 NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> & ls)
 {
@@ -91,7 +91,7 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
-    std::list<std::string>::const_iterator it = ls.begin() , end = ls.end();
+    auto it = ls.begin() , end = ls.end();
     std::string                            s  = *it;
     NOMAD::toupper ( s );
 
@@ -114,10 +114,20 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
     {
         ret = NOMAD::DirectionType::DOUBLE;
     }
-    
+
     if (s == "CS")
     {
         ret = NOMAD::DirectionType::CS;
+    }
+
+    if (s == "USER_POLL")
+    {
+        ret = NOMAD::DirectionType::USER_POLL;
+    }
+
+    if (s == "USER_FREE_POLL")
+    {
+        ret = NOMAD::DirectionType::USER_FREE_POLL;
     }
 
     // Ortho-MADS with n+1 (plus QUAD or NEG), or 2n directions:
@@ -168,11 +178,46 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
         }
     }
 
+    if (s == "QR")
+    {
+        ++it;
+        if ( it == end )
+        {
+            ret = NOMAD::DirectionType::QR_2N;  // Default for ORTHO
+        }
+        s = *it;
+        NOMAD::toupper ( s );
+        if ( s == "2N" )
+        {
+            ret = NOMAD::DirectionType::QR_2N;
+        }
+// Not yet supported
+//        if ( s == "N+1" )
+//        {
+//            ++it;
+//            if (it==end)
+//            {
+//                throw NOMAD::Exception(__FILE__, __LINE__, "QR N+1 QUAD direction type not yet supported");
+//                ret = NOMAD::DirectionType::ORTHO_NP1_QUAD;   // Default for ORTHO N+1
+//            }
+//            s = *it;
+//            NOMAD::toupper ( s );
+//            if ( s=="QUAD" )
+//            {
+//                ret= NOMAD::DirectionType::QR_NP1_QUAD;
+//            }
+//            if ( s=="NEG" )
+//            {
+//                ret=NOMAD::DirectionType::QR_NP1_NEG;
+//            }
+//        }
+    }
+
+
     // LT-MADS with 1, 2 or 2n directions:
     if ( s == "LT" )
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "LT direction type not yet supported");
-
     }
 
     // GPS:
@@ -217,11 +262,20 @@ std::string NOMAD::directionTypeToString(NOMAD::DirectionType dt)
         case NOMAD::DirectionType::ORTHO_NP1_QUAD:
             s = "ORTHO N+1 QUAD";
             break;
+        case NOMAD::DirectionType::QR_2N:
+            s = "QR 2N";
+            break;
         case NOMAD::DirectionType::SINGLE:
             s = "SINGLE";
             break;
         case NOMAD::DirectionType::DOUBLE:
             s = "DOUBLE";
+            break;
+        case NOMAD::DirectionType::USER_POLL:
+            s = "USER_POLL";
+            break;
+        case NOMAD::DirectionType::USER_FREE_POLL:
+            s = "USER_FREE_POLL";
             break;
         default:
             throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized NOMAD::DirectionType " + std::to_string((int)dt));

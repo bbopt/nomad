@@ -109,8 +109,8 @@ std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::getSortedTrialPoints(const NO
     {
         throw NOMAD::StepException(__FILE__,__LINE__, _step->getName() + ": Not suppose to sort points that are not BB", _step);
     }
-    if (trialPoints.size() == 0)
-        return std::vector<EvalPoint>();
+    if (trialPoints.empty())
+        return {};
     
     
     std::vector<EvalPoint> sortedTrialPoints;
@@ -165,12 +165,12 @@ std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::getSortedTrialPoints(const NO
     _step->AddOutputDebug("Trial points sorted, before trim: " + std::to_string(trialPoints.size()) + " after trim: " + std::to_string(evalPointsPtrToSort.size()));
     OUTPUT_INFO_END
     
-    if (evalPointsPtrToSort.size() > 0)
+    if (!evalPointsPtrToSort.empty())
     {
         // Sort un-trimmed trial points
         _evaluatorControl->sort(evalPointsPtrToSort, forceRandom);
         
-        for (auto evalPointPtr: evalPointsPtrToSort )
+        for (const auto& evalPointPtr: evalPointsPtrToSort )
         {
             sortedTrialPoints.insert(sortedTrialPoints.begin(),evalPointPtr->makeSubSpacePointFromFixed(_fixedVariable));
         }
@@ -209,7 +209,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
         throw NOMAD::StepException(__FILE__,__LINE__, _step->getName() + ": In keepPointsThatNeedEval: need a parent of type Iteration or MegaSearchPoll", _step);
     }
 
-    if (trialPoints.size() > 0)
+    if (!trialPoints.empty())
     {
         OUTPUT_INFO_START
         _step->AddOutputInfo("Add points (full space) to eval queue for step " + _step->getName(), true, false);
@@ -327,7 +327,7 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
     OUTPUT_INFO_END
 
     OUTPUT_INFO_START
-    if (trialPoints.size() > 0)
+    if (!trialPoints.empty())
     {
         _step->AddOutputInfo("Add points (full space) to eval queue for step " + _step->getName(), false, true);
     }
@@ -400,7 +400,7 @@ size_t NOMAD::EvcInterface::countPointsThatNeedEval(const NOMAD::EvalPointSet &t
 
 
     OUTPUT_INFO_START
-    _step->AddOutputInfo("Number of points for step " + _step->getName() + " of eval type" + NOMAD::evalTypeToString(evalType) + " that would need eval: " + std::to_string(nbPointsThatNeedEval));
+    _step->AddOutputInfo("Number of points for step " + _step->getName() + " of eval type " + NOMAD::evalTypeToString(evalType) + " that would need eval: " + std::to_string(nbPointsThatNeedEval));
 
     NOMAD::OutputQueue::Flush();
     OUTPUT_INFO_END
@@ -428,7 +428,7 @@ std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::retrieveEvaluatedPointsFromCa
         {
             // Find the trialPoint in the cache.
             // If the point is in the cache, depending on its
-            // EvalStatus we don't need to evaluate it and we return it.
+            // EvalStatus, we don't need to evaluate it and we return it.
             
             // First, convert trial point to full dimension, since we are
             // now only working with the cache and the EvaluatorControl.
@@ -453,7 +453,7 @@ std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::retrieveEvaluatedPointsFromCa
 }
 
 
-void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::BarrierBase> subBarrier)
+void NOMAD::EvcInterface::setBarrier(const std::shared_ptr<NOMAD::BarrierBase>& subBarrier)
 {
     // The barrier may belong to a subspace but EvaluatorControl cares only of outputs for detecting success. No need create a barrier from scratch.
     _evaluatorControl->setBarrier(subBarrier);
@@ -464,13 +464,27 @@ std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::retrieveAllEvaluatedPoints()
 {
     std::vector<NOMAD::EvalPoint> evaluatedPoints;
 
-    for (auto evalPoint : _evaluatorControl->retrieveAllEvaluatedPoints())
+#ifdef _OPENMP
+#pragma omp critical
+#endif
     {
-        // Convert from full to subspace dimension
-        evalPoint = evalPoint.makeSubSpacePointFromFixed(_fixedVariable);
-        evaluatedPoints.push_back(evalPoint);
+        for (auto evalPoint : _evaluatorControl->retrieveAllEvaluatedPoints())
+        {
+            // Convert from full to subspace dimension
+            try
+            {
+                evalPoint = evalPoint.makeSubSpacePointFromFixed(_fixedVariable);
+            }
+            catch(...)
+            {
+                OUTPUT_INFO_START
+                _step->AddOutputInfo("Fail to convert from full to subspace. Point is not retrieved. Let's continue in " + _step->getName(), true, false);
+                OUTPUT_INFO_END
+                continue;
+            }
+            evaluatedPoints.push_back(evalPoint);
+        }
     }
-
     return evaluatedPoints;
 }
 

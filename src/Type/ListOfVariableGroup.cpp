@@ -67,7 +67,7 @@ std::ostream& NOMAD::operator<< (std::ostream& out, const NOMAD::VariableGroup& 
 std::ostream& NOMAD::operator<< (std::ostream& out, const NOMAD::ListOfVariableGroup& lvg)
 {
     size_t i=0;
-    for (auto vg : lvg)
+    for (const auto& vg : lvg)
     {
         if (i > 0)
         {

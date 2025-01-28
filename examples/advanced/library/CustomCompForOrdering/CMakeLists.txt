@@ -17,19 +17,4 @@ install(TARGETS customCompForOrdering.exe
     RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR} )
 
 
-# Add test for this example
-#if(BUILD_TESTS MATCHES ON)
-#    message(STATUS "    Add example test for custom ordering of points before evaluation") 
-#    # Can run this test after install
-#    if (WIN32)
-#        add_test(NAME ExampleAdvancedcustomCompForOrdering
-#	    COMMAND bash.exe ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./customCompForOrdering.exe
-#	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-#        )
-#    else()
-#        add_test(NAME ExampleAdvancedcustomCompForOrdering
-#	    COMMAND ${CMAKE_BINARY_DIR}/examples/runExampleTest.sh ./customCompForOrdering.exe
-#	    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-#        )
-#    endif()
-#endif()
+# No test for this example

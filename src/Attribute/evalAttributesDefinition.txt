@@ -131,7 +131,7 @@ and BB_OUTPUT_TYPE.
     . CSTR      : same as 'PB'
     . EB        : constraint <= 0 treated with Extreme Barrier (EB)
     . F         : constraint <= 0 treated with Filter
-    . CNT_EVAL  : 0 or 1 output: count or not the evaluation
+    . CNT_EVAL  : 0 or 1 output: count or not the evaluation (for batch mode and Matlab interface)
     . NOTHING   : this output is ignored
     . EXTRA_O   : same as 'NOTHING'
     .  -        : same as 'NOTHING'
@@ -145,12 +145,16 @@ and BB_OUTPUT_TYPE.
 
 . See parameters LOWER_BOUND and UPPER_BOUND for bound constraints
 
+. See parameter H_NORM for the infeasibility measure computation.
+
+. See parameter H_MIN for relaxing the feasibility criterion.
+
 . Examples
     . BB_EXE bb.exe                   # these two lines define
     . BB_OUTPUT_TYPE OBJ EB EB        # that bb.exe outputs three values
 
 \)
-\( basic bb exe blackbox(s) output(s) constraint(s) type(s) \)
+\( basic bb exe blackbox(s) output(s) constraint(s) type(s) infeasibility norm \)
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ################################################################################
@@ -167,7 +171,7 @@ std::string
     executable, defined by BB_OUTPUT_TYPE.
     
 . Static surrogate evaluations can be used for sorting trial points before
-  blackbox evaluation OR for VNS_SEARCH.
+  blackbox evaluation OR for VNS Search.
 
 . Example
     SURROGATE_EXE surrogate.exe     # surrogate.exe is a static surrogate executable

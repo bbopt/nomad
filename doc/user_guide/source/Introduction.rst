@@ -98,7 +98,7 @@ See :ref:`installation` for details to obtain binaries from the source files.
 Authors and fundings
 ^^^^^^^^^^^^^^^^^^^^
 
-The development of NOMAD started in 2001. Three versions of NOMAD have been developed before NOMAD 4.
+The development of NOMAD started in 2001, with three versions preceding NOMAD 4.
 NOMAD 4 and NOMAD 3 are currently supported. NOMAD 4 is almost a completely new code compared with NOMAD 3.
 
 NOMAD 4 has been funded by Huawei Canada, Rio Tinto, Hydro-Québec, NSERC (Natural Sciences and Engineering Research Council of Canada), InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute for Data Valorization)
@@ -135,7 +135,9 @@ Some features of NOMAD have been developed under the impulsion of enthusiastic u
 We also wish to thank Pascal Côté and Jan Provaznik for their contribution in the development and distribution of the Python interface PyNomad and Jonathan Currie for the development of the foundations for a strong NOMAD interface for MATLAB.
 Another special thank to Jean-Max Redonnet for pushing the development of the Java Swig interface.
 
-The contributions of  Miguel Anjos, Romain Couderc, Miguel Diago Martinez, Solène Kojtych, Guillaume Lameynardie, Wim Lavrijsen, Alexis Montoison, Caroline Rocha, Ludovic Salomon, Renaud Saltet, Yassine Diouri, Xavier Lebeuf and Tangi Migot was highly appreciated during the development and testing of NOMAD 4.
+The contributions of  Miguel Anjos, Romain Couderc, Miguel Diago Martinez, Solène Kojtych, Guillaume Lameynardie, Wim Lavrijsen, Alexis Montoison, Caroline Rocha, Renaud Saltet, Yassine Diouri, Xavier Lebeuf and Tangi Migot was highly appreciated during the development and testing of NOMAD 4.
+
+The development of DMultiMads was conducted by Ludovic Salomon during his PhD thesis. Additional work was done to integrate DMultiMads in NOMAD 4, including some advanced search methods.
 
 .. Finally, many thanks to the TOMS anonymous referees for their useful comments which helped a lot to improve the code and the text of [AuLeRoTr2021]_.
 

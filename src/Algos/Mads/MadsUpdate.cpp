@@ -85,14 +85,6 @@ bool NOMAD::MadsUpdate::runImp()
     // NOTE: update use success determined from barrier to update mesh
     // The success of parent mega iter is not considered.
     
-    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    NOMAD::EvalType evalType = NOMAD::EvalType::BB;
-    NOMAD::ComputeType computeType = NOMAD::ComputeType::STANDARD;
-    if (nullptr != evc)
-    {
-        evalType = evc->getCurrentEvalType();
-        computeType = evc->getComputeType();
-    }
     // megaIter barrier is already in subproblem.
     // So no need to convert refBestFeas and refBestInf
     // from full dimension to subproblem.
@@ -100,6 +92,15 @@ bool NOMAD::MadsUpdate::runImp()
     auto barrier = megaIter->getBarrier();
     auto mesh = megaIter->getMesh();
     std::string s;  // for output
+    
+    // Must have a barrier
+    if (nullptr == barrier)
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"Error: barrier is null");
+    }
+    
+    // Which eval type 
+    auto evalType = barrier->getEvalType();
 
     OUTPUT_DEBUG_START
     s = "Running " + getName() + ". Barrier: ";
@@ -112,7 +113,7 @@ bool NOMAD::MadsUpdate::runImp()
     OUTPUT_DEBUG_END
 
     // Barrier is already updated from previous steps (IterationUtils::postProcessing).
-    // Get ref best feasible and infeasible, and then update
+    // Get the best feasible and infeasible references, and then update
     // reference values.
     auto refBestFeas = barrier->getRefBestFeas();
     auto refBestInf  = barrier->getRefBestInf();
@@ -127,7 +128,9 @@ bool NOMAD::MadsUpdate::runImp()
         // Compute success
         // Get which of newBestFeas and newBestInf is improving
         // the solution. Check newBestFeas first.
-        NOMAD::ComputeSuccessType computeSuccess(evalType, computeType);
+        auto computeType = barrier->getFHComputeType();
+        
+        NOMAD::ComputeSuccessType computeSuccess(computeType);
         std::shared_ptr<NOMAD::EvalPoint> newBest;
         NOMAD::SuccessType success = computeSuccess(newBestFeas, refBestFeas);
         if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
@@ -145,17 +148,17 @@ bool NOMAD::MadsUpdate::runImp()
                 else
                     throw NOMAD::Exception(__FILE__,__LINE__,"Error: Cannot set the point at the origin of newBest (feasible)");
             }
-            OUTPUT_DEBUG_START
+            OUTPUT_INFO_START
             if (refBestFeas)
             {
                 s = "Update: improving feasible point";
-                AddOutputDebug(s);
+                AddOutputInfo(s);
                 s = " from " + refBestFeas->display();
-                AddOutputDebug(s);
+                AddOutputInfo(s);
                 s = " to " + newBestFeas->display();
-                AddOutputDebug(s);
+                AddOutputInfo(s);
             }
-            OUTPUT_DEBUG_END
+            OUTPUT_INFO_END
         }
         else
         {
@@ -180,25 +183,25 @@ bool NOMAD::MadsUpdate::runImp()
                     else
                         throw NOMAD::Exception(__FILE__,__LINE__,"Error: Cannot set the point at the origin of newBest (infeasible)");
                 }
-                OUTPUT_DEBUG_START
+                OUTPUT_INFO_START
                 if (refBestInf)
                 {
                     s = "Update: improving infeasible point ";
-                    AddOutputDebug(s);
+                    AddOutputInfo(s);
                     s = " from " + refBestInf->display();
-                    AddOutputDebug(s);
+                    AddOutputInfo(s);
                     s = " to " + newBestInf->display();
-                    AddOutputDebug(s);
+                    AddOutputInfo(s);
                 }
-                OUTPUT_DEBUG_END
+                OUTPUT_INFO_END
             }
         }
         if (success == NOMAD::SuccessType::UNSUCCESSFUL)
         {
-            OUTPUT_DEBUG_START
+            OUTPUT_INFO_START
             s = "Update: no success found";
-            AddOutputDebug(s);
-            OUTPUT_DEBUG_END
+            AddOutputInfo(s);
+            OUTPUT_INFO_END
         }
 
 
@@ -256,7 +259,7 @@ bool NOMAD::MadsUpdate::runImp()
                 AddOutputInfo(dirStr);
                 OUTPUT_INFO_END
             }
-
+            auto evc = NOMAD::EvcInterface::getEvaluatorControl();
             if (nullptr != evc)
             {
                 evc->setLastSuccessfulFeasDir(dirFeas);

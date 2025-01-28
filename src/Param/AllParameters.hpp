@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_ALLPARAMETERS__
-#define __NOMAD_4_4_ALLPARAMETERS__
+#ifndef __NOMAD_4_5_ALLPARAMETERS__
+#define __NOMAD_4_5_ALLPARAMETERS__
 
 
 #include "../Param/CacheParameters.hpp"
@@ -64,16 +64,20 @@
 
 /// Container class for all NOMAD parameters.
 /**
- Currently we have six classes of parameters: for run/main execution, problem definition, evaluation, evaluation control, cache and for display. \n
+ Currently we have six classes of parameters: for run/main execution, problem definition, evaluation, evaluation
+ control, cache and for display. \n
 
- The AllParameters::read function reads the entries for all parameters given in a single parameter file. After reading the entries, the parameters can be checked for inter-value compliance by AllParameters::checkAndComply as a sanity check of parameters. The function AllParameters::checkAndComply can also set some parameters according to other parameters (for example, the granularity of integer variables are set to 1). \n
+ The AllParameters::read function reads the entries for all parameters given in a single parameter file.
+ After reading the entries, the parameters can be checked for inter-value compliance by AllParameters::checkAndComply
+ as a sanity check of parameters. The function AllParameters::checkAndComply can also set some parameters according to
+ other parameters (for example, the granularity of integer variables are set to 1). \n
 
- When changing the value of a parameter, the class where it belongs is tagged "toBeChecked". Before accessing ANY parameter in ANY class, the AllParameters::checkAndComply function must be called.
+ When changing the value of a parameter, the class where it belongs is tagged "toBeChecked".
+ Before accessing ANY parameter in ANY class, the AllParameters::checkAndComply function must be called.
 
- Some parameters have a tag to indicate that they control algorithm execution. To verify that two sets of parameters are compatible we can compare all "algo" tagged parameters with the function AllParameters::isAlgoCompatible. The tagged parameters are the one having "ALGO_COMPATIBILITY_CHECK yes" in their attibute definition file.
-
-
-\todo add the NOMAD parameters in a container and use foreach. This should prevent many modifications in the header when add a new type of NOMAD parameter.
+ Some parameters have a tag to indicate that they control algorithm execution. To verify that two sets of parameters
+ are compatible we can compare all "algo" tagged parameters with the function AllParameters::isAlgoCompatible.
+ The tagged parameters are the one having "ALGO_COMPATIBILITY_CHECK yes" in their attribute definition file.
  */
 class DLL_UTIL_API AllParameters
 {
@@ -114,7 +118,7 @@ public:
     AllParameters(const AllParameters &allParams) = delete;
 
     /**
-     Do not allow copy assignement.
+     Do not allow copy assignment.
      Copy constructors are not defined for Parameters class, and
      we need a deep copy here: it does not make sense to copy
      the smart pointers.
@@ -273,7 +277,7 @@ public:
     /// Display all attributes
     void displayHelp(const std::string &helpSubject , bool devHelp, std::ostream &os);
     
-    /// Display all atttributes in CSV format for doc
+    /// Display all attributes in CSV format for doc
     void displayCSVDoc(std::ostream &os);
 
     // Include set and get methods from NOMAD 3 for backwards compatibility
@@ -284,4 +288,4 @@ public:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_4_ALLPARAMETERS__
+#endif // __NOMAD_4_5_ALLPARAMETERS__

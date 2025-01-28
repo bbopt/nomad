@@ -97,7 +97,7 @@ namespace SGTELIB {
     /*          Constructor                 */
     /*--------------------------------------*/
     Surrogate_Kriging ( SGTELIB::TrainingSet & trainingset ,   
-                        SGTELIB::Surrogate_Parameters param) ;
+                        const SGTELIB::Surrogate_Parameters& param) ;
 
     /*--------------------------------------*/
     /*          Destructor                  */

@@ -29,7 +29,7 @@
 /*         constructor        */
 /*----------------------------*/
 SGTELIB::Surrogate_PRS::Surrogate_PRS ( SGTELIB::TrainingSet & trainingset,
-                                        SGTELIB::Surrogate_Parameters param) :
+                                        const SGTELIB::Surrogate_Parameters& param) :
   SGTELIB::Surrogate ( trainingset , param ),
   _q                 ( 0           ),
   _M                 ( "M",0,0     ),
@@ -94,6 +94,7 @@ bool SGTELIB::Surrogate_PRS::build_private ( void ) {
   if (_q>200)
       return false;
     
+// Let's try to building model with less points by adding a small ridge
   if ( (_q>pvar) && (_param.get_ridge()==0) )
           _param.set_ridge(0.001);
 
@@ -208,14 +209,30 @@ bool SGTELIB::Surrogate_PRS::compute_alpha ( void ){
         return false;
     }
   // COMPUTE COEFS
-  if (r>0){
+  if (r>0)
+  {
     _Ai = (Ht*_H+r*SGTELIB::Matrix::identity(_q)).SVD_inverse();
     //_Ai = (Ht*_H+r*SGTELIB::Matrix::identity(_q)).cholesky_inverse();
   }
-  else{
-    _Ai = (Ht*_H).SVD_inverse();
-    //_Ai = (Ht*_H).cholesky_inverse();
+  else
+  {
+      _Ai = (Ht*_H).SVD_inverse();
+      //_Ai = (Ht*_H).cholesky_inverse();
+      
+      // We may not have enough points to compute all coefficients of the monome
+      // Let's try with a small ridge
+      if (_Ai.has_nan())
+      {
+          r = 1E-3;
+          _Ai = (Ht*_H+r*SGTELIB::Matrix::identity(_q)).SVD_inverse();
+          
+      }
   }
+  if (_Ai.has_nan())
+  {
+      return false;
+  }
+    
   _alpha = _Ai * (Ht * Zs);
     
     SGTELIB::Matrix sing_val = (Ht*_H).get_singular_values();
@@ -949,23 +966,25 @@ void SGTELIB::Surrogate_PRS::compute_multiplier(
     const SGTELIB::Matrix & Jacobian,
     const double rank_tol)
 {
-    int ncon = Jacobian.get_nb_rows();
-    int nvar = Jacobian.get_nb_cols();
+    const int ncon = Jacobian.get_nb_rows();
+    const int nvar = Jacobian.get_nb_cols();
 
-    if (Grad.get_nb_rows() != nvar || Grad.get_nb_cols() != 1 )
+    if (Grad.get_nb_rows() != nvar || Grad.get_nb_cols() != 1)
     {
         throw Exception(__FILE__, __LINE__, "Grad dimensions are not ok!");
     }
-    if (Jacobian.get_nb_rows() > ncon || Jacobian.get_nb_cols() != nvar )
+    if (Jacobian.get_nb_cols() != nvar)
     {
         throw Exception(__FILE__, __LINE__, "Jacobian dimensions are not ok!");
     }
-    if (Jacobian.has_nan()) {
+    if (Jacobian.has_nan())
+    {
         throw Exception(__FILE__, __LINE__, "Jacobian contains NaN");
     }
-    if (ncon > nvar) {
-        throw Exception(__FILE__, __LINE__, "Jacobian should have full column rank (ncon > nvar)");
-    }
+
+    // The multipliers are the solutions of the least-square equation
+    //  Jacobian multiplier = Grad.
+    //  We use the SVD to compute the inverse of Jacobian t Jacobian.
 
     // init matrices for SVD
     double ** U = new double *[nvar];
@@ -981,28 +1000,28 @@ void SGTELIB::Surrogate_PRS::compute_multiplier(
     // Perform SVD
     std::string error_msg;
     // Compute the SVD of the transpose Jacobian
-    Jacobian.transpose().SVD_decomposition ( error_msg , U, W, V, 1000000000 );
+    Jacobian.transpose().SVD_decomposition(error_msg , U, W, V, 1000000000);
  
-    int rank=0;
-    for (int i=0; i < ncon; i++)
+    int rank = 0;
+    for (int i = 0; i < ncon; i++)
     {
         if (fabs(W[i]) > rank_tol)
+        {
             rank++;
-    }
-
-    if (rank != ncon) {
-        throw Exception(__FILE__, __LINE__, "Jacobian should have full column rank (rank deficient)");
+        }
+        else
+        {
+            W[i] = 0;
+        }
     }
 
     SGTELIB::Matrix Wm = SGTELIB::Matrix("Wm", ncon, ncon);
-    for (int i=0 ; i < ncon ; i++){
-        for (int j=0 ; j < ncon ; j++){
-            if (i == j){
-                Wm.set(i, j, 1/(pow(W[i], 2)));
-            }
-            else {
-                Wm.set(i, j, 0);
-            }
+    for (int i = 0 ; i < ncon ; i++)
+    {
+        for (int j = 0 ; j < ncon ; j++)
+        {
+            const double Wmi = (i == j) && W[i] != 0 ? 1.0 / (W[i] * W[i]) : 0;
+            Wm.set(i, j, Wmi);
         }
     }
     SGTELIB::Matrix Vm = SGTELIB::Matrix("Vm", ncon, ncon, V);

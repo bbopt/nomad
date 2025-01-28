@@ -58,7 +58,8 @@ void NOMAD::TemplateAlgoRandom::init()
     setStepType(NOMAD::StepType::ALGORITHM_RANDOM);
     
     
-    // Let's get the frame size. The frame size may not be available when no mesh is available. The frame center (best incumbent) may not be available.
+    // Let's get the frame size. The frame size may not be available when no mesh is available.
+    // The frame center (the best incumbent) may not be available.
     const NOMAD::TemplateAlgoIteration * iter = getParentOfType<NOMAD::TemplateAlgoIteration*>();
 
     if(nullptr == iter)
@@ -149,7 +150,7 @@ void NOMAD::TemplateAlgoRandom::generateTrialPointsImp()
         NOMAD::EvalPoint xt = *_center;
         for (size_t i = 0; i < n; i++)
         {
-            xt[i] += RNG::rand(-(j+1.0)*_boxSize[i].todouble()/2.0,(j+1.0)*_boxSize[i].todouble()/2.0);
+            xt[i] += RNG::rand(-((double)j+1.0)*_boxSize[i].todouble()/2.0,((double)j+1.0)*_boxSize[i].todouble()/2.0);
         }
         
         NOMAD::EvalPointPtr pointFrom = nullptr;

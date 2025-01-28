@@ -51,6 +51,8 @@
 #include "../Type/BBOutputType.hpp"
 #include "../Util/fileutils.hpp"
 
+#include <thread>
+
 #include "../nomad_version.hpp"
 
 
@@ -68,7 +70,10 @@ void NOMAD::RunParameters::init()
     {
         #include "../Attribute/runAttributesDefinition.hpp"
         registerAttributes( _definition );
-        
+
+        #include "../Attribute/runAttributesDefinitionDMulti.hpp"
+        registerAttributes( _definition );
+
         #include "../Attribute/runAttributesDefinitionIBEX.hpp"
         registerAttributes( _definition );
 
@@ -84,6 +89,9 @@ void NOMAD::RunParameters::init()
         #include "../Attribute/runAttributesDefinitionPSDSSD.hpp"
         registerAttributes( _definition );
 
+        #include "../Attribute/runAttributesDefinitionCOOP.hpp"
+        registerAttributes( _definition );
+
         #include "../Attribute/runAttributesDefinitionQPSolver.hpp"
         registerAttributes( _definition );
 
@@ -92,13 +100,13 @@ void NOMAD::RunParameters::init()
 
         #include "../Attribute/runAttributesDefinitionSgtelibModel.hpp"
         registerAttributes( _definition );
-        
+
         #include "../Attribute/runAttributesDefinitionVNS.hpp"
         registerAttributes( _definition );
-        
+
         #include "../Attribute/runAttributesDefinitionDisco.hpp"
         registerAttributes( _definition );
-        
+
         // Registered attributes using defined keywords (not in preprocessed special header file)
         registerAttribute<NOMAD::Double>("EPSILON", NOMAD::DEFAULT_EPSILON, false,
             " NOMAD precision for comparison of values ",
@@ -145,10 +153,10 @@ void NOMAD::RunParameters::checkAndComply(
 
     // check the non-interpreted parameters:
     std::vector<std::shared_ptr<NOMAD::ParameterEntry>> allNonInterp = getAllNonInterpretedParamEntries();
-    if (allNonInterp.size() > 0)
+    if (!allNonInterp.empty())
     {
         err = "Unrecognized parameters in file " + allNonInterp[0]->getParamFile() + ":\n";
-        for (auto pe : allNonInterp)
+        for (const auto& pe : allNonInterp)
         {
             err += "line " + std::to_string(pe->getLine());
             err += ": Unrecognized parameter: " + pe->getName() + "\n";
@@ -198,9 +206,11 @@ void NOMAD::RunParameters::checkAndComply(
     if (n >= bigDim)
     {
         if (   getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH", false)
+            || getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH_SIMPLE_MADS", false)
             || getAttributeValueProtected<bool>("SGTELIB_MODEL_SEARCH", false))
         {
             setAttributeValue("QUAD_MODEL_SEARCH", false);
+            setAttributeValue("QUAD_MODEL_SEARCH_SIMPLE_MADS", false);
             setAttributeValue("SGTELIB_MODEL_SEARCH", false);
             std::cout << "Warning: Dimension " << n << " is greater than (or equal to) " << bigDim << ". Models are disabled." << std::endl;
         }
@@ -209,7 +219,7 @@ void NOMAD::RunParameters::checkAndComply(
     // Set default value, if the parameter is not set.
     // Default value: TYPE LOWESS DEGREE 1 KERNEL_SHAPE OPTIM KERNEL_COEF OPTIM RIDGE 0 METRIC AOECV
     auto sgtelibModelDefinition = getAttributeValueProtected<NOMAD::ArrayOfString>("SGTELIB_MODEL_DEFINITION",false);
-    if (sgtelibModelDefinition.size() == 0)
+    if (sgtelibModelDefinition.empty())
     {
         //NOMAD::ArrayOfString aos("TYPE LOWESS DEGREE 1 KERNEL_SHAPE OPTIM KERNEL_COEF OPTIM RIDGE 0 METRIC AOECV");
         NOMAD::ArrayOfString aos("TYPE PRS DEGREE 2");
@@ -263,9 +273,9 @@ void NOMAD::RunParameters::checkAndComply(
         err += "search method, NOMAD must be recompiled using option USE_SGTELIB=1.";
         std::cout << err << std::endl;
     }
-    if (getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH", false))
+    if (getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH", false) || getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH_SIMPLE_MADS", false))
     {
-        err = "Warning: Parameter QUAD_MODEL_SEARCH is set to true, but ";
+        err = "Warning: Parameter QUAD_MODEL_SEARCH or QUAD_MODEL_SEARCH_SIMPLE_MADS is set to true, but ";
         err += "Quad Model sampling cannot be used. To be able to use Quad Model Search ";
         err += "search method, NOMAD must be recompiled using option USE_SGTELIB=1.";
         std::cout << err << std::endl;
@@ -294,7 +304,7 @@ void NOMAD::RunParameters::checkAndComply(
         dirTypes.push_back(NOMAD::DirectionType::SINGLE);
         setAttributeValue("DIRECTION_TYPE_SECONDARY_POLL", dirTypes);
     }
-    
+
     // Test for extra trial points. Only valid for a unique Ortho 2n direction type.
     auto extraTrialPointsAddUp = getAttributeValueProtected<size_t>("TRIAL_POINT_MAX_ADD_UP",false);
     if ( extraTrialPointsAddUp > 0 && ( primaryDirTypes.size() > 1 || primaryDirTypes[0] != NOMAD::DirectionType::ORTHO_2N ))
@@ -302,7 +312,7 @@ void NOMAD::RunParameters::checkAndComply(
         err = "TRIAL_POINT_MAX_ADD_UP can only be used with a single ORTHO 2N direction type";
         throw NOMAD::Exception(__FILE__,__LINE__, err);
     }
-    
+
     // Test for CS
     bool useAlgoCS = getAttributeValueProtected<bool>("CS_OPTIMIZATION", false) ;
     if (primaryDirTypes.size() > 1 || !useAlgoCS)
@@ -313,7 +323,7 @@ void NOMAD::RunParameters::checkAndComply(
             throw NOMAD::Exception(__FILE__,__LINE__, err);
         }
     }
-    
+
     // Test for DMultiMads
     bool useAlgoDMultiMads = getAttributeValueProtected<bool>("DMULTIMADS_OPTIMIZATION", false) ;
     if (useAlgoDMultiMads)
@@ -326,12 +336,24 @@ void NOMAD::RunParameters::checkAndComply(
                 throw NOMAD::Exception(__FILE__,__LINE__, err);
             }
         }
+        if (getAttributeValueProtected<bool>("MEGA_SEARCH_POLL", false))
+        {
+            err = "DMultiMads does not support the MEGA_SEARCH_POLL option. To deactivate, set MEGA_SEARCH_POLL to FALSE";
+            throw NOMAD::Exception(__FILE__,__LINE__, err);
+        }
     }
-    
 
     // Precisions on MEGA_SEARCH_POLL
     if (getAttributeValueProtected<bool>("MEGA_SEARCH_POLL", false))
     {
+        for (auto dirType : getAttributeValueProtected<NOMAD::DirectionTypeList>("DIRECTION_TYPE", false))
+        {
+            if (NOMAD::DirectionType::USER_FREE_POLL == dirType)
+            {
+                err = "Parameters check: Direction type " + NOMAD::directionTypeToString(dirType) + " is not supported with MEGA_SEARCH_POLL";
+                throw NOMAD::Exception(__FILE__,__LINE__, err);
+            }
+        }
         for (auto dirType : getAttributeValueProtected<NOMAD::DirectionTypeList>("DIRECTION_TYPE_SECONDARY_POLL", false))
         {
             if (   NOMAD::DirectionType::ORTHO_NP1_NEG == dirType
@@ -342,7 +364,7 @@ void NOMAD::RunParameters::checkAndComply(
             }
         }
     }
-    
+
     // Coordinate Search algorithm
     if (useAlgoCS)
     {
@@ -351,7 +373,7 @@ void NOMAD::RunParameters::checkAndComply(
             err = "CS Optimization can only use one direction type CS. It cannot be combined with any other direction type";
             throw NOMAD::Exception(__FILE__,__LINE__, err);
         }
-        
+
         // Get the default direction type
         auto defaultPrimaryDirTypes = getAttributeValueProtected<NOMAD::DirectionTypeList>("DIRECTION_TYPE", false, true);
         if (primaryDirTypes[0] != NOMAD::DirectionType::CS)
@@ -364,9 +386,9 @@ void NOMAD::RunParameters::checkAndComply(
             setAttributeValue("DIRECTION_TYPE", std::vector<NOMAD::DirectionType> {NOMAD::DirectionType::CS});
         }
     }
-    
+
     // DiscoMads algorithm
-    
+
     bool useAlgoDiscoMads = getAttributeValueProtected<bool>("DISCO_MADS_OPTIMIZATION", false);
     if (useAlgoDiscoMads)
     {
@@ -389,11 +411,11 @@ void NOMAD::RunParameters::checkAndComply(
             if(hiddConstOutputValue>=NOMAD::INF){
                 throw NOMAD::Exception(__FILE__,__LINE__,"The high value ("+hiddConstOutputValue.tostring()+") attributed to objective function and PB constraints for failed evaluations should be less than NOMAD::INF. ");
             }
-        }  
+        }
 
         // If DiscoMads used to reveal discontinuities...
         auto detectionRadius = getAttributeValueProtected<NOMAD::Double>("DISCO_MADS_DETECTION_RADIUS", false);
-            // Detection Radius 
+            // Detection Radius
         if (detectionRadius < 0)
         {
             throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DISCO_MADS_DETECTION_RADIUS must be positive" );
@@ -405,33 +427,33 @@ void NOMAD::RunParameters::checkAndComply(
         {
             throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DISCO_MADS_LIMIT_RATE must be strictly positive" );
         }
-        
+
         // Exclusion Radius
         auto exclusionRadius = getAttributeValueProtected<NOMAD::Double>("DISCO_MADS_EXCLUSION_RADIUS", false);
         if (exclusionRadius <= 0)
         {
             throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DISCO_MADS_EXCLUSION_RADIUS must be strictly positive" );
         }
-        
+
         // Revealing poll radius
         auto revealingRadius = getAttributeValueProtected<NOMAD::Double>("DISCO_MADS_REVEALING_POLL_RADIUS", false);
         if (revealingRadius <= exclusionRadius+detectionRadius)
         {
             throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DISCO_MADS_REVEALING_POLL_RADIUS must be strictly greater than DISCO_MADS_DETECTION_RADIUS + DISCO_MADS_EXCLUSION_RADIUS (use for instance 1.01*(DISCO_MADS_DETECTION_RADIUS + DISCO_MADS_EXCLUSION_RADIUS))" );
         }
-        
+
         // Number of points for revealing poll
         const size_t revealingPointsNb = getAttributeValueProtected<size_t>("DISCO_MADS_REVEALING_POLL_NB_POINTS", false);
         if (revealingPointsNb==0)
         {
             // Warn the user
-            std::cout << "Warning: the revealing poll is disabled as DISCO_MADS_REVEALING_POLL_NB_POINTS is null. This should only be used for testing as a strictly positive value is requiered for the convergence analysis." <<  std::endl;
-        }  
+            std::cout << "Warning: the revealing poll is disabled as DISCO_MADS_REVEALING_POLL_NB_POINTS is null. This should only be used for testing as a strictly positive value is required for the convergence analysis." <<  std::endl;
+        }
 
         if (revealingPointsNb<0) // probably useless as size_t negative values are already checked in Parameters::checkFormatSizeT
         {
-            throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DISCO_MADS_REVEALING_POLL_NB_POINTS must be stricly positive" );
-        }    
+            throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DISCO_MADS_REVEALING_POLL_NB_POINTS must be strictly positive" );
+        }
 
         //--- Compatibility with other options
 
@@ -449,7 +471,7 @@ void NOMAD::RunParameters::checkAndComply(
             }
         }
 
-        // Check here the initial frame size 
+        // Check here the initial frame size
         auto initialFrameSize = pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("INITIAL_FRAME_SIZE");
         bool warning = false;
         for(size_t i=0;i<initialFrameSize.size();i++)
@@ -466,20 +488,20 @@ void NOMAD::RunParameters::checkAndComply(
         }
 
         // Use with openMP
-        int nb_threads = getAttributeValueProtected<int>("NB_THREADS_OPENMP",false); 
+        int nb_threads = evaluatorControlGlobalParams->getAttributeValue<int>("NB_THREADS_PARALLEL_EVAL");
         if(nb_threads>1)
         {
-            std::cerr << "Warning: NB_THREADS_OPENMP>1. DiscoMads should not return any erros but it was not extensively validated with OpenMP. Prefer run on one thread if you want to stick to the theory." <<  std::endl;
+            std::cerr << "Warning: NB_THREADS_PARALLEL_EVAL>1. DiscoMads should not return any errors but it was not extensively validated with OpenMP. Prefer run on one thread if you want to stick to the theory." <<  std::endl;
         }
 
         // Use with quad models search
-        bool quadModelSearch = getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH",false);
+        bool quadModelSearch = getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH",false) || getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH_SIMPLE_MADS",false);
         if(quadModelSearch)
         {
-            std::cerr << "Warning: it is currently not recommended to activate QUAD_MODEL_SEARCH with DiscoMads as it may be much slower." <<  std::endl;
+            std::cerr << "Warning: it is currently not recommended to activate QUAD_MODEL_SEARCH or QUAD_MODEL_SEARCH_SIMPLE_MADS with DiscoMads as it may be much slower." <<  std::endl;
         }
-        
-        // DiscoMads is currently not compatible with megaSearchPoll (beacuse revealingPoll is not seen by the megaSearchPoll)
+
+        // DiscoMads is currently not compatible with megaSearchPoll (because revealingPoll is not seen by the megaSearchPoll)
         bool megaSearchPoll = getAttributeValueProtected<bool>("MEGA_SEARCH_POLL",false);
         if(megaSearchPoll)
         {
@@ -488,38 +510,54 @@ void NOMAD::RunParameters::checkAndComply(
 
         // Variable group during revealing poll
         auto varGroups = pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP",false);
-        if (varGroups.size() > 0)
+        if (!varGroups.empty())
         {
             throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DiscoMads is not compatible with VARIABLE_GROUP. This breaks the density properties of the revealing poll." );
         }
     }
-    
-    
 
-    // PSD-Mads and SSD-Mads parameters
+
+    // COOP-Mads
+    bool useAlgoCoopMads = getAttributeValueProtected<bool>("COOP_MADS_OPTIMIZATION", false);
+#ifndef _OPENMP
+    if (useAlgoCoopMads)
+    {
+        err = "Error: COOP_MADS_OPTIMIZATION can only be used when OpenMP is available. Please rebuild Nomad with OpenMP enabled.";
+        throw NOMAD::Exception(__FILE__,__LINE__, err);
+    }
+#else
+    size_t nbCoopMads = getAttributeValueProtected<size_t>("COOP_MADS_NB_PROBLEM", false);
+    // Test COOP-Mads nb problem
+    if (nbCoopMads <= 1)
+    {
+        err = "Error: COOP-Mads requires to have more than one problem to solve in parallel. COOP_MADS_NB_PROBLEM must be greater than 1.";
+        throw NOMAD::Exception(__FILE__,__LINE__, err);
+    }
+#endif // _OPENMP
+
+
+    // PSD-Mads
     bool useAlgoPSDMads = getAttributeValueProtected<bool>("PSD_MADS_OPTIMIZATION", false);
 
 #ifndef _OPENMP
     if (useAlgoPSDMads)
     {
-        err = "Error: PSD_MADS_OPTIMIZATION can only be used when OpenMP is available. If that is not the case, use SSD_MADS_OPTIMIZATION.";
+        err = "Error: PSD_MADS_OPTIMIZATION can only be used when OpenMP is available.";
         throw NOMAD::Exception(__FILE__,__LINE__, err);
     }
-    
-    
-    size_t nbThreads = (size_t)getAttributeValueProtected<int>("NB_THREADS_OPENMP", false);
-    if (nbThreads != 1)
+#else
+    size_t nbPSDMads = getAttributeValueProtected<size_t>("PSD_MADS_NB_SUBPROBLEM", false);
+    // Test PSD-Mads nb problem
+    if (nbPSDMads <= 1)
     {
-        err = "Error: OpenMP is not available. NB_THREADS_OPENMP must be 1.";
+        err = "Error: PSD-Mads requires to have more than one sub-problem to solve in parallel. PSD_MADS_NB_SUBPROBLEM must be greater than 1.";
         throw NOMAD::Exception(__FILE__,__LINE__, err);
     }
-    
 #endif // _OPENMP
 
-    bool useAlgoSSDMads = getAttributeValueProtected<bool>("SSD_MADS_OPTIMIZATION", false);
-    if (useAlgoPSDMads || useAlgoSSDMads)
+    if (useAlgoPSDMads)
     {
-        std::string nbVarParamName = (useAlgoPSDMads ? "PSD_MADS_NB_VAR_IN_SUBPROBLEM" : "SSD_MADS_NB_VAR_IN_SUBPROBLEM");
+        std::string nbVarParamName = "PSD_MADS_NB_VAR_IN_SUBPROBLEM";
         const size_t nbVariablesInSubproblem = getAttributeValueProtected<size_t>(nbVarParamName, false);
         if (0 == nbVariablesInSubproblem || nbVariablesInSubproblem > n)
         {
@@ -528,29 +566,24 @@ void NOMAD::RunParameters::checkAndComply(
             throw NOMAD::InvalidParameter(__FILE__,__LINE__, err);
         }
 
-        size_t nbMadsSubproblem = getAttributeValueProtected<size_t>((useAlgoPSDMads ? "PSD_MADS_NB_SUBPROBLEM" : "SSD_MADS_NB_SUBPROBLEM"), false);
+        size_t nbMadsSubproblem = getAttributeValueProtected<size_t>("PSD_MADS_NB_SUBPROBLEM", false);
         // Distribute all the variables between subproblems of reduced dimension.
-        bool nbMadsSubproblemSetByUser = true;
         if (nbMadsSubproblem == INF_SIZE_T)
         {
-            nbMadsSubproblem = (size_t)std::round(n/nbVariablesInSubproblem)+1; // Add an additional mads for the pollster
-            nbMadsSubproblemSetByUser = false;
+            nbMadsSubproblem = (size_t)std::round(n/nbVariablesInSubproblem)+1; // Add a mads for the pollster
+            setAttributeValue("PSD_MADS_NB_SUBPROBLEM", nbMadsSubproblem);
         }
         if (useAlgoPSDMads)
         {
-            // Cannot have more subproblems than the number of threads
-            size_t nbThreads = (size_t)getAttributeValueProtected<int>("NB_THREADS_OPENMP", false);
-            if (nbMadsSubproblem > nbThreads)
+            int nbThreadsHard = static_cast<int>(std::thread::hardware_concurrency());
+            if (nbMadsSubproblem > nbThreadsHard)
             {
-                nbMadsSubproblem = nbThreads;
-                if (nbMadsSubproblemSetByUser)
-                {
-                    // Warn the user
-                    std::cout << "Warning: parameter PSD_MADS_NB_SUBPROBLEM reset to number of available threads (" << nbThreads << ")" <<  std::endl;
-                }
+                std::string s = "Warning: PSD_MADS_NB_SUBPROBLEM exceeds the number of threads registered for this hardware: ";
+                s += NOMAD::itos(nbThreadsHard);
+                s += ". If this is true, it is not efficient. Let's continue anyway.";
+                std::cout << s << std::endl;
             }
         }
-        setAttributeValue((useAlgoPSDMads ? "PSD_MADS_NB_SUBPROBLEM" : "SSD_MADS_NB_SUBPROBLEM"), nbMadsSubproblem);
 
         // Check parameter for coverage
         if (useAlgoPSDMads)
@@ -564,48 +597,22 @@ void NOMAD::RunParameters::checkAndComply(
             }
         }
     }
-    
-    // DMultiMads optimization can enabled/disabled automatically in future versions.
-    if (useAlgoDMultiMads)
+
+    // Test quad model search regular or simple mads. Cannot be both
+    if ( getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH",false) && getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH_SIMPLE_MADS",false))
     {
-    
-        // Case where QUAD_MODEL_SEARCH is explicitely set by user -> exception
-        if ( isSetByUser("QUAD_MODEL_SEARCH") &&
-            getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH",false) )
-        {
-            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"DMultiMads cannot currently use quad model search. Please deactivate: QUAD_MODEL_SEARCH no.");
-        }
-        // Case where default is used -> change to false with message
-        if ( getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH",false) )
-        {
-            setAttributeValue("QUAD_MODEL_SEARCH", false);
-            // Warn the user
-            std::cout << "Warning: QUAD_MODEL_SEARCH is deactivated when enabling DMultiMads optimization" <<  std::endl;
-        }
-        // Case where QUAD_MODEL_SLD_SEARCH is explicitely set by user -> exception
-        if ( isSetByUser("QUAD_MODEL_SLD_SEARCH") &&
-            getAttributeValueProtected<bool>("QUAD_MODEL_SLD_SEARCH",false) )
-        {
-            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"DMultiMads cannot currently use quad model sld search. Please deactivate: QUAD_MODEL_SLD_SEARCH no.");
-        }
-        // Case where default is used -> change to false with message
-        if ( getAttributeValueProtected<bool>("QUAD_MODEL_SLD_SEARCH",false) )
-        {
-            setAttributeValue("QUAD_MODEL_SLD_SEARCH", false);
-            // Warn the user
-            std::cout << "Warning: QUAD_MODEL_SLD_SEARCH is deactivated when enabling DMultiMads optimization" <<  std::endl;
-        }
+        throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Quad model search using simple mads is incompatible with the regular quad model search. Please deactivate: QUAD_MODEL_SEARCH no.");
     }
-        
+
     // Algorithm parameters: use an algorithm other than MADS.
     // They are mutually-exclusive.
     bool useAlgoLH = (getAttributeValueProtected<size_t>("LH_EVAL", false) > 0);
     bool useAlgoNM = getAttributeValueProtected<bool>("NM_OPTIMIZATION", false);
     bool useAlgoQuadOpt = getAttributeValueProtected<bool>("QUAD_MODEL_OPTIMIZATION", false);
     bool useAlgoSgtelibModel = getAttributeValueProtected<bool>("SGTELIB_MODEL_EVAL", false);
-    
+
     int totalAlgoSet = (int)useAlgoLH + (int)useAlgoCS +(int)useAlgoNM + (int)useAlgoQuadOpt
-                       + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoSSDMads + (int)useAlgoDMultiMads + (int)useAlgoDiscoMads;
+                       + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoDMultiMads + (int)useAlgoDiscoMads;
 
     if (totalAlgoSet >= 2)
     {
@@ -614,6 +621,14 @@ void NOMAD::RunParameters::checkAndComply(
         if (useAlgoCS)
         {
             err += " CS_OPTIMIZATION";
+        }
+        if (useAlgoDMultiMads)
+        {
+            err += " DMULTIMADS_OPTIMIZATION";
+        }
+        if (useAlgoLH)
+        {
+            err += " LH_EVAL";
         }
         if (useAlgoNM)
         {
@@ -630,10 +645,6 @@ void NOMAD::RunParameters::checkAndComply(
         if (useAlgoSgtelibModel)
         {
             err += " SGTELIB_MODEL_EVAL";
-        }
-        if (useAlgoSSDMads)
-        {
-            err += " SSD_MADS_OPTIMIZATION";
         }
         if (useAlgoDiscoMads)
         {
@@ -680,7 +691,7 @@ void NOMAD::RunParameters::checkAndComply(
     {
         throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR must be strictly greater than 0");
     }
-    
+
     auto projectOnMesh = getAttributeValueProtected<bool>("SEARCH_METHOD_MESH_PROJECTION", false);
     auto granularity = pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("GRANULARITY");
     if (!projectOnMesh && granularity != NOMAD::ArrayOfDouble(n,0.0))
@@ -704,9 +715,20 @@ void NOMAD::RunParameters::setStaticParameters()
     // If the seed is the same as before we do nothing.
     if (currentRNGSeed != seedToSet)
     {
-        NOMAD::RNG::setSeed ( seedToSet );
+        // With the alternative way of seeding the RNG we set xdef to s.
+        // This cannot be done with s=0. Exception is triggered.
+        bool rngAltSeeding = getAttributeValueProtected<bool>("RNG_ALT_SEEDING",false);
+        if (rngAltSeeding)
+        {
+            NOMAD::RNG::setSeedForXDef(seedToSet);
+        }
+        else
+        {
+            NOMAD::RNG::setSeed (seedToSet);
+        }
     }
     NOMAD::Double::setEpsilon ( getAttributeValueProtected<NOMAD::Double>("EPSILON",false).todouble() );
+    NOMAD::Double::setHMin ( getAttributeValueProtected<NOMAD::Double>("H_MIN",false).todouble() );
     NOMAD::Double::setUndefStr ( getAttributeValueProtected<std::string>("UNDEF_STR",false) );
     NOMAD::Double::setInfStr ( getAttributeValueProtected<std::string>("INF_STR",false) );
 
@@ -714,6 +736,86 @@ void NOMAD::RunParameters::setStaticParameters()
     // This is bad because we have twice the same value for some parameters.
     setAttributeValue ( "SEED", NOMAD::RNG::getSeed() );
     setAttributeValue ( "EPSILON", NOMAD::Double(NOMAD::Double::getEpsilon()) );
+    setAttributeValue ( "H_MIN", NOMAD::Double(NOMAD::Double::getHMin()) );
     setAttributeValue ( "UNDEF_STR", NOMAD::Double::getUndefStr() );
     setAttributeValue ( "INF_STR", NOMAD::Double::getInfStr() );
+}
+
+// These set methods are for CatMads (not yet available) and are not used in the current version of NOMAD.
+// Probably not needed once a CatMads algorithm is available.
+bool NOMAD::RunParameters::setMapDirTypeToVG(const std::shared_ptr<NOMAD::PbParameters>& pbParams, std::map<NOMAD::DirectionType,NOMAD::ListOfVariableGroup> & mapDirTypeToVG)
+{
+    if (_toBeChecked)
+    {
+        std::string errorMsg = "Cannot set map between direction type and variable group before checkAndComply is done";
+        throw NOMAD::Exception(__FILE__,__LINE__, errorMsg);
+    }
+
+    auto listVG = pbParams->getAttributeValue<ListOfVariableGroup>("VARIABLE_GROUP");
+
+    // Check that provided map is consistent with variables groups defined in pb
+    for (const auto &vgBase: listVG)
+    {
+        bool vgBaseFound = false;
+        for(const auto & elMap: mapDirTypeToVG )
+        {
+            for(const auto & vgMap: elMap.second)
+            {
+                if ( vgMap == vgBase )
+                {
+                    vgBaseFound = true;
+                    break;
+                }
+            }
+            if (vgBaseFound)
+            {
+                break;
+            }
+        }
+        if (!vgBaseFound)
+        {
+            return false;
+        }
+    }
+    _mapDirTypeToVG = mapDirTypeToVG;
+    return true;
+}
+
+bool NOMAD::RunParameters::setListFixVGForQuadModelSearch(const std::shared_ptr<NOMAD::PbParameters>& pbParams, const NOMAD::ListOfVariableGroup & listFixVG)
+{
+    if (_toBeChecked)
+    {
+        std::string errorMsg = "Cannot set fixed variable group for QMS before checkAndComply is done";
+        throw NOMAD::Exception(__FILE__,__LINE__, errorMsg);
+    }
+
+    auto listVG = pbParams->getAttributeValue<ListOfVariableGroup>("VARIABLE_GROUP");
+
+    if (listVG.empty() && !listFixVG.empty())
+    {
+        std::string errorMsg = "Cannot set fixed variable group for QMS if no variable group is defined";
+        throw NOMAD::Exception(__FILE__,__LINE__, errorMsg);
+    }
+
+    // Check that list of VG is consistent with variables groups defined in pb
+    for(const auto & vg: listFixVG )
+    {
+        bool vgFound = false;
+        for (const auto &vgBase: listVG)
+        {
+            if ( vgBase == vg )
+            {
+                vgFound = true;
+                break;
+            }
+        }
+        if (!vgFound)
+        {
+            return false;
+        }
+    }
+
+
+    _fixVGForQMS = listFixVG;
+    return true;
 }

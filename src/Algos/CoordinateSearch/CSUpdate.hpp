@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_4_CSUPDATE__
-#define __NOMAD_4_4_CSUPDATE__
+#ifndef __NOMAD_4_5_CSUPDATE__
+#define __NOMAD_4_5_CSUPDATE__
 
 #include "../../Algos/Step.hpp"
 
@@ -85,7 +85,7 @@ private:
      from the cache, and updates the MegaIteration's Barrier member with it.
      Compares new values of xFeas and xInf with previous ones
      - i.e., compute success or failure.
-     Enlarges or shrinks the delta (mesh size)  ( à enlever) and Delta (frame size)
+     Enlarges or shrinks the delta (mesh size)  ( to remove) and Delta (frame size)
      accordingly.
      */
     virtual bool    runImp()   override;
@@ -97,5 +97,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_CSUPDATE__
+#endif // __NOMAD_4_5_CSUPDATE__
 

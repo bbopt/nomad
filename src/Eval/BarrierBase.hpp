@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_BARRIERBASE__
-#define __NOMAD_4_4_BARRIERBASE__
+#ifndef __NOMAD_4_5_BARRIERBASE__
+#define __NOMAD_4_5_BARRIERBASE__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -67,8 +67,12 @@ protected:
     EvalPointPtr _refBestInf;       ///< Previous first infeasible incumbent
                                     ///< NB: can be above the barrier threshold
     
-    Double _hMax;                   ///< Maximum acceptable value for h
-
+    Double _hMax;                   ///< Maximum acceptable value for
+    
+    /// Attributes to define the computation of f and h
+    FHComputeType _computeType;
+    
+    
     /// Dimension of the points in the barrier.
     /**
      * Used for verification only.
@@ -83,8 +87,9 @@ public:
      * hMax will be updated during optimization.
      \param hMax            The max of h to keep a point in the barrier -- \b IN.
      */
-    BarrierBase(const Double& hMax = INF)
+    BarrierBase(const EvalType &evalType, const FHComputeTypeS& computeType, const Double& hMax = INF)
       : _hMax(hMax),
+        _computeType{evalType, computeType},
         _n(0)
     {}
 
@@ -95,6 +100,7 @@ public:
     BarrierBase(const BarrierBase & b)
     {
         _hMax = b._hMax;
+        _computeType = b._computeType;
     }
     
     // Use clone to create a barrier of the same type (for example, ProgressiveBarrier, DiscoMadsBarrier or DMultiMadsBarrier)
@@ -156,7 +162,7 @@ public:
     const std::vector<EvalPointPtr>& getAllXIncInf() const { return _xIncInf; }
 
     
-    ///  Get the currnent infeasible incumbent.
+    ///  Get the current infeasible incumbent.
     /**
      * If there is no infeasible point, return a \c nullptr
      \return A single infeasible eval point.
@@ -205,23 +211,19 @@ public:
     /* \param evalPointList vector of EvalPoints  -- \b IN.
      * \param keepAllPoints keep all good points, or keep just one point as in NOMAD 3 -- \b IN.
      * \return true if the Barrier was updated, false otherwise
-     * \note Input EvalPoints are already in subproblem dimention
+     * \note Input EvalPoints are already in subproblem dimension
      */
     virtual SuccessType getSuccessTypeOfPoints(const EvalPointPtr xFeas,
-                                               const EvalPointPtr xInf,
-                                               EvalType evalType,
-                                               ComputeType computeType) = 0;
+                                               const EvalPointPtr xInf) = 0;
 
     /// Update xFeas and xInf according to given points.
     /* \param evalPointList vector of EvalPoints  -- \b IN.
      * \param keepAllPoints keep all good points, or keep just one point as in NOMAD 3 -- \b IN.
      * \return true if the Barrier was updated, false otherwise
-     * \note Input EvalPoints are already in subproblem dimention
+     * \note Input EvalPoints are already in subproblem dimension
      */
     virtual bool updateWithPoints(
                           const std::vector<EvalPoint>& evalPointList,
-                          EvalType evalType,
-                          ComputeType computeType,
                           const bool keepAllPoints = false,
                           const bool updateInfeasibleIncumbentAndHmax = false) = 0;
     
@@ -235,7 +237,15 @@ public:
     virtual std::vector<std::string> display(const size_t max = INF_SIZE_T) const =0;
     
     
-    bool findPoint(const Point & point, EvalPoint & foundEvalPoint);
+    bool findPoint(const Point & point, EvalPoint & foundEvalPoint) const;
+    
+    void checkForFHComputeType(const FHComputeType& computeType) const;
+    
+    /// Access to f and h computation
+    HNormType getHNormType() const {return _computeType.fhComputeTypeS.hNormType; }
+    ComputeType getComputeType() const { return _computeType.fhComputeTypeS.computeType;}
+    EvalType getEvalType() const { return _computeType.evalType; }
+    const FHComputeType& getFHComputeType() const { return _computeType;}
     
 protected:
     
@@ -268,13 +278,9 @@ private:
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      \param fixedVariable   The fixed variables have a fixed value     -- \b IN.
-     \param evalType        Which eval (Blackbox or Model) to use to verify feasibility  -- \b IN.
-     \param computeType    Which compute type (standard, phase-one or user) must be available to find in cache  -- \b IN.
      \param barrierInitializedFromCache  Flag to initialize barrier from cache or not. -- \b IN.
      */
     virtual void init(const Point& fixedVariable,
-                      EvalType evalType,
-                      ComputeType computeType,
                       bool barrierInitializedFromCache) = 0;
     
     /**
@@ -282,25 +288,21 @@ private:
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
-    void checkXFeas(const EvalPoint &xFeas,
-                    EvalType evalType,
-                    ComputeType computeType = ComputeType::STANDARD) ;
+    void checkXFeas(const EvalPoint &xFeas) ;
     
     /**
      * \brief Helper function for insertion.
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
-    virtual void checkXFeasIsFeas(const EvalPoint &xFeas,
-                          EvalType evalType,
-                          ComputeType computeType = ComputeType::STANDARD);
+    virtual void checkXFeasIsFeas(const EvalPoint &xFeas);
     
     /**
      * \brief Helper function for insertion.
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
-    void checkXInf(const EvalPoint &xInf, EvalType evalType);
+    void checkXInf(const EvalPoint &xInf) const;
     
     
 };
@@ -313,4 +315,4 @@ DLL_EVAL_API std::istream& operator>>(std::istream& is, BarrierBase& barrier);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_BARRIERBASE__
+#endif // __NOMAD_4_5_BARRIERBASE__

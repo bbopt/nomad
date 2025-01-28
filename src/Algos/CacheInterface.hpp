@@ -45,8 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_4_CACHEINTERFACE__
-#define __NOMAD_4_4_CACHEINTERFACE__
+#ifndef __NOMAD_4_5_CACHEINTERFACE__
+#define __NOMAD_4_5_CACHEINTERFACE__
 
 #include "Step.hpp"
 
@@ -81,35 +81,31 @@ public:
     /// Find best feasible point(s) in cache
     /**
      \param evalPointList  The found evaluation points -- \b OUT.
-     \param evalType             Criterion for EvalType -- \b IN.
-     \param computeType      Criterion for ComputType    -- \b IN.
+     \param computeType       Which type of f, h computation (eval type, compute type and h norm type)  -- \b IN.
      \return              Number of points found
      */
     size_t findBestFeas(std::vector<EvalPoint> &evalPointList,
-                        EvalType  evalType,
-                        ComputeType computeType) const;
+                        const FHComputeType& computeType) const;
 
     /// Find best infeasible points in cache with h<=hmax:
-    ///  -> index 0 and above if doublons, least infeasible point with smallest f
-    ///  -> last index and below if doublons, best f with smallest h
-    /// All best f points have the same bboutputs. Idem for the least infeasible points.
+    ///  -> index 0 and above if duplicates, least infeasible point with smallest f
+    ///  -> last index and below if duplicates, best f with smallest h
+    /// All best f points have the same blackbox outputs. Idem for the least infeasible points.
     /**
      \param evalPointList   The found evaluation points -- \b OUT.
      \param hMax                       Points' h value must be under this value -- \b IN.
-     \param evalType              Points' EvalType to look at -- \b IN.
-     \param computeType       Points' ComputType to look at    -- \b IN.
+     \param computeType        Which type of f, h computation (eval type, compute type and h norm type)  -- \b IN.
      \return                 Number of points found
      */
     size_t findBestInf(std::vector<EvalPoint> &evalPointList,
                        const Double& hMax,
-                       EvalType  evalType,
-                       ComputeType computeType) const;
+                       const FHComputeType& computeType) const;
 
     /// Interface for CacheBase::smartInsert.
     /**
      The full dimension point is reconstructed from step fixed variables information.
      \param evalPoint     The point to insert -- \b IN.
-     \param maxNumberEval Maximun number of times this point may be evaluated -- \b IN.
+     \param maxNumberEval Maximum number of times this point may be evaluated -- \b IN.
      \param evalType      Criteria for EvalType -- \b IN.
      \return              \c True if the point may be sent for evaluation, \c false otherwise
      */
@@ -156,4 +152,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_CACHEINTERFACE__
+#endif // __NOMAD_4_5_CACHEINTERFACE__

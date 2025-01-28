@@ -1,4 +1,3 @@
-Name , Type , Argument , Short description , Default
 ADD_SEED_TO_FILE_NAMES,bool,advanced," The flag to add seed to the file names ",true
 ANISOTROPIC_MESH,bool,advanced," MADS uses anisotropic mesh for generating directions ",true
 ANISOTROPY_FACTOR,NOMAD::Double,advanced," MADS anisotropy factor for mesh size change ",0.1
@@ -6,19 +5,27 @@ BB_EXE,std::string,basic," Blackbox executable ",
 BB_INPUT_TYPE,NOMAD::BBInputTypeList,basic," The variable blackbox input types ",* R
 BB_MAX_BLOCK_SIZE,size_t,advanced," Size of blocks of points, to be used for parallel evaluations ",1
 BB_OUTPUT_TYPE,NOMAD::BBOutputTypeList,basic," Type of outputs provided by the blackboxes ",OBJ
+BB_REDIRECTION,bool,basic," Blackbox executable redirection for outputs  ",true
 CACHE_FILE,std::string,basic," Cache file name ",
 CACHE_SIZE_MAX,size_t,advanced," Maximum number of evaluation points to be stored in the cache ",INF
 CS_OPTIMIZATION,bool,basic," Coordinate Search optimization ",false
 DIMENSION,size_t,basic," Dimension of the optimization problem (required) ",0
 DIRECTION_TYPE,NOMAD::DirectionTypeList,advanced," Direction types for Poll steps ",ORTHO N+1 QUAD
 DIRECTION_TYPE_SECONDARY_POLL,NOMAD::DirectionTypeList,advanced," Direction types for Mads secondary poll ",DOUBLE
+DISCO_MADS_DETECTION_RADIUS,NOMAD::Double,advanced," Radius used to reveal discontinuities in DiscoMads ",1.0
+DISCO_MADS_EXCLUSION_RADIUS,NOMAD::Double,advanced," Radius of exclusion balls around revealing points in DiscoMads",1
+DISCO_MADS_LIMIT_RATE,NOMAD::Double,advanced," Limit rate of change used to reveal discontinuities in DiscoMads ",1
+DISCO_MADS_REVEALING_POLL_NB_POINTS,size_t,advanced," Number of random points sampled by the revealing poll in DiscoMads ",1
+DISCO_MADS_REVEALING_POLL_RADIUS,NOMAD::Double,advanced," Revealing poll radius in DiscoMads ",2.02
 DISPLAY_ALL_EVAL,bool,basic," Flag to display all evaluations ",false
 DISPLAY_DEGREE,int,basic," Level of verbose during execution ",2
+DISPLAY_FAILED,bool,advanced," Flag to display failed evaluation ",false
 DISPLAY_HEADER,size_t,advanced," Frequency at which the stats header is displayed ",40
-DISPLAY_INFEASIBLE,bool,advanced," Flag to display infeasible ",false
+DISPLAY_INFEASIBLE,bool,advanced," Flag to display infeasible ",true
 DISPLAY_MAX_STEP_LEVEL,size_t,advanced," Depth of the step after which info is not printed ",20
 DISPLAY_STATS,NOMAD::ArrayOfString,basic," Format for displaying the evaluation points ",BBE OBJ
 DISPLAY_UNSUCCESSFUL,bool,advanced," Flag to display unsuccessful ",false
+DMULTIMADS_OPTIMIZATION,bool,advanced," DMultiMads solves multiobjective optimization problems ",false
 EVAL_OPPORTUNISTIC,bool,advanced," Opportunistic strategy: Terminate evaluations as soon as a success is found ",true
 EVAL_QUEUE_CLEAR,bool,advanced," Opportunistic strategy: Flag to clear EvaluatorControl queue between each run ",true
 EVAL_QUEUE_SORT,NOMAD::EvalSortType,advanced," How to sort points before evaluation ",QUADRATIC_MODEL
@@ -49,8 +56,8 @@ MAX_TIME,size_t,basic," Maximum wall-clock time in seconds ",INF
 MEGA_SEARCH_POLL,bool,advanced," Evaluate points generated from Search and Poll steps all at once ",false
 MIN_FRAME_SIZE,NOMAD::ArrayOfDouble,advanced," Termination criterion on minimal frame size of MADS ",-
 MIN_MESH_SIZE,NOMAD::ArrayOfDouble,advanced," Termination criterion on minimal mesh size of MADS ",-
-NB_THREADS_OPENMP,int,advanced," The number of threads when OpenMP parallel evaluations
- are enabled ",-1
+NB_THREADS_OPENMP,int,advanced," The number of threads when OpenMP parallel evaluations 
+ are enabled ",1
 NM_DELTA_E,NOMAD::Double,advanced," NM expansion parameter delta_e.",2
 NM_DELTA_IC,NOMAD::Double,advanced," NM inside contraction parameter delta_ic.",-0.5
 NM_DELTA_OC,NOMAD::Double,advanced," NM outside contraction parameter delta_oc.",0.5
@@ -62,6 +69,7 @@ NM_SEARCH_RANK_EPS,NOMAD::Double,advanced," NM-Mads epsilon for the rank of DZ."
 NM_SEARCH_STOP_ON_SUCCESS,bool,advanced," NM-Mads search stops on success.",false
 NM_SIMPLEX_INCLUDE_FACTOR,size_t,advanced," Construct NM simplex using points in cache.",8
 NM_SIMPLEX_INCLUDE_LENGTH,NOMAD::Double,advanced," Construct NM simplex using points in cache.",INF
+ORTHO_MESH_REFINE_FREQ,size_t,advanced," Control mesh refinement frequency ",1
 PSD_MADS_ITER_OPPORTUNISTIC,bool,advanced," Opportunistic strategy between the Mads subproblems in PSD-MADS ",true
 PSD_MADS_NB_SUBPROBLEM,size_t,advanced," Number of PSD-MADS subproblems ",INF
 PSD_MADS_NB_VAR_IN_SUBPROBLEM,size_t,advanced," Number of variables in PSD-MADS subproblems ",2
@@ -69,15 +77,42 @@ PSD_MADS_OPTIMIZATION,bool,advanced," PSD-MADS optimization algorithm ",0
 PSD_MADS_ORIGINAL,bool,advanced," Use NOMAD 3 strategy for mesh update in PSD-MADS ",false
 PSD_MADS_SUBPROBLEM_MAX_BB_EVAL,size_t,advanced," Max number of evaluations for each subproblem ",INF
 PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE,NOMAD::Double,advanced," Percentage of variables that must be covered in subproblems before updating mesh ",70
+QP_ABSOLUTETOL,NOMAD::Double,advanced," A quad model based search step for Mads using a QP solver ",1e-3
+QP_AUGLAG_ETA0,NOMAD::Double,advanced," A quad model based search step for Mads using a QP solver ",1.0
+QP_AUGLAG_MAXITERINNER,size_t,advanced," A quad model based search step for Mads using a QP solver ",10
+QP_AUGLAG_MAXSUCCESSIVFAIL,size_t,advanced," A quad model based search step for Mads using a QP solver ",3
+QP_AUGLAG_MU0,NOMAD::Double,advanced," A quad model based search step for Mads using a QP solver ",0.5
+QP_AUGLAG_MUDECREASE,NOMAD::Double,advanced," A quad model based search step for Mads using a QP solver ",2
+QP_AUGLAG_OMEGA0,NOMAD::Double,advanced," A quad model based search step for Mads using a QP solver ",1.0
+QP_AUGLAG_SUCCESSRATIO,NOMAD::Double,advanced," A quad model based search step for Mads using a QP solver ",0.99
+QP_AUGLAG_TOLDISTDXINNER,NOMAD::Double,advanced," A quad model based search step for Mads using a QP solver ",1e-15
+QP_MAXITER,size_t,advanced," A quad model based search step for Mads using a QP solver ",10
+QP_OPTIMIZATION,bool,advanced," Quad model stand alone QP optimization for constrained and unconstrained pbs ",false
+QP_RELATIVETOL,NOMAD::Double,advanced," A quad model based search step for Mads using a QP solver ",1e-3
+QP_SEARCH,bool,advanced," A quad model based search step for Mads using a QP solver ",false
+QP_SELECTALGO,size_t,advanced," Select the algorithm for QP solver ",0
+QP_TOLCOND,NOMAD::Double,advanced," A quad model based search step for Mads using a QP solver ",1e-15
+QP_TOLDISTDX,NOMAD::Double,advanced," A quad model based search step for Mads using a QP solver ",-1.0
+QP_TOLMESH,NOMAD::Double,advanced," A quad model based search step for Mads using a QP solver ",1.0
+QP_VERBOSE,bool,advanced," A quad model based search step for Mads using a QP solver ",false
+QP_VERBOSEFULL,bool,advanced," A quad model based search step for Mads using a QP solver ",false
+QUAD_MODEL_AND_LH_SEARCH,bool,basic," Quad model and LH search ",false
 QUAD_MODEL_DISPLAY,std::string,advanced," Display of a model ",
 QUAD_MODEL_MAX_BLOCK_SIZE,size_t,advanced," Size of blocks of points, to be used for parallel evaluations ",INF
-QUAD_MODEL_MAX_EVAL,size_t,advanced," Max number of model evaluations for each optimization of the quad model problem ",5000
+QUAD_MODEL_MAX_EVAL,size_t,advanced," Max number of model evaluations for optimization of the quad model problem ",2000
 QUAD_MODEL_OPTIMIZATION,bool,advanced," Quad model stand alone optimization for constrained and unconstrained pbs ",false
 QUAD_MODEL_SEARCH,bool,basic," Quad model search ",true
 QUAD_MODEL_SLD_SEARCH,bool,basic," Quad model (SLD) search ",false
-REJECT_UNKNOWN_PARAMETERS,bool,advanced," Flag to reject unknown parameters when checking validity of parameters ",false
+RANDOM_ALGO_DUMMY_FACTOR,size_t,advanced," Dummy factor for random algo (used as template) ",1
+RANDOM_ALGO_OPTIMIZATION,bool,advanced," A standalone random optimization algo (several iterations) ",false
+RANDOM_ALGO_SEARCH,bool,advanced," A random search step for Mads using an algo (several iterations) ",false
+RANDOM_SIMPLE_SEARCH,bool,advanced," A template for a simple (no iteration) random search step for Mads ",false
+REJECT_UNKNOWN_PARAMETERS,bool,advanced," Flag to reject unknown parameters when checking validity of parameters ",true
 RHO,NOMAD::Double,advanced," Rho parameter of the progressive barrier ",0.1
+SEARCH_METHOD_MESH_PROJECTION,bool,advanced," Projection on mesh for trial points from a search method ",true
 SEED,int,advanced," The seed for the pseudo-random number generator ",0
+SET_FILE,bool,advanced," Boolean to determine if the file of the set is already created ",false
+SET_FILE_NAME,string,advanced," File to load with the set  ",-
 SGTELIB_MAX_POINTS_FOR_MODEL,size_t,advanced," Maximum number of valid points used to build a model ",500
 SGTELIB_MIN_POINTS_FOR_MODEL,size_t,advanced," Minimum number of valid points necessary to build a model ",1
 SGTELIB_MODEL_DEFINITION,NOMAD::ArrayOfString,advanced," Definition of the Sgtelib model ",
@@ -87,12 +122,14 @@ SGTELIB_MODEL_EVAL,bool,advanced," Sgtelib Model Sampling of points ",0
 SGTELIB_MODEL_FEASIBILITY,NOMAD::SgtelibModelFeasibilityType,advanced," Method used to model the feasibility of a point ",C
 SGTELIB_MODEL_FORMULATION,NOMAD::SgtelibModelFormulationType,advanced," Formulation of the sgtelib model problem ",FS
 SGTELIB_MODEL_MAX_BLOCK_SIZE,size_t,advanced," Size of blocks of points, to be used for parallel evaluations ",INF
-SGTELIB_MODEL_MAX_EVAL,size_t,advanced," Max number of model evaluations for each optimization of the sgtelib model problem ",1000
+SGTELIB_MODEL_MAX_EVAL,size_t,advanced," Max number of model evaluations for each optimization of the sgtelib model problem ",2000
 SGTELIB_MODEL_SEARCH,bool,basic," Model search using Sgtelib ",false
 SGTELIB_MODEL_SEARCH_CANDIDATES_NB,int,advanced," Number of candidates returned by the sgtelib model search ",-1
 SGTELIB_MODEL_SEARCH_EXCLUSION_AREA,NOMAD::Double,advanced," Exclusion area for the sgtelib model search around points of the cache ",0.0
 SGTELIB_MODEL_SEARCH_FILTER,std::string,advanced," Methods used in the sgtelib search filter to return several search candidates ",2345
+SIMPLE_LINE_SEARCH,bool,basic," MADS simple line search method complement speculative search ",false
 SOLUTION_FILE,std::string,basic," The name of the file containing the best feasible solution ",
+SOLUTION_FILE_FINAL,bool,basic," Flag to decide when to write best feasible solution ",false
 SPECULATIVE_SEARCH,bool,basic," MADS speculative search method ",true
 SPECULATIVE_SEARCH_BASE_FACTOR,NOMAD::Double,advanced," Distance of the MADS speculative search method ",4.0
 SPECULATIVE_SEARCH_MAX,size_t,advanced," MADS speculative search method ",1
@@ -106,12 +143,20 @@ STATS_FILE,NOMAD::ArrayOfString,basic," The name of the stats file ",
 STOP_IF_FEASIBLE,bool,advanced," Stop algorithm once a feasible point is obtained ",false
 STOP_IF_PHASE_ONE_SOLUTION,bool,advanced," Stop algorithm once a phase one solution is obtained ",false
 SURROGATE_EXE,std::string,advanced," Static surrogate executable ",
+SURROGATE_MAX_BLOCK_SIZE,size_t,advanced," Size of blocks of points, to be used for parallel evaluations ",1
+SYSTEM_FILE_NAME,string,advanced," File with the constraints  ",-
 TMP_DIR,std::string,advanced," Directory where to put temporary files ",
+TRIAL_POINT_MAX_ADD_UP,size_t,advanced," Max number of trial points ",0
 UPPER_BOUND,NOMAD::ArrayOfDouble,basic," The optimization problem upper bounds for each variable ",-
 USER_CALLS_ENABLED,bool,advanced," Controls the automatic calls to user function ",true
+USE_CACHE_FILE_FOR_RERUN,bool,advanced," Cache file for rerun ",false
+USE_IBEX,bool,advanced," Boolean to determine if we want to use the functionnalities of IBEX ",false
 VARIABLE_GROUP,NOMAD::ListOfVariableGroup,advanced," The groups of variables) ",-
+VNSMART_MADS_SEARCH,bool,advanced," VNS Mads search under condition of consecutive fails ",false
+VNSMART_MADS_SEARCH_THRESHOLD,int,advanced," Threshold for VNS (SMART) Mads search ",3
 VNS_MADS_OPTIMIZATION,bool,advanced," VNS MADS stand alone optimization for constrained and unconstrained pbs ",false
 VNS_MADS_SEARCH,bool,advanced," VNS Mads optimization used as a search step for Mads ",false
 VNS_MADS_SEARCH_MAX_TRIAL_PTS_NFACTOR,size_t,advanced," VNS-Mads search stopping criterion.",100
 VNS_MADS_SEARCH_TRIGGER,NOMAD::Double,advanced," VNS Mads search trigger",0.75
+VNS_MADS_SEARCH_WITH_SURROGATE,bool,advanced," VNS Mads search with surrogate",false
 X0,NOMAD::ArrayOfPoint,basic," The initial point(s) ",-

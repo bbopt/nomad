@@ -91,26 +91,6 @@ A blackbox program can return more than one function :ref:`BB_OUTPUT_TYPE <bb_ou
   BB_EXE         bb.exe             # defines that `bb.exe' is an
   BB_OUTPUT_TYPE OBJ EB EB          # executable with 3 outputs
 
-
-A mapping between the names of the blackbox programs and the ``BB_OUTPUT_TYPE`` may be established to identify which function is returned by which blackbox::
-
-  BB_EXE         bb1.exe bb2.exe    # defines two blackboxes
-  BB_OUTPUT_TYPE OBJ     EB         # `bb1.exe' and `bb2.exe'
-                                    # with one output each
-
-Blackbox program names can be repeated to establish more complex mapping::
-
-  BB_EXE   bb1.exe bb2.exe bb2.exe  # defines TWO blackboxes
-                                    # NO duplication if names are repeated
-  BB_OUTPUT_TYPE EB OBJ PB          # bb1.exe  has one output
-                                    # bb2.exe  has two outputs
-                                    # bb1.exe is executed first.
-                                    #!! If EB constraint is feasible then
-                                    #!!        bb2.exe is executed.
-                                    #!! If EB constraint not feasible then
-                                    #!!      bb2.exe is not launched.
-
-
 A path can precede the blackbox program but spaces are not accepted in the path::
 
   BB_EXE "dir_of_blackbox/bb.exe"
@@ -139,7 +119,7 @@ It may be defined once with a list of :math:`n` input types with format  ``(t1 t
 Input types ``t`` are values in ``R, B, I``. ``R`` is for real/continuous variables, ``B`` for binary variables, and ``I`` for integer variables.
 The default type is ``R``. See also :doc:`ListOfParameters`.
 
-.. note:: Categorical variables are not yet supported in NOMAD 4 but are available in NOMAD 3.
+.. note:: Categorical variables are not yet supported in NOMAD 4 but are available in NOMAD 3. Some work by a PhD student is currently being done to reintroduce this feature in NOMAD 4.
 
 
 

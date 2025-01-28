@@ -244,8 +244,9 @@ on how to manage a block of evaluations in parallel using OpenMP.
 Parallel evaluations
 --------------------
 
-When OpenMP is available (see :ref:`Use OpenMP <cmake_configuration>`), the user MUST provide the number of threads ``NB_THREADS_OPENMP``
-to efficiently access the computer cores. If this parameter is not set, OpenMP uses a single thread. The evaluations of trial points stored in a queue are dispatched to these threads.
+When OpenMP is available (see :ref:`Use OpenMP <cmake_configuration>`), the user MUST provide the number of threads for the parallel evaluations ``NB_THREADS_PARALLEL_EVAL``
+to efficiently access the computer cores. If this parameter is not set, OpenMP uses a single thread. The evaluations of trial points stored in a queue are dispatched to these threads. 
+Please note that the selected number of threads may not correspond to the number of threads used at all time since the evaluation queue may not contain enough trial points at a given step of the algorithm.
 
 .. _psd_mads:
 
@@ -276,6 +277,47 @@ Remaining available threads are not used for algorithmic management or point gen
 only for point evaluation.
 An example of usage of PSD-MADS in library mode is in
 ``$NOMAD_HOME/examples/advanced/library/PSDMads``.
+
+.. _multiobjective_optimization:
+
+Multiobjective optimization
+---------------------------
+
+NOMAD can solve multiobjective optimization problems in search of a Pareto front. An example of a multiobjective problem solved by
+NOMAD in library mode can be found at ``$NOMAD_HOME/examples/basic/library/multi_obj``. Two examples are also proposed in batch mode at
+``$NOMAD_HOME/examples/basic/batch/multi_obj`` and ``$NOMAD_HOME/examples/basic/batch/multi_obj2``.
+
+NOMAD performs multiobjective optimization through the DMulti-MADS algorithm proposed in [BiLedSa2020]_  and [BiLedSa2024]_. The
+DMulti-MADS algorithm solves multiobjective optimization problems of the form
+
+.. math::
+
+   \min_{x \in \Omega} f(x) = (f_1(x), f_2(x), \ldots, f_m(x))^\top
+
+where :math:`4 \geq m \geq 2` is the number of objectives.
+
+DMulti-MADS extends the MADS algorithm with progressive barrier approach [AuDe09a]_ to multiobjective optimization and improves
+along the iterations a current set of non-dominated solutions. It can be used for unconstrained/constrained/mixed-integer
+blackbox multiobjective optimization.
+
+To activate the DMulti-MADS algorithm, at least two arguments of the parameter ``BB_OUTPUT_TYPE`` must be set to OBJ and the flag
+``DMULTIMADS_OPTIMIZATION`` set to ``true``. DMulti-MADS does not perform well with ``openMP`` and cannot use the ``ORTHO N+1 QUAD``
+strategy. Additional parameters are:
+
+  * ``DMULTIMADS_NM_STRATEGY`` decides which single-objective strategy to use for the Nelder-Mead search step. It can be set at ``DOM`` or ``MULTI``.
+
+  * ``DMULTIMADS_QUAD_MODEL_STRATEGY`` decides which single-objective strategy to use for the quadratic model search step. It can be set at ``DMS``, ``DOM`` or ``MULTI``.
+
+These searches bring a significant performance boost in most of the applications solved, but can considerably slow the resolution in terms of computational time (up to x10).
+If one wants faster resolution (at the detriment of solution quality), one can deactivate first the ``QUAD_MODEL_SEARCH`` and if not sufficient enough the
+``NM_SEARCH``.
+
+Multiobjective optimization problems are generally more difficult to solve than their single-objective counterparts. The more objectives, the more expensive and
+difficult to interpret. For this reason, NOMAD cannot tackle problems with more than 4 objectives.
+
+Multiobjective optimization is also available for other programming languages: see ``${NOMAD_HOME}/examples/advanced/library/c_api/example3`` for an example in ``c``
+and ``${NOMAD_HOME}/examples/advanced/library/PyNomad/simpleExample_PbMultiObj.py`` to solve multiobjective blackbox problems from ``Python``.
+
 
 .. _disco_mads:
 
@@ -327,37 +369,12 @@ This example is described in details in section 5.1 of [AuBaKo22]_.
 
 .. _hot_restart:
 
-Hot and Warm Restart
---------------------
+Restart or rerun
+----------------
 
-This new feature of NOMAD 4 makes it possible to continue the solving process after it has started,
-without having to restart it from the beginning.
-In the case of hot restart, the user interrupts the solver to change the value of a parameter.
-With warm restart, the user changes a parameter from a resolution that has already reached a termination condition.
-In both cases, the solving process is then continued from its current state.
-
-Hot restart
-"""""""""""
-
-To enable hot restart, set parameter ``HOT_RESTART_ON_USER_INTERRUPT`` to ``true``.
-While NOMAD is running, interrupt the run with the command ``CTRL-C``.
-New values for parameters may be entered.
-For example, entering ``LH_SEARCH 0 20`` will make LH search be used for the rest of the optimization.
-The syntax is the same as the syntax of a parameter file, when in batch mode.
-When all new parameter values are entered, continue optimization by entering
-the command ``CTRL-D``. The new parameter values will be taken into account.
-
-Warm restart
-""""""""""""
-
-To enable warm restart, parameters ``HOT_RESTART_READ_FILES`` and ``HOT_RESTART_WRITE_FILES`` need to be set to ``true``.
-When NOMAD runs a first time, files ``hotrestart.txt`` and ``cache.txt`` are written to the problem directory.
-This information is used if NOMAD is run a second time.
-Instead of redoing the same optimization, NOMAD will continue where it was when the first run was ended.
-For example, suppose the first NOMAD run stopped at evaluation 100 because the value of parameter ``MAX_BB_EVAL`` was 100.
-The user still has room for 50 more evaluations.
-The parameter file may be changed with value ``MAX_BB_EVAL 150``, and the second run of
-NOMAD will start where it was, with evaluation 101.
+NOMAD can perform a restart using the cache file to resume an optimization if the initial attempt
+is prematurely stopped or if the user simply wants to increase the evaluation budget after a first attempt. 
+The simple procedure is detailed in an example at ``$NOMAD_HOME/examples/advanced/batch/UseCacheFileForRerun``.
 
 
 .. topic:: References
@@ -377,6 +394,14 @@ NOMAD will start where it was, with evaluation 101.
   .. [AuDeLe07] C. Audet, J.E. Dennis, Jr., and S. Le Digabel.
     Parallel space decomposition of the mesh adaptive direct search algorithm.
     *SIAM Journal on Optimization*, 19(3):1150–1170, 2008.
+
+  .. [BiLedSa2020] J. Bigeon, S. Le Digabel, and L. Salomon.
+    DMulti-MADS: Mesh adaptive direct multisearch for bound-constrained blackbox multiobjective optimization.
+    *Computational Optimization and Applications*, 79(2):301–338, 2021.
+
+  .. [BiLedSa2024] J. Bigeon, S. Le Digabel, and L. Salomon.
+    Handling of constraints in multiobjective blackbox optimization.
+    *Computational Optimization and Applications*, 9(1):69–113, 2024.
 
   .. [BoDeFrSeToTr99a] A.J. Booker, J.E. Dennis, Jr., P.D. Frank, D.B. Serafini, V. Torczon, and M.W. Trosset.
     A Rigorous Framework for Optimization of Expensive Functions by Surrogates.

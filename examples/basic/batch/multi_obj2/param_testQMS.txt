@@ -1,0 +1,41 @@
+DIMENSION      3              # number of variables
+
+
+BB_EXE         bbMO2.exe      
+BB_OUTPUT_TYPE OBJ OBJ        
+
+X0             ( 0 0 0 )  # starting point
+
+LOWER_BOUND    * -5           
+UPPER_BOUND    * 5           
+
+MAX_BB_EVAL    1000            
+
+# DMultiMads is enabled (default Mads is disabled)
+DMULTIMADS_OPTIMIZATION yes
+
+# Quad model search using DMS strategy
+QUAD_MODEL_SEARCH yes
+DMULTIMADS_QUAD_MODEL_STRATEGY DMS
+
+# For multiobjctive, sort should not use the default quad model info
+EVAL_QUEUE_SORT DIR_LAST_SUCCESS
+
+# Let's deactivate all default search methods
+# and do ORTHO n+1 Neg (Neg is for disabling quad model (n+1)th direction)
+DIRECTION_TYPE ORTHO n+1 neg
+NM_SEARCH no
+SPECULATIVE_SEARCH no
+
+DISPLAY_DEGREE 2
+DISPLAY_UNSUCCESSFUL yes
+DISPLAY_STATS BBE ( SOL ) BBO  # Display the number of evaluation (BBE),
+		     		  # the current solution ( SOL ) and the objectives
+
+
+SOLUTION_FILE sol.txt          # Write the approximated Pareto points 
+SOLUTION_FILE_FINAL yes        # in a file at the end of the run
+
+
+
+

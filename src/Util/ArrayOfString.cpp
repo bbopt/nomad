@@ -207,13 +207,13 @@ std::string NOMAD::ArrayOfString::display() const
 /* - Used as helper for constructor. */
 /*-----------------------------------*/
 
-std::vector<std::string> const
+std::vector<std::string>
 NOMAD::ArrayOfString::splitString(const std::string & inputString,
-                                  const std::string & separators)
+                                  const std::string & separators) const
 {
     std::vector<std::string> array;
 
-    if (inputString.size() == 0)
+    if (inputString.empty())
     {
         return array;
     }

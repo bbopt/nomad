@@ -46,14 +46,14 @@
 /*---------------------------------------------------------------------------------*/
 /**
  \file   EvalQueuePoint.hpp
- \brief  Point specificly designed for EvalQueue.
+ \brief  Point specifically designed for EvalQueue.
  \author Viviane Rochon Montplaisir
  \date   October 2018
  \see    EvalQueuePoint.cpp
  */
 
-#ifndef __NOMAD_4_4_EVALQUEUEPOINT__
-#define __NOMAD_4_4_EVALQUEUEPOINT__
+#ifndef __NOMAD_4_5_EVALQUEUEPOINT__
+#define __NOMAD_4_5_EVALQUEUEPOINT__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -126,6 +126,6 @@ typedef std::vector<EvalQueuePointPtr> BlockForEval;
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_EVALQUEUEPOINT__
+#endif // __NOMAD_4_5_EVALQUEUEPOINT__
 
 

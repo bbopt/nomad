@@ -55,27 +55,24 @@ void NOMAD::PollMethodBase::init()
 {
     // A poll method must have a parent
     verifyParentNotNull();
-    
+
     if (nullptr != _pbParams)
     {
         _n = _pbParams->getAttributeValue<size_t>("DIMENSION");
         _lb = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("LOWER_BOUND");
         _ub = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("UPPER_BOUND");
-        
-        // Groups of variables.
-        _varGroups = _pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP");
     }
 }
 
 void NOMAD::PollMethodBase::generateTrialPointsImp()
 {
-    
+
     OUTPUT_INFO_START
     AddOutputInfo("Generate points for " + getName(), true, false);
     OUTPUT_INFO_END
-    
+
     generateTrialPointsInternal(false);
-    
+
     OUTPUT_INFO_START
     AddOutputInfo("Generated " + std::to_string(getTrialPointsCount()) + " points");
     AddOutputInfo("Generate points for " + getName(), false, true);
@@ -86,21 +83,21 @@ void NOMAD::PollMethodBase::generate2NDirections(std::list<NOMAD::Direction> &di
 {
     NOMAD::Direction dirUnit(n, 0.0);
     NOMAD::Direction::computeDirOnUnitSphere(dirUnit);
-    
+
     OUTPUT_DEBUG_START
     AddOutputDebug("Unit sphere direction: " + dirUnit.display());
     NOMAD::OutputQueue::Flush();
     OUTPUT_DEBUG_END
 
     // Householder Matrix
-    NOMAD::Direction** H = new NOMAD::Direction*[2*n];
+    auto H = new NOMAD::Direction*[2*n];
 
     // Ordering D_k alternates Hk and -Hk instead of [H_k -H_k]
     for (size_t i = 0; i < n; ++i)
     {
-        directions.push_back(NOMAD::Direction(n, 0.0));
+        directions.emplace_back(n, 0.0);
         H[i]   = &(directions.back());
-        directions.push_back(NOMAD::Direction(n, 0.0));
+        directions.emplace_back(n, 0.0);
         H[i+n] = &(directions.back());
     }
     // Householder transformations on the 2n directions on a unit n-sphere
@@ -120,16 +117,16 @@ void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isSecondPass)
 {
 
     std::list<NOMAD::Direction> directionsFullSpace = generateFullSpaceScaledDirections(isSecondPass);
-    
+
     OUTPUT_INFO_START
     std::string s = "Generate ";
-    s+= (isSecondPass) ? "second pass trial point(s)" : " first pass trial points";
+    s+= (isSecondPass) ? "second pass trial point(s)" : ((_isFreePoll) ? "user free poll trial point(s)" :" first pass trial points");
     s += " for " + getName();
     AddOutputInfo(s, true, false);
     OUTPUT_INFO_END
 
     OUTPUT_DEBUG_START
-    for (auto dir : directionsFullSpace)
+    for (const auto& dir : directionsFullSpace)
     {
         AddOutputDebug("Scaled and mesh projected poll direction: " + dir.display());
     }
@@ -147,64 +144,96 @@ void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isSecondPass)
     AddOutputDebug("Frame center: " + _frameCenter->display());
     OUTPUT_DEBUG_END
 
-    for (std::list<NOMAD::Direction>::iterator it = directionsFullSpace.begin(); it != directionsFullSpace.end() ; ++it)
+    for (auto& it : directionsFullSpace)
     {
         NOMAD::Point pt(_n);
 
         // pt = frame center + direction
         for (size_t i = 0 ; i < _n ; ++i )
         {
-            pt[i] = (*_frameCenter)[i] + (*it)[i];
+            pt[i] = (*_frameCenter)[i] + it[i];
         }
 
         auto evalPoint = NOMAD::EvalPoint(pt);
         evalPoint.setPointFrom(_frameCenter, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
-        
-        // Snap the points and the corresponding direction to the bounds
-        if (snapPointToBoundsAndProjectOnMesh(evalPoint, _lb, _ub))
-        {
-            if (*evalPoint.getX() != *_frameCenter->getX())
-            {
-                // New EvalPoint to be evaluated.
-                // Add it to the list.
-                evalPoint.addGenStep(getStepType());
-                bool inserted = insertTrialPoint(evalPoint);
 
-                OUTPUT_INFO_START
-                std::string s = "Generated point";
-                s += (inserted) ? ": " : " not inserted: ";
-                s += evalPoint.display();
-                AddOutputInfo(s);
-                OUTPUT_INFO_END
-            }
-            else
-            {
-                OUTPUT_INFO_START
-                std::string s = "Generated point not inserted (equal to frame center): ";
-                s += evalPoint.display();
-                AddOutputInfo(s);
-                OUTPUT_INFO_END
-            }
+        // Snap the points and the corresponding direction to the bounds
+        // Not required for free poll
+        if (!_isFreePoll)
+        {
+            snapPointToBoundsAndProjectOnMesh(evalPoint, _lb, _ub);
+        }
+
+        if (*evalPoint.getX() != *_frameCenter->getX())
+        {
+            // New EvalPoint to be evaluated.
+            // Add it to the list.
+            evalPoint.addGenStep(getStepType());
+            bool inserted = insertTrialPoint(evalPoint);
+
+            OUTPUT_INFO_START
+            std::string s = "Generated point";
+            s += (inserted) ? ": " : " not inserted: ";
+            s += evalPoint.display();
+            AddOutputInfo(s);
+            OUTPUT_INFO_END
+        }
+        else
+        {
+            OUTPUT_INFO_START
+            std::string s = "Generated point not inserted (equal to frame center): ";
+            s += evalPoint.display();
+            AddOutputInfo(s);
+            OUTPUT_INFO_END
+        }
+        if (_isFreePoll)
+        {
+            evalPoint.addGenStep(getStepType());
+            bool inserted = insertTrialPoint(evalPoint);
+
+            auto fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
+            auto pointFull = evalPoint.getX()->makeFullSpacePointFromFixed(fixedVariable);
+
+            OUTPUT_INFO_START
+            std::string s = "Generated point (full space)";
+            s += (inserted) ? ": " : " not inserted: ";
+            s += pointFull.display();
+            AddOutputInfo(s);
+            OUTPUT_INFO_END
+        }
+        if (_isFreePoll)
+        {
+            evalPoint.addGenStep(getStepType());
+            bool inserted = insertTrialPoint(evalPoint);
+            
+            auto fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
+            auto pointFull = evalPoint.getX()->makeFullSpacePointFromFixed(fixedVariable);
+
+            OUTPUT_INFO_START
+            std::string s = "Generated point (full space)";
+            s += (inserted) ? ": " : " not inserted: ";
+            s += pointFull.display();
+            AddOutputInfo(s);
+            OUTPUT_INFO_END
         }
     }
 
     OUTPUT_INFO_START
     AddOutputInfo("Generated " + NOMAD::itos(getTrialPointsCount()) + " points");
     std::string s = "Generate ";
-    s+= (isSecondPass) ? "second pass trial point(s)" : "first pass trial points";
+    s+= (isSecondPass) ? "second pass trial point(s)" : ((_isFreePoll) ? "user free poll trial point(s)" :" first pass trial points");
     s += " for " + getName();
     AddOutputInfo(s, false, true);
     OUTPUT_INFO_END
 }
 
 
-std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirections(bool isSecondPass,   NOMAD::MeshBasePtr mesh)
+std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirections(bool isSecondPass, const NOMAD::MeshBasePtr& mesh)
 {
 
-    
     std::list<NOMAD::Direction> directionsSubSpace, directionsFullSpace;
-    
-    if (_varGroups.size() == 0)
+
+    if (_varGroups.empty())
     {
         if (!isSecondPass)
         {
@@ -222,39 +251,41 @@ std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirect
     }
     else
     {
-        for (auto vg : _varGroups)
+        // Can be a single varGroup for a selected poll method
+        for (const auto& vg : _varGroups)
         {
             directionsSubSpace.clear();
-            
+
+
             size_t nVG = vg.size();
 
             if (!isSecondPass)
             {
-                // Creation of the poll directions in the sub space of the variable group
-                generateUnitPollDirections(directionsSubSpace,nVG);
+                // Creation of the poll directions in the subspace of the variable group
+                generateUnitPollDirections(directionsSubSpace, nVG);
             }
             else
             {
-                // Creation of the second pass poll direction in the sub space of the variable group
+                // Creation of the second pass poll direction in the subspace of the variable group
                 generateSecondPassDirections(directionsSubSpace);
                 // We do not want to re-evaluate points generated in the first pass.
                 _trialPoints.clear();
             }
 
-            // Convert sub space (in a group of variable) directions to full space directions (all variables)
-            if (_varGroups.size() > 1)
+            // Convert subspace (in a group of variable) directions to full space directions (all variables -> _n)
+            if (_subsetListVG)
             {
                 size_t vgIndex = 0; // For Output debug only
-                for (std::list<NOMAD::Direction>::iterator it = directionsSubSpace.begin(); it != directionsSubSpace.end() ; ++it)
+                for (auto& it : directionsSubSpace)
                 {
                     // In full space, the direction for an index outside the group of variables is null
                     NOMAD::Direction fullSpaceDirection(_n,0.0);
 
-                    // Copy the the sub space direction elements to full space
+                    // Copy the subspace direction elements to full space
                     size_t i = 0;
                     for (auto index: vg)
                     {
-                        fullSpaceDirection[index] = (*it)[i++];
+                        fullSpaceDirection[index] = it[i++];
                     }
                     directionsFullSpace.push_back(fullSpaceDirection);
                     OUTPUT_DEBUG_START
@@ -268,7 +299,7 @@ std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirect
                 directionsFullSpace = directionsSubSpace;
 
                 OUTPUT_DEBUG_START
-                for (auto dir : directionsFullSpace)
+                for (const auto& dir : directionsFullSpace)
                 {
                     AddOutputDebug("Unit poll direction: " + dir.display());
                 }
@@ -277,17 +308,21 @@ std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirect
             }
         }
     }
-    
+
     // Scale and project directions on the mesh
     // Always do it for first pass
     // For second pass only do it when the flag is on. For the moment, the flag is off only for Ortho n+1 quad.
-    if (!isSecondPass || _scaleAndProjectSecondPassDirectionOnMesh )
+    // Directions from user free poll method are not scaled or projected on mesh.
+    if (!_isFreePoll)
     {
-        scaleAndProjectOnMesh(directionsFullSpace, mesh);
+        if (!isSecondPass || _scaleAndProjectSecondPassDirectionOnMesh )
+        {
+            scaleAndProjectOnMesh(directionsFullSpace, mesh);
+        }
     }
-    
+
     return directionsFullSpace;
-    
+
 }
 
 
@@ -310,7 +345,7 @@ void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs, s
         OUTPUT_DEBUG_START
         AddOutputDebug("Poll direction before scaling and projection on mesh: " + itDir->display());
         OUTPUT_DEBUG_END
-        
+
         Direction scaledDir(_n,0.0);
 
         // Compute infinite norm for direction pointed by itDir.
@@ -334,3 +369,18 @@ void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs, s
     OUTPUT_DEBUG_END
 }
 
+
+void NOMAD::PollMethodBase::setListVariableGroups(const ListOfVariableGroup & varGroups)
+{
+    if (varGroups.empty())
+    {
+        return;
+    }
+
+    _varGroups = varGroups;
+	size_t dimLVG = std::accumulate(varGroups.begin(), varGroups.end(), size_t{ 0 }, [](size_t s, const NOMAD::VariableGroup & vg) { return s + vg.size(); });
+    if (dimLVG < _n)
+    {
+        _subsetListVG = true;
+    }
+}

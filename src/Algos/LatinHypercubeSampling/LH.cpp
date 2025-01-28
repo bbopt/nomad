@@ -63,7 +63,7 @@ NOMAD::ArrayOfPoint NOMAD::LH::suggest ()
     generateTrialPoints();
     
     NOMAD::ArrayOfPoint xs;
-    for (auto trialPoint : _trialPoints)
+    for (const auto& trialPoint : _trialPoints)
     {
         if (std::find(xs.begin(),xs.end(), *trialPoint.getX()) == xs.end())
         {
@@ -115,7 +115,7 @@ void NOMAD::LH::generateTrialPointsImp()
     auto mesh = std::make_shared<NOMAD::GMesh>(_pbParams, _runParams);
     mesh->setEnforceSanityChecks(false);
     // Modify mesh so it is the finest possible.
-    // Note: GRANULARITY is already adjusted with regards to BB_INPUT_TYPE.
+    // Note: GRANULARITY is already adjusted in regard to BB_INPUT_TYPE.
     NOMAD::ArrayOfDouble newMeshSize = _pbParams->getAttributeValue<NOMAD::ArrayOfDouble>("GRANULARITY");
     auto eps = NOMAD::Double::getEpsilon();
     for (size_t i = 0; i < newMeshSize.size(); i++)
@@ -176,7 +176,7 @@ bool NOMAD::LH::runImp()
     {
         evalType = evc->getCurrentEvalType();
     }
-    for (auto trialPoint : _trialPoints)
+    for (const auto& trialPoint : _trialPoints)
     {
         // We are looking for trial points that have been evaluated
         if (trialPoint.isEvalOk(evalType))

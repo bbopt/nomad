@@ -52,8 +52,8 @@
  \see    Point.cpp
  */
 
-#ifndef __NOMAD_4_4_POINT__
-#define __NOMAD_4_4_POINT__
+#ifndef __NOMAD_4_5_POINT__
+#define __NOMAD_4_5_POINT__
 
 #include <numeric>
 #include "../Math/ArrayOfDouble.hpp"
@@ -193,7 +193,7 @@ public:
     /* Vector */
     /*--------*/
 
-    /// Create a direction by substracting 2 points.
+    /// Create a direction by subtracting 2 points.
     /**
      \param X   Right point -- \b IN.
      \param Y   Left point -- \b IN.
@@ -267,4 +267,4 @@ DLL_UTIL_API std::istream& operator>>(std::istream& in, Point& pt);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_4_POINT__
+#endif // __NOMAD_4_5_POINT__

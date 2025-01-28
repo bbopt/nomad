@@ -68,7 +68,7 @@ void NOMAD::SgtelibModelOptimize::init()
 
 void NOMAD::SgtelibModelOptimize::startImp()
 {
-    auto modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
+    const auto& modelDisplay = _runParams->getAttributeValue<std::string>("SGTELIB_MODEL_DISPLAY");
     _displayLevel = (std::string::npos != modelDisplay.find("O"))
                         ? NOMAD::OutputLevel::LEVEL_INFO
                         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
@@ -138,7 +138,7 @@ bool NOMAD::SgtelibModelOptimize::runImp()
         // Create a Mads step
         // Parameters for mads (_optRunParams and _optPbParams) are already updated.
         // NOTE: Mads works with fixed variables detected during construction of the training set. Fixed variable from the original problem are not considered. The evaluator works on the quad model, we don't need to map to the global full space for evaluation because this is not BB eval.
-        _mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams, false /* false: barrier not initilized from cache */, true /* use only the local fixed variables */);
+        _mads = std::make_shared<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams, false /* false: barrier not initialized from cache */, true /* use only the local fixed variables */);
         _mads->setEndDisplay(false);
         
         evc->resetModelEval();
@@ -182,9 +182,6 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
     // Ensure there is no model used in model optimization.
     _optRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
-    
-    // Maybe put this to true. Allow more exploration on complex models. Same as NM_SEARCH. The default is used but it could be forced to false.
-    // IMPORTANT: if VNS_MADS_SEARCH is changed to yes, the static members of VNSSearchMethod must be managed correctly
     _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
 
     // Set direction type to Ortho 2n
@@ -231,21 +228,24 @@ void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& 
 
     // No variable groups are considered for suboptimization
     _optPbParams->resetToDefaultValue("VARIABLE_GROUP");
-
+    
+    // Access to h norm type
+    auto hNormType = _refRunParams->getAttributeValue<NOMAD::HNormType>("H_NORM");
+    
     // Find best points (MODEL evals) and use them as X0s to optimize models.
+    NOMAD::FHComputeType computeType = {NOMAD::EvalType::MODEL, {NOMAD::ComputeType::STANDARD, hNormType, defaultEmptySingleOutputCompute /* not used */}};
     NOMAD::CacheInterface cacheInterface(this);
     std::vector<NOMAD::EvalPoint> evalPointFeasList;
     std::vector<NOMAD::EvalPoint> evalPointInfList;
     NOMAD::Double hMax = _modelAlgo->getHMax();
 
     // Only looking into model evaluations here
+    // We do not usually store MODEL eval in cache
     cacheInterface.findBestFeas(evalPointFeasList,
-                                NOMAD::EvalType::MODEL,
-                                NOMAD::ComputeType::STANDARD);
+                                computeType);
     cacheInterface.findBestInf(evalPointInfList,
                                hMax,
-                               NOMAD::EvalType::MODEL,
-                               NOMAD::ComputeType::STANDARD);
+                               computeType);
 
     NOMAD::ArrayOfPoint x0s;
     for (const auto &evalPointX0 : evalPointFeasList)
@@ -262,9 +262,9 @@ void NOMAD::SgtelibModelOptimize::setupPbParameters(const NOMAD::ArrayOfDouble& 
             x0s.push_back(*(evalPointX0.getX()));
         }
     }
-    // Fallback: No MODEL points found. Use points from an upper Mads barrier
+    // Fallback: No MODEL points in cache. Use points from an upper Mads barrier
     // (_barrierForX0s).
-    if (0 == x0s.size())
+    if (x0s.empty())
     {
         // Get best points from upper Mads
         for (const auto & evalPointX0 : _modelAlgo->getX0s())
@@ -301,7 +301,7 @@ void NOMAD::SgtelibModelOptimize::updateOraclePoints()
     {
         auto allBestPoints = barrier->getAllPoints();
 
-        for (auto evalPoint : allBestPoints)
+        for (const auto& evalPoint : allBestPoints)
         {
             _oraclePoints.insert(evalPoint);
         }

@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_QUAD_MODEL_ITERATION__
-#define __NOMAD_4_4_QUAD_MODEL_ITERATION__
+#ifndef __NOMAD_4_5_QUAD_MODEL_ITERATION__
+#define __NOMAD_4_5_QUAD_MODEL_ITERATION__
 
 #include "../../Algos/Iteration.hpp"
 #include "../../Eval/EvalPoint.hpp"
@@ -71,9 +71,14 @@ private:
 
 
     /**
-     The trial points use to create the radiuses to select the training set when building the model
+     The trial points use to create the radius's to select the training set when building the model
      */
     const EvalPointSet & _trialPoints;
+    
+    /**
+     For multi-objective we can combine all objectives into a single objective for the model
+     */
+    bool _flagPriorCombineObjsForModel;
     
     /**
      The Mads mesh can be available if this is called during a Search method. If not, it is set to \c nullptr. When available, trials points can be projected on it.
@@ -100,12 +105,14 @@ public:
                                 const EvalPointPtr center,
                                 const size_t k = 0,
                                 const MeshBasePtr madsMesh = nullptr,
-                                const EvalPointSet & trialPoints = emptyEvalPointSet )
+                                const EvalPointSet & trialPoints = emptyEvalPointSet,
+                                bool flagPriorCombineObjsForModel = false)
       : Iteration(parentStep, k) ,
         _refCenter(center),
         _madsMesh(madsMesh),
         _useForSortingTrialPoints(false),
-        _trialPoints(trialPoints)
+        _trialPoints(trialPoints),
+        _flagPriorCombineObjsForModel(flagPriorCombineObjsForModel)
     {
         init();
     }
@@ -157,4 +164,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_QUAD_MODEL_ITERATION__
+#endif // __NOMAD_4_5_QUAD_MODEL_ITERATION__

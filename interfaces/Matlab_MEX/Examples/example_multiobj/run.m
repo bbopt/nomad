@@ -4,7 +4,7 @@ x0 = [0 0 0 ];
 lb = [-5 -5 -5 ];
 ub = [5 5 5 ];
 
-params = struct('display_degree','2','max_eval','1000','direction_type','ortho 2n','bb_output_type','OBJ OBJ','DMULTIMADS_OPTIMIZATION','true','SOLUTION_FILE','sol.txt');
+params = struct('display_degree','2','max_eval','1000','direction_type','ortho 2n','bb_output_type','OBJ OBJ','DMULTIMADS_OPTIMIZATION','true','SOLUTION_FILE','sol.txt','SOLUTION_FILE_FINAL','YES');
 
 [x,fval,hinf,exit_status,nfeval] = nomadOpt(@bb,x0,lb,ub,params);
 

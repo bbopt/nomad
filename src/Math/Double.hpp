@@ -52,8 +52,8 @@
  \date   2010-04-02
  \see    Double.cpp
  */
-#ifndef __NOMAD_4_4_DOUBLE__
-#define __NOMAD_4_4_DOUBLE__
+#ifndef __NOMAD_4_5_DOUBLE__
+#define __NOMAD_4_5_DOUBLE__
 
 #include <cmath>
 
@@ -76,8 +76,8 @@
         double        _value;   ///< Value of the number.
         bool          _defined; ///< \c true if the number has a defined value.
 
-        // \todo Make these local static objects
         static double      _epsilon;    ///< Desired precision on comparisons.
+        static double      _hMin;       ///< Desired h min for feasibility (default is 0)
         static std::string _infStr;     ///< Infinity string.
         static std::string _undefStr;   ///< Undefined value string.
 
@@ -187,8 +187,8 @@
         /// Return the number of decimals of a double.
         std::size_t nbDecimals() const;
 
-        /// Access to the double value.
-        const std::string tostring() const;
+        /// Access to the double value as string in full precision.
+        std::string tostring() const;
 
         /// Is the value defined ?
         bool isDefined() const { return _defined; }
@@ -224,6 +224,12 @@
 
         /// Set the precision.
         static void setEpsilon ( double eps );
+        
+        /// Access to h min for feasibility.
+        static double getHMin()  { return Double::_hMin; }
+
+        /// Set the to h min for feasibility.
+        static void setHMin (const double & hMin );
 
         /// Access to the undefined value string.
         static std::string getUndefStr() { return Double::_undefStr; }
@@ -248,7 +254,7 @@
 
 
         /// Rounding to the nearest integer.
-        const Double roundd() const;
+        Double roundd() const;
 
         /**
         * Round the current value to given precision (number of decimals).
@@ -257,29 +263,29 @@
         bool roundToPrecision(const NOMAD::Double & precision, const NOMAD::Double & lb, const NOMAD::Double & ub) ;
         
         /// Rounding upward to an integer.
-        const Double ceil() const;
+        Double ceil() const;
 
         /// Rounding downward to an integer.
-        const Double floor() const;
+        Double floor() const;
 
 
         /// Absolute value.
         /**
          \return Max{\c -*this,\c *this}.
          */
-        const Double abs() const;
+        Double abs() const;
 
         /// Square.
         /**
          \return \c *this \c * \c *this.
          */
-        const Double pow2() const;
+        Double pow2() const;
 
         /// Square root.
         /**
          \return \c (*this)^0.5.
          */
-        const Double sqrt() const;
+        Double sqrt() const;
 
         /// Relative error with another double.
         /**
@@ -292,7 +298,7 @@
          \param  x  Value to compare -- b IN.
          \return    Relative error value in \c [0;1].
          */
-        const Double relErr ( const Double & x ) const;
+        Double relErr ( const Double & x ) const;
 
         /// Is the double a multiple of the granularity?
         /**
@@ -318,7 +324,7 @@
          \param granularity Granularity to compare
          \return            Next multiple Double
          */
-        const Double nextMult(const Double &granularity) const;
+        Double nextMult(const Double &granularity) const;
 
         /// Previous multiple
         /**
@@ -327,7 +333,7 @@
           \param granularity Granularity to compare
           \return            Previous multiple Double
          */
-        const Double previousMult(const Double &granularity) const;
+        Double previousMult(const Double &granularity) const;
 
         // Unused for the moment. Maybe used by projectToMesh
         void truncateToGranMultiple ( const Double & ref   ,
@@ -442,8 +448,8 @@
           *
           * c may be in 'e', 'E', 'f', 'g', 'G', 'd', or 'i'
           *
-          * e Scientific notation (mantise/exponent) using e character 3.9265e+2
-          * E Scientific notation (mantise/exponent) using E character 3.9265E+2
+          * e Scientific notation (mantissa/exponent) using e character 3.9265e+2
+          * E Scientific notation (mantissa/exponent) using E character 3.9265E+2
           * f Decimal floating point                                   392.65
           * g Use the shorter of %e or %f                              392.65
           * G Use the shorter of %E or %f                              392.65
@@ -495,20 +501,20 @@
      \param d2  Second element -- \b IN.
      \return    Sum of the two elements.
      */
-    inline const Double operator + ( const Double & d1 , const Double & d2 )
+    inline Double operator + ( const Double & d1 , const Double & d2 )
     {
         return Double ( d1.todouble() + d2.todouble() );
     }
 
-    /// Substraction operator \c -.
+    /// Subtraction operator \c -.
     /**
      Allows operations such as \c d \c = \c d1 \c - \c d2.
 
      \param d1  First element -- \b IN.
      \param d2  Second element -- \b IN.
-     \return    Difference between first and secont element.
+     \return    Difference between first and second element.
      */
-    inline const Double operator - ( const Double & d1 , const Double & d2 )
+    inline Double operator - ( const Double & d1 , const Double & d2 )
     {
         return Double (d1.todouble() - d2.todouble());
     }
@@ -521,7 +527,7 @@
      \param d2  Second element -- \b IN.
      \return    Product of the two elements.
      */
-    inline const Double operator * ( const Double & d1 , const Double & d2 )
+    inline Double operator * ( const Double & d1 , const Double & d2 )
     {
         return Double ( d1.todouble() * d2.todouble() );
     }
@@ -534,7 +540,7 @@
      \param d2  Second element -- \b IN.
      \return    Ratio of the first element by second element.
      */
-    DLL_UTIL_API const Double operator / ( const Double & d1 , const Double & d2 );
+    DLL_UTIL_API Double operator / ( const Double & d1 , const Double & d2 );
 
     /// Comparison operator \c ==.
     /**
@@ -636,4 +642,4 @@
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_4_DOUBLE__
+#endif // __NOMAD_4_5_DOUBLE__

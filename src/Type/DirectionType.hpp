@@ -52,8 +52,8 @@
  \see    DirectionType.cpp
  */
 
-#ifndef __NOMAD_4_4_DIRECTION_TYPE__
-#define __NOMAD_4_4_DIRECTION_TYPE__
+#ifndef __NOMAD_4_5_DIRECTION_TYPE__
+#define __NOMAD_4_5_DIRECTION_TYPE__
 
 #include <list>
 #include <sstream>
@@ -69,6 +69,7 @@ enum class DirectionType
     CS,
     ORTHO_NP1_NEG,
     ORTHO_NP1_QUAD,
+    QR_2N,
     NP1_UNI,
     SINGLE,
     DOUBLE,
@@ -84,6 +85,8 @@ enum class DirectionType
     GPS_NP1_RAND,
     GPS_NP1_RAND_UNIFORM,
     GPS_1_STATIC,
+    USER_POLL,
+    USER_FREE_POLL,
     UNDEFINED_DIRECTION
     ///< DirectionType is mandatory
 };
@@ -116,4 +119,4 @@ inline std::ostream& operator<<(std::ostream& out, const DirectionTypeList &dirT
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_4_DIRECTION_TYPE__
+#endif  // __NOMAD_4_5_DIRECTION_TYPE__

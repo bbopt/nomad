@@ -44,8 +44,14 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_DMULTIMADSBARRIER
-#define __NOMAD_4_4_DMULTIMADSBARRIER
+/**
+ \file   DMultiMadsBarrier.hpp
+ \brief  The DMultiMads algorithm barrier
+ \author Ludovic Salomon
+ \see    DMultiMadsBarrier.cpp
+ */
+#ifndef __NOMAD_4_5_DMULTIMADSBARRIER
+#define __NOMAD_4_5_DMULTIMADSBARRIER
 
 #include "../../Eval/BarrierBase.hpp"
 #include "../../Eval/EvalPoint.hpp"
@@ -63,10 +69,17 @@ private:
     // The points of interest are not necessarily the incumbents defined in BarrierBase: _xIncFeas[0] and _xIncInf[0]
     EvalPointPtr _currentIncumbentFeas;  ///< current feasible of interest for DmultiMads
     EvalPointPtr _currentIncumbentInf;   ///< current infeasible of interest for DMultiMads
+    EvalPointPtr _currentIncumbentInfMaxH; ///< current infeasible among the best infeasible with max h value.
 
-    ArrayOfDouble _fixedVariables; ///< The fixed variables. Use the fixed variables if the mesh and barrier points do not have the same dimension. The fixed variables are used to access the frame size for unfixed variables. This situation occurs for the EvaluatorControl barrier with fixed variables.
+    ArrayOfDouble _fixedVariables; ///< The fixed variables. Use the fixed variables if the mesh and barrier points do
+                                   /// not have the same dimension.
+                                   /// The fixed variables are used to access the frame size for unfixed variables.
+                                   /// This situation occurs for the EvaluatorControl barrier with fixed variables.
     
-    std::vector<EvalPointPtr> _xFilterInf; ///< Stores current non dominated infeasible solutions. Can hold a copy of EvalPoint in xFeas and XInf.
+    std::vector<EvalPointPtr> _xFilterInf; ///< Stores current non dominated infeasible solutions. Can hold a copy of EvalPoint in xInf.
+
+    std::vector<NOMAD::Double> _currentIdealFeas; ///< The current ideal objective vector of the set of feasible solutions.
+    std::vector<NOMAD::Double> _currentIdealInf; ///< The current ideal objective vector of the set of infeasible solutions.
 
     /// Dimension of the objective vectors in the barrier.
     /**
@@ -97,17 +110,20 @@ public:
      */
     DMultiMadsBarrier(size_t nbObj,
                       const Double& hMax = INF,
-              const size_t incumbentSelectionParam = 1,
-              const Point& fixedVariables = Point(),
-              EvalType evalType = EvalType::BB,
-              ComputeType computeType = ComputeType::STANDARD,
-              const std::vector<EvalPoint>& evalPointList = std::vector<EvalPoint>(),
-              bool barrierInitializedFromCache= true,
-              const BBInputTypeList bbInputsType= std::vector<BBInputType>())
-      : BarrierBase(hMax),
+                      const size_t incumbentSelectionParam = 1,
+                      const Point& fixedVariables = Point(),
+                      EvalType evalType = EvalType::BB,
+                      FHComputeTypeS computeType = defaultFHComputeTypeS,
+                      const std::vector<EvalPoint>& evalPointList = std::vector<EvalPoint>(),
+                      bool barrierInitializedFromCache= true,
+                      const BBInputTypeList bbInputsType= std::vector<BBInputType>())
+      : BarrierBase(evalType, computeType, hMax),
         _nobj(nbObj), 
         _currentIncumbentFeas(nullptr),
         _currentIncumbentInf(nullptr),
+        _currentIncumbentInfMaxH(nullptr),
+        _currentIdealFeas(nbObj, NOMAD::INF),
+        _currentIdealInf(nbObj, NOMAD::INF),
         _fixedVariables(fixedVariables),
         _bbInputsType(bbInputsType),
         _incumbentSelectionParam(incumbentSelectionParam)
@@ -115,10 +131,10 @@ public:
         checkHMax();
 
         // The number of objectives is initialized via the call to the cache.
-        init(fixedVariables, evalType, computeType, barrierInitializedFromCache); // Initialize with cache (if flag is true)
-        init(fixedVariables, evalType, evalPointList, computeType); // Initializae with a list of points
+        init(fixedVariables, barrierInitializedFromCache); // Initialize with cache (if flag is true)
+        init(fixedVariables, evalPointList); // Initialize with a list of points
 
-        if (computeType == NOMAD::ComputeType::STANDARD && _nobj == 1)
+        if (computeType.computeType == NOMAD::ComputeType::STANDARD && _nobj == 1)
         {
             std::string s = "Error: Construction of a DMultiMadsBarrier with number of objectives equal to 1. ";
             s += "In this case, use Barrier";
@@ -126,7 +142,7 @@ public:
         }
     }
 
-    DMultiMadsBarrier(const DMultiMadsBarrier & b)
+    DMultiMadsBarrier(const DMultiMadsBarrier & b) : BarrierBase(b)
     {
         // Do not copy the barrier points
         _nobj = b._nobj;
@@ -137,6 +153,11 @@ public:
     
     std::shared_ptr<BarrierBase> clone() const override {
         return std::make_shared<DMultiMadsBarrier>(*this);
+    }
+
+    size_t getNbObj() const
+    {
+        return _nobj;
     }
 
     /// Update ref best feasible and ref best infeasible values.
@@ -198,6 +219,23 @@ public:
         return *_xInf[i];
     }
 
+    ///  Get the i non dominated infeasible incumbent.
+    /**
+     * If there is no infeasible point or index i is superior to the
+     * number of infeasible incumbents, raise an exception.
+     \return A single infeasible eval point.
+     */
+    EvalPoint& getXFilterInf(size_t i)
+    {
+        if (i >= _xFilterInf.size())
+        {
+            std::string s = "Error: try to get access to " + std::to_string(i) + " element of ";
+            s += "DMultiMadsBarrier but number of infeasible elements is " + std::to_string(_xFilterInf.size()) + ".";
+            throw NOMAD::Exception(__FILE__,__LINE__,s);
+        }
+        return *_xFilterInf[i];
+    }
+
     size_t nbXFilterInf()
     {
         return _xFilterInf.size();
@@ -208,8 +246,7 @@ public:
         return _xFilterInf;
     }
     
-    
-    
+
     /*---------------*/
     /* Other methods */
     /*---------------*/
@@ -227,32 +264,28 @@ public:
      * \note Input EvalPoints are already in subproblem dimention
      */
     SuccessType getSuccessTypeOfPoints(const EvalPointPtr xFeas,
-                                       const EvalPointPtr xInf,
-                                       EvalType evalType,
-                                       ComputeType computeType) override;
+                                       const EvalPointPtr xInf) override;
 
     /// Update xFeas and xInf according to given points.
     /* \param evalPointList vector of EvalPoints  -- \b IN.
-     * \param keepAllPoints keep all good points, or keep just one point as in NOMAD 3 -- \b IN.
-     * \return true if the Barrier was updated, false otherwise
-     * \note Input EvalPoints are already in subproblem dimention
-     * \note After calling this function, all xInf elements of the MO Barrier
-     * are below _hMax.
+     * \param keepAllPoints keep all good points, or keep just non-dominated (and non-equal) solutions as in NOMAD 3 -- \b IN.
+     * \param updateInfeasibleIncumbentsAndHmax update hMax threshold and consequently the set of infeasible incumbents.
+     * \return true if the Barrier was updated, false otherwise.
+     * \note Input EvalPoints are already in subproblem dimension
+     * \note All xInf elements of the MO Barrier are always below _hMax.
      */
     bool updateWithPoints(const std::vector<EvalPoint>& evalPointList,
-                          EvalType evalType,
-                          ComputeType computeType,
                           const bool keepAllPoints = false,
-                          const bool updateInfeasibleIncumbentAndHmax = false /* Not used here*/) override;
-    
+                          const bool updateInfeasibleIncumbentsAndHmax = false) override;
     
     /// Update current feas and infeas incumbents. Called by DMultiMadsUpdate and when updating the barrier
     void updateCurrentIncumbents()
     {
         updateCurrentIncumbentFeas();
         updateCurrentIncumbentInf();
+        updateCurrentIncumbentInfMaxH();
     }
-    
+
 
     /// Return the barrier as a string.
     /* May be used for information, or for saving a barrier. In the former case,
@@ -261,8 +294,21 @@ public:
      * \param max Maximum number of feasible and infeasible points to display
      * \return A vector of string describing the barrier
      */
-    std::vector<std::string> display(const size_t max = INF_SIZE_T) const override;
-    
+    std::vector<std::string> display(const size_t max = INF_SIZE_T) const override
+    {
+        return display(max, false);
+    }
+
+    /// Return the barrier as a string.
+    /* May be used for information, or for saving a barrier. In the former case,
+     * it may be useful to set parameter max to a small value (e.g., 4). In the
+     * latter case, INF_SIZE_T should be used so that all points are saved.
+     * \param max Maximum number of feasible and infeasible points to display
+     * \param displayMeshes Whether to display meshes associated to the points.
+     * \return A vector of string describing the barrier
+     */
+    std::vector<std::string> display(const size_t max = INF_SIZE_T, const bool displayMeshes = false) const;
+
 private:
 
     /**
@@ -270,13 +316,9 @@ private:
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      \param fixedVariables   The fixed variables have a fixed value     -- \b IN.
-     \param evalType        Which eval (Blackbox or Model) to use to verify feasibility  -- \b IN.
-     \param computeType    Which compute type (standard, phase-one or user) must be available to find in cache  -- \b IN.
      \param barrierInitializedFromCache  Flag to initialize barrier from cache or not. -- \b IN.
      */
     void init(const Point& fixedVariables,
-              EvalType evalType,
-              ComputeType computeType,
               bool barrierInitializedFromCache) override;
 
     /**
@@ -284,14 +326,10 @@ private:
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      \param fixedVariables   The fixed variables have a fixed value     -- \b IN.
-     \param evalType        Which eval (Blackbox or Model) to use to verify feasibility  -- \b IN.
      \param evalPointList   Additional points to consider to construct barrier. -- \b IN.
-     \param computeType    Which compute type (standard, phase-one or user) must be available to find in cache  -- \b IN.
      */
     void init(const Point& fixedVariables,
-              EvalType evalType,
-              const std::vector<EvalPoint>& evalPointList,
-              ComputeType computeType);
+              const std::vector<EvalPoint>& evalPointList);
 
     /**
      * \brief Helper function for insertion.
@@ -307,9 +345,7 @@ private:
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
-    void checkXFeasIsFeas(const EvalPoint &xFeas,
-                          EvalType evalType,
-                          ComputeType computeType = ComputeType::STANDARD) override;
+    void checkXFeasIsFeas(const EvalPoint &xFeas) override;
 
     /**
      * \brief Helper function for infeasible point candidate search.
@@ -323,33 +359,37 @@ private:
 
     /**
      * \brief Filter infeasible incumbent solutions when hMax is set.
-     *
      */
     void updateXInfAndFilterInfAfterHMaxSet();
     
-    NOMAD::Double getMeshMaxFrameSize(const NOMAD::EvalPointPtr pt) const;
+    NOMAD::Double getMeshMaxFrameSize(const NOMAD::EvalPointPtr& pt) const;
     
     /// Helper for updateWithPoints
-    bool updateFeasWithPoint(const EvalPoint& evalPoint,
-                          EvalType evalType,
-                          ComputeType computeType,
-                          const bool keepAllPoints );
+    NOMAD::CompareType updateFeasWithPoint(const EvalPoint& evalPoint,
+                                           const bool keepAllPoints);
     
     /// Helper for updateWithPoints
-    bool updateInfWithPoint(const EvalPoint& evalPoint,
-                          EvalType evalType,
-                          ComputeType computeType,
-                          const bool keepAllPoints,
-                          const bool feasHasBeenUpdated);
-    
+    NOMAD::CompareType updateInfWithPoint(const EvalPoint& evalPoint,
+                                          const bool keepAllPoints);
+
     /// Helper for updateCurrentIncumbents
     void updateCurrentIncumbentFeas();
     
     /// Helper for updateCurrentIncumbents
     void updateCurrentIncumbentInf();
-    
-    
 
+    /// Helper for updateCurrentIncumbents
+    void updateCurrentIncumbentInfMaxH();
+
+    /**
+     * \brief Helper function to update the feasible ideal objective vector.
+     */
+    void updateCurrentIdealFeas();
+
+    /**
+     * \brief Helper function to update the infeasible ideal objective vector.
+     */
+    void updateCurrentIdealInf();
 };
 
 /// Display useful values so that a new Barrier could be constructed using these values.
@@ -360,4 +400,4 @@ std::istream& operator>>(std::istream& is, DMultiMadsBarrier& barrier);
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_DMULTIMADSBARRIER__
+#endif // __NOMAD_4_5_DMULTIMADSBARRIER__

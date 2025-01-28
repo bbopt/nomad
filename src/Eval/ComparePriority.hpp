@@ -52,9 +52,10 @@
  \see    ComparePriority.cpp
  */
 
-#ifndef __NOMAD_4_4_COMPAREPRIORITY__
-#define __NOMAD_4_4_COMPAREPRIORITY__
+#ifndef __NOMAD_4_5_COMPAREPRIORITY__
+#define __NOMAD_4_5_COMPAREPRIORITY__
 
+#include "../Algos/Step.hpp"
 #include "../Eval/EvalQueuePoint.hpp"
 #include "../Math/Direction.hpp"
 #include "../Math/RandomPickup.hpp"
@@ -76,6 +77,9 @@ public:
     {
         return false;
     }
+
+    // Called before sorting with all eval queue points.
+    virtual void completeTrialPointsInformation(const Step * step, EvalPointSet & trialPoints) {return; }
 
     void setName(const std::string& name) { _name = name; }
     const std::string& getName() const { return _name; }
@@ -106,12 +110,17 @@ private:
     std::vector<std::shared_ptr<Direction>> _lastSuccessfulFeasDirs;
     std::vector<std::shared_ptr<Direction>> _lastSuccessfulInfDirs;
 
+    FHComputeType _computeType;
+
 public:
     /// Constructor
+    ///
     explicit OrderByDirection(const std::vector<std::shared_ptr<Direction>>& feasDirs,
-                              const std::vector<std::shared_ptr<Direction>>& infDirs)
+                              const std::vector<std::shared_ptr<Direction>>& infDirs,
+                              const NOMAD::FHComputeType &computeType)
       : _lastSuccessfulFeasDirs(feasDirs),
-        _lastSuccessfulInfDirs(infDirs)
+        _lastSuccessfulInfDirs(infDirs),
+        _computeType(computeType)
     {
         setName("OrderByDirection");
     }
@@ -139,23 +148,24 @@ public:
 class OrderByEval : public ComparePriorityMethod
 {
 private:
-    EvalType _evalTypeForOrder;
+
+    FHComputeType _computeType;
 public:
     /// Constructor
-    explicit OrderByEval(NOMAD::EvalType evalType):
-    _evalTypeForOrder(evalType)
+    explicit OrderByEval(const NOMAD::FHComputeType &computeType):
+    _computeType(computeType)
     {
-        if (_evalTypeForOrder == NOMAD::EvalType::SURROGATE)
+        if (_computeType.evalType == NOMAD::EvalType::SURROGATE)
         {
             setName("OrderBySurrogate");
         }
-        else if (_evalTypeForOrder == NOMAD::EvalType::MODEL)
+        else if (_computeType.evalType == NOMAD::EvalType::MODEL)
         {
             setName("OrderByModel");
         }
         else
         {
-            throw NOMAD::Exception(__FILE__, __LINE__, "OrderByEval: Eval Type " + evalTypeToString(_evalTypeForOrder) + " cannot be used for ordering points") ;
+            throw NOMAD::Exception(__FILE__, __LINE__, "OrderByEval: Eval Type " + evalTypeToString(_computeType.evalType) + " cannot be used for ordering points") ;
         }
     }
 
@@ -186,6 +196,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_COMPAREPRIORITY__
-
-
+#endif // __NOMAD_4_5_COMPAREPRIORITY__

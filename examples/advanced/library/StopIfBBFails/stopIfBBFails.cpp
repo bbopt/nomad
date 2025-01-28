@@ -66,7 +66,7 @@
 // To run this optimization, the program must be executed in a path where styrene truth executable is available.
 // Styrene sources are available at https://github.com/bbopt/styrene and must be compiled prior to run this optimization.
 
-void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams)
+void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 {
     const int n = 8;
     
@@ -78,7 +78,6 @@ void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams)
     std::vector<double> x0 = { 54, 66, 86, 8, 29, 51, 32, 15};
     allParams->setAttributeValue("X0", NOMAD::Point(x0) );
     allParams->setAttributeValue("BB_EXE", std::string("./truth.exe")); // IMPORTANT: May require some change
-    
 
     // Bounds
     allParams->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(n, 0.0 ));
@@ -91,11 +90,8 @@ void initAllParams( std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->setAttributeValue("DISPLAY_DEGREE", 4);
     allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj"));
 
-
     // Parameters validation
     allParams->checkAndComply();
-    
-
 }
 
 
@@ -120,14 +116,11 @@ void customEvalStopCB( NOMAD::EvalQueuePointPtr & evalQueuePoint, bool & globalS
 }
 
 
-
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main ( int argc , char ** argv )
+int main()
 {
-
-    
     NOMAD::MainStep TheMainStep;
         
     // Set parameters
@@ -147,5 +140,5 @@ int main ( int argc , char ** argv )
     TheMainStep.run();
     TheMainStep.end();
         
-    return 1;
+    return 0;
 }

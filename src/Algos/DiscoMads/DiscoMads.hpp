@@ -44,8 +44,14 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_DISCOMADS__
-#define __NOMAD_4_4_DISCOMADS__
+/**
+ \file   DiscoMads.hpp
+ \brief  The DiscoMads algorithm (main)
+ \author Solene Kojtych
+ \see    DiscoMads.cpp
+ */
+#ifndef __NOMAD_4_5_DISCOMADS__
+#define __NOMAD_4_5_DISCOMADS__
 
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
@@ -107,4 +113,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_DISCOMADS__
+#endif // __NOMAD_4_5_DISCOMADS__

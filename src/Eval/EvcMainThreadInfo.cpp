@@ -67,12 +67,12 @@ void NOMAD::EvcMainThreadInfo::init()
 
 bool NOMAD::EvcMainThreadInfo::hasEvaluator(NOMAD::EvalType evalType) const
 {
-    if (_evaluators.size() == 0)
+    if (_evaluators.empty())
     {
         return false;
     }
     
-    auto it = std::find_if(_evaluators.begin(),_evaluators.end(), [evalType](NOMAD::EvaluatorPtr e){ return e->getEvalType() == evalType; });
+    auto it = std::find_if(_evaluators.begin(),_evaluators.end(), [evalType](const NOMAD::EvaluatorPtr& e){ return e->getEvalType() == evalType; });
     
     if ( _evaluators.end() == it )
     {
@@ -83,7 +83,7 @@ bool NOMAD::EvcMainThreadInfo::hasEvaluator(NOMAD::EvalType evalType) const
 
 const NOMAD::Evaluator* NOMAD::EvcMainThreadInfo::getCurrentEvaluator() const
 {
-    if (_evaluators.size() == 0)
+    if (_evaluators.empty())
     {
         std::string s = "Error in EvaluatorControl main thread management: no evaluator is registered.";
         throw NOMAD::Exception(__FILE__, __LINE__, s);
@@ -94,7 +94,7 @@ const NOMAD::Evaluator* NOMAD::EvcMainThreadInfo::getCurrentEvaluator() const
         throw NOMAD::Exception(__FILE__, __LINE__, s);
     }
     
-    auto it = std::find_if(_evaluators.begin(),_evaluators.end(), [evalType=_currentEvaluatorType](NOMAD::EvaluatorPtr e){ return e->getEvalType() == evalType; });
+    auto it = std::find_if(_evaluators.begin(),_evaluators.end(), [evalType=_currentEvaluatorType](const NOMAD::EvaluatorPtr& e){ return e->getEvalType() == evalType; });
     
     if ( _evaluators.end() == it )
     {
@@ -105,7 +105,7 @@ const NOMAD::Evaluator* NOMAD::EvcMainThreadInfo::getCurrentEvaluator() const
     return (it->get());
 }
 
-void NOMAD::EvcMainThreadInfo::addEvaluator(NOMAD::EvaluatorPtr evaluator)
+void NOMAD::EvcMainThreadInfo::addEvaluator(const NOMAD::EvaluatorPtr& evaluator)
 {
     if ( nullptr == evaluator )
     {
@@ -115,7 +115,7 @@ void NOMAD::EvcMainThreadInfo::addEvaluator(NOMAD::EvaluatorPtr evaluator)
     
     auto evalType = evaluator->getEvalType();
     
-    auto it = std::find_if(_evaluators.begin(),_evaluators.end(), [evalType](NOMAD::EvaluatorPtr e){ return e->getEvalType() == evalType; });
+    auto it = std::find_if(_evaluators.begin(),_evaluators.end(), [evalType](const NOMAD::EvaluatorPtr& e){ return e->getEvalType() == evalType; });
     
     if ( _evaluators.end() != it )
     {
@@ -211,13 +211,13 @@ void NOMAD::EvcMainThreadInfo::resetBbEvalInSubproblem()
 }
 
 
-const NOMAD::EvalPointPtr NOMAD::EvcMainThreadInfo::getBestIncumbent() const
+NOMAD::EvalPointPtr NOMAD::EvcMainThreadInfo::getBestIncumbent() const
 {
     return _bestIncumbent;
 }
 
 
-void NOMAD::EvcMainThreadInfo::setBestIncumbent(const NOMAD::EvalPointPtr bestIncumbent)
+void NOMAD::EvcMainThreadInfo::setBestIncumbent(const NOMAD::EvalPointPtr& bestIncumbent)
 {
         _bestIncumbent = bestIncumbent;
 }
@@ -271,21 +271,25 @@ void NOMAD::EvcMainThreadInfo::setSuccessType(const NOMAD::SuccessType& success)
 }
 
 
-void NOMAD::EvcMainThreadInfo::incCurrentlyRunning()
+void NOMAD::EvcMainThreadInfo::incCurrentlyRunning(size_t k)
 {
-    _currentlyRunning ++;
+    _currentlyRunning += k;
 }
 
 
-void NOMAD::EvcMainThreadInfo::decCurrentlyRunning()
+void NOMAD::EvcMainThreadInfo::decCurrentlyRunning(size_t k)
 {
     if (0 == _currentlyRunning)
     {
-        // Note: we don't know the main thread number.
-        std::string s = "Error in EvaluatorControl main thread management: Trying to decrease number of currently running evaluations which is already 0";
-        throw NOMAD::Exception(__FILE__, __LINE__, s);
+        OUTPUT_DEBUG_START
+        std::string s = "Trying to decrease number of currently running evaluations which is already 0. Evaluation results probably come from previous run cache file. This is not an error.";
+        NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+        OUTPUT_DEBUG_END
     }
-    _currentlyRunning --;
+    else
+    {
+        _currentlyRunning -=k;
+    }
 }
 
 

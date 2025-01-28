@@ -374,3 +374,19 @@ false
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
 ################################################################################
+NB_THREADS_PARALLEL_EVAL
+int
+1
+\( Max number of threads used for parallel evaluations of each algorithm \)
+\(
+. A value greater than 1 is possible only if code is built with OpenMP enabled.
+
+. Argument: One positive integer, or -1. A value of -1 means OpenMP decides
+  by itself.
+
+. Example: NB_THREADS_PARALLEL_EVAL 4
+\)
+\( advanced parallel openmp omp evaluator evaluation \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################

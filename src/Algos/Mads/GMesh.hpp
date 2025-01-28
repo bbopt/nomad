@@ -51,8 +51,8 @@
  * \date   November 2017
  */
 
-#ifndef __NOMAD_4_4_GMESH__
-#define __NOMAD_4_4_GMESH__
+#ifndef __NOMAD_4_5_GMESH__
+#define __NOMAD_4_5_GMESH__
 
 #include "../../Eval/MeshBase.hpp"
 #include "../../Param/RunParameters.hpp"
@@ -64,7 +64,7 @@
  This class derives from MeshBase.
  The class manages the mesh size (delta) and the frame size (Delta) for the discretization of the variable space used by Mads. Each variable has its own mesh and frame sizes which allows to increase or decrease the anisotropy of the mesh, that is changing the "cell" aspect ratios. The frame size (and mesh size) for each variable can be enlarged or decreased (see GMesh::refineDeltaFrameSize and GMesh::enlargeDeltaFrameSize). A given point can be projected on the the mesh using GMesh::scaleAndProjectOnMesh. \n
 
- The frame size for each variable is parameterized with two or three attributes: GMesh::_frameSizeExp (exponent), GMesh::_frameSizeMant (mantissa) and GMesh::_granularity (Delta = gran * a * 10^b with b an integer). The last attribute is for variable having a specified minimal granularity (for example, integers have a minimal granularity of 1). The mesh size is delta = 10^(b-|b-b_0|) for variables without granularity and delta = granulariy * max(1,delta) for variables with granularity.
+ The frame size for each variable is parameterized with two or three attributes: GMesh::_frameSizeExp (exponent), GMesh::_frameSizeMant (mantissa) and GMesh::_granularity (Delta = gran * a * 10^b with b an integer). The last attribute is for variable having a specified minimal granularity (for example, integers have a minimal granularity of 1). The mesh size is delta = 10^(b-|b-b_0|) for variables without granularity and delta = granularity * max(1,delta) for variables with granularity.
 
  */
 class GMesh: public MeshBase
@@ -158,7 +158,7 @@ private:
     /// Helper for refineDeltaFrameSize().
     /**
      \param frameSizeMant    The frame size mantissa to update -- \b IN/OUT.
-     \param frameSizeExp     The frame size exponant to update -- \b IN/OUT.
+     \param frameSizeExp     The frame size exponent to update -- \b IN/OUT.
      \param granularity      The granularity of the mesh -- \b IN.
      */
     void refineDeltaFrameSize(Double &frameSizeMant,
@@ -264,4 +264,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_GMESH__
+#endif // __NOMAD_4_5_GMESH__

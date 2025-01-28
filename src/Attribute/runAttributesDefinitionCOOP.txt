@@ -1,0 +1,97 @@
+###############################################################################
+#######     Definition of Run Parameters attributes (COOP)      ############
+#####
+##### . Each definition must be separated by at least a comment line
+#####     (starting by #)
+#####
+##### . The definition must provide the name, type and default value
+#####     (no default: '-' or 'N/A') in this order, one by line.
+#####
+##### . Only a single word is considered for the name,
+#####     type and default value (extra is comment)
+#####
+##### . The short info, the help and the keywords must be provided in this
+#####     order within "\(" and "\). For keywords, the plural part of a word
+#####     can be put in parenthesis; both singular and plural will be keywords
+#####
+##### . The default value is automatically reported in the help.
+#####
+##### . In addition, the definition can have optional attributes:
+#####       - ALGO_COMPATIBILITY_CHECK yes/no, the default is no. If yes, the
+#####         value of this attribute can be used for comparing two sets of
+#####         attributes for algorithm compatibility. This is used by the
+#####         Runner.
+#####
+#####       - RESTART_ATTRIBUTE yes/no, the default is no. If yes, the
+#####         value of this attribute can be modified during hot or warm
+#####         restart. Otherwise, modifying this attribute during hot restart
+#####         will trigger an error message.
+#####
+#####       - UNIQUE_ENTRY yes/no, the default is yes. If no, multiple
+#####         values may be assigned to this parameter.
+#####
+###############################################################################
+COOP_MADS_OPTIMIZATION
+bool
+false
+\( COOP-MADS optimization algorithm \)
+\(
+
+. Use COOP-MADS algorithm. Only available if code is built with OpenMP enabled.
+
+. Argument: bool
+
+. Description: Parallel concurrent Mads
+
+. This option deactivates any other optimization strategy.
+
+. Example: COOP_MADS_OPTIMIZATION true
+
+\)
+\( advanced coop mads parallel \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+COOP_MADS_NB_PROBLEM
+size_t
+4
+\( Number of COOP-MADS problems \)
+\(
+
+. When using COOP MADS optimization, select the number of
+  Mads problems ran in parallel.
+  
+. In addition each Mads algorithm can perform evaluations in parallel when
+  the NB_THREADS_PARALLEL_EVAL is greater than 1.
+
+. Argument: a positive integer.
+
+. This attribute is used only when COOP-Mads optimization is active.
+
+. Example: COOP_MADS_NB_PROBLEM 2
+
+\)
+\( advanced psd mads parallel decomposition subproblem \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+COOP_MADS_OPTIMIZATION_CACHE_SEARCH
+bool
+true
+\( COOP-MADS cache search for incumbent synchronization \)
+\(
+
+. Perform a cache search to update the best incumbent obtained by all Mads.
+ This allows to synchronize the best solutions of the parallel Mads instances.
+
+. This attribute is used only when COOP-Mads optimization is active.
+
+. Argument: bool.
+
+. Example: COOP_MADS_OPTIMIZATION_CACHE_SEARCH false
+
+\)
+\( advanced psd mads parallel decomposition subproblem \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################

@@ -63,7 +63,8 @@ void NOMAD::TemplateAlgoIteration::init()
 
 void NOMAD::TemplateAlgoIteration::startImp()
 {
-    // For illustration purpose the Update is used to update the center point (best feasible or best infeasible) around which the trial points are generated.
+    // For illustration purpose the Update is used to update the center point
+    // (the best feasible or best infeasible) around which the trial points are generated.
     _templateAlgoUpdate->start();
     bool updateSuccess = _templateAlgoUpdate->run();
     _templateAlgoUpdate->end();
@@ -97,7 +98,7 @@ bool NOMAD::TemplateAlgoIteration::runImp()
     
     if ( iterationSuccess )
     {
-        // Update MegaIteration best success type with success found.
+        // Update the MegaIteration best success type with success found.
         getParentOfType<NOMAD::MegaIteration*>()->setSuccessType(_templateAlgoRandom->getSuccessType());
     }
 

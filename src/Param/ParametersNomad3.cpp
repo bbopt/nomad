@@ -123,7 +123,7 @@ void NOMAD::AllParameters::set_EPSILON(const NOMAD::Double &epsilon)
     setAttributeValue("EPSILON", epsilon);
 }
 
-const NOMAD::Double NOMAD::AllParameters::get_epsilon() const
+NOMAD::Double NOMAD::AllParameters::get_epsilon() const
 {
     return getAttributeValue<NOMAD::Double>("EPSILON");
 }
@@ -133,7 +133,7 @@ void NOMAD::AllParameters::set_UNDEF_STR(const std::string &undefStr)
     setAttributeValue("UNDEF_STR", undefStr);
 }
 
-const std::string NOMAD::AllParameters::get_undef_str() const
+std::string NOMAD::AllParameters::get_undef_str() const
 {
     return getAttributeValue<std::string>("UNDEF_STR");
 }
@@ -143,7 +143,7 @@ void NOMAD::AllParameters::set_INF_STR(const std::string &infStr)
     setAttributeValue("INF_STR", infStr);
 }
 
-const std::string NOMAD::AllParameters::get_inf_str() const
+std::string NOMAD::AllParameters::get_inf_str() const
 {
     return getAttributeValue<std::string>("INF_STR");
 }
@@ -269,7 +269,7 @@ const NOMAD::ArrayOfDouble & NOMAD::AllParameters::get_ub() const
 
 
 /// Reset the bounds.
-void NOMAD::AllParameters::reset_bounds()
+void NOMAD::AllParameters::reset_bounds() const
 {
     getPbParams()->resetToDefaultValue("LOWER_BOUND");
     getPbParams()->resetToDefaultValue("UPPER_BOUND");
@@ -350,7 +350,7 @@ const NOMAD::BBOutputTypeList& NOMAD::AllParameters::get_bb_output_type() const
 }
 
 
-void NOMAD::AllParameters::set_DISPLAY_STATS(const NOMAD::ArrayOfDouble stats)
+void NOMAD::AllParameters::set_DISPLAY_STATS(const NOMAD::ArrayOfDouble& stats)
 {
     setAttributeValue("DISPLAY_STATS", stats);
 }
@@ -362,7 +362,7 @@ NOMAD::ArrayOfDouble NOMAD::AllParameters::get_display_stats() const
 }
 
 
-void NOMAD::AllParameters::set_STATS_FILE(const NOMAD::ArrayOfDouble stats)
+void NOMAD::AllParameters::set_STATS_FILE(const NOMAD::ArrayOfDouble& stats)
 {
     setAttributeValue("STATS_FILE", stats);
 }
@@ -374,7 +374,7 @@ NOMAD::ArrayOfDouble NOMAD::AllParameters::get_stats_file() const
 }
 
 
-void NOMAD::AllParameters::resetStatsFile()
+void NOMAD::AllParameters::resetStatsFile() const
 {
     getDispParams()->resetToDefaultValue("STATS_FILE");
 }

@@ -123,8 +123,8 @@ void NOMAD::TemplateAlgoSearchMethod::generateTrialPointsFinal()
     randomAlgo.end();
 
     // Pass the generated trial pts to this
-    auto trialPtsNM = randomAlgo.getTrialPoints();
-    for (auto point : trialPtsNM)
+    const auto& trialPtsNM = randomAlgo.getTrialPoints();
+    for (const auto& point : trialPtsNM)
     {
         insertTrialPoint(point);
     }

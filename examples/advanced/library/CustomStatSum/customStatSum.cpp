@@ -59,7 +59,7 @@
 #include "Util/AllStopReasons.hpp"
 
 
-// User stats used for stoping optimization
+// User stats used for stopping optimization
 /* This feature is implemented in Nomad 3 as STAT_SUM and STAT_SUM_TARGET
    Nomad 4 has more flexibility by using user evaluation callbacks
  */
@@ -76,11 +76,11 @@ class My_Evaluator : public NOMAD::Evaluator
 private:
 
 public:
-    My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
+    explicit My_Evaluator(const std::shared_ptr<NOMAD::EvalParameters>& evalParams)
     : NOMAD::Evaluator(evalParams, NOMAD::EvalType::BB)
     {}
 
-    ~My_Evaluator() {}
+    ~My_Evaluator() override = default;
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override;
 };
@@ -120,9 +120,8 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
     return true;       // the evaluation succeeded
 }
 
-void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
+void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 {
-
     const size_t n = 5;
     
     // Parameters creation
@@ -140,11 +139,11 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     allParams->setAttributeValue("UPPER_BOUND", ub);
 
     // Constraints and objective
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::OBJ);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::EB);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::EB);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::BBO_UNDEFINED);
-    bbOutputTypes.push_back(NOMAD::BBOutputType::Type::BBO_UNDEFINED);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::OBJ);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::EB);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::EB);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::BBO_UNDEFINED);
+    bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::BBO_UNDEFINED);
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
@@ -155,7 +154,6 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
     
     // Parameters validation requested to have access to their value.
     allParams->checkAndComply();
-
 }
 
 
@@ -163,7 +161,7 @@ void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams)
 /* After each evaluation compute user stats on extra outputs and check on */
 /* user stat stopping criterion                                           */
 /*------------------------------------------------------------------------*/
-void customEvalStopCB( NOMAD::EvalQueuePointPtr & evalQueuePoint, bool & globalStop)
+void customEvalStopCB(NOMAD::EvalQueuePointPtr& evalQueuePoint, bool& globalStop)
 {
     globalStop = false;
     if (nullptr != evalQueuePoint)
@@ -187,14 +185,11 @@ void customEvalStopCB( NOMAD::EvalQueuePointPtr & evalQueuePoint, bool & globalS
 }
 
 
-
 /*------------------------------------------*/
 /*            NOMAD main function           */
 /*------------------------------------------*/
-int main ( int argc , char ** argv )
+int main()
 {
-
-    
     NOMAD::MainStep TheMainStep;
         
     // Set parameters
@@ -212,11 +207,10 @@ int main ( int argc , char ** argv )
     // Add callback function for eval check and stop management.
     NOMAD::EvcInterface::getEvaluatorControl()->addEvalCallback<NOMAD::CallbackType::EVAL_STOP_CHECK>(cbFailCheck);
 
-    
     // The run
     TheMainStep.start();
     TheMainStep.run();
     TheMainStep.end();
         
-    return 1;
+    return 0;
 }

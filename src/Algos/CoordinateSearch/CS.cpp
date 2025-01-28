@@ -178,7 +178,7 @@ void NOMAD::CS::readInformationForHotRestart()
 {
     // Restart from where we were before.
     // For this, we need to read some files.
-    // Note: Cache file is treated independently from hot restart file.
+    // Note: Cache file is treated independently of hot restart file.
 
     if (_runParams->getAttributeValue<bool>("HOT_RESTART_READ_FILES"))
     {

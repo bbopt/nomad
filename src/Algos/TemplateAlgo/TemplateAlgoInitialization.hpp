@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_TEMPLATEALGOINITIALIZATION__
-#define __NOMAD_4_4_TEMPLATEALGOINITIALIZATION__
+#ifndef __NOMAD_4_5_TEMPLATEALGOINITIALIZATION__
+#define __NOMAD_4_5_TEMPLATEALGOINITIALIZATION__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Initialization.hpp"
@@ -112,4 +112,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_TEMPLATEALGOINITIALIZATION__
+#endif // __NOMAD_4_5_TEMPLATEALGOINITIALIZATION__

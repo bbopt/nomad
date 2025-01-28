@@ -64,6 +64,8 @@ void NOMAD::SurrogateEvaluation::init()
     {
         setStepType(NOMAD::StepType::MODEL_EVALUATION);
     }
+    
+    
     verifyParentNotNull();
     
     // For now, no need to reset evaluator. SurrogateEvaluation is build from new every time.
@@ -72,6 +74,14 @@ void NOMAD::SurrogateEvaluation::init()
 
 void NOMAD::SurrogateEvaluation::startImp()
 {
+    if (_trialPoints.empty())
+    {
+        OUTPUT_INFO_START
+        std::string s = "Cannot create QuadModelEvaluator with empty trial points.";
+        AddOutputInfo(s);
+        OUTPUT_INFO_END
+        return;
+    }
     
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     if (EvalType::SURROGATE == _evalType)
@@ -82,7 +92,7 @@ void NOMAD::SurrogateEvaluation::startImp()
     }
     if(EvalType::MODEL == _evalType)
     {
-        auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
+        const auto& modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
         
         auto fullFixedVar = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
         OUTPUT_INFO_START
@@ -122,7 +132,7 @@ void NOMAD::SurrogateEvaluation::startImp()
 
 bool NOMAD::SurrogateEvaluation::runImp()
 {
-    // Evaluation using static surrogate or model. The evaluation will be used for sorting afterwards.
+    // Evaluation using static surrogate or model. The evaluation will be used for sorting afterward.
     // Setup evaluation for SURROGATE or MODEL (if model is ready):
     //  - Set opportunistic evaluation to false
     //  - Set the Evaluator to SURROGATE or MODEL
@@ -131,7 +141,7 @@ bool NOMAD::SurrogateEvaluation::runImp()
     // Reset for BB:
     //  - Reset opportunism
     //  - Reset Evaluator to BB
-    // And proceed - the sort using surrogate or model will be done afterwards.
+    // And proceed - the sort using surrogate or model will be done afterward.
     
     if (!_evaluatorIsReady)
     {
@@ -145,7 +155,8 @@ bool NOMAD::SurrogateEvaluation::runImp()
     auto previousOpportunism = evc->getOpportunisticEval();
     evc->setOpportunisticEval(false);
     
-    // No barrier need for surrogate (MODEL or SURROGATE) evaluations for sort because no comparison is neeeded to detect success
+    // No barrier need for surrogate (MODEL or SURROGATE) evaluations for sort because no comparison
+    // is needed to detect success
     evc->setBarrier(nullptr);
     
     // Lock the eval point queue before adding trial point in it
@@ -161,14 +172,14 @@ bool NOMAD::SurrogateEvaluation::runImp()
     size_t nbEvalPointsThatNeedEval = evc->getQueueSize(NOMAD::getThreadNum());
     
     // Update trial points with evaluated trial points.
-    // Note: If cache is not used, Points that are alread evaluated
+    // Note: If cache is not used, Points that are already evaluated
     // will be forgotten.
     NOMAD::EvalPointSet evalPointSet;
    
     // Retrieve evaluated points from cache that should not be evaluated again.
     // This must be done BEFORE starting evaluation (this is because of parallel mode). We unlock the queue after that.
     // NOTE: There are two reasons why nbEvalPointsThatNeedEval < _trialPoints.size: 1- Trial point(s) has already been evaluated, 2- Trial point(s) is already in the queue. We are interested only in the evaluated points from cache.
-    // NOTE: We can have doublons in trial points. Insertion in queue may detect a doublons when a mesh is extremely fine. We keep just one.
+    // NOTE: We can have duplicates in trial points. Insertion in queue may detect a duplicate when a mesh is extremely fine. We keep just one.
     if (nbEvalPointsThatNeedEval < _trialPoints.size())
     {
         for (const auto & evalPoint : evcInterface.retrieveEvaluatedPointsFromCache(_trialPoints))

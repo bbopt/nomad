@@ -85,9 +85,8 @@ void NOMAD::SearchMethodBase::generateTrialPointsImp()
     generateTrialPointsFinal();
 
     // Snap the points to bounds and mesh
-    auto searchMethodPoints = getTrialPoints();
-
-
+    const auto& searchMethodPoints = getTrialPoints();
+    
     std::list<NOMAD::EvalPoint> snappedTrialPoints;
     for (auto evalPoint : searchMethodPoints)
     {
@@ -103,7 +102,7 @@ void NOMAD::SearchMethodBase::generateTrialPointsImp()
 
     // Re-insert snapped trial points
     clearTrialPoints();
-    for (auto evalPoint : snappedTrialPoints)
+    for (const auto& evalPoint : snappedTrialPoints)
     {
         insertTrialPoint(evalPoint);
     }

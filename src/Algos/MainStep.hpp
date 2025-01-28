@@ -50,8 +50,8 @@
   \author Viviane Rochon Montplaisir
   \date   June 2018
 */
-#ifndef __NOMAD_4_4_MAINSTEP__
-#define __NOMAD_4_4_MAINSTEP__
+#ifndef __NOMAD_4_5_MAINSTEP__
+#define __NOMAD_4_5_MAINSTEP__
 
 #include "../Algos/Algorithm.hpp"
 #include "../Eval/Evaluator.hpp"
@@ -130,13 +130,13 @@ public:
     /**
      The evaluators are shared between main threads. Add one evaluator. Can be more than one.
      */
-    void addEvaluator(const EvaluatorPtr ev);
+    void addEvaluator(const EvaluatorPtr& ev);
     
     
     /**
      The evaluators are shared between main threads. Set a single evaluator. To add more, use addEvaluator (see above).
      */
-    void setEvaluator(const EvaluatorPtr ev);
+    void setEvaluator(const EvaluatorPtr& ev);
     
     
     /// Get the run flag of the execution (success or type of fail)
@@ -164,6 +164,9 @@ public:
     void addAlgo(const std::shared_ptr<Algorithm> algo) { _algos.push_back(algo); }
 
     void clearAlgos() { _algos.clear(); }
+    
+    std::shared_ptr<Algorithm> getAlgo(const StepType & stepType) const ;
+    
 
     /// Helper function called by the code main function if necessary.
     void displayUsage(const char* exeName);
@@ -240,13 +243,6 @@ protected:
 
     void printNumThreads() const;
 
-    /// Detect if a Phase One search is required
-    /**
-     A phase one search is required if an EB type constraint
-     is not feasible for X0.
-     */
-    bool detectPhaseOne();
-
     /// Helper for start
     void createCache(bool useCacheForRerun) const;
 
@@ -256,7 +252,8 @@ protected:
     /// Helper for start
     ArrayOfPoint suggestFromLH(const size_t nbPoints) const;
     
-    
+ 
+
 private:
     /// Helper for constructor
     void init();
@@ -273,4 +270,4 @@ private:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_4_MAINSTEP__
+#endif // __NOMAD_4_5_MAINSTEP__

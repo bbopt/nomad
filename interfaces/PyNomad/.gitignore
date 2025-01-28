@@ -1,3 +1,4 @@
+.env
 PyNomad.cpp
 *.so
 *.pyd
@@ -6,4 +7,3 @@ dist
 build
 PyNomad.egg-info
 PyNomadDev.egg-info
-.env

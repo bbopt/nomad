@@ -50,6 +50,7 @@
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/Mads.hpp"
+#include "../../Algos/Mads/UserSearchMethod.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Output/OutputQueue.hpp"
 
@@ -68,7 +69,7 @@ double NOMAD::MadsIteration::_pollEvalTime = 0.0;
 
 void NOMAD::MadsIteration::init()
 {
-    
+
     // For some testing, it is possible that _runParams is null
     if (nullptr != _runParams && _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
     {
@@ -76,15 +77,28 @@ void NOMAD::MadsIteration::init()
     }
     else
     {
-        _poll = std::make_unique<NOMAD::Poll>(this);
+        _poll = std::make_unique<NOMAD::Poll>(this, _userCallbackEnabled);
         _search = std::make_unique<NOMAD::Search>(this);
+
+        // Search method for user. Put it in first position.
+        // The user search method is enabled by setting a
+        // callback function and having parameter USER_SEARCH true.
+        // The callback function is used to generate directions.
+        // Trial points on mesh are produced automatically.
+        if (_userCallbackEnabled)
+        {
+            auto userSearch = std::make_shared<NOMAD::UserSearchMethod>(this,1);
+            _search->insertSearchMethod(0,userSearch);
+            auto userSearch_2 = std::make_shared<NOMAD::UserSearchMethod>(this,2);
+            _search->insertSearchMethod(1,userSearch_2);
+        }
     }
 }
 
 
 void NOMAD::MadsIteration::startImp()
 {
-    
+
 #ifdef TIME_STATS
     _iterStartTime = NOMAD::Clock::getCPUTime();
 #endif // TIME_STATS
@@ -94,23 +108,22 @@ void NOMAD::MadsIteration::startImp()
 NOMAD::ArrayOfPoint NOMAD::MadsIteration::suggest()
 {
     NOMAD::ArrayOfPoint xs;
-    
+
     if (nullptr != _megasearchpoll)
     {
         OUTPUT_INFO_START
         AddOutputInfo("Mads Iteration Suggest. Mega Search Poll.");
         OUTPUT_INFO_END
-        
+
         // suggest uses MegaSearchPoll for now
         _megasearchpoll->start();
-        
-        auto trialPoints = _megasearchpoll->getTrialPoints();
-        
-        NOMAD::EvalPoint evalPointFound;
-        for (auto trialPoint : trialPoints)
+
+        const auto& trialPoints = _megasearchpoll->getTrialPoints();
+
+        for (const auto & trialPoint : trialPoints)
         {
             NOMAD::EvalPoint evalPointFound;
-            
+
             // Suggested points are already in cache put not evaluated
             NOMAD::CacheBase::getInstance()->find(trialPoint, evalPointFound);
             if (!evalPointFound.ArrayOfDouble::isDefined())
@@ -132,7 +145,7 @@ NOMAD::ArrayOfPoint NOMAD::MadsIteration::suggest()
     {
        throw NOMAD::Exception(__FILE__, __LINE__, "MadsIteration suggest only performs with MEGA_SEARCH_POLL enabled");
     }
-    
+
     return xs;
 }
 
@@ -140,7 +153,7 @@ NOMAD::ArrayOfPoint NOMAD::MadsIteration::suggest()
 bool NOMAD::MadsIteration::runImp()
 {
     bool iterationSuccess = false;
-    
+
 
     // Parameter Update is handled at the upper level - MegaIteration.
     if ( nullptr != _megasearchpoll
@@ -168,7 +181,7 @@ bool NOMAD::MadsIteration::runImp()
             double searchStartTime = NOMAD::Clock::getCPUTime();
             double searchEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
 #endif // TIME_STATS
-        
+
             _search->start();
             iterationSuccess = _search->run();
             _search->end();
@@ -220,5 +233,3 @@ void NOMAD::MadsIteration::endImp()
     _iterTime += NOMAD::Clock::getCPUTime() - _iterStartTime;
 }
 #endif // TIME_STATS
-
-

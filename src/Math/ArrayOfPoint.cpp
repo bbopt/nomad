@@ -72,7 +72,7 @@ std::ostream& NOMAD::operator<< (std::ostream& out, const NOMAD::ArrayOfPoint& a
 std::istream& NOMAD::operator>>(std::istream& in, ArrayOfPoint& aop)
 {
     // Patch: The ArrayOfPoint must contain 1 Point with the right dimension.
-    if (0 == aop.size() || 0 == aop[0].size())
+    if (aop.empty() || 0 == aop[0].size())
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Input ArrayOfPoint should have a point of nonzero value");
     }
@@ -83,7 +83,7 @@ std::istream& NOMAD::operator>>(std::istream& in, ArrayOfPoint& aop)
     NOMAD::Point point(n);
 
     // Usually, point files do not have parenthesis in them, so read
-    // points as ArrayOfDouble. If Point parentesis is needed, we can add it.
+    // points as ArrayOfDouble. If Point parenthesis is needed, we can add it.
     while (in >> aod && in.good() && !in.eof())
     {
         point = aod;

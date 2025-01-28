@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_SEARCH__
-#define __NOMAD_4_4_SEARCH__
+#ifndef __NOMAD_4_5_SEARCH__
+#define __NOMAD_4_5_SEARCH__
 
 #include "../../Algos/Mads/SearchMethodBase.hpp"
 
@@ -82,6 +82,15 @@ public:
     static std::vector<double> getSearchEvalTime()   { return _searchEvalTime; }
 #endif // TIME_STATS
 
+    /**
+     - Insert extra search method at a given position. For example, DMultiMads-NM search method.
+     */
+    void insertSearchMethod(size_t pos, std::shared_ptr<SearchMethodBase> searchMethod)
+    {
+        _searchMethods.insert(_searchMethods.begin() + pos, searchMethod);
+    }
+    
+    
 private:
 
     void init();
@@ -120,5 +129,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_SEARCH__
+#endif // __NOMAD_4_5_SEARCH__
 

@@ -44,6 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+/**
+ \file   DiscoMadsIteration.cpp
+ \brief  The DiscoMads algorithm main iteration: implementation
+ \author Solene Kojtych
+ \see    DiscoMadsIteration.hpp
+ */
 
 #include <algorithm>    // For std::merge and std::unique
 #include "../../nomad_platform.hpp"
@@ -57,12 +63,12 @@
 
 void NOMAD::DiscoMadsIteration::init()
 {
-        // Initiliaze revealing poll for discoMads
-            // For some testing, it is possible that _runParams is null
-        if (nullptr == _runParams || !_runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
-        {
-           _revealingPoll = std::make_unique<NOMAD::RevealingPoll>(this);
-        }
+    // Initialize revealing poll for discoMads
+    // For some testing, it is possible that _runParams is null
+    if (nullptr == _runParams || !_runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
+    {
+        _revealingPoll = std::make_unique<NOMAD::RevealingPoll>(this);
+    }
 }
 
 

@@ -52,8 +52,8 @@
  \see    ArrayOfString.cpp
  */
 
-#ifndef __NOMAD_4_4_ARRAYOFSTRING__
-#define __NOMAD_4_4_ARRAYOFSTRING__
+#ifndef __NOMAD_4_5_ARRAYOFSTRING__
+#define __NOMAD_4_5_ARRAYOFSTRING__
 
 #include <string>
 #include <vector>
@@ -174,8 +174,8 @@ public:
 
 private:
     /// Helper method for splitting string
-    std::vector<std::string> const splitString(const std::string & inputString,
-                                               const std::string & separators = " ");
+    std::vector<std::string> splitString(const std::string & inputString,
+                                         const std::string & separators = " ") const;
 
 
 };
@@ -184,4 +184,4 @@ DLL_UTIL_API std::ostream& operator<< (std::ostream& out,
                           const ArrayOfString& arrayOfString);
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_4_ARRAYOFSTRING__
+#endif // __NOMAD_4_5_ARRAYOFSTRING__

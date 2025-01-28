@@ -63,7 +63,7 @@ Building PyNomad
 Alternatively, one can build PyNomad (and Nomad binaries) from Nomad 
 source code as described below.  
 
-The build procedure relies on Python 3.6 and Cython 0.24 
+The build procedure relies on Python 3.8 or higher and Cython 0.24 
 or higher. 
 
 The procedure is often straightforward but several issues that can prevent
@@ -93,18 +93,17 @@ $NOMAD_HOME/interfaces/PyNomad MUST BE REMOVED BEFORE REBUILD.
 HOW TO BUILD AND INSTALL
 ************************
 The interface build is managed by CMake that can be run at NOMAD root. 
-For now, PyNomad cannot work with OpenMP enabled.
 
 The configuration command:
-   cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release 
+   cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release 
 must be performed with Cython available (that can be done within a Conda 
 environment: conda activate ... or activate ... OR with a virtual environment
-containing cython and wheel).  
+containing cython and wheel). 
 
 For Windows, the default Anaconda is Win64. Older Visual Studio versions can 
 support both Win32 and Win64 compilations. The configuration must be forced
  to use Win64:
-   cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -S . -B build/release -G"Visual Studio 15 2017 Win64". 
+   cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release -G"Visual Studio 15 2017 Win64". 
 
 The Visual Studio version must be adapted.
 
@@ -119,7 +118,7 @@ must also be run to install libraries.
 
 IMPORTANT:
 To install PyNomad wheel in your Python environment you must do
-    pip install --user --force-reinstall dist/*whl 
+    pip install --user --force-reinstall dist/*whl
 Or
     pip install dist/*whl 
 In the the PyNomad directory

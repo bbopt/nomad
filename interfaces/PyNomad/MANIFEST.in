@@ -1,1 +1,3 @@
-
+include readme.txt
+include LICENSE
+include long_description.md

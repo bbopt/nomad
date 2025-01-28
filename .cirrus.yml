@@ -2,34 +2,34 @@ task:
   matrix:
     - name: FreeBSD -- gcc | g++
       freebsd_instance:
-        image: freebsd-13-3-release-amd64
+        image: freebsd-14-0-release-amd64-ufs
       env:
-        cc: gcc12
-        cxx: g++12
+        cc: gcc13
+        cxx: g++13
     - name: FreeBSD -- clang | clang++
       freebsd_instance:
-        image: freebsd-13-3-release-amd64
+        image: freebsd-14-0-release-amd64-ufs
       env:
         cc: clang
         cxx: clang++
     - name: MacOS M1 -- gcc | g++
       macos_instance:
-        image: ghcr.io/cirruslabs/macos-ventura-base:latest
+        image: ghcr.io/cirruslabs/macos-runner:sonoma
       env:
         cc: gcc-14
         cxx: g++-14
     - name: MacOS M1 -- clang | clang++
       macos_instance:
-        image: ghcr.io/cirruslabs/macos-ventura-base:latest
+        image: ghcr.io/cirruslabs/macos-runner:sonoma
       env:
         cc: clang
         cxx: clang++
   dependencies_script: |
     echo $(uname)
     if [ "$(uname)" = "FreeBSD" ]; then
-      pkg install -y cmake bash gcc12
+      pkg install -y cmake bash gcc13
     else
-      brew install cmake gcc@14
+      brew install cmake gcc@12
     fi
   configure_script: |
     mkdir instdir
@@ -40,7 +40,6 @@ task:
       -DCMAKE_CXX_COMPILER=$cxx \
       -DTEST_OPENMP=OFF \
       -DBUILD_INTERFACE_C=ON \
-      -DBUILD_TESTS=ON \
       -DCMAKE_INSTALL_PREFIX=../instdir \
       ..
   build_script: |

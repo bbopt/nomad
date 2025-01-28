@@ -48,9 +48,10 @@
 #include "../Param/Parameters.hpp"
 #include "../Type/BBInputType.hpp"
 #include "../Type/BBOutputType.hpp"
+#include "../Type/ComputeType.hpp"
 #include "../Type/DirectionType.hpp"
+#include "../Type/DMultiMadsSearchStrategyType.hpp"
 #include "../Type/EvalSortType.hpp"
-#include "../Type/EvalType.hpp"
 #include "../Type/LHSearchType.hpp"
 #include "../Type/SgtelibModelFeasibilityType.hpp"
 #include "../Type/SgtelibModelFormulationType.hpp"
@@ -92,26 +93,38 @@ void NOMAD::Parameters::copyParameters(const Parameters& params)
         // STRING
         else if ( paramType == typeid(std::string).name() )
         {
-            auto value = params.getAttributeValue<std::string>(paramName);
+            const auto& value = params.getAttributeValue<std::string>(paramName);
             setAttributeValue(paramName , value );
         }
         // ARRAYOFSTRING
         else if ( paramType == typeid(NOMAD::ArrayOfString).name() )
         {
-            auto value = params.getAttributeValue<NOMAD::ArrayOfString>(paramName);
+            const auto& value = params.getAttributeValue<NOMAD::ArrayOfString>(paramName);
             setAttributeValue(paramName, value);
         }
         // BBInputTypeList
         else if (paramType == typeid(NOMAD::BBInputTypeList).name())
         {
-            auto value = params.getAttributeValue<NOMAD::BBInputTypeList>(paramName);
+            const auto& value = params.getAttributeValue<NOMAD::BBInputTypeList>(paramName);
             setAttributeValue(paramName, value );
         }
         // BBOutputTypeList
         else if (paramType == typeid(NOMAD::BBOutputTypeList).name())
         {
-            auto value = params.getAttributeValue<NOMAD::BBOutputTypeList>(paramName);
+            const auto& value = params.getAttributeValue<NOMAD::BBOutputTypeList>(paramName);
             setAttributeValue(paramName, value );
+        }
+        // DMultiMadsNMSearchType
+        else if (paramType == typeid(NOMAD::DMultiMadsNMSearchType).name())
+        {
+            auto value = params.getAttributeValue<NOMAD::DMultiMadsNMSearchType>(paramName);
+            setAttributeValue(paramName, value);
+        }
+        // DMultiMadsQuadSearchType
+        else if (paramType == typeid(NOMAD::DMultiMadsQuadSearchType).name())
+        {
+            auto value = params.getAttributeValue<NOMAD::DMultiMadsQuadSearchType>(paramName);
+            setAttributeValue(paramName, value);
         }
         // LHSearchType
         else if (paramType == typeid(NOMAD::LHSearchType).name())
@@ -143,40 +156,46 @@ void NOMAD::Parameters::copyParameters(const Parameters& params)
             auto value = params.getAttributeValue<NOMAD::EvalSortType>(paramName);
             setAttributeValue(paramName, value );
         }
+        // HNormType
+        else if (paramType == typeid(NOMAD::HNormType).name())
+        {
+            auto value = params.getAttributeValue<NOMAD::HNormType>(paramName);
+            setAttributeValue(paramName, value );
+        }
         // DirectionTypeList
         else if (paramType == typeid(NOMAD::DirectionTypeList).name())
         {
-            auto value = params.getAttributeValue<NOMAD::DirectionTypeList>(paramName);
+            const auto& value = params.getAttributeValue<NOMAD::DirectionTypeList>(paramName);
             setAttributeValue(paramName, value );
         }
         // DOUBLE
         else if (paramType == typeid(NOMAD::Double).name())
         {
-            auto value = params.getAttributeValue<NOMAD::Double>(paramName);
+            const auto& value = params.getAttributeValue<NOMAD::Double>(paramName);
             setAttributeValue(paramName, value );
         }
         // ARRAYOFDOUBLE
         else if (paramType == typeid(NOMAD::ArrayOfDouble).name() )
         {
-            auto value = params.getAttributeValue<NOMAD::ArrayOfDouble>(paramName);
+            const auto& value = params.getAttributeValue<NOMAD::ArrayOfDouble>(paramName);
             setAttributeValue(paramName, value);
         }
         // POINT
         else if (paramType == typeid(NOMAD::Point).name())
         {
-            auto value = params.getAttributeValue<NOMAD::Point>(paramName);
+            const auto& value = params.getAttributeValue<NOMAD::Point>(paramName);
             setAttributeValue(paramName, value);
         }
         // ARRAY OF POINTS
         else if (paramType == typeid(NOMAD::ArrayOfPoint).name())
         {
-            auto value = params.getAttributeValue<NOMAD::ArrayOfPoint>(paramName);
+            const auto& value = params.getAttributeValue<NOMAD::ArrayOfPoint>(paramName);
             setAttributeValue(paramName, value);
         }
         // LIST OF VARIABLE GROUP
         else if (paramType == typeid(NOMAD::ListOfVariableGroup).name())
         {
-            auto value = params.getAttributeValue<NOMAD::ListOfVariableGroup>(paramName);
+            const auto& value = params.getAttributeValue<NOMAD::ListOfVariableGroup>(paramName);
             setAttributeValue(paramName, value);
         }
         else
@@ -207,7 +226,7 @@ bool NOMAD::Parameters::toBeChecked() const
 std::vector<std::string> NOMAD::Parameters::getAttributeNames() const
 {
     std::vector<std::string> names;
-    for (auto att : _attributes)
+    for (const auto& att : _attributes)
     {
         names.push_back(att->getName());
     }
@@ -219,7 +238,7 @@ std::vector<std::string> NOMAD::Parameters::getAttributeNames() const
 // All registered attributes are reset to their default value
 void NOMAD::Parameters::resetToDefaultValues() noexcept
 {
-    for_each(_attributes.begin(), _attributes.end(), [](SPtrAtt att)
+    for_each(_attributes.begin(), _attributes.end(), [](const SPtrAtt& att)
     {
         att->resetToDefaultValue();
     });
@@ -351,7 +370,7 @@ bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
                 // For the comparison, if the groups of variables are not in the same order
                 // the two instances are not algo compatible (the runs will be different!)
                 auto lvg = getAttributeValueProtected<NOMAD::ListOfVariableGroup>(paramName,false);
-                auto plvg = p->getAttributeValueProtected<NOMAD::ListOfVariableGroup>(paramName,false);
+                const auto& plvg = p->getAttributeValueProtected<NOMAD::ListOfVariableGroup>(paramName,false);
 
                 if (lvg.size() != plvg.size() || lvg != plvg )
                 {
@@ -408,6 +427,16 @@ bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
                     isCompatible = false;
                 }
             }
+            // HNormType
+            else if ( paramType == typeid(NOMAD::HNormType).name() )
+            {
+                if ( getAttributeValueProtected<NOMAD::HNormType>(paramName,false) != p->getAttributeValueProtected<NOMAD::HNormType>(paramName,false) )
+                {
+                    sdebug += NOMAD::hNormTypeToString(getAttributeValueProtected<NOMAD::HNormType>(paramName,false)) + "\n";
+                    sdebug += NOMAD::hNormTypeToString(p->getAttributeValueProtected<NOMAD::HNormType>(paramName,false));
+                    isCompatible = false;
+                }
+            }
             // DirectionTypeList
             else if ( paramType == typeid(NOMAD::DirectionTypeList).name() )
             {
@@ -415,6 +444,29 @@ bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
                 {
                     sdebug += NOMAD::directionTypeListToString(getAttributeValueProtected<NOMAD::DirectionTypeList>(paramName,false)) + "\n";
                     sdebug += NOMAD::directionTypeListToString(p->getAttributeValueProtected<NOMAD::DirectionTypeList>(paramName,false));
+                    isCompatible = false;
+                }
+            }
+            // DMultiMadsNMSearchType
+            else if ( paramType == typeid(NOMAD::DMultiMadsNMSearchType).name() )
+            {
+                if ( getAttributeValueProtected<NOMAD::DMultiMadsNMSearchType>(paramName,false) != p->getAttributeValueProtected<NOMAD::DMultiMadsNMSearchType>(paramName,false) )
+                {
+                    std::ostringstream oss;
+                    oss << getAttributeValueProtected<NOMAD::DMultiMadsNMSearchType>(paramName,false) << std::endl;
+                    oss << p->getAttributeValueProtected<NOMAD::DMultiMadsNMSearchType>(paramName,false);
+                    sdebug = oss.str();
+                    isCompatible = false;
+                }
+            }
+            else if ( paramType == typeid(NOMAD::DMultiMadsQuadSearchType).name() )
+            {
+                if ( getAttributeValueProtected<NOMAD::DMultiMadsQuadSearchType>(paramName,false) != p->getAttributeValueProtected<NOMAD::DMultiMadsQuadSearchType>(paramName,false) )
+                {
+                    std::ostringstream oss;
+                    oss << getAttributeValueProtected<NOMAD::DMultiMadsQuadSearchType>(paramName,false) << std::endl;
+                    oss << p->getAttributeValueProtected<NOMAD::DMultiMadsQuadSearchType>(paramName,false);
+                    sdebug = oss.str();
                     isCompatible = false;
                 }
             }
@@ -452,7 +504,9 @@ bool NOMAD::Parameters::isAlgoCompatible(const NOMAD::Parameters *p)
             }
             else
             {
-                std::string err = "Error: Cannot test the type " + paramType + " for compatibility for parameter " + paramName;
+                std::string err = "Error: Cannot test the type ";
+                err += paramType;
+                err += " for compatibility for parameter " + paramName;
                 throw NOMAD::Exception(__FILE__, __LINE__, err);
             }
 
@@ -584,7 +638,7 @@ void NOMAD::Parameters::readParamLine(const std::string &line,
     }
     else
     {
-        if (pe->getName() != "" && pe->getNbValues() == 0)
+        if (!pe->getName().empty() && pe->getNbValues() == 0)
         {
             std::string err = "Invalid parameter: " + pe->getName();
             // If reading a file (positive line number), throw an exception.
@@ -729,6 +783,17 @@ void NOMAD::Parameters::readEntries(const bool overwrite, std::string problemDir
                 checkFormat1(pe);
                 setAttributeValue(paramName, NOMAD::stringToBBOutputTypeList(pe->getAllValues()));
             }
+            // DMultiMadsNMSearchType
+            else if (paramType == typeid(NOMAD::DMultiMadsNMSearchType).name())
+            {
+                checkFormat1(pe);
+                setAttributeValue(paramName, NOMAD::stringToDMultiMadsNMSearchType(pe->getAllValues()));
+            }
+            else if (paramType == typeid(NOMAD::DMultiMadsQuadSearchType).name())
+            {
+                checkFormat1(pe);
+                setAttributeValue(paramName, NOMAD::stringToDMultiMadsQuadSearchType(pe->getAllValues()));
+            }
             // LHSearchType
             else if (paramType == typeid(NOMAD::LHSearchType).name())
             {
@@ -761,6 +826,12 @@ void NOMAD::Parameters::readEntries(const bool overwrite, std::string problemDir
             {
                 checkFormat1(pe);
                 setAttributeValue(paramName, NOMAD::stringToEvalSortType(pe->getAllValues()));
+            }
+            // HNormType
+            else if (paramType == typeid(NOMAD::HNormType).name())
+            {
+                checkFormat1(pe);
+                setAttributeValue(paramName, NOMAD::stringToHNormType(pe->getAllValues()));
             }
             // DirectionTypeList
             else if (paramType == typeid(NOMAD::DirectionTypeList).name())
@@ -835,7 +906,7 @@ void NOMAD::Parameters::readEntries(const bool overwrite, std::string problemDir
                     std::string pointFile = *pe->getValues().begin();
                     NOMAD::completeFileName(pointFile, problemDir);
                     auto aopNew = readPointValuesFromFile(pointFile);
-                    for (auto newPoint: aopNew)
+                    for (const auto& newPoint: aopNew)
                     {
                         aop.push_back(newPoint);
                     }
@@ -907,7 +978,7 @@ void NOMAD::Parameters::readEntries(const bool overwrite, std::string problemDir
 }
 
 
-void NOMAD::Parameters::checkFormat1(const std::shared_ptr<NOMAD::ParameterEntry> pe) const
+void NOMAD::Parameters::checkFormat1(const std::shared_ptr<NOMAD::ParameterEntry>& pe) const
 {
     if (pe->getNbValues() < 1)
     {
@@ -918,7 +989,7 @@ void NOMAD::Parameters::checkFormat1(const std::shared_ptr<NOMAD::ParameterEntry
 }
 
 
-void NOMAD::Parameters::checkFormatNbEntries(const std::shared_ptr<NOMAD::ParameterEntry> pe, const size_t nbEntries) const
+void NOMAD::Parameters::checkFormatNbEntries(const std::shared_ptr<NOMAD::ParameterEntry>& pe, const size_t nbEntries) const
 {
     if (pe->getNbValues() != nbEntries)
     {
@@ -931,7 +1002,7 @@ void NOMAD::Parameters::checkFormatNbEntries(const std::shared_ptr<NOMAD::Parame
 }
 
 
-void NOMAD::Parameters::checkFormatBool(const std::shared_ptr<NOMAD::ParameterEntry> pe) const
+void NOMAD::Parameters::checkFormatBool(const std::shared_ptr<NOMAD::ParameterEntry>& pe) const
 {
     if (pe->getNbValues() != 1 )
     {
@@ -942,7 +1013,7 @@ void NOMAD::Parameters::checkFormatBool(const std::shared_ptr<NOMAD::ParameterEn
 }
 
 
-void NOMAD::Parameters::checkFormatSizeT(const std::shared_ptr<NOMAD::ParameterEntry> pe, size_t &sz) const
+void NOMAD::Parameters::checkFormatSizeT(const std::shared_ptr<NOMAD::ParameterEntry>& pe, size_t &sz) const
 {
     int i = -1;
     if (pe->getNbValues() != 1
@@ -958,7 +1029,7 @@ void NOMAD::Parameters::checkFormatSizeT(const std::shared_ptr<NOMAD::ParameterE
 }
 
 
-void NOMAD::Parameters::checkFormatAllSizeT(const std::shared_ptr<NOMAD::ParameterEntry> pe) const
+void NOMAD::Parameters::checkFormatAllSizeT(const std::shared_ptr<NOMAD::ParameterEntry>& pe) const
 {
     int i;
 
@@ -974,7 +1045,7 @@ void NOMAD::Parameters::checkFormatAllSizeT(const std::shared_ptr<NOMAD::Paramet
 }
 
 
-void NOMAD::Parameters::checkFormatInt(const std::shared_ptr<NOMAD::ParameterEntry> pe, int &i) const
+void NOMAD::Parameters::checkFormatInt(const std::shared_ptr<NOMAD::ParameterEntry>& pe, int &i) const
 {
     if (pe->getNbValues() != 1 || ! NOMAD::atoi ( *(pe->getValues().begin()), i ))
     {
@@ -985,7 +1056,7 @@ void NOMAD::Parameters::checkFormatInt(const std::shared_ptr<NOMAD::ParameterEnt
 }
 
 
-void NOMAD::Parameters::checkFormatString(const std::shared_ptr<NOMAD::ParameterEntry> pe) const
+void NOMAD::Parameters::checkFormatString(const std::shared_ptr<NOMAD::ParameterEntry>& pe) const
 {
     if ( pe->getNbValues() != 1 )
     {
@@ -996,13 +1067,13 @@ void NOMAD::Parameters::checkFormatString(const std::shared_ptr<NOMAD::Parameter
 }
 
 
-void NOMAD::Parameters::checkFormatArrayOfString(const std::shared_ptr<NOMAD::ParameterEntry> pe) const
+void NOMAD::Parameters::checkFormatArrayOfString(const std::shared_ptr<NOMAD::ParameterEntry>& pe) const
 {
     // Do nothing
 }
 
 
-void NOMAD::Parameters::checkFormatDouble(const std::shared_ptr<NOMAD::ParameterEntry> pe, NOMAD::Double &d) const
+void NOMAD::Parameters::checkFormatDouble(const std::shared_ptr<NOMAD::ParameterEntry>& pe, NOMAD::Double &d) const
 {
     if (pe->getNbValues() != 1 || !d.atof ( *(pe->getValues().begin())))
     {
@@ -1012,10 +1083,10 @@ void NOMAD::Parameters::checkFormatDouble(const std::shared_ptr<NOMAD::Parameter
     }
 }
 
-void NOMAD::Parameters::checkInfo( void ) const
+void NOMAD::Parameters::checkInfo() const
 {
     // Test if Info has been provided
-    for_each(_attributes.begin(),_attributes.end(), [](SPtrAtt att){
+    for_each(_attributes.begin(),_attributes.end(), [](const SPtrAtt& att){
         if ( att->hasEmptyInfo() )
         {
             std::string err = "Check: empty info (Short info and/or Help info) for attribute " + att->getName() + "!";
@@ -1029,7 +1100,7 @@ void NOMAD::Parameters::readValuesAsArray(const NOMAD::ParameterEntry &pe,
                                           NOMAD::ArrayOfDouble &array)
 {
     // Convert list of strings to ArrayOfStrings...
-    const std::list<std::string> peValues = pe.getValues();
+    const std::list<std::string>& peValues = pe.getValues();
     NOMAD::ArrayOfString arrayOfStrings;
     std::list<std::string>::const_iterator it;
     for (it = peValues.begin(); it != peValues.end(); ++it)
@@ -1047,7 +1118,7 @@ size_t NOMAD::Parameters::readValuesForArrayOfPoint(const NOMAD::ParameterEntry 
     size_t index = 0;
 
     // Convert list of strings to ArrayOfStrings...
-    const std::list<std::string> peValues = pe.getValues();
+    const std::list<std::string>& peValues = pe.getValues();
     NOMAD::ArrayOfString arrayOfStrings;
     std::list<std::string>::const_iterator it;
     for (it = peValues.begin(); it != peValues.end(); ++it)
@@ -1128,7 +1199,7 @@ size_t NOMAD::Parameters::readValuesForVariableGroup(const NOMAD::ParameterEntry
         end = pe.getValues().end();
         for ( it = pe.getValues().begin() ; it != end ; ++it )
         {
-            size_t ist = (size_t)i;
+            auto ist = (size_t)i;
             if ( !NOMAD::atost ( *it , ist ) )
             {
                     std::string err = "Invalid format for index list: ";
@@ -1179,7 +1250,7 @@ bool NOMAD::Parameters::isSetByUser(const std::string& paramName) const
 
 void NOMAD::Parameters::displayHelp(const std::string & helpSubject , bool devHelp, std::ostringstream & ossBasic, std::ostringstream & ossAdvanced)
 {
-    // Search is performed on touppered strings
+    // Search is performed on CAPITALIZED strings
 
     // Display help as Basic, Advanced or Developer
     // Separate Basic and Advanced into sections
@@ -1246,14 +1317,14 @@ void NOMAD::Parameters::insertCSVDoc(std::map<std::string,std::string> &csvdoc) 
     {
         std::string keywords = att->getKeywords();
         
-        if (keywords.length()==0)
+        if (keywords.empty())
             continue;
         
-        std::size_t pos1 = keywords.find(",");
+        std::size_t pos1 = keywords.find(',');
         
         std::string value = keywords.substr(1,pos1-1); // Pair (Type,DefaultValue) is the first keyword
         
-        std::size_t pos2 = keywords.find(")");
+        std::size_t pos2 = keywords.find(')');
        
         std::string defaultAttributeValue = keywords.substr(pos1+1,pos2-pos1-1); // Second position in the pair () is the default value
 
@@ -1295,7 +1366,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
         if ( att._type == "int" )
         {
             int defVal;
-            if ( ! NOMAD::atoi( att._defaultValue.c_str() ,defVal ) )
+            if ( ! NOMAD::atoi( att._defaultValue ,defVal ) )
             {
                 std::string err = "Invalid int attribute definition: ";
                 err +=  att._name + ". Infinity is set with INF or +INF or -INF.";
@@ -1308,7 +1379,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
         else if ( att._type == "size_t" )
         {
             size_t defVal;
-            if ( ! NOMAD::atost( att._defaultValue.c_str() ,defVal ) )
+            if ( ! NOMAD::atost( att._defaultValue ,defVal ) )
             {
                 std::string err = "Invalid size_t attribute definition: ";
                 err +=  att._name + ". Infinity is set with INF or +INF.";
@@ -1329,7 +1400,7 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
             else
             {
                 std::string err = "Invalid format for NOMAD::Double attribute definition: ";
-                err +=  att._name  + ". Infinity is set with NOMAD::INF or INF.";;
+                err +=  att._name  + ". Infinity is set with NOMAD::INF or INF.";
                 throw NOMAD::Exception(__FILE__,__LINE__, err);
             }
         }
@@ -1446,6 +1517,24 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
                               algoCompatibilityCheck, restartAttribute, uniqueEntry,
                               att._shortInfo, att._helpInfo, keywordsPlus);
         }
+        // DMultiMadsNMSearchType
+        else if (   att._type== "NOMAD::DMultiMadsNMSearchType"
+                    || att._type== "DMultiMadsNMSearchType")
+        {
+            registerAttribute( att._name,
+                               NOMAD::stringToDMultiMadsNMSearchType(att._defaultValue),
+                               algoCompatibilityCheck, restartAttribute,
+                               uniqueEntry, att._shortInfo , att._helpInfo, keywordsPlus );
+        }
+        // DMultiMadsQuadSearchType
+        else if (   att._type== "NOMAD::DMultiMadsQuadSearchType"
+                    || att._type== "DMultiMadsQuadSearchType")
+        {
+            registerAttribute( att._name,
+                               NOMAD::stringToDMultiMadsQuadSearchType(att._defaultValue),
+                               algoCompatibilityCheck, restartAttribute,
+                               uniqueEntry, att._shortInfo , att._helpInfo, keywordsPlus );
+        }
         // SgtelibModelFeasibilityType
         else if (   att._type== "NOMAD::SgtelibModelFeasibilityType"
                  || att._type== "SgtelibModelFeasibilityType")
@@ -1479,6 +1568,15 @@ void NOMAD::Parameters::registerAttributes( const std::vector<NOMAD::AttributeDe
         {
             registerAttribute( att._name,
                               NOMAD::stringToEvalSortType(att._defaultValue),
+                              algoCompatibilityCheck, restartAttribute, uniqueEntry,
+                              att._shortInfo , att._helpInfo, keywordsPlus );
+        }
+        // HNormType
+        else if (   att._type== "NOMAD::HNormType"
+                 || att._type== "HNormType")
+        {
+            registerAttribute( att._name,
+                              NOMAD::stringToHNormType(att._defaultValue),
                               algoCompatibilityCheck, restartAttribute, uniqueEntry,
                               att._shortInfo , att._helpInfo, keywordsPlus );
         }

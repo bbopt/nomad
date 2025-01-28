@@ -44,8 +44,8 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_4_MADSINITIALIZATION__
-#define __NOMAD_4_4_MADSINITIALIZATION__
+#ifndef __NOMAD_4_5_MADSINITIALIZATION__
+#define __NOMAD_4_5_MADSINITIALIZATION__
 
 #include "../../Algos/Initialization.hpp"
 #include "../../Type/BBInputType.hpp"
@@ -64,7 +64,7 @@ private:
     
     BBInputTypeList _bbInputType;
     
-    Double _hMax0;  ///< Initial HMax of barrier
+    Double _hMax0;  ///< Initial HMax for Mads barrier
     
 protected:
     MeshBasePtr _initialMesh;
@@ -106,4 +106,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_4_MADSINITIALIZATION__
+#endif // __NOMAD_4_5_MADSINITIALIZATION__
