@@ -114,9 +114,17 @@ jobs:
           cd interfaces/PyNomad
           pip install --force-reinstall dist/*.whl
           pytest
+          
+      - name: Prepare upload
+        shell: bash
+        run: |
+          mv README.txt instdir/.
+          mv LICENSE instdir/.
+          cd instdir
+          tar -cf NOMAD4.tar *
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.config.os }}
-          path: build
+          path: instdir/NOMAD4.tar
