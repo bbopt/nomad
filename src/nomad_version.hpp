@@ -51,4 +51,4 @@
 
 #undef NOMAD_VERSION_NUMBER
 /// Define version number
-#define NOMAD_VERSION_NUMBER "4.5.beta2"
+#define NOMAD_VERSION_NUMBER "4.5.0"
