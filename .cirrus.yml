@@ -14,13 +14,13 @@ task:
         cxx: clang++
     - name: MacOS M1 -- gcc | g++
       macos_instance:
-        image: ghcr.io/cirruslabs/macos-monterey-base:latest
+        image: ghcr.io/cirruslabs/macos-runner:sonoma
       env:
-        cc: gcc-13
-        cxx: g++-13
+        cc: gcc-12
+        cxx: g++-12
     - name: MacOS M1 -- clang | clang++
       macos_instance:
-        image: ghcr.io/cirruslabs/macos-monterey-base:latest
+        image: ghcr.io/cirruslabs/macos-runner:sonoma
       env:
         cc: clang
         cxx: clang++
@@ -29,7 +29,7 @@ task:
     if [ "$(uname)" = "FreeBSD" ]; then
       pkg install -y cmake bash gcc13
     else
-      brew install cmake gcc@13
+      brew install cmake gcc@12
     fi
   configure_script: |
     mkdir instdir

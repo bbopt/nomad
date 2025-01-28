@@ -10,14 +10,14 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - name: Windows
-            os: windows-latest
-            archs: AMD64
-            msvc: 1
+#          - name: Windows
+#            os: windows-latest
+#            archs: AMD64
+#            msvc: 1
 
-          - name: Ubuntu
-            os: ubuntu-latest
-            archs: x86_64
+#          - name: Ubuntu
+#            os: ubuntu-latest
+#            archs: x86_64
 
           - name: macOS_X86
             os: macos-latest
@@ -59,7 +59,7 @@ jobs:
       - name: Install dependencies on MacOS
         if: startsWith(matrix.config.name, 'MacOS')
         run: |
-          brew install cmake
+          brew install cmake llvm libomp
           cmake --version
 
       - name: Build binary wheels
@@ -68,7 +68,7 @@ jobs:
           CIBW_ARCHS: >-
             ${{ matrix.target.archs }}
           CIBW_BEFORE_ALL: >-
-            cmake -DBUILD_INTERFACE_PYTHON=ON -DTEST_OPENMP=OFF -DBUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release ${{ matrix.target.extra_option }} -S . -B build &&
+            cmake -DBUILD_INTERFACE_PYTHON=ON -DBUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release ${{ matrix.target.extra_option }} -S . -B build &&
             cmake --build build --config Release --clean-first --target nomadStatic --parallel 2
           CIBW_ENVIRONMENT: >-
             NOMAD_SRC=../../src
