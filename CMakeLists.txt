@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.15...3.15)
 # Warning. This must be consistent with src/nomad_version.hpp
 set(NOMAD_VERSION_MAJOR 4)
 set(NOMAD_VERSION_MINOR 5)
-set(NOMAD_VERSION_PATCH beta1)  # The beta version betaX is for develop branch of the public repo. 
+set(NOMAD_VERSION_PATCH beta2)  # The beta version betaX is for develop branch of the public repo. 
 
 set(NOMAD_VERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}.${NOMAD_VERSION_PATCH})
 
