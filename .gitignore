@@ -13,7 +13,6 @@ examples/**/*.exe
 examples/**/cache.txt
 src/nbproject/
 *.swp
-src/Attribute/*.hpp
 examples/**/history*
 examples/**/sol*
 examples/**/stats*
