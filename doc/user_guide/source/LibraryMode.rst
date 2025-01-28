@@ -11,7 +11,7 @@ in a light executable that can define and run optimization for your problem. Con
 mode, this has the disadvantage that a crash within the executable (for example during the evaluation of a point)
 will end the optimization unless a special treatment of exception is provided by the user.
 But, as a counterpart, it offers more options and flexibility for blackbox integration and
-optimization management (display, pre- and post-processing, multiple optimizations, user search, etc.). See examples
+optimization management (display, pre- and post-processing, multiple optimizations, user search, user poll, etc.). See examples
 in :ref:`access_to_solution`, :ref:`multiple_runs` and :ref:`callbacks`.
 
 The library mode requires additional coding and compilation before conducting optimization.
@@ -22,7 +22,7 @@ Then, details on how to interface your own code are presented.
 Compilation of the source code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-NOMAD source code files are located in ``$NOMAD_HOME/src``.
+NOMAD source code files are located in ``$NOMAD_HOME/src``. The source code for Sgtelib is located in ``$NOMAD_HOME/ext/sgteLib/src``.
 Examples are provided in ``$NOMAD_HOME/examples/basic/library`` and ``$NOMAD_HOME/examples/advanced/library``.
 
 The compilation procedure uses the provided ``CMake`` files along with the source code.
@@ -77,8 +77,6 @@ Modify ``CMake`` files
 
 As a first task, you can create a ``CMakeLists.txt`` for your source code(s) based on the one for the basic example 1.
 
-
-.. TODO add the CMake procedure for an example out of Nomad subdirectories.
 
 .. code-block:: cmake
 
@@ -346,9 +344,9 @@ In the basic example 1, final information is displayed at the end of an algorith
 
 To access the best feasible and infeasible points, use
 
-``NOMAD::CacheBase::getInstance()->findBestFeas(bf, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);``
+``NOMAD::CacheBase::getInstance()->findBestFeas(bf));``
 
-``NOMAD::CacheBase::getInstance()->findBestInf(bi, NOMAD::INF, NOMAD::Point(n), NOMAD::EvalType::BB, NOMAD::ComputeType::STANDARD);``
+``NOMAD::CacheBase::getInstance()->findBestInf(bi);``
 
 To get the run flag of a run (success or type of fail) use the function
 
@@ -422,7 +420,7 @@ The command ``cmake --build build/release`` (or ``cmake --build build/release --
 The command ``cmake --install build/release`` must be run before using the Matlab ``nomadOpt`` function. Also,
 the Matlab command ``addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib'))`` or ``addpath(strcat(getenv('NOMAD_HOME'),'/build/release/lib64'))`` must be executed to have access to the libraries and run the examples.
 
-All functionalities of NOMAD are available in ``nomadOpt``.
+Almost all functionalities of NOMAD are available in ``nomadOpt``.
 NOMAD parameters are provided in a Matlab structure with keywords and values using the same syntax as used in the NOMAD parameter
 files. For example, ``params = struct('initial_mesh_size','* 10','MAX_BB_EVAL','100');``
 
@@ -437,9 +435,9 @@ PyNomad interface
 .. note::
    NOMAD and Python can be used in combination. There are two ways to perform optimization using objective and constraint function evaluated by a Python script.
 
-   The simplest way is to run the Python script as a blackbox in batch mode to evaluate each given point. An example is provided in $NOMAD_HOME/examples/basic/batch/PythonBB.
+   The simplest way is to run the Python script as a blackbox in batch mode to evaluate each given point. An example is provided in ``$NOMAD_HOME/examples/basic/batch/PythonBB``.
 
-   Another way is to obtain the Nomad interface for Python (PyNomadBBO or PyNomad for short). Since version 4.4, the PyNomadBBO package can be install from PyPI:
+   Another way is to obtain the Nomad interface for Python (PyNomadBBO or PyNomad for short). Since version 4.4, the PyNomadBBO package can be installed from PyPI:
 
    ``pip install PyNomadBBO``
 
@@ -450,10 +448,10 @@ PyNomad interface
 PyNomad can also be obtained by building source codes.
 The source codes and basic tests are provided in ``$NOMAD_HOME/interfaces/PyNomad``. Examples are given in ``$NOMAD_HOME/examples/advanced/library/PyNomad``.
 
-.. note:: The build procedure relies on Python 3.8+, a recent version of Cython, wheel and setuptools. A simple way to have all packages for PyNomad build is work within  an `Anaconda <http://www.anaconda.org/>` environment or a virtual environment.
+.. note:: The build procedure relies on Python 3.8+, a recent version of Cython, wheel and setuptools. A simple way to have all packages for PyNomad build is to work within your own dedicated virtual environment or an `Anaconda <http://www.anaconda.org/>` environment.
 
 To enable the building of the Python interface, option ``-DBUILD_INTERFACE_PYTHON=ON`` must be
-set when configuring for building NOMAD. The configuration command ``cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release`` must be performed within a Conda environment with Cython available (``conda activate ...`` or ``activate ...``).
+set when configuring for building NOMAD. The configuration command ``cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release`` must be performed within an environment with Cython available (``conda activate ...`` or ``activate ...`` or ``source .../activate``).
 
 In some situations, the configuration command should be adapted depending on the environment available.
 For Windows, the default Anaconda is Win64. Visual Studio can support both Win32 and Win64 compilations.
@@ -462,9 +460,11 @@ The Visual Studio version must be adapted.
 
 The command ``cmake --build build/release`` (or ``cmake --build build/release --config Release`` for Windows) is used for building the selected configuration.
 
-The command ``cmake --install build/release`` must be run before using the PyNomad module.
+The command ``cmake --install build/release`` must be performed. 
 
-All functionalities of NOMAD are available in PyNomad.
+The wheel file created during the build must be installed in the Python environment before using the PyNomad module. In the PyNomad directory the command ``pip install dist/*`` must be executed.
+
+Almost all functionalities of NOMAD are available in PyNomad.
 NOMAD parameters are provided in a list of strings using the same syntax as used in the NOMAD parameter
 files.
 Some basic tests are available in the ``PyNomad`` directory to check that everything is up and running.
@@ -475,7 +475,7 @@ C interface
 A C interface for NOMAD is available.
 The source codes are provided in ``$NOMAD_HOME/interfaces/CInterface/``.
 To enable the building of the C interface, option ``-DBUILD_INTERFACE_C=ON`` must be
-set when building NOMAD, as such: ``cmake -DBUILD_TESTS=ON -S . -B build/release``.
+set when building NOMAD, as such: ``cmake -DBUILD_INTERFACE_C=ON -S . -B build/release``.
 
 The command ``cmake --build build/release`` (or ``cmake --build build/release --config Release`` for Windows) is used for building the selected configuration.
 

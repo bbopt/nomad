@@ -244,8 +244,9 @@ on how to manage a block of evaluations in parallel using OpenMP.
 Parallel evaluations
 --------------------
 
-When OpenMP is available (see :ref:`Use OpenMP <cmake_configuration>`), the user MUST provide the number of threads ``NB_THREADS_OPENMP``
-to efficiently access the computer cores. If this parameter is not set, OpenMP uses a single thread. The evaluations of trial points stored in a queue are dispatched to these threads.
+When OpenMP is available (see :ref:`Use OpenMP <cmake_configuration>`), the user MUST provide the number of threads for the parallel evaluations ``NB_THREADS_PARALLEL_EVAL``
+to efficiently access the computer cores. If this parameter is not set, OpenMP uses a single thread. The evaluations of trial points stored in a queue are dispatched to these threads. 
+Please note that the selected number of threads may not correspond to the number of threads used at all time since the evaluation queue may not contain enough trial points at a given step of the algorithm.
 
 .. _psd_mads:
 
@@ -303,9 +304,9 @@ To activate the DMulti-MADS algorithm, at least two arguments of the parameter `
 ``DMULTIMADS_OPTIMIZATION`` set to ``true``. DMulti-MADS does not perform well with ``openMP`` and cannot use the ``ORTHO N+1 QUAD``
 strategy. Additional parameters are:
 
-  `*` `DMULTIMADS_NM_STRATEGY`` decides which single-objective strategy to use for the Nelder-Mead search step. It can be set at ``DOM`` or ``MULTI``.
+  * ``DMULTIMADS_NM_STRATEGY`` decides which single-objective strategy to use for the Nelder-Mead search step. It can be set at ``DOM`` or ``MULTI``.
 
-  `*` `DMULTIMADS_QUAD_MODEL_STRATEGY`` decides which single-objective strategy to use for the quadratic model search step. It can be set at ``DMS``, ``DOM`` or ``MULTI``.
+  * ``DMULTIMADS_QUAD_MODEL_STRATEGY`` decides which single-objective strategy to use for the quadratic model search step. It can be set at ``DMS``, ``DOM`` or ``MULTI``.
 
 These searches bring a significant performance boost in most of the applications solved, but can considerably slow the resolution in terms of computational time (up to x10).
 If one wants faster resolution (at the detriment of solution quality), one can deactivate first the ``QUAD_MODEL_SEARCH`` and if not sufficient enough the
@@ -368,37 +369,12 @@ This example is described in details in section 5.1 of [AuBaKo22]_.
 
 .. _hot_restart:
 
-Hot and Warm Restart
---------------------
+Restart or rerun
+----------------
 
-This new feature of NOMAD 4 makes it possible to continue the solving process after it has started,
-without having to restart it from the beginning.
-In the case of hot restart, the user interrupts the solver to change the value of a parameter.
-With warm restart, the user changes a parameter from a resolution that has already reached a termination condition.
-In both cases, the solving process is then continued from its current state.
-
-Hot restart
-"""""""""""
-
-To enable hot restart, set parameter ``HOT_RESTART_ON_USER_INTERRUPT`` to ``true``.
-While NOMAD is running, interrupt the run with the command ``CTRL-C``.
-New values for parameters may be entered.
-For example, entering ``LH_SEARCH 0 20`` will make LH search be used for the rest of the optimization.
-The syntax is the same as the syntax of a parameter file, when in batch mode.
-When all new parameter values are entered, continue optimization by entering
-the command ``CTRL-D``. The new parameter values will be taken into account.
-
-Warm restart
-""""""""""""
-
-To enable warm restart, parameters ``HOT_RESTART_READ_FILES`` and ``HOT_RESTART_WRITE_FILES`` need to be set to ``true``.
-When NOMAD runs a first time, files ``hotrestart.txt`` and ``cache.txt`` are written to the problem directory.
-This information is used if NOMAD is run a second time.
-Instead of redoing the same optimization, NOMAD will continue where it was when the first run was ended.
-For example, suppose the first NOMAD run stopped at evaluation 100 because the value of parameter ``MAX_BB_EVAL`` was 100.
-The user still has room for 50 more evaluations.
-The parameter file may be changed with value ``MAX_BB_EVAL 150``, and the second run of
-NOMAD will start where it was, with evaluation 101.
+NOMAD can perform a restart using the cache file to resume an optimization if the initial attempt
+is prematurely stopped or if the user simply wants to increase the evaluation budget after a first attempt. 
+The simple procedure is detailed in an example at ``$NOMAD_HOME/examples/advanced/batch/UseCacheFileForRerun``.
 
 
 .. topic:: References

@@ -57,7 +57,7 @@ This example optimization problem has a single objective, 5 variables, 2 nonline
 
     2. NOMAD will manage the creation of the **input file consisting of one value for each variable separated by space** and the execution of the blackbox program.
 
-    3. The blackbox program must return the evaluation values by displaying them in the **standard output** (default) or by writing them in an output file (see :ref:`advanced_functionalities` about advanced output options).
+    3. The blackbox program must return the evaluation values by displaying them in the **standard output** (default) or by writing them in an output file (using ``BB_REDIRECTION no``, see example ``$NOMAD_HOME\examples\advanced\batch\BBOutputRedirection``).
     It must also **return an evaluation status of 0** to indicate that the evaluation went well. Otherwise NOMAD considers that the evaluation has failed.
 
     4. The minimum number of values displayed by the blackbox program corresponds to the number of constraints plus one (or two for bi-objective problems) representing the objective function(s) that one seeks to minimize.

@@ -75,10 +75,6 @@ On the command line, in the ``$NOMAD_HOME`` directory::
 
        cmake -DTEST_OPENMP=OFF -S . -B build/release
 
-     To enable time stats build::
-
-       cmake -DTIME_STATS=ON -S . -B build/release
-
 
 This command creates the files and directories for building (``-B``) in ``build/release``. The source (``-S``) ``CMakeLists.txt`` file is in the ``$NOMAD_HOME`` directory.
 
@@ -88,7 +84,7 @@ The command can be modified to enable/disable some options (see side bar).
 
 .. warning:: Sometimes, additional options must be passed during configuration to prevent CMake errors for interfaces. See details in :ref:`library_mode`.
 
-
+.. warning:: Among the provided examples, some require *OpenMP* build. If *OpenMP* is disabled, these examples will not be built or will not work (e.g., ``simpleExample_basic_parallelEval`` in the ``$NOMAD_HOME/examples/advances/library/PyNomad`` directory).
 
 2- Build
 """"""""
@@ -138,7 +134,7 @@ The procedure to configure, build and install the ``debug`` version is the follo
 
   cmake --install build/debug
 
-On Windows, all 4 configurations are always build Debug, RelWithDebugInfo, MinSizeRel, Release); the flag CMAKE_BUILD_TYPE can be ignored.
+On Windows with Visual Studio, the ``--config Debug`` must be provided when building the project.
 
 Use another compiler
 """"""""""""""""""""
