@@ -4,7 +4,7 @@ import re
 input_file_name=sys.argv[1]
 with open(input_file_name,'r') as openfile:
     line = openfile.read().strip()
-    X = re.sub('\s+',' ',line).strip().split()
+    X = re.sub(r'\s+',' ',line).strip().split()
     openfile.close()
 
 # Standard output is grabbed by Nomad evaluator
