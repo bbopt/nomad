@@ -1,4 +1,4 @@
-name: Build and publish binary wheels onto TestPyPi
+name: Build and publish binary wheels onto PyPi
 
 on:
   workflow_dispatch:
@@ -115,5 +115,3 @@ jobs:
 
       - name: Publish wheels to PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository_url: https://pypi.org/legacy/
