@@ -273,9 +273,8 @@ bool NOMAD::AllParameters::mayUseSurrogate() const
         throw NOMAD::Exception(__FILE__,__LINE__,"Parameters are not checked");
     }
     bool sortWithSurrogate = (_evaluatorControlParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT") == NOMAD::EvalSortType::SURROGATE);
-    bool vnsUseSurrogate = _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH") && _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE");
-    
-    
+    bool vnsUseSurrogate = _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE");
+
     return sortWithSurrogate || vnsUseSurrogate;
 }
 

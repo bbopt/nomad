@@ -1320,15 +1320,10 @@ void NOMAD::MainStep::addEvaluator(const EvaluatorPtr& ev)
     }
 
     if (NOMAD::EvalType::SURROGATE == evalTypeAdded &&
-        NOMAD::EvalSortType::SURROGATE != _allParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT") )
+        NOMAD::EvalSortType::SURROGATE != _allParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT") &&
+        ! _allParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE") )
     {
-        if ( ! _allParams->getAttributeValue<bool>("VNS_MADS_SEARCH") ||
-            ( _allParams->getAttributeValue<bool>("VNS_MADS_SEARCH") &&
-             ! _allParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE") ) )
-        {
             std::cout << "Warning: A SURROGATE evaluator is available but it will not be used. To use it, set EVAL_QUEUE_SORT to SURROGATE or set VNS_MADS_SEARCH_WITH_SURROGATE." << std::endl;
-        }
-
     }
     _evaluators.push_back(ev);
 
