@@ -226,6 +226,9 @@ def optimize(fBB, pX0, pLB, pUB, params, fSurrogate=None):
 
     return {'x_best': xReturn, 'f_best': fReturn, 'h_best': hReturn, 'nb_evals': nbEvals, 'nb_iters': nbIters, 'run_flag': runFlag, 'stop_reason': stopReasonU}
 
+def setCustomMegaIterEndCallback(fMegaIterCb):
+    setCustomMegaIterEndCallbackFunction(cbU, <void*> fMegaIterCb)
+
 cdef extern from "Algos/MainStep.hpp" namespace "NOMAD":
     cdef cppclass MainStep:
         MainStep() except +
@@ -409,8 +412,9 @@ cdef extern from "Eval/EvalPoint.hpp" namespace "NOMAD":
         const Double& getF(const FHComputeType& completeComputeType) const
         const Double& getH(const FHComputeType& completeComputeType) const
         void setBBO(const string &bbo)
-        string getBBO()
+        string getBBO(const EvalType& evalType) const
         size_t size()
+        string display()
 
     cdef cppclass Block:
         const shared_ptr[EvalPoint]& operator[](size_t i) const
@@ -433,6 +437,9 @@ cdef class PyNomadEvalPoint:
 
     def setBBO(self, string bbo):
         deref(self.c_ep_ptr).setBBO(bbo)
+
+    def getBBO(self):
+        return deref(self.c_ep_ptr).getBBO(EvalType.BB).decode()
 
     def getF(self):
         cdef PyNomadDouble f = PyNomadDouble()
@@ -467,6 +474,16 @@ cdef class PyNomadEvalPoint:
         n = deref(self.c_ep_ptr).size()
         return n
 
+    def displayFullNomad(self):
+        return deref(self.c_ep_ptr).display()
+
+    def displayX(self):
+        cdef str ret =''
+        for i in range(self.size()):
+             ret += str(self.get_coord(i)) + ' '   
+        return ret
+        
+
 
 cdef class PyNomadBlock:
     # Define what is needed to use blocks
@@ -474,7 +491,10 @@ cdef class PyNomadBlock:
 
     def size(self):
         cdef size_t n
-        n = deref(self.c_block_ptr).size()
+        try:
+           n = deref(self.c_block_ptr).size()
+        except NameError:
+           return 0
         return n
 
     def get_x(self, size_t i):
@@ -486,6 +506,7 @@ cdef class PyNomadBlock:
 cdef extern from "nomadCySimpleInterface.cpp":
     ctypedef int (*Callback)(void * apply, shared_ptr[EvalPoint] x)
     ctypedef vector[int] (*CallbackL)(void * apply, shared_ptr[Block] x)
+    ctypedef bool (*CallbackU)(void * apply, shared_ptr[Block] x)
     void printPyNomadVersion()
     void printPyNomadUsage()
     void printPyNomadInfo()
@@ -502,6 +523,7 @@ cdef extern from "nomadCySimpleInterface.cpp":
                  shared_ptr[EvalPoint] &bestFeasSol,
                  shared_ptr[EvalPoint] &bestInfeasSol,
                  size_t &nbEvals, size_t &nbIters, string &stopReason) except+
+    void setCustomMegaIterEndCallbackFunction(CallbackU cbU, void* applyCB) except+
 
 
 # Define callback function for a single EvalPoint ---> link with Python
@@ -519,4 +541,12 @@ cdef vector[int] cbL(void *f, shared_ptr[Block] block) noexcept:
 
     u.c_block_ptr = block
     return (<object>f)(u)
- 
+
+# Define user callback function for accessing a block (vector) of best feasible EvalPoints
+# And return a boolean flag to stop (true) or not (false)
+cdef bool cbU(void *f, shared_ptr[Block] block) noexcept:
+
+    cdef PyNomadBlock u = PyNomadBlock()
+
+    u.c_block_ptr = block
+    return (<object>f)(u) 

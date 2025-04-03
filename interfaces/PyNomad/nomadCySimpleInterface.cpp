@@ -49,6 +49,7 @@
 #define NOMAD_PYTHON_VERSION "2.2"
 
 #include "Algos/EvcInterface.hpp"
+#include "Algos/Mads/MadsMegaIteration.hpp"
 #include "Math/RNG.hpp"
 #include "Nomad/nomad.hpp"
 #include "Param/AllParameters.hpp"
@@ -65,6 +66,9 @@ typedef int (*Callback)(void * apply,
 typedef std::vector<int> (*CallbackL)(void * apply,
                                       std::shared_ptr<NOMAD::Block> block);
 
+// The boolean return is for stopping (MegaIter or else)
+typedef bool (*CallbackU)(void * apply,
+                          std::shared_ptr<NOMAD::Block> block);
 
 static void printPyNomadVersion()
 {
@@ -207,6 +211,76 @@ static void printNomadHelp(std::string about)
 }
 
 
+// This for MEGA_ITER_END callback function.
+// Maybe set or not.
+CallbackU  _megaIterEndCb;
+void*     _megaIterEndApply;
+static void setCustomMegaIterEndCallbackFunction(CallbackU cbU,
+                                                void * apply)
+{
+    _megaIterEndCb = cbU;
+    _megaIterEndApply = apply;
+}
+    
+/*----------------------------------------------------------*/
+/* After each mega iteration verify if stop (not used here). */
+/*----------------------------------------------------------*/
+void customMegaIterEndCbFunc(const NOMAD::Step& step,
+                  bool &stop)
+{
+        // Important: by default USER_CALLS are disabled when doing quad model optimization
+        // -> NO call to this function when doing quad model search.
+        
+        // Several NOMAD::Algorithm are used by NOMAD.
+        // We are interested only on the main Mads (Mega) Iteration.
+        // Use a dynamic cast to make sure with have the Mads (Mega) Iteration.
+        auto megaIter = dynamic_cast<const NOMAD::MadsMegaIteration*>(&step);
+        
+        if (nullptr != megaIter)
+        {
+            
+            // Set the best feasible solutions
+            // A single best feasible solution should be sufficient. Let's pass all of them
+            // in case, the user wants access to all best feasible points.
+            std::vector<NOMAD::EvalPoint> evalPointFeasList;
+            auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::defaultFHComputeType /* for BB and default compute type */);
+            
+            if (nbFeas == 0)
+            {
+                stop = false;
+                return;
+            }
+            
+            try
+            {
+                if (_megaIterEndCb)
+                {
+                    // printf("Mega Iteration Callback, about to call ...\n");
+                    
+                    NOMAD::Block block;
+                    for (const auto & ep: evalPointFeasList)
+                    {
+                        block.push_back(std::make_shared<NOMAD::EvalPoint>(ep));
+                    }
+                    std::shared_ptr<NOMAD::Block> block_ptr = std::make_shared<NOMAD::Block>(block);
+                    PyGILState_STATE state = PyGILState_Ensure();
+                    stop = _megaIterEndCb(_megaIterEndApply, block_ptr);
+                    PyGILState_Release(state);
+                    // printf("Mega Iteration Callback, after call ...\n");
+                }
+            }
+            //If these errors occur, it is due to errors in python code
+            catch(...)
+            {
+                printf("Unrecoverable error in User Mega Iteration Callback, Exiting NOMAD...\n\n");
+                //Force exit
+                raise(SIGINT);
+            }
+        }
+    }
+
+
+
 //Python Evaluator Class
 class PyEval : public NOMAD::Evaluator
 {
@@ -281,6 +355,8 @@ public:
         return evalOk;
     }
 };
+
+
 
 
 // Helper function for runNomad
@@ -393,6 +469,7 @@ static void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams,
 }
 
 
+
 static int runNomad(Callback cb,
                     CallbackL cbL,
                     void * apply,
@@ -436,6 +513,14 @@ static int runNomad(Callback cb,
         
         auto ev = std::make_unique<PyEval>(allParams->getEvalParams(), cb, cbL, apply, NOMAD::EvalType::BB);
         TheMainStep.addEvaluator(std::move(ev));
+        
+        
+        // CHT --- CUSTOM MODIF TO ILLUSTRATE CALLBACK WITH PYNOMAD
+        // Link callback function with user function defined locally
+        if (_megaIterEndCb)
+        {
+            TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_END, customMegaIterEndCbFunc);
+        }
 
         TheMainStep.start();
         TheMainStep.run();
@@ -546,6 +631,14 @@ static int runNomad(Callback cb,
 
         auto evSurrogate = std::make_unique<PyEval>(allParams->getEvalParams(), cb, cbL, applySurrogate, NOMAD::EvalType::SURROGATE);
         TheMainStep.addEvaluator(std::move(evSurrogate));
+        
+        // CHT --- CUSTOM MODIF TO ILLUSTRATE CALLBACK WITH PYNOMAD
+        // Link callback function with user function defined locally
+        if (_megaIterEndCb)
+        {
+            // std::cout << "Set mega iter callback" << std::endl;
+            TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_END, customMegaIterEndCbFunc);
+        }
         
         TheMainStep.start();
         TheMainStep.run();
