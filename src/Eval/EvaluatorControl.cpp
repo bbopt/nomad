@@ -1812,52 +1812,32 @@ void NOMAD::EvaluatorControl::displayDebugWaitingInfo(time_t &lastDisplayed) con
 void NOMAD::EvaluatorControl::addDirectToFileInfo(const NOMAD::EvalQueuePointPtr& evalQueuePoint) const
 {
     OUTPUT_DIRECTTOFILE_START
-
+    
     // MODEL optimizations generate a lot of output. Do not write them into file.
     // Only show BB optimizations.
     if (NOMAD::EvalType::BB != evalQueuePoint->getEvalType())
     {
         return;
     }
-
+    
     // In solution file we write only best feasible incumbent for BB, standard compute (not phase one) and L2 norm for h.
+    // For multi-objective the pareto points can change when adding a single point.
+    // Only the progressive barrier can be used to get the updated pareto solutions.
+    // The barrier is updated later when calling IterationUtils::postProcessing.
+    // Let's write single obj solution here and the multi-obj solution DMultiMadsMegaIteration::end
     bool writeInSolutionFile = (   evalQueuePoint->getSuccess() == SuccessType::FULL_SUCCESS
-                                && evalQueuePoint->isFeasible(defaultFHComputeType));
-
+                                && evalQueuePoint->isFeasible(defaultFHComputeType)
+                                && evalQueuePoint->getFs(defaultFHComputeType).size() == 1);
+    
+    
     // Evaluation info for output
     NOMAD::StatsInfo info;
-
+    
     info.setBBO(evalQueuePoint->getBBO(NOMAD::EvalType::BB));
     info.setSol(*(evalQueuePoint->getX()));
-
+    
     NOMAD::OutputDirectToFile::Write(info, writeInSolutionFile);
-
-
-    // What follows is used only if multiple best feasible points have been obtained.
-    // This is the case for Multiobjective pb.
-    auto barrier = getBarrier();
-
-    if (writeInSolutionFile && nullptr != barrier)
-    {
-        const std::vector<EvalPointPtr>& xFeas = barrier->getAllXFeas();
-        if (xFeas.size() > 1)
-        {
-            // If we have a success, and we have multiple best feasible solution, we rewrite the solution file.
-
-            bool append = false;
-            for (const EvalPointPtr & ev: xFeas)
-            {
-                NOMAD::StatsInfo infoEv;
-
-                infoEv.setBBO(ev->getBBO(NOMAD::EvalType::BB));
-                infoEv.setSol(*(ev->getX()));
-
-                NOMAD::OutputDirectToFile::Write(infoEv, writeInSolutionFile, false /* do not write in history file */, append /* append in solution file */);
-                append = true;
-            }
-        }
-    }
-
+    
     OUTPUT_DIRECTTOFILE_END
 }
 
