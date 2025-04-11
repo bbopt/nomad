@@ -75,6 +75,7 @@ jobs:
             NOMAD_BUILD_DIR=../../build
             NOMAD_MSVC_FLAG=${{ matrix.target.msvc }}
             NOMAD_MSVC_CONF=Release
+            BUILD_OPENMP=TRUE
           CIBW_PROJECT_REQUIRES_PYTHON: >-
             >=3.8
           CIBW_BUILD_FRONTEND: >-
