@@ -2,8 +2,7 @@
 name = "PyNomadBBO"
 version = "4.5.0"
 authors = [
-  { name = "Jan Provaznik"},
-  { name = "Christophe Tribes", email="christophe.tribes@polymtl.ca"},
+  { name = "Jan Provaznik and Christophe Tribes", email="christophe.tribes@polymtl.ca"},
 ]
 maintainers = [
   { name = "Christophe Tribes", email="christophe.tribes@polymtl.ca"},
