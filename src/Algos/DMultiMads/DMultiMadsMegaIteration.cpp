@@ -48,7 +48,7 @@
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/DMultiMads/DMultiMadsMegaIteration.hpp"
 #include "../../Output/OutputQueue.hpp"
-#include "../Output/OutputDirectToFile.hpp"
+#include "../../Output/OutputDirectToFile.hpp"
 
 
 void NOMAD::DMultiMadsMegaIteration::init()
