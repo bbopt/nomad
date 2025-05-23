@@ -1202,7 +1202,7 @@ SGTELIB::Matrix SGTELIB::Matrix::hadamard_sqrt ( const SGTELIB::Matrix & A )  {
   int i,j;
   for ( i = 0 ; i < nb_rows ; ++i ) {
     for ( j = 0 ; j < nb_cols ; ++j ){
-      C._X[i][j] = sqrt(fabs(A._X[i][j]));
+      C._X[i][j] = sqrt(std::fabs(A._X[i][j]));
     }
   }
   return C;
@@ -1242,7 +1242,7 @@ void SGTELIB::Matrix::hadamard_sqrt ( void )  {
   int i,j;
   for ( i = 0 ; i < _nbRows ; ++i ) {
     for ( j = 0 ; j < _nbCols ; ++j ){
-      _X[i][j] = sqrt(fabs(_X[i][j]));
+      _X[i][j] = sqrt(std::fabs(_X[i][j]));
     }
   }
 }//
@@ -1793,11 +1793,11 @@ SGTELIB::Matrix SGTELIB::Matrix::col_norm ( const norm_t nt ) const {
     double v = 0;
     switch (nt){
       case SGTELIB::NORM_0:
-        for (i=0;i<_nbRows;++i) v += double(fabs(_X[i][j])<EPSILON);
+        for (i=0;i<_nbRows;++i) v += double(std::fabs(_X[i][j])<EPSILON);
         v /= double(_nbCols);
         break;
       case SGTELIB::NORM_1:
-        for (i=0;i<_nbRows;++i) v += fabs(_X[i][j]);
+        for (i=0;i<_nbRows;++i) v += std::fabs(_X[i][j]);
         v /= double(_nbCols);
         break;
       case SGTELIB::NORM_2:
@@ -1805,7 +1805,7 @@ SGTELIB::Matrix SGTELIB::Matrix::col_norm ( const norm_t nt ) const {
         v = sqrt(v/double(_nbCols));
         break;
       case SGTELIB::NORM_INF:
-        for (i=0;i<_nbRows;++i) v = std::max(v,fabs(_X[i][j]));
+        for (i=0;i<_nbRows;++i) v = std::max(v,std::fabs(_X[i][j]));
         break;
     }
     N.set(0,j,v);
@@ -1832,7 +1832,7 @@ double SGTELIB::Matrix::norm_inf ( void ) const{
   {
     for (int j = 0 ; j < _nbCols ; ++j)
     {
-      norm = std::max(std::abs(_X[i][j]), norm);
+      norm = std::max(std::fabs(_X[i][j]), norm);
     }
   }
   return norm;
@@ -1914,7 +1914,7 @@ int SGTELIB::Matrix::count ( void ) const{
   const int nb_cols = get_nb_cols();
   for ( i = 0 ; i < nb_rows ; ++i ) {
     for ( j = 0 ; j < nb_cols ; ++j ){
-      v += (fabs(_X[i][j])>EPSILON)? 1:0 ;
+      v += (std::fabs(_X[i][j])>EPSILON)? 1:0 ;
     }
   }
   return v;
@@ -2225,7 +2225,7 @@ SGTELIB::Matrix SGTELIB::Matrix::SVD_pseudo_inverse ( const double tol_rank ) co
     // Inverse diag terms of W.
     for (int i=0 ; i<_nbCols ; i++)
     {
-        if (fabs(W.get(i,i)) > tol_rank)
+        if (std::fabs(W.get(i,i)) > tol_rank)
         {
             W.set(i,i,1/W.get(i,i));
         }
@@ -2408,14 +2408,14 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
     g      = s = scale = 0.0;
     if ( i < nbRows ) {
       for ( k = i ; k < nbRows ; ++k )
-   scale += fabs ( U[k][i] );
+   scale += std::fabs ( U[k][i] );
       if ( scale != 0.0 ) {
    for ( k = i ; k < nbRows ; ++k ) {
      U[k][i] /= scale;
      s += U[k][i] * U[k][i];
   }
    f       = U[i][i];
-  g       = ( f >= 0.0 ) ? -fabs(sqrt(s)) : fabs(sqrt(s));
+  g       = ( f >= 0.0 ) ? -std::fabs(sqrt(s)) : std::fabs(sqrt(s));
    h       = f * g - s;
   U[i][i] = f - g;
    for ( j = l ; j < nbCols ; ++j ) {
@@ -2433,14 +2433,14 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
     g    = s = scale = 0.0;
     if ( i < nbRows && i != nm1 ) {
       for ( k = l ; k < nbCols ; ++k )
-   scale += fabs ( U[i][k] );
+   scale += std::fabs ( U[i][k] );
       if ( scale != 0.0 ) {
    for ( k = l ; k < nbCols ; ++k ) {
      U[i][k] /= scale;
      s       += U[i][k] * U[i][k];
    }
    f       = U[i][l];
-  g       = ( f >= 0.0 ) ? -fabs(sqrt(s)) : fabs(sqrt(s));
+  g       = ( f >= 0.0 ) ? -std::fabs(sqrt(s)) : std::fabs(sqrt(s));
    h       = f * g - s;
    U[i][l] = f - g;
    for ( k = l ; k < nbCols ; ++k )
@@ -2455,7 +2455,7 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
      U[i][k] *= scale;
       }
     }
-    tmp  = fabs ( W[i] ) + fabs ( rv1[i] );
+    tmp  = std::fabs ( W[i] ) + std::fabs ( rv1[i] );
     norm = ( norm > tmp ) ? norm : tmp;
   }
 
@@ -2510,11 +2510,11 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
       flag = true;
       for ( l = k ; l >= 0 ; l-- ) {
    nm = l - 1;
-   if ( nm < 0 || fabs ( rv1[l]) + norm == norm ) {
+   if ( nm < 0 || std::fabs ( rv1[l]) + norm == norm ) {
      flag = false;
      break;
   }
-   if ( fabs ( W[nm] ) + norm == norm )
+   if ( std::fabs ( W[nm] ) + norm == norm )
     break;
       }
       if ( flag ) {
@@ -2523,12 +2523,12 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
    for ( i = l ; i <= k ; i++ ) {
      f      = s * rv1[i];
      rv1[i] = c * rv1[i];
-     if ( fabs(f) + norm == norm )
+     if ( std::fabs(f) + norm == norm )
        break;
      g = W[i];
 
-    absf = fabs(f);
-    absg = fabs(g);
+    absf = std::fabs(f);
+    absg = std::fabs(g);
     h    = ( absf > absg ) ?
       absf * sqrt ( 1.0 + pow ( absg/absf , 2.0 ) ) :
       ( ( absg==0 ) ? 0.0 : absg * sqrt ( 1.0 + pow ( absf/absg , 2.0 ) ) );
@@ -2567,13 +2567,13 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
       h  = rv1[k];
       f  = ( (y-z) * (y+z) + (g-h) * (g+h) ) / ( 2.0 * h * y );
 
-      absf = fabs(f);
+      absf = std::fabs(f);
       g    = ( absf > 1.0 ) ?
   absf * sqrt ( 1.0 + pow ( 1.0/absf , 2.0 ) ) :
   sqrt ( 1.0 + pow ( absf , 2.0 ) );
 
       f = ( (x-z) * (x+z) +
-      h * ( ( y / ( f + ( (f >= 0)? fabs(g) : -fabs(g) ) ) ) - h ) ) / x;
+      h * ( ( y / ( f + ( (f >= 0)? std::fabs(g) : -std::fabs(g) ) ) ) - h ) ) / x;
       c = s = 1.0;
 
       for ( j = l ; j <= nm ; ++j ) {
@@ -2583,8 +2583,8 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
    h = s * g;
    g = c * g;
 
-  absf = fabs(f);
-  absh = fabs(h);
+  absf = std::fabs(f);
+  absh = std::fabs(h);
   z    = ( absf > absh ) ?
     absf * sqrt ( 1.0 + pow ( absh/absf , 2.0 ) ) :
     ( ( absh==0 ) ? 0.0 : absh * sqrt ( 1.0 + pow ( absf/absh , 2.0 ) ) );
@@ -2603,8 +2603,8 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
      V[jj][i] = z * c - x * s;
    }
 
-  absf = fabs(f);
-  absh = fabs(h);
+  absf = std::fabs(f);
+  absh = std::fabs(h);
   z    = ( absf > absh ) ?
     absf * sqrt ( 1.0 + pow ( absh/absf , 2.0 ) ) :
     ( ( absh==0 ) ? 0.0 : absh * sqrt ( 1.0 + pow ( absf/absh , 2.0 ) ) );
@@ -2666,7 +2666,7 @@ SGTELIB::Matrix SGTELIB::Matrix::null_space( const double rank_tol ) const
     int rank=0;
     for (int i=0; i < nvar; i++)
     {
-        if (fabs(W[i]) > rank_tol)
+        if (std::fabs(W[i]) > rank_tol)
             rank++;
     }
 
@@ -2948,7 +2948,7 @@ SGTELIB::Matrix SGTELIB::Matrix::get_distances_norm1 ( const SGTELIB::Matrix & A
       // Distance between the point ia of the cache and the point ib of the matrix XXs
       v = 0;
       for (j=0 ; j < n ; j++){
-        v += fabs(A._X[ia][j]-B._X[ib][j]);
+        v += std::fabs(A._X[ia][j]-B._X[ib][j]);
       }
       D._X[ia][ib] = v;
     }
@@ -2977,7 +2977,7 @@ SGTELIB::Matrix SGTELIB::Matrix::get_distances_norminf ( const SGTELIB::Matrix &
       // Distance between the point ia of the cache and the point ib of the matrix XXs
       v = 0;
       for (j=0 ; j < n ; j++){
-        v = std::max( v , fabs(A._X[ia][j]-B._X[ib][j]) );
+        v = std::max( v , std::fabs(A._X[ia][j]-B._X[ib][j]) );
       }
       D._X[ia][ib] = v;
     }
@@ -3111,7 +3111,7 @@ SGTELIB::Matrix SGTELIB::Matrix::get_poll_directions ( const SGTELIB::Matrix& sc
 
     // Find max asb
     d = 0;
-    for (j=0 ; j<N ; j++) d = std::max( d , fabs(D._X[i][j]) );
+    for (j=0 ; j<N ; j++) d = std::max( d , std::fabs(D._X[i][j]) );
 
     // Scale continuous dimensions
     for (j=0 ; j<N ; j++){

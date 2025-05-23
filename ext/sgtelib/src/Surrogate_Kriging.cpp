@@ -223,13 +223,13 @@ void SGTELIB::Surrogate_Kriging::predict_private (const SGTELIB::Matrix & XXs,
   for (i=0 ; i<pxx ; i++){
     ri = r.get_col(i);
     rRr = (ri.transpose()*_Ri*ri).get(0,0);
-    if (fabs(rRr-1)<EPSILON){
-      v = fabs(rRr-1);
+    if (std::fabs(rRr-1)<EPSILON){
+      v = std::fabs(rRr-1);
     }
     else{
       v = 1-rRr+(1-rRr)*(1-rRr)/HRH;
     }
-    v = fabs(v);
+    v = std::fabs(v);
     for (j=0 ; j<_m ; j++){
       std->set(i,j,v*_var[j]);
     }

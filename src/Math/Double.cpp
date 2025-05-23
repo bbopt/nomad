@@ -519,7 +519,7 @@ std::ostream& operator<<(std::ostream& os, const NOMAD::Double& d)
         {
             os << "-" << NOMAD::Double::getInfStr();
         }
-        else if ( std::floor(value) == std::ceil(value) && fabs(value) < INT_MAX-1 )
+        else if ( std::floor(value) == std::ceil(value) && std::fabs(value) < INT_MAX-1 )
         {
             os << static_cast<int>(value);
         }
@@ -666,7 +666,7 @@ std::string NOMAD::Double::display(const std::string& format) const
 
         if ( c != 'e' && c != 'E' && c != 'f' && c != 'g' && c != 'G' && c != 'd' && c != 'i' )
         {
-            c = ( std::floor(_value) == std::ceil(_value) && fabs(_value) < INT_MAX-1 )
+            c = ( std::floor(_value) == std::ceil(_value) && std::fabs(_value) < INT_MAX-1 )
                     ? 'd' : 'f';
             format2.push_back(c);
             ++n;
@@ -724,7 +724,7 @@ std::string NOMAD::Double::display(const std::string& format) const
         }
         else if ( c=='d' || c=='i' ||
                  ( format2.empty() &&
-                  std::floor(_value) == std::ceil(_value) && fabs(_value) < INT_MAX-1 ) )
+                  std::floor(_value) == std::ceil(_value) && std::fabs(_value) < INT_MAX-1 ) )
         {
             oss << roundd();
         }
@@ -912,7 +912,7 @@ NOMAD::Double NOMAD::Double::abs () const
     if ( !_defined )
         throw NotDefined ( "Double.cpp" , __LINE__ ,
                            "NOMAD::Double::abs(): value not defined" );
-    return fabs ( _value );
+    return std::fabs ( _value );
 }
 
 /*------------------------------------------*/
@@ -961,7 +961,7 @@ NOMAD::Double NOMAD::Double::relErr ( const NOMAD::Double & x ) const
     if ( this == &x || _value == x._value )
         return 0.0;
 
-    double diff = fabs ( _value - x._value );
+    double diff = std::fabs ( _value - x._value );
 
     // 2. test if one of the values is zero:
     if ( _value == 0.0 || x._value == 0.0 )
@@ -974,8 +974,8 @@ NOMAD::Double NOMAD::Double::relErr ( const NOMAD::Double & x ) const
     }
 
     // 3. compute the original error:
-    double a   = fabs ( _value   );
-    double b   = fabs ( x._value );
+    double a   = std::fabs ( _value   );
+    double b   = std::fabs ( x._value );
     double err = diff / ( (a<b) ? b : a );
 
     // 4. test if we have opposite signs:

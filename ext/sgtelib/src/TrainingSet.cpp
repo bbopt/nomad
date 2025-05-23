@@ -771,7 +771,7 @@ void SGTELIB::TrainingSet::compute_Ds ( void ){
       // Compute the mean distance between the points
       _Ds_mean += d;
       // If d==0, then the point i2 is not unique.
-      if (fabs(d)<EPSILON){
+      if (std::fabs(d)<EPSILON){
         unique = false;
       }
     }
@@ -992,7 +992,7 @@ Matrix SGTELIB::TrainingSet::get_distances ( const Matrix & A ,
             v = d*d;
             for (j=0 ; j < n ; j++){
               // If they are not in the same 0-class
-              if (  (fabs(A.get(ia,j)-x0[j])<EPSILON) ^ (fabs(B.get(ib,j)-x0[j])<EPSILON)  ){
+              if (  (std::fabs(A.get(ia,j)-x0[j])<EPSILON) ^ (std::fabs(B.get(ib,j)-x0[j])<EPSILON)  ){
                 v+=10000;
               }
             }
@@ -1021,7 +1021,7 @@ Matrix SGTELIB::TrainingSet::get_distances ( const Matrix & A ,
             d = D.get(ia,ib);
             v = d*d;
             // If they are not in the same 0-class
-            if (  fabs(A.get(ia,j)-B.get(ib,j))>EPSILON  ) {
+            if (  std::fabs(A.get(ia,j)-B.get(ib,j))>EPSILON  ) {
               v+=10000;
             }
             v = sqrt(v);

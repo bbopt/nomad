@@ -71,7 +71,7 @@ bool NOMAD::roots_quadratic(const double q2, const double q1, const double q0,
     // q is quadratic
     const double tol = 1e-8; // =~ sqrt(eps(double))
     const double rhs = tol * q1 * q1;
-    if (std::abs(q0 * q2) > rhs)
+    if (std::fabs(q0 * q2) > rhs)
     {
         const double rho = q1 * q1 - 4 * q2 * q0;
         if (rho < 0)
