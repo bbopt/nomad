@@ -232,7 +232,7 @@ void NOMAD::NMIterationUtils::updateYCharacteristics()
             nfact*= (double)i;
         }
 
-        _simplexVol = fabs(det) / nfact;  // Use fact(n) for volume
+        _simplexVol = std::fabs(det) / nfact;  // Use fact(n) for volume
 
         if ( _simplexDiam > 0 )
             _simplexVon = _simplexVol / pow(_simplexDiam,dim) ;

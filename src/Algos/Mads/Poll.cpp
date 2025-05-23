@@ -412,8 +412,8 @@ void NOMAD::Poll::computePrimarySecondaryPollCenters(
                                 fMin = std::min(xFeasFvalue, fMin);
                                 fMax = std::max(xFeasFvalue, fMin);
                             }
-                            mu += (fMin == fMax) ? std::abs(fMin.todouble())
-                                                 : std::abs(fMax.todouble() - fMin.todouble());
+                            mu += (fMin == fMax) ? std::fabs(fMin.todouble())
+                                                 : std::fabs(fMax.todouble() - fMin.todouble());
                         }
 
                         // xInf' f is ``far'' into the dominance zone of the set of feasible solutions,

@@ -120,7 +120,7 @@ int NOMAD::getRank(double ** M,
     int rank=0;
     for (size_t i=0;i<n;i++)
     {
-        if (fabs(W[i]) > eps)
+        if (std::fabs(W[i]) > eps)
             rank++;
     }
 
@@ -200,7 +200,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
         if ( i < m )
         {
             for ( k = i ; k < m ; ++k )
-                scale += fabs ( M[k][i] );
+                scale += std::fabs ( M[k][i] );
             if ( scale )
             {
                 for ( k = i ; k < m ; ++k )
@@ -209,7 +209,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
                     s += M[k][i] * M[k][i];
                 }
                 f       = M[i][i];
-                g       = ( f >= 0.0 ) ? -fabs(sqrt(s)) : fabs(sqrt(s));
+                g       = ( f >= 0.0 ) ? -std::fabs(sqrt(s)) : std::fabs(sqrt(s));
                 h       = f * g - s;
                 M[i][i] = f - g;
                 for ( j = l ; j < n ; ++j )
@@ -229,7 +229,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
         if ( i < m && i != nm1 )
         {
             for ( k = l ; k < n ; ++k )
-                scale += fabs ( M[i][k] );
+                scale += std::fabs ( M[i][k] );
             if ( scale )
             {
                 for ( k = l ; k < n ; ++k )
@@ -238,7 +238,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
                     s       += M[i][k] * M[i][k];
                 }
                 f       = M[i][l];
-                g       = ( f >= 0.0 ) ? -fabs(sqrt(s)) : fabs(sqrt(s));
+                g       = ( f >= 0.0 ) ? -std::fabs(sqrt(s)) : std::fabs(sqrt(s));
                 h       = f * g - s;
                 M[i][l] = f - g;
                 for ( k = l ; k < n ; ++k )
@@ -254,7 +254,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
                     M[i][k] *= scale;
             }
         }
-        double tmp  = fabs ( W[i] ) + fabs ( rv1[i] );
+        double tmp  = std::fabs ( W[i] ) + std::fabs ( rv1[i] );
         norm = ( norm > tmp ) ? norm : tmp;
     }
 
@@ -319,12 +319,12 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
             for ( l = k ; l >= 0 ; l-- )
             {
                 nm = l - 1;
-                if ( nm < 0 || fabs ( rv1[l]) + norm == norm )
+                if ( nm < 0 || std::fabs ( rv1[l]) + norm == norm )
                 {
                     flag = false;
                     break;
                 }
-                if ( fabs ( W[nm] ) + norm == norm )
+                if ( std::fabs ( W[nm] ) + norm == norm )
                     break;
             }
             if ( flag )
@@ -335,12 +335,12 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
                 {
                     f      = s * rv1[i];
                     rv1[i] = c * rv1[i];
-                    if ( fabs(f) + norm == norm )
+                    if ( std::fabs(f) + norm == norm )
                         break;
                     g = W[i];
 
-                    absf = fabs(f);
-                    absg = fabs(g);
+                    absf = std::fabs(f);
+                    absg = std::fabs(g);
                     h    = ( absf > absg ) ?
                     absf * sqrt ( 1.0 + pow ( absg/absf, 2.0 ) ) :
                     ( ( absg==0 ) ? 0.0 : absg * sqrt ( 1.0 + pow ( absf/absg, 2.0 ) ) );
@@ -383,13 +383,13 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
             h  = rv1[k];
             f  = ( (y-z) * (y+z) + (g-h) * (g+h) ) / ( 2.0 * h * y );
 
-            absf = fabs(f);
+            absf = std::fabs(f);
             g    = ( absf > 1.0 ) ?
             absf * sqrt ( 1.0 + pow ( 1.0/absf, 2.0 ) ) :
             sqrt ( 1.0 + pow ( absf, 2.0 ) );
 
             f = ( (x-z) * (x+z) +
-                 h * ( ( y / ( f + ( (f >= 0)? fabs(g) : -fabs(g) ) ) ) - h ) ) / x;
+                 h * ( ( y / ( f + ( (f >= 0)? std::fabs(g) : -std::fabs(g) ) ) ) - h ) ) / x;
             c = s = 1.0;
 
             for ( j = l ; j <= nm ; ++j )
@@ -400,8 +400,8 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
                 h = s * g;
                 g = c * g;
 
-                absf = fabs(f);
-                absh = fabs(h);
+                absf = std::fabs(f);
+                absh = std::fabs(h);
                 z    = ( absf > absh ) ?
                 absf * sqrt ( 1.0 + pow ( absh/absf, 2.0 ) ) :
                 ( ( absh==0 ) ? 0.0 : absh * sqrt ( 1.0 + pow ( absf/absh, 2.0 ) ) );
@@ -421,8 +421,8 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
                     V[jj][i] = z * c - x * s;
                 }
 
-                absf = fabs(f);
-                absh = fabs(h);
+                absf = std::fabs(f);
+                absh = std::fabs(h);
                 z    = ( absf > absh ) ?
                 absf * sqrt ( 1.0 + pow ( absh/absf, 2.0 ) ) :
                 ( ( absh==0 ) ? 0.0 : absh * sqrt ( 1.0 + pow ( absf/absh, 2.0 ) ) );
@@ -502,7 +502,7 @@ bool NOMAD::LU_decomposition ( std::string & error_msg,
         big = 0.0;
         for ( j = 0 ; j < n ; j++ )
         {
-            if ( (temp = fabs(LU[i][j])) > big )
+            if ( (temp = std::fabs(LU[i][j])) > big )
                 big = temp;
         }
         if ( big == 0 )
@@ -521,7 +521,7 @@ bool NOMAD::LU_decomposition ( std::string & error_msg,
         int imax = k;
         for ( i = k ; i < n ; i++ )
         {
-            temp = vv[i]*fabs(LU[i][k]);
+            temp = vv[i]*std::fabs(LU[i][k]);
             if ( temp > big )
             {
                 big = temp;
@@ -1159,13 +1159,13 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
     {
         // lambda, vr = findmax(abs.(A[k+1:n, k]))
         vr = k + 1;
-        lambda = abs(M[vr][k]);
+        lambda = std::fabs(M[vr][k]);
         for (int j = k + 2; j < n; j++)
         {
             if (abs(M[j][k]) > lambda)
             {
                 vr = int(j);
-                lambda = abs(M[vr][k]);
+                lambda = std::fabs(M[vr][k]);
             }
         }
 
@@ -1174,7 +1174,7 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
         {
 
             swap = false;
-            if (abs(M[k][k]) >= alpha * lambda)
+            if (std::fabs(M[k][k]) >= alpha * lambda)
             {
                 s = 1;
             }
@@ -1188,14 +1188,14 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
                     {
                         if (abs(M[i][r]) > sigma)
                         {
-                            sigma = abs(M[i][r]); // σ = norm(A[k:n, r], Inf)
+                            sigma = std::fabs(M[i][r]); // σ = norm(A[k:n, r], Inf)
                         }
                     }
-                    if (alpha * lambda * lambda <= abs(M[k][k]) * sigma)
+                    if (alpha * lambda * lambda <= std::fabs(M[k][k]) * sigma)
                     {
                         s = 1;
                     }
-                    else if ( abs(M[r][r]) >= alpha * sigma )
+                    else if ( std::fabs(M[r][r]) >= alpha * sigma )
                     {
                         swap = true;
                         m1 = k;
@@ -1369,7 +1369,7 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
                     {
                         if (abs(M[i][j]) > val)
                         {
-                            val = abs(M[i][j]);
+                            val = std::fabs(M[i][j]);
                         }
                     }
                }
@@ -1437,9 +1437,9 @@ bool NOMAD::DiagRegularization(double ** D, int n)
             {
                 findmax = diag;
             }
-            if (fabs(diag) <= findsmall)
+            if (std::fabs(diag) <= findsmall)
             {
-                findsmall = fabs(diag);
+                findsmall = std::fabs(diag);
             }
         }
         k += s;

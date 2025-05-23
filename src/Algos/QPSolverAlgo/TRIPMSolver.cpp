@@ -92,7 +92,7 @@ NOMAD::TRIPMSolverStatus NOMAD::TRIPMSolver::solve(SGTELIB::Matrix& x,
     std::vector<bool> fixedVars(n, false);
     for (int i = 0; i < n; ++i)
     {
-        if (std::abs(ub.get(i, 0) - lb.get(i, 0)) <= atol)
+        if (std::fabs(ub.get(i, 0) - lb.get(i, 0)) <= atol)
         {
             nbFixedVars += 1;
             fixedVars[i] = true;
@@ -654,14 +654,14 @@ void NOMAD::TRIPMSolver::computeErrorFunctionMetric(NOMAD::TRIPMSolver::TRIPMErr
         double dualFeas = x.get(i, 0) - gradLx.get(i, 0);
         dualFeas = std::clamp(dualFeas, lvar.get(i, 0), uvar.get(i, 0));
         dualFeas = x.get(i, 0) - dualFeas;
-        errMetric.projlagGradNorm = std::max(errMetric.projlagGradNorm, std::abs(dualFeas));
+        errMetric.projlagGradNorm = std::max(errMetric.projlagGradNorm, std::fabs(dualFeas));
     }
 
     // Compute || -S y - mu ||_inf
     errMetric.slackLambdaMuNorm = 0.0;
     for (int i = 0; i < nbCons; i++)
     {
-        errMetric.slackLambdaMuNorm = std::max(std::abs(-XS.get(i + n, 0) * lambda.get(i, 0) - mu),
+        errMetric.slackLambdaMuNorm = std::max(std::fabs(-XS.get(i + n, 0) * lambda.get(i, 0) - mu),
                                                errMetric.slackLambdaMuNorm);
     }
 
@@ -673,7 +673,7 @@ void NOMAD::TRIPMSolver::computeErrorFunctionMetric(NOMAD::TRIPMSolver::TRIPMErr
         double dualFeas = x.get(i, 0) - gradObj.get(i, 0);
         dualFeas = std::clamp(dualFeas, lvar.get(i, 0), uvar.get(i, 0));
         dualFeas = x.get(i, 0) - dualFeas;
-        errMetric.projObjGrad = std::max(errMetric.projObjGrad, std::abs(dualFeas));
+        errMetric.projObjGrad = std::max(errMetric.projObjGrad, std::fabs(dualFeas));
     }
 
     // Compute || c(x) + s ||_inf (for the barrier subproblem) or || max(c(x), 0) ||_inf (for the outer loop)
@@ -685,7 +685,7 @@ void NOMAD::TRIPMSolver::computeErrorFunctionMetric(NOMAD::TRIPMSolver::TRIPMErr
         for (int i = 0; i < nbCons; ++i)
         {
             const double si = XS.get(i + n, 0);
-            errMetric.cxNorm = std::max(std::abs(cons.get(i, 0) + si), errMetric.cxNorm);
+            errMetric.cxNorm = std::max(std::fabs(cons.get(i, 0) + si), errMetric.cxNorm);
         }
     }
     else
@@ -749,7 +749,7 @@ bool NOMAD::TRIPMSolver::computeSlackMultipliers(SGTELIB::Matrix& slackMultiplie
         if (slackMultipliers.get(i, 0) >= 0)
         {
             const double si = XS.get(i + n, 0);
-            slackMultipliers.set(i, 0, -std::min(std::abs(1E-3), std::abs(mu / si)));
+            slackMultipliers.set(i, 0, -std::min(std::fabs(1E-3), std::fabs(mu / si)));
         }
     }
     return true;

@@ -1005,7 +1005,7 @@ void SGTELIB::Surrogate_PRS::compute_multiplier(
     int rank = 0;
     for (int i = 0; i < ncon; i++)
     {
-        if (fabs(W[i]) > rank_tol)
+        if (std::fabs(W[i]) > rank_tol)
         {
             rank++;
         }

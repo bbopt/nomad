@@ -143,8 +143,8 @@ void SGTELIB::wait (double t) {
 bool SGTELIB::isdef ( const double x ) {
   if ( isnan(x) ) return false;
   if ( isinf(x) ) return false;
-  if ( fabs(x)>=SGTELIB::INF) return false;
-  if ( fabs(x)>=1e+16){
+  if ( std::fabs(x)>=SGTELIB::INF) return false;
+  if ( std::fabs(x)>=1e+16){
     return false;
   }
   return true;
@@ -173,11 +173,11 @@ double SGTELIB::rel_err ( double x , double y ) {
   if ( x*y < 0.0 )
     return 1.0;
   if ( x*y == 0.0 )
-    return fabs(x-y);
-  double max = fabs(x);
-  if ( fabs(y) > max )
-    max = fabs(y);
-  return ( fabs ( x-y ) / max );
+    return std::fabs(x-y);
+  double max = std::fabs(x);
+  if ( std::fabs(y) > max )
+    max = std::fabs(y);
+  return ( std::fabs ( x-y ) / max );
 }
 
 /*---------------------------------*/
@@ -514,7 +514,7 @@ SGTELIB::distance_t SGTELIB::int_to_distance_type ( const int i ) {
 /*       Same sign                              */
 /*----------------------------------------------*/
 bool SGTELIB::same_sign (const double a, const double b) {
-  return ( (a*b>0) || ( (fabs(a)<EPSILON) && (fabs(b)<EPSILON) ) );
+  return ( (a*b>0) || ( (std::fabs(a)<EPSILON) && (std::fabs(b)<EPSILON) ) );
 }//
 
 /*--------------------------------------*/
@@ -543,11 +543,11 @@ double SGTELIB::sigmoid (double f, double mu, double sigma , double lambda) {
 /*----------------------------------------*/
 double SGTELIB::normcdf ( double x ) {
   double t , t2 , v , Phi;
-  if (fabs(x)<EPSILON){
+  if (std::fabs(x)<EPSILON){
     Phi = 0.5;
   }
   else{
-    t = 1.0 / ( 1.0 + 0.2316419 * fabs(x) );
+    t = 1.0 / ( 1.0 + 0.2316419 * std::fabs(x) );
     t2 = t*t;
     v = exp(-x*x/2.0)*t*(0.319381530-0.356563782*t+1.781477937*t2-1.821255978*t*t2+1.330274429*t2*t2)/2.506628274631;
     Phi = (x<0.0)?v:1.0-v;

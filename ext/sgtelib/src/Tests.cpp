@@ -1084,7 +1084,7 @@ std::string SGTELIB::test_rmse (const std::string & s , const SGTELIB::Matrix & 
     oss << rmse_verif[j] << "|";
     oss.width(14);
     oss << rmse[j]-rmse_verif[j] << "|\n";
-    if ( fabs(rmse[j]-rmse_verif[j])>1e-6 ){
+    if ( std::fabs(rmse[j]-rmse_verif[j])>1e-6 ){
       oss << "Error! Diff is too big!\n";
     }
   }
@@ -1229,7 +1229,7 @@ std::string SGTELIB::test_rmsecv (const std::string & s , const SGTELIB::Matrix 
     oss.width(14);
     oss << rmsecv_verif[j] << "|";
     oss.width(14);
-    d = 2*fabs(rmsecv[j]-rmsecv_verif[j])/(rmsecv[j]+rmsecv_verif[j]);
+    d = 2*std::fabs(rmsecv[j]-rmsecv_verif[j])/(rmsecv[j]+rmsecv_verif[j]);
     oss << d << "|\n";
     if (d>0.01){
       oss << "Error! Diff is too big!\n";
@@ -1392,7 +1392,7 @@ std::string SGTELIB::test_multiple_occurrences (const std::string & s ){
     oss.width(14);
     oss << rmsecv_verif[j] << "|";
     oss.width(14);
-    d = 2*fabs(rmsecv[j]-rmsecv_verif[j])/(rmsecv[j]+rmsecv_verif[j]);
+    d = 2*std::fabs(rmsecv[j]-rmsecv_verif[j])/(rmsecv[j]+rmsecv_verif[j]);
     oss << d << "|\n";
     if (d>0.01){
       oss << "Error! Diff is too big!\n";
@@ -1465,7 +1465,7 @@ double SGTELIB::test_functions_1D (const double t, const int function_index){
     case 0:
       return 6.0*t*t + t - 1.0 - 50; // Quad function
     case 1:
-      return t/(1.0+fabs(5.0*t)); // Sigmoid
+      return t/(1.0+std::fabs(5.0*t)); // Sigmoid
     case 2:
       return 0.5-exp(-10*t*t); // bump
     case 3:
@@ -1473,7 +1473,7 @@ double SGTELIB::test_functions_1D (const double t, const int function_index){
     case 4:
       return 5.0*t-17.0*pow(t,3)+13*pow(t,5); // Oscillations/polynomial
     case 5:
-      return sin(6.0*t)+cos(15.0*sqrt(fabs(t))); // Difficult function
+      return sin(6.0*t)+cos(15.0*sqrt(std::fabs(t))); // Difficult function
     default:
       std::cout << "function_index : " << function_index << "\n";
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"test_function_1D : function_index not recognized" );
@@ -1532,7 +1532,7 @@ void SGTELIB::check_matrix_diff(const SGTELIB::Matrix * A, const SGTELIB::Matrix
       va = A->get(i,j);
       vb = B->get(i,j);
       eij = false;
-      dab = fabs(va-vb)/std::max( 0.5*(fabs(va)+fabs(vb)) , 1.0);
+      dab = std::fabs(va-vb)/std::max( 0.5*(std::fabs(va)+std::fabs(vb)) , 1.0);
       if (dab>1e-6){
         eij = true;
         std::cout << "diff is too big !\n";
@@ -1557,7 +1557,7 @@ void SGTELIB::check_matrix_diff(const SGTELIB::Matrix * A, const SGTELIB::Matrix
         e = true;
         std::cout << "A(" << i << "," << j << ") = " << va << "\n";
         std::cout << "B(" << i << "," << j << ") = " << vb << "\n";
-        std::cout << "diff = " << fabs(va-vb) << "\n";
+        std::cout << "diff = " << std::fabs(va-vb) << "\n";
         std::cout << "dab  = " << dab << "\n";
       }
     }
