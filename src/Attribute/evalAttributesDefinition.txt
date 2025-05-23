@@ -90,15 +90,16 @@ true
   the stream according to BB_OUTPUT_TYPE. If the blackbox executable
   outputs some verbose, NOMAD cannot interpret correctly the outputs.
 
-. If the redirection is disabled. The blackbox must output its results into a
- file having the name of the input file (usually nomadtmp.pid.threadnum)
- completed by \".output\". The format must follow the BB_OUTPUT_TYPE.
- For example, for BB_OUTPUT_TYPE OBJ CSTR, we must have only the two values on
- a single line in the output file with a end-of-line.
+. If the redirection is disabled, the blackbox must output its results into a
+  file having the name of the input file (usually nomadtmp.pid.threadnum)
+  completed by \".output\". The format must follow the BB_OUTPUT_TYPE.
+  For example, for BB_OUTPUT_TYPE OBJ CSTR, we must have only the two values on
+  a single line in the output file with an end-of-line.
  
-. Disable blackbox redirection and managing output file can be convenient when
-the blackbox outputs some verbose. All the verbose is put into a temporary
-log file nomadtmp.pid.threadnum.tmplog
+. Disabling blackbox redirection and managing output file can be convenient when
+  the blackbox outputs some verbose. All the verbose is put into a temporary
+  log file nomadtmp.pid.threadnum.tmplog. Both the log file and the output file
+  are temporaty and are deleted at the end of the optimization.
  
 . This parameter has no effect when BB_EXE is not defined like in library mode.
 

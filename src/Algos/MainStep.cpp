@@ -1279,10 +1279,8 @@ void NOMAD::MainStep::writeFinalSolutionFile() const
         if (nullptr != barrier)
         {
             const std::vector<EvalPointPtr>& xFeas = barrier->getAllXFeas();
-            if (xFeas.size() > 1)
+            if (xFeas.size() > 0)
             {
-                // If we have a success, and we have multiple best feasible solutions, we rewrite the solution file.
-
                 bool append = false;
                 for (const EvalPointPtr & ev: xFeas)
                 {
@@ -1294,6 +1292,12 @@ void NOMAD::MainStep::writeFinalSolutionFile() const
                     NOMAD::OutputDirectToFile::Write(info, true, false /* do no write in history file */, append /* append in solution file */);
                     append = true;
                 }
+            }
+            else
+            {
+                // No solution: generate an empty solution file.
+                NOMAD::StatsInfo info;
+                NOMAD::OutputDirectToFile::Write(info, true, false /* do no write in history file */, false /* do no append in solution file */);
             }
         }
     }

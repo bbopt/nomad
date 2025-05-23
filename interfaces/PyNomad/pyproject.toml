@@ -2,7 +2,7 @@
 name = "PyNomadBBO"
 version = "4.5.0"
 authors = [
-  { name = "Jan Provaznik and Christophe Tribes" },
+  { name = "Jan Provaznik and Christophe Tribes", email="christophe.tribes@polymtl.ca"},
 ]
 maintainers = [
   { name = "Christophe Tribes", email="christophe.tribes@polymtl.ca"},
@@ -13,13 +13,13 @@ requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: C++",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/bbopt/nomad"
-"Bug Tracker" = "https://github.com/bbopt/nomad/issues"
+Documentation = "https://nomad-4-user-guide.readthedocs.io/"
+Repository = "https://github.com/bbopt/nomad.git"
+Issues = "https://github.com/bbopt/nomad/issues"
 
 [build-system]
 requires = [
