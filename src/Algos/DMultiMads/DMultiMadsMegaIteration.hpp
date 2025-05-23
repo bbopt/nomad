@@ -122,6 +122,13 @@ private:
      */
     virtual bool runImp() override;
     
+    /// Implementation of end task.
+    /**
+    This only for writing solution file using the mega iteration progressive barrier.
+     */
+    virtual void endImp() override;
+    
+    
 
 };
 

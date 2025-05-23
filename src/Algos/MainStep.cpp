@@ -1279,10 +1279,8 @@ void NOMAD::MainStep::writeFinalSolutionFile() const
         if (nullptr != barrier)
         {
             const std::vector<EvalPointPtr>& xFeas = barrier->getAllXFeas();
-            if (xFeas.size() > 1)
+            if (xFeas.size() > 0)
             {
-                // If we have a success, and we have multiple best feasible solutions, we rewrite the solution file.
-
                 bool append = false;
                 for (const EvalPointPtr & ev: xFeas)
                 {
@@ -1294,6 +1292,12 @@ void NOMAD::MainStep::writeFinalSolutionFile() const
                     NOMAD::OutputDirectToFile::Write(info, true, false /* do no write in history file */, append /* append in solution file */);
                     append = true;
                 }
+            }
+            else
+            {
+                // No solution: generate an empty solution file.
+                NOMAD::StatsInfo info;
+                NOMAD::OutputDirectToFile::Write(info, true, false /* do no write in history file */, false /* do no append in solution file */);
             }
         }
     }
@@ -1320,15 +1324,10 @@ void NOMAD::MainStep::addEvaluator(const EvaluatorPtr& ev)
     }
 
     if (NOMAD::EvalType::SURROGATE == evalTypeAdded &&
-        NOMAD::EvalSortType::SURROGATE != _allParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT") )
+        NOMAD::EvalSortType::SURROGATE != _allParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT") &&
+        ! _allParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE") )
     {
-        if ( ! _allParams->getAttributeValue<bool>("VNS_MADS_SEARCH") ||
-            ( _allParams->getAttributeValue<bool>("VNS_MADS_SEARCH") &&
-             ! _allParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE") ) )
-        {
             std::cout << "Warning: A SURROGATE evaluator is available but it will not be used. To use it, set EVAL_QUEUE_SORT to SURROGATE or set VNS_MADS_SEARCH_WITH_SURROGATE." << std::endl;
-        }
-
     }
     _evaluators.push_back(ev);
 

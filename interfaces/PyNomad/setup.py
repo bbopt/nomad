@@ -25,7 +25,7 @@ env_nomad_src = os.environ.get('NOMAD_SRC')
 env_nomad_build_dir = os.environ.get('NOMAD_BUILD_DIR')
 env_nomad_msvc_flag = os.environ.get('NOMAD_MSVC_FLAG')
 env_nomad_msvc_conf = os.environ.get('NOMAD_MSVC_CONF')
-env_nomad_openmp_flag = os.environ.get('BUILD_OPENMP')
+env_nomad_openmp_flag = (os.environ.get('BUILD_OPENMP') == 'TRUE') 
 
 if not(env_nomad_src):
     print('Missing NOMAD_SRC env.')

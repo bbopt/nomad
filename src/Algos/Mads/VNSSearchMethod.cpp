@@ -65,39 +65,52 @@ void NOMAD::VNSSearchMethod::init()
     
     
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    
+    bool enabled = false;
+    
     // Do not perform if EVAL_SURROGATE_OPTIMIZATION is true (parentSearch ==nullptr)
     // For some testing, it is possible that evaluator control or runParams is null
     if (nullptr != evc && nullptr != _runParams)
     {
+        auto currentEvalType = evc->getCurrentEvalType();
         
-        // Use of surrogate for VNS
-        _useSurrogate = _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE");
-        if (_useSurrogate)
+        // Can be enabled only if no parent step is a VNS search method and current eval type is not MODEL
+        enabled = (nullptr == parentSearch) && (currentEvalType != EvalType::MODEL);;
+        
+        if (enabled)
         {
-            try
+            enabled = _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH");
+            
+            // Use of surrogate for VNS
+            _VNSUseSurrogate = _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE");
+            
+            if (enabled && _VNSUseSurrogate)
             {
-                // When VNS search is done the current evaluator is set back to BB
-                evc->setCurrentEvaluatorType(EvalType::SURROGATE);
-            }
-            catch (NOMAD::Exception &e ) {
-                std::string error = e.what();
-                error += " VNS_MADS_SEARCH_WITH_SURROGATE is enabled but no registered surrogate evaluator is available.";
-                std::cerr << error << std::endl;
+                throw NOMAD::Exception(__FILE__,__LINE__,"VNS_MADS_SEARCH_WITH_SURROGATE and VNS_MADS_SEARCH cannot be both enabled.");
             }
             
+            if (_VNSUseSurrogate)
+            {
+                try
+                {
+                    // For trying to use surrogate, we need to have a surrogate evaluator registered.
+                    evc->setCurrentEvaluatorType(EvalType::SURROGATE);
+                }
+                catch (NOMAD::Exception &e )
+                {
+                    std::string error = e.what();
+                    error += " VNS_MADS_SEARCH_WITH_SURROGATE is enabled but no registered surrogate evaluator is available.";
+                    std::cerr << error << std::endl;
+                }
+                // Put back the current eval type to BB (cannot be MODEL or SURROGATE at this point)
+                evc->setCurrentEvaluatorType(EvalType::BB);
+                
+            }
         }
-        
-        
-        bool bBEval = ( evc->getCurrentEvalType() == EvalType::BB ) ;
-        bool SGTEEval = ( evc->getCurrentEvalType() == EvalType::SURROGATE ) ;
-        
-        // For some testing, it is possible that _runParams is null
-        setEnabled((nullptr == parentSearch) && _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH") && (bBEval || SGTEEval));
     }
-    else
-    {
-        setEnabled(false);
-    }
+
+    setEnabled(enabled);
+        
     if (isEnabled())
     {
         _trigger = _runParams->getAttributeValue<NOMAD::Double>("VNS_MADS_SEARCH_TRIGGER").todouble();
@@ -126,8 +139,9 @@ bool NOMAD::VNSSearchMethod::runImp()
     {
         auto evc = NOMAD::EvcInterface::getEvaluatorControl();
         
+        
         const NOMAD::EvalType bbEvalType = NOMAD::EvalType::BB;
-        const NOMAD::EvalType searchEvalType = evc->getCurrentEvalType(); // Can be BB or SURROGATE
+        const NOMAD::EvalType searchEvalType = evc->getCurrentEvalType(); // Can be BB or SURROGATE if the whole optimization is with surrogate
         if (NOMAD::EvalType::MODEL == searchEvalType)
         {
             throw NOMAD::Exception(__FILE__,__LINE__,"VNS search cannot be use MODEL evaluation.");
@@ -194,12 +208,20 @@ bool NOMAD::VNSSearchMethod::runImp()
             
             if ( nullptr != frameCenter )
             {
+                if (_VNSUseSurrogate)
+                {
+                    // Set a null barrier to the VNS algo.
+                    // We should no use the evc existing BB type barrier for the initial point surrogate evaluation.
+                    // The barrier is updated with the VNS Mads barrier when available.
+                    evc->setBarrier(nullptr);
+                    evc->setCurrentEvaluatorType(NOMAD::EvalType::SURROGATE);
+                }
                 
                 _vnsAlgo->setEndDisplay(false);
-
+                
                 // VNS algo needs a frame center used as initial point for sub-optimization
                 _vnsAlgo->setFrameCenter(frameCenter);
-
+                
                 // VNS conduct sub-optimization
                 _vnsAlgo->start();
                 _vnsAlgo->run();
@@ -208,48 +230,45 @@ bool NOMAD::VNSSearchMethod::runImp()
                 // Get the success type and update Mads barrier with VNS Mads barrier
                 auto vnsBarrier = _vnsAlgo->getBarrier();
                 
-                if (nullptr != vnsBarrier)
+                if (nullptr == vnsBarrier)
                 {
-                    auto vnsBestFeas = vnsBarrier->getCurrentIncumbentFeas();
-                    auto vnsBestInf = vnsBarrier->getCurrentIncumbentInf();
-                    
-                    // If searchEvalType is surrogate perform BB evaluation on the selected point.
-                    if (_useSurrogate)
+                    throw NOMAD::Exception(__FILE__,__LINE__,"VNS Mads barrier is not available.");
+                }
+                
+                auto vnsBestFeas = vnsBarrier->getCurrentIncumbentFeas();
+                auto vnsBestInf = vnsBarrier->getCurrentIncumbentInf();
+                
+                // If searchEvalType is surrogate perform BB evaluation on the selected point.
+                if (_VNSUseSurrogate)
+                {
+                    if (nullptr != vnsBestFeas)
                     {
-                        if (nullptr != vnsBestFeas)
-                        {
-                            insertTrialPoint(*vnsBestFeas);
-                        }
-                        if (nullptr != vnsBestInf)
-                        {
-                            insertTrialPoint(*vnsBestInf);
-                        }
-                        evc->setCurrentEvaluatorType(NOMAD::EvalType::BB);
-                        return evalTrialPoints(this);
-                        
+                        insertTrialPoint(*vnsBestFeas);
                     }
-                    
-                    NOMAD::SuccessType success = barrier->getSuccessTypeOfPoints(vnsBestFeas,
-                                                                                 vnsBestInf);
-                    setSuccessType(success);
-                    if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+                    if (nullptr != vnsBestInf)
                     {
-                        foundBetter = true;
+                        insertTrialPoint(*vnsBestInf);
                     }
+                    evc->setCurrentEvaluatorType(NOMAD::EvalType::BB);
+                    return evalTrialPoints(this);
                     
-                    
-                    // Update the barrier
-                    if ( NOMAD::EvalType::BB == searchEvalType )
-                    {
-                        barrier->updateWithPoints(vnsBarrier->getAllPoints(),
-                                                  _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"),
-                                                                    true /*true: update incumbents and hMax*/);
-                    }
-                    else
-                    {
-                        
-                    }
-                    
+                }
+                
+                NOMAD::SuccessType success = barrier->getSuccessTypeOfPoints(vnsBestFeas,
+                                                                             vnsBestInf);
+                setSuccessType(success);
+                if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+                {
+                    foundBetter = true;
+                }
+                
+                
+                // Update the barrier
+                if ( NOMAD::EvalType::BB == searchEvalType )
+                {
+                    barrier->updateWithPoints(vnsBarrier->getAllPoints(),
+                                              _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"),
+                                              true /*true: update incumbents and hMax*/);
                 }
             }
         }
@@ -259,7 +278,6 @@ bool NOMAD::VNSSearchMethod::runImp()
             AddOutputInfo("VNS trigger criterion not met. Stop VNS Mads Search.");
             OUTPUT_INFO_END
         }
-        evc->setCurrentEvaluatorType(NOMAD::EvalType::BB);
     }
     return foundBetter;
 }
@@ -271,27 +289,6 @@ void NOMAD::VNSSearchMethod::generateTrialPointsFinal()
     NOMAD::EvalPointSet trialPoints;
 
     throw NOMAD::Exception(__FILE__,__LINE__,"VNS Mads generateTrialPointsFinal() not yet implemented.");
-    
-    // The trial points of one iteration of VNS are generated (not evaluated).
-    // The trial points are obtained by shuffle + mads poll
-
-    // auto madsIteration = getParentOfType<MadsIteration*>();
-
-    /*
-    // Note: Use first point of barrier as simplex center.
-    NOMAD::VNSSingle singleVNS(this,
-                            std::make_shared<NOMAD::EvalPoint>(getMegaIterationBarrier()->getFirstPoint()),
-                            madsIteration->getMesh());
-    singleVNS.start();
-    singleVNS.end();
-
-    // Pass the generated trial pts to this
-    const auto& trialPts = singleVNS.getTrialPoints();
-    for (const auto& point : trialPts)
-    {
-        insertTrialPoint(point);
-    }
-     */
 
 }   // end generateTrialPoints
 

@@ -119,7 +119,7 @@ bool NOMAD::VNS::runImp()
     NOMAD::Direction dir = scaledDirection.front();
     if (!dir.isDefined())
     {
-        throw NOMAD::Exception(__FILE__,__LINE__,"VNS_MADS_OPTIMIZATION: single scaled direction not defined");
+        throw NOMAD::Exception(__FILE__,__LINE__,"VNS: single scaled direction not defined");
     }
 
     // Multiply shake direction by VNS neighborhood parameter
@@ -167,6 +167,20 @@ bool NOMAD::VNS::runImp()
 
     setupPbParameters(shakePoint,currentMadsFrameSize);
     setupRunParameters();
+    
+    // In case we are doing a VNS using Surrogate (VNS_MADS_SEARCH_WITH_SURROGATE) we must not use the surrogate for the evaluation queue sort.
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    auto evalType = evc->getCurrentEvalType();
+    auto evalSortType = evc->getEvalSortType();
+    bool evalSortTypeChanged = false;
+    if (evalType == NOMAD::EvalType::SURROGATE && evalSortType == NOMAD::EvalSortType::SURROGATE)
+    {  // Force eval sort type to DIR_LAST_SUCCESS when doing VNS with Surrogate
+        // Quad model is probably not adapted for this task because
+        // the quad model is built using the true BB.
+        // Note: Still, surrogate can be used to sort trial points before BB evaluation.
+        evc->setEvalSortType(NOMAD::EvalSortType::DIR_LAST_SUCCESS);
+        evalSortTypeChanged = true;
+    }
 
     NOMAD::Mads mads(this, _madsStopReasons, _optRunParams, _optPbParams, false /*false: Barrier not initialized from cache */ );
 
@@ -183,6 +197,12 @@ bool NOMAD::VNS::runImp()
     {
         _barrier = mads.getMegaIterationBarrier();
         _algoSuccessful = true;
+    }
+    
+    // Reset the eval sort type to surrogate if it has been changed
+    if (evalSortTypeChanged)
+    {
+        evc->setEvalSortType(NOMAD::EvalSortType::SURROGATE);
     }
 
     _termination->start();
@@ -207,6 +227,7 @@ void NOMAD::VNS::setupRunParameters()
 
     // VNS do not perform VNS search
     _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
+    _optRunParams->setAttributeValue("VNS_MADS_SEARCH_WITH_SURROGATE",false);
 
     // No LH search
     _optRunParams->setAttributeValue("LH_SEARCH", NOMAD::LHSearchType("0 0"));

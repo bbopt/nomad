@@ -64,7 +64,7 @@ private:
         
     double _trigger; ///< Evaluation ratio (vns evals vs all evals) to trigger vns search
 
-    bool _useSurrogate; ///< Flag for surrogate or bb use.
+    bool _VNSUseSurrogate; ///< Flag to enable VNS with surrogate.
     
     /**
         The algorithm used by the search method.
@@ -88,7 +88,6 @@ public:
     explicit VNSSearchMethod(const Step* parentStep)
       : SearchMethodAlgo(parentStep),
         _displayLevel(OutputLevel::LEVEL_NORMAL),
-        _useSurrogate(false),
         _vnsAlgo(nullptr)
     {
         init();

@@ -159,6 +159,7 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
 
     // IMPORTANT: if VNS_MADS_SEARCH is changed to yes, the static members of VNSSearchMethod must be managed correctly
     _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
+    _optRunParams->setAttributeValue("VNS_MADS_SEARCH_WITH_SURROGATE", false);
 
     _optRunParams->setAttributeValue("ANISOTROPIC_MESH", false);
 

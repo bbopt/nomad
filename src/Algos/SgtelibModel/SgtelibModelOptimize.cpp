@@ -183,6 +183,7 @@ void NOMAD::SgtelibModelOptimize::setupRunParameters()
     _optRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
     _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
+    _optRunParams->setAttributeValue("VNS_MADS_SEARCH_WITH_SURROGATE", false);
 
     // Set direction type to Ortho 2n
     _optRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
