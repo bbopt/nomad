@@ -6,4 +6,5 @@ PyNomad.cpp
 dist
 build
 PyNomad.egg-info
+PyNomadBBO.egg-info
 PyNomadDev.egg-info

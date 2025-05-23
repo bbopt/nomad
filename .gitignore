@@ -19,4 +19,5 @@ examples/**/stats*
 examples/**/runTestLog*
 internal/integration_tests/**/*.exe
 internal/integration_tests/**/stats*
+MyPython*
 Icon
