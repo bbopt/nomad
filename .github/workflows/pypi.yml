@@ -37,10 +37,10 @@ jobs:
     runs-on: ${{ matrix.target.os }}
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Prepare Python environment
         run: >-
@@ -81,7 +81,7 @@ jobs:
             NOMAD_MSVC_CONF=Release
             BUILD_OPENMP=${{ matrix.target.openmp }}
           CIBW_PROJECT_REQUIRES_PYTHON: >-
-            >=3.8
+            >=3.13
           CIBW_BUILD_FRONTEND: >-
             build
           CIBW_BUILD_VERBOSITY: >-
