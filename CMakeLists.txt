@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.15...3.15)
 # Warning. This must be consistent with src/nomad_version.hpp
 set(NOMAD_VERSION_MAJOR 4)
 set(NOMAD_VERSION_MINOR 5)
-set(NOMAD_VERSION_PATCH 0) 
+set(NOMAD_VERSION_PATCH 1) 
 
 set(NOMAD_VERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}.${NOMAD_VERSION_PATCH})
 
