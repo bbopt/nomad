@@ -1654,7 +1654,7 @@ bool NOMAD::QPSolverOptimize::solveL1AugLag(
     // Particular case : when the gap between lvar and uvar is too small, we immediately leave the procedure.
     for (int i = 0; i < _n; ++i)
     {
-        if (std::std::fabs(lvar.get(i, 0) - uvar.get(i, 0)) <= 1e-8)
+        if (std::fabs(lvar.get(i, 0) - uvar.get(i, 0)) <= 1e-8)
         {
             return false;
         }
