@@ -81,7 +81,7 @@ jobs:
             NOMAD_MSVC_CONF=Release
             BUILD_OPENMP=${{ matrix.target.openmp }}
           CIBW_PROJECT_REQUIRES_PYTHON: >-
-            >=3.13
+            >=3.8
           CIBW_BUILD_FRONTEND: >-
             build
           CIBW_BUILD_VERBOSITY: >-
