@@ -245,7 +245,7 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
     case SGTELIB::KERNEL_D4:
       // Bi-quadratic 
       {
-        double ksr = fabs(ks*r)*16.0/15.0;
+        double ksr = std::fabs(ks*r)*16.0/15.0;
         if (ksr<=1){
           double d = (1-ksr*ksr);
           return d*d;
@@ -255,7 +255,7 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
     case SGTELIB::KERNEL_D5:
       // Tri-cubic
       {
-        double ksr = fabs(ks*r)*162.0/140.0;
+        double ksr = std::fabs(ks*r)*162.0/140.0;
         if (ksr<=1.0){
           double d = (1-ksr*ksr*ksr);
           return d*d*d;
@@ -268,7 +268,7 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
     case SGTELIB::KERNEL_D7:
       // Epanechnikov
       {
-        double ksr = fabs(ks*r);
+        double ksr = std::fabs(ks*r);
         if (ksr<=3/4) return (1-(16/9)*ksr*ksr);
       }
       return 0.0;

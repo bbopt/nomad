@@ -77,7 +77,7 @@ NOMAD::L1AugLagSolverStatus NOMAD::L1AugLagSolver::solve(SGTELIB::Matrix& x,
     // really useful. The solver could have difficulty to move in the decision space.
     for (int i = 0; i < n; ++i)
     {
-        if (std::abs(lb.get(i, 0) - ub.get(i, 0)) <= 1e-8)
+        if (std::fabs(lb.get(i, 0) - ub.get(i, 0)) <= 1e-8)
         {
             return NOMAD::L1AugLagSolverStatus::TIGHT_VAR_BOUNDS;
         }
@@ -1177,7 +1177,7 @@ double NOMAD::L1AugLagSolver::piecewiseLineSearch(const SGTELIB::Matrix& X,
         }
 
         // Update ak and Ik
-        ak += std::abs(jprod[lk]);
+        ak += std::fabs(jprod[lk]);
         Ik[lk] = false;
         nbElementsIk = (int) std::count(Ik.begin(), Ik.end(), true);
     }
@@ -1316,7 +1316,7 @@ void NOMAD::L1AugLagSolver::computeActiveConstraints(std::vector<bool>& activeCo
     for (int j = 0; j < nbCons; ++j)
     {
         const double ci = cons.get(j, 0);
-        activeConstraints[j] = std::abs(ci) <= inner_tol;
+        activeConstraints[j] = std::fabs(ci) <= inner_tol;
     }
 }
 
@@ -1379,7 +1379,7 @@ void NOMAD::L1AugLagSolver::computeMultipliersInfeasibleConstraints(SGTELIB::Mat
     constexpr double rank_tol = 1e-15;
     for (int i = 0; i < nbCons; i++)
     {
-        if (fabs(W[i]) > rank_tol)
+        if (std::fabs(W[i]) > rank_tol)
         {
             rank++;
         } else

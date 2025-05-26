@@ -484,7 +484,7 @@ NOMAD::ProjectedConjugateGradientSolverStatus NOMAD::ProjectedConjugateGradientS
         for (int iterRefine = 0; iterRefine < nbIterRefinements; ++iterRefine)
         {
             cosTheta = computeCosTheta(A, gp);
-            if (std::abs(cosTheta) <= tol_itRefinement)
+            if (std::fabs(cosTheta) <= tol_itRefinement)
             {
                 break;
             }

@@ -554,7 +554,7 @@ bool NOMAD::LevenbergMarquardtSolver::checkBoundsTightness(const SGTELIB::Matrix
     constexpr double atol = 1e-8;
     for (int i = 0; i < n; ++i)
     {
-        if (std::abs(uvar.get(i, 0) - lvar.get(i, 0)) <= atol)
+        if (std::fabs(uvar.get(i, 0) - lvar.get(i, 0)) <= atol)
         {
             return false;
         }

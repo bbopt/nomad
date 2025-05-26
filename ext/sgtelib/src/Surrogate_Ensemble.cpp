@@ -371,7 +371,7 @@ void SGTELIB::Surrogate_Ensemble::compute_W_by_select ( void ) {
         if (is_ready(k)){
           metric = _surrogates.at(k)->get_metric(_param.get_metric_type(),j);
           // If the metric is close to metric_best
-          if ( fabs(metric-metric_best)<EPSILON ){
+          if ( std::fabs(metric-metric_best)<EPSILON ){
             // Give weight to this model
             W.set(k,j,1.0);
             // Increment k_best (number of surrogates such that metric=metric_best)
@@ -446,7 +446,7 @@ void SGTELIB::Surrogate_Ensemble::compute_W_by_select_nb ( const int nb_bests ) 
         if (is_ready(k)){
           metric = _surrogates.at(k)->get_metric(_param.get_metric_type(),j);
           // If the metric is close to metric_best
-          if ( fabs(metric-metric_best)<EPSILON ){
+          if ( std::fabs(metric-metric_best)<EPSILON ){
             // Give weight to this model
             W.set(k,j,1.0);
             // Increment k_best (number of surrogates such that metric=metric_best)
@@ -496,7 +496,7 @@ void SGTELIB::Surrogate_Ensemble::compute_W_by_select_nb ( const int nb_bests ) 
             if (selected[k]){
               // If metric of model k is equal to metric_sum
               // set weigth to 0.1
-              if ( fabs(metrics[k]-metric_sum)<EPSILON ){
+              if ( std::fabs(metrics[k]-metric_sum)<EPSILON ){
                 W.set(k,j, 0.1);
               }
               else{
@@ -811,7 +811,7 @@ void SGTELIB::Surrogate_Ensemble::predict_private ( const SGTELIB::Matrix & XXs,
       for (int i=0 ; i<pxx ; i++){
         z = ZZ->get(i,j);
         s = std->get(i,j) - z*z;
-        std->set(i,j, sqrt(fabs(s)) );
+        std->set(i,j, sqrt(std::fabs(s)) );
       }// end loop i
     }
   }
@@ -1047,7 +1047,7 @@ bool SGTELIB::Surrogate_Ensemble::check_weight_vector ( void ) const {
         if ( isnan(w) ) return true;
       }
       s = W.get_col(j).sum();
-      if (fabs(s-1.0)>_kready*EPSILON) return true;
+      if (std::fabs(s-1.0)>_kready*EPSILON) return true;
     }
   }
 

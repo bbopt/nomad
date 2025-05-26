@@ -754,7 +754,7 @@ void NOMAD::QPSolverOptimize::solve_TR_constrained_QP(
             // eigenvalue.
             const double nd = bk.norm();
             const double slope = SGTELIB::Matrix::dot(gW, bk);
-            const double a_unb = (Delta < 1e15) ? Delta / nd : 1000 * std::abs(slope) / nd;
+            const double a_unb = (Delta < 1e15) ? Delta / nd : 1000 * std::fabs(slope) / nd;
 
             int ki = 0;
             d->fill(0);
@@ -997,7 +997,7 @@ bool NOMAD::QPSolverOptimize::conjugateGradient(
         // Negative curvature detection
         if (sAs <= atol * atol * sNormSquare)
         {
-            if (std::abs(sAs) <= atol * sNormSquare)
+            if (std::fabs(sAs) <= atol * sNormSquare)
             {
                 zeroCurvature = true;
             }
@@ -1305,11 +1305,11 @@ bool NOMAD::QPSolverOptimize::solveBCQP(
             // Update the set of active constraints
             for (int i = 0; i < n; ++i)
             { // We will correct if needed (see for example SolverTools.jl)
-                if (std::abs(X.get(i, 0) - lvar.get(i, 0)) <= 1E-15)
+                if (std::fabs(X.get(i, 0) - lvar.get(i, 0)) <= 1E-15)
                 {
                     X.set(i, 0, lvar[i]);
                 }
-                if (std::abs(X.get(i, 0) - uvar.get(i, 0)) <= 1E-15)
+                if (std::fabs(X.get(i, 0) - uvar.get(i, 0)) <= 1E-15)
                 {
                     X.set(i, 0, uvar[i]);
                 }
@@ -1423,11 +1423,11 @@ bool NOMAD::QPSolverOptimize::solveBCQP(
                 // Update the set of active constraints
                 for (int i = 0; i < n; ++i)
                 { // We will correct if needed (see for example SolverTools.jl)
-                    if (std::abs(X.get(i, 0) - lvar.get(i, 0)) <= 1E-15)
+                    if (std::fabs(X.get(i, 0) - lvar.get(i, 0)) <= 1E-15)
                     {
                         X.set(i, 0, lvar[i]);
                     }
-                    if (std::abs(X.get(i, 0) - uvar.get(i, 0)) <= 1E-15)
+                    if (std::fabs(X.get(i, 0) - uvar.get(i, 0)) <= 1E-15)
                     {
                         X.set(i, 0, uvar[i]);
                     }
@@ -1470,7 +1470,7 @@ bool NOMAD::QPSolverOptimize::solveBCQP(
                 break;
             }
         }
-        OK = !areActiveSetsChanged && ((Xm.norm() <= 1e-9) || (std::abs(fk - qCurrent) <= 1e-9));
+        OK = !areActiveSetsChanged && ((Xm.norm() <= 1e-9) || (std::fabs(fk - qCurrent) <= 1e-9));
 
         k++;
         verbose && std::cout << "  k = " << k << " f(xk) = " << fk << " |d| = " << d_k.norm() << " a(amax) = " << a_k << " ( " << a_max << " )";
@@ -1558,7 +1558,7 @@ double NOMAD::QPSolverOptimize::projected_armijo(
     // NB: we do not enter often in this loop.
     int nbW = 0;
     bool wolfeCond = slope_t < wolfe_tol * slope; // NB: we use the strong Wolfe condition.
-    bool armijoCond = fkp <= fk - armijo_tol * tk * std::abs(slope);
+    bool armijoCond = fkp <= fk - armijo_tol * tk * std::fabs(slope);
     while (wolfeCond && armijoCond && (nbW < bW_max) && (tk <= t_max))
     {
         tk *= t_increase;
@@ -1572,7 +1572,7 @@ double NOMAD::QPSolverOptimize::projected_armijo(
         fkp = getModelObj(Xp, H, g, g0);
         slope_t = SGTELIB::Matrix::dot(d, gradientF_kp);
         wolfeCond = slope_t < wolfe_tol * slope;
-        armijoCond = fkp <= fk - armijo_tol * tk * std::abs(slope);
+        armijoCond = fkp <= fk - armijo_tol * tk * std::fabs(slope);
 
         nbW ++;
         good_grad = true;
@@ -1580,7 +1580,7 @@ double NOMAD::QPSolverOptimize::projected_armijo(
 
     // Then try to satisfy Armijo's conditions.
     int nbA = 0;
-    armijoCond = fkp <= fk - armijo_tol * tk * std::abs(slope);
+    armijoCond = fkp <= fk - armijo_tol * tk * std::fabs(slope);
     while (!armijoCond && tk > t_small)
     {
         tk /= t_decrease;
@@ -1588,7 +1588,7 @@ double NOMAD::QPSolverOptimize::projected_armijo(
         snapToBounds(Xp, lvar, uvar);
         fkp = getModelObj(Xp, H, g, g0);
 
-        armijoCond = fkp <= fk - armijo_tol * tk * fabs(slope);
+        armijoCond = fkp <= fk - armijo_tol * tk * std::fabs(slope);
         nbA ++;
     }
 
@@ -1654,7 +1654,7 @@ bool NOMAD::QPSolverOptimize::solveL1AugLag(
     // Particular case : when the gap between lvar and uvar is too small, we immediately leave the procedure.
     for (int i = 0; i < _n; ++i)
     {
-        if (std::abs(lvar.get(i, 0) - uvar.get(i, 0)) <= 1e-8)
+        if (std::fabs(lvar.get(i, 0) - uvar.get(i, 0)) <= 1e-8)
         {
             return false;
         }
@@ -1882,8 +1882,8 @@ bool NOMAD::QPSolverOptimize::solveL1AugLag(
                 }
                 for (int i = 0; i < _n; ++i)
                 {
-                    active_lb[i] = std::abs(X_k[i].todouble() - lvar[i]) <= innerTolBounds[i];
-                    active_ub[i] = std::abs(X_k[i].todouble() - uvar[i]) <= innerTolBounds[i];
+                    active_lb[i] = std::fabs(X_k[i].todouble() - lvar[i]) <= innerTolBounds[i];
+                    active_ub[i] = std::fabs(X_k[i].todouble() - uvar[i]) <= innerTolBounds[i];
                 }
 
                 // Recompute a horizontal step
@@ -1994,7 +1994,7 @@ bool NOMAD::QPSolverOptimize::solveL1AugLag(
             const double distXkXkm1 = NOMAD::Point::dist(X_k,X_km1).todouble();
             // normGradLag_k = gradLag_k.norm();
             F_k = getPenalizedL1AugLagModelObj(X_k, cons, lambda_l, mu_l);
-            const double deltaF = std::abs(F_k - F_km1);
+            const double deltaF = std::fabs(F_k - F_km1);
             // double dual_norm = 0;
             verbose && std::cout << " Inner: (l=" << iterInnerLoop << ") Pl = " << F_k << " |c| = " << cons.norm() << " |L| = " << ZtransposePseudoGrad_k.norm() << " |dF| = " << deltaF;
             verbose && std::cout << " inner precision = " << innerPrecision << " bounds precision (inf) = " << innerTolBounds.norm_inf() << std::endl;
@@ -2031,7 +2031,7 @@ bool NOMAD::QPSolverOptimize::solveL1AugLag(
             for (int i = 0; i < _nbCons ; i++)
             {
                 const double li = lambda_l.get(i, 0);
-                if (std::abs(cons.get(i, 0)) <= tol)
+                if (std::fabs(cons.get(i, 0)) <= tol)
                 {
                     active[i] = true;
                     feasible[i] = false;
@@ -2082,8 +2082,8 @@ bool NOMAD::QPSolverOptimize::solveL1AugLag(
         // Check failure
         for (int i = 0; i < _n; ++i)
         {
-            active_lb[i] = std::abs(X_k[i].todouble() - lvar[i]) <= 1e-8;
-            active_ub[i] = std::abs(X_k[i].todouble() - uvar[i]) <= 1e-8;
+            active_lb[i] = std::fabs(X_k[i].todouble() - lvar[i]) <= 1e-8;
+            active_ub[i] = std::fabs(X_k[i].todouble() - uvar[i]) <= 1e-8;
         }
         int nbActiveLb = sum(active_lb, _n);
         int nbActiveUb = sum(active_ub, _n);
@@ -2117,8 +2117,8 @@ bool NOMAD::QPSolverOptimize::check_active_bound_constraints(const NOMAD::Point 
     // with the lowest tolerance
     for (int i = 0; i < _n; ++i)
     {
-        if (std::abs(X[i].todouble() - lvar[i]) <= 1e-8 &&
-            std::abs(X[i].todouble() - uvar[i]) <= 1e-8)
+        if (std::fabs(X[i].todouble() - lvar[i]) <= 1e-8 &&
+            std::fabs(X[i].todouble() - uvar[i]) <= 1e-8)
         {
             return false;
         }
@@ -2127,8 +2127,8 @@ bool NOMAD::QPSolverOptimize::check_active_bound_constraints(const NOMAD::Point 
     // Update active bound sets
     for (int i = 0; i < _n; ++i)
     {
-        active_lb[i] = std::abs(X[i].todouble() - lvar[i]) <= tolBounds[i];
-        active_ub[i] = std::abs(X[i].todouble() - uvar[i]) <= tolBounds[i];
+        active_lb[i] = std::fabs(X[i].todouble() - lvar[i]) <= tolBounds[i];
+        active_ub[i] = std::fabs(X[i].todouble() - uvar[i]) <= tolBounds[i];
     }
 
     // Special check: further reduce the tolerance of active bound constraints to prevent
@@ -2142,8 +2142,8 @@ bool NOMAD::QPSolverOptimize::check_active_bound_constraints(const NOMAD::Point 
         bool areActiveBoundConstraintsBelowTol = true;
         for (int i = 0; i < _n; ++i)
         {
-            if (std::abs(X[i].todouble() - lvar[i]) > 1e-8 &&
-                std::abs(X[i].todouble() - uvar[i]) > 1e-8)
+            if (std::fabs(X[i].todouble() - lvar[i]) > 1e-8 &&
+                std::fabs(X[i].todouble() - uvar[i]) > 1e-8)
             {
                 areActiveBoundConstraintsBelowTol = false;
                 break;
@@ -2167,8 +2167,8 @@ bool NOMAD::QPSolverOptimize::check_active_bound_constraints(const NOMAD::Point 
         // 3- Recompute the set of active bound constraints
         for (int i = 0; i < _n; ++i)
         {
-            active_lb[i] = std::abs(X[i].todouble() - lvar[i]) <= tolBounds[i];
-            active_ub[i] = std::abs(X[i].todouble() - uvar[i]) <= tolBounds[i];
+            active_lb[i] = std::fabs(X[i].todouble() - lvar[i]) <= tolBounds[i];
+            active_ub[i] = std::fabs(X[i].todouble() - uvar[i]) <= tolBounds[i];
         }
         nbActiveLb = sum(active_lb, _n);
         nbActiveUb = sum(active_ub, _n);
@@ -2193,7 +2193,7 @@ bool NOMAD::QPSolverOptimize::check_active_constraints(const SGTELIB::Matrix& co
         bool areConstraintsBelowTol = true;
         for (int i = 0; i < _nbCons; ++i)
         {
-            if (active[i] && std::abs(cons.get(i, 0)) > 1e-5)
+            if (active[i] && std::fabs(cons.get(i, 0)) > 1e-5)
             {
                 areConstraintsBelowTol = false;
                 break;
@@ -2444,11 +2444,11 @@ double NOMAD::QPSolverOptimize::piecewise_line_search(
 
         // Update ak
         if (lk < _nbCons) {
-            ak += fabs(jprod[lk]);
+            ak += std::fabs(jprod[lk]);
         } else if (lk < _nbCons + _n) {
-            ak += std::abs(d[lk - _nbCons]);
+            ak += std::fabs(d[lk - _nbCons]);
         } else {
-            ak += std::abs(d[lk - _nbCons - _n]);
+            ak += std::fabs(d[lk - _nbCons - _n]);
         }
 
         if (ak >= 0)
@@ -3487,7 +3487,7 @@ bool NOMAD::QPSolverOptimize::solveTRIPM(
     // When the difference between lvar and uvar is too small, stop the algorithm
     for (int i = 0; i < nbVar; ++i)
     {
-        if (std::abs(uvar.get(i, 0) - lvar.get(i, 0)) <= 1e-8)
+        if (std::fabs(uvar.get(i, 0) - lvar.get(i, 0)) <= 1e-8)
         {
             return false;
         }
@@ -3744,7 +3744,7 @@ void NOMAD::QPSolverOptimize::compute_slack_multiplier(
         if (y.get(i, 0) >= 0)
         {
             const double si = XS.get(_n + i, 0);
-            y.set(i, 0, -std::min(std::abs(1E-3), std::abs(mu / si)));
+            y.set(i, 0, -std::min(std::fabs(1E-3), std::fabs(mu / si)));
         }
     }
 }
@@ -3799,7 +3799,7 @@ double NOMAD::QPSolverOptimize::errorTRIPM(
     double lagGradS = 0;
     for (int i=0; i < _nbCons; i++)
     {
-        lagGradS = std::max(std::abs(-XS.get(i + _n, 0) * lambda.get(i, 0) - mu), lagGradS);
+        lagGradS = std::max(std::fabs(-XS.get(i + _n, 0) * lambda.get(i, 0) - mu), lagGradS);
     }
     return std::max(lagGradS, std::max(cslack.norm_inf(), dual_feas.norm_inf()));
 }
@@ -4876,8 +4876,8 @@ bool NOMAD::QPSolverOptimize::InverseIteration(
 
         const double Ckp = 1 / invHWpbk.norm();
 
-        // OK = (fix_point <= tol) || (fabs(Ck - Ckp) <= tol);
-        OK = (fix_point <= 1E-7) || (std::abs(Ck - Ckp) <= tol);
+        // OK = (fix_point <= tol) || (std::fabs(Ck - Ckp) <= tol);
+        OK = (fix_point <= 1E-7) || (std::fabs(Ck - Ckp) <= tol);
         Ck = Ckp;
 
         count++;
@@ -5647,11 +5647,11 @@ double NOMAD::QPSolverOptimize::max_step_bounds(
         double gamma = INF;
         if (di > 0)
         {
-            gamma = (uvar.get(i, 0) - X.get(i, 0)) / std::abs(di);
+            gamma = (uvar.get(i, 0) - X.get(i, 0)) / std::fabs(di);
         }
         else if (di < 0)
         {
-            gamma = (X.get(i, 0) - lvar.get(i, 0)) / std::abs(di);
+            gamma = (X.get(i, 0) - lvar.get(i, 0)) / std::fabs(di);
         }
         if (gamma < t_max)
         {
@@ -5770,8 +5770,8 @@ void NOMAD::QPSolverOptimize::active_bounds(
 
     for (int i = 0; i < n; ++i)
     {
-        active_l[i] = (std::abs(X.get(i, 0) - lvar.get(i, 0)) < tol);
-        active_u[i] = (std::abs(X.get(i, 0) - uvar.get(i, 0)) < tol);
+        active_l[i] = (std::fabs(X.get(i, 0) - lvar.get(i, 0)) < tol);
+        active_u[i] = (std::fabs(X.get(i, 0) - uvar.get(i, 0)) < tol);
     }    
 }
 
@@ -5809,7 +5809,7 @@ void NOMAD::QPSolverOptimize::getModelActiveCons(
 
     for (int i = 0; i < static_cast<int>(_nbCons) ; i++)
     {
-        indices[i] = (fabs(cons.get(i, 0)) <= tol);
+        indices[i] = (std::fabs(cons.get(i, 0)) <= tol);
     }
 }
 
