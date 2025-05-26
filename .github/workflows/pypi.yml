@@ -14,29 +14,33 @@ jobs:
             os: windows-latest
             archs: AMD64
             msvc: 1
+            openmp: 'TRUE'
 
           - name: Ubuntu
             os: ubuntu-latest
             archs: x86_64
+            openmp: 'TRUE'
 
           - name: macOS_X86
             os: macos-latest
             archs: x86_64
             extra_option: -DCMAKE_OSX_ARCHITECTURES=x86_64
+            openmp: 'FALSE'
 
           - name: macOS_ARM
             os: macos-latest
             archs: arm64
             extra_option: -DCMAKE_OSX_ARCHITECTURES=arm64
+            openm: 'FALSE'
 
     name: Wheels for ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.os }}
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Prepare Python environment
         run: >-
@@ -63,7 +67,7 @@ jobs:
           cmake --version
 
       - name: Build binary wheels
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.23.3
         env:
           CIBW_ARCHS: >-
             ${{ matrix.target.archs }}
@@ -75,7 +79,7 @@ jobs:
             NOMAD_BUILD_DIR=../../build
             NOMAD_MSVC_FLAG=${{ matrix.target.msvc }}
             NOMAD_MSVC_CONF=Release
-            BUILD_OPENMP=TRUE
+            BUILD_OPENMP=${{ matrix.target.openmp }}
           CIBW_PROJECT_REQUIRES_PYTHON: >-
             >=3.8
           CIBW_BUILD_FRONTEND: >-
