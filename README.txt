@@ -83,7 +83,11 @@ evaluations in parallel, and also has some new functionalities.
 HOW TO CITE:
 
 Please cite NOMAD 4 with reference:
-C. Audet, S. Le Digabel, V. Rochon Montplaisir, and C. Tribes. Algorithm 1027: NOMAD version 4: Nonlinear optimization with the MADS algorithm. ACM Transactions on Mathematical Software Volume 48, Issue 3, Article No.: 35, pp 1–22 https://doi.org/10.1145/3544489
+C. Audet, S. Le Digabel, V. Rochon Montplaisir, and C. Tribes. 
+Algorithm 1027: NOMAD version 4: Nonlinear optimization with the 
+MADS algorithm. ACM Transactions on Mathematical Software
+Volume 48, Issue 3, Article No.: 35, pp 1–22 
+https://doi.org/10.1145/3544489
 
 
 COMPILATION (Release):
