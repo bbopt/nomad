@@ -65,7 +65,7 @@ typedef std::function<bool(const Step& step)> UserMethodEndCbFunc;  ///< Type de
 Cache is a singleton all by itself.
 MegaIteration holds the algorithm-related structures: Mesh, Barrier.
  */
-class Mads: public Algorithm
+class DLL_ALGO_API Mads: public Algorithm
 {
 private:
 

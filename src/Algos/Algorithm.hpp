@@ -68,7 +68,7 @@
  \note: Cache is a singleton all by itself.
  \note MegaIteration holds the algorithm-related structures.
  */
-class Algorithm: public Step
+class DLL_ALGO_API Algorithm: public Step
 {
 private:
     bool _isSubAlgo;

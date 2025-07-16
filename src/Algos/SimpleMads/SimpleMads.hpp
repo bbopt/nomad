@@ -61,7 +61,7 @@
 /// The (M)esh (A)daptive (D)irect (S)earch algorithm. Simple version for quad model search
 /**
  */
-class SimpleMads: public Mads
+class DLL_ALGO_API SimpleMads: public Mads
 {
 private:
 
