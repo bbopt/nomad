@@ -63,9 +63,9 @@
 /// Type definition for the representation of a vector of points.
 typedef std::vector<Point> ArrayOfPoint;
 
-std::ostream& operator<<(std::ostream& out, const ArrayOfPoint& aop);
+DLL_UTIL_API std::ostream& operator<<(std::ostream& out, const ArrayOfPoint& aop);
 
-std::istream& operator>>(std::istream& in, ArrayOfPoint& aop);
+DLL_UTIL_API std::istream& operator>>(std::istream& in, ArrayOfPoint& aop);
 
 
 
