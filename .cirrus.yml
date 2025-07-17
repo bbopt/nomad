@@ -4,8 +4,8 @@ task:
       freebsd_instance:
         image: freebsd-14-2-release-amd64-ufs
       env:
-        cc: gcc14
-        cxx: g++14
+        cc: gcc13
+        cxx: g++13
     - name: FreeBSD -- clang | clang++
       freebsd_instance:
         image: freebsd-14-0-release-amd64-ufs
