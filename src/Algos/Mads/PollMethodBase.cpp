@@ -273,7 +273,7 @@ std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirect
             }
 
             // Convert subspace (in a group of variable) directions to full space directions (all variables -> _n)
-            if (_subsetListVG)
+            if (directionsSubSpace.begin()->size() != _n)
             {
                 size_t vgIndex = 0; // For Output debug only
                 for (auto& it : directionsSubSpace)
