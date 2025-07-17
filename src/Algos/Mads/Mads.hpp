@@ -128,12 +128,12 @@ public:
     }
 
     /// \brief Set user method callback
-    DLL_ALGO_API void addCallback(const CallbackType& callbackType,
+    void addCallback(const CallbackType& callbackType,
                      const UserPollMethodCbFunc& userPollCbFunc);
-	DLL_ALGO_API void addCallback(const CallbackType& callbackType,
+    void addCallback(const CallbackType& callbackType,
                      const UserSearchMethodCbFunc& userSearchCbFunc);
     /// \brief Set user method post eval callback
-	DLL_ALGO_API void addCallback(const CallbackType& callbackType,
+    void addCallback(const CallbackType& callbackType,
                      const UserMethodEndCbFunc& userCbFunc) const;
 
     /// \brief Run user poll method callback to produce direction
