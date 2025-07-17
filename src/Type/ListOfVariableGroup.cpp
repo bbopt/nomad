@@ -53,31 +53,31 @@
  */
 #include "../Type/ListOfVariableGroup.hpp"
 
-std::ostream& NOMAD::operator<< (std::ostream& out, const NOMAD::VariableGroup& vg)
-{
-    out << " ( " ;
-    for (auto index : vg)
-    {
-        out << index;
-    }
-    out << " ) ";
-    return out;
-}
-
-std::ostream& NOMAD::operator<< (std::ostream& out, const NOMAD::ListOfVariableGroup& lvg)
-{
-    size_t i=0;
-    for (const auto& vg : lvg)
-    {
-        if (i > 0)
-        {
-            out << " ";
-        }
-        out << vg;
-        i++;
-    }
-    return out;
-}
+//std::ostream& NOMAD::operator<< (std::ostream& out, const NOMAD::VariableGroup& vg)
+//{
+//    out << " ( " ;
+//    for (auto index : vg)
+//    {
+//        out << index;
+//    }
+//    out << " ) ";
+//    return out;
+//}
+//
+//std::ostream& NOMAD::operator<< (std::ostream& out, const NOMAD::ListOfVariableGroup& lvg)
+//{
+//    size_t i=0;
+//    for (const auto& vg : lvg)
+//    {
+//        if (i > 0)
+//        {
+//            out << " ";
+//        }
+//        out << vg;
+//        i++;
+//    }
+//    return out;
+//}
 
 
 

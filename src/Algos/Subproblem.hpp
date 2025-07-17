@@ -66,7 +66,7 @@
 * - Keeps the necessary information to bridge the gap between subproblem and
     original problem
 */
-class Subproblem
+class DLL_ALGO_API Subproblem
 {
 private:
     /**

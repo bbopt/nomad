@@ -55,7 +55,7 @@
 /**
  This is an abstract class, each algorithm must implement its own iteration.
  */
-class Iteration: public Step
+class DLL_ALGO_API Iteration: public Step
 {
     
 protected:

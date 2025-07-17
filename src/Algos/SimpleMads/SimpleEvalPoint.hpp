@@ -69,7 +69,7 @@
  Simple evaluation point for the point coordinates \c x, and the blackbox
  outputs at these coordinates summarized into f(x) and h(x).
 */
-class SimpleEvalPoint : public Point
+class DLL_ALGO_API SimpleEvalPoint : public Point
 {
 private:
 
