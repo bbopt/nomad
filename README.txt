@@ -89,6 +89,7 @@ MADS algorithm. ACM Transactions on Mathematical Software
 Volume 48, Issue 3, Article No.: 35, pp 1–22 
 https://doi.org/10.1145/3544489
 
+
 COMPILATION (Release):
 
 On Linux, Unix, Windows and Mac OS X, NOMAD can be compiled using CMake.

@@ -555,6 +555,7 @@ void NOMAD::RunParameters::checkAndComply(
     }
 #endif // _OPENMP
 
+#ifdef _OPENMP
     if (useAlgoPSDMads)
     {
         std::string nbVarParamName = "PSD_MADS_NB_VAR_IN_SUBPROBLEM";
@@ -573,6 +574,7 @@ void NOMAD::RunParameters::checkAndComply(
             nbMadsSubproblem = (size_t)std::round(n/nbVariablesInSubproblem)+1; // Add a mads for the pollster
             setAttributeValue("PSD_MADS_NB_SUBPROBLEM", nbMadsSubproblem);
         }
+
         if (useAlgoPSDMads)
         {
             int nbThreadsHard = static_cast<int>(std::thread::hardware_concurrency());
@@ -597,6 +599,7 @@ void NOMAD::RunParameters::checkAndComply(
             }
         }
     }
+#endif
 
     // Test quad model search regular or simple mads. Cannot be both
     if ( getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH",false) && getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH_SIMPLE_MADS",false))

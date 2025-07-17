@@ -102,19 +102,19 @@ void DLL_EVAL_API NOMAD::EvaluatorControl::addEvalCallback<NOMAD::CallbackType::
 
 
 template<>
-void NOMAD::EvaluatorControl::addEvalCallback<NOMAD::CallbackType::POST_EVAL_UPDATE>(const NOMAD::EvalCallbackFunc<NOMAD::CallbackType::POST_EVAL_UPDATE>& evalCbFunc)
+void DLL_EVAL_API NOMAD::EvaluatorControl::addEvalCallback<NOMAD::CallbackType::POST_EVAL_UPDATE>(const NOMAD::EvalCallbackFunc<NOMAD::CallbackType::POST_EVAL_UPDATE>& evalCbFunc)
 {
         _cbPostEvalUpdate = evalCbFunc;
 }
 
 template<>
-void NOMAD::EvaluatorControl::addEvalCallback<NOMAD::CallbackType::PRE_EVAL_UPDATE>(const NOMAD::EvalCallbackFunc<NOMAD::CallbackType::PRE_EVAL_UPDATE>& evalCbFunc)
+void DLL_EVAL_API NOMAD::EvaluatorControl::addEvalCallback<NOMAD::CallbackType::PRE_EVAL_UPDATE>(const NOMAD::EvalCallbackFunc<NOMAD::CallbackType::PRE_EVAL_UPDATE>& evalCbFunc)
 {
         _cbPreEvalUpdate = evalCbFunc;
 }
 
 template<>
-void NOMAD::EvaluatorControl::addEvalCallback<NOMAD::CallbackType::PRE_EVAL_BLOCK_UPDATE>(const NOMAD::EvalCallbackFunc<NOMAD::CallbackType::PRE_EVAL_BLOCK_UPDATE>& evalCbFunc)
+void DLL_EVAL_API NOMAD::EvaluatorControl::addEvalCallback<NOMAD::CallbackType::PRE_EVAL_BLOCK_UPDATE>(const NOMAD::EvalCallbackFunc<NOMAD::CallbackType::PRE_EVAL_BLOCK_UPDATE>& evalCbFunc)
 {
         _cbPreEvalBlockUpdate = evalCbFunc;
 }

@@ -60,7 +60,7 @@
 /**
  Generate the trial points (Poll::startImp), launch evaluation (Poll::runImp) and postprocessing (Poll::endImp).
  */
-class SimplePoll: public Iteration
+class DLL_ALGO_API SimplePoll: public Iteration
 {
 private:
 

@@ -62,7 +62,7 @@
  Ease the passage between sub-dimension and full dimension. Algorithm works in
  a sub dimentsion and does not know the full dimension.
  */
-class SubproblemManager
+class DLL_ALGO_API SubproblemManager
 {
 private:
     std::map<const Algorithm*, const Subproblem> _map;

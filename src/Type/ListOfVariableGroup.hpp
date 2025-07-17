@@ -64,14 +64,38 @@
 /// Type definition for the representation of a variable group (set of indices).
 typedef std::set<size_t> VariableGroup;
 
-std::ostream& operator<<(std::ostream& out, const VariableGroup& vg);
+inline std::ostream& operator<<(std::ostream& out, const VariableGroup& vg) 
+{
+	out << " ( ";
+	for (auto index : vg)
+	{
+		out << index;
+	}
+	out << " ) ";
+	return out;
+}
+
 
 
 
 /// Type definition for the representation of a vector of points.
 typedef std::list<VariableGroup> ListOfVariableGroup;
 
-std::ostream& operator<<(std::ostream& out, const ListOfVariableGroup& lvg);
+inline std::ostream& operator<<(std::ostream& out, const ListOfVariableGroup& lvg)
+{
+	size_t i = 0;
+	for (const auto& vg : lvg)
+	{
+		if (i > 0)
+		{
+			out << " ";
+		}
+		out << vg;
+		i++;
+	}
+	return out;
+}
+
 
 // Not implemented:
 //std::istream& operator>>(std::istream& in, ListOfVariableGroup& aop);
