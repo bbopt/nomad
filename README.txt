@@ -1,3 +1,4 @@
+<img src="https://www.gerad.ca/system/assets/000/001/537/1537.Nomad_original.jpg" alt="Logo" width="200"/>
 ###################################################################################
 #                                                                                 #
 #                                    README                                       #
