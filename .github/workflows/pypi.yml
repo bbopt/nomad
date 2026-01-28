@@ -67,7 +67,7 @@ jobs:
           cmake --version
 
       - name: Build binary wheels
-        uses: pypa/cibuildwheel@latest
+        uses: pypa/cibuildwheel@3.3.1
         env:
           CIBW_ARCHS: >-
             ${{ matrix.target.archs }}
