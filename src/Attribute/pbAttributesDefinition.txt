@@ -125,7 +125,7 @@ NOMAD::ArrayOfDouble
 
 . Initial frame size
 
-. Arguments: one or DIMENSION positive real(s)
+. Arguments: one or DIMENSION positive real(s) with parentheses
 
 . Reinterpreted empty default:
     10% of the range if bounds are defined, |x0|/10 otherwise
@@ -139,6 +139,7 @@ providing both is not allowed.
 . INITIAL_FRAME_SIZE * 1.0          # for all variables
 . INITIAL_FRAME_SIZE 1 0.5        # for variable 1 only
 . INITIAL_FRAME_SIZE 2-4 0.25     # for variable 2 to 4
+. INITIAL_FRAME_SIZE ( 0.0001 0.001 0.01 0.001 ) # each variable
 
 \)
 \( advanced intial poll frame mesh size mads gmesh \)
@@ -152,7 +153,7 @@ NOMAD::ArrayOfDouble
 
 . Initial mesh size
 
-. Arguments: one or DIMENSION positive real(s)
+. Arguments: one or DIMENSION positive real(s) with parentheses
 
 . NOMAD uses one mesh size per variable.
 
@@ -162,6 +163,7 @@ NOMAD::ArrayOfDouble
     . INITIAL_MESH_SIZE * 1.0          # for all variables
     . INITIAL_MESH_SIZE 1 0.5        # for variable 1 only
     . INITIAL_MESH_SIZE 2-4 0.25     # for variables 2 to 4
+    . INITIAL_MESH_SIZE ( 0.0001 0.001 0.01 0.001 ) # each variable 
 
 \)
 \( advanced initial mesh size mads gmesh \)
@@ -215,6 +217,7 @@ NOMAD::ArrayOfDouble
 . Arguments: same logic as INITIAL_MESH_SIZE ('*' can be used)
 
 . Example: MIN_MESH_SIZE * 1E-5
+           MIN_MESH_SIZE ( 0.001 0.1 0.001 0.1 0.001 )
 
 \)
 \( advanced min minimum frame mesh size stop stopping terminate(s) termination(s)
