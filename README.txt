@@ -96,7 +96,7 @@ On Linux, Unix, Windows and Mac OS X, NOMAD can be compiled using CMake.
 The minimum version of CMake is 3.14. Older versions will trigger
 an error. A recent C++ compiler is also required.
 
-Before starting the procedure we recommend to set the environment variable 
+Before starting the procedure, we recommend setting the environment variable 
 $NOMAD_HOME with the path where NOMAD has been copied. For Linux and OSX,
 
 export NOMAD_HOME=/home/myUserName/PathToNomad
@@ -142,11 +142,11 @@ cmake -S . -B build/release
 
               ! More details are provided in $NOMAD_HOME/interfaces/PyNomad/readme.txt 
              
-              ! Building requires to have Cython. Cython can be obtained with
+              ! Building requires Cython. Cython can be obtained with
               Anaconda distribution platform.
   
-              ! On *Windows*, using Visual Studio, see the user guide or the readme
-              to properly manage X86/X64 building of binaries. 
+              ! On *Windows*, using Visual Studio, see the user guide or the README
+              to properly manage x86/x64 building of binaries. 
               
          To enable *Java* interface building (with Swig):
               cmake -DBUILD_INTERFACE_JAVA=ON -S . -B build/release
@@ -223,7 +223,7 @@ achieved by setting the parameters for environment variable %PATH% to
 Library Mode:
 There are examples in library mode in $NOMAD_HOME/examples/basic/library/.
 In each directory, the executable may be compiled when building
-Nomad application. The problems may be resolved by execution,
+the NOMAD application. The problems may be resolved by execution,
 for instance:
 
 ./example_lib.exe
