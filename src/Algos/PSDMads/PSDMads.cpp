@@ -86,8 +86,8 @@ void NOMAD::PSDMads::init(const std::vector<NOMAD::EvaluatorPtr> &evaluators,
     }
     OUTPUT_INFO_END
 
-    // Instantiate MadsInitialization member
-    _initialization = std::make_unique<NOMAD::MadsInitialization>(this);
+    // Instantiate MadsInitialization member (special for PSDMads)
+    _initialization = std::make_unique<NOMAD::MadsInitialization>(this, true, false, false , true /*true: for PSDMads*/);
 
     // Initialize all the main threads we will need.
     // The main threads will be the ones with thread numbers 0-(nbMainThreads-1).

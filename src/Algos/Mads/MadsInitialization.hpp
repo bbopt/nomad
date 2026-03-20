@@ -72,6 +72,7 @@ protected:
     bool _barrierInitializedFromCache;
     bool _isUsedForDMultiMads;
     bool _isUsedForDiscoMads;
+    bool _isUsedForPSDMads;
 
 public:
     /// Constructor
@@ -79,12 +80,13 @@ public:
      \param parentStep                   The parent of this step -- \b IN.
      \param barrierInitializedFromCache  Flag to initialize barrier from cache or not -- \b IN.
      */
-    explicit MadsInitialization(const Step* parentStep, bool barrierInitializedFromCache=true, bool isUsedForDMultiMads=false, bool isUsedForDiscoMads=false)
+    explicit MadsInitialization(const Step* parentStep, bool barrierInitializedFromCache=true, bool isUsedForDMultiMads=false, bool isUsedForDiscoMads=false,bool isUsedForPSDMads=false)
       : Initialization(parentStep),
         _initialMesh(nullptr),
         _barrierInitializedFromCache(barrierInitializedFromCache),
         _isUsedForDMultiMads(isUsedForDMultiMads),
-        _isUsedForDiscoMads(isUsedForDiscoMads)
+        _isUsedForDiscoMads(isUsedForDiscoMads),
+        _isUsedForPSDMads(isUsedForPSDMads)
     {
         init();
     }
