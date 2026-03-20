@@ -270,7 +270,8 @@ bool NOMAD::MadsInitialization::eval_x0s()
         }
 
         // Case where x0 evaluation does not satisfy an extreme barrier constraint
-        if (nullptr == _barrier->getCurrentIncumbentFeas() && nullptr == _barrier->getCurrentIncumbentInf())
+        // For PSD-Mads, we do not want to conduct PhaseOne on a single thread.
+        if (nullptr == _barrier->getCurrentIncumbentFeas() && nullptr == _barrier->getCurrentIncumbentInf() && !_isUsedForPSDMads /*No phase one for psd mads*/)
         {
             // Run PhaseOne, which has its own Mads.
             // Then continue regular Mads with an initial feasible point (if found by phaseOne).

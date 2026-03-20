@@ -59,6 +59,7 @@ protected:
 
     std::vector<EvalPointPtr> _xFeas;  ///< Current feasible incumbent solutions
     std::vector<EvalPointPtr> _xInf;   ///< Current infeasible barrier points (contains infeasible incumbents) with h<=hMax
+    std::vector<EvalPointPtr> _xInfOut; ///< Current infeasible points not in barrier because h=INF. Used for initialization only when EB constraint is not verified.
     
     std::vector<EvalPointPtr> _xIncFeas;   ///< Current feasible incumbent solutions. Can be a subset of _xFeas but for now, xIncFeas and xFeas are the same
     std::vector<EvalPointPtr> _xIncInf;   ///< Current infeasible incumbent solutions (subset of _xInf if it is defined). For now, we consider a vector (maybe DMultiMads needs it)

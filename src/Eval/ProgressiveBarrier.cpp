@@ -104,17 +104,69 @@ void NOMAD::ProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
 void NOMAD::ProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
                           const std::vector<NOMAD::EvalPoint>& evalPointList)
 {
-
+    
+    if (_xFeas.empty() && _xInf.empty() && _xInfOut.empty())
+    {
+        // Put the least infeasible point(s) in _xInfOut
+        // This is the case where we have no feasible point and no infeasible point because of EB constraint -> h=inf
+        // Let's change the computation of h for PB and find the least infeasible point(s)
+        NOMAD::Double hLim= NOMAD::INF;
+        for (const auto &evalPoint : evalPointList)
+        {
+            NOMAD::Eval* eval = evalPoint.getEval(NOMAD::EvalType::BB);
+            if (nullptr == eval || NOMAD::EvalStatusType::EVAL_OK != eval->getEvalStatus())
+            {
+                continue;
+            }
+            if (eval->isFeasible(defaultFHComputeTypeS))
+            {
+                continue;
+            }
+            // Let's change bb output type EB to EB
+            auto bbot = eval->getBBOutputTypeList();
+            std::replace_if(bbot.begin(), bbot.end(),
+                            [](NOMAD::BBOutputType t){ return t == NOMAD::BBOutputType::EB; }, // Predicate
+                            NOMAD::BBOutputType::PB // New value
+                            );
+            eval->setBBOutputTypeList(bbot);
+            
+            // Get infeasibility using default computation
+            NOMAD::Double h = eval->getH(defaultFHComputeTypeS);
+            if (!h.isDefined() || h == NOMAD::INF)
+            {
+                continue;
+            }
+            // Must be in the subspace defined byFixedVariable
+            if (!evalPoint.hasFixed(fixedVariable))
+            {
+                continue;
+            }
+            
+            // Keep the least infeasible point(s)
+            if (h <= hLim)
+            {
+                if (h < hLim)
+                {
+                    _xInfOut.clear();
+                }
+                NOMAD::EvalPointPtr evalPointPtr = std::make_shared<NOMAD::EvalPoint>(evalPoint);
+                _xInfOut.push_back(evalPointPtr);
+            }
+        }
+    }
+    
     // Constructor's call to update should not update ref best points.
     updateWithPoints(evalPointList, true, true /*true update infeasible incumbent and hmax*/ );
 
     // Check: xIncFeas or xIncInf could be non-evaluated, but not both.
+    OUTPUT_DEBUG_START
+    std::string s;
     auto xIncFeas = getCurrentIncumbentFeas();
     auto xIncInf = getCurrentIncumbentInf();
     if (   (nullptr == xIncFeas || nullptr == xIncFeas->getEval(_computeType.evalType))
         && (nullptr == xIncInf  || nullptr == xIncInf->getEval(_computeType.evalType)))
     {
-        std::string s = "Barrier constructor: no xIncFeas and xIncInf  properly defined. This may cause problems. \n";
+        s = "Barrier constructor: no xIncFeas and xIncInf  properly defined. This may cause problems. \n";
         if (nullptr != xIncFeas)
         {
             s += "There are " + std::to_string(_xIncFeas.size()) + " feasible incumbents, the first one is:\n";
@@ -126,6 +178,9 @@ void NOMAD::ProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
             s += xIncInf->displayAll(NOMAD::defaultFHComputeTypeS);
         }
     }
+    NOMAD::OutputQueue::Add(s, NOMAD::OutputLevel::LEVEL_DEBUG);
+    NOMAD::OutputQueue::Flush();
+    OUTPUT_DEBUG_END
 
     checkHMax();
 }
