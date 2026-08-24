@@ -7,8 +7,8 @@ cmake_minimum_required(VERSION 3.15...3.15)
 
 # Warning. This must be consistent with src/nomad_version.hpp
 set(NOMAD_VERSION_MAJOR 4)
-set(NOMAD_VERSION_MINOR 5)
-set(NOMAD_VERSION_PATCH 1) 
+set(NOMAD_VERSION_MINOR 6)
+set(NOMAD_VERSION_PATCH 0) 
 
 set(NOMAD_VERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}.${NOMAD_VERSION_PATCH})
 
@@ -125,6 +125,43 @@ else()
     message(STATUS "  Compiling Nomad without OpenMP")
 endif()
 
+
+#
+# Declare these options here (before add_subdirectory(ext) and add_subdirectory(src))
+# so that ext/sgtelib and src can safely test their value with MATCHES ON. Testing an
+# undefined variable with MATCHES ON wrongly evaluates to true because the literal
+# name "BUILD_INTERFACE_PYTHON" contains "ON" as a substring.
+#
+option(BUILD_INTERFACE_PYTHON "Option to build Python interface to Nomad" OFF)
+option(BUILD_INTERFACE_PYTHON_CAT "Option to build NomadBBO interface" OFF)
+
+#
+# Use sgtelib
+#
+option(USE_SGTELIB "Option to use the Sgtelib library" ON)
+if(USE_SGTELIB MATCHES ON)
+  message(CHECK_START "  Configuring for use of Sgtelib library")
+
+  if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib) 
+     message(CHECK_FAIL "  failed. Directory ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib not found. Let's configure without Sgtelib library")
+     set(USE_SGTELIB OFF)
+  else()
+     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext)
+     add_compile_definitions(USE_SGTELIB)
+     list(APPEND EXTRA_LIBS sgtelib)
+     message(CHECK_PASS "   Sgtelib found. done")
+  endif()
+else()
+   message(STATUS "  Sgtelib library will NOT be used\n")
+endif()
+
+
+#
+# Add nomad app directory for building 
+#
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+
 #
 # Choose to build the examples/tests using batch and library mode 
 #
@@ -166,6 +203,21 @@ if(BUILD_INTERFACE_PYTHON MATCHES ON)
 else()
    message(STATUS "  Python interface to Nomad NOT built")
 endif()
+
+#
+# Choose to build the Python interface specialized for Categorical variables
+#
+option(BUILD_INTERFACE_PYTHON_CAT "Option to build NomadBBO interface" OFF)
+if(BUILD_INTERFACE_PYTHON_CAT MATCHES ON)
+   set(Python3_FIND_VIRTUALENV "First")
+   find_package(Python 3.6 QUIET REQUIRED)
+   message(CHECK_START "  Configuring build for NomadBBO interface (Python ${Python_VERSION})")
+   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/NomadBBO)
+   message(CHECK_PASS " done")
+else()
+   message(STATUS "  NomadBBO interface to Nomad NOT built")
+endif()
+
 
 #
 # Choose to build the Matlab interface
@@ -234,25 +286,6 @@ else()
 endif()
 
 
-#
-# Use sgtelib
-#
-option(USE_SGTELIB "Option to use the Sgtelib library" ON)
-if(USE_SGTELIB MATCHES ON)
-  message(CHECK_START "  Configuring for use of Sgtelib library")
-
-  if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib) 
-     message(CHECK_FAIL "  failed. Directory ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib not found. Let's configure without Sgtelib library")
-     set(USE_SGTELIB OFF)
-  else()
-     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext)
-     add_compile_definitions(USE_SGTELIB)
-     list(APPEND EXTRA_LIBS sgtelib)
-     message(CHECK_PASS "   Sgtelib found. done")
-  endif()
-else()
-   message(STATUS "  Sgtelib library will NOT be used\n")
-endif()
 
 #
 # Custom options final message
@@ -261,7 +294,3 @@ list(REMOVE_ITEM CMAKE_MESSAGE_INDENT "  ")
 message(CHECK_PASS " done")
 
 
-#
-# Add nomad app directory for building 
-#
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
