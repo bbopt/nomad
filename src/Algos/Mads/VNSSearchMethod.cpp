@@ -250,8 +250,7 @@ bool NOMAD::VNSSearchMethod::runImp()
                     return false;
                     
                 }
-                
-                // TODO check that we have the right eval type best feas
+
                 auto vnsBestFeas = vnsBarrier->getCurrentIncumbentFeas();
                 auto vnsBestInf = vnsBarrier->getCurrentIncumbentInf();
                 
