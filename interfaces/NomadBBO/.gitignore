@@ -1,0 +1,11 @@
+.env
+*.so
+*.pyd
+*.obj
+dist
+build
+NomadBBO.egg-info/
+**/__pycache__
+CatSuiteProblems/run_logs/
+X0s.txt
+NomadBBO_src.cpp
