@@ -134,6 +134,10 @@ endif()
 #
 option(BUILD_INTERFACE_PYTHON "Option to build Python interface to Nomad" OFF)
 option(BUILD_INTERFACE_PYTHON_CAT "Option to build NomadBBO interface" OFF)
+# Build only one of the Python interfaces (Python or Python-CAT)
+if((BUILD_INTERFACE_PYTHON MATCHES ON) AND (BUILD_INTERFACE_PYTHON_CAT MATCHES ON))
+  message(FATAL_ERROR "  Error: cannot build for both Python and Python-CAT interfaces. Please choose one of them AND remove build directory.")
+endif()
 
 #
 # Use sgtelib
@@ -193,7 +197,6 @@ endif()
 #
 # Choose to build the Python interface
 #
-option(BUILD_INTERFACE_PYTHON "Option to build Python interface to Nomad" OFF)
 if(BUILD_INTERFACE_PYTHON MATCHES ON)
        set(Python3_FIND_VIRTUALENV "First") # Using virtualenv to have cython and wheel is easy
        find_package(Python 3.8 QUIET REQUIRED)
@@ -207,7 +210,6 @@ endif()
 #
 # Choose to build the Python interface specialized for Categorical variables
 #
-option(BUILD_INTERFACE_PYTHON_CAT "Option to build NomadBBO interface" OFF)
 if(BUILD_INTERFACE_PYTHON_CAT MATCHES ON)
    set(Python3_FIND_VIRTUALENV "First")
    find_package(Python 3.6 QUIET REQUIRED)
@@ -217,7 +219,6 @@ if(BUILD_INTERFACE_PYTHON_CAT MATCHES ON)
 else()
    message(STATUS "  NomadBBO interface to Nomad NOT built")
 endif()
-
 
 #
 # Choose to build the Matlab interface
