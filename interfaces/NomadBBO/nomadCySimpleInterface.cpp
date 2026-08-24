@@ -1,6 +1,5 @@
-// June 2019
-// Version 1.0 is with NOMAD 3.
-#define NOMAD_PYTHON_VERSION "2.2"
+// August 2026
+#define NOMAD_PYTHON_VERSION "3.0"
 
 #include "Algos/EvcInterface.hpp"
 #include "Algos/Mads/MadsMegaIteration.hpp"

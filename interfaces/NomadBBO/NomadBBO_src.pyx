@@ -28,7 +28,7 @@ from .python_src.data_managers import (
 cdef object optimizer_as_global_variable = None
 
 
-__version__ = "1.0b4"
+__version__ = "1.0b5"
 
 _RUN_FLAGS = """
             NomadBBO termination run flags

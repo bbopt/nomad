@@ -212,7 +212,7 @@ endif()
 #
 if(BUILD_INTERFACE_PYTHON_CAT MATCHES ON)
    set(Python3_FIND_VIRTUALENV "First")
-   find_package(Python 3.6 QUIET REQUIRED)
+   find_package(Python 3.8 QUIET REQUIRED)
    message(CHECK_START "  Configuring build for NomadBBO interface (Python ${Python_VERSION})")
    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/NomadBBO)
    message(CHECK_PASS " done")
