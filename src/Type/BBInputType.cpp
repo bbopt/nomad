@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   BBInputType.cpp
  \brief  types for BBInput (implementation)

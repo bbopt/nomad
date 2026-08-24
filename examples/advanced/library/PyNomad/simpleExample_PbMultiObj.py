@@ -17,14 +17,12 @@ def bb(x):
     return 1 # 1: success 0: failed evaluation
 
 X0 = [0, 0]
-params = ["DIMENSION 2","BB_OUTPUT_TYPE OBJ OBJ", "DMULTIMADS_OPTIMIZATION yes", "DIRECTION_TYPE ORTHO 2N", "MAX_BB_EVAL 400", "X0 * 2.0" , "LOWER_BOUND * -1" ,"UPPER_BOUND * 5" , "DISPLAY_DEGREE 2", "SOLUTION_FILE SOL.txt"]
+params = ["DIMENSION 2","BB_OUTPUT_TYPE OBJ OBJ", "DMULTIMADS_OPTIMIZATION yes", "DIRECTION_TYPE ORTHO 2N", "MAX_BB_EVAL 400", "X0 * 2.0" , "LOWER_BOUND * -1" ,"UPPER_BOUND * 5" , "DISPLAY_DEGREE 2", "SOLUTION_FILE SOL.txt", "SOLUTION_FILE_FINAL yes"]
 
 # NOTES:
-# Result returned by PyNomad.optimize() return a single point
-# Solution file contains pareto points
-
+# Result returned by PyNomad.optimize() return a single point and all feasible pareto solution points (f1,f2) 
+# Solution file contains pareto points (x f1 f1) once optimization is done
 result = PyNomad.optimize(bb, X0, [] , [], params)
-
 fmt = ["{} = {}".format(n,v) for (n,v) in result.items()]
 output = "\n".join(fmt)
 print("\nNOMAD results \n" + output + " \n")

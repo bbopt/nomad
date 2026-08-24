@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
@@ -156,6 +157,7 @@ void NOMAD::SgtelibSearchMethod::generateTrialPointsFinal()
         /*  oracle points */
         /*----------------*/
         
+        // issue #649 
         _modelAlgo->start();
         
         oraclePoints = _modelAlgo->createOraclePoints();

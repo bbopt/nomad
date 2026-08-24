@@ -39,7 +39,7 @@ bool SGTELIB::streq  ( const std::string & s1 , const std::string & s2 ){
 bool SGTELIB::streqi ( const std::string & s1 , const std::string & s2 ){
   const std::string s1u = SGTELIB::toupper(s1);
   const std::string s2u = SGTELIB::toupper(s2);
-  return !std::strcmp(SGTELIB::toupper(s1).c_str(),s2u.c_str()); 
+  return !std::strcmp(SGTELIB::toupper(s1u).c_str(),s2u.c_str()); 
 }//
 
 // Check if s is in S.
@@ -177,7 +177,7 @@ double SGTELIB::rel_err ( double x , double y ) {
   double max = std::fabs(x);
   if ( std::fabs(y) > max )
     max = std::fabs(y);
-  return ( std::fabs ( x-y ) / max );
+  return ( fabs ( x-y ) / max );
 }
 
 /*---------------------------------*/

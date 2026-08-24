@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_SURROGATE_EVALUATION__
-#define __NOMAD_4_5_SURROGATE_EVALUATION__
+
+#ifndef __NOMAD_4_6_SURROGATE_EVALUATION__
+#define __NOMAD_4_6_SURROGATE_EVALUATION__
 
 #include "../Algos/IterationUtils.hpp"
 #include "../Algos/QuadModel/QuadModelIteration.hpp"
@@ -89,4 +90,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SURROGATE_EVALUATION__
+#endif // __NOMAD_4_6_SURROGATE_EVALUATION__

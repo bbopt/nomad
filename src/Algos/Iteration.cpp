@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include <algorithm>    // For std::merge and std::unique
 
 #include "../Algos/Iteration.hpp"
@@ -87,7 +88,7 @@ void NOMAD::Iteration::endImp()
         bool stop = false;
 
         // Callback user provided function to check if user requested a stop.
-        runCallback(NOMAD::CallbackType::ITERATION_END, *this, stop);
+        runCallback(NOMAD::AlgoCallbackType::ITERATION_END, *this, stop);
         if (!_stopReasons->checkTerminate() && stop)
         {
             _stopReasons->set(NOMAD::BaseStopType::USER_GLOBAL_STOP);

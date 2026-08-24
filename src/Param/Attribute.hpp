@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 //
 //  Attribute.hpp
 //  nomad
@@ -52,8 +53,8 @@
 //  Copyright (c) 2017 GERAD. All rights reserved.
 //
 
-#ifndef __NOMAD_4_5_ABSTRACTATTRIBUTE__
-#define __NOMAD_4_5_ABSTRACTATTRIBUTE__
+#ifndef __NOMAD_4_6_ABSTRACTATTRIBUTE__
+#define __NOMAD_4_6_ABSTRACTATTRIBUTE__
 
 #include "../Util/defines.hpp"
 
@@ -172,4 +173,4 @@ inline std::ostream & operator << ( std::ostream & os, const Attribute & att)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_5_ABSTRACTATTRIBUTE__
+#endif  // __NOMAD_4_6_ABSTRACTATTRIBUTE__

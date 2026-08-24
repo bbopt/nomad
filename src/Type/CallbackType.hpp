@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   CallbackType.hpp
  \brief  Types for Callback
@@ -53,32 +54,60 @@
  */
 
 
-#ifndef __NOMAD_4_5_CALLBACK_TYPE__
-#define __NOMAD_4_5_CALLBACK_TYPE__
+#ifndef __NOMAD_4_6_CALLBACK_TYPE__
+#define __NOMAD_4_6_CALLBACK_TYPE__
+
+#include "../Util/Exception.hpp"
+
+#include <cstddef>
 
 #include "../nomad_nsbegin.hpp"
 
-enum class CallbackType
+// Callback types for algo.
+// Only one callback per type can be added to the mainStep or an algorithm
+enum class AlgoCallbackType
 {
     ITERATION_END,      ///< Called at the end of an Iteration
     MEGA_ITERATION_START, ///< Called at the start of a MegaIteration (after defaultStart, that is,  _success is reset to undefined. After Update to have mesh/barrier updated)
     MEGA_ITERATION_END, ///< Called at the end of a MegaIteration (after defaultEnd, no update done but success is up to date)
+    POSTPROCESSING_CHECK, ///< Called during postProcessing after trial points have been evaluated. Step is passed for check but evalPoint is not (this is different than Eval Stop Check)
+    COUNT
+};
+
+// Callback types for Mads.
+// Only one callback per type can be added to the mainStep or a mads
+enum class MadsCallbackType
+{
+    USER_METHOD_SEARCH,  ///< Called for a user search method
+    USER_METHOD_SEARCH_END,  ///< Called after evaluation of trial points proposed by user search method
+    USER_METHOD_POLL,       ///< Called for a user poll method
+    USER_METHOD_FREE_POLL,    ///< Called for a user poll method as a third pass independent of the regular method.
+    USER_METHOD_FREE_POLL_END,   ///< Called after evaluation of trial points proposed by user free poll method
+    ///< ADD new type here (COUNT is used to get the number of cbTypes)
+    COUNT
+};
+
+// Callback types for eval.
+enum class EvalCallbackType
+{
     EVAL_OPPORTUNISTIC_CHECK, ///< Called after each evaluation for a special opportunistic check for cancelling remaining queue evaluations (maybe not a success) or propagate stop to iteration (customOpportunisticIterStop)
     EVAL_FAIL_CHECK, ///< Called after each failed evaluation for handling eval point: re-evaluated fail or change the eval status and update value (DiscoMads for hidden constraints)
     EVAL_STOP_CHECK, ///< Called after each evaluation for handling global stop
     PRE_EVAL_UPDATE,  ///< Called before each evaluation for discarding an evaluation point (using a user surrogate for example)
     PRE_EVAL_BLOCK_UPDATE,  ///< Called before each evaluation for discarding an evaluation point (using a user surrogate for example)
     POST_EVAL_UPDATE, ///< Called just after each evaluation (in EvaluatorControl::evalBlock) for a special update defined by the user
-    POSTPROCESSING_CHECK, ///< Called during postProcessing after trial points have been evaluated. Step is passed for check but evalPoint is not (this is different than Eval Stop Check)
-    HOT_RESTART,        ///< Called at the beginning of Hot Restart process
-    USER_METHOD_SEARCH,  ///< Called for a user search method
-    USER_METHOD_SEARCH_2,  ///< Called for the second user search method
-    USER_METHOD_SEARCH_END,  ///< Called after evaluation of trial points proposed by user search method
-    USER_METHOD_POLL,       ///< Called for a user poll method
-    USER_METHOD_FREE_POLL,    ///< Called for a user poll method as a third pass independent of the regular method.
-    USER_METHOD_FREE_POLL_END,   ///< Called after evaluation of trial points proposed by user free poll method
+    COUNT
 };
 
+inline constexpr std::size_t mads_callback_type_index(MadsCallbackType t) noexcept {
+    return static_cast<std::size_t>(t);
+}
+inline constexpr std::size_t algo_callback_type_index(AlgoCallbackType t) noexcept {
+    return static_cast<std::size_t>(t);
+}
+inline constexpr std::size_t eval_callback_type_index(EvalCallbackType t) noexcept {
+    return static_cast<std::size_t>(t);
+}
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_5_CALLBACK_TYPE__
+#endif  // __NOMAD_4_6_CALLBACK_TYPE__

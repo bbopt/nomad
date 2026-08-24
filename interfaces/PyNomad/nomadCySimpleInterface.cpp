@@ -1,54 +1,9 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4 has been created and developed by                            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4 is owned by                                 */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
-/*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
-/*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
-/*  for Data Valorization)                                                         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 // June 2019
 // Version 1.0 is with NOMAD 3.
 #define NOMAD_PYTHON_VERSION "2.2"
 
 #include "Algos/EvcInterface.hpp"
+#include "Algos/Mads/MadsMegaIteration.hpp"
 #include "Math/RNG.hpp"
 #include "Nomad/nomad.hpp"
 #include "Param/AllParameters.hpp"
@@ -65,6 +20,9 @@ typedef int (*Callback)(void * apply,
 typedef std::vector<int> (*CallbackL)(void * apply,
                                       std::shared_ptr<NOMAD::Block> block);
 
+// The boolean return is for stopping (MegaIter or else)
+typedef bool (*CallbackU)(void * apply,
+                          std::shared_ptr<NOMAD::Block> block);
 
 static void printPyNomadVersion()
 {
@@ -105,11 +63,16 @@ static void printPyNomadUsage()
 
     std::cout << " PyNomad.optimize output parameters:"                                 << std::endl;
     std::cout                                                                           << std::endl;
-    std::cout << "  x_best    ---> list of values for the best feasible or infeasible"  << std::endl;
-    std::cout << "               points at the end of Nomad optimization"               << std::endl;
-    std::cout << "  f_best    ---> Objective function value for the best point obtained"<< std::endl;
-    std::cout << "  h_best    ---> Infeasibility measure value for best point obtained" << std::endl;
-    std::cout << "               (0 if feasible)"                                       << std::endl;
+    std::cout << "  x_single_best ---> the best feasible or infeasible point at the "   << std::endl;
+    std::cout << "                     the end of Nomad optimization"                   << std::endl;
+    std::cout << "  f_single_best    ---> Objective function value for the best point " << std::endl;
+    std::cout << "                        obtained (first objective only if multi-objective)" << std::endl;
+    std::cout << "  h_single_best    ---> Infeasibility measure value for best point "  << std::endl;
+    std::cout << "                        obtained (0 if feasible)"                     << std::endl;
+    std::cout << "  x_best_feas ---> list of the best feasible points obtained"         << std::endl;
+    std::cout << "  x_best_feas_bbo ---> list BBO values for the best feasible points"  << std::endl;
+    std::cout << "  x_best_infeas ---> list of the best infeasible points obtained"     << std::endl;
+    std::cout << "  x_best_infeas_bbo ---> list BBO values for the best infeasible points" << std::endl;
     std::cout << "  nb_evals   --> Number of blackbox evaluations"                      << std::endl;
     std::cout << "  nb_iters   --> * Currently not supported *"                         << std::endl;
     std::cout << "               (would be: Number of iterations of the Mads algorithm)"<< std::endl;
@@ -207,6 +170,76 @@ static void printNomadHelp(std::string about)
 }
 
 
+// This is for MEGA_ITER_END callback function.
+// Maybe set or not.
+CallbackU  _megaIterEndCb;
+void*     _megaIterEndApply;
+static void setCustomMegaIterEndCallbackFunction(CallbackU cbU,
+                                                void * apply)
+{
+    _megaIterEndCb = cbU;
+    _megaIterEndApply = apply;
+}
+    
+/*---------------------------------------------------------------*/
+/* After each mega iteration verify if stop (may not be used).   */
+/*---------------------------------------------------------------*/
+void customMegaIterEndCbFunc(const NOMAD::Step& step,
+                  bool &stop)
+{
+        // Important: by default USER_CALLS are disabled when doing quad model optimization
+        // -> NO call to this function when doing quad model search.
+        
+        // Several NOMAD::Algorithm are used by NOMAD.
+        // We are interested only on the main Mads (Mega) Iteration.
+        // Use a dynamic cast to make sure with have the Mads (Mega) Iteration.
+        auto megaIter = dynamic_cast<const NOMAD::MadsMegaIteration*>(&step);
+        
+        if (nullptr != megaIter)
+        {
+            
+            // Set the best feasible solutions
+            // A single best feasible solution should be sufficient. Let's pass all of them
+            // in case, the user wants access to all best feasible points.
+            std::vector<NOMAD::EvalPoint> evalPointFeasList;
+            auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::defaultFHComputeType /* for BB and default compute type */);
+            
+            if (nbFeas == 0)
+            {
+                stop = false;
+                return;
+            }
+            
+            try
+            {
+                if (_megaIterEndCb)
+                {
+                    // printf("Mega Iteration Callback, about to call ...\n");
+                    
+                    NOMAD::Block block;
+                    for (const auto & ep: evalPointFeasList)
+                    {
+                        block.push_back(std::make_shared<NOMAD::EvalPoint>(ep));
+                    }
+                    std::shared_ptr<NOMAD::Block> block_ptr = std::make_shared<NOMAD::Block>(block);
+                    PyGILState_STATE state = PyGILState_Ensure();
+                    stop = _megaIterEndCb(_megaIterEndApply, block_ptr);
+                    PyGILState_Release(state);
+                    // printf("Mega Iteration Callback, after call ...\n");
+                }
+            }
+            //If these errors occur, it is due to errors in python code
+            catch(...)
+            {
+                printf("Unrecoverable error in User Mega Iteration Callback, Exiting NOMAD...\n\n");
+                //Force exit
+                raise(SIGINT);
+            }
+        }
+    }
+
+
+
 //Python Evaluator Class
 class PyEval : public NOMAD::Evaluator
 {
@@ -234,8 +267,8 @@ public:
 
 
     std::vector<bool> eval_block(NOMAD::Block &block,
-                        const NOMAD::Double& NOMAD_UNUSED(hMax),
-                        std::vector<bool> &countEval) const override
+                                 [[maybe_unused]]  const NOMAD::Double& hMax,
+                                 std::vector<bool> &countEval) const override
     {
         size_t nbPoints = block.size();
         std::vector<bool> evalOk(nbPoints, false);
@@ -281,6 +314,8 @@ public:
         return evalOk;
     }
 };
+
+
 
 
 // Helper function for runNomad
@@ -393,6 +428,7 @@ static void initAllParams(std::shared_ptr<NOMAD::AllParameters> allParams,
 }
 
 
+
 static int runNomad(Callback cb,
                     CallbackL cbL,
                     void * apply,
@@ -400,16 +436,16 @@ static int runNomad(Callback cb,
                     std::vector<double> LB,
                     std::vector<double> UB,
                     const std::vector<std::string> &params,
-                    std::shared_ptr<NOMAD::EvalPoint>& bestFeasSol,
-                    std::shared_ptr<NOMAD::EvalPoint>& bestInfeasSol,
+                    std::shared_ptr<NOMAD::Block>& bestIncFeasSol,
+                    std::shared_ptr<NOMAD::Block>& bestIncInfeasSol,
                     size_t &nbEvals,
                     size_t &nbIters,
                     std::string & stopReason)
 {
     auto allParams = std::make_shared<NOMAD::AllParameters>();
     initAllParams(allParams, X0, LB, UB, params);
-    bestFeasSol = nullptr;
-    bestInfeasSol = nullptr;
+    bestIncFeasSol = nullptr;
+    bestIncInfeasSol = nullptr;
     int runFlag = -3;
     stopReason ="No stop reason";
 
@@ -436,48 +472,56 @@ static int runNomad(Callback cb,
         
         auto ev = std::make_unique<PyEval>(allParams->getEvalParams(), cb, cbL, apply, NOMAD::EvalType::BB);
         TheMainStep.addEvaluator(std::move(ev));
+        
+        // Link MEGA_ITER_END callback function with user python function defined locally
+        if (_megaIterEndCb)
+        {
+            TheMainStep.addCallback<NOMAD::AlgoCallbackType::MEGA_ITERATION_END>(customMegaIterEndCbFunc);
+        }
 
         TheMainStep.start();
         TheMainStep.run();
+
+        // Get the points before ending the main step, as end() will reset some components of NOMAD.
+        //
+        // For single objective optimization, we have usually single feas/infeas incumbent points.
+        // For multi-objective optimization, we have several feasible incumbent points but infeasible incumbent are not supported.
+        const auto feasIncPoints = TheMainStep.getBarrierIncumbentPoints(true);
+        const auto infeasIncPoints = TheMainStep.getBarrierIncumbentPoints(false);
+
         TheMainStep.end();
 
         nbEvals = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
         nbIters = 0; // Not supported in this version of NOMAD 4
         // Keeping the value for compatibility with PyNomad 1
-
-        const auto hNormType = allParams->getAttributeValue<NOMAD::HNormType>("H_NORM");
-        const auto evalType = NOMAD::EvalType::BB;
-        const NOMAD::FHComputeType computeType= {evalType, {NOMAD::ComputeType::STANDARD, hNormType}};
         
-        // Set the best feasible and best infeasible solutions
-        std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), computeType);
-        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), computeType);
-        
-        // For now
-        // If nbFeas > 0 we return a single best feasible point (no infeasible point)
-        // Else (if nbFeas == 0) we return the least infeasible point with the smallest f (index 0, see findBestInf)
-        // Maybe this could be generalized to show the best feasible point and all undominated infeasible points.
-        // The same logic for Nomad C and Matlab interfaces and for PyNomad.
-        if (nbFeas > 0)
+        // Convert to list of coordinates for Python interface
+        if (!feasIncPoints.empty())
         {
-            NOMAD::EvalPoint evalPointFeas = evalPointFeasList[0];
-            bestFeasSol = std::make_shared<NOMAD::EvalPoint>(evalPointFeas);
-            bestInfeasSol = nullptr;
+            bestIncFeasSol = std::make_shared<NOMAD::Block>();
+            bestIncFeasSol->reserve(feasIncPoints.size());
+            for (const auto &ep : feasIncPoints)
+            {
+                bestIncFeasSol->push_back(std::make_shared<NOMAD::EvalPoint>(ep));
+            }
         }
-        else if (0 == nbFeas)
+        else
         {
-            bestFeasSol = nullptr;
-            if (nbInf > 0)
+            bestIncFeasSol = nullptr;
+        }
+
+        if (!infeasIncPoints.empty())
+        {
+            bestIncInfeasSol = std::make_shared<NOMAD::Block>();
+            bestIncInfeasSol->reserve(infeasIncPoints.size());
+            for (const auto &ep : infeasIncPoints)
             {
-                // One of the pointer is set to null to identify the type of solution
-                NOMAD::EvalPoint evalPointInf = evalPointInfList[0];
-                bestInfeasSol = std::make_shared<NOMAD::EvalPoint>(evalPointInf);
+                bestIncInfeasSol->push_back(std::make_shared<NOMAD::EvalPoint>(ep));
             }
-            else if(0 == nbInf)
-            {
-                bestInfeasSol = nullptr;
-            }
+        }
+        else
+        {
+            bestIncInfeasSol = nullptr;
         }
         
         runFlag = TheMainStep.getRunFlag();
@@ -507,16 +551,16 @@ static int runNomad(Callback cb,
                     std::vector<double> LB,
                     std::vector<double> UB,
                     const std::vector<std::string> &params,
-                    std::shared_ptr<NOMAD::EvalPoint>& bestFeasSol,
-                    std::shared_ptr<NOMAD::EvalPoint>& bestInfeasSol,
+                    std::shared_ptr<NOMAD::Block>& bestIncFeasSol,
+                    std::shared_ptr<NOMAD::Block>& bestIncInfeasSol,
                     size_t &nbEvals,
                     size_t &nbIters,
                     std::string & stopReason)
 {
     auto allParams = std::make_shared<NOMAD::AllParameters>();
     initAllParams(allParams, X0, LB, UB, params);
-    bestFeasSol = nullptr;
-    bestInfeasSol = nullptr;
+    bestIncFeasSol = nullptr;
+    bestIncInfeasSol = nullptr;
     stopReason = "No stop reason";
     
     int runFlag = -3 ;
@@ -547,49 +591,57 @@ static int runNomad(Callback cb,
         auto evSurrogate = std::make_unique<PyEval>(allParams->getEvalParams(), cb, cbL, applySurrogate, NOMAD::EvalType::SURROGATE);
         TheMainStep.addEvaluator(std::move(evSurrogate));
         
+        // Link MEGA_ITER_END callback function with user python function defined locally
+        if (_megaIterEndCb)
+        {
+            TheMainStep.addCallback<NOMAD::AlgoCallbackType::MEGA_ITERATION_END>(customMegaIterEndCbFunc);
+        }
+        
         TheMainStep.start();
         TheMainStep.run();
+        
+        // Get the points before ending the main step, as end() will reset some components of NOMAD.
+        //
+        // For single objective optimization, we have usually single feas/infeas incumbent points.
+        // For multi-objective optimization, we have several feasible incumbent points but infeasible incumbent are not supported.
+        const auto feasIncPoints = TheMainStep.getBarrierIncumbentPoints(true);
+        const auto infeasIncPoints = TheMainStep.getBarrierIncumbentPoints(false);
+        
         TheMainStep.end();
 
         nbEvals = NOMAD::EvcInterface::getEvaluatorControl()->getBbEval();
         nbIters = 0; // Not supported in this version of NOMAD 4
                      // Keeping the value for compatibility with PyNomad 1
 
-        const auto hNormType = allParams->getAttributeValue<NOMAD::HNormType>("H_NORM");
-        const auto evalType = NOMAD::EvalType::BB;
-        const NOMAD::FHComputeType computeType= {evalType, {NOMAD::ComputeType::STANDARD, hNormType}};
 
-        // Set the best feasible and best infeasible solutions
-        std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), computeType);
-        auto nbInf  = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), computeType);
-
-        // For now
-        // If nbFeas > 0 we return a single best feasible point (no infeasible point)
-        // Else (if nbFeas == 0) we return the least infeasible point with the smallest f (index 0, see findBestInf)
-        // Maybe this could be generalized to show the best feasible point and all undominated infeasible points.
-        // The same logic for Nomad C and Matlab interfaces and for PyNomad.
-        if (nbFeas > 0)
+        if (!feasIncPoints.empty())
         {
-            NOMAD::EvalPoint evalPointFeas = evalPointFeasList[0];
-            bestFeasSol = std::make_shared<NOMAD::EvalPoint>(evalPointFeas);
-            bestInfeasSol = nullptr;
-        }
-        else if (0 == nbFeas)
-        {
-            bestFeasSol = nullptr;
-            if (nbInf > 0)
+            bestIncFeasSol = std::make_shared<NOMAD::Block>();
+            bestIncFeasSol->reserve(feasIncPoints.size());
+            for (const auto &ep : feasIncPoints)
             {
-                // One of the pointer is set to null to identify the type of solution
-                NOMAD::EvalPoint evalPointInf = evalPointInfList[0];
-                bestInfeasSol = std::make_shared<NOMAD::EvalPoint>(evalPointInf);
-            }
-            else if(0 == nbInf)
-            {
-                bestInfeasSol = nullptr;
+                bestIncFeasSol->push_back(std::make_shared<NOMAD::EvalPoint>(ep));
             }
         }
+        else
+        {
+            bestIncFeasSol = nullptr;
+        }
 
+        if (!infeasIncPoints.empty())
+        {
+            bestIncInfeasSol = std::make_shared<NOMAD::Block>();
+            bestIncInfeasSol->reserve(infeasIncPoints.size());
+            for (const auto &ep : infeasIncPoints)
+            {
+                bestIncInfeasSol->push_back(std::make_shared<NOMAD::EvalPoint>(ep));
+            }
+        }
+        else
+        {
+            bestIncInfeasSol = nullptr;
+        }
+        
         runFlag = TheMainStep.getRunFlag();
         
         stopReason = TheMainStep.getAllStopReasons()->getStopReasonAsString();

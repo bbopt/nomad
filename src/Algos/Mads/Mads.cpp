@@ -45,12 +45,12 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/GMesh.hpp"
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/Mads/MadsInitialization.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
-#include "../../Algos/Mads/MadsUpdate.hpp"
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Eval/ProgressiveBarrier.hpp"
@@ -60,13 +60,6 @@
 #include "../../Util/Clock.hpp"
 #endif
 
-NOMAD::UserSearchMethodCbFunc NOMAD::Mads::_cbUserSearchMethod = [](const Step& step, EvalPointSet & trialPoints)->bool{ return true;};
-NOMAD::UserSearchMethodCbFunc NOMAD::Mads::_cbUserSearchMethod_2 = [](const Step& step, EvalPointSet & trialPoints)->bool{ return true;};
-NOMAD::UserMethodEndCbFunc NOMAD::Mads::_cbUserSearchMethodEnd = [](const Step& step)->bool{ return true;};
-
-NOMAD::UserPollMethodCbFunc NOMAD::Mads::_cbUserPollMethod = [](const Step& step, std::list<Direction> & dir , const size_t n)->bool{ return true;};
-NOMAD::UserPollMethodCbFunc NOMAD::Mads::_cbUserFreePollMethod = [](const Step& step, std::list<Direction> & dir, const size_t n)->bool{ return true;};
-NOMAD::UserMethodEndCbFunc NOMAD::Mads::_cbUserFreePollMethodEnd = [](const Step& step)->bool{ return true;};
 
 void NOMAD::Mads::init(bool barrierInitializedFromCache)
 {
@@ -80,6 +73,9 @@ void NOMAD::Mads::init(bool barrierInitializedFromCache)
     {
         throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Mads solves single objective problems. To handle several objectives please use DMultiMads: DMULTIMADS_OPTIMIZATION yes");
     }
+    
+    // Initialize the mads callbacks with nullptrs.
+    _madsCallbacks.resize(mads_callback_type_index(NOMAD::MadsCallbackType::COUNT));
 
 }
 
@@ -124,6 +120,7 @@ void NOMAD::Mads::observe(const std::vector<NOMAD::EvalPoint>& evalPointList)
     auto n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
     auto hNormType = _runParams->getAttributeValue<NOMAD::HNormType>("H_NORM");
+
     FHComputeTypeS computeType; // Default struct initializer is used
     computeType.hNormType = hNormType;
     std::shared_ptr<NOMAD::ProgressiveBarrier> barrier;
@@ -301,157 +298,52 @@ void NOMAD::Mads::readInformationForHotRestart()
     }
 }
 
-void NOMAD::Mads::addCallback(const NOMAD::CallbackType& callbackType,
-                              const NOMAD::UserMethodEndCbFunc& userMethodCbFunc) const
+void NOMAD::Mads::checkCallback(NOMAD::MadsCallbackType CT)
 {
-    switch (callbackType)
-    {
-        case NOMAD::CallbackType::USER_METHOD_SEARCH_END:
-            if (!_hasUserSearchMethod)
-            {
-                throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add a user search callback for post evaluation fails. A NOMAD::CallbackType::USER_METHOD_SEARCH callback must be added first.");
-            }
-            _cbUserSearchMethodEnd = userMethodCbFunc;
-            break;
-        case NOMAD::CallbackType::USER_METHOD_FREE_POLL_END:
-            if (!_hasUserFreePollMethod)
-            {
-                throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add a free user poll callback post eval has failed. A NOMAD::CallbackType::USER_METHOD_FREE_POLL callback must be added first.");
-            }
-            _cbUserFreePollMethodEnd = userMethodCbFunc;
-            break;
-        default:
-            throw NOMAD::Exception(__FILE__,__LINE__,"Callback type not supported.");
-            break;
-    }
-
-}
-
-void NOMAD::Mads::addCallback(const NOMAD::CallbackType& callbackType,
-                              const NOMAD::UserSearchMethodCbFunc& userMethodCbFunc)
-{
-
     auto us = _runParams->getAttributeValue<bool>("USER_SEARCH");
-    switch (callbackType)
-    {
-        case NOMAD::CallbackType::USER_METHOD_SEARCH:
-            if (!us)
-            {
-                throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add a user search method callback fails because USER_SEARCH parameter has not been set to True.");
-            }
-            _cbUserSearchMethod = userMethodCbFunc;
-            _hasUserSearchMethod = true;  // This flag is used to enable user search method
-            break;
-        case NOMAD::CallbackType::USER_METHOD_SEARCH_2:
-            if (!us)
-            {
-                throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add a user search (2) method callback fails because USER_SEARCH parameter has not been set to True.");
-            }
-            _cbUserSearchMethod_2 = userMethodCbFunc;
-            _hasUserSearchMethod = true;  // This flag is used to enable user search method
-            break;
-        case NOMAD::CallbackType::USER_METHOD_POLL:
-        case NOMAD::CallbackType::USER_METHOD_FREE_POLL:
-            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add user search method callback but callback type is for USER_POLL.");
-            break;
-        default:
-            throw NOMAD::Exception(__FILE__,__LINE__,"Callback type not supported.");
-            break;
-
-    }
-}
-
-void NOMAD::Mads::addCallback(const NOMAD::CallbackType& callbackType,
-                              const NOMAD::UserPollMethodCbFunc& userMethodCbFunc)
-{
     auto dt = _runParams->getAttributeValue<NOMAD::DirectionTypeList>("DIRECTION_TYPE");
-    switch (callbackType)
+
+    if (CT == NOMAD::MadsCallbackType::USER_METHOD_SEARCH_END)
     {
-        case NOMAD::CallbackType::USER_METHOD_SEARCH:
-        case NOMAD::CallbackType::USER_METHOD_SEARCH_2:
-            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add user poll method callback but callback type is for USER_SEARCH.");
-            break;
-        case NOMAD::CallbackType::USER_METHOD_POLL:
-            _cbUserPollMethod = userMethodCbFunc;
-            if ( std::find(dt.begin(),dt.end(),NOMAD::DirectionType::USER_POLL) == dt.end() )
-            {
-                throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add user poll method callback but DIRECTION_TYPE USER_POLL has not been set.");
-            }
-            _hasUserPollMethod = true; // This flag is used to enable user poll method
-            break;
-        case NOMAD::CallbackType::USER_METHOD_FREE_POLL:
-            _cbUserFreePollMethod = userMethodCbFunc;
-            if ( std::find(dt.begin(),dt.end(),NOMAD::DirectionType::USER_FREE_POLL) == dt.end() )
-            {
-                throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add user poll method callback but DIRECTION_TYPE USER_FREE_POLL has not been set.");
-            }
-            _hasUserFreePollMethod = true; // This flag is used to enable user free poll method
-            break;
-        default:
-            throw NOMAD::Exception(__FILE__,__LINE__,"Callback type not supported.");
-            break;
+        if (!_hasUserSearchMethod)
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add a user search callback for post evaluation failures. A NOMAD::CallbackType::USER_METHOD_SEARCH callback must be added first.");
+        }
     }
-}
-
-bool NOMAD::Mads::runCallback(const NOMAD::CallbackType & callbackType,
-                              const NOMAD::Step& step,
-                              std::list<Direction> & dirs,
-                              const size_t n) const
-{
-
-    switch(callbackType)
+    else if (CT == NOMAD::MadsCallbackType::USER_METHOD_FREE_POLL_END)
     {
-        case NOMAD::CallbackType::USER_METHOD_POLL:
-            return _cbUserPollMethod(step, dirs, n);
-            break;
-        case NOMAD::CallbackType::USER_METHOD_FREE_POLL:
-            return _cbUserFreePollMethod(step, dirs, n);
-            break;
-        case NOMAD::CallbackType::USER_METHOD_SEARCH:
-        case NOMAD::CallbackType::USER_METHOD_SEARCH_2:
-            throw NOMAD::Exception(__FILE__,__LINE__,"Cannot run user search callback type to get directions.");
-            break;
-        default:
-            return false;
+        if (!_hasUserFreePollMethod)
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add a free user poll callback post eval has failed. A NOMAD::CallbackType::USER_METHOD_FREE_POLL callback must be added first.");
+        }
     }
-}
-
-bool NOMAD::Mads::runCallback(const NOMAD::CallbackType & callbackType,
-                              const NOMAD::Step& step,
-                              NOMAD::EvalPointSet & trialPoints) const
-{
-
-    switch(callbackType)
+    else if (CT == NOMAD::MadsCallbackType::USER_METHOD_SEARCH)
     {
-        case NOMAD::CallbackType::USER_METHOD_POLL:
-        case NOMAD::CallbackType::USER_METHOD_FREE_POLL:
-            throw NOMAD::Exception(__FILE__,__LINE__,"Cannot run user poll callback type to get trial points.");
-            break;
-        case NOMAD::CallbackType::USER_METHOD_SEARCH:
-            return _cbUserSearchMethod(step, trialPoints);
-            break;
-        case NOMAD::CallbackType::USER_METHOD_SEARCH_2:
-            return _cbUserSearchMethod_2(step, trialPoints);
-            break;
-        default:
-            return false;
+        if (!us)
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add a user search method callback fails because USER_SEARCH parameter has not been set to True.");
+        }
+        _hasUserSearchMethod = true;  // This flag is used to enable user search method
     }
-}
-
-
-bool NOMAD::Mads::runCallback(const NOMAD::CallbackType & callbackType,
-                              const NOMAD::Step& step) const
-{
-
-    switch(callbackType)
+    else if (CT == NOMAD::MadsCallbackType::USER_METHOD_POLL)
     {
-        case NOMAD::CallbackType::USER_METHOD_FREE_POLL_END:
-            return _cbUserFreePollMethodEnd(step);
-            break;
-        case NOMAD::CallbackType::USER_METHOD_SEARCH_END:
-            return _cbUserSearchMethodEnd(step);
-            break;
-        default:
-            return false;
+        if ( std::find(dt.begin(),dt.end(),NOMAD::DirectionType::USER_POLL) == dt.end() )
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add user poll method callback but DIRECTION_TYPE USER_POLL has not been set.");
+        }
+        _hasUserPollMethod = true; // This flag is used to enable user poll method
     }
+    else if (CT == NOMAD::MadsCallbackType::USER_METHOD_FREE_POLL)
+    {
+        if ( std::find(dt.begin(),dt.end(),NOMAD::DirectionType::USER_FREE_POLL) == dt.end() )
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Calling to add user poll method callback but DIRECTION_TYPE USER_FREE_POLL has not been set.");
+        }
+        _hasUserFreePollMethod = true; // This flag is used to enable user free poll method
+    }
+    else
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"Callback type not supported.");
+    }
+    
 }

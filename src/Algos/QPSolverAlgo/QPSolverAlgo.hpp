@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_QPSOLVERALGO__
-#define __NOMAD_4_5_QPSOLVERALGO__
+
+#ifndef __NOMAD_4_6_QPSOLVERALGO__
+#define __NOMAD_4_6_QPSOLVERALGO__
 
 
 #include "../../Algos/Algorithm.hpp"
@@ -55,10 +56,17 @@
 
 /// Class implementing a QP solver algorithm based on quad model.
 /**
- Generates trial points by optimizing on a quad model.
+ Implement a simple model based trust region algorithm based on success/failure detected by progressive barrier.
+ In other words, we use simple decrease instead of sufficient decrease (rho).
+ The trust region is managed by a GMesh object (no mesh projection though).
+ The TR radius is the frame size. Decrease/Increase follow GMesh.
  */
 class QPSolverAlgo: public Algorithm
 {
+    
+private:
+    
+    Double _minTrustRegionRadius ; // For TR stopping criterion
 public:
     /// Constructor
     /**
@@ -100,4 +108,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QPSOLVERALGO__
+#endif // __NOMAD_4_6_QPSOLVERALGO__

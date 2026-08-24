@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   DoglegTRSolver.cpp
  \brief  The Dogleg Trust-region method: implementation
@@ -139,7 +140,7 @@ NOMAD::DoglegTRSolverStatus NOMAD::DoglegTRSolver::solve(SGTELIB::Matrix& x,
     std::string error_str;
     bool factorization_success = qr_factorization(error_str, M, Q, R, std::max(m, n), std::min(m, n));
 
-    if (!factorization_success)
+    if (! factorization_success)
     {
         for (int i = 0; i < std::max(m, n); ++i)
         {

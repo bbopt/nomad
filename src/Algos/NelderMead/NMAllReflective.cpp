@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/NelderMead/NMAllReflective.hpp"
 #include "../../Algos/NelderMead/NMReflective.hpp"
 #include "../../Algos/SubproblemManager.hpp"

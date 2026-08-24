@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   SpeculativeSearchMethod.cpp
  \brief  Speculative search (implementation)
@@ -82,6 +83,11 @@ void NOMAD::SpeculativeSearchMethod::init()
     {
         _nbSearches = _runParams->getAttributeValue<size_t>("SPECULATIVE_SEARCH_MAX");
         
+        if (_nbSearches == NOMAD::INF_SIZE_T)
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__,"SpeculativeSearchMethod: can not have INF for SPECULATIVE_SEARCH_MAX.");
+        }
+        
         // Base factor to control the extent of the speculative direction
         _baseFactor = _runParams->getAttributeValue<NOMAD::Double>("SPECULATIVE_SEARCH_BASE_FACTOR");
     }
@@ -107,66 +113,70 @@ void NOMAD::SpeculativeSearchMethod::generateTrialPointsFinal()
     // Generate points starting from all points in the barrier.
     // If FRAME_CENTER_USE_CACHE is false (default), that is the same
     // as using the best feasible and best infeasible points.
-    std::vector<NOMAD::EvalPoint> frameCenters;
+    std::vector<std::shared_ptr<NOMAD::EvalPoint>> frameCenters;
     
     auto firstXIncFeas = barrier->getCurrentIncumbentFeas();
     auto firstXIncInf  = barrier->getCurrentIncumbentInf();
     if (firstXIncFeas)
     {
-        frameCenters.push_back(*firstXIncFeas);
+        frameCenters.push_back(firstXIncFeas);
     }
     if (firstXIncInf)
     {
-        frameCenters.push_back(*firstXIncInf);
+        frameCenters.push_back(firstXIncInf);
     }
     
     
     for (const auto & frameCenter : frameCenters)
     {
-        bool canGenerate = true;
-        // Test that the frame center has a valid generating direction
-        auto pointFrom = frameCenter.getPointFrom(NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
-        if (nullptr == pointFrom || *pointFrom == frameCenter)
+        
+        generateTrialPointsFromFC(frameCenter);
+        
+    }
+}
+
+void NOMAD::SpeculativeSearchMethod::generateTrialPointsFromFC(const std::shared_ptr<NOMAD::EvalPoint> & frameCenter)
+{
+    bool canGenerate = true;
+    // Test that the frame center has a valid generating direction
+    auto pointFrom = frameCenter->getPointFrom(NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+    if (nullptr == pointFrom || *pointFrom == *frameCenter)
+    {
+        canGenerate = false;
+    }
+    
+    if (canGenerate)
+    {
+        // Note: Recomputing direction, instead of using frameCenter.getDirection(),
+        // to ensure we work in subspace.
+        auto dir = NOMAD::Point::vectorize(*pointFrom, *frameCenter);
+        
+        OUTPUT_INFO_START
+        AddOutputInfo("Frame center: " + frameCenter->display());
+        AddOutputInfo("Direction before scaling: " + dir.display());
+        OUTPUT_INFO_END
+        
+        
+        for (size_t i = 1; i <= _nbSearches; i++)
         {
-            canGenerate = false;
-        }
-
-        if (canGenerate)
-        {
-            // Note: Recomputing direction, instead of using frameCenter.getDirection(),
-            // to ensure we work in subspace.
-            auto dir = NOMAD::Point::vectorize(*pointFrom, frameCenter);
-
-            OUTPUT_INFO_START
-            AddOutputInfo("Frame center: " + frameCenter.display());
-            AddOutputInfo("Direction before scaling: " + dir.display());
-            OUTPUT_INFO_END
-
+            auto diri = dir;
+            for(size_t j = 0 ; j < dir.size(); j++)
+            {
+                diri[j] *= _baseFactor * (double)i;
+            }
             
-            if (_nbSearches == NOMAD::INF_SIZE_T)
-            {
-                throw NOMAD::Exception(__FILE__,__LINE__,"SpeculativeSearchMethod: can not have INF for SPECULATIVE_SEARCH_MAX.");
-            }
-            for (size_t i = 1; i <= _nbSearches; i++)
-            {
-                auto diri = dir;
-                for(size_t j = 0 ; j < dir.size(); j++)
-                {
-                    diri[j] *= _baseFactor * (double)i;
-                }
-
-                OUTPUT_INFO_START
-                AddOutputInfo("Scaled direction : " + diri.display());
-                OUTPUT_INFO_END
-
-                // Generate
-                auto evalPoint = NOMAD::EvalPoint(*(pointFrom->getX()) + diri);
-
-                // Insert the point
-                evalPoint.setPointFrom(std::make_shared<NOMAD::EvalPoint>(frameCenter), NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
-                evalPoint.addGenStep(getStepType());
-                insertTrialPoint(evalPoint);
-            }
+            OUTPUT_INFO_START
+            AddOutputInfo("Scaled direction : " + diri.display());
+            OUTPUT_INFO_END
+            
+            // Generate
+            auto evalPoint = NOMAD::EvalPoint(*(pointFrom->getX()) + diri);
+            
+            // Insert the point
+            evalPoint.setPointFrom(frameCenter, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
+            evalPoint.addGenStep(getStepType());
+            insertTrialPoint(evalPoint);
         }
     }
 }
+

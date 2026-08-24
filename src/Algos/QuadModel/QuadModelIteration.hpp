@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_QUAD_MODEL_ITERATION__
-#define __NOMAD_4_5_QUAD_MODEL_ITERATION__
+
+#ifndef __NOMAD_4_6_QUAD_MODEL_ITERATION__
+#define __NOMAD_4_6_QUAD_MODEL_ITERATION__
 
 #include "../../Algos/Iteration.hpp"
 #include "../../Eval/EvalPoint.hpp"
@@ -69,6 +70,7 @@ private:
     */
     const EvalPointPtr _refCenter;
 
+    const Point * _initialPoint;  ///< Initial point for the QP solver. Preferred over _refCenter  if it is defined.
 
     /**
      The trial points use to create the radius's to select the training set when building the model
@@ -87,6 +89,11 @@ private:
 
     bool _useForSortingTrialPoints;
     
+    // Flag use for QPSolver algorithm with model based trust region
+    // Sufficient decrease is obtained with f and m only for feasible point
+    bool _sufficientDecrease = false;
+    const NOMAD::Double _eta = 0.1; // trigger for sufficient decrease.
+    
 protected:
     std::shared_ptr<SGTELIB::TrainingSet>   _trainingSet; ///<
     std::shared_ptr<SGTELIB::Surrogate>     _model;
@@ -100,23 +107,25 @@ public:
      \param k               The iteration number -- \b IN.
      \param madsMesh        Mads Mesh for trial point projection (can be null) -- \b IN.
      \param trialPoints   Trial points used to define the selection box  (can be empty, so box is defined with mesh)  -- \b IN.
+     \param initialPoint   Initial point for the QP solver. Preferred over center if it is defined. -- \b IN.
      */
     explicit QuadModelIteration(const Step *parentStep,
                                 const EvalPointPtr center,
                                 const size_t k = 0,
                                 const MeshBasePtr madsMesh = nullptr,
                                 const EvalPointSet & trialPoints = emptyEvalPointSet,
-                                bool flagPriorCombineObjsForModel = false)
+                                bool flagPriorCombineObjsForModel = false,
+                                const Point * initialPoint = nullptr)
       : Iteration(parentStep, k) ,
         _refCenter(center),
         _madsMesh(madsMesh),
         _useForSortingTrialPoints(false),
         _trialPoints(trialPoints),
+        _initialPoint(initialPoint),
         _flagPriorCombineObjsForModel(flagPriorCombineObjsForModel)
     {
         init();
     }
-
 
     /// \brief Destructor
     /// When iteration is done, Flush prints output queue.
@@ -143,12 +152,17 @@ public:
 
     /// Access to the frame center (can be undefined)
     const EvalPointPtr getRefCenter() const { return _refCenter ; }
+    
+    /// Access to the initial point
+    const Point * getInitialPoint() const { return _initialPoint; }
 
     /// Reimplement to have access to the mesh (can be null)
     const MeshBasePtr getMesh() const override { return _madsMesh; }
     
     /// Reimplement the access to the name. If the class is used for sorting trial points we get name without algo name.
     std::string getName() const override;
+    
+    bool hasSufficientDecrease() const { return _sufficientDecrease;}
 
 protected:
 
@@ -164,4 +178,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QUAD_MODEL_ITERATION__
+#endif // __NOMAD_4_6_QUAD_MODEL_ITERATION__

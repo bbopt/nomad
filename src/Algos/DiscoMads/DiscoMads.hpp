@@ -44,17 +44,19 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   DiscoMads.hpp
  \brief  The DiscoMads algorithm (main)
  \author Solene Kojtych
  \see    DiscoMads.cpp
  */
-#ifndef __NOMAD_4_5_DISCOMADS__
-#define __NOMAD_4_5_DISCOMADS__
+#ifndef __NOMAD_4_6_DISCOMADS__
+#define __NOMAD_4_6_DISCOMADS__
 
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Algos/AlgoCallback.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -109,8 +111,12 @@ private:
 
     /// Helper for start()
     void readInformationForHotRestart() override;
+    
+    //
+    // Member function for CallbackType::POSTPROCESSING_CHECK
+    void interPostProcessingCallback(const NOMAD::Step & step, bool & stop) const;
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_DISCOMADS__
+#endif // __NOMAD_4_6_DISCOMADS__

@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_SEARCH__
-#define __NOMAD_4_5_SEARCH__
+
+#ifndef __NOMAD_4_6_SEARCH__
+#define __NOMAD_4_6_SEARCH__
 
 #include "../../Algos/Mads/SearchMethodBase.hpp"
 
@@ -61,14 +62,18 @@ private:
     DLL_ALGO_API static std::vector<double> _searchEvalTime;    ///< Total time spent evaluating search points
 #endif // TIME_STATS
 
+    bool _userSearchMethodCallbackEnabled;  ///< Flag name says all.
+    
+    
 public:
     /// Constructor
     /**
      /param parentStep      The parent of this search step -- \b IN.
      */
-    explicit Search(const Step* parentStep )
+    explicit Search(const Step* parentStep, bool userCallbackEnabled )
       : Step( parentStep ),
         IterationUtils( parentStep ),
+        _userSearchMethodCallbackEnabled(userCallbackEnabled),
         _searchMethods()
     {
         init();
@@ -129,5 +134,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SEARCH__
+#endif // __NOMAD_4_6_SEARCH__
 

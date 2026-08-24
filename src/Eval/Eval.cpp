@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   Eval.cpp
  \brief  Evaluation at a point (implementation)
@@ -94,6 +95,7 @@ NOMAD::Eval::Eval(const std::shared_ptr<NOMAD::EvalParameters>& params,
         _evalStatus = NOMAD::EvalStatusType::EVAL_FAILED;
     }
     _moInfo = std::make_unique<MOInfo>();
+    
 }
 
 
@@ -123,7 +125,7 @@ NOMAD::Eval& NOMAD::Eval::operator=(const NOMAD::Eval& eval)
     _bbOutput = eval._bbOutput;
     _bbOutputTypeList = eval._bbOutputTypeList;
     _bbOutputComplete = eval._bbOutputComplete;
-
+    
     // Deep copy
     _moInfo = std::make_unique<NOMAD::MOInfo>(*eval._moInfo);
 
@@ -295,7 +297,7 @@ NOMAD::Double NOMAD::Eval::getH(const NOMAD::FHComputeTypeS& fhComputeType) cons
 }
 
 
-NOMAD::Double NOMAD::Eval::computeHStandard(NOMAD::HNormType hNormType) const
+NOMAD::Double NOMAD::Eval::computeHStandard(NOMAD::HNormType hNormType, const NOMAD::Double & eqAsPBThreshold) const
 {
     NOMAD::Double h = 0.0;
     bool hPos = false;
@@ -314,6 +316,27 @@ NOMAD::Double NOMAD::Eval::computeHStandard(NOMAD::HNormType hNormType) const
         {
             h = NOMAD::Double();    // h is undefined
             break;
+        }
+        else if (bbOutputType == NOMAD::BBOutputType::Type::EQPB)
+        {
+            if (hNormType != NOMAD::HNormType::L2)
+            {
+                throw NOMAD::Exception(__FILE__,__LINE__,"computeHStandard: With eq. constraints, only L2 norm is available for now.");
+            }
+                
+                
+            // For now, eq constraint in h is the square of infeasibility if
+            // above threshold
+            if (bboI.abs() > eqAsPBThreshold )
+            {
+                NOMAD::Double hTemp = bboI * bboI;
+                if (NOMAD::INF == hTemp)
+                {
+                    h = NOMAD::INF;
+                    break;
+                }
+                h +=hTemp;
+            }
         }
         else if (bboI > 0.0)
         {
@@ -340,7 +363,6 @@ NOMAD::Double NOMAD::Eval::computeHStandard(NOMAD::HNormType hNormType) const
                     default:
                         break;
                 }
-
             }
 
             // Violated Extreme Barrier constraint:
@@ -578,6 +600,7 @@ bool NOMAD::Eval::dominates(const NOMAD::Eval &eval, const NOMAD::FHComputeTypeS
 
     NOMAD::CompareType compare = compMO(eval, computeType, false /* false: compare f and h*/);
     // comparing a feasible point with an unfeasible point --> UNDEFINED -> false.
+
     return (NOMAD::CompareType::DOMINATING == compare);
 }
 

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   TRIPMSolver.cpp
  \brief  Trust-Region Interior Point Method: implementation
@@ -233,11 +234,11 @@ NOMAD::TRIPMSolverStatus NOMAD::TRIPMSolver::solveReducedPb(SGTELIB::Matrix& x,
     double cxp = cx;
 
     // TRIPM parameters initialization
-    const size_t maxSuccessiveFailures = 3;
+    constexpr size_t maxSuccessiveFailures = 5;
     size_t successiveFailure = 0;
     size_t successiveAcceptable = 0;
     size_t successiveBeforeUpdate = 2;
-    double distXOuterLoop = NOMAD::INF;
+    double distXOuterLoop = NOMAD::INF; // For logging
 
     // Compute Lagrange multipliers estimates
     SGTELIB::Matrix Gk("Gk", n, 1);
@@ -261,7 +262,8 @@ NOMAD::TRIPMSolverStatus NOMAD::TRIPMSolver::solveReducedPb(SGTELIB::Matrix& x,
         std::printf("Stopping criterion tolerance for optimality: %f\n", atol_opt);
         std::printf("Stopping criterion tolerance for feasibility: %f\n", std::max(1.0, err_metric.cxInitNorm) * atol_feas);
         std::printf("Maximum number of iterations allowed for outer loop: %zu\n", max_iter_outer);
-        std::printf("Maximum number of iterations allowed for inner loop: %zu\n\n", max_iter_inner);
+        std::printf("Maximum number of iterations allowed for inner loop: %zu\n", max_iter_inner);
+        std::printf("Maximum number of successive inner iterations failures for inner loop: %zu\n\n", maxSuccessiveFailures);
 
         std::printf("%10s %10s %26s %16s %22s %18s %9s %15s %20s %18s %15s\n",
                     "iter (outer)", "f(x)", "|| max(c(x), 0) ||_inf", "|| c(x) + s ||",
@@ -328,8 +330,7 @@ NOMAD::TRIPMSolverStatus NOMAD::TRIPMSolver::solveReducedPb(SGTELIB::Matrix& x,
             break;
         }
 
-        const bool outerFailure = (distXOuterLoop <= tol_dist_successive_x) ||
-                                  (mu <= std::min(atol_opt, atol_feas) / mu_decrease) ||
+        const bool outerFailure = (mu <= std::min(atol_opt, atol_feas) / mu_decrease) ||
                                   (successiveFailure >= maxSuccessiveFailures);
         if (outerFailure)
         {
@@ -471,7 +472,7 @@ NOMAD::TRIPMSolverStatus NOMAD::TRIPMSolver::solveReducedPb(SGTELIB::Matrix& x,
             std::printf("|| x - xp || = %e <= %e or\n", distXOuterLoop, tol_dist_successive_x);
             std::printf("barrier parameter mu = %e is below the following tolerance %e or\n", mu,
                         std::min(atol_opt, atol_feas) / mu_decrease);
-            std::printf("the number of successive failure %zu has reached its maximum value %zu",
+            std::printf("the number of successive failure %zu has reached its maximum value %zu\n",
                         successiveFailure, maxSuccessiveFailures);
         }
         else if (status == TRIPMSolverStatus::MAX_ITER_REACHED)
@@ -482,6 +483,7 @@ NOMAD::TRIPMSolverStatus NOMAD::TRIPMSolver::solveReducedPb(SGTELIB::Matrix& x,
         {
             std::printf("Unknown stopping criterion\n");
         }
+        std::printf("\n");
     }
     return status;
 }
@@ -749,7 +751,7 @@ bool NOMAD::TRIPMSolver::computeSlackMultipliers(SGTELIB::Matrix& slackMultiplie
         if (slackMultipliers.get(i, 0) >= 0)
         {
             const double si = XS.get(i + n, 0);
-            slackMultipliers.set(i, 0, -std::min(std::fabs(1E-3), std::fabs(mu / si)));
+            slackMultipliers.set(i, 0, -std::min(1E-3, std::fabs(mu / si)));
         }
     }
     return true;
@@ -804,7 +806,7 @@ NOMAD::TRIPMSolver::BarrierSolverStatus NOMAD::TRIPMSolver::solveBarrierSubprobl
         {
             quadVal += g.get(i,0) * x.get(i,0);
             double phxi = 0;
-            for (int j = 0 ; j < n ; j++)
+            for (int j = 0; j < n; j++)
             {
                 phxi += H.get(i,j) * x.get(j,0);
             }
@@ -925,7 +927,7 @@ NOMAD::TRIPMSolver::BarrierSolverStatus NOMAD::TRIPMSolver::solveBarrierSubprobl
         std::printf("\n");
     }
 
-    double ared =0 , pred = 0;
+    double ared = 0, pred = 0;
     size_t successiveUnsuccessful = 0;
     double distXInnerLoop = NOMAD::INF;
 
@@ -937,9 +939,9 @@ NOMAD::TRIPMSolver::BarrierSolverStatus NOMAD::TRIPMSolver::solveBarrierSubprobl
             const double objVal = QPModelUtils::getModelObj(QPModel, x);
             const double cx = cslack.norm();
             double normMaxCx0 = 0;
-            for (int i = 0; i < n; ++i)
+            for (int j = 0; j < nbCons; ++j)
             {
-                normMaxCx0 = std::max(cons.get(i, 0), normMaxCx0);
+                normMaxCx0 = std::max(cons.get(j, 0), normMaxCx0);
             }
 
             if (pred != 0)
@@ -1062,11 +1064,11 @@ NOMAD::TRIPMSolver::BarrierSolverStatus NOMAD::TRIPMSolver::solveBarrierSubprobl
             }
             else
             {
-                if (vxi < tau * (li - xi))
+                if (vxi < (tau / 2.0) * (li - xi))
                 {
                     backtrackStepsize = std::min(backtrackStepsize, tau * (li - xi) / (2.0 * vxi));
                 }
-                if (vxi > tau * (ui - xi))
+                if (vxi > (tau / 2.0) * (ui - xi))
                 {
                     backtrackStepsize = std::min(backtrackStepsize, tau * (ui - xi) / (2.0 * vxi));
                 }
@@ -1459,15 +1461,20 @@ NOMAD::TRIPMSolver::BarrierSolverStatus NOMAD::TRIPMSolver::solveBarrierSubprobl
         std::printf("f(x*) = %e\n", QPModelUtils::getModelObj(QPModel, x));
         std::printf("|| c(x*) + s* || = %e\n", cslack.norm());
         double normMaxCx0 = 0;
-        for (int i = 0; i < n; ++i)
+        for (int j = 0; j < nbCons; ++j)
         {
-            normMaxCx0 = std::max(cons.get(i, 0), normMaxCx0);
+            normMaxCx0 = std::max(cons.get(j, 0), normMaxCx0);
         }
         std::printf("|| max(0, c(x*)) ||_inf = %e\n", normMaxCx0);
         if (status == BarrierSolverStatus::SOLVED)
         {
             std::printf("Has reached the minimum tolerance:\n");
-            //std::printf("E(x,s,y;mu) = %e <= tol = %e or\n", errorInnerVal, tol_mu);
+            std::printf("|| x - P[x - grad L(x)] ||_inf = %e <= max(1.0, || x - P[x - grad f(x)] ||) * tol_mu_opt = %e and\n",
+                        errMetric.projlagGradNorm, std::max(1.0, errMetric.projObjGrad) * tol_mu_opt);
+            std::printf("|| - S lambda - mu ||_inf = %e <= max(1.0, || x - P[x - grad f(x)] ||_inf) * tol_mu_opt = %e and\n",
+                        errMetric.slackLambdaMuNorm, std::max(1.0, errMetric.projObjGrad) * tol_mu_opt);
+            std::printf("|| c(x) + s ||_inf = %e <= max(1.0, || max(0, c(x0)) ||_inf) * tol_mu_feas = %e or\n",
+                        errMetric.cxNorm, std::max(1.0, errMetric.cxInitNorm) * tol_mu_feas);
             std::printf("Trust-region radius %e below tol = %e or\n", Delta, tol_TR_radius);
             std::printf("|| p || = %e below tol = %e\n", np, small_p);
         }
@@ -1543,16 +1550,22 @@ bool NOMAD::TRIPMSolver::computeSecondOrderCorrectionStep(SGTELIB::Matrix& y,
                                                           const SGTELIB::Matrix& vxs)
 {
     // In procedure SOC, the second order correction step is computed only when
-    // || tangent_step || <= 0.1 || vxs ||
-    // || pxs || = || vxs + tangent_step || <= || vxs || + || tangent_step ||
-    // so we apply this step, when || pxs || <= 1.1 || vxs ||
-    constexpr double ratio_p_v_trigger = 1.1;
-    if (pxs.norm() > ratio_p_v_trigger * vxs.norm())
+    // || vxs || <= 0.1 || tangent_step ||
+    // where tangent_step = pxs - vxs
+    const int nbVar = XS.get_nb_rows();
+    constexpr double ratio_p_v_trigger = 0.1;
+    double nTangentStep = 0.0;
+    for (int i = 0; i < nbVar; ++i)
+    {
+        const double pi = pxs.get(i, 0);
+        const double vi = vxs.get(i, 0);
+        nTangentStep += (pi - vi) * (pi - vi);
+    }
+    if (vxs.norm() > ratio_p_v_trigger * std::sqrt(nTangentStep))
     {
         return false;
     }
 
-    const int nbVar = XS.get_nb_rows();
     const int nbCons = Jx.get_nb_rows();
     const int n = Jx.get_nb_cols();
 

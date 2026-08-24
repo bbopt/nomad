@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 /*--------------------------------------------------------------------------*/
 /*  Example of a program that makes NOMAD do a Mads custom/user poll in     */
 /*  addition to the Ortho 2n poll method.                                   */
@@ -142,12 +143,13 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 
 }
 
-// The function to generate QRMads user poll directions. This is registered as a callback below.
-bool userQRPollMethodCallback(const NOMAD::Step& step, std::list<NOMAD::Direction> & dirs, const size_t n)
+// The function to generate QRMads user poll directions for Mads.
+// This is registered as a callback below.
+bool myQRPollCallback(const NOMAD::Step& step, std::list<NOMAD::Direction> & dirs, const size_t n)
 {
     // Important: by default USER_CALLS are disabled when doing quad model optimization
     // -> NO call to this function when doing quad model search.
-
+    
     auto mads = dynamic_cast<const NOMAD::Mads*>(step.getRootAlgorithm());
     if (nullptr == mads)
     {
@@ -160,17 +162,17 @@ bool userQRPollMethodCallback(const NOMAD::Step& step, std::list<NOMAD::Directio
         throw NOMAD::Exception(__FILE__,__LINE__,"No poll method available.");
     }
     auto frameCenter = callingPoll->getFrameCenter();
-
+    
     // Let's work on the Mads pb. Remark: Mads does not see the fixed variables.
     auto pbParams = mads->getPbParams();
-
+    
     // Pb parameters
     auto nPb = pbParams->getAttributeValue<size_t>("DIMENSION");
     if (nPb != n)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Dimension pb.");
     }
-
+    
     // Mesh delta frame size is  used to scale the proposed search direction
     auto mesh = step.getIterationMesh();
     if (nullptr == mesh)
@@ -178,17 +180,17 @@ bool userQRPollMethodCallback(const NOMAD::Step& step, std::list<NOMAD::Directio
         throw NOMAD::Exception(__FILE__,__LINE__,"No mesh available.");
     }
     //  Box size has the dimension of the Mads problem.
-     NOMAD::ArrayOfDouble boxSize = mesh->getDeltaFrameSize();
-
+    NOMAD::ArrayOfDouble boxSize = mesh->getDeltaFrameSize();
+    
     dirs.clear();
     NOMAD::Direction dirUnit(n, 0.0);
     NOMAD::Direction::computeDirOnUnitSphere(dirUnit);
-
+    
     while (dirUnit[0] == 0)
     {
         NOMAD::Direction::computeDirOnUnitSphere(dirUnit);
     }
-
+    
     // Matrix M
     auto ** M = new double*[n];
     for (size_t i = 0; i < n; ++i)
@@ -200,7 +202,7 @@ bool userQRPollMethodCallback(const NOMAD::Step& step, std::list<NOMAD::Directio
             M[i][j] = (i == j)? 1.0:0.0;
         }
     }
-
+    
     // std::cout << "M matrix for QR:" <<std::endl;
     for (size_t i = 0; i < n; ++i)
     {
@@ -211,7 +213,7 @@ bool userQRPollMethodCallback(const NOMAD::Step& step, std::list<NOMAD::Directio
         }
         // std::cout << aod.display() << std::endl;
     }
-
+    
     // Matrices Q and R
     auto ** Q = new double*[n];
     auto ** R = new double*[n];
@@ -220,16 +222,16 @@ bool userQRPollMethodCallback(const NOMAD::Step& step, std::list<NOMAD::Directio
         Q[i] = new double [n];
         R[i] = new double [n];
     }
-
+    
     std::string error_msg;
     bool success = NOMAD::qr_factorization (error_msg,M,Q,R,static_cast<int>(n),static_cast<int>(n));
-
+    
     if ( !success || !error_msg.empty())
     {
         std::cerr << "QR decomposition for QR 2N poll method has failed" << std::endl;
         return false;
     }
-
+    
     // std::cout << "Direction after QR decomposition: " << std::endl;
     // Ordering D_k alternates Qk and -Qk instead of [Q_k -Q_k]
     NOMAD::Direction dir(n);
@@ -239,11 +241,11 @@ bool userQRPollMethodCallback(const NOMAD::Step& step, std::list<NOMAD::Directio
         {
             dir[j] = Q[j][i];
         }
-
+        
         dirs.push_back(dir);
         dirs.push_back(-dir);
     }
-
+    
     // Delete M, Q and R:
     for ( size_t i = 0 ; i < n ; ++i )
     {
@@ -254,9 +256,10 @@ bool userQRPollMethodCallback(const NOMAD::Step& step, std::list<NOMAD::Directio
     delete [] Q;
     delete [] R;
     delete [] M;
-
+    
     return true;
-}
+    
+};
 
 /*------------------------------------------*/
 /*            NOMAD main function           */
@@ -274,18 +277,13 @@ int main()
     std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
     TheMainStep.setEvaluator(std::move(ev));
 
-    // Main step start initializes Mads (default algorithm)
-    TheMainStep.start();
-
     // Registering the callback function to generate Mads user poll trial points via poll directions.
     // The user poll also requires to set DIRECTION_TYPE USER_POLL (see above)
-    auto mads = std::dynamic_pointer_cast<NOMAD::Mads>(TheMainStep.getAlgo(NOMAD::StepType::ALGORITHM_MADS));
-    if (nullptr == mads)
-    {
-        throw NOMAD::Exception(__FILE__,__LINE__,"Cannot access to Mads algorithm");
-    }
-    mads->addCallback(NOMAD::CallbackType::USER_METHOD_POLL, userQRPollMethodCallback);
+    TheMainStep.addCallback<NOMAD::MadsCallbackType::USER_METHOD_POLL>(myQRPollCallback);
 
+    // Main step start initializes Mads (default algorithm)
+    TheMainStep.start();
+    
     TheMainStep.run();
     TheMainStep.end();
 

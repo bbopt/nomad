@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_MADSINITIALIZATION__
-#define __NOMAD_4_5_MADSINITIALIZATION__
+
+#ifndef __NOMAD_4_6_MADSINITIALIZATION__
+#define __NOMAD_4_6_MADSINITIALIZATION__
 
 #include "../../Algos/Initialization.hpp"
 #include "../../Type/BBInputType.hpp"
@@ -72,6 +73,7 @@ protected:
     bool _barrierInitializedFromCache;
     bool _isUsedForDMultiMads;
     bool _isUsedForDiscoMads;
+    bool _isUsedForPSDMads;
 
 public:
     /// Constructor
@@ -79,12 +81,13 @@ public:
      \param parentStep                   The parent of this step -- \b IN.
      \param barrierInitializedFromCache  Flag to initialize barrier from cache or not -- \b IN.
      */
-    explicit MadsInitialization(const Step* parentStep, bool barrierInitializedFromCache=true, bool isUsedForDMultiMads=false, bool isUsedForDiscoMads=false)
+    explicit MadsInitialization(const Step* parentStep, bool barrierInitializedFromCache=true, bool isUsedForDMultiMads=false, bool isUsedForDiscoMads=false, bool isUsedForPSDMads=false)
       : Initialization(parentStep),
         _initialMesh(nullptr),
         _barrierInitializedFromCache(barrierInitializedFromCache),
         _isUsedForDMultiMads(isUsedForDMultiMads),
-        _isUsedForDiscoMads(isUsedForDiscoMads)
+        _isUsedForDiscoMads(isUsedForDiscoMads),
+        _isUsedForPSDMads(isUsedForPSDMads)
     {
         init();
     }
@@ -106,4 +109,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_MADSINITIALIZATION__
+#endif // __NOMAD_4_6_MADSINITIALIZATION__

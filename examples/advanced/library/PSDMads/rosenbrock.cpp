@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*--------------------------------------------*/
 /*  Rosenbrock with dimension greater than 2  */
 /*--------------------------------------------*/
@@ -116,12 +117,6 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
     allParams->setAttributeValue("PSD_MADS_SUBPROBLEM_MAX_BB_EVAL",10);
 
     allParams->setAttributeValue("PSD_MADS_NB_SUBPROBLEM",4);
-
-    // ChT Temp for debugging
-    allParams->setAttributeValue("NM_SEARCH",false);
-    allParams->setAttributeValue("QUAD_MODEL_SEARCH",false);
-    allParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
-    allParams->setAttributeValue("EVAL_QUEUE_SORT",NOMAD::EvalSortType::DIR_LAST_SUCCESS);
 
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes = {NOMAD::BBOutputType::OBJ};

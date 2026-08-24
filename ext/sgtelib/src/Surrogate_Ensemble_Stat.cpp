@@ -811,7 +811,7 @@ void SGTELIB::Surrogate_Ensemble_Stat::compute_W_by_wta3 ( void ) {
 void SGTELIB::Surrogate_Ensemble_Stat::predict_private ( const SGTELIB::Matrix & XXs,
                                                                SGTELIB::Matrix * ZZ ) {
   #ifdef ENSEMBLE_DEBUG
-    check_ready(__FILE__,__FUNCTION__,__LINE__);
+    check_ready(__FILE__,__func__,__LINE__);
   #endif
 
   const SGTELIB::Matrix W = _param.get_weight();
@@ -848,7 +848,7 @@ void SGTELIB::Surrogate_Ensemble_Stat::predict_private ( const SGTELIB::Matrix &
                                                                SGTELIB::Matrix * ei ,
                                                                SGTELIB::Matrix * cdf) {
   #ifdef ENSEMBLE_DEBUG
-    check_ready(__FILE__,__FUNCTION__,__LINE__);
+    check_ready(__FILE__,__func__,__LINE__);
   #endif
 
   const SGTELIB::Matrix W = _param.get_weight();
@@ -1175,7 +1175,7 @@ double SGTELIB::Surrogate_Ensemble_Stat::compute_sigma_kl_con_nonsmooth(const in
 const SGTELIB::Matrix * SGTELIB::Surrogate_Ensemble_Stat::get_matrix_Zvs (void){
   if ( ! _Zvs){
     #ifdef ENSEMBLE_DEBUG
-      check_ready(__FILE__,__FUNCTION__,__LINE__);
+      check_ready(__FILE__,__func__,__LINE__);
     #endif
     const SGTELIB::Matrix W = _param.get_weight(); 
     _Zvs = new SGTELIB::Matrix("Zv",_p,_m);
@@ -1211,7 +1211,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_Ensemble_Stat::get_matrix_Zvs (void){
 const SGTELIB::Matrix * SGTELIB::Surrogate_Ensemble_Stat::get_matrix_Zhs (void){
   if ( ! _Zhs){
     #ifdef ENSEMBLE_DEBUG
-      check_ready(__FILE__,__FUNCTION__,__LINE__);
+      check_ready(__FILE__,__func__,__LINE__);
     #endif
     const SGTELIB::Matrix W = _param.get_weight();
     _Zhs = new SGTELIB::Matrix("Zv",_p,_m);

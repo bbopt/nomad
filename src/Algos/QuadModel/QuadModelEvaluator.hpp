@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_QUAD_MODEL_EVALUATION__
-#define __NOMAD_4_5_QUAD_MODEL_EVALUATION__
+
+#ifndef __NOMAD_4_6_QUAD_MODEL_EVALUATION__
+#define __NOMAD_4_6_QUAD_MODEL_EVALUATION__
 
 #include "../../Eval/Evaluator.hpp"
 #include "../../Output/OutputInfo.hpp"
@@ -91,7 +92,7 @@ public:
      Points for evaluations are given in a block. Sgtelib models handle the points as a matrix and return a matrix for outputs.
      */
     std::vector<bool> eval_block(Block &block,
-                                 const Double &NOMAD_UNUSED(hMax),
+                                 [[maybe_unused]] const Double &(hMax),
                                  std::vector<bool> &countEval) const override;
 
 private:
@@ -102,4 +103,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QUAD_MODEL_EVALUATION__
+#endif // __NOMAD_4_6_QUAD_MODEL_EVALUATION__

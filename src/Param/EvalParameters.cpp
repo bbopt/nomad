@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Param/EvalParameters.hpp"
 #include "../Type/BBInputType.hpp"
 #include "../Type/BBOutputType.hpp"
@@ -106,6 +107,10 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
         {
             surrogateUsed = true;
         }
+        else if (runParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE"))
+        {
+            surrogateUsed = true;
+        }
 
         if (!surrogateUsed)
         {
@@ -127,6 +132,7 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
         bbOutputList.emplace_back(NOMAD::BBOutputType::Type::OBJ);
         setAttributeValue("BB_OUTPUT_TYPE", bbOutputList );
     }
+
     
     /*----------------*/
     /* DISCO MADS */

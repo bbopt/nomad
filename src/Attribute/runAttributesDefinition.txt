@@ -173,8 +173,6 @@ size_t
 . Complete the trial points obtained from the primary and secondary poll
   directions to reached the given target number.
 
-. D
-
 . Added trial points are obtained by repeating SINGLE direction
  (see DIRECTION_TYPE) trial point creation.
 
@@ -466,7 +464,7 @@ RESTART_ATTRIBUTE yes
 RNG_ALT_SEEDING
 bool
 false
-\( With this option the seed is used to set xdef \)
+\( With this option enabled the seed is used to set xdef \)
 \(
 
 . Random number generator advanced option.
@@ -635,25 +633,6 @@ true
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE yes
 ################################################################################
-RANDOM_ALGO_SEARCH
-bool
-false
-\( A random search step for Mads using an algo (several iterations) \)
-\(
-
-. A random search step for Mads that several trial points from the poll center
-
-. Use this as a template to develop a new search method
-
-. Argument: bool
-
-. Example: RANDOM_ALGO_SEARCH true
-
-\)
-\( advanced template algorithm search dummy \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
 RANDOM_ALGO_OPTIMIZATION
 bool
 false
@@ -677,7 +656,7 @@ RESTART_ATTRIBUTE yes
 RANDOM_ALGO_DUMMY_FACTOR
 size_t
 1
-\( Dummy factor for random algo (used as template) \)
+\( Dummy factor for random algo \)
 \(
 
 . This is dummy factor used by random algo.
@@ -740,4 +719,176 @@ NOMAD::Double
 \( advanced infeasibility norm h hmin feasibility epsilon \)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
+################################################################################
+MADSPIP_OPTIMIZATION
+bool
+false
+\( A Mads optimization algo using log barrier penalization merit function \)
+\(
+
+. Enable Mads optimization algo using a log barrier penalization merit function.
+
+. The merit function also comprises the exterior penalty term.
+
+. Argument: bool
+
+. Example: MADSPIP_OPTIMIZATION true
+
+\)
+\( advanced template algorithm log barrier penalization \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MADSPIP_OPTIMIZATION_SWITCH_FEASIBILITY_THRESHOLD
+NOMAD::Double
+1E-14
+\( MadsPIP feasibility threshold for switching \)
+\(
+
+. Small positive value to strengthen feasibility criterion for switching.
+
+. Switch from _Gext to _Glog if constraints becomes strictly feasible
+
+
+\)
+\( advanced template algorithm log barrier penalization \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+MADSPIP_OPTIMIZATION_BRHOBETA_RHO
+NOMAD::Double
+10.0
+\( MadsPIP coefficient in criterion to update penalization coefficient \)
+\(
+
+. Coefficient in criterion to update penalization coefficient.
+
+. Relative weight of rho and infeasibility for comparing with frame size.
+
+
+\)
+\( advanced template algorithm log barrier penalization \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+ADS_OPTIMIZATION
+bool
+false
+\( Enable ADS \)
+\(
+
+. Enable Adaptive Direct Search algorithm for optimization.
+
+. Argument: bool
+
+. Example: ADS_OPTIMIZATION true
+
+\)
+\( advanced algorithm ads mads \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+CATMADS_OPTIMIZATION
+bool
+false
+\( Enable CatMads optimization \)
+\(
+
+. Enable the Mads algorithm adapted to problems with categorical variables
+  (variable groups defined with CAT_GROUP).
+
+. Requires CAT_GROUP to be set. A single DIRECTION_TYPE (ORTHO 2N) and a
+  single DIRECTION_TYPE_SECONDARY_POLL (DOUBLE) must be provided for the
+  quantitative variables.
+
+. Mutually exclusive with the other algorithm parameters (ADS_OPTIMIZATION,
+  NM_OPTIMIZATION, LH_EVAL, ...).
+
+. Disables SPECULATIVE_SEARCH, which is replaced by a dedicated CatMads
+  speculative search.
+
+. Only for NomadBBO Python interface.
+
+. Argument: bool
+
+. Example: CATMADS_OPTIMIZATION true
+
+\)
+\( advanced algorithm categorical mads \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+CATADS_OPTIMIZATION
+bool
+false
+\( Enable CatAds optimization \)
+\(
+
+. Enable the ADS algorithm adapted to problems with categorical variables
+  (variable groups defined with CAT_GROUP).
+
+. Requires CAT_GROUP to be set. A single DIRECTION_TYPE (ORTHO 2N) and a
+  single DIRECTION_TYPE_SECONDARY_POLL (DOUBLE) must be provided for the
+  quantitative variables.
+
+. Mutually exclusive with the other algorithm parameters (CATMADS_OPTIMIZATION,
+  NM_OPTIMIZATION, LH_EVAL, ...).
+
+. Only for NomadBBO Python interface.
+
+. Argument: bool
+
+. Example: CATADS_OPTIMIZATION true
+
+\)
+\( advanced algorithm categorical ads \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+CAT_EXTENDED_POLL_TRIGGER
+NOMAD::Double
+0.05
+\( CatMads/CatAds extended poll trigger \)
+\(
+
+. Relative tolerance used to decide if a categorical poll trial point is
+  promising enough to start an extended (continuous) poll from it.
+
+. A categorical poll trial point is extended when its f value is within
+  CAT_EXTENDED_POLL_TRIGGER (relative to the current incumbent f value) of
+  the best feasible (or best infeasible, if within HMAX) incumbent.
+
+. Must be a strictly positive real.
+
+. Only for NomadBBO Python interface.
+
+. Argument: Double
+
+. Example: CAT_EXTENDED_POLL_TRIGGER 0.1
+
+\)
+\( advanced algorithm categorical mads ads extended poll\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+SIMPLE_MADS_WITH_VNS
+bool
+false
+\( Simple Mads VNS search  \)
+\(
+
+. Enable the VNS (Variable Neighborhood Search) step within SimpleMads, a
+  lightweight internal Mads implementation.
+
+. Cannot be used together with a model (quad or sgtelib) search, and requires
+  ANISOTROPIC_MESH to be disabled.
+
+. Argument: bool
+
+. Example: SIMPLE_MADS_WITH_VNS true
+
+\)
+\( advanced template algorithm \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
 ################################################################################

@@ -44,17 +44,24 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#include "../../Algos/EvcInterface.hpp"
+
+#include "../../Algos/Ads/Ads.hpp"
 #include "../../Algos/Mads/PollMethodBase.hpp"
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Output/OutputQueue.hpp"
-#include "../../Type/EvalSortType.hpp"
 
 
 void NOMAD::PollMethodBase::init()
 {
     // A poll method must have a parent
     verifyParentNotNull();
+
+    // Ads Poll: Do not project poll points on mesh
+    const auto* ads = getParentOfType<NOMAD::Ads*>(true /*true: stop at algo*/);
+    if (nullptr != ads)
+    {
+        _projectOnMesh = false;
+    }
 
     if (nullptr != _pbParams)
     {
@@ -82,7 +89,7 @@ void NOMAD::PollMethodBase::generateTrialPointsImp()
 void NOMAD::PollMethodBase::generate2NDirections(std::list<NOMAD::Direction> &directions, size_t n) const
 {
     NOMAD::Direction dirUnit(n, 0.0);
-    NOMAD::Direction::computeDirOnUnitSphere(dirUnit);
+    NOMAD::Direction::computeDirOnUnitSphere(dirUnit, _rng);
 
     OUTPUT_DEBUG_START
     AddOutputDebug("Unit sphere direction: " + dirUnit.display());
@@ -134,7 +141,7 @@ void NOMAD::PollMethodBase::generateTrialPointsInternal(const bool isSecondPass)
     OUTPUT_DEBUG_END
 
     // We need a frame center to start with.
-    if (!_frameCenter->ArrayOfDouble::isDefined() || _frameCenter->size() != _n)
+    if (nullptr == _frameCenter || !_frameCenter->ArrayOfDouble::isDefined() || _frameCenter->size() != _n)
     {
         std::string err = "Invalid frame center: " + _frameCenter->display();
         throw NOMAD::Exception(__FILE__, __LINE__, err);
@@ -256,7 +263,6 @@ std::list<NOMAD::Direction> NOMAD::PollMethodBase::generateFullSpaceScaledDirect
         {
             directionsSubSpace.clear();
 
-
             size_t nVG = vg.size();
 
             if (!isSecondPass)
@@ -339,11 +345,19 @@ void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs, s
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
 
+    // Check if we are in ADS context
+    const auto* ads = getParentOfType<NOMAD::Ads*>(true/*do stop at algo*/);
+    bool isAds = (nullptr != ads);
+
+
     std::list<NOMAD::Direction>::iterator itDir;
     for (itDir = dirs.begin(); itDir != dirs.end(); ++itDir)
     {
         OUTPUT_DEBUG_START
-        AddOutputDebug("Poll direction before scaling and projection on mesh: " + itDir->display());
+        std::string msg = "Poll direction before scaling";
+        msg += (isAds) ? " (ADS - no projection)" : " and projection on mesh";
+        msg += ": " + itDir->display();
+        AddOutputDebug(msg);
         OUTPUT_DEBUG_END
 
         Direction scaledDir(_n,0.0);
@@ -358,8 +372,15 @@ void NOMAD::PollMethodBase::scaleAndProjectOnMesh(std::list<Direction> & dirs, s
 
         for (size_t i = 0; i < _n; ++i)
         {
-            // Scaling and projection on the mesh
-            scaledDir[i] = mesh->scaleAndProjectOnMesh(i, (*itDir)[i] / infiniteNorm);
+            // For ADS: scale WITHOUT projection (no round)
+            // For MADS: scale AND project (with round)
+            NOMAD::Double dirComponent = (*itDir)[i];
+            
+            if (!isAds)
+            {
+                dirComponent /= infiniteNorm;
+            }
+            scaledDir[i] = mesh->scaleAndProjectOnMesh(i, dirComponent, isAds);
         }
 
         *itDir = scaledDir;
@@ -378,7 +399,7 @@ void NOMAD::PollMethodBase::setListVariableGroups(const ListOfVariableGroup & va
     }
 
     _varGroups = varGroups;
-	size_t dimLVG = std::accumulate(varGroups.begin(), varGroups.end(), size_t{ 0 }, [](size_t s, const NOMAD::VariableGroup & vg) { return s + vg.size(); });
+    size_t dimLVG = std::accumulate(varGroups.begin(), varGroups.end(), size_t{0}, [](size_t s,const NOMAD::VariableGroup & vg){ return s+vg.size();});
     if (dimLVG < _n)
     {
         _subsetListVG = true;

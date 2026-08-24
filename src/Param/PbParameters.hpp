@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_PBPARAMETERS__
-#define __NOMAD_4_5_PBPARAMETERS__
+
+#ifndef __NOMAD_4_6_PBPARAMETERS__
+#define __NOMAD_4_6_PBPARAMETERS__
 
 #include "../Param/Parameters.hpp"
 
@@ -61,6 +62,8 @@ class DLL_UTIL_API PbParameters final : public Parameters
 {
 private:
     bool _showWarningMeshSizeRedefined;
+    
+    bool _catGroupInterpreted = false; // Set to true once CAT_GROUP interpreted into VARTIABLE_GROUP
 
 public:
 
@@ -74,12 +77,12 @@ public:
     /**
      The copy constructor is not implemented in the parent class to allow some control over what parameters can be copied or not. Use the deep copy function of parameters: Parameters::copyParameters.
      */
-    PbParameters& operator=(const PbParameters& params) { copyParameters(params) ; return *this; }
+    PbParameters& operator=(const PbParameters& params) { copyParameters(params) ; _catGroupInterpreted =params._catGroupInterpreted ; return *this; }
 
     /**
      The copy constructor is not implemented in the parent class to allow some control over what parameters can be copied or not. Use the deep copy function of parameters: Parameters::copyParameters.
      */
-    PbParameters(const PbParameters& params) : PbParameters() { copyParameters(params); }
+    PbParameters(const PbParameters& params) : PbParameters(){ copyParameters(params);  _catGroupInterpreted =params._catGroupInterpreted ; }
 
     /// Check the sanity of parameters.
     void checkAndComply( );
@@ -118,5 +121,5 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_PBPARAMETERS__
+#endif // __NOMAD_4_6_PBPARAMETERS__
 

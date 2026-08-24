@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_SEARCHMETHODSIMPLE__
-#define __NOMAD_4_5_SEARCHMETHODSIMPLE__
+
+#ifndef __NOMAD_4_6_SEARCHMETHODSIMPLE__
+#define __NOMAD_4_6_SEARCHMETHODSIMPLE__
 
 #include "../../Algos/Mads/SearchMethodBase.hpp"
 
@@ -60,19 +61,14 @@
  */
 class SearchMethodSimple: public SearchMethodBase
 {
-    
-protected:
-    bool _dynamicEnabled; ///< Should this simple search method generate trial points? Maybe modified dynamically by method (based on success, or alternating rule, ...).
-
-    
+        
 public:
     /// Constructor
     /**
      /param parentStep      The parent of this search step -- \b IN.
      */
     explicit SearchMethodSimple( const Step* parentStep )
-      : SearchMethodBase( parentStep ),
-    _dynamicEnabled(true)
+      : SearchMethodBase( parentStep )
     {
     }
 
@@ -110,5 +106,5 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SEARCHMETHODSIMPLE__
+#endif // __NOMAD_4_6_SEARCHMETHODSIMPLE__
 

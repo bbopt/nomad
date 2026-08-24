@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Param/EvaluatorControlParameters.hpp"
 #include "../Type/EvalSortType.hpp"
 
@@ -93,9 +94,14 @@ void NOMAD::EvaluatorControlParameters::checkAndComply(
     if (nullptr != runParams)
     {
         auto psdMadsOpt = runParams->getAttributeValue<bool>("PSD_MADS_OPTIMIZATION");
+        auto ssdMadsOpt = runParams->getAttributeValue<bool>("SSD_MADS_OPTIMIZATION");
         if (psdMadsOpt)
         {
             setAttributeValue("SUBPROBLEM_MAX_BB_EVAL", getAttributeValueProtected<size_t>("PSD_MADS_SUBPROBLEM_MAX_BB_EVAL", false));
+        }
+        else if (ssdMadsOpt)
+        {
+            setAttributeValue("SUBPROBLEM_MAX_BB_EVAL", getAttributeValueProtected<size_t>("SSD_MADS_SUBPROBLEM_MAX_BB_EVAL", false));
         }
         else
         {

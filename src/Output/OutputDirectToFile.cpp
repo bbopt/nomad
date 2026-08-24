@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include <fstream>
 #include "../Output/OutputDirectToFile.hpp"
 #include "../Util/Exception.hpp"
@@ -128,6 +129,7 @@ void NOMAD::OutputDirectToFile::init(const std::shared_ptr<NOMAD::DisplayParamet
     }
     _historyFile = historyFileTmp;
     _solutionFile = params->getAttributeValue<std::string>("SOLUTION_FILE");
+    _solutionFileFeasOnly = params->getAttributeValue<bool>("SOLUTION_FILE_FEAS_ONLY");
     _outputSize = params->getAttributeValue<NOMAD::ArrayOfDouble>("SOL_FORMAT").size();
 
     initHistoryFile();
@@ -159,7 +161,7 @@ void NOMAD::OutputDirectToFile::initHistoryFile()
 }
 
 
-void NOMAD::OutputDirectToFile::write(const NOMAD::StatsInfo &info, bool writeInSolutionFile, bool writeInHistoryFile, bool appendInSolutionFile )
+void NOMAD::OutputDirectToFile::write(const NOMAD::StatsInfo &info, bool writeInSolutionFile, NOMAD::SuccessType successType, bool isFeasible, bool writeInHistoryFile, bool appendInSolutionFile )
 {
     // Early out
     if (_historyFile.empty() && _solutionFile.empty())
@@ -188,6 +190,35 @@ void NOMAD::OutputDirectToFile::write(const NOMAD::StatsInfo &info, bool writeIn
     // Add information in solution file
     if (writeInSolutionFile && _enabledSolutionFile && !_solutionFile.empty())
     {
+        // For solution file containing only feasible point
+        if (_solutionFileFeasOnly && (!isFeasible || successType != NOMAD::SuccessType::FULL_SUCCESS))
+        {
+            // We need feasible and full succes to write the point. Otherwise do not write.
+            return;
+        }
+        
+        // For Solution_file that main contain an infeasible point (until getting a feasible one)
+        if (!_solutionFileFeasOnly && !isFeasible && successType < NOMAD::SuccessType::PARTIAL_SUCCESS)
+        {
+            // For an infeasible point we need at least a partial success (x0 is a partial success). Otherwise do not write.
+            return;
+        }
+        if (!_solutionFileFeasOnly && isFeasible && successType < NOMAD::SuccessType::FULL_SUCCESS)
+        {
+            // For a feasible point we need a full success. Otherwise do not write.
+            return;
+        }
+
+        // Once we have a first feasible, solution file keeps only full_success feasible points
+        if (_hasFirstFeas && !isFeasible)
+        {
+            return;
+        }
+        if (isFeasible)
+        {
+            _hasFirstFeas = true;
+        }
+        
         // Open solution file and clear it if needed
         _solutionStream.close();
         

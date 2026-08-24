@@ -44,14 +44,15 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   DiscoMadsBarrier.cpp
  \brief  The DiscoMads algorithm barrier
  \author Solene Kojtych
  \see    DiscoMadsBarrier.hpp
  */
-#ifndef __NOMAD_4_5_DISCOMADSBARRIER
-#define __NOMAD_4_5_DISCOMADSBARRIER
+#ifndef __NOMAD_4_6_DISCOMADSBARRIER
+#define __NOMAD_4_6_DISCOMADSBARRIER
 
 
 #include "../../Eval/ProgressiveBarrier.hpp"
@@ -103,7 +104,7 @@ public:
 
     /// Update xFeas and xInf according to given points. // H1 corriger commentaire
     /* \param evalPointList vector of EvalPoints  -- \b IN.
-     * \param keepAllPoints flag -- \b IN.
+     * \param keepAllPoints \b IN.
      * \return true if the barrier feasible and/or infeasible incumbents are changed, false otherwise
      * \note Input EvalPoints are already in subproblem dimension
      */
@@ -133,4 +134,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_DISCOMADSBARRIER__
+#endif // __NOMAD_4_6_DISCOMADSBARRIER__

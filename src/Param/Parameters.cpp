@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Param/Parameters.hpp"
 #include "../Type/BBInputType.hpp"
 #include "../Type/BBOutputType.hpp"
@@ -61,6 +62,11 @@
 #define access _access
 #define R_OK 04
 #endif
+
+// Initialize static members
+std::map<std::string,std::string> NOMAD::Parameters::_typeOfAttributes ={{}};
+NOMAD::ParameterEntries NOMAD::Parameters::_paramEntries;
+
 
 // The deep copy of parameters. Used only by derived object that implemented the copy constructor and copy assignment
 void NOMAD::Parameters::copyParameters(const Parameters& params)
@@ -206,9 +212,6 @@ void NOMAD::Parameters::copyParameters(const Parameters& params)
 }
 
 
-// Initialize static members
-std::map<std::string,std::string> NOMAD::Parameters::_typeOfAttributes;
-NOMAD::ParameterEntries NOMAD::Parameters::_paramEntries;
 
 const NOMAD::AttributeSet NOMAD::Parameters::getAttributes() const
 {
@@ -591,8 +594,7 @@ void NOMAD::Parameters::readParamLine(const std::string &line, bool overwrite)
     std::string paramFile = "Standard Input";
     int line_number = 0;
 
-    // entries will be a set of 1 entry. Later the method read(ParameterEntries) is re-used.
-    // NOMAD::ParameterEntries entries;
+    // entries will be a set of 1 entry.
 
     readParamLine(line, paramFile, line_number, overwrite);
 
@@ -606,6 +608,7 @@ void NOMAD::Parameters::readParamLine(const std::string &line, bool overwrite)
         // but do not re-throw them.
         std::cerr << "Warning: " << e.what() << std::endl;
     }
+
 }
 
 
@@ -725,252 +728,256 @@ void NOMAD::Parameters::readEntries(const bool overwrite, std::string problemDir
         pe = _paramEntries.find(paramName);
         while (pe)
         {
-            // Test if internal
-            if (internal)
+            if ( ! pe->hasBeenInterpreted() )
             {
-                err = "Internal parameter: " + paramName + " at line #" + std::to_string(pe->getLine()) + " cannot be set in a parameter file! ";
-                throw NOMAD::Exception(__FILE__,__LINE__, err);
-            }
-
-            // Test if multiple entries
-            if (paramFromUniqueEntry && !pe->isUnique() && !overwrite)
-            {
-                err = "Multiple entries of parameter: " + paramName + " at line #" + std::to_string(pe->getLine()) + "! ";
-                throw NOMAD::Exception(__FILE__,__LINE__, err);
-            }
-
-            // BOOL
-            if (paramType == typeid(bool).name())
-            {
-                checkFormatBool(pe);
-                flag = NOMAD::stringToBool( *(pe->getValues().begin()) );
-                setAttributeValue(paramName, flag);
-            }
-            // SIZE_T
-            else if (paramType == typeid(size_t).name())
-            {
-                checkFormatSizeT(pe, sz);
-                setAttributeValue(paramName, sz);
-            }
-            // INTEGER
-            else if (paramType == typeid(int).name())
-            {
-                checkFormatInt(pe, i);
-                setAttributeValue(paramName, i);
-            }
-            // STRING
-            else if ( paramType == typeid(std::string).name() )
-            {
-                checkFormatString(pe);
-                setAttributeValue(paramName , *(pe->getValues().begin()) );
-            }
-            // ARRAY OF STRING
-            else if ( paramType == typeid(NOMAD::ArrayOfString).name() )
-            {
-                checkFormatArrayOfString(pe);
-                NOMAD::ArrayOfString aos(pe->getAllValues());
-                setAttributeValue(paramName, aos);
-            }
-            // BBInputTypeList
-            else if (paramType == typeid(NOMAD::BBInputTypeList).name())
-            {
-                checkFormat1(pe);
-                setAttributeValue(paramName, NOMAD::stringToBBInputTypeList(pe->getAllValues()));
-            }
-            // BBOutputTypeList
-            else if (paramType == typeid(NOMAD::BBOutputTypeList).name())
-            {
-                checkFormat1(pe);
-                setAttributeValue(paramName, NOMAD::stringToBBOutputTypeList(pe->getAllValues()));
-            }
-            // DMultiMadsNMSearchType
-            else if (paramType == typeid(NOMAD::DMultiMadsNMSearchType).name())
-            {
-                checkFormat1(pe);
-                setAttributeValue(paramName, NOMAD::stringToDMultiMadsNMSearchType(pe->getAllValues()));
-            }
-            else if (paramType == typeid(NOMAD::DMultiMadsQuadSearchType).name())
-            {
-                checkFormat1(pe);
-                setAttributeValue(paramName, NOMAD::stringToDMultiMadsQuadSearchType(pe->getAllValues()));
-            }
-            // LHSearchType
-            else if (paramType == typeid(NOMAD::LHSearchType).name())
-            {
-                checkFormatNbEntries(pe, 2);
-                checkFormatAllSizeT(pe);
-                std::string allValues = pe->getAllValues();
-                auto lhSearch = NOMAD::LHSearchType(allValues);
-                setAttributeValue(paramName, lhSearch);
-            }
-            // SgtelibModelFeasibilityType
-            else if (paramType == typeid(NOMAD::SgtelibModelFeasibilityType).name())
-            {
-                checkFormat1(pe);
-                setAttributeValue(paramName, NOMAD::stringToSgtelibModelFeasibilityType(pe->getAllValues()));
-            }
-            // SgtelibModelFormulationType
-            else if (paramType == typeid(NOMAD::SgtelibModelFormulationType).name())
-            {
-                checkFormat1(pe);
-                setAttributeValue(paramName, NOMAD::stringToSgtelibModelFormulationType(pe->getAllValues()));
-            }
-            // EvalType
-            else if (paramType == typeid(NOMAD::EvalType).name())
-            {
-                checkFormat1(pe);
-                setAttributeValue(paramName, NOMAD::stringToEvalType(pe->getAllValues()));
-            }
-            // EvalSortType
-            else if (paramType == typeid(NOMAD::EvalSortType).name())
-            {
-                checkFormat1(pe);
-                setAttributeValue(paramName, NOMAD::stringToEvalSortType(pe->getAllValues()));
-            }
-            // HNormType
-            else if (paramType == typeid(NOMAD::HNormType).name())
-            {
-                checkFormat1(pe);
-                setAttributeValue(paramName, NOMAD::stringToHNormType(pe->getAllValues()));
-            }
-            // DirectionTypeList
-            else if (paramType == typeid(NOMAD::DirectionTypeList).name())
-            {
-                checkFormat1(pe);
-
-                auto dirTypeList = getAttributeValueProtected<NOMAD::DirectionTypeList>(paramName, false);
-                if (isAttributeDefaultValue<NOMAD::DirectionTypeList>(paramName))
+                // Test if internal
+                if (internal)
                 {
-                    dirTypeList.clear();
+                    err = "Internal parameter: " + paramName + " at line #" + std::to_string(pe->getLine()) + " cannot be set in a parameter file! ";
+                    throw NOMAD::Exception(__FILE__,__LINE__, err);
                 }
-                auto newDirType = NOMAD::stringToDirectionType(pe->getAllValues());
-                if (dirTypeList.end() == std::find(dirTypeList.begin(), dirTypeList.end(), newDirType))
+                // Test if multiple entries
+                if (paramFromUniqueEntry && !pe->isUnique() && !overwrite)
                 {
-                    dirTypeList.push_back(newDirType);
+                    err = "Multiple entries of parameter: " + paramName + " at line #" + std::to_string(pe->getLine()) + "! ";
+                    throw NOMAD::Exception(__FILE__,__LINE__, err);
                 }
-
-                setAttributeValue(paramName, dirTypeList);
-            }
-            // DOUBLE
-            else if (paramType == typeid(NOMAD::Double).name())
-            {
-                checkFormatDouble(pe, d);
-                setAttributeValue(paramName , d);
-            }
-            // ARRAYOFDOUBLE; POINT
-            else if (paramType == typeid(NOMAD::ArrayOfDouble).name()
-                     || paramType == typeid(NOMAD::Point).name())
-            {
-                if ( isAttributeDefaultValue<size_t>("DIMENSION") )
+                // BOOL
+                if (paramType == typeid(bool).name())
                 {
-                    throw NOMAD::Exception(__FILE__,__LINE__,"Dimension must be set!");
+                    checkFormatBool(pe);
+                    flag = NOMAD::stringToBool( *(pe->getValues().begin()) );
+                    setAttributeValue(paramName, flag);
                 }
-
-                // Dimension is needed for ArrayOfDouble because
-                // several formats of the provided values are allowed
-                const size_t n = getAttributeValueProtected<size_t>("DIMENSION", false);
-
-                NOMAD::ArrayOfDouble aod(n);
-                readValuesAsArray(*pe, aod);
-
-                if ( paramType == typeid(NOMAD::Point).name() )
+                // SIZE_T
+                else if (paramType == typeid(size_t).name())
                 {
-                    //Convert aod to Point before setting parameter
-                    NOMAD::Point point(n);
-                    for (size_t index = 0; index < n; index++)
+                    checkFormatSizeT(pe, sz);
+                    setAttributeValue(paramName, sz);
+                }
+                // INTEGER
+                else if (paramType == typeid(int).name())
+                {
+                    checkFormatInt(pe, i);
+                    setAttributeValue(paramName, i);
+                }
+                // STRING
+                else if ( paramType == typeid(std::string).name() )
+                {
+                    checkFormatString(pe);
+                    setAttributeValue(paramName , *(pe->getValues().begin()) );
+                }
+                // ARRAY OF STRING
+                else if ( paramType == typeid(NOMAD::ArrayOfString).name() )
+                {
+                    checkFormatArrayOfString(pe);
+                    NOMAD::ArrayOfString aos(pe->getAllValues());
+                    setAttributeValue(paramName, aos);
+                }
+                // BBInputTypeList
+                else if (paramType == typeid(NOMAD::BBInputTypeList).name())
+                {
+                    checkFormat1(pe);
+                    setAttributeValue(paramName, NOMAD::stringToBBInputTypeList(pe->getAllValues()));
+                }
+                // BBOutputTypeList
+                else if (paramType == typeid(NOMAD::BBOutputTypeList).name())
+                {
+                    checkFormat1(pe);
+                    setAttributeValue(paramName, NOMAD::stringToBBOutputTypeList(pe->getAllValues()));
+                }
+                // DMultiMadsNMSearchType
+                else if (paramType == typeid(NOMAD::DMultiMadsNMSearchType).name())
+                {
+                    checkFormat1(pe);
+                    setAttributeValue(paramName, NOMAD::stringToDMultiMadsNMSearchType(pe->getAllValues()));
+                }
+                else if (paramType == typeid(NOMAD::DMultiMadsQuadSearchType).name())
+                {
+                    checkFormat1(pe);
+                    setAttributeValue(paramName, NOMAD::stringToDMultiMadsQuadSearchType(pe->getAllValues()));
+                }
+                // LHSearchType
+                else if (paramType == typeid(NOMAD::LHSearchType).name())
+                {
+                    checkFormatNbEntries(pe, 2);
+                    checkFormatAllSizeT(pe);
+                    std::string allValues = pe->getAllValues();
+                    auto lhSearch = NOMAD::LHSearchType(allValues);
+                    setAttributeValue(paramName, lhSearch);
+                }
+                // SgtelibModelFeasibilityType
+                else if (paramType == typeid(NOMAD::SgtelibModelFeasibilityType).name())
+                {
+                    checkFormat1(pe);
+                    setAttributeValue(paramName, NOMAD::stringToSgtelibModelFeasibilityType(pe->getAllValues()));
+                }
+                // SgtelibModelFormulationType
+                else if (paramType == typeid(NOMAD::SgtelibModelFormulationType).name())
+                {
+                    checkFormat1(pe);
+                    setAttributeValue(paramName, NOMAD::stringToSgtelibModelFormulationType(pe->getAllValues()));
+                }
+                // EvalType
+                else if (paramType == typeid(NOMAD::EvalType).name())
+                {
+                    checkFormat1(pe);
+                    setAttributeValue(paramName, NOMAD::stringToEvalType(pe->getAllValues()));
+                }
+                // EvalSortType
+                else if (paramType == typeid(NOMAD::EvalSortType).name())
+                {
+                    checkFormat1(pe);
+                    setAttributeValue(paramName, NOMAD::stringToEvalSortType(pe->getAllValues()));
+                }
+                // HNormType
+                else if (paramType == typeid(NOMAD::HNormType).name())
+                {
+                    checkFormat1(pe);
+                    setAttributeValue(paramName, NOMAD::stringToHNormType(pe->getAllValues()));
+                }
+                // DirectionTypeList
+                else if (paramType == typeid(NOMAD::DirectionTypeList).name())
+                {
+                    checkFormat1(pe);
+                    auto dirTypeList = getAttributeValueProtected<NOMAD::DirectionTypeList>(paramName, false);
+                    if (isAttributeDefaultValue<NOMAD::DirectionTypeList>(paramName))
                     {
-                        point[index] = aod[index];
+                        dirTypeList.clear();
                     }
-                    setAttributeValue(paramName, point);
-                }
-                else
-                {
-                    setAttributeValue(paramName, aod);
-                }
-            }
-            // Vector of POINTS
-            else if (paramType == typeid(NOMAD::ArrayOfPoint).name())
-            {
-                if ( isAttributeDefaultValue<size_t>("DIMENSION") )
-                {
-                    throw NOMAD::Exception(__FILE__,__LINE__,"Dimension must be set!");
-                }
-                const size_t n = getAttributeValueProtected<size_t>("DIMENSION", false);
-
-                auto aopRef = getAttributeValueProtected<NOMAD::ArrayOfPoint>(paramName, false);
-                NOMAD::ArrayOfPoint aop = aopRef;
-
-                if (1 == pe->getValues().size())
-                {
-                    // Consider we have a file and read points in this file.
-                    std::string pointFile = *pe->getValues().begin();
-                    NOMAD::completeFileName(pointFile, problemDir);
-                    auto aopNew = readPointValuesFromFile(pointFile);
-                    for (const auto& newPoint: aopNew)
+                    auto newDirType = NOMAD::stringToDirectionType(pe->getAllValues());
+                    if (dirTypeList.end() == std::find(dirTypeList.begin(), dirTypeList.end(), newDirType))
                     {
-                        aop.push_back(newPoint);
+                        dirTypeList.push_back(newDirType);
                     }
+                    setAttributeValue(paramName, dirTypeList);
                 }
-                else
+                // DOUBLE
+                else if (paramType == typeid(NOMAD::Double).name())
                 {
-                    NOMAD::Point updatePoint(n);
-                    size_t pointIndex = readValuesForArrayOfPoint(*pe, updatePoint);
-                    // If the aop at this index is already set, update it.
-                    // Else, create it.
-                    if (pointIndex < aop.size())
+                    checkFormatDouble(pe, d);
+                    setAttributeValue(paramName , d);
+                }
+                // ARRAYOFDOUBLE; POINT
+                else if (paramType == typeid(NOMAD::ArrayOfDouble).name()
+                         || paramType == typeid(NOMAD::Point).name())
+                {
+                    if ( isAttributeDefaultValue<size_t>("DIMENSION") )
                     {
-                        auto pointToUpdate = aop[pointIndex];
+                        throw NOMAD::Exception(__FILE__,__LINE__,"Dimension must be set!");
+                    }
+                    
+                    // Dimension is needed for ArrayOfDouble because
+                    // several formats of the provided values are allowed
+                    const size_t n = getAttributeValueProtected<size_t>("DIMENSION", false);
+                    
+                    NOMAD::ArrayOfDouble aod(n);
+                    readValuesAsArray(*pe, aod);
+                    
+                    if ( paramType == typeid(NOMAD::Point).name() )
+                    {
+                        //Convert aod to Point before setting parameter
+                        NOMAD::Point point(n);
                         for (size_t index = 0; index < n; index++)
                         {
-                            if (updatePoint[index].isDefined())
-                            {
-                                pointToUpdate[index] = updatePoint[index];
-                            }
+                            point[index] = aod[index];
                         }
-                        aop[pointIndex] = pointToUpdate;
+                        setAttributeValue(paramName, point);
                     }
                     else
                     {
-                        aop.resize(pointIndex+1);
-                        aop[pointIndex] = updatePoint;
+                        setAttributeValue(paramName, aod);
                     }
                 }
-
-                setAttributeValue(paramName, aop);
-            }
-            // List of VARIABLE_GROUP
-            else if (paramType == typeid(NOMAD::ListOfVariableGroup).name())
-            {
-                if ( isAttributeDefaultValue<size_t>("DIMENSION") )
+                // Vector of POINTS
+                else if (paramType == typeid(NOMAD::ArrayOfPoint).name())
                 {
-                    throw NOMAD::Exception(__FILE__,__LINE__,"Dimension must be set!");
+                    if ( isAttributeDefaultValue<size_t>("DIMENSION") )
+                    {
+                        throw NOMAD::Exception(__FILE__,__LINE__,"Dimension must be set!");
+                    }
+                    const size_t n = getAttributeValueProtected<size_t>("DIMENSION", false);
+                    
+                    auto aopRef = getAttributeValueProtected<NOMAD::ArrayOfPoint>(paramName, false);
+                    NOMAD::ArrayOfPoint aop = aopRef;
+                    
+                    if (1 == pe->getValues().size())
+                    {
+                        // Consider we have a file and read points in this file.
+                        std::string pointFile = *pe->getValues().begin();
+                        NOMAD::completeFileName(pointFile, problemDir);
+                        auto aopNew = readPointValuesFromFile(pointFile);
+                        for (const auto& newPoint: aopNew)
+                        {
+                            aop.push_back(newPoint);
+                        }
+                    }
+                    else
+                    {
+                        NOMAD::Point updatePoint(n);
+                        size_t pointIndex = readValuesForArrayOfPoint(*pe, updatePoint);
+                        // If the aop at this index is already set, update it.
+                        // Else, create it.
+                        if (pointIndex < aop.size())
+                        {
+                            auto pointToUpdate = aop[pointIndex];
+                            for (size_t index = 0; index < n; index++)
+                            {
+                                if (updatePoint[index].isDefined())
+                                {
+                                    pointToUpdate[index] = updatePoint[index];
+                                }
+                            }
+                            aop[pointIndex] = pointToUpdate;
+                        }
+                        else
+                        {
+                            aop.resize(pointIndex+1);
+                            aop[pointIndex] = updatePoint;
+                        }
+                    }
+                    
+                    setAttributeValue(paramName, aop);
                 }
-                const size_t n = getAttributeValueProtected<size_t>("DIMENSION", false);
-
-                auto lvg = getAttributeValueProtected<NOMAD::ListOfVariableGroup>(paramName, false);
-
-                NOMAD::VariableGroup aVariableGroup;
-                size_t nbIndex = readValuesForVariableGroup(*pe, aVariableGroup);
-                // If the aop at this index is already set, update it.
-                // Else, create it.
-                if (nbIndex < n)
+                // List of VARIABLE_GROUP/CAT_GROUP
+                else if (paramType == typeid(NOMAD::ListOfVariableGroup).name())
                 {
-                    lvg.push_back(aVariableGroup);
+                    
+                    if ( isAttributeDefaultValue<size_t>("DIMENSION") )
+                    {
+                        throw NOMAD::Exception(__FILE__,__LINE__,"Dimension must be set!");
+                    }
+                    const size_t n = getAttributeValueProtected<size_t>("DIMENSION", false);
+                    
+                    auto lvg = getAttributeValueProtected<NOMAD::ListOfVariableGroup>(paramName, false);
+                    
+                    NOMAD::VariableGroup aVariableGroup;
+                    size_t nbIndex = readValuesForVariableGroup(*pe, aVariableGroup);
+                    
+                    
+                    // If the aop at this index is already set, update it.
+                    // Else, create it.
+                    if (nbIndex < n)
+                    {
+                        lvg.push_back(aVariableGroup);
+                    }
+                    else
+                    {
+                        err = "Number of indices for VARIABLE_GROUP/CAT_GROUP must be smaller than DIMENSION (" + std::to_string(n) + ").";
+                        throw NOMAD::Exception(__FILE__,__LINE__, err);
+                    }
+                    
+                    setAttributeValue(paramName, lvg);
                 }
                 else
                 {
-                    err = "Number of indices for VARIABLE_GROUP must be smaller than DIMENSION (" + std::to_string(n) + ").";
+                    err = "Parameter " + paramName + " has been registered but its type cannot be read";
                     throw NOMAD::Exception(__FILE__,__LINE__, err);
                 }
-
-                setAttributeValue(paramName, lvg);
+                pe->setHasBeenInterpreted();
+                
             }
-            else
-            {
-                err = "Parameter " + paramName + " has been registered but its type cannot be read";
-                throw NOMAD::Exception(__FILE__,__LINE__, err);
-            }
-            pe->setHasBeenInterpreted();
+            
             // Get next parameter entry with this name, if multiple entries are permitted
             pe = pe->getNext();
         }
@@ -1316,16 +1323,16 @@ void NOMAD::Parameters::insertCSVDoc(std::map<std::string,std::string> &csvdoc) 
     for (const auto & att : _attributes)
     {
         std::string keywords = att->getKeywords();
-        
+
         if (keywords.empty())
             continue;
-        
+
         std::size_t pos1 = keywords.find(',');
-        
+
         std::string value = keywords.substr(1,pos1-1); // Pair (Type,DefaultValue) is the first keyword
-        
+
         std::size_t pos2 = keywords.find(')');
-       
+
         std::string defaultAttributeValue = keywords.substr(pos1+1,pos2-pos1-1); // Second position in the pair () is the default value
 
         if (keywords.find("basic") != std::string::npos)

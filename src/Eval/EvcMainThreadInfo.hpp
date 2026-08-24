@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   EvcMainThreadInfo.hpp
  \brief  Information about main threads
@@ -52,8 +53,8 @@
  \see    EvcMainThreadInfo.cpp
  */
 
-#ifndef __NOMAD_4_5_EVCMAINTHREADINFO__
-#define __NOMAD_4_5_EVCMAINTHREADINFO__
+#ifndef __NOMAD_4_6_EVCMAINTHREADINFO__
+#define __NOMAD_4_6_EVCMAINTHREADINFO__
 
 #include <atomic>   // for atomic
 
@@ -88,7 +89,7 @@ private:
     size_t                          _lapMaxBbEval;      ///< The maximum number of blackbox evaluations that can be performed by a sub algorithm.
     std::atomic<size_t>             _lapBbEval;         ///< The number of blackbox evaluations performed by a given sub algorithm (reset at Algorithm start).
     std::atomic<size_t>             _modelEval;         ///< The number of quad or sgtelib model evaluations performed (since last reset)
-    std::atomic<size_t>             _subBbEval;         ///< The number of bb eval for a subproblem (e.g. PSD-Mads context)
+    std::atomic<size_t>             _subBbEval;         ///< The number of bb eval for a subproblem (e.g. SSD-Mads context)
     FHComputeTypeS                  _FHComputeType; ///< Aggregation of eval type, compute type and h norm type
     std::shared_ptr<Direction>      _lastSuccessfulFeasDir; ///< Direction of last success for feasible points. May be used to sort points before evaluation.
     std::shared_ptr<Direction>      _lastSuccessfulInfDir; ///< Direction of last success for infeasible points. May be used to sort points before evaluation.
@@ -189,6 +190,7 @@ public:
     // Get and set counters
     // Resetting a counter also resets stop reason, if the stop reason was that the max was reached for this counter.
     void setLapMaxBbEval(const size_t maxBbEval) { _lapMaxBbEval = maxBbEval; }
+    void setForceLapBbEval(const size_t bbEval) { _lapBbEval = bbEval; }
     size_t getLapBbEval() const { return _lapBbEval; }
     size_t getLapMaxBbEval() const { return _lapMaxBbEval; }
     void incLapBbEval(const size_t countEval) { _lapBbEval += countEval; }
@@ -255,4 +257,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_EVCMAINTHREADINFO__
+#endif // __NOMAD_4_6_EVCMAINTHREADINFO__

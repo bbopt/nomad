@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   EvalQueuePoint.hpp
  \brief  Point specifically designed for EvalQueue.
@@ -52,8 +53,8 @@
  \see    EvalQueuePoint.cpp
  */
 
-#ifndef __NOMAD_4_5_EVALQUEUEPOINT__
-#define __NOMAD_4_5_EVALQUEUEPOINT__
+#ifndef __NOMAD_4_6_EVALQUEUEPOINT__
+#define __NOMAD_4_6_EVALQUEUEPOINT__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -126,6 +127,6 @@ typedef std::vector<EvalQueuePointPtr> BlockForEval;
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_EVALQUEUEPOINT__
+#endif // __NOMAD_4_6_EVALQUEUEPOINT__
 
 

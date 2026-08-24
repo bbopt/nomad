@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_MEGAITERATION__
-#define __NOMAD_4_5_MEGAITERATION__
+
+#ifndef __NOMAD_4_6_MEGAITERATION__
+#define __NOMAD_4_6_MEGAITERATION__
 
 #include "../Algos/Iteration.hpp"
 #include "../Algos/Step.hpp"
@@ -83,15 +84,16 @@ protected:
 
     size_t _k;          ///< Main counter
 
+    
     /**
-     Success type of this step. Initialized with the run of the previous
-     mega iteration, so that the update step knows what to do
-     (for example, enlarge or reduce the mesh).
+     Success type of the previous mega iteration. Keeps track of
+     the previous mega iteration success type once mega iteration
+      is started. This is used by MEGA_ITERATION_START callback.
      At the end of run step during the mega iteration of an algorithm,
      the success type is updated (MegaIteration::setSuccessType) with the latest
      success type.
      */
-    SuccessType _megaIterationSuccess;
+    SuccessType _refMegaIterSuccess;
 
 public:
     /// Constructor
@@ -120,6 +122,9 @@ public:
     // Barrier
     const std::shared_ptr<BarrierBase>& getBarrier() const          { return _barrier; }
     void setBarrier(const std::shared_ptr<BarrierBase> &barrier)    { _barrier = barrier; }
+    
+    // Success type of the previous mega iteration
+    SuccessType getRefSuccessType() const  { return _refMegaIterSuccess;}
     
     /**
      \return \c nullptr for algorithms that do not use a mesh. Otherwise, this function must be reimplemented in algorithm specific MegaIteration (for example, MadsMegaIteration).
@@ -168,4 +173,4 @@ std::istream& operator>>(std::istream& is, MegaIteration& megaIteration);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_MEGAITERATION__
+#endif // __NOMAD_4_6_MEGAITERATION__

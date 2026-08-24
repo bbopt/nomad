@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_PROGRESSIVEBARRIER__
-#define __NOMAD_4_5_PROGRESSIVEBARRIER__
+
+#ifndef __NOMAD_4_6_PROGRESSIVEBARRIER__
+#define __NOMAD_4_6_PROGRESSIVEBARRIER__
 
 #include "../Eval/BarrierBase.hpp"
 #include "../Eval/EvalPoint.hpp"
@@ -78,8 +79,8 @@ public:
       : BarrierBase(evalType, computeType, hMax),
         _incumbentsAndHMaxUpToDate(false)
     {
-        init(fixedVariable, barrierInitializedFromCache);
-        init(fixedVariable,evalPointList);
+        ProgressiveBarrier::init(fixedVariable, barrierInitializedFromCache);
+        ProgressiveBarrier::init(fixedVariable,evalPointList);
     }
     
     
@@ -112,18 +113,13 @@ public:
     */
     void setHMax(const Double &hMax) override;
 
-    /// SuccessType of xFeas and xInf according to given points.
-    /* \param xFeas Feasible point -- \b IN.
-     * \param XInf Infeasible point -- \b IN.
-     * \return SuccessType of points.
-     * \note Input EvalPoints are already in subproblem dimension
-     */
+    ///  GetSuccessType of  xFeas or xInf according to given points.  
     SuccessType getSuccessTypeOfPoints(const EvalPointPtr xFeas,
                                        const EvalPointPtr xInf) override;
 
     /// Update xFeas and xInf according to given points.
     /* \param evalPointList vector of EvalPoints  -- \b IN.
-     * \param keepAllPoints \b IN.
+     * \param keepAllPoints -- \b IN.
      * \return true if the barrier feasible and/or infeasible incumbents are changed, false otherwise
      * \note Input EvalPoints are already in subproblem dimension
      */
@@ -195,4 +191,4 @@ protected:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_PROGRESSIVEBARRIER__
+#endif // __NOMAD_4_6_PROGRESSIVEBARRIER__

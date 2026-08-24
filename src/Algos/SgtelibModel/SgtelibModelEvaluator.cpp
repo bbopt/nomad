@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModelEvaluator.hpp"
 #include "../../Output/OutputQueue.hpp"
@@ -85,7 +86,7 @@ void NOMAD::SgtelibModelEvaluator::init()
     _displayLevel = (std::string::npos != _modelDisplay.find('X'))
                         ? NOMAD::OutputLevel::LEVEL_INFO
                         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
-    
+
 }
 
 
@@ -213,7 +214,7 @@ bool NOMAD::SgtelibModelEvaluator::eval_x(NOMAD::EvalPoint &x,
             OUTPUT_INFO_END
 
             auto model = _modelAlgo->getModel();
-            model->check_ready(__FILE__,__FUNCTION__,__LINE__);
+            model->check_ready(__FILE__,__func__,__LINE__);
 
             if (useStatisticalCriteria)
             {

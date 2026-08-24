@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 // This executable converts the user-friendly txt files that describe the
 // parameters, to computer-readable header files.
 // When a parameter needs to be added or edited, only the txt files need
@@ -278,8 +279,8 @@ int main(int argc, char *argv[])
         oss << "//////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////" << std::endl;
         oss << "//////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////" << std::endl << std::endl;
 
-        oss << "#ifndef __NOMAD_4_5_"<< UpperAttDefName << "__" << std::endl;
-        oss << "#define __NOMAD_4_5_"<< UpperAttDefName << "__" << std::endl << std::endl;
+        oss << "#ifndef __NOMAD_4_6_"<< UpperAttDefName << "__" << std::endl;
+        oss << "#define __NOMAD_4_6_"<< UpperAttDefName << "__" << std::endl << std::endl;
         oss << "_definition = {" ;
 
         bool flagInFile;

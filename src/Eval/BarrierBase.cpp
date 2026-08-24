@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Cache/CacheBase.hpp"
 #include "../Eval/BarrierBase.hpp"
 #include "../Eval/ComputeSuccessType.hpp"
@@ -133,6 +134,11 @@ std::vector<NOMAD::EvalPoint> NOMAD::BarrierBase::getAllPoints() const
     {
         allPoints.push_back(*p);
     }
+    for (const auto & p: _xInfOut )
+    {
+        allPoints.push_back(*p);
+    }
+    
     return allPoints;
 }
 
@@ -143,6 +149,7 @@ std::vector<NOMAD::EvalPointPtr> NOMAD::BarrierBase::getAllPointsPtr() const
     allPoints.reserve(_xFeas.size() + _xInf.size()); // preallocate memory
     allPoints.insert(allPoints.end(), _xFeas.begin(), _xFeas.end());
     allPoints.insert(allPoints.end(), _xInf.begin(), _xInf.end());
+    allPoints.insert(allPoints.end(), _xInfOut.begin(), _xInfOut.end());
 
     return allPoints;
 }

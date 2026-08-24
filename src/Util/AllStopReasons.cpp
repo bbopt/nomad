@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Util/AllStopReasons.hpp"
 
 NOMAD::StopReason<NOMAD::BaseStopType> NOMAD::AllStopReasons::_baseStopReason = NOMAD::StopReason<NOMAD::BaseStopType>();

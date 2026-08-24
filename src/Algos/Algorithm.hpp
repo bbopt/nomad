@@ -45,9 +45,11 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_5_ALGORITHM__
-#define __NOMAD_4_5_ALGORITHM__
 
+#ifndef __NOMAD_4_6_ALGORITHM__
+#define __NOMAD_4_6_ALGORITHM__
+
+#include "../Algos/AlgoCallback.hpp"
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Initialization.hpp"
 #include "../Algos/MegaIteration.hpp"
@@ -94,6 +96,9 @@ protected:
     bool _useOnlyLocalFixedVariables ; ///< When this flag is true, we force an algo to use only local fixed variable. The original problem fixed variables are not considered. This is useful when we change the design space like when doing quad model search. The evaluation of the quad model are only in the sub space and maybe there are some local fixed variables.
     
     bool _evalOpportunistic;  ///< This flag is used to force non opportunistic eval for some algo. The evaluator control function setOpportunisticEval is called with this flag. The parameter EVAL_OPPORTUNISTIC can be temporarily superseded (example, LH_EVAL + MADS)
+ 
+    // Store algo callbacks into vector according to their type
+    std::vector<std::unique_ptr<AlgoCallbackBase>> _algoCallbacks;
     
     
 public:
@@ -136,6 +141,8 @@ public:
     /*---------*/
     const std::shared_ptr<MegaIteration>& getRefMegaIteration() const { return _refMegaIteration; }
     void setRefMegaIteration(const std::shared_ptr<MegaIteration> megaIteration) { _refMegaIteration = megaIteration; }
+    
+    const std::shared_ptr<BarrierBase> & getInitializationBarrier() const { return _initialization->getBarrier();}
 
     void setEndDisplay( bool endDisplay ) { _endDisplay = endDisplay; }
     
@@ -211,6 +218,29 @@ public:
     /// Access to the best solution (can be undefined)
     virtual EvalPoint getBestSolution (bool bestFeas = false) const;
     
+    // Find and cast a specific callback
+    template<NOMAD::AlgoCallbackType CT>
+    AlgoCallback<CT>* getCallback() const
+    {
+        if (_algoCallbacks.empty())
+            return nullptr;
+        else
+            return dynamic_cast<AlgoCallback<CT>*>(_algoCallbacks[algo_callback_type_index(CT)].get());
+    }
+    
+    /// \brief Set algo iter callback according to callback type. Cannot be another type than for Iter control
+    template<AlgoCallbackType CT, typename Fn>
+    void addCallback(Fn&& fn)
+    {
+        _algoCallbacks[algo_callback_type_index(CT)] = std::move(makeAlgoCallbackBase<CT>(fn));
+    }
+    
+    void addCallback(std::unique_ptr<AlgoCallbackBase> cb)
+    {
+        _algoCallbacks[algo_callback_type_index(cb->getType())] = std::move(cb);
+    }
+
+    
 private:
 
     ///  Helper for Constructor.
@@ -233,4 +263,4 @@ std::istream& operator>>(std::istream& is, Algorithm& algo);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_ALGORITHM__
+#endif // __NOMAD_4_6_ALGORITHM__

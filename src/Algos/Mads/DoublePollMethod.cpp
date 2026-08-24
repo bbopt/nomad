@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/DoublePollMethod.hpp"
 #include "../../Math/Direction.hpp"
 
@@ -60,7 +61,7 @@ void NOMAD::DoublePollMethod::generateUnitPollDirections(std::list<NOMAD::Direct
     directions.clear();
 
     NOMAD::Direction dirUnit(n, 0.0);
-    NOMAD::Direction::computeDirOnUnitSphere(dirUnit);
+    NOMAD::Direction::computeDirOnUnitSphere(dirUnit, _rng);
     directions.push_back(dirUnit);
 
     // insert the opposite direction

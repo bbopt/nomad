@@ -44,14 +44,15 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   Subproblem.hpp
  \brief  Subproblem of lesser dimension than the original problem
  \author Viviane Rochon Montplaisir
  \date   February 2019
  */
-#ifndef __NOMAD_4_5_SUBPROBLEM__
-#define __NOMAD_4_5_SUBPROBLEM__
+#ifndef __NOMAD_4_6_SUBPROBLEM__
+#define __NOMAD_4_6_SUBPROBLEM__
 
 #include "../Math/Point.hpp"
 #include "../Param/PbParameters.hpp"
@@ -132,4 +133,4 @@ private:
 #include "../nomad_nsend.hpp"
 
 
-#endif  // __NOMAD_4_5_SUBPROBLEM__
+#endif  // __NOMAD_4_6_SUBPROBLEM__

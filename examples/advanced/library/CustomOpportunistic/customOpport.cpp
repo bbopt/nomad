@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 /*--------------------------------------------------------------------------*/
 /*  Example of a program that makes NOMAD do a local opportunistic stop     */
 /*  of queued evaluations from a Poll step when a user criterion is met     */
@@ -58,6 +59,8 @@
 #include "Algos/AlgoStopReasons.hpp"
 #include "Util/AllStopReasons.hpp"
 #include "Output/OutputQueue.hpp"
+#include "Eval/EvalCallback.hpp"
+
 
 // Global variable to store current best feasible point
 // for custom opportunistic stop of step
@@ -147,28 +150,23 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 
 }
 
-
-/*-----------------------------------------------------*/
-/* After each evaluation, verify if                    */
-/* remaining evaluations in queue should be cancelled. */
-/*-----------------------------------------------------*/
-void customEvalCB(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool &opportunisticEvalStop, bool &opportunisticIterStop)
+void customEvalCallback(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool & opportunisticEvalStop, bool &opportunisticIterStop)
 {
     // Consider only BB evals
     if (NOMAD::EvalType::BB == evalQueuePoint->getEvalType() )
     {
         // Consider only feasible points
         if (evalQueuePoint->isFeasible(computeType))
-    {
+        {
             // Update my current best feasible point
             if (!currentBestFeasF.isDefined())
             {
                 currentBestFeasF = evalQueuePoint->getF(computeType);
                 return;
             }
-
+            
             auto mystep = evalQueuePoint->getGenStep();
-
+            
             // Opportunism only if enough reduction is obtained (optim f is 0)
             auto FMinOpport = currentBestFeasF - 0.1*currentBestFeasF.abs();
             if (NOMAD::stepTypeToString(mystep).find("Poll") != string::npos &&
@@ -183,7 +181,7 @@ void customEvalCB(NOMAD::EvalQueuePointPtr & evalQueuePoint, bool &opportunistic
             }
         }
     }
-}
+};
 
 
 /*------------------------------------------*/
@@ -201,11 +199,9 @@ int main()
     // Custom Evaluator
     std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
     TheMainStep.setEvaluator(std::move(ev));
-
-    // Link callback function with user function defined locally
-    NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK> cbInter = customEvalCB;
+    
     //  Add callback function run just after evaluation
-    NOMAD::EvcInterface::getEvaluatorControl()->addEvalCallback<NOMAD::CallbackType::EVAL_OPPORTUNISTIC_CHECK>(cbInter);
+    TheMainStep.addCallback<NOMAD::EvalCallbackType::EVAL_OPPORTUNISTIC_CHECK>(customEvalCallback);
 
     // The run
     TheMainStep.start();

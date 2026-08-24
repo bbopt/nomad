@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   BBOutputType.cpp
  \brief  types for BBOutput (implementation)
@@ -90,6 +91,10 @@ NOMAD::BBOutputType::BBOutputType(const std::string &sConst)
     else if (s == "RPB" )
     {
         _type = NOMAD::BBOutputType::Type::RPB;
+    }
+    else if (s == "EQPB")
+    {
+        _type = NOMAD::BBOutputType::Type::EQPB;
     }
     else if (s == "CNT_EVAL")
     {
@@ -211,6 +216,9 @@ std::string NOMAD::BBOutputType::display() const
             break;
         case BBOutputType::Type::RPB:
             s = "RPB";
+            break;
+        case BBOutputType::Type::EQPB:
+            s = "EQPB";
             break;
         case BBOutputType::Type::EB:
             s = "EB";

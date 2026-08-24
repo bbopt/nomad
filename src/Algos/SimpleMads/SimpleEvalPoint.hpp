@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   SimpleEvalPoint.hpp
  \brief  Evaluation point for simple mads barrier
@@ -52,8 +53,8 @@
  \see    SimpleEvalPoint.cpp
  */
 
-#ifndef __NOMAD_4_5_SIMPLEEVALPOINT__
-#define __NOMAD_4_5_SIMPLEEVALPOINT__
+#ifndef __NOMAD_4_6_SIMPLEEVALPOINT__
+#define __NOMAD_4_6_SIMPLEEVALPOINT__
 
 #include "../../Math/Double.hpp"
 #include "../../Math/Point.hpp"
@@ -144,4 +145,4 @@ public:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SIMPLEEVALPOINT__
+#endif // __NOMAD_4_6_SIMPLEEVALPOINT__

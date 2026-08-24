@@ -269,7 +269,7 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
       // Epanechnikov
       {
         double ksr = std::fabs(ks*r);
-        if (ksr<=3/4) return (1-(16/9)*ksr*ksr);
+        if (ksr<=3.0/4.0) return (1.0-(16.0/9.0)*ksr*ksr);
       }
       return 0.0;
     case SGTELIB::KERNEL_I0:

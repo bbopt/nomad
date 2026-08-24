@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_MEGASEARCHPOLL__
-#define __NOMAD_4_5_MEGASEARCHPOLL__
+
+#ifndef __NOMAD_4_6_MEGASEARCHPOLL__
+#define __NOMAD_4_6_MEGASEARCHPOLL__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/Mads/Search.hpp"
@@ -62,20 +63,19 @@
 class MegaSearchPoll: public Step, public IterationUtils
 {
 private:
-    std::unique_ptr<Poll> _poll;
-    std::unique_ptr<Search> _search;
+    std::unique_ptr<Poll> _poll = nullptr;
+    std::unique_ptr<Search> _search = nullptr;
 
-    
+    bool _userCallbackEnabled;
 public:
     /// Constructor
     /**
      \param parentStep The parent of this step
      */
-    explicit MegaSearchPoll(const Step* parentStep)
+    explicit MegaSearchPoll(const Step* parentStep, bool userCallbackEnabled)
       : Step(parentStep),
         IterationUtils(parentStep),
-        _poll(nullptr),
-        _search(nullptr)
+        _userCallbackEnabled(userCallbackEnabled)
     {
         init();
     }
@@ -117,4 +117,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_MEGASEARCHPOLL__
+#endif // __NOMAD_4_6_MEGASEARCHPOLL__

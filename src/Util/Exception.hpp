@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   Exception.hpp
  \brief  Custom class for exceptions (headers)
@@ -51,8 +52,8 @@
  \date   2010-03-29
  \see    Exception.cpp
  */
-#ifndef __NOMAD_4_5_EXCEPTION__
-#define __NOMAD_4_5_EXCEPTION__
+#ifndef __NOMAD_4_6_EXCEPTION__
+#define __NOMAD_4_6_EXCEPTION__
 
 #include <sstream>
 
@@ -119,4 +120,4 @@ public:
 };
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_EXCEPTION__
+#endif // __NOMAD_4_6_EXCEPTION__

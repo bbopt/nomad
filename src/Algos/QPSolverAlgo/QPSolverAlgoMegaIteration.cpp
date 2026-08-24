@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/QPSolverAlgo/QPSolverAlgoMegaIteration.hpp"
 #include "../../Output/OutputQueue.hpp"
@@ -77,19 +78,17 @@ void NOMAD::QPSolverAlgoMegaIteration::startImp()
 
         if (nullptr != bestXFeas)
         {
-            auto sqmIteration = std::make_shared<NOMAD::QPSolverAlgoIteration>(this, bestXFeas);
+            auto sqmIteration = std::make_shared<NOMAD::QPSolverAlgoIteration>(this, bestXFeas, _k, _mainMesh);
             _iterList.push_back(sqmIteration);
             
         }
         else if (nullptr != bestXInf)
         {
-            auto sqmIteration = std::make_shared<NOMAD::QPSolverAlgoIteration>(this, bestXInf);
+            auto sqmIteration = std::make_shared<NOMAD::QPSolverAlgoIteration>(this, bestXInf, _k, _mainMesh);
             _iterList.push_back(sqmIteration);
 
         }
-
         size_t nbIter = _iterList.size();
-
 
         AddOutputInfo(getName() + " has " + NOMAD::itos(nbIter) + " iteration" + ((nbIter > 1)? "s" : "") + ".");
     
@@ -142,7 +141,6 @@ bool NOMAD::QPSolverAlgoMegaIteration::runImp()
             throw NOMAD::Exception(__FILE__, __LINE__, "No iteration to run");
         }
 
-        // if ( _stopReasons->checkTerminate() )
         {
             sqmIteration->start();
 
@@ -156,6 +154,13 @@ bool NOMAD::QPSolverAlgoMegaIteration::runImp()
                 s = getName() + ": new success " + NOMAD::enumStr(getSuccessType());
                 AddOutputDebug(s);
             }
+            
+            _sufficientDecrease = sqmIteration->hasSufficientDecrease();
+            if (_sufficientDecrease)
+            {
+                s = getName() + ": sufficient decreasse obtained ";
+                AddOutputDebug(s);
+            }
 
             if (getUserInterrupt())
             {
@@ -163,6 +168,12 @@ bool NOMAD::QPSolverAlgoMegaIteration::runImp()
             }
          }
     }
+    
+    // Increment iteration counter
+    _k++;
+    
+    // Clear iteration list
+    _iterList.clear();
 
     // Display MegaIteration's stop reason
     AddOutputDebug(getName() + " stop reason set to: " + _stopReasons->getStopReasonAsString());

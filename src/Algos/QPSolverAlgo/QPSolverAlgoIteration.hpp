@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_QPSOLVERALGOITERATION__
-#define __NOMAD_4_5_QPSOLVERALGOITERATION__
+
+#ifndef __NOMAD_4_6_QPSOLVERALGOITERATION__
+#define __NOMAD_4_6_QPSOLVERALGOITERATION__
 
 #include "../../Algos/Iteration.hpp"
 #include "../../Eval/EvalPoint.hpp"
@@ -66,7 +67,10 @@ Trial points generation is performed by QPsolver method. Evaluation is done. Ite
  */
 class QPSolverAlgoIteration: public QuadModelIteration
 {
-
+    // Flag use for QPSolver algorithm with model based trust region
+    // Sufficient decrease is obtained with f and m only for feasible point
+    bool _sufficientDecrease = false;
+    const NOMAD::Double _eta = 0.1; // trigger for sufficient decrease.
     
 public:
     /// Constructor
@@ -85,23 +89,8 @@ public:
       : QuadModelIteration(parentStep, frameCenter,k, madsMesh, trialPoints)
     {
     }
-
-
-//    // Get/Set
-//    const EvalPointPtr getFrameCenter() const { return _frameCenter ; }
-//    void setFrameCenter(EvalPointPtr frameCenter) { _frameCenter = frameCenter ;}
-//
-//    /// Access to the quadratic model
-//    const std::shared_ptr<SGTELIB::Surrogate> getModel() const { return _model;}
-//
-//    /// Access to the training set
-//    const std::shared_ptr<SGTELIB::TrainingSet> getTrainingSet() const { return _trainingSet; }
-//
-//    /// Reimplement to have access to the mesh (can be null)
-//    const MeshBasePtr getMesh() const override { return _madsMesh; }
-//
-//    // Reimplement the access to the name. If the class is used for sorting trial points we get name without algo name.
-//    //std::string getName() const override;
+    
+    bool hasSufficientDecrease() const { return _sufficientDecrease;}
 
 protected:
 
@@ -118,4 +107,4 @@ protected:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QPSOLVERALGOITERATION__
+#endif // __NOMAD_4_6_QPSOLVERALGOITERATION__

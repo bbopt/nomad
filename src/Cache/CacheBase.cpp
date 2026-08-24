@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   CacheBase.cpp
  \brief  Code for base class CacheBase
@@ -78,7 +79,7 @@ void NOMAD::CacheBase::init()
 }
 
 
-bool isTrue(const NOMAD::EvalPoint& NOMAD_UNUSED(evalPoint))
+bool isTrue([[maybe_unused]] const NOMAD::EvalPoint& evalPoint)
 {
     return true;
 }

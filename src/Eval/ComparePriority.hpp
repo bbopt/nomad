@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   ComparePriority.hpp
  \brief  Compare EvalQueuePoints for sorting
@@ -52,8 +53,8 @@
  \see    ComparePriority.cpp
  */
 
-#ifndef __NOMAD_4_5_COMPAREPRIORITY__
-#define __NOMAD_4_5_COMPAREPRIORITY__
+#ifndef __NOMAD_4_6_COMPAREPRIORITY__
+#define __NOMAD_4_6_COMPAREPRIORITY__
 
 #include "../Algos/Step.hpp"
 #include "../Eval/EvalQueuePoint.hpp"
@@ -73,7 +74,7 @@ private:
     std::string _name;  ///< Method name, useful for information or debugging
 
 public:
-    virtual bool comp(EvalQueuePointPtr& NOMAD_UNUSED(point1), EvalQueuePointPtr& NOMAD_UNUSED(point2)) const
+    virtual bool comp([[maybe_unused]] EvalQueuePointPtr& point1, [[maybe_unused]] EvalQueuePointPtr& point2) const
     {
         return false;
     }
@@ -163,6 +164,10 @@ public:
         {
             setName("OrderByModel");
         }
+        else if (_computeType.evalType == NOMAD::EvalType::CAT_MODEL)
+        {
+            setName("OrderByCatModel");
+        }
         else
         {
             throw NOMAD::Exception(__FILE__, __LINE__, "OrderByEval: Eval Type " + evalTypeToString(_computeType.evalType) + " cannot be used for ordering points") ;
@@ -196,4 +201,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_COMPAREPRIORITY__
+#endif // __NOMAD_4_6_COMPAREPRIORITY__

@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/DoublePollMethod.hpp"
 #include "../../Algos/Mads/Ortho2NPollMethod.hpp"
@@ -95,7 +96,7 @@ void NOMAD::SimplePoll::init()
             }
 
             
-            _model->check_ready(__FILE__,__FUNCTION__,__LINE__);
+            _model->check_ready(__FILE__,__func__,__LINE__);
             
             if (!_model->is_ready())
             {
@@ -133,22 +134,29 @@ void NOMAD::SimplePoll::init()
     _primaryDirectionType = NOMAD::DirectionType::ORTHO_2N;
     _secondaryDirectionType = NOMAD::DirectionType::DOUBLE;
     
+    // Dedicated random number generator
+    _rng = std::make_shared<NOMAD::SimpleRNG>();
+    
     // Rho parameter of the progressive barrier. Used to choose if the primary frame center is the feasible or infeasible incumbent.
     _rho = _runParams->getAttributeValue<NOMAD::Double>("RHO");
-        
+    
     _n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     _fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(_parentStep);
     _nSimple = _fixedVariable.size();
     _nbOutputs = _bbot.size();
     
-    // Evaluated X0
-    const auto X0s = _pbParams->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
-    if (X0s.size() != 1 && !X0s[0].isComplete())
-    {
-        throw NOMAD::Exception(__FILE__,__LINE__,"Simple Mads needs a single valid X0.");
-    }
+    // Evaluate X0
     
-    NOMAD::SimpleEvalPoint evalPointX0(X0s[0]);
+    if (! _X0.isDefined())
+    {
+        const auto X0s = _pbParams->getAttributeValue<NOMAD::ArrayOfPoint>("X0");
+        if (X0s.size() != 1 && !X0s[0].isComplete())
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__,"Simple Mads needs a single valid X0.");
+        }
+        _X0 = X0s[0];
+    }
+    NOMAD::SimpleEvalPoint evalPointX0(_X0);
     _trialPoints.push_back(evalPointX0);
     evalTrialPoints(); // Compute f and h according to standard method
     
@@ -179,6 +187,14 @@ void NOMAD::SimplePoll::init()
 
 void NOMAD::SimplePoll::startImp()
 {
+    // Reset the single poll call (start/run/end) eval counter
+    _singleNbEval = 0;
+    
+    OUTPUT_INFO_START
+    AddOutputInfo("delta mesh size: "+_mesh->getdeltaMeshSize().display());
+    AddOutputInfo("delta frame size: "+_mesh->getDeltaFrameSize().display());
+    OUTPUT_INFO_END
+    
     // Manage the case when PhaseOne is done
     // Switch to PhaseOne barrier to Regular barrier
     if ( _phaseOneSearch )
@@ -222,7 +238,14 @@ bool NOMAD::SimplePoll::runImp()
         evalTrialPoints();
         
         // 3- Update barrier
-        _barrier->updateWithPoints(_trialPoints);
+        if (_twoPointsBarrier)
+        {
+            _barrier->updateWithPointsKeep2(_trialPoints);
+        }
+        else
+        {
+            _barrier->updateWithPoints(_trialPoints);
+        }
         
         return true;
     }
@@ -237,6 +260,8 @@ bool NOMAD::SimplePoll::runImp()
 
 void NOMAD::SimplePoll::endImp()
 {
+    // Reset success
+    _success = NOMAD::SuccessType::UNSUCCESSFUL;
 
     // Update Mesh. Compute hMax and update Barrier.
     
@@ -257,11 +282,11 @@ void NOMAD::SimplePoll::endImp()
         // Get which of newBestFeas and newBestInf is improving
         // the solution. Check newBestFeas first.
         // F and H of points are available.
-        NOMAD::SuccessType success = _barrier->computeSuccessType(newBestFeas, refBestFeas);
+        _success = _barrier->computeSuccessType(newBestFeas, refBestFeas);
         
         NOMAD::SimpleEvalPoint newBest;
         // NOMAD::SuccessType success = computeSuccess(newBestFeas, refBestFeas, _barrier->getHMax());
-        if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+        if (_success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
         {
             // newBestFeas is the improving point.
             newBest = newBestFeas;
@@ -271,11 +296,11 @@ void NOMAD::SimplePoll::endImp()
         {
             // Check newBestInf
             NOMAD::SuccessType success2 = _barrier->computeSuccessType(newBestInf, refBestInf);
-            if (success2 > success)
+            if (success2 > _success)
             {
-                success = success2;
+                _success = success2;
             }
-            if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
+            if (_success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
             {
                 // newBestInf is the improving point.
                 newBest = newBestInf;
@@ -284,18 +309,18 @@ void NOMAD::SimplePoll::endImp()
 
 
         // Update Mesh
-        const NOMAD::SuccessType trigger = NOMAD::SuccessType::PARTIAL_SUCCESS;
+        const NOMAD::SuccessType trigger = (_refineOnPartial) ? NOMAD::SuccessType::FULL_SUCCESS: NOMAD::SuccessType::PARTIAL_SUCCESS;
         
-        if (success >= trigger)
+        if (_success >= trigger)
         {
             OUTPUT_INFO_START
-            if (success == NOMAD::SuccessType::PARTIAL_SUCCESS)
+            if (_success == NOMAD::SuccessType::PARTIAL_SUCCESS)
             {
                 AddOutputInfo("Last Iteration Improving. Delta remains the same.");
             }
             OUTPUT_INFO_END
 
-            if (success >= NOMAD::SuccessType::FULL_SUCCESS)
+            if (_success >= NOMAD::SuccessType::FULL_SUCCESS)
             {
                 // Use empty direction. It is not needed because the mesh is not anisotropic.
                 if (_mesh->enlargeDeltaFrameSize(NOMAD::Direction()))
@@ -320,18 +345,17 @@ void NOMAD::SimplePoll::endImp()
             _mesh->refineDeltaFrameSize();
         }
     }
-
-    OUTPUT_INFO_START
-    AddOutputInfo("delta mesh  size = " + _mesh->getdeltaMeshSize().display());
-    AddOutputInfo("Delta frame size = " + _mesh->getDeltaFrameSize().display());
-    OUTPUT_INFO_END
-
+    else
+    {
+        if (newBestFeas.isDefined() || newBestInf.isDefined())
+        {
+            _success = NOMAD::SuccessType::FULL_SUCCESS;
+        }
+    }
     
     // Make new best the ref bests
     _barrier->updateRefBests();
     
-    // Reset success
-    _success = NOMAD::SuccessType::UNSUCCESSFUL;
 
 }
 
@@ -386,6 +410,7 @@ void NOMAD::SimplePoll::computePrimarySecondaryPollCenters(NOMAD::SimpleEvalPoin
                 // xFeas' f is too large, use xInf as primary poll instead.
                 primaryIsInf = true;
             }
+            
         }
     }
     
@@ -427,18 +452,19 @@ void NOMAD::SimplePoll::createPollMethod(const bool isPrimary, const SimpleEvalP
     }
     
     // Select the poll methods to be executed
-    std::shared_ptr<NOMAD::PollMethodBase> pollMethod;
+    std::unique_ptr<NOMAD::PollMethodBase> pollMethod;
     auto fc = std::make_shared<NOMAD::EvalPoint>(frameCenter);
     if (isPrimary)
     {
-        pollMethod = std::make_shared<NOMAD::Ortho2NPollMethod>(this, fc);
+        pollMethod = std::make_unique<NOMAD::Ortho2NPollMethod>(this, fc);
     }
     else
     {
-        pollMethod = std::make_shared<NOMAD::DoublePollMethod>(this, fc);
+        pollMethod = std::make_unique<NOMAD::DoublePollMethod>(this, fc );
     }
+    pollMethod->setRandomGenerator(_rng);
     _frameCenters.push_back(frameCenter);
-    _pollMethods.push_back(pollMethod);
+    _pollMethods.push_back(std::move(pollMethod));
 
 }
 
@@ -448,6 +474,11 @@ void NOMAD::SimplePoll::createPollMethodsForPollCenters()
     // Compute primary and secondary poll centers
     NOMAD::SimpleEvalPoint primaryCenter, secondaryCenter;
     computePrimarySecondaryPollCenters(primaryCenter, secondaryCenter);
+    
+    OUTPUT_INFO_START
+    AddOutputInfo("Primary poll center: "+primaryCenter.display());
+    AddOutputInfo("Secondary poll center: "+secondaryCenter.display());
+    OUTPUT_INFO_END
 
     // Add poll methods for primary polls
     _pollMethods.clear();
@@ -470,11 +501,20 @@ void NOMAD::SimplePoll::evalTrialPoints()
     {
         AddOutputInfo("Eval not ok for one of the trial point ");
     }
+    else
+    {
+        AddOutputInfo("Eval ok: ");
+        for (const auto & tp: _trialPoints)
+        {
+            AddOutputInfo(tp.display()+" F="+tp.getF().tostring()+" H="+tp.getH().tostring());
+        }
+    }
     OUTPUT_INFO_END
     
     
     // Count eval
     _nbEval += _trialPoints.size();
+    _singleNbEval += _trialPoints.size();
 }
 
 

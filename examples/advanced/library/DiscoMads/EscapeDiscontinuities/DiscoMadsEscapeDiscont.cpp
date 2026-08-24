@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*--------------------------------------------------------------------------*/
 /*  example of a program that uses DiscoMads to reveal and escape           */
 /* discontinuities in user-defined revealing blackbox outputs               */
@@ -162,6 +163,7 @@ void initParams(NOMAD::AllParameters &p)
     p.setAttributeValue("DISCO_MADS_REVEALING_POLL_NB_POINTS", n);
 
     // ------- Recommended parameters for DiscoMads
+    // no parallelism
 
     // quad models are deactivated as they may be slow with DiscoMads
     p.getRunParams()->setAttributeValue("QUAD_MODEL_SEARCH", false);

@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include <iomanip>  // For std::setprecision
 
 #include "../Param/PbParameters.hpp"
@@ -474,40 +475,92 @@ void NOMAD::PbParameters::setFixedVariables()
 }
 
 // This -> should be set at read
-// If a single group of variables is set the remaining variables
+// If a single group of variables is set the remaining quantitative variables
 // must be in another variable group
+// If CAT_GROUP is set, this manages the transfer from CAT_GROUP to VARIABLE_GROUP
 void NOMAD::PbParameters::setVariableGroups()
 {
+    
     auto lvg = getAttributeValueProtected<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP",false);
-
-    if (lvg.empty())
+    auto cvg = getAttributeValueProtected<NOMAD::ListOfVariableGroup>("CAT_GROUP",false);
+    
+    if (_catGroupInterpreted || ( cvg.empty() && lvg.empty()))
         return;
 
     const size_t n = getAttributeValueProtected<size_t>("DIMENSION",false);
-
-    // Test if indices are uniquely used by the groups of variables
-    // Create a single set of indices from all existing group of variables
+    
     std::set<size_t> listOfAllVariableIndices;
     std::pair<std::set<size_t>::iterator,bool> ret;
-    for (const auto& vg: lvg )
+    if (cvg.empty())
     {
+        // VARIABLE_GROUP -->  Done only if no CAT_GROUP.
+        // Test if indices are uniquely used by the groups of variables
+        // Create a single set of indices from all existing group of variables
+        for (const auto& vg: lvg )
+        {
+            for (auto index: vg)
+            {
+                if ( index >= n)
+                {
+                    std::ostringstream oss;
+                    oss << "Parameters check: VARIABLE_GROUP, an index must be an integer in [0;" << n-1 << "]." << std::endl;
+                    throw NOMAD::InvalidParameter(__FILE__, __LINE__, oss.str());
+                }
+                ret = listOfAllVariableIndices.insert(index);
+                if (!ret.second)
+                {
+                    std::ostringstream oss;
+                    oss << "Parameters check: VARIABLE_GROUP, each index must be unique." << std::endl;
+                    throw NOMAD::InvalidParameter(__FILE__, __LINE__, oss.str());
+                }
+            }
+        }
+    }
+    
+    
+    // CAT_GROUP ---> ends-up in the first variable groups
+    //                remaining variables are in the last group
+    // Done only if no VARIABLE_GROUP.
+    // Test if indices are uniquely used by the groups of variables
+    // Create a single set of indices from all existing group of variables
+    
+    std::set<size_t> groupListIndices;
+    if (!cvg.empty())
+    {
+        listOfAllVariableIndices.clear();
+    }
+    for (const auto& vg: cvg )
+    {
+        groupListIndices.clear();
         for (auto index: vg)
         {
             if ( index >= n)
             {
                 std::ostringstream oss;
-                oss << "Parameters check: VARIABLE_GROUP, an index must be an integer in [0;" << n-1 << "]." << std::endl;
+                oss << "Parameters check: CAT_GROUP, an index must be an integer in [0;" << n-1 << "]." << std::endl;
                 throw NOMAD::InvalidParameter(__FILE__, __LINE__, oss.str());
             }
             ret = listOfAllVariableIndices.insert(index);
+            groupListIndices.insert(index);
             if (!ret.second)
             {
                 std::ostringstream oss;
-                oss << "Parameters check: VARIABLE_GROUP, each index must be unique." << std::endl;
+                oss << "Parameters check: CAT_GROUP, each index must be unique. CAT_GROUP: ";
+                for (auto index: vg)
+                {
+                    oss << index << " ";
+                }
+                oss << std::endl;
                 throw NOMAD::InvalidParameter(__FILE__, __LINE__, oss.str());
             }
         }
+        lvg.push_back(groupListIndices);
     }
+    if (!cvg.empty())
+    {
+        _catGroupInterpreted = true;
+    }
+
 
     // Some indices are not in any VARIABLE_GROUP, create a new group
     if (listOfAllVariableIndices.size() < n)
@@ -524,7 +577,7 @@ void NOMAD::PbParameters::setVariableGroups()
         if (!newVG.empty())
         {
             lvg.push_back(newVG);
-
+        
             // Update values
             setAttributeValue("VARIABLE_GROUP", lvg);
         }

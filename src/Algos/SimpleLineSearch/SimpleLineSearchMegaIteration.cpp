@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/DMultiMads/DMultiMadsBarrier.hpp"
@@ -71,6 +72,7 @@ void NOMAD::SimpleLineSearchMegaIteration::startImp()
     if ( ! _stopReasons->checkTerminate() )
     {
         // Default mega iteration start tasks
+        // See issue #639
         NOMAD::MegaIteration::startImp();
     }
 }

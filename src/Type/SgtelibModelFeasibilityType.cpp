@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   SgtelibModelFeasibilityType.cpp
  \brief  types for parameter SGTELIB_MODEL_FEASIBILITY (implementation)

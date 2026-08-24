@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_NMSIMPLEX_EVALPOINT__
-#define __NOMAD_4_5_NMSIMPLEX_EVALPOINT__
+
+#ifndef __NOMAD_4_6_NMSIMPLEX_EVALPOINT__
+#define __NOMAD_4_6_NMSIMPLEX_EVALPOINT__
 
 #include "../../Eval/EvalPoint.hpp"
 
@@ -64,4 +65,4 @@ typedef NMSimplexEvalPointSet::iterator NMSimplexEvalPointSetIterator;
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_NMSIMPLEX_EVALPOINT__
+#endif // __NOMAD_4_6_NMSIMPLEX_EVALPOINT__

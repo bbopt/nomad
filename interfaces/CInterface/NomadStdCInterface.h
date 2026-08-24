@@ -35,6 +35,8 @@ typedef bool (*Callback_BB_single)(int, double *, int, double *, bool *,
                                    NomadUserDataPtr);
 typedef void (*Callback_BB_block)(int, int, double *, int, double *, bool *, bool *,
                                   NomadUserDataPtr);
+// MegaIteration callback function type
+typedef void (*Callback_MegaIter)(int, int, double *, int, double *, bool *);
 
 // Contains information concerning the solution return by Nomad
 struct NomadResultInfo;
@@ -77,6 +79,8 @@ DLL_EXPORT_API bool addNomadArrayOfDoubleParam(const NomadProblem nomad_problem,
                                                const char *keyword,
                                                const double *array_param);
 
+
+DLL_EXPORT_API bool addMegaIterationCallback(Callback_MegaIter megaIterCallback);
 
 // Solve the problem and return the following flag
 // *  1 - Objective target reached OR Mads converged (mesh criterion) to a feasible point (true problem).

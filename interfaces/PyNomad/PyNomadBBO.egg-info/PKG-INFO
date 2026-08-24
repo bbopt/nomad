@@ -1,0 +1,38 @@
+Metadata-Version: 2.4
+Name: PyNomadBBO
+Version: 4.6.0
+Summary: Python interface to Nomad 4
+Home-page: https://github.com/bbopt/nomad
+Author: Jan Provaznik and Christophe Tribes
+Author-email: Jan Provaznik and Christophe Tribes <christophe.tribes@polymtl.ca>
+Maintainer-email: Christophe Tribes <christophe.tribes@polymtl.ca>
+Project-URL: Documentation, https://nomad-4-user-guide.readthedocs.io/
+Project-URL: Repository, https://github.com/bbopt/nomad.git
+Project-URL: Issues, https://github.com/bbopt/nomad/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: C++
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: author
+Dynamic: home-page
+Dynamic: license-file
+
+NOMAD is a blackbox optimization software coded in C++. PyNomad is the Python interface to NOMAD.
+
+NOMAD stands for Nonlinear Optimization using the MADS (Mesh Adaptive Direct Search) Algorithm. NOMAD and PyNomad solve constrained optimization problems of blackbox functions in the form:
+
+minimize f(x) 
+
+subject to: nlcon(x) <= 0, lb <= x <= ub and x in R
+
+Once PyNomad is installed, a longer description is obtained by running PyNomad.info(). Examples of PyNomad utilization are provided in https://github.com/bbopt/nomad/tree/master/examples/advanced/library/PyNomad.
+
+**Please cite NOMAD 4 with reference:**
+
+C. Audet, S. Le Digabel, V. Rochon Montplaisir, and C. Tribes.
+Algorithm 1027: NOMAD version 4: Nonlinear optimization with the MADS algorithm.
+*ACM Transactions on Mathematical Software*.
+Volume 48, Issue 3, Article No.: 35, pp 1–22.
+https://doi.org/10.1145/3544489

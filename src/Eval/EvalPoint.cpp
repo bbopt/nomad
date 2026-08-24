@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   EvalPoint.cpp
  \brief  Evaluation point (implementation)
@@ -254,7 +255,7 @@ bool NOMAD::EvalPoint::operator== (const NOMAD::EvalPoint &evalPoint) const
     // Ignore numberEval.
     // Ignore pointFrom and genSteps.
 
-    // Compare Evals for evalTypes BB, MODEL, SURROGATE.
+    // Compare Evals for evalTypes BB, MODEL, CAT_MODEL, SURROGATE.
     for (size_t i = 0; (equal && i < (size_t)NOMAD::EvalType::LAST); i++)
     {
         auto evalType = NOMAD::EvalType(i);
@@ -419,12 +420,12 @@ void NOMAD::EvalPoint::setBBO(const std::string &bbo,
     // Quad model evaluator passes the eval type explicitly.
     // Also Evaluator::evalXBBExe passes the eval type explicitly.
     NOMAD::Eval * eval = nullptr;
-    if (NOMAD::EvalType::LAST == evalType)
+    if (NOMAD::EvalType::LAST <= evalType)
     {
         // Select the single eval in progress
         evalType = getSingleEvalType(NOMAD::EvalStatusType::EVAL_IN_PROGRESS);
     }
-    eval = getEval(evalType);
+    eval = NOMAD::EvalPoint::getEval(evalType);
 
     if (nullptr == eval)
     {
@@ -450,7 +451,7 @@ void NOMAD::EvalPoint::setBBO(const std::string &bbo,
                               const bool evalOk)
 {
     NOMAD::BBOutputTypeList bbOutputTypeList = NOMAD::stringToBBOutputTypeList(sBBOutputTypes);
-    setBBO(bbo, bbOutputTypeList, evalType, evalOk);
+    NOMAD::EvalPoint::setBBO(bbo, bbOutputTypeList, evalType, evalOk);
 }
 
 
@@ -805,7 +806,7 @@ bool NOMAD::EvalPoint::toEval(short maxPointBBEval, NOMAD::EvalType evalType) co
         // No eval, return true.
         reEval = true;
     }
-    else if (NOMAD::EvalType::MODEL == evalType || NOMAD::EvalType::SURROGATE == evalType)
+    else if (NOMAD::EvalType::MODEL == evalType || NOMAD::EvalType::CAT_MODEL == evalType || NOMAD::EvalType::SURROGATE == evalType)
     {
         // If using model, or static surrogate, never allow re-evaluation.
         reEval = false;
@@ -927,6 +928,11 @@ bool NOMAD::EvalPoint::hasModelEval(const NOMAD::EvalPoint& evalPoint)
     return (nullptr != evalPoint.getEval(NOMAD::EvalType::MODEL));
 }
 
+// Determine if an evalpoint has a cat model eval.
+bool NOMAD::EvalPoint::hasCatModelEval(const NOMAD::EvalPoint& evalPoint)
+{
+    return (nullptr != evalPoint.getEval(NOMAD::EvalType::CAT_MODEL));
+}
 
 // Determine if an eval point has a static surrogate eval.
 bool NOMAD::EvalPoint::hasSurrogateEval(const NOMAD::EvalPoint& evalPoint)

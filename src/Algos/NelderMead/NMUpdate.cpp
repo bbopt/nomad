@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/NelderMead/NMUpdate.hpp"
 
 void NOMAD::NMUpdate::init()

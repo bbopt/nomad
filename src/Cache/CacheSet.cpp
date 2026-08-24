@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   CacheSet.cpp
  \brief  Simple implementation of Cache derived from CacheBase (implementation)
@@ -615,6 +616,28 @@ size_t NOMAD::CacheSet::find(std::function<bool(const NOMAD::EvalPoint&)> crit,
     return evalPointList.size();
 }
 
+const NOMAD::EvalPoint NOMAD::CacheSet::find(const int & tag) const
+{
+    NOMAD::EvalPoint ep;
+    NOMAD::EvalPointSet::const_iterator it;
+#ifdef _OPENMP
+    omp_set_lock(&_cacheLock);
+#endif // _OPENMP
+    for (it = _cache.begin(); it != _cache.end(); ++it)
+    {
+        if (it->getTag() == tag)
+        {
+            ep = *it;
+            break;
+        }
+    }
+    
+#ifdef _OPENMP
+    omp_unset_lock(&_cacheLock);
+#endif // _OPENMP
+    return ep;
+}
+
 
 void NOMAD::CacheSet::browse(std::function<void(const NOMAD::EvalPoint&)> crit) const
 {
@@ -1023,7 +1046,8 @@ size_t NOMAD::CacheSet::findFilterInf(std::vector<NOMAD::EvalPoint> &evalPointLi
         {
             continue;
         }
-        if (eval->isFeasible(compactComputeType)){
+        if (eval->isFeasible(compactComputeType))
+        {
             continue;
         }
         NOMAD::Double h = eval->getH(compactComputeType);

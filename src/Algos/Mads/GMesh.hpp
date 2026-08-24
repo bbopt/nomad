@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  * \file   GMesh.hpp
  * \brief  Class for Granular Mesh
@@ -51,8 +52,8 @@
  * \date   November 2017
  */
 
-#ifndef __NOMAD_4_5_GMESH__
-#define __NOMAD_4_5_GMESH__
+#ifndef __NOMAD_4_6_GMESH__
+#define __NOMAD_4_6_GMESH__
 
 #include "../../Eval/MeshBase.hpp"
 #include "../../Param/RunParameters.hpp"
@@ -223,9 +224,9 @@ public:
      \copydoc MeshBase::scaleAndProjectOnMesh
      \note This implementation relies on GMesh::_frameSizeExp and GMesh::_frameSizeMant.
      */
-    Double scaleAndProjectOnMesh(size_t i, const Double &l) const override;
+    Double scaleAndProjectOnMesh(size_t i, const Double &l, bool isAds = false) const override;
 
-    ArrayOfDouble scaleAndProjectOnMesh(const Direction &dir) const override;
+    ArrayOfDouble scaleAndProjectOnMesh(const Direction &dir, bool isAds = false) const override;
 
     /**
      * Project the point on the mesh centered on frameCenter. No scaling.
@@ -264,4 +265,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_GMESH__
+#endif // __NOMAD_4_6_GMESH__

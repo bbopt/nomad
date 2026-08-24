@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Param/AllParameters.hpp"
 #include "../Type/EvalSortType.hpp"
 #include "../Util/fileutils.hpp"
@@ -274,7 +275,8 @@ bool NOMAD::AllParameters::mayUseSurrogate() const
     }
     bool sortWithSurrogate = (_evaluatorControlParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT") == NOMAD::EvalSortType::SURROGATE);
     bool vnsUseSurrogate = _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE");
-
+    
+    
     return sortWithSurrogate || vnsUseSurrogate;
 }
 

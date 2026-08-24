@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   Double.cpp
  \brief  Custom class for double-precision reals (implementation)
@@ -160,6 +161,7 @@ const double & NOMAD::Double::todouble() const
 {
     if (! _defined)
     {
+        
         throw NotDefined(__FILE__, __LINE__, "NOMAD::Double::todouble(): value not defined");
     }
     return _value;
@@ -199,7 +201,6 @@ bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision, const NOMA
             double powprec = std::pow(10,precision.round());
             _value = std::round(_value * powprec) / powprec;
 
-
             // During the arithmetic operations we may have rounded _value slightly below or above (wrt EPSILON) lb or ub
             // This can trigger an exception later
             if (lb.isDefined() && _value < lb.todouble())
@@ -210,7 +211,6 @@ bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision, const NOMA
             {
                 _value = ub.todouble();
             }
-
         }
         else
         {
@@ -961,7 +961,7 @@ NOMAD::Double NOMAD::Double::relErr ( const NOMAD::Double & x ) const
     if ( this == &x || _value == x._value )
         return 0.0;
 
-    double diff = std::fabs ( _value - x._value );
+    double diff = fabs ( _value - x._value );
 
     // 2. test if one of the values is zero:
     if ( _value == 0.0 || x._value == 0.0 )
@@ -974,8 +974,8 @@ NOMAD::Double NOMAD::Double::relErr ( const NOMAD::Double & x ) const
     }
 
     // 3. compute the original error:
-    double a   = std::fabs ( _value   );
-    double b   = std::fabs ( x._value );
+    double a   = fabs ( _value   );
+    double b   = fabs ( x._value );
     double err = diff / ( (a<b) ? b : a );
 
     // 4. test if we have opposite signs:

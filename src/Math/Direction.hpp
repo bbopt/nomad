@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   Direction.hpp
  \brief  Direction: Represent geometrical vectors
@@ -52,11 +53,12 @@
  \see    Direction.cpp
  */
 
-#ifndef __NOMAD_4_5_DIRECTION__
-#define __NOMAD_4_5_DIRECTION__
+#ifndef __NOMAD_4_6_DIRECTION__
+#define __NOMAD_4_6_DIRECTION__
 
 #include <numeric>
 #include "../Math/ArrayOfDouble.hpp"
+#include "../Math/SimpleRNG.hpp"
 
 #include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
@@ -171,13 +173,13 @@ public:
     /**
      \param randomDir of the desired dimension -- \b IN/OUT
      */
-    static void computeDirOnUnitSphere(Direction &randomDir);
+    static void computeDirOnUnitSphere(Direction &randomDir, const std::shared_ptr<SimpleRNG> & rng = nullptr);
 
     /// Compute a random direction in a unit N-Sphere
     /**
      \param randomDir of the desired dimension -- \b IN/OUT
      */
-    static void computeDirInUnitSphere(Direction &randomDir);
+    static void computeDirInUnitSphere(Direction &randomDir, const std::shared_ptr<SimpleRNG> & rng = nullptr);
     
     /// Householder transformation
     /** Householder transformation to generate n directions from a given direction. Also computes H[i+n] = -H[i] (completion to 2n directions).
@@ -188,6 +190,10 @@ public:
     static void householder(const Direction &dir,
                             bool completeTo2n,
                             Direction ** H);
+    
+    /// Extended the direction from a reference point to the bounds. Ignore mesh.
+    Direction forceExtendToBounds(const NOMAD::ArrayOfDouble & refPt, const ArrayOfDouble &lb,
+                           const ArrayOfDouble &ub) const ;
 
 };
 
@@ -204,4 +210,4 @@ DLL_UTIL_API std::ostream& operator<< (std::ostream& out, const Direction& d);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_5_DIRECTION__
+#endif // __NOMAD_4_6_DIRECTION__

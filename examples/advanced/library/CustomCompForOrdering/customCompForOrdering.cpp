@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*--------------------------------------------------------------------------*/
 /*  Example of a program that uses a custom comparison (2 elements) for     */
 /*  ordering trial points before evaluation.                                */

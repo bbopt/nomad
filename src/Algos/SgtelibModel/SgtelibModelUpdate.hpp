@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_SGTELIB_MODEL_UPDATE__
-#define __NOMAD_4_5_SGTELIB_MODEL_UPDATE__
+
+#ifndef __NOMAD_4_6_SGTELIB_MODEL_UPDATE__
+#define __NOMAD_4_6_SGTELIB_MODEL_UPDATE__
 
 #include "../../Algos/Step.hpp"
 #include "../../Output/OutputInfo.hpp"  // for OutputLevel
@@ -82,4 +83,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SGTELIB_MODEL_UPDATE__
+#endif // __NOMAD_4_6_SGTELIB_MODEL_UPDATE__

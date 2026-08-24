@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/EvcInterface.hpp" // To access EvalType
 #include "../../Algos/NelderMead/NMSimplexEvalPoint.hpp"
 #include "../../Eval/ComputeSuccessType.hpp"

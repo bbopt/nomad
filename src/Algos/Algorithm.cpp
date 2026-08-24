@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include <signal.h>
 
 #include "../Algos/Algorithm.hpp"
@@ -117,6 +118,9 @@ void NOMAD::Algorithm::init()
         evc->setHNormType(hNormType);
         evc->setComputeType(computeType);
     }
+    
+    // Initialize algo callback with nullptr and the correct size
+    _algoCallbacks.resize(algo_callback_type_index(NOMAD::AlgoCallbackType::COUNT));
 
     /** Step::userInterrupt() will be called if CTRL-C is pressed.
      * Currently, the main thread will wait for all evaluations to be complete.
@@ -162,7 +166,6 @@ void NOMAD::Algorithm::startImp()
 
     // By default, reset the lap counter for BbEval and set the lap maxBbEval to INF
     NOMAD::EvcInterface::getEvaluatorControl()->resetLapBbEval();
-    NOMAD::EvcInterface::getEvaluatorControl()->setLapMaxBbEval( NOMAD::INF_SIZE_T );
     NOMAD::EvcInterface::getEvaluatorControl()->resetModelEval();
 
     if (nullptr == _refMegaIteration)
@@ -229,7 +232,6 @@ void NOMAD::Algorithm::endImp()
     
     // Update parent if it exists (can be Algo or IterationUtils)  with this stats
     _trialPointStats.updateParentStats();
-
  
     // Reset user algo stop reason
     if (_stopReasons->testIf(NOMAD::IterStopType::USER_ALGO_STOP))
@@ -252,6 +254,7 @@ void NOMAD::Algorithm::endImp()
         NOMAD::CacheBase::getInstance()->setStopWaiting(true);
     }
 }
+
 
 
 void NOMAD::Algorithm::updateStats(TrialPointStats &trialPointStats)
@@ -697,6 +700,7 @@ NOMAD::EvalPoint NOMAD::Algorithm::getBestSolution(bool bestFeas) const
         {
             bestSolPtr = barrier->getCurrentIncumbentInf();
         }
+        // Sub space to Full space conversion
         if (nullptr != bestSolPtr)
         {
             bestSol = bestSolPtr->makeFullSpacePointFromFixed(fixedVariable);

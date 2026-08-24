@@ -45,8 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_5_EVCINTERFACE__
-#define __NOMAD_4_5_EVCINTERFACE__
+
+#ifndef __NOMAD_4_6_EVCINTERFACE__
+#define __NOMAD_4_6_EVCINTERFACE__
 
 #include "../Algos/Step.hpp"
 #include "../Eval/EvaluatorControl.hpp"
@@ -56,6 +57,12 @@
 
 /// Class interface with EvaluatorControl, used by an Algorithm step through IterationUtils
 /**
+ EvcInterface provides Algorithm steps with a simplified way to interact with the
+ (unique, static) EvaluatorControl: submitting trial points for evaluation after
+ checking the cache, retrieving evaluated points, managing the barrier used to
+ detect success, and evaluating single points such as X0. It also takes care of
+ converting points between the step's subspace (fixed variables removed) and the
+ full space expected by EvaluatorControl.
  */
 class EvcInterface
 {
@@ -92,7 +99,6 @@ public:
     static void resetEvaluatorControl()
     {
         _evaluatorControl.reset();
-        NOMAD::EvaluatorControl::resetCallbacks();
     }
 
     /**
@@ -127,7 +133,7 @@ public:
      \param trialPoints The trial points -- \b IN.
      \param useMesh     Flag to use mesh or not -- \b IN.
      */
-    void keepPointsThatNeedEval(const EvalPointSet &trialPoints, bool useMesh = true);
+    void keepPointsThatNeedEval(const EvalPointSet &trialPoints, bool useMesh = true, bool puncturedSpaceCheck = false);
     
     
     // This method is used by Poll to calculate the number of points to add to reach a target number
@@ -201,4 +207,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_EVCINTERFACE__
+#endif // __NOMAD_4_6_EVCINTERFACE__

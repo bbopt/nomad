@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/QuadModel/QuadModelAlgo.hpp"
 #include "../../Algos/QuadModel/QuadModelIteration.hpp"
 #include "../../Algos/QuadModel/QuadModelOptimize.hpp"
@@ -128,11 +129,28 @@ bool NOMAD::QuadModelIteration::runImp()
     // Model Update is handled in start().
     if (!_stopReasons->checkTerminate() && _model->is_ready() )
     {
+        //
+        // Determine and set Trust Region subproblem bounds.
+        //
+        // Box size is the current frame size
+        auto boxSize = getMesh()->getDeltaFrameSize();
+        // The center
+        auto center = getRefCenter();
+        auto lowerBound = *center - boxSize;
+        auto upperBound = *center + boxSize;
+        optimize.setOptimBounds(lowerBound, upperBound);
+        
+        
         // Optimize to find oracle points on this model
         optimize.start();
         iterationSuccess = optimize.run();
         optimize.end();
+        
+        // Update sufficient decrease flag
+        _sufficientDecrease = optimize.getReductionRatio() > _eta;
+        
     }
+
 
     // Update MegaIteration success type
     _success = optimize.getTrialPointsSuccessType();

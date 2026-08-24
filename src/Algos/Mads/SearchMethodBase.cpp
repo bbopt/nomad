@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/SearchMethodBase.hpp"
 #include "../../Output/OutputQueue.hpp"
 
@@ -64,11 +65,21 @@ void NOMAD::SearchMethodBase::init()
 
 void NOMAD::SearchMethodBase::endImp()
 {
-    // Compute hMax and update incumbents in barrier only if full success.
-    // If no trial points success, just add the points in barrier.
-    // HMax and incumbents update will be performed during poll.
+    // Replace default SuccessType by actual success type
+    // When not dynamicEnabled the success type is UNDEFINED.
+    if (_dynamicSearch)
+    {
+        _allSuccessTypes.back() =_trialPointsSuccess;
+    }
     
-    _updateIncumbentsAndHMax = (_trialPointsSuccess >= NOMAD::SuccessType::FULL_SUCCESS);
+    // General case:
+    // - Compute hMax and update incumbents in barrier only if full success
+    // - If no trial points success, just add the points in barrier.
+    // - else HMax and incumbents update will be performed during poll.
+    // ExtendedPoll(yes it is a search!) case:
+    // - Always update hMax and update incumbents in barrier
+    // - Extended poll is the last step of iteration
+    _updateIncumbentsAndHMax = (_trialPointsSuccess >= NOMAD::SuccessType::FULL_SUCCESS || isExtended());
     postProcessing();
 
     // Need to reimplement end() to set a stop reason for Mads based on the search method stop reason

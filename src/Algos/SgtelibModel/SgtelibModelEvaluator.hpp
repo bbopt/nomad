@@ -45,8 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_5_SGTELIB_MODEL_EVALUATION__
-#define __NOMAD_4_5_SGTELIB_MODEL_EVALUATION__
+
+#ifndef __NOMAD_4_6_SGTELIB_MODEL_EVALUATION__
+#define __NOMAD_4_6_SGTELIB_MODEL_EVALUATION__
 
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"
 #include "../../Eval/Evaluator.hpp"
@@ -79,7 +80,7 @@ public:
     virtual ~SgtelibModelEvaluator();
 
     bool eval_x(EvalPoint &x,
-                const Double &NOMAD_UNUSED(hMax),
+                [[maybe_unused]] const Double &hMax,
                 bool &countEval) const override;
 
 private:
@@ -89,4 +90,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SGTELIB_MODEL_EVALUATION__
+#endif // __NOMAD_4_6_SGTELIB_MODEL_EVALUATION__

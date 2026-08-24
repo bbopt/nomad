@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_PSDMADSMEGAITERATION__
-#define __NOMAD_4_5_PSDMADSMEGAITERATION__
+
+#ifndef __NOMAD_4_6_PSDMADSMEGAITERATION__
+#define __NOMAD_4_6_PSDMADSMEGAITERATION__
 
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
@@ -120,4 +121,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_PSDMADSMEGAITERATION__
+#endif // __NOMAD_4_6_PSDMADSMEGAITERATION__

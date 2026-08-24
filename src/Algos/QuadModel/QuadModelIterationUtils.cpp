@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/QuadModel/QuadModelIterationUtils.hpp"
 #include "../../Algos/QuadModel/QuadModelIteration.hpp"
 #include "../../Output/OutputQueue.hpp"

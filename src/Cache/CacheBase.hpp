@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  * \file   CacheBase.hpp
  * \brief  Base class for cache
@@ -51,8 +52,8 @@
  * \date   April 2017
  */
 
-#ifndef __NOMAD_4_5_CACHEBASE__
-#define __NOMAD_4_5_CACHEBASE__
+#ifndef __NOMAD_4_6_CACHEBASE__
+#define __NOMAD_4_6_CACHEBASE__
 
 #include <atomic>       // For atomic
 #include <vector>
@@ -221,7 +222,7 @@ public:
        to remove it from the cache, process it, and then put it back.
      */
     typedef void (*EvalFunc_t)(EvalPoint&);
-    virtual void processOnAllPoints(EvalFunc_t NOMAD_UNUSED(func), const int NOMAD_UNUSED(mainThreadNum) = -1)
+    virtual void processOnAllPoints([[maybe_unused]] EvalFunc_t func, [[maybe_unused]] const int mainThreadNum = -1)
     {
         std::cout << "Warning: processOnAllPoints is not implemented for this type of cache." << std::endl;
     }
@@ -367,6 +368,15 @@ public:
      */
     virtual size_t find(std::function<bool(const EvalPoint&)> crit,
                         std::vector<EvalPoint> &evalPointList) const = 0;
+    
+    /// \brief Find using tag.
+    /**
+     return a single point with tag.
+
+     \param tag                        The tag                               -- \b IN.
+     \return              The eval point with the selected tag. Can be undefined if not found.
+     */
+    virtual const EvalPoint find(const int & tag) const =0 ;
 
     /// Browse cache using criteria. The function can have access to remote info using the lambda
     /// function capture by reference.
@@ -514,4 +524,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_CACHEBASE__
+#endif // __NOMAD_4_6_CACHEBASE__

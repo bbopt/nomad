@@ -45,18 +45,17 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_5_MADS__
-#define __NOMAD_4_5_MADS__
+
+#ifndef __NOMAD_4_6_MADS__
+#define __NOMAD_4_6_MADS__
 
 #include "../../Algos/Algorithm.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Algos/Mads/MadsUserMethodCallback.hpp"
 #include "../../Algos/Mads/SearchMethodBase.hpp"
+#include "../../Algos/Mads/PollMethodBase.hpp"
 
 #include "../../nomad_nsbegin.hpp"
-
-typedef std::function<bool(const Step& step, std::list<Direction> & dir, const size_t n)> UserPollMethodCbFunc;  ///< Type definitions for callback functions for user Poll method.
-typedef std::function<bool(const Step& step, EvalPointSet & trialPoint)> UserSearchMethodCbFunc;  ///< Type definitions for callback functions for user Search method.
-typedef std::function<bool(const Step& step)> UserMethodEndCbFunc;  ///< Type definitions for callback functions used after evaluations of trial points proposed by user Search and Poll methods.
 
 
 /// The (M)esh (A)daptive (D)irect (S)earch algorithm.
@@ -69,20 +68,17 @@ class DLL_ALGO_API Mads: public Algorithm
 {
 private:
 
-    static UserSearchMethodCbFunc       _cbUserSearchMethod;
-    static UserSearchMethodCbFunc       _cbUserSearchMethod_2;
-    static UserMethodEndCbFunc          _cbUserSearchMethodEnd;
-    static UserPollMethodCbFunc         _cbUserPollMethod;
-    static UserPollMethodCbFunc         _cbUserFreePollMethod;
-    static UserMethodEndCbFunc          _cbUserFreePollMethodEnd;
 
     // Flags for user method callbacks.
     // Flags are set to true when adding callback. This is done only if USER_CALLS_ENABLED==true.
     bool _hasUserSearchMethod, _hasUserPollMethod, _hasUserFreePollMethod;
 
-
-private:
+    // Mads stores extra search methods (NOT FOR user search).
     std::vector<std::pair<std::size_t,std::shared_ptr<SearchMethodBase>>> _extraSearchMethods;
+
+    // Store Mads callbacks for user poll/search methods into vector.
+    // Order in vector follows MadsCallbackType
+    std::vector<std::unique_ptr<MadsCallbackBase>> _madsCallbacks;
 
 public:
     /// Constructor
@@ -114,46 +110,53 @@ public:
     /// For suggest and observe PyNomad interface
     NOMAD::ArrayOfPoint suggest() override;
     void observe(const std::vector<NOMAD::EvalPoint>& evalPointList) override;
-    
-    
-    /// Insert extra search methods. To be accesses
+
+
+    /// Insert extra search methods (NOT FOR user search). For algo like DMultiMads or COOPMads that have some special search methods.
     void insertSearchMethod(size_t pos, const std::shared_ptr<SearchMethodBase>& searchMethod)
     {
         _extraSearchMethods.push_back(std::pair<size_t,std::shared_ptr<SearchMethodBase>>(pos,searchMethod));
     }
-    
+    /// Access extra search methods (NOT FOR user search).
     std::vector<std::pair<std::size_t,std::shared_ptr<SearchMethodBase>>> & accessExtraSearchMethods()
     {
         return _extraSearchMethods;
     }
 
-    /// \brief Set user method callback
-    void addCallback(const CallbackType& callbackType,
-                     const UserPollMethodCbFunc& userPollCbFunc);
-    void addCallback(const CallbackType& callbackType,
-                     const UserSearchMethodCbFunc& userSearchCbFunc);
-    /// \brief Set user method post eval callback
-    void addCallback(const CallbackType& callbackType,
-                     const UserMethodEndCbFunc& userCbFunc) const;
 
-    /// \brief Run user poll method callback to produce direction
-    bool runCallback(const CallbackType& callbackType,
-                     const Step& step,
-                     std::list<Direction> & dir,
-                     const size_t n) const;
+    // Find and cast a specific callback
+    template<NOMAD::MadsCallbackType CT>
+    MadsCallback<CT>* getCallback() const
+    {
+        return dynamic_cast<MadsCallback<CT>*>(_madsCallbacks[mads_callback_type_index(CT)].get());
+    }
 
-    /// \brief Run user search method callback to produce trial points
-    bool runCallback(const CallbackType& callbackType,
-                     const Step& step,
-                     EvalPointSet & trialPoints) const;
+    /// \brief Set mads user method callback according to callback type
+    template<MadsCallbackType CT, typename Fn>
+    void addCallback(Fn&& fn)
+    {
+        checkCallback(CT);
+        _madsCallbacks[mads_callback_type_index(CT)] = std::move(makeMadsCallbackBase<CT>(fn));
+    }
 
-    /// \brief Run user method post eval callback to produce direction
-    bool runCallback(const CallbackType& callbackType,
-                     const Step& step) const;
+    void addCallback(std::unique_ptr<MadsCallbackBase> cb)
+    {
+        checkCallback(cb->getType());
+        _madsCallbacks[mads_callback_type_index(cb->getType())] = std::move(cb);
+    }
+
 
     bool hasUserSearchMethod() const {return _hasUserSearchMethod;}
     bool hasUserPollMethod() const {return _hasUserPollMethod;}
     bool hasUserFreePollMethod() const {return _hasUserFreePollMethod;}
+
+protected:
+    /// Algorithm execution for single-objective.
+    /**
+     Overrides the default algorithm's run
+     \return \c true if a full success was found, \c false otherwise
+     */
+    virtual bool runImp() override;
 
 private:
     ///  Initialization of class, to be used by Constructor.
@@ -162,17 +165,14 @@ private:
     */
     void init(bool barrierInitializedFromCache);
 
-    /// Algorithm execution for single-objective.
-    /**
-     Overrides the default algorithm's run
-     \return \c true if a full success was found, \c false otherwise
-     */
-    virtual bool runImp() override;
-
     /// Helper for start()
     void readInformationForHotRestart() override;
+
+    /// Check that the callback is consistent with Mads parameters (USER_SEARCH enabled or DIRECTION_TYPE properly set)
+    /// Also set the flag hasXXXXMethod
+    void checkCallback(NOMAD::MadsCallbackType CT);
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_MADS__
+#endif // __NOMAD_4_6_MADS__

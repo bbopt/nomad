@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_NMMEGAITERATION__
-#define __NOMAD_4_5_NMMEGAITERATION__
+
+#ifndef __NOMAD_4_6_NMMEGAITERATION__
+#define __NOMAD_4_6_NMMEGAITERATION__
 
 #include "../../Algos/MegaIteration.hpp"
 #include "../../Algos/NelderMead/NMIteration.hpp"
@@ -123,4 +124,4 @@ std::istream& operator>>(std::istream& is, NMMegaIteration& megaIteration);
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_NMMEGAITERATION__
+#endif // __NOMAD_4_6_NMMEGAITERATION__

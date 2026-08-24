@@ -382,7 +382,7 @@ void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
                                          SGTELIB::Matrix * cdf) {
 
   // Prediction requires that the model is ready.
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
 
   // Check the number of columns in XX
@@ -512,7 +512,7 @@ void SGTELIB::Surrogate::predict_private (const SGTELIB::Matrix & XXs,
                                                 SGTELIB::Matrix * std,
                                                 SGTELIB::Matrix * ei ,
                                                 SGTELIB::Matrix * cdf) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
 
   const int pxx = XXs.get_nb_rows();
@@ -583,7 +583,7 @@ void SGTELIB::Surrogate::predict_private (const SGTELIB::Matrix & XXs,
 void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
                                          SGTELIB::Matrix * ZZ ) {
 
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
 
 
@@ -635,7 +635,7 @@ void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
 /*---------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Zhs (void){
   if ( ! _Zhs){
-    check_ready(__FILE__,__FUNCTION__,__LINE__);
+    check_ready(__FILE__,__func__,__LINE__);
 
     // Init
     _Zhs = new SGTELIB::Matrix("Zhs",_p,_m);
@@ -654,7 +654,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Zhs (void){
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Shs (void){
   if ( ! _Shs){
-    check_ready(__FILE__,__FUNCTION__,__LINE__);
+    check_ready(__FILE__,__func__,__LINE__);
 
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute _Shs\n";
@@ -735,7 +735,7 @@ const SGTELIB::Matrix SGTELIB::Surrogate::get_matrix_Ds (void){
 /* a model                                 */
 /*-----------------------------------------*/
 const SGTELIB::Matrix SGTELIB::Surrogate::get_matrix_Zh (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   SGTELIB::Matrix Zh (*get_matrix_Zhs()); // Get scaled matrix
   _trainingset.Z_unscale(&Zh); // Unscale
   return Zh; // Return unscaled
@@ -749,7 +749,7 @@ const SGTELIB::Matrix SGTELIB::Surrogate::get_matrix_Zh (void){
 /* values at the training points                   */
 /*-------------------------------------------------*/
 const SGTELIB::Matrix SGTELIB::Surrogate::get_matrix_Zv (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   SGTELIB::Matrix Zv (*get_matrix_Zvs()); // Get scaled matrix
   _trainingset.Z_unscale(&Zv); // Unscale
   return Zv; // Return unscaled
@@ -761,7 +761,7 @@ const SGTELIB::Matrix SGTELIB::Surrogate::get_matrix_Zv (void){
 /*--------------------------------------*/
 const SGTELIB::Matrix SGTELIB::Surrogate::get_matrix_Sh (void){
   // Return unscaled matrix Shs
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   SGTELIB::Matrix Sh = (*get_matrix_Shs());
   _trainingset.ZE_unscale(&Sh); // Unscale (without additive constant)
   return Sh; // Return unscaled
@@ -772,7 +772,7 @@ const SGTELIB::Matrix SGTELIB::Surrogate::get_matrix_Sh (void){
 /*--------------------------------------*/
 const SGTELIB::Matrix SGTELIB::Surrogate::get_matrix_Sv (void){
   // Return unscaled matrix Sv
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   SGTELIB::Matrix Sv (*get_matrix_Svs()); // Get scaled matrix
   _trainingset.ZE_unscale(&Sv); // Unscale (without additive constant)
   return Sv; // Return unscaled
@@ -990,7 +990,7 @@ SGTELIB::Matrix SGTELIB::Surrogate::compute_efi( const SGTELIB::Matrix & Zs,
 /*       compute linv                   */
 /*--------------------------------------*/
 void SGTELIB::Surrogate::compute_metric_linv (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   if ( !is_defined(SGTELIB::METRIC_LINV) ){
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute metric linv\n";
@@ -1467,7 +1467,7 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
             d = double(k);
             break;
           case SGTELIB::PARAM_DOMAIN_BOOL:
-            d = (d>1/2)?1.0:0.0;
+            d = (d>0.5)?1.0:0.0;
             break;
           case SGTELIB::PARAM_DOMAIN_MISC:
             throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Invalid variable domain!" );

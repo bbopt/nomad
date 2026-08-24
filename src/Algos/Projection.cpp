@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*-------------------------------------------------------------------------------------*/
 /**
  \file   Projection.hpp
@@ -172,6 +173,7 @@ void NOMAD::Projection::projectPoint(const NOMAD::EvalPoint& oraclePoint)
 
     // STD projected point
     stdProjectedPoint(oraclePoint);
+
 
     // Try perturbation
     std::string subStepName = "Projection candidate";

@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/NelderMead/NMMegaIteration.hpp"
 #include "../../Output/OutputQueue.hpp"
@@ -114,6 +115,7 @@ void NOMAD::NMMegaIteration::startImp()
         OUTPUT_DEBUG_END
         
         // Default mega iteration start tasks
+        // See issue #639
         NOMAD::MegaIteration::startImp();
     }
 }

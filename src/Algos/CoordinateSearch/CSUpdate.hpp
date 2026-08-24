@@ -45,8 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_5_CSUPDATE__
-#define __NOMAD_4_5_CSUPDATE__
+
+#ifndef __NOMAD_4_6_CSUPDATE__
+#define __NOMAD_4_6_CSUPDATE__
 
 #include "../../Algos/Step.hpp"
 
@@ -97,5 +98,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_CSUPDATE__
+#endif // __NOMAD_4_6_CSUPDATE__
 

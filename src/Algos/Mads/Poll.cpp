@@ -45,7 +45,10 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
+#include "../../Algos/Ads/Ads.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Algos/CatMads/CatPollMethod.hpp"
 #include "../../Algos/DMultiMads/DMultiMadsBarrier.hpp"
 #include "../../Algos/Mads/DoublePollMethod.hpp"
 #include "../../Algos/Mads/NP1UniPollMethod.hpp"
@@ -122,9 +125,17 @@ void NOMAD::Poll::init()
             _mapDirTypeToVG = _runParams->getMapDirTypeToVG();
         }
     }
+    
+    // Ads Poll: Do not project poll points on mesh
+    const auto* ads =  getParentOfType<NOMAD::Ads*>(true/*do stop at algo*/);
+    if (nullptr != ads )
+    {
+        _projectOnMesh = false;
+        _puncturedSpaceCheckPreEval = true;
+    }
 
     // Unlike for search methods, we cannot generate poll methods during init because they depend on primary and secondary poll centers. The init is called once when instantiating Mads poll and poll centers change.
-
+    // Maybe refactor to set the poll centers on existing objects. Can be done while fixing issue #644.
 
 }
 
@@ -239,7 +250,10 @@ void NOMAD::Poll::endImp()
     // Sanity check. The endImp function should be called only when trial points are generated and evaluated for each search method separately.
     verifyGenerateAllPointsBeforeEval(NOMAD_PRETTY_FUNCTION, false);
 
-    // Compute hMax and update Barrier.
+    // Postprocessing updates the barrier and add some stats
+    // General case: poll is the last step of the iteration. Compute hMax and update Barrier.
+    // Special case if _extendedPoll is enabled and the poll is not a success. Delay compute hMax and update barrier after extended poll.
+    _updateIncumbentsAndHMax = !(_extendedPollEnabled && _success < NOMAD::SuccessType::FULL_SUCCESS);
     postProcessing();
 
 }
@@ -487,6 +501,9 @@ void NOMAD::Poll::createPollMethods(const bool isPrimary, const EvalPointPtr& fr
             case DirectionType::SINGLE:
                 pollMethod = std::make_shared<NOMAD::SinglePollMethod>(this, frameCenter);
                 break;
+            case DirectionType::CAT_FREE:
+                pollMethod = std::make_shared<NOMAD::CatPollMethod>(this, frameCenter);
+                break;
             case DirectionType::USER_POLL:
                 if ( !_userPollMethodCallbackEnabled )
                 {
@@ -497,7 +514,7 @@ void NOMAD::Poll::createPollMethods(const bool isPrimary, const EvalPointPtr& fr
             case DirectionType::USER_FREE_POLL:
                 if ( !_userPollMethodCallbackEnabled )
                 {
-                    throw NOMAD::Exception(__FILE__, __LINE__,"Cannot add user free poll method.");
+                    throw NOMAD::Exception(__FILE__, __LINE__,"Cannot add user free poll method. User call back not enabled.");
                 }
                 pollMethod = std::make_shared<NOMAD::UserPollMethod>(this, frameCenter, true /*a free user poll method*/);
                 break;
@@ -507,8 +524,8 @@ void NOMAD::Poll::createPollMethods(const bool isPrimary, const EvalPointPtr& fr
         }
 
         // A variable group can be specifically managed by a direction type.
-        std::map<NOMAD::DirectionType,NOMAD::ListOfVariableGroup>::const_iterator it;
-        if (!_mapDirTypeToVG.empty() && (it = _mapDirTypeToVG.find(dirType)) != _mapDirTypeToVG.end())
+        std::map<NOMAD::DirectionType,NOMAD::ListOfVariableGroup>::const_iterator it = _mapDirTypeToVG.find(dirType);
+        if (it != _mapDirTypeToVG.end())
         {
             pollMethod->setListVariableGroups(it->second);
         }
@@ -518,10 +535,6 @@ void NOMAD::Poll::createPollMethods(const bool isPrimary, const EvalPointPtr& fr
 
             pollMethod->setListVariableGroups(_varGroups);
         }
-
-        pollMethod->setIsPrimary(isPrimary);
-
-        pollMethod->setIsPrimary(isPrimary);
 
         pollMethod->setIsPrimary(isPrimary);
 
@@ -542,6 +555,7 @@ void NOMAD::Poll::createPollMethodsForPollCenters()
 {
     // Compute primary and secondary poll centers
     std::vector<NOMAD::EvalPointPtr> primaryCenters, secondaryCenters;
+    // This function should return a vector of EvalPointPtr. See issue #644
     computePrimarySecondaryPollCenters(primaryCenters, secondaryCenters);
 
     // Add poll methods for primary polls

@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_SEARCHMETHODBASE__
-#define __NOMAD_4_5_SEARCHMETHODBASE__
+
+#ifndef __NOMAD_4_6_SEARCHMETHODBASE__
+#define __NOMAD_4_6_SEARCHMETHODBASE__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/Step.hpp"
@@ -67,6 +68,12 @@ private:
 protected:
     
     ArrayOfDouble _lb, _ub;
+
+    // Dynamic search is only for simple search methods (no iterations).
+    bool _dynamicSearch = false;
+    bool _dynamicSearchEnabled = true; ///< Should this simple search method generate trial points? Maybe modified dynamically by method (based on success, or alternating rule, ...). Update is done only if dynamicSearch is true.
+    std::list<NOMAD::SuccessType> _allSuccessTypes; ///< Used only when dynamicSearch is active. Each search will get a success type. It is UNDEFINED if not dynamic enabled.
+    
 
     
 public:
@@ -135,6 +142,9 @@ protected:
     
 private:
     
+    // Helper to identify the type of search.
+    virtual bool isExtended() const { return false; }
+    
     /**
      Base implementation to generate trial points. The trial points are snapped to bounds and projected on mesh.
      Implementation for final derived search methods is in generateTrialPointsFinal.
@@ -154,5 +164,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SEARCHMETHODBASE__
+#endif // __NOMAD_4_6_SEARCHMETHODBASE__
 

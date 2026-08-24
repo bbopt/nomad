@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_POLL__
-#define __NOMAD_4_5_POLL__
+
+#ifndef __NOMAD_4_6_POLL__
+#define __NOMAD_4_6_POLL__
 
 #include <set>
 
@@ -76,7 +77,9 @@ private:
 
     size_t _trialPointMaxAddUp; ///< Add new trial points to the ones produced by the selected direction type up to reached a given number.
 
-    bool _userPollMethodCallbackEnabled;
+    bool _userPollMethodCallbackEnabled;  ///< Flag name says all.
+    
+    bool _extendedPollEnabled; ///< Flag to indicate that the poll may not be the last step of the iteration. Barrier update should be done after extended poll.
 
 
 protected:
@@ -87,18 +90,19 @@ protected:
 
     std::vector<std::shared_ptr<PollMethodBase>> _pollMethods;  ///< Unlike for Search, Poll methods generate all their points and only then they are evaluated.
 
-    std::vector<EvalPointPtr> _frameCenters;  ///< The frame centers (primary and secondary) of the poll methods. See createPollMethods.
+    std::vector<EvalPointPtr> _frameCenters;  ///< The frame centers (primary and secondary) of the poll methods. See createPollMethods. Refactoring required. See issue #644.
 
 public:
     /// Constructor
     /**
      \param parentStep The parent of this poll step
      */
-    explicit Poll(const Step* parentStep, bool userCallbackEnabled=false)
+    explicit Poll(const Step* parentStep, bool userCallbackEnabled, bool extendedPollEnabled = false)
       : Step(parentStep),
         IterationUtils(parentStep),
         _pollMethods(),
-        _userPollMethodCallbackEnabled(userCallbackEnabled)
+        _userPollMethodCallbackEnabled(userCallbackEnabled),
+        _extendedPollEnabled(extendedPollEnabled)
     {
         init();
     }
@@ -179,4 +183,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_POLL__
+#endif // __NOMAD_4_6_POLL__

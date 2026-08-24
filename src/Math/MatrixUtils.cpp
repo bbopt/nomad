@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../Math/MatrixUtils.hpp"
 #include "../Util/utils.hpp"
 
@@ -164,6 +165,12 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
 {
     error_msg.clear();
 
+    if ( m <= 0 || n <= 0 )
+    {
+        error_msg = "SVD_decomposition() error: m and n must >0: n=" + NOMAD::itos ( n ) + " m=" + NOMAD::itos ( m );
+        return false;
+    }
+    
     if ( max_mpn > 0 && m+n > max_mpn )
     {
         error_msg = "SVD_decomposition() error: m+n > " + NOMAD::itos ( max_mpn );
@@ -177,7 +184,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
 
     int      nm1   = n - 1;
 
-    bool   flag;
+    bool   flag = false;
     int    i, j, k, l = 0, its, jj, nm = 0;
     double s, f, h, c, x, y, z, absf, absg, absh;
 
@@ -201,7 +208,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
         {
             for ( k = i ; k < m ; ++k )
                 scale += std::fabs ( M[k][i] );
-            if ( scale )
+            if ( scale > 0 )
             {
                 for ( k = i ; k < m ; ++k )
                 {
@@ -230,7 +237,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
         {
             for ( k = l ; k < n ; ++k )
                 scale += std::fabs ( M[i][k] );
-            if ( scale )
+            if ( scale > 0)
             {
                 for ( k = l ; k < n ; ++k )
                 {
@@ -263,7 +270,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
     {
         if ( i < nm1 )
         {
-            if ( g )
+            if ( g > 0 )
             {
                 for ( j = l ; j < n ; ++j )
                     V[j][i] = ( M[i][j] / M[i][l] ) / g;
@@ -290,7 +297,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
         g = W[i];
         for ( j = l ; j < n ; ++j )
             M[i][j] = 0.0;
-        if ( g )
+        if ( g > 0 )
         {
             g = 1.0 / g;
             for ( j = l ; j < n ; ++j )
@@ -429,7 +436,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
 
                 W[j] = z;
 
-                if ( z )
+                if ( z > 0 )
                 {
                     z = 1.0 / z;
                     c = f * z;
@@ -481,6 +488,12 @@ bool NOMAD::LU_decomposition ( std::string & error_msg,
 {
     error_msg.clear();
 
+    if ( n <= 0 )
+    {
+        error_msg = "LU_decomposition() error: n <= 0. n=" + NOMAD::itos ( n );
+        return false;
+    }
+    
     if ( max_n > 0 && n > max_n )
     {
         error_msg = "LU_decomposition() error: n > " + NOMAD::itos ( max_n );
@@ -502,7 +515,8 @@ bool NOMAD::LU_decomposition ( std::string & error_msg,
         big = 0.0;
         for ( j = 0 ; j < n ; j++ )
         {
-            if ( (temp = std::fabs(LU[i][j])) > big )
+            temp = std::fabs(LU[i][j]);
+            if ( temp > big )
                 big = temp;
         }
         if ( big == 0 )
@@ -626,15 +640,15 @@ bool NOMAD::qr_factorization(std::string & error_msg,
             // NB: sign(x) = (x > 0) - (x < 0) with sign(0) = 0
             c = (a == 0) ? 1.0 : (a > 0) - (a < 0);
             s = 0;
-            rho = std::abs(a);
+            rho = std::fabs(a);
         }
         else if (a == 0)
         {
             c = 0;
             s = (b > 0) - (b < 0);
-            rho = std::abs(b);
+            rho = std::fabs(b);
         }
-        else if (std::abs(b) > std::abs(a))
+        else if (std::fabs(b) > std::fabs(a))
         {
             const double t = a / b;
             s = ((b > 0) - (b < 0)) / std::sqrt(1.0 + t * t);
@@ -828,7 +842,7 @@ bool NOMAD::LDLt_factorization(std::string &error_msg,
     {
         const int knext = k+1;
 
-        double absmkk = std::abs(M[k][k]);
+        double absmkk = std::fabs(M[k][k]);
 
         // Determine largest off-diagonal element in column k: lambda = max(|M[k+1:n, k]|),
         // with r its corresponding index.
@@ -838,7 +852,7 @@ bool NOMAD::LDLt_factorization(std::string &error_msg,
         {
             for (int i = knext; i < n; ++i)
             {
-                const double lambda_val = std::abs(M[i][k]);
+                const double lambda_val = std::fabs(M[i][k]);
                 if (lambda_val >= lambda)
                 {
                     lambda = lambda_val;
@@ -868,14 +882,14 @@ bool NOMAD::LDLt_factorization(std::string &error_msg,
             double sigma = 0;
             for (int j = k; j < r; ++j)
             {
-                sigma = std::max(sigma, std::abs(M[r][j]));
+                sigma = std::max(sigma, std::fabs(M[r][j]));
             }
             // We only consider the lower triangular part of the symmetric matrix.
             // we inspect this part of the row by iterating over the corresponding
             // part of the transpose column.
             for (int i = r + 1; i < n; ++i)
             {
-                sigma = std::max(sigma, std::abs(M[i][r]));
+                sigma = std::max(sigma, std::fabs(M[i][r]));
             }
 
             // Conditions to choose the pivot
@@ -884,7 +898,7 @@ bool NOMAD::LDLt_factorization(std::string &error_msg,
                 // No interchange, use 1x1 pivot block
                 onebyone = true;
             }
-            else if (std::abs(M[r][r]) >= alpha * sigma)
+            else if (std::fabs(M[r][r]) >= alpha * sigma)
             {
                 // Interchange columns/rows k and r in submatrix M[k:n, k:n]
                 interchangeRowsAndCols(M, k, r, 1, n);
@@ -1162,7 +1176,7 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
         lambda = std::fabs(M[vr][k]);
         for (int j = k + 2; j < n; j++)
         {
-            if (abs(M[j][k]) > lambda)
+            if (std::fabs(M[j][k]) > lambda)
             {
                 vr = int(j);
                 lambda = std::fabs(M[vr][k]);
@@ -1186,7 +1200,7 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
                     sigma = -1;
                     for (int i = k; i < n; i++)
                     {
-                        if (abs(M[i][r]) > sigma)
+                        if (std::fabs(M[i][r]) > sigma)
                         {
                             sigma = std::fabs(M[i][r]); // σ = norm(A[k:n, r], Inf)
                         }
@@ -1245,6 +1259,10 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
                         pp[m2] = static_cast<int>(tmp);
                     }
 
+                }
+                else if (piv == 2) // piv = 'p'
+                {
+                    ; 
                 }
                 else
                 {
@@ -1367,7 +1385,7 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
                {
                     for (int j = k + s; j < n; j++)
                     {
-                        if (abs(M[i][j]) > val)
+                        if (std::fabs(M[i][j]) > val)
                         {
                             val = std::fabs(M[i][j]);
                         }
@@ -1523,6 +1541,11 @@ double NOMAD::FindSmallestEigenvalue(double ** D, int n)
 
 bool NOMAD::ldl_lsolve( double ** L, const double * rhs, double * Ly, int n)
 {
+    if ( n <= 0 )
+    {
+        return false;
+    }
+    
     for(int k = 0; k < n; k++)
     {
         Ly[k] = rhs[k];
@@ -1536,6 +1559,11 @@ bool NOMAD::ldl_lsolve( double ** L, const double * rhs, double * Ly, int n)
 
 bool NOMAD::ldl_ltsolve( double ** L, const double * rhs, double * Ly, int n)
 {
+    if ( n <= 0 )
+    {
+        return false;
+    }
+    
     for(int k = n - 1; k > -1; k--)
     {
         Ly[k] = rhs[k];
@@ -1549,6 +1577,11 @@ bool NOMAD::ldl_ltsolve( double ** L, const double * rhs, double * Ly, int n)
 
 bool NOMAD::ldl_dsolve( double ** D, const double * rhs, double * Ly, int n)
 {
+    if ( n <= 0 )
+    {
+        return false;
+    }
+    
     int s; // it is either 1 or 2
     double detE; // determinant of the 2x2 block matrix
     int k = 0;
@@ -1593,6 +1626,12 @@ bool NOMAD::ldl_solve(std::string& error_msg,
                       const int n)
 {
     error_msg.clear();
+    
+    if ( n <= 0 )
+    {
+        error_msg = "Unexpected value for n: " + std::to_string(n);
+        return false;
+    }
 
     // Initialize y
     auto y = new double[n];
@@ -1737,6 +1776,12 @@ bool NOMAD::ldl_solve( std::string & error_msg,
 )
 {
     error_msg.clear();
+    if ( n <= 0 )
+    {
+        error_msg = "Unexpected value for n: " + std::to_string(n);
+        return false;
+    }
+    
     bool success;
 
     auto prhs = new double [n];

@@ -1,52 +1,7 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4 has been created and developed by                            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4 is owned by                                 */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
-/*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
-/*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
-/*  for Data Valorization)                                                         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 #include "NomadStdCInterface.h"
 
 #include "Algos/EvcInterface.hpp"
+#include "Algos/Mads/MadsMegaIteration.hpp"
 #include "Cache/CacheBase.hpp"
 #include "Math/RNG.hpp"
 #include "Nomad/nomad.hpp"
@@ -91,9 +46,19 @@ struct NomadProblemInfo
     // WARNING: all arrays must be allocated before and deallocated after.
     Callback_BB_block bb_block;
 
+
     int nb_inputs;  // number of inputs
     int nb_outputs; // number of outputs
 };
+
+// pointer to the mega iteration callback function, whose arguments are:
+// - nb_inputs: number of blackbox inputs
+// - bb_inputs: array of bb_inputs of size block_size * nb_inputs
+// - nb_outputs: number of blackbox outputs
+// - bb_outputs: array of bb_outputs of size block_size * nb_outputs
+// - stop: bool set to true if the optimization must be stopped, false
+//         otherwise.
+Callback_MegaIter _customMegaIterCallback = nullptr;
 
 struct NomadResultInfo
 {
@@ -393,6 +358,14 @@ bool addNomadArrayOfDoubleParam(const NomadProblem nomad_problem,
     return true;
 }
 
+
+bool addMegaIterationCallback(Callback_MegaIter customMegaIterCallback )
+{
+    _customMegaIterCallback = customMegaIterCallback ;
+    
+    return true;
+}
+
 // Solve the problem
 
 // Definition of specific evaluators for C interface
@@ -612,6 +585,81 @@ public:
     }
 };
 
+/*---------------------------------------------------------------*/
+/* After each mega iteration verify if stop (may not be used).   */
+/*---------------------------------------------------------------*/
+void customMegaIterEndCbFunc(const NOMAD::Step& step,
+                             bool &stop)
+{
+    stop = false;
+    
+    // Important: by default USER_CALLS are disabled when doing quad model optimization
+    // -> NO call to this function when doing quad model search.
+    
+    // Several NOMAD::Algorithm are used by NOMAD.
+    // We are interested only on the main Mads (Mega) Iteration.
+    // Use a dynamic cast to make sure with have the Mads (Mega) Iteration.
+    auto megaIter = dynamic_cast<const NOMAD::MadsMegaIteration*>(&step);
+    
+    if (nullptr != megaIter)
+    {
+        
+        // Set the best feasible solutions
+        // A single best feasible solution should be sufficient. Let's pass all of them
+        // in case, the user wants access to all best feasible points.
+        std::vector<NOMAD::EvalPoint> evalPointFeasList;
+        auto nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), NOMAD::defaultFHComputeType /* for BB and default compute type */);
+        
+        if (nbFeas == 0)
+        {
+            return;
+        }
+        
+        try
+        {
+            if (_customMegaIterCallback)
+            {
+                const int block_size = (int)nbFeas;
+                if (block_size > 0)
+                {
+                    const int nbInputs = (int)evalPointFeasList[0].getX()->size();
+                    const NOMAD::BBOutputTypeList bbot = evalPointFeasList[0].getEval(NOMAD::EvalType::BB)->getBBOutputTypeList();
+                    const int nbOutputs = (int)bbot.size();
+                    
+                    auto bb_inputs = new double[nbInputs * block_size];
+                    auto bb_outputs = new double[nbOutputs * block_size];
+                    
+                    // collect the inputs parameters
+                    for (size_t index = 0; index < block_size; ++index)
+                    {
+                        const auto& x = evalPointFeasList[index];
+                        for (size_t i = 0; i < (size_t)nbInputs; ++i)
+                        {
+                            bb_inputs[index * nbInputs + i] = x[i].todouble();
+                        }
+                        
+                        auto bbo = x.getEval(NOMAD::EvalType::BB)->getBBOutput().getBBOAsArrayOfDouble();
+                        for (size_t i = 0; i < (size_t)nbOutputs; ++i)
+                        {
+                            bb_outputs[index * nbOutputs + i] = bbo[i].todouble();
+                        }
+                    }
+                    _customMegaIterCallback(block_size, nbInputs, bb_inputs, nbOutputs, bb_outputs, &stop);
+                    if (stop)
+                    {
+                        printf("Mega Iteration Callback triggers early stop ...\n");
+                    }
+                }
+            }
+        }
+        //If these errors occur, it is due to errors in C code
+        catch(...)
+        {
+            printf("Unrecoverable error in User Mega Iteration Callback, Exiting NOMAD...\n\n");
+            //Force exit
+        }
+    }
+}
 
 int solveNomadProblem(const NomadResult result,
                       const NomadProblem nomad_problem,
@@ -690,26 +738,31 @@ int solveNomadProblem(const NomadResult result,
                     data_user_ptr);
             TheMainStep.addEvaluator(std::move(ev));
         }
-
+        
+        // Link MEGA_ITER_END callback function with user C function defined locally
+        TheMainStep.addCallback<NOMAD::AlgoCallbackType::MEGA_ITERATION_END>(customMegaIterEndCbFunc);
+        
+        
         TheMainStep.start();
         TheMainStep.run();
+        
+        // Get the points before ending the main step, as end() will reset some components of NOMAD.
+        //
+        // For single objective optimization, we have usually single feas/infeas incumbent points.
+        // For multi-objective optimization, we have several feasible incumbent points but infeasible incumbent are not supported.
+        const auto evalPointFeasList = TheMainStep.getBarrierIncumbentPoints(true);
+        const auto evalPointInfList = TheMainStep.getBarrierIncumbentPoints(false);
+        
         TheMainStep.end();
 
         runFlag = TheMainStep.getRunFlag();
 
-        // Access to h norm type
-        const auto hNormType = nomad_problem->p->getAttributeValue<NOMAD::HNormType>("H_NORM");
-
         // Use default BB eval type and STANDARD compute type
         const auto evalType = NOMAD::EvalType::BB;
-        const NOMAD::FHComputeType computeType= {evalType, {NOMAD::ComputeType::STANDARD, hNormType}};
-
-        // Set the best feasible and best infeasible solutions;
-        std::vector<NOMAD::EvalPoint> evalPointFeasList, evalPointInfList;
-        const size_t nbFeas = NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), computeType);
-        const size_t nbInf = NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), computeType);
-
+        
         // If there are no feasible points, return a set of infeasible solutions with minimal h value.
+        const size_t nbFeas = evalPointFeasList.size();
+        const size_t nbInf = evalPointInfList.size();
         if (nbFeas > 0)
         {
             result->nb_inputs = nomad_problem->nb_inputs;
@@ -756,7 +809,6 @@ int solveNomadProblem(const NomadResult result,
         }
 
         // reset parameters in case someone wants to restart an optimization again
-        // nomad_problem->p->resetToDefaultValues();
 
         NOMAD::OutputQueue::Flush();
         NOMAD::MainStep::resetComponentsBetweenOptimization();
@@ -770,7 +822,6 @@ int solveNomadProblem(const NomadResult result,
     }
 
     NOMAD::OutputQueue::Flush();
-    NOMAD::CacheBase::getInstance()->clear();
 
     return runFlag;
 }

@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_BARRIERBASE__
-#define __NOMAD_4_5_BARRIERBASE__
+
+#ifndef __NOMAD_4_6_BARRIERBASE__
+#define __NOMAD_4_6_BARRIERBASE__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -59,6 +60,7 @@ protected:
 
     std::vector<EvalPointPtr> _xFeas;  ///< Current feasible incumbent solutions
     std::vector<EvalPointPtr> _xInf;   ///< Current infeasible barrier points (contains infeasible incumbents) with h<=hMax
+    std::vector<EvalPointPtr> _xInfOut;   ///< Current infeasible points not in barrier because h=INF. Used for initialization only when EB constraint is not verified.
     
     std::vector<EvalPointPtr> _xIncFeas;   ///< Current feasible incumbent solutions. Can be a subset of _xFeas but for now, xIncFeas and xFeas are the same
     std::vector<EvalPointPtr> _xIncInf;   ///< Current infeasible incumbent solutions (subset of _xInf if it is defined). For now, we consider a vector (maybe DMultiMads needs it)
@@ -72,6 +74,11 @@ protected:
     /// Attributes to define the computation of f and h
     FHComputeType _computeType;
     
+    // Flag to keep track of the inserted points
+    bool _keepInsertedPointsTag = false;
+    
+    /// Keep track of the tags of points to update the barrier (not the original build from cache)
+    std::vector<int> _insertedPointsTag;
     
     /// Dimension of the points in the barrier.
     /**
@@ -246,6 +253,10 @@ public:
     ComputeType getComputeType() const { return _computeType.fhComputeTypeS.computeType;}
     EvalType getEvalType() const { return _computeType.evalType; }
     const FHComputeType& getFHComputeType() const { return _computeType;}
+   
+    /// Control access to the inserted points tags.
+    void setKeepInsertedPointsTag(bool keep) { _keepInsertedPointsTag = keep; }
+    std::vector<int> getInsertedPointsTag() const { return _insertedPointsTag ;}
     
 protected:
     
@@ -315,4 +326,4 @@ DLL_EVAL_API std::istream& operator>>(std::istream& is, BarrierBase& barrier);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_BARRIERBASE__
+#endif // __NOMAD_4_6_BARRIERBASE__

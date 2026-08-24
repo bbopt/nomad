@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../../Algos/Mads/UserPollMethod.hpp"
 
 #include "../../Algos/Mads/Mads.hpp"
@@ -77,14 +78,22 @@ void NOMAD::UserPollMethod::generateUnitPollDirections(std::list<NOMAD::Directio
     auto mads = dynamic_cast<const NOMAD::Mads*>(_iterAncestor->getRootAlgorithm());
 
     // NOTE: cannot have both USER_METHOD_POLL and USER_METHOD_FREE_POLL callbacks provided.
-    bool success;
+    bool success= false;
     if (isFreePoll())
     {
-        success = mads->runCallback(NOMAD::CallbackType::USER_METHOD_FREE_POLL, *this, directions, n);
+        auto cb = mads->getCallback<NOMAD::MadsCallbackType::USER_METHOD_FREE_POLL>();
+        if (cb)
+        {
+            success = cb->call(*this, directions, n);
+        }
     }
     else
     {
-        success = mads->runCallback(NOMAD::CallbackType::USER_METHOD_POLL, *this, directions, n);
+        auto cb = mads->getCallback<NOMAD::MadsCallbackType::USER_METHOD_POLL>();
+        if (cb)
+        {
+            success = cb->call(*this, directions, n);
+        }
     }
 
     if (!success || directions.empty())
@@ -117,14 +126,16 @@ void NOMAD::UserPollMethod::generateUnitPollDirections(std::list<NOMAD::Directio
 void NOMAD::UserPollMethod::updateEndUserPoll()
 {
     auto mads = dynamic_cast<const NOMAD::Mads*>(_iterAncestor->getRootAlgorithm());
-
-    bool success = mads->runCallback(NOMAD::CallbackType::USER_METHOD_FREE_POLL_END, *this);
-
-    if (!success)
+    auto cb = mads->getCallback<NOMAD::MadsCallbackType::USER_METHOD_FREE_POLL_END>();
+    if (cb)
     {
-        OUTPUT_INFO_START
-        AddOutputInfo("User poll post evaluation function is not working properly.");
-        OUTPUT_INFO_END
-        return;
+        bool success = cb->call(*this);
+        if (!success)
+        {
+            OUTPUT_INFO_START
+            AddOutputInfo("User poll post evaluation function is not working properly.");
+            OUTPUT_INFO_END
+        }
     }
+    return;
 }

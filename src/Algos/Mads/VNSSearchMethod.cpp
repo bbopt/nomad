@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
@@ -62,7 +63,6 @@ void NOMAD::VNSSearchMethod::init()
     verifyParentNotNull();
 
     const auto parentSearch = getParentStep()->getParentOfType<NOMAD::VNSSearchMethod*>(false);
-    
     
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     
@@ -109,7 +109,7 @@ void NOMAD::VNSSearchMethod::init()
         }
     }
 
-    setEnabled(enabled);
+    setEnabled(enabled || _VNSUseSurrogate);
         
     if (isEnabled())
     {
@@ -133,8 +133,6 @@ bool NOMAD::VNSSearchMethod::runImp()
 {
     bool foundBetter = false;
     
-    
-    
     if (isEnabled())
     {
         auto evc = NOMAD::EvcInterface::getEvaluatorControl();
@@ -144,7 +142,7 @@ bool NOMAD::VNSSearchMethod::runImp()
         const NOMAD::EvalType searchEvalType = evc->getCurrentEvalType(); // Can be BB or SURROGATE if the whole optimization is with surrogate
         if (NOMAD::EvalType::MODEL == searchEvalType)
         {
-            throw NOMAD::Exception(__FILE__,__LINE__,"VNS search cannot be use MODEL evaluation.");
+            throw NOMAD::Exception(__FILE__,__LINE__,"VNS search cannot be used with MODEL evaluation.");
         }
         
         // check the VNS_trigger criterion:
@@ -170,6 +168,7 @@ bool NOMAD::VNSSearchMethod::runImp()
                 AddOutputInfo("Current frame size larger than initial one. Stop VNS Mads Search.");
                 OUTPUT_INFO_END
                 setSuccessType(NOMAD::SuccessType::UNSUCCESSFUL);
+                
                 return foundBetter;
             }
             
@@ -230,11 +229,29 @@ bool NOMAD::VNSSearchMethod::runImp()
                 // Get the success type and update Mads barrier with VNS Mads barrier
                 auto vnsBarrier = _vnsAlgo->getBarrier();
                 
+                // Handle some possible troubles in the vns optimization
                 if (nullptr == vnsBarrier)
                 {
-                    throw NOMAD::Exception(__FILE__,__LINE__,"VNS Mads barrier is not available.");
+                    if (! _vnsStopReasons->testIf(NOMAD::VNSStopType::X0_FAILED) )
+                    {
+                        throw NOMAD::Exception(__FILE__,__LINE__,"VNS Mads barrier is not available. But it should be available.");
+                        
+                    }
+                        
+                    OUTPUT_INFO_START
+                    AddOutputInfo("VNS Mads Search has an empty barrier. This can happen if initial point fails. ");
+                    OUTPUT_INFO_END
+                    setSuccessType(NOMAD::SuccessType::UNSUCCESSFUL);
+                    
+                    if (_VNSUseSurrogate)
+                    {
+                        evc->setCurrentEvaluatorType(NOMAD::EvalType::BB);
+                    }
+                    return false;
+                    
                 }
                 
+                // TODO check that we have the right eval type best feas
                 auto vnsBestFeas = vnsBarrier->getCurrentIncumbentFeas();
                 auto vnsBestInf = vnsBarrier->getCurrentIncumbentInf();
                 
@@ -289,6 +306,27 @@ void NOMAD::VNSSearchMethod::generateTrialPointsFinal()
     NOMAD::EvalPointSet trialPoints;
 
     throw NOMAD::Exception(__FILE__,__LINE__,"VNS Mads generateTrialPointsFinal() not yet implemented.");
+    
+    // The trial points of one iteration of VNS are generated (not evaluated).
+    // The trial points are obtained by shuffle + mads poll
+
+    // auto madsIteration = getParentOfType<MadsIteration*>();
+
+    /*
+    // Note: Use first point of barrier as simplex center.
+    NOMAD::VNSSingle singleVNS(this,
+                            std::make_shared<NOMAD::EvalPoint>(getMegaIterationBarrier()->getFirstPoint()),
+                            madsIteration->getMesh());
+    singleVNS.start();
+    singleVNS.end();
+
+    // Pass the generated trial pts to this
+    const auto& trialPts = singleVNS.getTrialPoints();
+    for (const auto& point : trialPts)
+    {
+        insertTrialPoint(point);
+    }
+     */
 
 }   // end generateTrialPoints
 

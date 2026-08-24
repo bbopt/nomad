@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_ALGOSTOPREASONS__
-#define __NOMAD_4_5_ALGOSTOPREASONS__
+
+#ifndef __NOMAD_4_6_ALGOSTOPREASONS__
+#define __NOMAD_4_6_ALGOSTOPREASONS__
 
 #include <memory>   // for shared_ptr
 #include "../Algos/EvcInterface.hpp"    // For access to EvalMainThreadStopType
@@ -88,6 +89,10 @@ public:
         _algoStopReason.set(s);
     }
 
+    StopType getStopType() const
+    {
+        return _algoStopReason.get();
+    }
 
     std::string getStopReasonAsString() const override
     {
@@ -161,4 +166,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_ALGOSTOPREASONS__
+#endif // __NOMAD_4_6_ALGOSTOPREASONS__

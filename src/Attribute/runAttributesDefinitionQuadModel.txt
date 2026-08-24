@@ -50,19 +50,37 @@ true
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ###############################################################################
+QUAD_MODEL_SEARCH_DYNAMIC_ENABLE
+bool
+false
+\( Dynamic enabling/disabling of Quad Model search based on success \)
+\(
+
+. Dynamic enabling/disabling of Quad Model search based on success.
+
+. After a full success we rarely have another one.
+  Let's deactivate for the next iteration.
+  
+. This is a simple, yet efficient strategy.
+
+. Can work well with QP_SEARCH_DYNAMIC_ENABLE.
+
+. Argument: bool
+
+. Example: QUAD_MODEL_SEARCH_DYNAMIC_ENABLE yes
+
+\)
+\( basic mads quad model search model_search dynamic \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+###############################################################################
 QUAD_MODEL_SEARCH_SIMPLE_MADS
 bool
 false
 \( Quad model search using a simpler version of Mads \)
 \(
 
-. SimpleMads has only one poll method and no search method.
-
-. The evaluator control is by-passed. The model is directly evaluated.
-
-. SimpleMads use a simpler progressive barrier approach to handle constraints.
-
-. This approach is more straightforward but maybe less efficient.
+. Enable quad model search using a simpler version of Mads
 
 . Example: QUAD_MODEL_SEARCH_SIMPLE_MADS yes
 
@@ -71,6 +89,39 @@ false
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ###############################################################################
+QUAD_MODEL_AND_LH_SEARCH
+bool
+false
+\( Quad model and LH search \)
+\(
+. Add points to construct a better quad model
+
+. Not implemented. Triggers exception if enabled.
+
+\)
+\( basic mads quad model lh latin hypercube sampling search model_search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+###############################################################################
+QUAD_MODEL_SLD_SEARCH
+bool
+false
+\( Quad model (SLD) search \)
+\(
+
+. MADS model search, using Sébastien Le Digabel quad models
+
+. Argument: one boolean ('yes' or 'no')
+
+. Disabled for more than 50 variables
+
+. Example: QUAD_MODEL_SLD_SEARCH yes
+
+\)
+\( basic mads quad model search model_search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
 QUAD_MODEL_SEARCH_BOUND_REDUCTION_FACTOR
 NOMAD::Double
 1
@@ -149,6 +200,30 @@ false
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################
+QUAD_MODEL_OPTIMIZATION_MIN_TR_RADIUS
+Double
+1E-12
+\( Min trust region radius for Quad model mads optim  \)
+\(
+
+. Quad model standalone Mads optimization on quadratic models for constrained and
+  unconstrained problems
+  
+. Use a Model Based Trust Region algorithm to iterate.
+
+. Minimum trust region radius is used as termination criterion.
+
+. The parameter QUAD_MODEL_OPTIMIZATION_MIN_TR_RADIUS is 1E-12 by default
+
+. Argument: Double
+
+. Example: QUAD_MODEL_OPTIMIZATION_MIN_TR_RADIUS 1E-6
+
+\)
+\( advanced sgtelib quadratic quad optimization programming qp trust region radius\)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
 QUAD_MODEL_SEARCH_BOX_FACTOR
 NOMAD::Double
 4.0
@@ -219,6 +294,21 @@ false
 . Arguments: boolean
 
 . Example: QUAD_MODEL_FORCE_EB true
+
+\)
+\( developer quadratic model search \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
+DYNAMIC_SEARCH
+bool
+false
+\( Dynamically enable/disable active simple search methods during run  \)
+\(
+
+. NOT used for now. Tests have not shown efficiency.
+  
+. Arguments: boolean
 
 \)
 \( developer quadratic model search \)

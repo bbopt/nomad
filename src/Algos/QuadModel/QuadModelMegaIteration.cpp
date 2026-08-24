@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/QuadModel/QuadModelIteration.hpp"
 #include "../../Algos/QuadModel/QuadModelMegaIteration.hpp"
 #include "../../Cache/CacheBase.hpp"
@@ -71,6 +72,8 @@ void NOMAD::QuadModelMegaIteration::startImp()
     // Use xIncFeas or xIncInf if XIncFeas is not available.
     // Use a single iteration object with several start, run, end for the various iterations of the algorithm.
 
+    // See issue (feature) #384
+
     if ( ! _stopReasons->checkTerminate() )
     {
         // MegaIteration's barrier member is already in sub dimension.
@@ -79,13 +82,13 @@ void NOMAD::QuadModelMegaIteration::startImp()
 
         if (nullptr != bestXIncFeas)
         {
-            auto sqmIteration = std::make_shared<NOMAD::QuadModelIteration>(this, bestXIncFeas);
+            auto sqmIteration = std::make_shared<NOMAD::QuadModelIteration>(this, bestXIncFeas, _k, _mainMesh);
             _iterList.push_back(sqmIteration);
 
         }
         else if (nullptr != bestXIncInf)
         {
-            auto sqmIteration = std::make_shared<NOMAD::QuadModelIteration>(this, bestXIncInf);
+            auto sqmIteration = std::make_shared<NOMAD::QuadModelIteration>(this, bestXIncInf, _k, _mainMesh);
             _iterList.push_back(sqmIteration);
         }
 
@@ -158,6 +161,14 @@ bool NOMAD::QuadModelMegaIteration::runImp()
                 s = getName() + ": new success " + NOMAD::enumStr(getSuccessType());
                 AddOutputDebug(s);
             }
+            
+            _sufficientDecrease = sqmIteration->hasSufficientDecrease();
+            if (_sufficientDecrease)
+            {
+                s = getName() + ": sufficient decreasse obtained ";
+                AddOutputDebug(s);
+            }
+                
 
             if (getUserInterrupt())
             {
@@ -168,7 +179,10 @@ bool NOMAD::QuadModelMegaIteration::runImp()
     // Display MegaIteration's stop reason
     AddOutputDebug(getName() + " stop reason set to: " + _stopReasons->getStopReasonAsString());
 
-
+    // Clear iter list
+    _iterList.clear();
+    
+    
     // MegaIteration is a success if either a better xFeas or
     // a dominating or partial success for xInf was found.
     // See Algorithm 12.2 from DFBO.

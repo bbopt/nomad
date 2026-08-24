@@ -44,14 +44,15 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   ProjectedConjugateGradientSolver.hpp
  \brief  Projected Conjugate Gradient algorithm
  \author Tangi Migot and Ludovic Salomon
  \see    ProjectedConjugateGradientSolver.cpp
  */
-#ifndef __NOMAD_4_5_PROJECTED_CONJUGATE_GRADIENT_SOLVER__
-#define __NOMAD_4_5_PROJECTED_CONJUGATE_GRADIENT_SOLVER__
+#ifndef __NOMAD_4_6_PROJECTED_CONJUGATE_GRADIENT_SOLVER__
+#define __NOMAD_4_6_PROJECTED_CONJUGATE_GRADIENT_SOLVER__
 
 #include "../../../ext/sgtelib/src/Matrix.hpp"
 
@@ -90,4 +91,4 @@ public:
 
 #include "../../nomad_nsend.hpp"
 
-#endif //__NOMAD_4_5_PROJECTED_CONJUGATE_GRADIENT_SOLVER__
+#endif //__NOMAD_4_6_PROJECTED_CONJUGATE_GRADIENT_SOLVER__

@@ -45,6 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
+#include "../Algos/Ads/AdsProgressiveBarrier.hpp"
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/Iteration.hpp"
 #include "../Algos/Mads/MegaSearchPoll.hpp"
@@ -52,6 +54,7 @@
 #include "../Algos/SubproblemManager.hpp"
 #include "../Cache/CacheBase.hpp"
 #include "../Output/OutputQueue.hpp"
+#include "../Math/Direction.hpp"
 
 /*-----------------------------------*/
 /*   static members initialization   */
@@ -189,7 +192,7 @@ std::vector<NOMAD::EvalPoint> NOMAD::EvcInterface::getSortedTrialPoints(const NO
 // For each point, look if it is in the cache.
 // If it is, remove it from the EvalPointSet.
 // If not, add it to EvaluatorControl's Queue.
-void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &trialPoints, bool useMesh)
+void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &trialPoints, bool useMesh, bool puncturedSpaceCheck)
 {
     // Create EvalPoints and send them to EvaluatorControl
     if (nullptr == _evaluatorControl)
@@ -230,6 +233,17 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
         // now only working with the cache and the EvaluatorControl.
         auto trialPointSub = trialPoint;    // Used to get iteration
         trialPoint = trialPoint.makeFullSpacePointFromFixed(_fixedVariable);
+        
+        // Add gen step information on trial points
+        // Will be available in eval queue points and cache points
+        trialPoint.addGenStep(_step->getStepType());
+        // Additional algo infos
+        auto algo = _step->getParentOfType<NOMAD::Algorithm*>();
+        while ( nullptr != algo)
+        {
+            trialPoint.addGenStep(algo->getStepType());
+            algo = algo->getParentOfType<NOMAD::Algorithm*>();
+        }
 
         // Compute if we should evaluate, maybe re-evaluate, this point
         bool doEval = true;
@@ -241,6 +255,62 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
         {
             // Cache is in full space.
             doEval = NOMAD::CacheBase::getInstance()->smartInsert(trialPoint, maxNumberEval, evalType);
+            
+            if (doEval && puncturedSpaceCheck)
+            {
+                if ( useMesh )
+                {
+                    auto deltaMeshSize = iteration->getMesh()->getdeltaMeshSize();
+                    
+                    // Compute minimum of deltaMeshSize once
+                    NOMAD::Double minDelta;
+                    for (size_t i = 0; i < deltaMeshSize.size(); i++)
+                    {
+                        if (!deltaMeshSize[i].isDefined())
+                            continue;
+                        if (!minDelta.isDefined() || deltaMeshSize[i] < minDelta)
+                        {
+                            minDelta = deltaMeshSize[i];
+                        }
+                    }
+                    
+                    // Get the current iteration tag
+                    const size_t iterationTag = NOMAD::EvalPoint::getCurrentTag();
+                    
+                    // Try to use AdsProgressiveBarrier if available
+                    auto barrier = _evaluatorControl->getBarrier();
+                    auto adsBarrier = (barrier != nullptr) ? std::dynamic_pointer_cast<NOMAD::AdsProgressiveBarrier>(barrier) : nullptr;
+                    
+                    if (adsBarrier != nullptr)
+                    {
+                        // Use AdsProgressiveBarrier's isInPuncturedSpace method
+                        // If point is in punctured space, we should evaluate it (doEval = true)
+                        // If point is NOT in punctured space, we should NOT evaluate it (doEval = false)
+                        doEval = adsBarrier->isInPuncturedSpace(trialPoint, minDelta, iterationTag);
+                    }
+                    else
+                    {
+                        // Fallback to original method if barrier is not AdsProgressiveBarrier
+                        std::vector<NOMAD::EvalPoint> evalPointList;
+                        
+                        auto crit = [&](const NOMAD::Point& trial, const NOMAD::EvalPoint& cacheEvalPoint)
+                        {
+                            // Difference between cache point and trial point
+                            NOMAD::ArrayOfDouble diff = (*cacheEvalPoint.getX() - trial);
+                            
+                            // Use Direction to compute the norm
+                            NOMAD::Direction dir(diff);
+                            NOMAD::Double dist = dir.norm(NOMAD::NormType::L2);
+                            
+                            // Compare to precomputed minimum delta mesh size
+                            return dist <= minDelta;
+                        };
+                        doEval = (0 != NOMAD::CacheBase::getInstance()->find(trialPoint,
+                                                              crit,evalPointList,
+                                                              1)) ;
+                    }
+                }
+            }
         }
         else
         {
@@ -283,15 +353,6 @@ void NOMAD::EvcInterface::keepPointsThatNeedEval(const NOMAD::EvalPointSet &tria
                     }
                     evalQueuePoint->setK(iteration->getK());
                 }
-            }
-
-            evalQueuePoint->addGenStep(_step->getStepType());
-            // Additional infos
-            auto algo = _step->getParentOfType<NOMAD::Algorithm*>();
-            while ( nullptr != algo)
-            {
-                evalQueuePoint->addGenStep(algo->getStepType());
-                algo = algo->getParentOfType<NOMAD::Algorithm*>();
             }
 
             if (_evaluatorControl->addToQueue(evalQueuePoint))

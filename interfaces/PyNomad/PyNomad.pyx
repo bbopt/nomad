@@ -178,14 +178,21 @@ def observe(params,points,evals,udpatedCacheFileName):
 # Define the interface function to perform optimization
 # For now, we only show one best solution.
 def optimize(fBB, pX0, pLB, pUB, params, fSurrogate=None):
-    cdef PyNomadEvalPoint uFeas = PyNomadEvalPoint()
-    cdef PyNomadEvalPoint uInfeas = PyNomadEvalPoint()
+    cdef PyNomadBlock uFeas = PyNomadBlock()
+    cdef PyNomadBlock uFeasBBO = PyNomadBlock()
+    cdef PyNomadBlock uInfeas = PyNomadBlock()
+    cdef PyNomadBlock uInfeasBBO = PyNomadBlock()
+    cdef PyNomadEvalPoint p
     cdef int runFlag = 0
     cdef size_t nbEvals = 0
     cdef size_t nbIters = 0
     cdef double fReturn = float("inf")
     cdef double hReturn = float("inf")
     xReturn = []
+    xBestFeas = []
+    xBestFeasBBO = []
+    xBestInfeas = []
+    xBestInfeasBBO = []
     eParams = []
     cdef string stopReason
 
@@ -197,34 +204,66 @@ def optimize(fBB, pX0, pLB, pUB, params, fSurrogate=None):
         runFlag = runNomad(cb, cbL, <void*> fBB, <vector[double]&> pX0,
                          <vector[double]&> pLB, <vector[double]&> pUB,
                          <vector[string]&> eParams,
-                         uFeas.c_ep_ptr,
-                         uInfeas.c_ep_ptr,
+                         uFeas.c_block_ptr,
+                         uInfeas.c_block_ptr,
                          nbEvals, nbIters, stopReason)
     else:
         runFlag = runNomad(cb, cbL, <void*> fBB,  <void*> fSurrogate,
                          <vector[double]&> pX0,
                          <vector[double]&> pLB, <vector[double]&> pUB,
                          <vector[string]&> eParams,
-                         uFeas.c_ep_ptr,
-                         uInfeas.c_ep_ptr,
+                         uFeas.c_block_ptr,
+                         uInfeas.c_block_ptr,
                          nbEvals, nbIters, stopReason)
 
     stopReasonU = stopReason.decode('utf-8')
 
-    # For now, runNomad returns a feasible point or an infeasible point (least infeasible with smallest f) NOT BOTH
-    if uFeas.c_ep_ptr != NULL:
-        fReturn = uFeas.getF()
-        hReturn = uFeas.getH()  # Should be 0
-        for i in xrange(uFeas.size()):
-            xReturn.append(uFeas.get_coord(i))
+    # runNomad returns a vector of feasible incumbent (best) point and a vector of incumbent infeasible points (least infeasible with smallest f) 
+    # For single objective optimization, we have usually single feas/infeas incumbent point.
+    # For multi-objective optimization, we have several feasible incumbent points but infeasible incumbent are not supported.
+    # Keep backward compatibility: f_best/h_best/x_best are built from the first feasible point if available or the first infeasible point otherwise.
+    if uFeas.size() > 0:
+        p = uFeas.get_x(0)
+        fReturn = p.getF()
+        hReturn = p.getH()  # Should be 0 for feasible point
+        for i in range(p.size()):
+            xReturn.append(p.get_coord(i))
 
-    if uInfeas.c_ep_ptr != NULL:
-        fReturn = uInfeas.getF()
-        hReturn = uInfeas.getH()
-        for i in xrange(uInfeas.size()):
-            xReturn.append(uInfeas.get_coord(i))
+        for j in range(uFeas.size()):
+            p = uFeas.get_x(j)
+            xBestFeas.append([p.get_coord(k) for k in range(p.size())])
+            xBestFeasBBO.append([p.getBBO().encode('utf-8').decode('utf-8')])
 
-    return {'x_best': xReturn, 'f_best': fReturn, 'h_best': hReturn, 'nb_evals': nbEvals, 'nb_iters': nbIters, 'run_flag': runFlag, 'stop_reason': stopReasonU}
+    # Test if uInfeas is null
+    if uInfeas.size() > 0:
+        p = uInfeas.get_x(0)
+        # Keep previous precedence: infeasible result overrides feasible for x_best/f_best/h_best
+        # when present.
+        fReturn = p.getF()
+        hReturn = p.getH()
+        xReturn = [p.get_coord(i) for i in range(p.size())]
+
+        for j in range(uInfeas.size()):
+            p = uInfeas.get_x(j)
+            xBestInfeas.append([p.get_coord(k) for k in range(p.size())])
+            xBestInfeasBBO.append([p.getBBO().encode('utf-8').decode('utf-8')])
+
+    return {
+        'x_single_best': xReturn,
+        'f_single_best': fReturn,
+        'h_single_best': hReturn,
+        'x_best_feas': xBestFeas,
+        'x_best_feas_bbo': xBestFeasBBO,
+        'x_best_infeas': xBestInfeas,
+        'x_best_infeas_bbo': xBestInfeasBBO,
+        'nb_evals': nbEvals,
+        'nb_iters': nbIters,
+        'run_flag': runFlag,
+        'stop_reason': stopReasonU
+    }
+
+def setCustomMegaIterEndCallback(fMegaIterCb):
+    setCustomMegaIterEndCallbackFunction(cbU, <void*> fMegaIterCb)
 
 cdef extern from "Algos/MainStep.hpp" namespace "NOMAD":
     cdef cppclass MainStep:
@@ -268,33 +307,7 @@ cdef extern from "Math/RNG.hpp" namespace "NOMAD":
       @staticmethod
       void setPrivateSeedAsString(const string & s)
 
-cdef class PyNomadMainStep:
-    cdef MainStep ms
 
-    def __cinit__(self,params):
-        self.ms = MainStep()
-
-        cdef shared_ptr[AllParameters] allParameters_ptr = make_shared[AllParameters]()
-        deref(allParameters_ptr).eraseAllEntries()
-
-        cdef size_t nbParams = len(params)
-        for i in range(nbParams):
-          if type(params[i]) is str:
-           encoded_parami= params[i].encode(u"ascii")
-           # print(encoded_parami)
-           deref(allParameters_ptr).readParamLine(encoded_parami)
-
-        deref(allParameters_ptr).checkAndComply()
-        self.ms.setAllParameters(allParameters_ptr)
-
-    def suggest(self):
-        cdef vector[Point] xs = self.ms.suggest()
-
-        candidates = []
-        for i in range(xs.size()):
-            candidates.append([xs[i][j].todouble() for j in range(xs[i].size())])
-
-        return candidates
 
 
 
@@ -402,6 +415,27 @@ cdef extern from "Type/ComputeType.hpp" namespace "NOMAD":
     cdef struct FHComputeType:
         pass
 
+cdef extern from *:
+    """
+    inline NOMAD::FHComputeType get_bb_compute_type() {
+        NOMAD::FHComputeTypeS cts { NOMAD::ComputeType::STANDARD, NOMAD::HNormType::L2 };
+        NOMAD::FHComputeType ct { NOMAD::EvalType::BB, cts };
+        return ct;
+    }
+    inline NOMAD::FHComputeType get_model_compute_type() {
+        NOMAD::FHComputeTypeS cts { NOMAD::ComputeType::STANDARD, NOMAD::HNormType::L2 };
+        NOMAD::FHComputeType ct { NOMAD::EvalType::MODEL, cts };
+        return ct;
+    }
+    inline NOMAD::FHComputeType get_surrogate_compute_type() {
+        NOMAD::FHComputeTypeS cts { NOMAD::ComputeType::STANDARD, NOMAD::HNormType::L2 };
+        NOMAD::FHComputeType ct { NOMAD::EvalType::SURROGATE, cts };
+        return ct;
+    }
+    """
+    FHComputeType get_bb_compute_type()
+    FHComputeType get_model_compute_type()
+    FHComputeType get_surrogate_compute_type()
 
 cdef extern from "Eval/EvalPoint.hpp" namespace "NOMAD":
     cdef cppclass EvalPoint:
@@ -409,8 +443,9 @@ cdef extern from "Eval/EvalPoint.hpp" namespace "NOMAD":
         const Double& getF(const FHComputeType& completeComputeType) const
         const Double& getH(const FHComputeType& completeComputeType) const
         void setBBO(const string &bbo)
-        string getBBO()
+        string getBBO(const EvalType& evalType) const
         size_t size()
+        string display()
 
     cdef cppclass Block:
         const shared_ptr[EvalPoint]& operator[](size_t i) const
@@ -420,7 +455,12 @@ cdef extern from "Eval/EvalPoint.hpp" namespace "NOMAD":
 cdef class PyNomadEvalPoint:
     cdef shared_ptr[EvalPoint] c_ep_ptr
 
+    cdef void _require_ptr(self):
+        if self.c_ep_ptr.get() == NULL:
+            raise RuntimeError("PyNomadEvalPoint: null EvalPoint pointer")
+
     def get_coord(self, size_t i):
+        self._require_ptr()
         cdef PyNomadDouble coord = PyNomadDouble()
         coord.c_d = deref(self.c_ep_ptr)[i]
         cdef double coord_d
@@ -432,9 +472,15 @@ cdef class PyNomadEvalPoint:
 
 
     def setBBO(self, string bbo):
+        self._require_ptr()
         deref(self.c_ep_ptr).setBBO(bbo)
 
+    def getBBO(self):
+        self._require_ptr()
+        return deref(self.c_ep_ptr).getBBO(EvalType.BB).decode()
+
     def getF(self):
+        self._require_ptr()
         cdef PyNomadDouble f = PyNomadDouble()
         cdef FHComputeTypeS defaultFHComputeTypeS = FHComputeTypeS(ComputeType.STANDARD,
                                                                    HNormType.L2)
@@ -449,6 +495,7 @@ cdef class PyNomadEvalPoint:
         return f_d
 
     def getH(self):
+        self._require_ptr()
         cdef PyNomadDouble h = PyNomadDouble()
         cdef FHComputeTypeS defaultFHComputeTypeS = FHComputeTypeS(ComputeType.STANDARD,
                                                                    HNormType.L2)
@@ -462,10 +509,64 @@ cdef class PyNomadEvalPoint:
             h_d = 0
         return h_d
 
+    def getModelF(self):
+        self._require_ptr()
+        cdef PyNomadDouble f = PyNomadDouble()
+        f.c_d = deref(self.c_ep_ptr).getF(get_model_compute_type())
+        cdef double f_d
+        if ( f.isDefined() ):
+            f_d = f.todouble()
+        else:
+            f_d = float('inf')
+        return f_d
+
+    def getModelH(self):
+        self._require_ptr()
+        cdef PyNomadDouble h = PyNomadDouble()
+        h.c_d = deref(self.c_ep_ptr).getH(get_model_compute_type())
+        cdef double h_d
+        if ( h.isDefined() ):
+            h_d = h.todouble()
+        else:
+            h_d = 0.0
+        return h_d
+    def getSurrogateF(self):
+        self._require_ptr()
+        cdef PyNomadDouble f = PyNomadDouble()
+        f.c_d = deref(self.c_ep_ptr).getF(get_surrogate_compute_type())
+        cdef double f_d
+        if ( f.isDefined() ):
+            f_d = f.todouble()
+        else:
+            f_d = float('inf')
+        return f_d
+
+    def getSurrogateH(self):
+        self._require_ptr()
+        cdef PyNomadDouble h = PyNomadDouble()
+        h.c_d = deref(self.c_ep_ptr).getH(get_surrogate_compute_type())
+        cdef double h_d
+        if ( h.isDefined() ):
+            h_d = h.todouble()
+        else:
+            h_d = 0.0
+        return h_d        
+
     def size(self):
+        self._require_ptr()
         cdef size_t n
         n = deref(self.c_ep_ptr).size()
         return n
+
+    def displayFullNomad(self):
+        self._require_ptr()
+        return deref(self.c_ep_ptr).display()
+
+    def displayX(self):
+        cdef str ret =''
+        for i in range(self.size()):
+             ret += str(self.get_coord(i)) + ' '   
+        return ret
 
 
 cdef class PyNomadBlock:
@@ -473,19 +574,28 @@ cdef class PyNomadBlock:
     cdef shared_ptr[Block] c_block_ptr
 
     def size(self):
-        cdef size_t n
-        n = deref(self.c_block_ptr).size()
-        return n
+        if self.c_block_ptr.get() == NULL:
+            return 0
+        return deref(self.c_block_ptr).size()
 
     def get_x(self, size_t i):
+        cdef size_t n
         cdef PyNomadEvalPoint x_i = PyNomadEvalPoint()
+        if self.c_block_ptr.get() == NULL:
+            raise RuntimeError("PyNomadBlock.get_x called on null block")
+        n = deref(self.c_block_ptr).size()
+        if i >= n:
+            raise IndexError("PyNomadBlock.get_x index out of range")
         x_i.c_ep_ptr = deref(self.c_block_ptr)[i]
+        if x_i.c_ep_ptr.get() == NULL:
+            raise RuntimeError("PyNomadBlock.get_x returned null EvalPoint pointer")
         return x_i
 
 
 cdef extern from "nomadCySimpleInterface.cpp":
     ctypedef int (*Callback)(void * apply, shared_ptr[EvalPoint] x)
     ctypedef vector[int] (*CallbackL)(void * apply, shared_ptr[Block] x)
+    ctypedef bool (*CallbackU)(void * apply, shared_ptr[Block] x)
     void printPyNomadVersion()
     void printPyNomadUsage()
     void printPyNomadInfo()
@@ -493,15 +603,16 @@ cdef extern from "nomadCySimpleInterface.cpp":
     int runNomad(Callback cb, CallbackL cbL, void* apply, vector[double] &X0,
                  vector[double] &LB, vector[double] &UB,
                  vector[string] &params,
-                 shared_ptr[EvalPoint] &bestFeasSol,
-                 shared_ptr[EvalPoint] &bestInfeasSol,
+                 shared_ptr[Block] &bestFeasSol,
+                 shared_ptr[Block] &bestInfeasSol,
                  size_t &nbEvals, size_t &nbIters, string &stopReason) except+
     int runNomad(Callback cb, CallbackL cbL, void* applyBB, void* applySurrogate, vector[double] &X0,
                  vector[double] &LB, vector[double] &UB,
                  vector[string] &params,
-                 shared_ptr[EvalPoint] &bestFeasSol,
-                 shared_ptr[EvalPoint] &bestInfeasSol,
+                 shared_ptr[Block] &bestFeasSol,
+                 shared_ptr[Block] &bestInfeasSol,
                  size_t &nbEvals, size_t &nbIters, string &stopReason) except+
+    void setCustomMegaIterEndCallbackFunction(CallbackU cbU, void* applyCB) except+
 
 
 # Define callback function for a single EvalPoint ---> link with Python
@@ -519,4 +630,12 @@ cdef vector[int] cbL(void *f, shared_ptr[Block] block) noexcept:
 
     u.c_block_ptr = block
     return (<object>f)(u)
- 
+
+# Define user callback function for accessing a block (vector) of best feasible EvalPoints
+# And return a boolean flag to stop (true) or not (false)
+cdef bool cbU(void *f, shared_ptr[Block] block) noexcept:
+
+    cdef PyNomadBlock u = PyNomadBlock()
+
+    u.c_block_ptr = block
+    return (<object>f)(u) 

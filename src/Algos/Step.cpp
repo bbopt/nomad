@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 // Generic
 #include "../Algos/Algorithm.hpp"
 #include "../Algos/EvcInterface.hpp"
@@ -59,17 +60,6 @@
 /*-----------------------------------*/
 bool NOMAD::Step::_userInterrupt = false;
 bool NOMAD::Step::_userTerminate = false;
-
-
-// IMPORTANT
-// Reset callbacks by calling in resetCallbacks()
-//
-NOMAD::StepCbFunc NOMAD::Step::_cbIterationEnd = defaultStepCB;
-NOMAD::StepCbFunc NOMAD::Step::_cbMegaIterationEnd = defaultStepCB;
-NOMAD::StepCbFunc NOMAD::Step::_cbMegaIterationStart = defaultStepCB;
-NOMAD::StepCbFunc NOMAD::Step::_cbPostprocessingCheck = defaultStepCB;
-NOMAD::HotRestartCbFunc NOMAD::Step::_cbHotRestart = defaultHotRestart;
-
 bool NOMAD::Step::_showWarnings = true;
 
 
@@ -145,86 +135,61 @@ NOMAD::Step::~Step()
 }
 
 
-void NOMAD::Step::addCallback(const NOMAD::CallbackType& callbackType,
-                              const NOMAD::StepCbFunc& stepCbFunc)
-{
-    switch (callbackType)
-    {
-        case NOMAD::CallbackType::ITERATION_END:
-            _cbIterationEnd = stepCbFunc;
-            break;
-        case NOMAD::CallbackType::MEGA_ITERATION_START:
-            _cbMegaIterationStart = stepCbFunc;
-            break;
-        case NOMAD::CallbackType::MEGA_ITERATION_END:
-            _cbMegaIterationEnd = stepCbFunc;
-            break;
-        case NOMAD::CallbackType::POSTPROCESSING_CHECK:
-            _cbPostprocessingCheck = stepCbFunc;
-            break;
-        default:
-            break;
-    }
-}
-
-
-void NOMAD::Step::addCallback(const NOMAD::CallbackType& callbackType,
-                              const NOMAD::HotRestartCbFunc& hotRestartCbFunc)
-{
-    if (NOMAD::CallbackType::HOT_RESTART == callbackType)
-    {
-        _cbHotRestart = hotRestartCbFunc;
-    }
-}
-
-
-void NOMAD::Step::runCallback(NOMAD::CallbackType callbackType,
+void NOMAD::Step::runCallback(const NOMAD::AlgoCallbackType & callbackType,
                               const NOMAD::Step& step,
                               bool &stop)
 {
     // Default stop value.
     stop = false;
     
-    
-    // IMPORTANT
-    // New added callback functions should also be in resetCallbacks.
-    switch(callbackType)
+    // Let's get the algo parent of this step and run the corresponding callback on it.
+    auto algo = getParentOfType<NOMAD::Algorithm*>(false);
+    if (algo)
     {
-        case NOMAD::CallbackType::ITERATION_END:
-            _cbIterationEnd(step, stop);
-            break;
-        case NOMAD::CallbackType::MEGA_ITERATION_START:
-            _cbMegaIterationStart(step, stop);
-            break;
-        case NOMAD::CallbackType::MEGA_ITERATION_END:
-            _cbMegaIterationEnd(step, stop);
-            break;
-        case NOMAD::CallbackType::POSTPROCESSING_CHECK:
-            _cbPostprocessingCheck(step, stop);
-            break;
-        default:
-            break;
+        if (callbackType == NOMAD::AlgoCallbackType::MEGA_ITERATION_START)
+        {
+            auto cb = algo->getCallback<NOMAD::AlgoCallbackType::MEGA_ITERATION_START>();
+            if (cb)
+            {
+                cb->call(step, stop);
+            }
+            
+        }
+        else if (callbackType == NOMAD::AlgoCallbackType::MEGA_ITERATION_END)
+        {
+            auto cb = algo->getCallback<NOMAD::AlgoCallbackType::MEGA_ITERATION_END>();
+            if (cb)
+            {
+                cb->call(step, stop);
+            }
+            
+        }
+        else if (callbackType == NOMAD::AlgoCallbackType::ITERATION_END)
+        {
+            auto cb = algo->getCallback<NOMAD::AlgoCallbackType::ITERATION_END>();
+            if (cb)
+            {
+                cb->call(step, stop);
+            }
+            
+        }
+        else if (callbackType == NOMAD::AlgoCallbackType::POSTPROCESSING_CHECK)
+        {
+            auto cb = algo->getCallback<NOMAD::AlgoCallbackType::POSTPROCESSING_CHECK>();
+            if (cb)
+            {
+                cb->call(step, stop);
+            }
+            
+        }
+        else
+        {
+            throw NOMAD::StepException(__FILE__,__LINE__,"Step callback is only for iteration control", this);
+        }
+        
     }
 }
 
-
-void NOMAD::Step::runCallback(NOMAD::CallbackType callbackType,
-                              std::vector<std::string>& paramLines)
-{
-    if (NOMAD::CallbackType::HOT_RESTART == callbackType)
-    {
-        _cbHotRestart(paramLines);
-    }
-}
-
-void NOMAD::Step::resetCallbacks()
-{
-    _cbIterationEnd= defaultStepCB;
-    _cbMegaIterationEnd = defaultStepCB;
-    _cbMegaIterationStart = defaultStepCB;
-    _cbPostprocessingCheck = defaultStepCB;
-    
-}
 void NOMAD::Step::AddOutputInfo(const std::string& s, bool isBlockStart, bool isBlockEnd) const
 {
     // NB. Set the output level as LEVEL_INFO by default.

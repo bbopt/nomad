@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   Direction.cpp
  \brief  Custom class for directions (implementation)
@@ -221,15 +222,25 @@ NOMAD::Double NOMAD::Direction::angle(const NOMAD::Direction& dir1,
 /*  Compute a random direction on a unit N-Sphere   */
 /*  See http://en.wikipedia.org/wiki/N-sphere       */
 /*--------------------------------------------------*/
-void NOMAD::Direction::computeDirOnUnitSphere(NOMAD::Direction &randomDir)
+void NOMAD::Direction::computeDirOnUnitSphere(NOMAD::Direction &randomDir, const std::shared_ptr<SimpleRNG> & rng )
 {
     size_t i;
     NOMAD::Double norm;
     size_t n = randomDir.size();
 
-    for (i = 0; i < n; ++i)
+    if (nullptr == rng)
     {
-        randomDir[i] = NOMAD::RNG::normalRand(0,1);
+        for (i = 0; i < n; ++i)
+        {
+            randomDir[i] = NOMAD::RNG::normalRand(0,1);
+        }
+    }
+    else
+    {
+        for (i = 0; i < n; ++i)
+        {
+            randomDir[i] = rng->normalRand(0,1);
+        }
     }
 
     norm = randomDir.norm();
@@ -250,18 +261,25 @@ void NOMAD::Direction::computeDirOnUnitSphere(NOMAD::Direction &randomDir)
 /*--------------------------------------------------*/
 /*  Compute a random direction in a unit N-Sphere   */
 /*--------------------------------------------------*/
-void NOMAD::Direction::computeDirInUnitSphere(NOMAD::Direction &randomDir)
+void NOMAD::Direction::computeDirInUnitSphere(NOMAD::Direction &randomDir, const std::shared_ptr<SimpleRNG> & rng )
 {
     size_t n = randomDir.size();
 
     // Random direction on unit sphere
-    NOMAD::Direction::computeDirOnUnitSphere(randomDir);
+    NOMAD::Direction::computeDirOnUnitSphere(randomDir, rng);
 
-    // Random direction in unit sphere
-    NOMAD::Double newNorm= NOMAD::RNG::rand(NOMAD::Double::getEpsilon(),1);
+    NOMAD::Double newNorm;
+    if (nullptr == rng)
+    {
+        // Random direction in unit sphere
+        newNorm = NOMAD::RNG::rand(NOMAD::Double::getEpsilon(),1);
+    }
+    else
+    {
+        newNorm = rng->rand(NOMAD::Double::getEpsilon(),1);
+    }
     for (size_t j=0 ; j <n ; j++ )
         randomDir[j] *= newNorm;
-
 }
 
 
@@ -296,6 +314,51 @@ void NOMAD::Direction::householder(const NOMAD::Direction &dir,
         }
     }
 }
+
+/*-----------------------------------------------------------*/
+/*                        snap to bounds                     */
+/*-----------------------------------------------------------*/
+NOMAD::Direction NOMAD::Direction::forceExtendToBounds(const NOMAD::ArrayOfDouble &refPt,
+                                                const NOMAD::ArrayOfDouble &lowerBound,
+                                                const NOMAD::ArrayOfDouble &upperBound) const
+{
+    size_t n = refPt.size();
+    NOMAD::Double alphaLB, alphaUB;
+    
+    NOMAD::Direction extendedDir = *this;
+    
+    NOMAD::Double alpha(NOMAD::INF);
+    for (size_t i = 0; i < n ; i++)
+    {
+        if ( (*this)[i] != 0)
+        {
+            if (lowerBound[i].isDefined())
+            {
+                alphaLB = (lowerBound[i]-refPt[i])/(*this)[i];
+                if (alphaLB >= 0)
+                {
+                    alpha = NOMAD::min( alpha, alphaLB);
+                }
+            }
+            if (upperBound[i].isDefined())
+            {
+                alphaUB = (upperBound[i]-refPt[i])/(*this)[i];
+                if (alphaUB >= 0)
+                {
+                    alpha = NOMAD::min( alpha, alphaUB);
+                }
+            }
+            
+        }
+    }
+    if (alpha == NOMAD::INF)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Cannot force extend the direction to the bounds.");
+    }
+    extendedDir *= alpha;
+    return extendedDir;
+}
+
 
 
 NOMAD::Direction NOMAD::operator-(const Direction &dir)

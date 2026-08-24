@@ -44,11 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 //////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////
 //////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////
 
-#ifndef __NOMAD_4_5_DEPRECATEDATTRIBUTESDEFINITION__
-#define __NOMAD_4_5_DEPRECATEDATTRIBUTESDEFINITION__
+#ifndef __NOMAD_4_6_DEPRECATEDATTRIBUTESDEFINITION__
+#define __NOMAD_4_6_DEPRECATEDATTRIBUTESDEFINITION__
 
 _definition = {
 { "ASYNCHRONOUS",  "bool",  "true",  " Deprecated from Nomad 3: Not implemented ",  " \n . Default: true\n\n",  "  internal  "  , "false" , "false" , "true" },

@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include <algorithm>    // For std::merge and std::unique
 
 #include "../../Algos/Mads/MadsIteration.hpp"
@@ -73,25 +74,13 @@ void NOMAD::MadsIteration::init()
     // For some testing, it is possible that _runParams is null
     if (nullptr != _runParams && _runParams->getAttributeValue<bool>("MEGA_SEARCH_POLL"))
     {
-        _megasearchpoll = std::make_unique<NOMAD::MegaSearchPoll>(this);
+        _megasearchpoll = std::make_unique<NOMAD::MegaSearchPoll>(this, _userCallbackEnabled);
     }
     else
     {
-        _poll = std::make_unique<NOMAD::Poll>(this, _userCallbackEnabled);
-        _search = std::make_unique<NOMAD::Search>(this);
-
-        // Search method for user. Put it in first position.
-        // The user search method is enabled by setting a
-        // callback function and having parameter USER_SEARCH true.
-        // The callback function is used to generate directions.
-        // Trial points on mesh are produced automatically.
-        if (_userCallbackEnabled)
-        {
-            auto userSearch = std::make_shared<NOMAD::UserSearchMethod>(this,1);
-            _search->insertSearchMethod(0,userSearch);
-            auto userSearch_2 = std::make_shared<NOMAD::UserSearchMethod>(this,2);
-            _search->insertSearchMethod(1,userSearch_2);
-        }
+        _search = std::make_unique<NOMAD::Search>(this, _userCallbackEnabled);
+        _extendedPoll = std::make_unique<NOMAD::ExtendedPoll>(this);
+        _poll = std::make_unique<NOMAD::Poll>(this, _userCallbackEnabled, _extendedPoll->isEnabled());
     }
 }
 
@@ -154,44 +143,22 @@ bool NOMAD::MadsIteration::runImp()
 {
     bool iterationSuccess = false;
 
-
     // Parameter Update is handled at the upper level - MegaIteration.
     if ( nullptr != _megasearchpoll
         && !_stopReasons->checkTerminate())
     {
-        _megasearchpoll->start();
-        bool successful = _megasearchpoll->run();
-        _megasearchpoll->end();
-
-        if (successful)
-        {
-            OUTPUT_DEBUG_START
-            std::string s = getName() + ": new success " + NOMAD::enumStr(_success);
-            s += " stopReason = " + _stopReasons->getStopReasonAsString() ;
-            AddOutputDebug(s);
-            OUTPUT_DEBUG_END
-        }
+        iterationSuccess = doMegaSearchPoll();
     }
     else
     {
         // 1. Search
         if ( nullptr != _search && ! _stopReasons->checkTerminate() )
         {
-#ifdef TIME_STATS
-            double searchStartTime = NOMAD::Clock::getCPUTime();
-            double searchEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
-#endif // TIME_STATS
-
-            _search->start();
-            iterationSuccess = _search->run();
-            _search->end();
-#ifdef TIME_STATS
-            _searchTime += NOMAD::Clock::getCPUTime() - searchStartTime;
-            _searchEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - searchEvalStartTime;
-#endif // TIME_STATS
+            iterationSuccess = doSearch();
 
         }
 
+        // 2. Poll
         if ( nullptr != _search && ! _stopReasons->checkTerminate() )
         {
             if (iterationSuccess)
@@ -202,21 +169,28 @@ bool NOMAD::MadsIteration::runImp()
             }
             else
             {
+                iterationSuccess = doPoll();
+            }
+            
+            
+            if (!iterationSuccess && nullptr != _extendedPoll && _extendedPoll->isEnabled())
+            {
+                OUTPUT_INFO_START
+                AddOutputInfo("Poll unsuccessful. Let's do an extended poll.");
+                OUTPUT_INFO_END
 #ifdef TIME_STATS
-                double pollStartTime = NOMAD::Clock::getCPUTime();
-                double pollEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
+                double extendedPollStartTime = NOMAD::Clock::getCPUTime();
+                double extendedPollEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
 #endif // TIME_STATS
-                // 2. Poll
-                _poll->start();
-                // Iteration is a success if either a better xFeas or
-                // a better xInf (partial success or dominating) xInf was found.
-                // See Algorithm 12.2 from DFBO.
-                iterationSuccess = _poll->run();
-                _poll->end();
+                // 3. ExtendedPoll
+                _extendedPoll->start();
+                iterationSuccess = _extendedPoll->run();
+                _extendedPoll->end();
 #ifdef TIME_STATS
-                _pollTime += NOMAD::Clock::getCPUTime() - pollStartTime;
-                _pollEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - pollEvalStartTime;
+                _extendedPollTime += NOMAD::Clock::getCPUTime() - extendedPollStartTime;
+                _extendedPollEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - extendedPollEvalStartTime;
 #endif // TIME_STATS
+                
             }
         }
     }
@@ -224,6 +198,61 @@ bool NOMAD::MadsIteration::runImp()
 
     // End of the iteration: iterationSuccess is true iff we have a full success.
     return iterationSuccess;
+}
+
+bool NOMAD::MadsIteration::doMegaSearchPoll()
+{
+    _megasearchpoll->start();
+    bool successful = _megasearchpoll->run();
+    _megasearchpoll->end();
+    
+    if (successful)
+    {
+        OUTPUT_DEBUG_START
+        std::string s = getName() + ": new success " + NOMAD::enumStr(_success);
+        s += " stopReason = " + _stopReasons->getStopReasonAsString() ;
+        AddOutputDebug(s);
+        OUTPUT_DEBUG_END
+    }
+    return successful;
+}
+
+bool NOMAD::MadsIteration::doPoll()
+{
+#ifdef TIME_STATS
+    double pollStartTime = NOMAD::Clock::getCPUTime();
+    double pollEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
+#endif // TIME_STATS
+    // 2. Poll
+    _poll->start();
+    // Iteration is a success if either a better xFeas or
+    // a better xInf (partial success or dominating) xInf was found.
+    // See Algorithm 12.2 from DFBO.
+    bool pollSuccessful = _poll->run();
+    _poll->end();
+#ifdef TIME_STATS
+    _pollTime += NOMAD::Clock::getCPUTime() - pollStartTime;
+    _pollEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - pollEvalStartTime;
+#endif // TIME_STATS
+    
+    return pollSuccessful;
+}
+
+bool NOMAD::MadsIteration::doSearch()
+{
+#ifdef TIME_STATS
+    double searchStartTime = NOMAD::Clock::getCPUTime();
+    double searchEvalStartTime = NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime();
+#endif // TIME_STATS
+    
+    _search->start();
+    bool searchSuccessful = _search->run();
+    _search->end();
+#ifdef TIME_STATS
+    _searchTime += NOMAD::Clock::getCPUTime() - searchStartTime;
+    _searchEvalTime += NOMAD::EvcInterface::getEvaluatorControl()->getEvalTime() - searchEvalStartTime;
+#endif // TIME_STATS
+    return searchSuccessful;
 }
 
 

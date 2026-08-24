@@ -44,14 +44,15 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   TRIPMSolver.hpp
  \brief  Trust-Region Interior Point Method
  \author Tangi Migot and Ludovic Salomon
  \see    TRIPMSolver.cpp
  */
-#ifndef __NOMAD_4_5_TRIPM_SOLVER__
-#define __NOMAD_4_5_TRIPM_SOLVER__
+#ifndef __NOMAD_4_6_TRIPM_SOLVER__
+#define __NOMAD_4_6_TRIPM_SOLVER__
 
 #include "../../../ext/sgtelib/src/Matrix.hpp"
 
@@ -190,4 +191,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif //__NOMAD_4_5_TRIPM_SOLVER__
+#endif //__NOMAD_4_6_TRIPM_SOLVER__

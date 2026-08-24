@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_QPSOLVERALGOMEGAITERATION__
-#define __NOMAD_4_5_QPSOLVERALGOMEGAITERATION__
+
+#ifndef __NOMAD_4_6_QPSOLVERALGOMEGAITERATION__
+#define __NOMAD_4_6_QPSOLVERALGOMEGAITERATION__
 
 #include "../../Algos/MegaIteration.hpp"
 #include "../../Algos/QPSolverAlgo/QPSolverAlgoIteration.hpp"
@@ -64,6 +65,14 @@ class QPSolverAlgoMegaIteration: public MegaIteration
 {
 private:
     std::vector<std::shared_ptr<QPSolverAlgoIteration>> _iterList;
+    
+    /**
+     Main mesh that holds the  frame size of QPSolveAlgo for Trust Region radius (Delta)
+     */
+    MeshBasePtr _mainMesh;
+    
+    // Flag for sufficient decrease. Note: only feasible points are considered
+    bool _sufficientDecrease = false;
 
 public:
     /// Constructor
@@ -71,13 +80,16 @@ public:
      \param parentStep      The parent step of this step -- \b IN.
      \param k               The main iteration counter -- \b IN.
      \param barrier         The barrier for constraints handling -- \b IN.
+     \param mesh            Mesh for holding the trust region radius (Delta)-- \b IN.
      \param success         Success type of the previous MegaIteration. -- \b IN.
      */
     explicit QPSolverAlgoMegaIteration(const Step* parentStep,
                               size_t k,
                               std::shared_ptr<BarrierBase> barrier,
+                              MeshBasePtr mesh,
                               SuccessType success)
-    : MegaIteration(parentStep, k,barrier,success)
+    : MegaIteration(parentStep, k,barrier,success),
+      _mainMesh(mesh)
     {
         init();
     }
@@ -86,6 +98,10 @@ public:
 
     void read(  std::istream& is ) override;
     void display(  std::ostream& os ) const override ;
+    
+    const MeshBasePtr getMesh() const override { return _mainMesh; }
+    
+    bool hasSufficientDecrease() const { return _sufficientDecrease; }
 
 private:
 
@@ -105,9 +121,6 @@ private:
      See Algorithm 12.2 from DFBO.
      */
     virtual bool runImp() override;
-
-    // Used in QuadModel but not in Template
-    // virtual bool endImp() override;
     
 
 };
@@ -122,4 +135,4 @@ std::istream& operator>>(std::istream& is, QPSolverAlgoMegaIteration& megaIterat
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QPSOLVERALGOMEGAITERATION__
+#endif // __NOMAD_4_6_QPSOLVERALGOMEGAITERATION__

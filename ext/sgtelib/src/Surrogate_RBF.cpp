@@ -273,22 +273,22 @@ const SGTELIB::Matrix SGTELIB::Surrogate_RBF::compute_design_matrix ( const SGTE
 /*--------------------------------------*/
 void SGTELIB::Surrogate_RBF::predict_private ( const SGTELIB::Matrix & XXs,
                                                      SGTELIB::Matrix * ZZs) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   *ZZs = compute_design_matrix(XXs,false) * _Alpha;
 }//
 
 // Predict only objectives (used in Surrogate Ensemble Stat)
 void SGTELIB::Surrogate_RBF::predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
                                                          SGTELIB::Matrix * ZZsurr_around            ) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
   const size_t pxx = XXd.size();
-  SGTELIB::Matrix _Alpha_obj ("alpha_obj", _q, 1);
+  SGTELIB::Matrix Alpha_obj ("alpha_obj", _q, 1);
 
   // Get only objectives values is alpha
   for (int j=0 ; j<_m ; j++){
     if (_trainingset.get_bbo(j)==SGTELIB::BBO_OBJ){
-      _Alpha_obj = _Alpha.get_col(j);
+      Alpha_obj = _Alpha.get_col(j);
       break;
     }
   } // end for j
@@ -296,7 +296,7 @@ void SGTELIB::Surrogate_RBF::predict_private_objective ( const std::vector<SGTEL
   // Loop on all pxx points 
   for (int i=0 ; i<static_cast<int>(pxx) ; i++){
     // XXd[i] is of dimension nbd * _n
-    ZZsurr_around->set_row( ( compute_design_matrix(*(XXd[i]), false) * _Alpha_obj ).transpose() , i );
+    ZZsurr_around->set_row( ( compute_design_matrix(*(XXd[i]), false) * Alpha_obj ).transpose() , i );
   } // end for i
 
 }
@@ -305,7 +305,7 @@ void SGTELIB::Surrogate_RBF::predict_private_objective ( const std::vector<SGTEL
 /*       get matrix Zvs                 */
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate_RBF::get_matrix_Zvs (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   if ( ! _Zvs){
 
     // Init _Zvs

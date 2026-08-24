@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_INITIALIZATION__
-#define __NOMAD_4_5_INITIALIZATION__
+
+#ifndef __NOMAD_4_6_INITIALIZATION__
+#define __NOMAD_4_6_INITIALIZATION__
 
 #include "../Algos/Step.hpp"
 #include "../Algos/TrialPointStats.hpp"
@@ -108,4 +109,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_INITIALIZATION__
+#endif // __NOMAD_4_6_INITIALIZATION__

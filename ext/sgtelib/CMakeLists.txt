@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 set(SGTELIB_VERSION_MAJOR 2)
 set(SGTELIB_VERSION_MINOR 0)
-set(SGTELIB_VERSION_PATCH 4)
+set(SGTELIB_VERSION_PATCH 5)
 set(SGTELIB_VERSION ${SGTELIB_VERSION_MAJOR}.${SGTELIB_VERSION_MINOR}.${SGTELIB_VERSION_PATCH})
 
 # name of the project
@@ -107,12 +107,10 @@ include(CMakePackageConfigHelpers)
 include(./CMakeListsLibs.txt)
 
 # Build static libraries (sgtelibStatic)
-if(BUILD_INTERFACE_PYTHON MATCHES ON)
+if((BUILD_INTERFACE_PYTHON MATCHES ON) OR (BUILD_INTERFACE_PYTHON_CAT MATCHES ON))
   message(STATUS "  Warning: build sgtelib static libraries for Python interface.")
   include(./CMakeListsLibsStatic.txt)
 endif()
-
-
 
 # install header files
 install(

@@ -135,7 +135,7 @@ void SGTELIB::Surrogate_KS::predict_private ( const SGTELIB::Matrix & XXs,
 // Predict only objectives (used in Surrogate Ensemble Stat)
 void SGTELIB::Surrogate_KS::predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
                                                         SGTELIB::Matrix * ZZsurr_around            ) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
   const size_t pxx = XXd.size();
   const int nbd = XXd[0]->get_nb_rows();
@@ -215,7 +215,7 @@ void SGTELIB::Surrogate_KS::predict_private_objective ( const std::vector<SGTELI
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate_KS::get_matrix_Zvs (void){
 
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
   // Check that it's NULL
   if (  !  _Zvs ){
@@ -325,7 +325,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_KS::get_matrix_Zvs (void){
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate_KS::get_matrix_Zhs (void){
 
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
   // Check that it's NULL
   if (  !  _Zhs ){

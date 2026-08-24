@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include <algorithm>
 
 #include "../../Cache/CacheBase.hpp"
@@ -92,7 +93,7 @@ void NOMAD::DMultiMadsExpansionIntLineSearchMethod::preRunValidations()
 
     if (NOMAD::ComputeType::STANDARD != refComputeType)
     {
-        NOMAD::Exception(__FILE__,__LINE__,"Cannot do expansion integer linesearch for DMultiMads on ComputeType other than STANDARD.");
+        throw NOMAD::Exception(__FILE__,__LINE__,"Cannot do expansion integer linesearch for DMultiMads on ComputeType other than STANDARD.");
     }
 
     // Get barrier from upper MegaIteration, if available.
@@ -138,7 +139,7 @@ NOMAD::Direction NOMAD::DMultiMadsExpansionIntLineSearchMethod::computePrimitive
             dir[i] = dir[i].round(); // Be sure to round to the nearest integer
         }
     }
-    
+
     auto gcd = [](int a, int b)
     {
         a = std::abs(a);
@@ -181,7 +182,7 @@ NOMAD::Direction NOMAD::DMultiMadsExpansionIntLineSearchMethod::computePrimitive
     // Compute the primitive direction
     for (size_t i = 0; i < dir.size(); ++i)
     {
-        dir[i] = dir[i].round() / gDivisor;
+        dir[i] = static_cast<double>(dir[i].round()) / static_cast<double>(gDivisor);
     }
 
     return dir;

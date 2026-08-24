@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/SimpleLineSearchMethod.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/EvcInterface.hpp"

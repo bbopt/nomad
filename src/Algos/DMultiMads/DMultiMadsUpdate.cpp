@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../../Algos/DMultiMads/DMultiMadsBarrier.hpp"
 #include "../../Algos/DMultiMads/DMultiMadsMegaIteration.hpp"
 #include "../../Algos/DMultiMads/DMultiMadsUpdate.hpp"

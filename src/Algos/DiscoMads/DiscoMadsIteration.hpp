@@ -44,14 +44,15 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
- \file   DiscoMadsIteration.cpp
+ \file   DiscoMadsIteration.hpp
  \brief  The DiscoMads algorithm main iteration
  \author Solene Kojtych
- \see    DiscoMadsIteration.hpp
+ \see    DiscoMadsIteration.cpp
  */
-#ifndef __NOMAD_4_5_DISCOMADSITERATION__
-#define __NOMAD_4_5_DISCOMADSITERATION__
+#ifndef __NOMAD_4_6_DISCOMADSITERATION__
+#define __NOMAD_4_6_DISCOMADSITERATION__
 
 
 #include "../../Algos/Mads/MadsIteration.hpp"
@@ -101,4 +102,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_DISCOMADSITERATION__
+#endif // __NOMAD_4_6_DISCOMADSITERATION__

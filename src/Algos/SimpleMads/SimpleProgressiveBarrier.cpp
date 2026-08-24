@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Eval/ComputeSuccessType.hpp"
 #include "../SimpleMads/SimpleProgressiveBarrier.hpp"
 #include "../../Output/OutputQueue.hpp"
@@ -85,8 +86,6 @@ bool NOMAD::SimpleProgressiveBarrier::updateWithPointsKeep2(const std::vector<NO
     bool updatedHMax = false;
 
     _xTmpInf.clear();
-
-    std::string s;  // for output info
 
     // Loop to identify the feasible barrier point. Will become the feasible incumbent later.
     for (const auto & evalPoint : evalPointList)
@@ -232,8 +231,7 @@ bool NOMAD::SimpleProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::
     _xTmpInf.clear();
 
     // The simple progressive barrier keeps only the undominated points with h<=hMax
-    
-    std::string s;  // for output info
+
 
     // Loop to identify the feasible barrier point. Will become the feasible incumbent later.
     for (const auto & evalPoint : evalPointList)
@@ -373,7 +371,7 @@ bool NOMAD::SimpleProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::
     updated = updatedFeas || updatedInf;
     updatedInc = updatedIncFeas || updatedIncInf;
 
-    return updatedInc;
+    return updatedInc ;
 }
 
 

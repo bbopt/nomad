@@ -161,7 +161,7 @@ const SGTELIB::Matrix SGTELIB::Surrogate_Kriging::compute_covariance_matrix ( co
 /*--------------------------------------*/
 void SGTELIB::Surrogate_Kriging::predict_private ( const SGTELIB::Matrix & XXs,
                                                      SGTELIB::Matrix * ZZs) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   const int pxx = XXs.get_nb_rows();
   const SGTELIB::Matrix r = compute_covariance_matrix(XXs).transpose();
   *ZZs =  SGTELIB::Matrix::ones(pxx,1)*_beta + r.transpose() * _alpha;
@@ -171,7 +171,7 @@ void SGTELIB::Surrogate_Kriging::predict_private ( const SGTELIB::Matrix & XXs,
 // Predict only objectives (used in Surrogate Ensemble Stat)
 void SGTELIB::Surrogate_Kriging::predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
                                                              SGTELIB::Matrix * ZZsurr_around            ) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
   const size_t pxx = XXd.size();
   const int nbd = XXd[0]->get_nb_rows();
@@ -201,7 +201,7 @@ void SGTELIB::Surrogate_Kriging::predict_private (const SGTELIB::Matrix & XXs,
                                                 SGTELIB::Matrix * std, 
                                                 SGTELIB::Matrix * ei ,
                                                 SGTELIB::Matrix * cdf) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
   const int pxx = XXs.get_nb_rows();
   const double fs_min = _trainingset.get_fs_min();
@@ -209,7 +209,7 @@ void SGTELIB::Surrogate_Kriging::predict_private (const SGTELIB::Matrix & XXs,
   int i,j;
 
   // Predict ZZ
-  if (ZZs) predict_private(XXs,ZZs);
+  predict_private(XXs,ZZs);
 
   // Predict std
   if (std) std->fill(-SGTELIB::INF);
@@ -223,7 +223,7 @@ void SGTELIB::Surrogate_Kriging::predict_private (const SGTELIB::Matrix & XXs,
   for (i=0 ; i<pxx ; i++){
     ri = r.get_col(i);
     rRr = (ri.transpose()*_Ri*ri).get(0,0);
-    if (std::fabs(rRr-1)<EPSILON){
+    if (std::fabs(rRr-1)<SGTELIB::EPSILON){
       v = std::fabs(rRr-1);
     }
     else{
@@ -280,7 +280,7 @@ void SGTELIB::Surrogate_Kriging::predict_private (const SGTELIB::Matrix & XXs,
 
 
 bool SGTELIB::Surrogate_Kriging::compute_cv_values (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
   if ((_Zvs) && (_Svs)) return true;
 
@@ -330,7 +330,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_Kriging::get_matrix_Svs (void){
 /*       compute linv                   */
 /*--------------------------------------*/
 void SGTELIB::Surrogate_Kriging::compute_metric_linv (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   if ( !is_defined(SGTELIB::METRIC_LINV) ){
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute metric linv\n";

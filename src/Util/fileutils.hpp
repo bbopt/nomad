@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   fileutils.hpp
  \brief  Utility functions about files (headers)
@@ -51,8 +52,8 @@
  \date   June 2017
  \see    fileutils.cpp
  */
-#ifndef __NOMAD_4_5_FILEUTILS__
-#define __NOMAD_4_5_FILEUTILS__
+#ifndef __NOMAD_4_6_FILEUTILS__
+#define __NOMAD_4_6_FILEUTILS__
 
 // use of 'access' or '_access', and getpid() or _getpid():
 #ifdef _MSC_VER
@@ -122,6 +123,10 @@ DLL_UTIL_API bool isAbsolute(const std::string &filename);
 
 // Add a '/' (DIR_SEP) at the end of the dirname if it does not end with one.
 DLL_UTIL_API void ensureDirPath(std::string &dirname);
+
+
+// Remove multiple consecutive DIR_SEP characters from a filename or path.
+DLL_UTIL_API std::string cleanPath(const std::string &filename);
 
 
 // Input a line (from a parameters file).
@@ -232,4 +237,4 @@ DLL_UTIL_API bool readAllFile(std::string &info, const std::string &filename);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_FILEUTILS__
+#endif // __NOMAD_4_6_FILEUTILS__

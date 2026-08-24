@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/NP1UniPollMethod.hpp"
 #include "../../Math/Direction.hpp"
 
@@ -60,7 +61,7 @@ void NOMAD::NP1UniPollMethod::generateUnitPollDirections(std::list<Direction> &d
     directions.clear();
 
     NOMAD::Direction dirUnit(n, 0.0);
-    NOMAD::Direction::computeDirOnUnitSphere(dirUnit);
+    NOMAD::Direction::computeDirOnUnitSphere(dirUnit, _rng);
 
     // Ortho MADS 2n
     // Householder Matrix

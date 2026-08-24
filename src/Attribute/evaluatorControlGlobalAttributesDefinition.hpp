@@ -44,11 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 //////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////
 //////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////
 
-#ifndef __NOMAD_4_5_EVALUATORCONTROLGLOBALATTRIBUTESDEFINITION__
-#define __NOMAD_4_5_EVALUATORCONTROLGLOBALATTRIBUTESDEFINITION__
+#ifndef __NOMAD_4_6_EVALUATORCONTROLGLOBALATTRIBUTESDEFINITION__
+#define __NOMAD_4_6_EVALUATORCONTROLGLOBALATTRIBUTESDEFINITION__
 
 _definition = {
 { "BB_MAX_BLOCK_SIZE",  "size_t",  "1",  " Size of blocks of points, to be used for parallel evaluations ",  " \n . Maximum size of a block of evaluations send to the blackbox \n   executable at once. Blackbox executable can manage parallel \n   evaluations on its own. Opportunistic strategies may apply after \n   each block of evaluations. \n  \n . Depending on the algorithm phase, the blackbox executable will \n   receive at most BB_MAX_BLOCK_SIZE points to evaluate. \n  \n . When this parameter is greater than one, the number of evaluations \n   may exceed the MAX_BB_EVAL stopping criterion. \n  \n . Argument: integer > 0. \n  \n . Example: BB_MAX_BLOCK_SIZE 3 \n            The blackbox executable receives blocks of \n            at most 3 points for evaluation. \n  \n . Default: 1\n\n",  "  advanced block parallel  "  , "true" , "true" , "true" },

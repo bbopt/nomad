@@ -1672,8 +1672,7 @@ SGTELIB::Matrix SGTELIB::Matrix::ones ( const int nbRows , const int nbCols ) {
 /*---------------------------*/
 /* rank                      */
 /*---------------------------*/
-SGTELIB::Matrix SGTELIB::Matrix::rank ( void ) const
-{
+SGTELIB::Matrix SGTELIB::Matrix::rank ( void ) const {
 
   if ((_nbRows>1) && (_nbCols>1))
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Matrix::rank: dimension error" );
@@ -2378,6 +2377,11 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
 
   error_msg.clear();
 
+  if ( nbRows <= 0 && nbCols <=0 ) {
+      error_msg = "SVD_decomposition() error: nbRows <=0  and nbCols <=0.";
+      return false;
+  }
+    
   if ( max_mpn > 0 && nbRows+nbCols > max_mpn ) {
     error_msg = "SVD_decomposition() error: nbRows+nbCols > " + SGTELIB::itos ( max_mpn );
     return false;
@@ -2408,7 +2412,7 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
     g      = s = scale = 0.0;
     if ( i < nbRows ) {
       for ( k = i ; k < nbRows ; ++k )
-   scale += std::fabs ( U[k][i] );
+   scale += fabs ( U[k][i] );
       if ( scale != 0.0 ) {
    for ( k = i ; k < nbRows ; ++k ) {
      U[k][i] /= scale;
@@ -2510,11 +2514,11 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
       flag = true;
       for ( l = k ; l >= 0 ; l-- ) {
    nm = l - 1;
-   if ( nm < 0 || std::fabs ( rv1[l]) + norm == norm ) {
+   if ( nm < 0 || fabs ( rv1[l]) + norm == norm ) {
      flag = false;
      break;
   }
-   if ( std::fabs ( W[nm] ) + norm == norm )
+   if ( fabs ( W[nm] ) + norm == norm )
     break;
       }
       if ( flag ) {

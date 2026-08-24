@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  * \file   StatsInfo.hpp
  * \brief  Class for Stats info and display
@@ -51,8 +52,8 @@
  * \date   February 2018
  */
 
-#ifndef __NOMAD_4_5_STATSINFO__
-#define __NOMAD_4_5_STATSINFO__
+#ifndef __NOMAD_4_6_STATSINFO__
+#define __NOMAD_4_6_STATSINFO__
 
 #include <memory>   // For unique_ptr
 #include <vector>
@@ -172,7 +173,7 @@ public:
     explicit StatsInfo();
 
     // Destructor is not implemented, so the compiler creates all default functions.
-    //virtual ~StatsInfo() {}
+    virtual ~StatsInfo() = default;
 
 public:
 
@@ -252,4 +253,4 @@ inline std::ostream& operator<< (std::ostream& os, const DisplayStatsType& displ
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_STATSINFO__
+#endif // __NOMAD_4_6_STATSINFO__

@@ -44,11 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 //////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////
 //////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////
 
-#ifndef __NOMAD_4_5_RUNATTRIBUTESDEFINITIONLH__
-#define __NOMAD_4_5_RUNATTRIBUTESDEFINITIONLH__
+#ifndef __NOMAD_4_6_RUNATTRIBUTESDEFINITIONLH__
+#define __NOMAD_4_6_RUNATTRIBUTESDEFINITIONLH__
 
 _definition = {
 { "LH_EVAL",  "size_t",  "0",  " Latin Hypercube Sampling of points (no optimization) ",  " \n  \n . Latin-Hypercube sampling (evaluations) \n  \n . Argument: A positive integer p < INF.  \n  \n . p: number of LH points \n  \n . All points will be evaluated (no opportunism). \n  \n . This option will not work with Mads but can be combined with quadratic \n   model optimization to have enough points to construct models. \n  \n . The LH sampling requires to have both lower and upper bounds defined. \n  \n . Example: LH_EVAL 100 \n  \n . Default: 0\n\n",  "  basic latin hypercube sampling  "  , "true" , "true" , "true" },

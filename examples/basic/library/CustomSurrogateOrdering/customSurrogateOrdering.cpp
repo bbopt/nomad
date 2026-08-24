@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*--------------------------------------------------------------------------*/
 /*  Example of a program that uses a custom surrogate evaluation of all     */
 /*  points to be used for comparison and ordering trial points before       */

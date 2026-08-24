@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/GMesh.hpp"
 #include "../../Output/OutputQueue.hpp"
@@ -691,13 +692,18 @@ void NOMAD::GMesh::checkSetDeltas(const size_t i,
 /*-----------------------------------------------------------*/
 /*              scale and project on the mesh                */
 /*-----------------------------------------------------------*/
-NOMAD::Double NOMAD::GMesh::scaleAndProjectOnMesh(size_t i, const NOMAD::Double &l) const
+NOMAD::Double NOMAD::GMesh::scaleAndProjectOnMesh(size_t i, const NOMAD::Double &l, bool isAds) const
 {
     const NOMAD::Double delta = getdeltaMeshSize(i);
 
     if (i < _n && _frameSizeMant.isDefined() && _frameSizeExp.isDefined() && delta.isDefined())
     {
         NOMAD::Double d = getRho(i) * l;
+        if (isAds)
+        {
+            // Continuous scaling without projection for ADS
+            return d * delta;
+        }
         return d.roundd() * delta;
     }
     else
@@ -713,10 +719,9 @@ NOMAD::Double NOMAD::GMesh::scaleAndProjectOnMesh(size_t i, const NOMAD::Double 
     }
 }
 
-
 // Scale and project, using infinite norm.
 NOMAD::ArrayOfDouble NOMAD::GMesh::scaleAndProjectOnMesh(
-    const NOMAD::Direction &dir) const
+    const NOMAD::Direction &dir, bool isAds) const
 {
     
     NOMAD::ArrayOfDouble proj(_n);
@@ -731,13 +736,12 @@ NOMAD::ArrayOfDouble NOMAD::GMesh::scaleAndProjectOnMesh(
 
     for (size_t i = 0; i < _n; ++i)
     {
-        // Scaling and projection on the mesh
-        proj[i] = this->scaleAndProjectOnMesh(i, dir[i] / infiniteNorm);
+        // Scaling on the mesh; projection is optional depending on ADS flag
+        proj[i] = this->scaleAndProjectOnMesh(i, dir[i] / infiniteNorm, isAds);
     }
 
     return proj;
 }
-
 
 NOMAD::Point NOMAD::GMesh::projectOnMesh(const NOMAD::Point& point,
                                          const NOMAD::Point& frameCenter) const

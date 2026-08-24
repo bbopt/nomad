@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_QUAD_MODEL_UPDATE__
-#define __NOMAD_4_5_QUAD_MODEL_UPDATE__
+
+#ifndef __NOMAD_4_6_QUAD_MODEL_UPDATE__
+#define __NOMAD_4_6_QUAD_MODEL_UPDATE__
 
 #include "../../Algos/Step.hpp"
 
@@ -65,6 +66,8 @@ private:
     bool _flagUseTrialPointsToDefineBox;
     bool _flagUseScaledModel;
     bool _flagPriorCombineObjsForModel;
+    
+    bool _buildOnImprovPoints;
     
     const EvalPointSet & _trialPoints;
     const std::vector<Direction> & _scalingDirections;
@@ -124,7 +127,9 @@ private:
     virtual void endImp() override {}
 
     bool isValidForUpdate(const EvalPoint& evalPoint) const; ///< Helper function for cache find.
+
     bool isValidForIncludeInModel(const EvalPoint& evalPoint) const; ///< Helper function for cache find.
+    bool isValidForIncludeInModelAndPlus(const EvalPoint& evalPoint) const; ///< Helper function for cache find.
     
     bool scalingByDirections( Point & x);
 
@@ -132,4 +137,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QUAD_MODEL_UPDATE__
+#endif // __NOMAD_4_6_QUAD_MODEL_UPDATE__

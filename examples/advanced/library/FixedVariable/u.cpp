@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include <cmath>        // For sqrt
 #include <ctime>        // For time_t
 #include <fstream>      // For ifstream

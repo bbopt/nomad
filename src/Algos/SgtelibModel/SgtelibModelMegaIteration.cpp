@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Cache/CacheBase.hpp"
 #include "../../Algos/EvcInterface.hpp"

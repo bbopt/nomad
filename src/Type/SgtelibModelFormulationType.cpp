@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   SgtelibModelFormulationType.cpp
  \brief  types for parameter SGTELIB_MODEL_FORMULATION (implementation)

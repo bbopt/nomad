@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/QR2NPollMethod.hpp"
 #include "../../Math/Direction.hpp"
 #include "../../Math/MatrixUtils.hpp"
@@ -62,7 +63,7 @@ void NOMAD::QR2NPollMethod::generateUnitPollDirections(std::list<NOMAD::Directio
     directions.clear();
 
     NOMAD::Direction dirUnit(n, 0.0);
-    NOMAD::Direction::computeDirOnUnitSphere(dirUnit);
+    NOMAD::Direction::computeDirOnUnitSphere(dirUnit, _rng);
     
     OUTPUT_DEBUG_START
     AddOutputDebug("Unit sphere direction: " + dirUnit.display());
@@ -70,7 +71,7 @@ void NOMAD::QR2NPollMethod::generateUnitPollDirections(std::list<NOMAD::Directio
     
     while (dirUnit[0] == 0)
     {
-        NOMAD::Direction::computeDirOnUnitSphere(dirUnit);
+        NOMAD::Direction::computeDirOnUnitSphere(dirUnit, _rng);
     }
     
     // Matrix M

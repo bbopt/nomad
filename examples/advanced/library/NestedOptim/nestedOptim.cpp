@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*--------------------------------------------*/
 /*  Rosenbrock with dimension greater than 2  */
 /*  Inner problem has dimension 2             */
@@ -88,11 +89,11 @@ bool My_EvaluatorOut::eval_x(NOMAD::EvalPoint &x,
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Dimension N should be an even number");
     }
-    
+
     //
     // Suboptimization on 2 variables. x (dim=10) is passed as a fixed variables to inner evaluation function
     //
-    
+
     // The function to evaluate an eval point.
     // Outer variables ->x
     std::function<bool(std::vector<NOMAD::SimpleEvalPoint>&)> eval_x = [&x](std::vector<NOMAD::SimpleEvalPoint>& allXIn) -> bool
@@ -108,9 +109,11 @@ bool My_EvaluatorOut::eval_x(NOMAD::EvalPoint &x,
             // inner variables (dim 2) contribution to f
             f += pow ( 10 * (xIn[1].todouble() - pow(xIn[0].todouble(),2) ) , 2 );
             f += pow ( 1 - xIn[0].todouble() , 2 );
-            
+
             xIn.setF(f);
             xIn.setH(0);
+
+            // std::cout << xIn.display() << " f=" << f <<std::endl ;
         }
         return true;
     };
@@ -123,41 +126,52 @@ bool My_EvaluatorOut::eval_x(NOMAD::EvalPoint &x,
     NOMAD::ArrayOfPoint x0s{NOMAD::ArrayOfDouble(2,0)}; // A single X0 = (0,0)
     pbParams->setAttributeValue("X0", x0s);
     pbParams->checkAndComply();
-    
+
     // Run parameters (use default)
     auto runParams = std::make_shared<NOMAD::RunParameters>();
-    runParams->setAttributeValue("ANISOTROPIC_MESH",false);
-    auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams(); 
+    runParams->setAttributeValue("SIMPLE_MADS_WITH_VNS", true);
+    runParams->setAttributeValue("ANISOTROPIC_MESH", false);
+    auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
     runParams->checkAndComply(evcParams, pbParams);
-
-    NOMAD::BBOutputTypeList bbot = {NOMAD::BBOutputType::Type::OBJ};
 
     auto madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
 
-    // Create a simple mads to solve the inner problem on 2 dimension.
-    // Outer variables -> x are available as fixed parameters in the evaluation.
-    // Simple Mads is not opportunistic. All poll points are passed at once into eval_x.
-    NOMAD::SimpleMads mads(_genStep, madsStopReasons, runParams, pbParams, bbot, eval_x /* eval_x for a block of points */, 1600 /* maxEval */);
-    
-    // No need to display something at the end of the sub-optimization
-    mads.setEndDisplay(false);
+    try{
 
-    mads.start();
-    bool runOk = mads.run();
-    mads.end();
+        // Create a simple mads to solve the inner problem on 2 dimension.
+        // Outer variables -> x are available as fixed parameters in the evaluation.
+        // Simple Mads is not opportunistic. All poll points are passed at once into eval_x.
+        NOMAD::SimpleMads mads(_genStep, madsStopReasons, runParams, pbParams, eval_x /* eval_x for a block of points */, 1600 /* maxEval */);
 
-    double f = 0;
-    if (!runOk)
-    {
-        std::cout << "Pb with inner mads. Let's continue. f=0." << std::endl;
+
+        // No need to display something at the end of the sub-optimization
+        mads.setEndDisplay(false);
+
+        mads.start();
+        bool runOk = mads.run();
+        mads.end();
+
+        double f = 0;
+        if (!runOk)
+        {
+            std::cout << "Pb with inner mads. Let's continue. f=0." << std::endl;
+        }
+        else
+        {
+            // Get the best feas solution
+            f = mads.getBestSimpleSolution(true).getF().todouble();
+        }
+
+        x.setBBO(std::to_string(f));
     }
-    else
+    catch(NOMAD::Exception& e)
     {
-        // Get the best feas solution
-        f = mads.getBestSimpleSolution(true).getF().todouble();
+        std::cerr << "Failed sub-optimization." << std::endl;
+        std::cerr << e.what() << std::endl;
+        std::cerr << "Check the exception. For now, let's continue anyway." << std::endl;
+        x.setBBO("INF");
+
     }
-    
-    x.setBBO(std::to_string(f));
 
     countEval = true; // count a black-box evaluation
 
@@ -178,13 +192,13 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
     // Bounds
     allParams->setAttributeValue("LOWER_BOUND", NOMAD::ArrayOfDouble(Nout, -10.0 ));
     allParams->setAttributeValue("UPPER_BOUND", NOMAD::ArrayOfDouble(Nout, 10.0 ));
- 
+
     // Constraints and objective
     NOMAD::BBOutputTypeList bbOutputTypes = {NOMAD::BBOutputType::OBJ};
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
-    
+
     NOMAD::ArrayOfString ds("BBE ( SOL ) OBJ");
     allParams->setAttributeValue("DISPLAY_STATS", ds);
 

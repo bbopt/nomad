@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/QuadModel/QuadModelAlgo.hpp"
@@ -98,24 +99,85 @@ void NOMAD::QuadModelOptimize::startImp()
 
 bool NOMAD::QuadModelOptimize::runImp()
 {
-    std::string s;
     bool foundBetter = false;
     if ( ! _stopReasons->checkTerminate() )
     {
         foundBetter = evalTrialPoints(this);
 
-        if (_modelFixedVar.nbDefined() > 0)
-        {
-            NOMAD::EvalPointSet evalPointSet;
-            for (const auto& trialPoint : _trialPoints)
-            {
-                evalPointSet.insert(trialPoint.makeFullSpacePointFromFixed(_modelFixedVar));
-            }
-            _trialPoints.clear();
-            _trialPoints = evalPointSet;
-        }
         // Update barrier
         postProcessing();
+        
+        // Update best feas/infeas trial points with model info
+        // Update sufficient decrease
+        NOMAD::EvalPointSet evalPointSet;
+        _reductionRatio = NOMAD::M_INF;
+        for (const auto& tp : _trialPoints)
+        {
+            
+            const auto refCenter = getParentOfType<QuadModelIteration*>()->getRefCenter();
+            if (tp.isEvalOk(NOMAD::EvalType::BB) && refCenter->isEvalOk(NOMAD::EvalType::BB))
+            {
+                auto eTL = tp.getEval(NOMAD::EvalType::BB)->getBBOutputTypeList();
+                
+                // Get model outputs as eval BBO
+                const NOMAD::Point & Xtp = * tp.getX();
+                auto out = getModelOut(Xtp);
+                std::ostringstream oss;
+                oss.precision(NOMAD::DISPLAY_PRECISION_DOUBLE);
+                for (int i=0 ; i < eTL.size(); i++)
+                {
+                    oss << std::scientific << out.get(0,i) << " ";
+                }
+                
+                if (tp.isFeasible(NOMAD::defaultFHComputeType))
+                {
+                    _bestXFeas = std::make_shared<NOMAD::EvalPoint>(tp);
+                    _bestXFeas->setBBO(oss.str(), eTL, NOMAD::EvalType::MODEL);
+                    
+                    // Reduction factor is only for feasible center and trial points
+                    if (refCenter->isFeasible(NOMAD::defaultFHComputeType))
+                    {
+                        NOMAD::EvalPoint epCenter(*refCenter);
+                        // Get model outputs as eval BBO
+                        const NOMAD::Point & X = * epCenter.getX();
+                        auto out = getModelOut(X);
+                        std::ostringstream oss;
+                        oss.precision(NOMAD::DISPLAY_PRECISION_DOUBLE);
+                        for (int i=0 ; i < eTL.size(); i++)
+                        {
+                            oss << std::scientific << out.get(0,i) << " ";
+                        }
+                        epCenter.setBBO(oss.str(), eTL, NOMAD::EvalType::MODEL);
+                        
+                        // No reduction ratio if tp and epCenter are identical
+                        if (X != Xtp)
+                        {
+                            
+                            NOMAD::FHComputeType computeType = defaultFHComputeType;
+                            NOMAD::Double f_k = epCenter.getF(computeType);
+                            computeType.evalType = NOMAD::EvalType::MODEL;
+                            NOMAD::Double f_k_m = epCenter.getF(computeType);
+                            
+                            // Objective function for new point
+                            computeType = defaultFHComputeType;
+                            NOMAD::Double f_n = _bestXFeas->getF(computeType);
+                            computeType.evalType = NOMAD::EvalType::MODEL;
+                            NOMAD::Double f_n_m = _bestXFeas->getF(computeType);
+                            
+                            if (f_k_m != f_n_m)
+                            {
+                                _reductionRatio = (f_k - f_n)/(f_k_m - f_n_m);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    _bestXInf = std::make_shared<NOMAD::EvalPoint>(tp);
+                    _bestXInf->setBBO(oss.str(), eTL, NOMAD::EvalType::MODEL);
+                }
+            }
+        }
 
         // If the oracle point cannot be evaluated, the optimization has failed.
         if (_success==NOMAD::SuccessType::NO_TRIALS)
@@ -156,8 +218,11 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
     _optRunParams->setAttributeValue("SPECULATIVE_SEARCH", true);
     _optRunParams->setAttributeValue("SIMPLE_LINE_SEARCH", false);
     _optRunParams->setAttributeValue("DISCO_MADS_OPTIMIZATION", false);
+    _optRunParams->setAttributeValue("CATMADS_OPTIMIZATION", false);
+    _optRunParams->setAttributeValue("CATADS_OPTIMIZATION", false);
 
     // IMPORTANT: if VNS_MADS_SEARCH is changed to yes, the static members of VNSSearchMethod must be managed correctly
+    // See issue #601.
     _optRunParams->setAttributeValue("VNS_MADS_SEARCH", false);
     _optRunParams->setAttributeValue("VNS_MADS_SEARCH_WITH_SURROGATE", false);
 
@@ -166,7 +231,7 @@ void NOMAD::QuadModelOptimize::setupRunParameters()
     // Set direction type to Ortho 2n
     _optRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
     _optRunParams->setAttributeValue("DIRECTION_TYPE_SECONDARY_POLL",NOMAD::DirectionType::DOUBLE);
-    
+
     // No hMax in the context of QuadModel
     _optRunParams->setAttributeValue("H_MAX_0", NOMAD::Double(NOMAD::INF));
 
@@ -204,6 +269,8 @@ void NOMAD::QuadModelOptimize::setupPbParameters()
 
     // No variable groups are considered for suboptimization
     _optPbParams->resetToDefaultValue("VARIABLE_GROUP");
+    // No CatGroups. Cat variables are fixed.
+    _optPbParams->resetToDefaultValue("CAT_GROUP");
 
     NOMAD::ArrayOfPoint x0s{_modelCenter};
     _optPbParams->setAttributeValue("X0", x0s);
@@ -234,31 +301,45 @@ void NOMAD::QuadModelOptimize::generateTrialPointsImp()
 
         return;
     }
+    
+    // Use model bounds or provided optim bounds
+    if ( !_optimLowerBound.isComplete())
+    {
+        _optimLowerBound = _modelLowerBound;
+    }
+    if ( !_optimUpperBound.isComplete())
+    {
+        _optimUpperBound = _modelUpperBound;
+    }
 
     // Set specific evaluator control
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
 
     // Enforce no opportunism and use no cache.
+    // Keep track of lap BB eval to reset (this is for nested optim VNS+QMS for example)
     auto previousOpportunism = evc->getOpportunisticEval();
     auto previousUseCache = evc->getUseCache();
     auto previousEvalType = evc->getCurrentEvalType();
     auto previousEvalSortType = evc->getEvalSortType();
+    auto previousLapBBEval = evc->getLapBbEval();
+    auto previousLapMaxBBEval = evc->getLapMaxBbEval(-1);
+    
 
     // No need for opportunism. Block of points is passed for quad evaluation
     evc->setOpportunisticEval(false);
     // Cache is not used. Points are re-evaluated if needed.
     evc->setUseCache(false);
-
+    
     // Setup Pb parameters just before optimization.
     setupPbParameters();
-
+    
     // Set and verify run parameter values
     setupRunParameters();
-
+    
     // Transform EB constraint to PB.
     // Needed when initial point of sub-opt is infeasible. If EB constraint is used, the barrier is empty -> exception. No phase one is done for this optimization.
     auto evalParams = std::make_shared<NOMAD::EvalParameters>(*(evc->getCurrentEvalParams()));
-
+    
     auto bbot = evc->getCurrentEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
     
     for (auto & sbbot : bbot)
@@ -298,8 +379,8 @@ void NOMAD::QuadModelOptimize::generateTrialPointsImp()
     evalParams->setAttributeValue("BB_OUTPUT_TYPE", bbot);
     evalParams->setAttributeValue("BB_EXE", std::string(""));  // No bb is used for sub optimization
     evalParams->setAttributeValue("SURROGATE_EXE", std::string(""));  // No surrogate is used for sub optimization
-
-
+    
+    
     // Transform RPB constraint (used for some algorithms like DiscoMads) to PB constraint, as DiscoMADS is not used in sub optimization
     if(_runParams->getAttributeValue<bool>("DISCO_MADS_OPTIMIZATION") && !_optRunParams->getAttributeValue<bool>("DISCO_MADS_OPTIMIZATION"))
     {
@@ -308,54 +389,54 @@ void NOMAD::QuadModelOptimize::generateTrialPointsImp()
         {
             bbot.erase(it);
             evalParams->setAttributeValue("BB_OUTPUT_TYPE", bbot);
-
+            
             OUTPUT_INFO_START
             AddOutputInfo("Warning: QuadModelOptimize: DiscoMADS used in main problem but not in sub optimization: the RPB constraint is changed into PB constraint.");
             OUTPUT_INFO_END
         }
     }
     evalParams->checkAndComply(_optRunParams, _optPbParams, evc->getEvaluatorControlGlobalParams(),  evc->getEvaluatorControlParams());
-
+    
     auto modelDisplay = _runParams->getAttributeValue<std::string>("QUAD_MODEL_DISPLAY");
-
+    
     OUTPUT_INFO_START
     std::string s = "Create QuadModelEvaluator with fixed variable = ";
     s += _modelFixedVar.display();
     AddOutputInfo(s);
     OUTPUT_INFO_END
-
+    
     // Evaluations are in the quad model (local) full space: fixed variables detected when creating the training set (lb==ub) are not modified by the optimizer but evaluator receives points in local full space. The "local full space" is used because fixed variables from the parent problem are not seen/considered.
     // We send an empty Point for fixed variables to indicate that the evaluation are done in local full space.
     auto ev = std::make_shared<NOMAD::QuadModelEvaluator>(evalParams,
                                                           _model,
                                                           modelDisplay,
                                                           NOMAD::Point());
-
+    
     // Add evaluator to EvaluatorControl
     // If an evaluator with the same eval type exists, it will be replaced
     evc->addEvaluator(ev);
     evc->setCurrentEvaluatorType(NOMAD::EvalType::MODEL);
-
+    
     // Reset barrier
     auto prevBarrier = evc->getBarrier();
     evc->setBarrier(nullptr);
-
+    
     auto madsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
-
+    
     OUTPUT_INFO_START
     std::ostringstream oss;
     oss << "Run Parameters for QuadModelOptimize:" << std::endl;
     _optRunParams->display(oss, false);
     AddOutputInfo(oss.str(), NOMAD::OutputLevel::LEVEL_DEBUGDEBUG);
     OUTPUT_INFO_END
-
+    
     // Run only if effective dimension not null.
     bool runOk = false;
-
+    
     // Create a Mads step
     // Parameters for mads (_optRunParams and _optPbParams) are already updated.
     // NOTE: Mads works with fixed variables detected during construction of the training set. Fixed variables from the original problem are not considered. The evaluator works on the quad model, we don't need to map to the global full space for evaluation because this is not BB eval.
-
+    
     std::unique_ptr<NOMAD::Mads> mads;
     
     if (_runParams->getAttributeValue<bool>("QUAD_MODEL_SEARCH_SIMPLE_MADS"))
@@ -377,7 +458,7 @@ void NOMAD::QuadModelOptimize::generateTrialPointsImp()
         mads = std::make_unique<NOMAD::Mads>(this, madsStopReasons, _optRunParams, _optPbParams, false /* false: barrier not initialized from cache */, true /* true: use only local fixed variables */);
         
     }
-
+    
     evc->resetModelEval();
     
     mads->start();
@@ -385,67 +466,98 @@ void NOMAD::QuadModelOptimize::generateTrialPointsImp()
     mads->end();
     
     evc->resetModelEval();
-
+    
     // Note: No need to check the Mads stop reason: It is not a stop reason
     // for QuadModel.
-
+    
     // Reset opportunism to previous values.
+    // Reset lap counters to previous values (important for nested optim like VNS+nested QMS)
     evc->setOpportunisticEval(previousOpportunism);
     evc->setUseCache(previousUseCache);
     evc->setCurrentEvaluatorType(previousEvalType);
     evc->setEvalSortType(previousEvalSortType);
-
+    evc->setForceLapBbEval(previousLapBBEval);
+    evc->setLapMaxBbEval(previousLapMaxBBEval);
+    
     evc->setBarrier(prevBarrier);
-
+    
+    
+    // Get the best points in their reference dimension
+    _bestXFeas = std::make_shared<NOMAD::EvalPoint>(mads->getBestSolution(true));
+    _bestXInf  = std::make_shared<NOMAD::EvalPoint>(mads->getBestSolution(false));
     if (!runOk)
     {
-        auto modelStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
-        modelStopReasons->set(NOMAD::ModelStopType::MODEL_OPTIMIZATION_FAIL);
+        const auto refCenter = getParentOfType<QuadModelIteration*>()->getRefCenter();
+        
+        const auto computeType = getMegaIterationBarrier()->getFHComputeType();
+        if (refCenter)
+        {
+            if ((refCenter->isFeasible(computeType) && _bestXFeas && _bestXFeas->isComplete() && *refCenter->getX() == *_bestXFeas->getX())
+                || (!refCenter->isFeasible(computeType) && _bestXInf && _bestXInf->isComplete() && *refCenter->getX() == *_bestXInf->getX()))
+            {
+                // Keep the solution returned by solver
+                auto modelStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+                modelStopReasons->set(NOMAD::ModelStopType::NO_NEW_POINTS_FOUND);
+                
+                OUTPUT_INFO_START
+                std::string s = "Solver run did not produce new point";
+                AddOutputInfo(s);
+                OUTPUT_INFO_END
+                
+                return;
+            }
+            
+            if ((!_bestXInf || !_bestXInf->isComplete()) && ( !_bestXFeas || !_bestXFeas->isComplete()))
+            {
+                auto modelStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+                modelStopReasons->set(NOMAD::ModelStopType::MODEL_OPTIMIZATION_FAIL);
+                
+                OUTPUT_INFO_START
+                std::string s = "Solver run NOT OK";
+                AddOutputInfo(s);
+                OUTPUT_INFO_END
+                return;
+            }
+        }
+    }
+    
+    if (_bestXFeas->isComplete())
+    {
+        // New EvalPoint to be evaluated.
+        // Add it to the list (local or in Search method).
+        bool inserted = insertTrialPoint(*_bestXFeas);
+        
+        OUTPUT_INFO_START
+        std::string s = "xt:";
+        s += (inserted) ? " " : " not inserted: ";
+        s += _bestXFeas->display();
+        AddOutputInfo(s);
+        OUTPUT_INFO_END
     }
     else
     {
-        // Get the best points in their reference dimension
-        _bestXFeas = std::make_shared<NOMAD::EvalPoint>(mads->getBestSolution(true));
-        _bestXInf  = std::make_shared<NOMAD::EvalPoint>(mads->getBestSolution(false));
-        if (_bestXFeas->isComplete())
-        {
-            // New EvalPoint to be evaluated.
-            // Add it to the list (local or in Search method).
-            bool inserted = insertTrialPoint(*_bestXFeas);
-
-            OUTPUT_INFO_START
-            std::string s = "xt:";
-            s += (inserted) ? " " : " not inserted: ";
-            s += _bestXFeas->display();
-            AddOutputInfo(s);
-            OUTPUT_INFO_END
-        }
-        else
-        {
-            // Reset shared_ptr to default
-            _bestXFeas.reset();
-        }
-        if (_bestXInf->isComplete())
-        {
-            // New EvalPoint to be evaluated.
-            // Add it to the lists (local or in Search method).
-            bool inserted = insertTrialPoint(*_bestXInf);
-
-            OUTPUT_INFO_START
-            std::string s = "xt:";
-            s += (inserted) ? " " : " not inserted: ";
-            s += _bestXInf->display();
-            AddOutputInfo(s);
-            OUTPUT_INFO_END
-
-        }
-        else
-        {
-            // Reset shared_ptr to default
-            _bestXInf.reset();
-        }
+        // Reset shared_ptr to default
+        _bestXFeas.reset();
     }
-
+    if (_bestXInf->isComplete())
+    {
+        // New EvalPoint to be evaluated.
+        // Add it to the lists (local or in Search method).
+        bool inserted = insertTrialPoint(*_bestXInf);
+        
+        OUTPUT_INFO_START
+        std::string s = "xt:";
+        s += (inserted) ? " " : " not inserted: ";
+        s += _bestXInf->display();
+        AddOutputInfo(s);
+        OUTPUT_INFO_END
+        
+    }
+    else
+    {
+        // Reset shared_ptr to default
+        _bestXInf.reset();
+    }
 }
 
 
@@ -581,3 +693,51 @@ void NOMAD::QuadModelOptimize::setModelBoundsAndFixedVar()
     OUTPUT_INFO_END
 
 } // end setModelBounds
+
+
+// Get all model outputs on point x
+SGTELIB::Matrix NOMAD::QuadModelOptimize::getModelOut(const NOMAD::Point & x) const
+{
+
+    // Verify there is at least one point to evaluate
+    if (!x.isComplete())
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: eval_x called with undefined eval point");
+    }
+
+    // ------------------------- //
+    //   Output Prediction    //
+    // ------------------------- //
+    NOMAD::OutputQueue::Add("Predict with quadratic formulation... ", _displayLevel);
+
+    std::string s = "X =" + x.display();
+    NOMAD::OutputQueue::Add(s, _displayLevel);
+    
+    const size_t n = _trainingSet->get_input_dim();
+    const size_t m = _trainingSet->get_output_dim();
+    
+    // Init the matrices for prediction
+    // Creation of matrix for input / output of SGTELIB model
+    SGTELIB::Matrix Mpredict (  "M_predict", 1, static_cast<int>(m));
+    SGTELIB::Matrix Xpredict("X_predict", 1, static_cast<int>(n));
+
+    
+    // Unfortunately, Sgtelib is not thread-safe.
+#ifdef _OPENMP
+#pragma omp critical(SgtelibEvalBlock)
+#endif // _OPENMP
+    {
+        _model->check_ready(__FILE__,__FUNCTION__,__LINE__);
+
+        // Set the input matrix
+        for (int i = 0; i < n; i++)
+        {
+            Xpredict.set(0, static_cast<int>(i), x[i].todouble());
+        }
+        
+        _model->predict(Xpredict, &Mpredict);
+        NOMAD::OutputQueue::Add("ok", _displayLevel);
+    }
+
+    return Mpredict;
+}

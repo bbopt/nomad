@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Algos/MegaIteration.hpp"
 #include "../Algos/EvcInterface.hpp"
 
@@ -56,7 +57,7 @@ NOMAD::MegaIteration::MegaIteration(const Step* parentStep,
   : Step(parentStep),
     _barrier(barrier),
     _k(k),
-    _megaIterationSuccess(success)
+    _refMegaIterSuccess(success)
 {
     if (nullptr == _barrier)
     {
@@ -71,7 +72,7 @@ void NOMAD::MegaIteration::startImp()
     if (_runParams->getAttributeValue<bool>("USER_CALLS_ENABLED"))
     {
         bool stop = false;
-        runCallback(NOMAD::CallbackType::MEGA_ITERATION_START, *this, stop);
+        runCallback(NOMAD::AlgoCallbackType::MEGA_ITERATION_START, *this, stop);
         if (!_stopReasons->checkTerminate() && stop)
         {
             _stopReasons->set(NOMAD::BaseStopType::USER_GLOBAL_STOP);
@@ -99,7 +100,7 @@ void NOMAD::MegaIteration::endImp()
     {
         // Run callback and set stop reason if overall stop is requested
         bool stop = false;
-        runCallback(NOMAD::CallbackType::MEGA_ITERATION_END, *this, stop);
+        runCallback(NOMAD::AlgoCallbackType::MEGA_ITERATION_END, *this, stop);
         if (!_stopReasons->checkTerminate() && stop)
         {
             _stopReasons->set(NOMAD::BaseStopType::USER_GLOBAL_STOP);
@@ -118,16 +119,19 @@ void NOMAD::MegaIteration::endImp()
     if(_stopReasons->checkTerminate())
     {
             // Update of hmax and feasible/infeasible incumbents
-            bool barrierModified = false;
             std::vector<NOMAD::EvalPoint> evalPointList;  // eval point list empty just to call updateWithPoints
             if(_barrier!= nullptr)
             {
-                barrierModified = _barrier->updateWithPoints(
+                _barrier->updateWithPoints(
                                     evalPointList,
                                     false /* not used by progressive barrier */,
                                     true /* update incumbents and hmax*/ );
             }
     }
+    
+    // Mega iteraion is done. Keep track of the success type for next mega iteration.
+    // Mega iteration _success is reset at start but _refMegaIterSuccess is reset at end
+    _refMegaIterSuccess = getSuccessType();
 
 }
 

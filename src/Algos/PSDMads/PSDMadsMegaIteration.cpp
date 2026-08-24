@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/PSDMads/PSDMadsMegaIteration.hpp"
 #include "../../Output/OutputQueue.hpp"
@@ -99,6 +100,7 @@ void NOMAD::PSDMadsMegaIteration::startImp()
     
     
     // Default mega iteration start tasks
+    // See issue #639
     NOMAD::MegaIteration::startImp();
 }
 
@@ -149,7 +151,7 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
 
     // Note: If n >= 50, models are disabled. They could be re-enabled on
-    // subproblems with lesser dimension.
+    // subproblems with lesser dimension. See issue #370.
 
     subProblemPbParams->doNotShowWarnings();
     if (isPollster)
@@ -164,7 +166,7 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
         subProblemRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
         subProblemRunParams->setAttributeValue("SGTELIB_MODEL_SEARCH", false);
         subProblemRunParams->setAttributeValue("SPECULATIVE_SEARCH", false);
-        subProblemRunParams->setAttributeValue("VNS_MADS_SEARCH", false);  // VNS has static member. Problematic with threads.
+        subProblemRunParams->setAttributeValue("VNS_MADS_SEARCH", false);  // VNS has static member. Problematic with threads. See issue # 604
         
     }
     else

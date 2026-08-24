@@ -44,13 +44,13 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   DiscoMads.cpp
  \brief  The DiscoMads algorithm (main): implementation
  \author Solene Kojtych
  \see    DiscoMads.hpp
  */
-
 #include "../../Algos/Mads/GMesh.hpp"
 #include "../../Algos/DiscoMads/DiscoMads.hpp"
 #include "../../Algos/Mads/Mads.hpp"
@@ -74,8 +74,6 @@ void NOMAD::DiscoMads::init(bool barrierInitializedFromCache)
 
     // Instantiate Mads initialization class
     _initialization = std::make_unique<NOMAD::MadsInitialization>( this, barrierInitializedFromCache, false /*initialization for DMultiMads*/, true /*initialization for DiscodMAds*/ );
-
-
 
     // -- Display discoMads parameters
     bool detectHiddConst = _runParams->getAttributeValue<bool>("DISCO_MADS_HID_CONST");                   // only for hidden constraints revaluation
@@ -107,6 +105,14 @@ void NOMAD::DiscoMads::init(bool barrierInitializedFromCache)
         AddOutputInfo("",false,true);
     OUTPUT_INFO_END    
 
+    
+    // Callback called at postprocessing to specifically stop a search algo (e.g., Nelder-Mead) if a revelation occurred during this search algo
+    IterCbFunc cb = [&](const NOMAD::Step& step,
+                        bool &stop)
+    {
+       interPostProcessingCallback(step, stop);
+    };
+    addCallback<NOMAD::AlgoCallbackType::POSTPROCESSING_CHECK>(cb);
 
 }
 
@@ -247,5 +253,54 @@ void NOMAD::DiscoMads::readInformationForHotRestart()
             // Here we use Algorithm::operator>>
             NOMAD::read<NOMAD::DiscoMads>(*this, hotRestartFile);
         }
+    }
+}
+
+
+void NOMAD::DiscoMads::interPostProcessingCallback(const NOMAD::Step & step, bool &stop) const
+{
+    // Treat special case of revealation during a search algo: in this case remaining evaluations for this search algo should be stopped
+    // as well as parent search evaluations for this DiscoMads iteration
+    // NB: this situation is not taken into account in IterationUtils::updateStopReasonForIterStop
+
+    auto evc = NOMAD::EvcInterface::getEvaluatorControl();
+    stop = false;  // reset as we don't control a global stop in this callback
+
+    // This is postprocessing for BB only
+    if (NOMAD::EvalType::BB != evc->getCurrentEvalType())
+    {
+        return;
+    }
+    auto evcStopReason = evc->getStopReason(-1);
+
+    // If there was a revelation, stop type of evaluator was changed to opportunistic
+    if (evcStopReason.checkStopType(NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_ITER_STOP))
+    {
+
+         // Is this step done during a search ?
+        auto* searchStep = step.getParentOfType<NOMAD::Search*>(false);
+        if(nullptr!= searchStep)
+        {
+            // Is this done during a search algo ? Look for an algorithm among the parents. It should be a search algorithm, that is, not the root Algorithm. Stop it completely if found.
+            // If we simply search for an algorithm among the parents we may end up with the root Mads algorithm.
+            auto algoSM = step.getFirstAlgorithm();
+            if (algoSM != step.getRootAlgorithm())
+            {
+                OUTPUT_DEBUG_START
+                // NOTE: it is safer to use "Add" instead of "AddOutputInfo" in this callback to avoid segmentation faults as they may be called deep in code
+                NOMAD::OutputQueue::Add("User stop of the search algo "+algoSM->getName(), NOMAD::OutputLevel::LEVEL_DEBUG);
+                NOMAD::OutputQueue::Flush();
+                OUTPUT_DEBUG_END
+
+                // stop the parent search step iteration (may contain several searches)
+                searchStep->getAllStopReasons()->set(NOMAD::IterStopType::USER_ITER_STOP);
+                // stop the search algo used in search step
+                algoSM->getAllStopReasons()->set(NOMAD::IterStopType::USER_ALGO_STOP);
+
+            }
+        }
+
+        // Is this step done during a revealing poll or a poll
+        // => stop is managed by IterationUtils::updateStopReasonForIterStop and passed to checkTerminate
     }
 }

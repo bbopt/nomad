@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   Evaluator.hpp
  \brief  Evaluation of blackbox functions.
@@ -52,8 +53,8 @@
  \see    Evaluator.cpp
  */
 
-#ifndef __NOMAD_4_5_EVALUATOR__
-#define __NOMAD_4_5_EVALUATOR__
+#ifndef __NOMAD_4_6_EVALUATOR__
+#define __NOMAD_4_6_EVALUATOR__
 
 #include "../Eval/BBOutput.hpp"
 #include "../Eval/EvalPoint.hpp"
@@ -192,4 +193,4 @@ typedef std::shared_ptr<Evaluator> EvaluatorPtr;
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_EVALUATOR__
+#endif // __NOMAD_4_6_EVALUATOR__

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../Type/LHSearchType.hpp"
 #include "../Util/ArrayOfString.hpp"
 #include "../Util/Exception.hpp"

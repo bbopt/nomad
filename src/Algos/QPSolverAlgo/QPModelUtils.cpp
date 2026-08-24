@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   QPModelUtils.cpp
  \brief  Utilities functions for Quadratic Model: implementation
@@ -69,6 +70,12 @@ void NOMAD::QPModelUtils::getModelObjGrad(SGTELIB::Matrix& g,
     NOMAD::QPModelUtils::getModelGrad(g, QPModel, 0, x);
 }
 
+void NOMAD::QPModelUtils::getModelObjHessian(SGTELIB::Matrix& H,
+                                             const SGTELIB::Matrix& QPModel,
+                                             const SGTELIB::Matrix& x)
+{
+    NOMAD::QPModelUtils::getModelHessian(H, QPModel, 0, x);
+}
 
 double NOMAD::QPModelUtils::getModelCons(const SGTELIB::Matrix& QPModel,
                                          const int ind,
@@ -86,7 +93,7 @@ void NOMAD::QPModelUtils::getModelCons(SGTELIB::Matrix& cons,
     {
         std::string err = "QPModelUtils::getModelCons: ";
         err += "the number of constraints of the model " + std::to_string(nbCons);
-        err += "is not compatible with the dimensions of the cons vector: ( " + std::to_string(cons.get_nb_rows());
+        err += " is not compatible with the dimensions of the cons vector: ( " + std::to_string(cons.get_nb_rows());
         err += std::to_string(cons.get_nb_cols()) + " )";
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }
@@ -122,6 +129,14 @@ void NOMAD::QPModelUtils::getModelJacobianCons(SGTELIB::Matrix& jacobian,
             jacobian.set(ind, i, gi);
         }
     }
+}
+
+void NOMAD::QPModelUtils::getModelConsHessian(SGTELIB::Matrix& H,
+                                              const SGTELIB::Matrix& QPModel,
+                                              const int ind,
+                                              const SGTELIB::Matrix& x)
+{
+    getModelHessian(H, QPModel, ind + 1, x);
 }
 
 double NOMAD::QPModelUtils::getModelValue(const SGTELIB::Matrix& QPModel,

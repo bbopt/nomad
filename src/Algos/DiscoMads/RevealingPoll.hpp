@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   RevealingPoll.hpp
  \brief  The DiscoMads algorithm poll step
@@ -82,7 +83,7 @@ public:
      \param parentStep The parent of this poll step
      */
     explicit RevealingPoll(const Step* parentStep)
-      : Poll(parentStep)
+      : Poll(parentStep, false /*no user callback allowed*/)
     {
         init();
     }

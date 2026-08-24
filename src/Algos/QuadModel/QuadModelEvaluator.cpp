@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/QuadModel/QuadModelEvaluator.hpp"
 #include "../../Output/OutputQueue.hpp"
 
@@ -152,7 +153,7 @@ std::vector<bool> NOMAD::QuadModelEvaluator::eval_block(NOMAD::Block &block,
 #pragma omp critical(SgtelibEvalBlock)
 #endif // _OPENMP
     {
-        _model->check_ready(__FILE__,__FUNCTION__,__LINE__);
+        _model->check_ready(__FILE__,__func__,__LINE__);
 
         _model->predict(X_predict, &M_predict);
         NOMAD::OutputQueue::Add("ok", _displayLevel);

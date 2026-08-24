@@ -44,11 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 //////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////
 //////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////
 
-#ifndef __NOMAD_4_5_RUNATTRIBUTESDEFINITIONSGTELIBMODEL__
-#define __NOMAD_4_5_RUNATTRIBUTESDEFINITIONSGTELIBMODEL__
+#ifndef __NOMAD_4_6_RUNATTRIBUTESDEFINITIONSGTELIBMODEL__
+#define __NOMAD_4_6_RUNATTRIBUTESDEFINITIONSGTELIBMODEL__
 
 _definition = {
 { "SGTELIB_MODEL_EVAL",  "bool",  "0",  " Sgtelib Model Sampling of points ",  " \n  \n . Sgtelib Model sampling \n  \n . Argument: bool \n  \n . Best points are taken from the cache \n  \n . A model is computed \n  \n . The most promising points according to that model are evaluated \n  \n . No opportunism \n  \n . This option deactivates other optimization strategies. \n  \n . Example: SGTELIB_MODEL_EVAL true \n  \n . Default: 0\n\n",  "  advanced sgtelib model sampling  "  , "true" , "false" , "true" },

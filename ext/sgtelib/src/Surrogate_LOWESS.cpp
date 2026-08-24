@@ -232,7 +232,7 @@ bool SGTELIB::Surrogate_LOWESS::build_private ( void ) {
 void SGTELIB::Surrogate_LOWESS::predict_private ( const SGTELIB::Matrix & XXs,
                                                      SGTELIB::Matrix * ZZs ) {
 
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   const int pxx = XXs.get_nb_rows();
   if (pxx>1){
     for (int i=0 ; i<XXs.get_nb_rows() ; i++){
@@ -255,7 +255,7 @@ void SGTELIB::Surrogate_LOWESS::predict_private ( const SGTELIB::Matrix & XXs,
 // Predict only objectives (used in Surrogate Ensemble Stat)
 void SGTELIB::Surrogate_LOWESS::predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
                                                             SGTELIB::Matrix * ZZsurr_around            ) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
   const size_t pxx = XXd.size();
   const int nbd = XXd[0]->get_nb_rows();
@@ -1317,7 +1317,7 @@ void SGTELIB::Surrogate_LOWESS::predict_private_objective_single ( const SGTELIB
 /*       compute Zvs                    */
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate_LOWESS::get_matrix_Zvs (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   #ifdef SGTELIB_DEBUG
     std::cout << "==========================\n";
     std::cout << "Compute Zvs\n";

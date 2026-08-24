@@ -44,14 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-/**
- \file   DMultiMadsBarrier.hpp
- \brief  The DMultiMads algorithm barrier
- \author Ludovic Salomon
- \see    DMultiMadsBarrier.cpp
- */
-#ifndef __NOMAD_4_5_DMULTIMADSBARRIER
-#define __NOMAD_4_5_DMULTIMADSBARRIER
+
+#ifndef __NOMAD_4_6_DMULTIMADSBARRIER
+#define __NOMAD_4_6_DMULTIMADSBARRIER
 
 #include "../../Eval/BarrierBase.hpp"
 #include "../../Eval/EvalPoint.hpp"
@@ -400,4 +395,4 @@ std::istream& operator>>(std::istream& is, DMultiMadsBarrier& barrier);
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_DMULTIMADSBARRIER__
+#endif // __NOMAD_4_6_DMULTIMADSBARRIER__

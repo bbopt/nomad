@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../Eval/MeshBase.hpp"
 #include "../Type/BBInputType.hpp"
 
@@ -132,7 +133,7 @@ void NOMAD::MeshBase::setDeltas(const NOMAD::ArrayOfDouble &deltaMeshSize,
 /*-----------------------------------------------------------*/
 /*              scale and project on the mesh                */
 /*-----------------------------------------------------------*/
-NOMAD::Double NOMAD::MeshBase::scaleAndProjectOnMesh(size_t i, const NOMAD::Double &l) const
+NOMAD::Double NOMAD::MeshBase::scaleAndProjectOnMesh(size_t i, const NOMAD::Double &l, bool /*isAds*/) const
 {
     // Not defined for MeshBase.
     throw NOMAD::Exception(__FILE__, __LINE__, "scaleAndProjectOnMesh() not defined for MeshBase.");
@@ -140,7 +141,7 @@ NOMAD::Double NOMAD::MeshBase::scaleAndProjectOnMesh(size_t i, const NOMAD::Doub
 
 
 NOMAD::ArrayOfDouble NOMAD::MeshBase::scaleAndProjectOnMesh(
-    const NOMAD::Direction &dir) const
+    const NOMAD::Direction &dir, bool /*isAds*/) const
 {
     // Not defined for MeshBase.
     throw NOMAD::Exception(__FILE__, __LINE__, "scaleAndProjectOnMesh() not defined for MeshBase.");
@@ -238,7 +239,7 @@ void NOMAD::MeshBase::setLimitMeshIndices(int limitMinMeshIndex, int limitMaxMes
 {
     _limitMaxMeshIndex = limitMaxMeshIndex;
     _limitMinMeshIndex = limitMinMeshIndex;
-
+    
     // Not yet defined for MeshBase.
     throw NOMAD::Exception(__FILE__, __LINE__, "setLimitMeshIndices not yet implemented.");
     

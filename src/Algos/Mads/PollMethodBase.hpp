@@ -44,12 +44,14 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_POLLMETHODBASE__
-#define __NOMAD_4_5_POLLMETHODBASE__
+
+#ifndef __NOMAD_4_6_POLLMETHODBASE__
+#define __NOMAD_4_6_POLLMETHODBASE__
 
 #include "../../Algos/IterationUtils.hpp"
 #include "../../Algos/Step.hpp"
 #include "../../Math/Direction.hpp"
+#include "../../Math/SimpleRNG.hpp"
 
 #include "../../nomad_nsbegin.hpp"
 
@@ -72,10 +74,12 @@ private:
     ListOfVariableGroup _varGroups; ///< Groups of variables
 
     bool _subsetListVG;  ///< The poll is for a subset of variables with dim subset < n
-
+    
 protected:
     bool _scaleAndProjectSecondPassDirectionOnMesh ; ///< Flag to scale and project on mesh
 
+    std::shared_ptr<SimpleRNG> _rng = nullptr; ///< Random number generator
+    
 public:
     /// Constructor
     /**
@@ -155,6 +159,8 @@ public:
     /// Access to flag isPrimary
     bool isPrimary() const { return _isPrimary; }
     
+    void setRandomGenerator(const std::shared_ptr<SimpleRNG>& rng) { _rng = rng; }
+    
 protected:
     void init();
 
@@ -165,7 +171,6 @@ protected:
      \param n           The dimension of the variable space  -- \b IN.
       */
     void generate2NDirections(std::list<NOMAD::Direction> &directions, size_t n) const;
-
 
 private:
 
@@ -205,4 +210,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_POLLMETHODBASE__
+#endif // __NOMAD_4_6_POLLMETHODBASE__

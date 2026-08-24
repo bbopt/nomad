@@ -44,11 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 //////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////
 //////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////
 
-#ifndef __NOMAD_4_5_RUNATTRIBUTESDEFINITIONNM__
-#define __NOMAD_4_5_RUNATTRIBUTESDEFINITIONNM__
+#ifndef __NOMAD_4_6_RUNATTRIBUTESDEFINITIONNM__
+#define __NOMAD_4_6_RUNATTRIBUTESDEFINITIONNM__
 
 _definition = {
 { "NM_OPTIMIZATION",  "bool",  "false",  " Nelder Mead stand alone optimization for constrained and unconstrained pbs ",  " \n  \n . Nelder Mead optimization for constrained and unconstrained optimization \n  \n . Argument: bool \n  \n . Stand alone Nelder Mead optimization will deactivate any optimization strategy. \n  \n . Example: NM_OPTIMIZATION true \n  \n . Default: false\n\n",  "  advanced nelder mead simplex  "  , "true" , "false" , "true" },

@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Cache/CacheBase.hpp"
 #include "../../Eval/BarrierBase.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
@@ -83,7 +84,6 @@ void NOMAD::QuadModelInitialization::startImp()
             generateTrialPoints();
         }
     }
-
 }
 
 

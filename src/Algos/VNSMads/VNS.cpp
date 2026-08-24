@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/SinglePollMethod.hpp"
@@ -78,6 +79,7 @@ void NOMAD::VNS::startImp()
     }
     
     // Default algorithm start
+    // See issue #639
     NOMAD::Algorithm::startImp();
 
     // Setup Mads
@@ -189,13 +191,15 @@ bool NOMAD::VNS::runImp()
     mads.run();
     mads.end();
     
-    if ( _madsStopReasons->testIf(NOMAD::MadsStopType::X0_FAIL) )
+    // Let's get the barrier even if mads fails to obtain a feasible point
+    _barrier = mads.getMegaIterationBarrier();
+    
+    if ( _madsStopReasons->testIf(NOMAD::MadsStopType::X0_FAIL) || _madsStopReasons->testIf(NOMAD::MadsStopType::PONE_SEARCH_FAILED))
     {
         VNSStopReasons->set(NOMAD::VNSStopType::X0_FAILED);
     }
     else
     {
-        _barrier = mads.getMegaIterationBarrier();
         _algoSuccessful = true;
     }
     
@@ -215,6 +219,7 @@ bool NOMAD::VNS::runImp()
 
 void NOMAD::VNS::endImp()
 {
+    // See issue #639
     NOMAD::Algorithm::endImp();
 }
 
@@ -243,7 +248,7 @@ void NOMAD::VNS::setupRunParameters()
     }
 
     auto evcParams = NOMAD::EvcInterface::getEvaluatorControl()->getEvaluatorControlGlobalParams();
-
+    
     _optRunParams->checkAndComply(evcParams, _optPbParams);
 }
 

@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_SGTELIB_MODEL_MEGAITERATION__
-#define __NOMAD_4_5_SGTELIB_MODEL_MEGAITERATION__
+
+#ifndef __NOMAD_4_6_SGTELIB_MODEL_MEGAITERATION__
+#define __NOMAD_4_6_SGTELIB_MODEL_MEGAITERATION__
 
 // Manager for SgtelibModel iterations.
 // Steps:
@@ -111,4 +112,4 @@ std::istream& operator>>(std::istream& is, SgtelibModelMegaIteration& megaIterat
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SGTELIB_MODEL_MEGAITERATION__
+#endif // __NOMAD_4_6_SGTELIB_MODEL_MEGAITERATION__

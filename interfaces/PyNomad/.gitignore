@@ -1,10 +1,11 @@
 .env
-PyNomad.cpp
 *.so
 *.pyd
 *.obj
 dist
 build
-PyNomad.egg-info
-PyNomadBBO.egg-info
-PyNomadDev.egg-info
+PyNomadDev.egg-info/
+**/__pycache__
+X0s.txt
+PyNomad.cpp
+

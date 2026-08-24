@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   utils.hpp
  \brief  Utility functions (headers)
@@ -51,8 +52,8 @@
  \date   March 2017
  \see    utils.cpp
  */
-#ifndef __NOMAD_4_5_UTILS__
-#define __NOMAD_4_5_UTILS__
+#ifndef __NOMAD_4_6_UTILS__
+#define __NOMAD_4_6_UTILS__
 
 #include <list>
 
@@ -174,4 +175,4 @@ DLL_UTIL_API int getThreadNum();
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_UTILS__
+#endif // __NOMAD_4_6_UTILS__

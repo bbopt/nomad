@@ -17,6 +17,8 @@ LH_EVAL 100
 LOWER_BOUND * 0
 UPPER_BOUND * 30
 
+seed -1 # Random seed varies for every run. 
+
 # Parameters for display degree
 DISPLAY_DEGREE 2
 DISPLAY_ALL_EVAL true

@@ -44,11 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 //////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////
 //////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////
 
-#ifndef __NOMAD_4_5_RUNATTRIBUTESDEFINITIONIBEX__
-#define __NOMAD_4_5_RUNATTRIBUTESDEFINITIONIBEX__
+#ifndef __NOMAD_4_6_RUNATTRIBUTESDEFINITIONIBEX__
+#define __NOMAD_4_6_RUNATTRIBUTESDEFINITIONIBEX__
 
 _definition = {
 { "USE_IBEX",  "bool",  "false",  " Boolean to determine if we want to use the functionnalities of IBEX ",  " \n  \n . Argument : bool \n  \n . Determine if you want to use the fonctionnalities of IBEX \n  \n . Default: false\n\n",  "  advanced project algorithm ibex snap  "  , "true" , "true" , "true" },

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   EvalType.cpp
  \brief  types for Eval (implementation)
@@ -57,7 +58,7 @@
 #include "../Util/utils.hpp"
 
 
-// Convert a string ("BB", "MODEL", "SURROGATE")
+// Convert a string ("BB", "MODEL", "CAT_MODEL", "SURROGATE")
 // to a NOMAD::EvalType.
 // If noException is false (default), "UNDEFINED" or "LAST" throws an exception, as well as any value other than "BB", "MODEL" and "SURROGATE".
 NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst, bool noException )
@@ -77,6 +78,10 @@ NOMAD::EvalType NOMAD::stringToEvalType(const std::string &sConst, bool noExcept
     else if (s == "MODEL")
     {
         ret = NOMAD::EvalType::MODEL;
+    }
+    else if (s == "CAT_MODEL")
+    {
+        ret = NOMAD::EvalType::CAT_MODEL;
     }
     else
     {
@@ -109,6 +114,9 @@ std::string NOMAD::evalTypeToString(NOMAD::EvalType evalType)
             break;
         case NOMAD::EvalType::MODEL:
             s = "MODEL";
+            break;
+        case NOMAD::EvalType::CAT_MODEL:
+            s = "CAT_MODEL";
             break;
         case NOMAD::EvalType::UNDEFINED:
             s = "UNDEFINED";

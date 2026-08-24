@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/NelderMead/NMReflective.hpp"
 #include "../../Algos/SubproblemManager.hpp"
@@ -271,7 +272,7 @@ void NOMAD::NMReflective::generateTrialPointsImp()
 
     if (_iterAncestor->getMesh())
     {
-        if (!verifyPointsAreOnMesh(getName()))
+        if (_projectOnMesh && !verifyPointsAreOnMesh(getName()))
         {
             OUTPUT_INFO_START
             AddOutputInfo("xt is not on mesh. May need investigation if this happens too often.");

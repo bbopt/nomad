@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/SearchMethodSimple.hpp"
 
 bool NOMAD::SearchMethodSimple::runImp()
@@ -67,11 +68,19 @@ bool NOMAD::SearchMethodSimple::runImp()
 
 void NOMAD::SearchMethodSimple::startImp()
 {
+    // Store default successType for stats
+    // Only if not _dynamicEnabled, the success type will stay unchanged.
+    if (_dynamicSearch)
+    {
+        _allSuccessTypes.push_back(NOMAD::SuccessType::UNDEFINED);
+    }
+    _trialPointsSuccess = NOMAD::SuccessType::UNDEFINED;
+    
     
     // Reset the current counters. The total counters are not reset (done only once when constructor is called).
     _trialPointStats.resetCurrentStats();
     
-    if ( ! _stopReasons->checkTerminate() && _dynamicEnabled)
+    if ( ! _stopReasons->checkTerminate() && _dynamicSearchEnabled)
     {
         // Create EvalPoints and snap to bounds and snap on mesh
         generateTrialPoints();
@@ -86,7 +95,10 @@ void NOMAD::SearchMethodSimple::endImp()
     NOMAD::SearchMethodBase::endImp();
 
     // For now, only simple search method can be set dynamically enabled/disabled.
-    updateDynamicEnabled();
+    if (_dynamicSearch)
+    {
+        updateDynamicEnabled();
+    }
     
     // When users apply some changes to the problem (for example, fixed variables), it may be required to revert the change.
     // Some changes can be made after trial points evaluations

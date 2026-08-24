@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../Eval/Evaluator.hpp"
 #include "../Output/OutputQueue.hpp"
 #include "../Util/fileutils.hpp"
@@ -60,10 +61,10 @@
 
 // Initialize tmp files. NOTE: static variables for those are not working when building for Windows VS.
 /// Vector is used to store one file per thread (thread for eval and algo thread).
-std::vector<std::string> _tmpFiles = std::vector<std::string>();
-std::vector<std::string> _tmpOutFilesWithoutRedirection = std::vector<std::string>();
-std::vector<std::string> _tmpLogFilesWithoutRedirection = std::vector<std::string>();
-size_t _tmpFilesForParEval = 1;  // number of tmp files for parallel eval. Total number depends on number of main threads.
+std::vector<std::string> TmpFiles = std::vector<std::string>();
+std::vector<std::string> TmpOutFilesWithoutRedirection = std::vector<std::string>();
+std::vector<std::string> TmpLogFilesWithoutRedirection = std::vector<std::string>();
+size_t TmpFilesForParEval = 1;  // number of tmp files for parallel eval. Total number depends on number of main threads.
 
 
 // Initialize static var
@@ -129,10 +130,10 @@ void NOMAD::Evaluator::initializeTmpFiles(const std::string& tmpDir, const int &
         nbThreads = nbThreadsForParallelEval;
     }
 #endif
-    _tmpFilesForParEval = static_cast<size_t>(nbThreads); // Store the number of threads for parallel eval.
+    TmpFilesForParEval = static_cast<size_t>(nbThreads); // Store the number of threads for parallel eval.
 
     // Case where no tmp files exist
-    if (_tmpFiles.empty())
+    if (TmpFiles.empty())
     {
 
         std::string tmppath = tmpDir;
@@ -140,25 +141,25 @@ void NOMAD::Evaluator::initializeTmpFiles(const std::string& tmpDir, const int &
         // Use the pid in the file name in case two nomad run at the same time.
         int pid = getpid();
         // Create a temporary file fo blackbox input. One for each thread number,
-        // for each nomad pid. Add the file names to _tmpFiles.
+        // for each nomad pid. Add the file names to TmpFiles.
         for (auto threadNum = 0; threadNum < nbThreads; threadNum++)
         {
             std::string tmpfilestr = tmppath + "nomadtmp." + std::to_string(pid) + "." + std::to_string(threadNum);
-            _tmpFiles.push_back(tmpfilestr);
+            TmpFiles.push_back(tmpfilestr);
             if (! _bbRedirection)
             {
                 std::string tmpfilestrOut = tmpfilestr + ".output";
-                _tmpOutFilesWithoutRedirection.push_back(tmpfilestrOut);
+                TmpOutFilesWithoutRedirection.push_back(tmpfilestrOut);
                 std::string tmpfilestrLog = tmpfilestr + ".tmplog";
-                _tmpLogFilesWithoutRedirection.push_back(tmpfilestrLog);
+                TmpLogFilesWithoutRedirection.push_back(tmpfilestrLog);
             }
         }
     }
     else
     {
         // Some tmp files already exist. Use them as template
-        size_t posPid = _tmpFiles[0].find_last_of('.');
-        size_t len = _tmpFiles[0].length();
+        size_t posPid = TmpFiles[0].find_last_of('.');
+        size_t len = TmpFiles[0].length();
 
         if (len == 0 || posPid==std::string::npos)
         {
@@ -166,16 +167,16 @@ void NOMAD::Evaluator::initializeTmpFiles(const std::string& tmpDir, const int &
         }
         for (auto threadNum = 0; threadNum < nbThreads; threadNum++)
         {
-            std::string tmpfilestr = _tmpFiles[0];
-            tmpfilestr.replace(posPid+1,len, std::to_string(threadNum+_tmpFiles.size()));
-            _tmpFiles.push_back(tmpfilestr);
+            std::string tmpfilestr = TmpFiles[0];
+            tmpfilestr.replace(posPid+1,len, std::to_string(threadNum+TmpFiles.size()));
+            TmpFiles.push_back(tmpfilestr);
 
             if (! _bbRedirection)
             {
                 std::string tmpfilestrOut = tmpfilestr + ".output";
-                _tmpOutFilesWithoutRedirection.push_back(tmpfilestrOut);
+                TmpOutFilesWithoutRedirection.push_back(tmpfilestrOut);
                 std::string tmpfilestrLog = tmpfilestr + ".tmplog";
-                _tmpLogFilesWithoutRedirection.push_back(tmpfilestrLog);
+                TmpLogFilesWithoutRedirection.push_back(tmpfilestrLog);
             }
         }
     }
@@ -186,19 +187,19 @@ void NOMAD::Evaluator::initializeTmpFiles(const std::string& tmpDir, const int &
 void NOMAD::Evaluator::removeTmpFiles()
 {
     // Remove all temporary files, so that they do not linger around.
-    auto nbThreads = _tmpFiles.size();
+    auto nbThreads = TmpFiles.size();
     for (size_t i = 0; i < nbThreads; i++)
     {
-        remove(_tmpFiles[i].c_str());
+        remove(TmpFiles[i].c_str());
         if (!_bbRedirection)
         {
-            remove(_tmpOutFilesWithoutRedirection[i].c_str());
-            remove(_tmpLogFilesWithoutRedirection[i].c_str());
+            remove(TmpOutFilesWithoutRedirection[i].c_str());
+            remove(TmpLogFilesWithoutRedirection[i].c_str());
         }
     }
-    _tmpFiles.clear();
-    _tmpOutFilesWithoutRedirection.clear();
-    _tmpLogFilesWithoutRedirection.clear();
+    TmpFiles.clear();
+    TmpOutFilesWithoutRedirection.clear();
+    TmpLogFilesWithoutRedirection.clear();
 
 }
 
@@ -356,21 +357,21 @@ std::vector<bool> NOMAD::Evaluator::evalXBBExe(NOMAD::Block &block,
 
     const int mainThreadNum = block[0]->getThreadAlgo();
 
-    const size_t indexTmpFile = mainThreadNum*_tmpFilesForParEval + NOMAD::getThreadNum();
+    const size_t indexTmpFile = mainThreadNum*TmpFilesForParEval + NOMAD::getThreadNum();
 
     // Write a temp file for x0 and give that file as argument to bbExe.
-    if (indexTmpFile >= _tmpFiles.size())
+    if (indexTmpFile >= TmpFiles.size())
     {
         std::cout << "Error: Evaluator: No enough temp file available." << std::endl;
         // Ugly early return
         return evalOk;
     }
-    const std::string& tmpfile = _tmpFiles[indexTmpFile];
+    const std::string& tmpfile = TmpFiles[indexTmpFile];
     std::string tmpoutfile, tmplogfile;
     if (! _bbRedirection)
     {
-        tmpoutfile = _tmpOutFilesWithoutRedirection[indexTmpFile];
-        tmplogfile = _tmpLogFilesWithoutRedirection[indexTmpFile];
+        tmpoutfile = TmpOutFilesWithoutRedirection[indexTmpFile];
+        tmplogfile = TmpLogFilesWithoutRedirection[indexTmpFile];
     }
 
 

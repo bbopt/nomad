@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   ListOfVariableGroup.hpp
  \brief  List of VariableGroup
@@ -52,8 +53,8 @@
  \see    ListOfVariableGroup.cpp
  */
 
-#ifndef __NOMAD_4_5_LIST_OF_VARIABLE_GROUP__
-#define __NOMAD_4_5_LIST_OF_VARIABLE_GROUP__
+#ifndef __NOMAD_4_6_LIST_OF_VARIABLE_GROUP__
+#define __NOMAD_4_6_LIST_OF_VARIABLE_GROUP__
 
 #include <set>
 #include <sstream>
@@ -64,17 +65,16 @@
 /// Type definition for the representation of a variable group (set of indices).
 typedef std::set<size_t> VariableGroup;
 
-inline std::ostream& operator<<(std::ostream& out, const VariableGroup& vg) 
+inline std::ostream& operator<<(std::ostream& out, const VariableGroup& vg)
 {
-	out << " ( ";
-	for (auto index : vg)
-	{
-		out << index;
-	}
-	out << " ) ";
-	return out;
+    out << " ( " ;
+    for (auto index : vg)
+    {
+        out << index;
+    }
+    out << " ) ";
+    return out;
 }
-
 
 
 
@@ -83,17 +83,17 @@ typedef std::list<VariableGroup> ListOfVariableGroup;
 
 inline std::ostream& operator<<(std::ostream& out, const ListOfVariableGroup& lvg)
 {
-	size_t i = 0;
-	for (const auto& vg : lvg)
-	{
-		if (i > 0)
-		{
-			out << " ";
-		}
-		out << vg;
-		i++;
-	}
-	return out;
+    size_t i=0;
+    for (const auto& vg : lvg)
+    {
+        if (i > 0)
+        {
+            out << " ";
+        }
+        out << vg;
+        i++;
+    }
+    return out;
 }
 
 
@@ -103,4 +103,4 @@ inline std::ostream& operator<<(std::ostream& out, const ListOfVariableGroup& lv
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_5_LIST_OF_VARIABLE_GROUP__
+#endif // __NOMAD_4_6_LIST_OF_VARIABLE_GROUP__

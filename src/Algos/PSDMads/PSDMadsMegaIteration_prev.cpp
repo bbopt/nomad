@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/PSDMads/PSDMadsMegaIteration.hpp"
 #include "../../Output/OutputQueue.hpp"
@@ -188,7 +189,6 @@ void NOMAD::PSDMadsMegaIteration::setupSubproblemParams(std::shared_ptr<NOMAD::P
         subProblemRunParams->setAttributeValue("NM_SEARCH", false);
         subProblemRunParams->setAttributeValue("QUAD_MODEL_SEARCH", false);
         
-        // TODO make it work with ORTHO N+1 QUAD. For now, ORTHO N+1 QUAD seems to have trouble when generating the n+1 th point with quad model (fixed variable pb).
         subProblemRunParams->setAttributeValue("DIRECTION_TYPE",NOMAD::DirectionType::ORTHO_2N);
         
         subProblemPbParams->setAttributeValue("FIXED_VARIABLE", _fixedVariable);

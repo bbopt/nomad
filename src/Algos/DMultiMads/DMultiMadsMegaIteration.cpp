@@ -45,11 +45,11 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/DMultiMads/DMultiMadsMegaIteration.hpp"
 #include "../../Output/OutputQueue.hpp"
 #include "../../Output/OutputDirectToFile.hpp"
-
 
 void NOMAD::DMultiMadsMegaIteration::init()
 {
@@ -135,6 +135,7 @@ bool NOMAD::DMultiMadsMegaIteration::runImp()
     return successful;
 }
 
+
 void NOMAD::DMultiMadsMegaIteration::endImp()
 {
     auto megaIterBarrier = getBarrier();
@@ -148,7 +149,7 @@ void NOMAD::DMultiMadsMegaIteration::endImp()
         info.setBBO(ev->getBBO(NOMAD::EvalType::BB));
         info.setSol(*(ev->getX()));
         
-        NOMAD::OutputDirectToFile::Write(info, true /* write in solution file*/, false /* do no write in history file */, append /* append in solution file */);
+        NOMAD::OutputDirectToFile::Write(info, true /* write in solution file*/, NOMAD::SuccessType::FULL_SUCCESS, true /* feasible*/, false /* do no write in history file */, append /* append in solution file */);
         append = true;
     }
     
@@ -198,6 +199,8 @@ void NOMAD::DMultiMadsMegaIteration::read(  std::istream& is )
 //
 //    setK(k);
 }
+
+
 
 
 

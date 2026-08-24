@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_CACHESEARCHMETHOD__
-#define __NOMAD_4_5_CACHESEARCHMETHOD__
+
+#ifndef __NOMAD_4_6_CACHESEARCHMETHOD__
+#define __NOMAD_4_6_CACHESEARCHMETHOD__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/SearchMethodSimple.hpp"
@@ -87,6 +88,7 @@ private:
     /// Generate new points (no evaluation)
     /**
      \copydoc SearchMethodAlgo::generateTrialPointsFinal 
+     
      Perform one quad model optimization to produce trial points.
      */
      virtual void generateTrialPointsFinal() override;
@@ -97,5 +99,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_CACHESEARCHMETHOD__
+#endif // __NOMAD_4_6_CACHESEARCHMETHOD__
 

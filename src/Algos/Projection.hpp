@@ -45,8 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_5_PROJECTION__
-#define __NOMAD_4_5_PROJECTION__
+
+#ifndef __NOMAD_4_6_PROJECTION__
+#define __NOMAD_4_6_PROJECTION__
 
 #include "../Algos/IterationUtils.hpp"
 #include "../Algos/Step.hpp"
@@ -122,4 +123,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_PROJECTION__
+#endif // __NOMAD_4_6_PROJECTION__

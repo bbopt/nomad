@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*--------------------------------------------------------------------------*/
 /*  example of a program that makes NOMAD do a local step stop              */
 /*  The user criterion is met if BB is not EvalOk                           */
@@ -53,9 +54,13 @@
 #include "Algos/Mads/MadsMegaIteration.hpp"
 #include "Algos/Mads/SearchMethodAlgo.hpp"
 #include "Cache/CacheBase.hpp"
+#include "Eval/EvalCallback.hpp"
 #include "Type/EvalSortType.hpp"
 #include "Algos/AlgoStopReasons.hpp"
 #include "Util/AllStopReasons.hpp"
+
+size_t __countFail = 0;
+const size_t __maxFailedEval = 30;
 
 //
 // IMPORTANT
@@ -87,7 +92,8 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
     NOMAD::BBOutputTypeList bbOutputTypes= {NOMAD::BBOutputType::EB, NOMAD::BBOutputType::EB, NOMAD::BBOutputType::EB, NOMAD::BBOutputType::EB, NOMAD::BBOutputType::PB, NOMAD::BBOutputType::PB, NOMAD::BBOutputType::PB, NOMAD::BBOutputType::PB, NOMAD::BBOutputType::PB, NOMAD::BBOutputType::PB, NOMAD::BBOutputType::PB, NOMAD::BBOutputType::OBJ};
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes );
 
-    allParams->setAttributeValue("DISPLAY_DEGREE", 4);
+    allParams->setAttributeValue("DISPLAY_DEGREE", 2);
+    allParams->setAttributeValue("DISPLAY_ALL_EVAL", true);
     allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj"));
 
     // Parameters validation
@@ -109,7 +115,11 @@ void customEvalStopCB( NOMAD::EvalQueuePointPtr & evalQueuePoint, bool & globalS
             // The eval_ok is set according to eval status returned by bb and also the outputs. For example, Styrene always returns a valid status but the output can contain some error message. This will make the eval status not eval ok.
             if (eval->getEvalStatus() != NOMAD::EvalStatusType::EVAL_OK)
             {
-                globalStop = true;
+                __countFail ++;
+                if (__countFail >= __maxFailedEval)
+                {
+                    globalStop = true;
+                }
             }
         }
     }
@@ -128,17 +138,19 @@ int main()
     initAllParams(params);
     TheMainStep.setAllParameters(params);
     
-    // Link callback function with user function defined locally
-    NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_STOP_CHECK> cbFailCheck = customEvalStopCB;
+    // Add the callback for stop check
+    TheMainStep.addCallback<NOMAD::EvalCallbackType::EVAL_STOP_CHECK>(customEvalStopCB);
     
-    // Add callback function for eval check and management.
-    NOMAD::EvcInterface::getEvaluatorControl()->addEvalCallback<NOMAD::CallbackType::EVAL_STOP_CHECK>(cbFailCheck);
-
-    
-    // The run
-    TheMainStep.start();
-    TheMainStep.run();
-    TheMainStep.end();
+    try
+    {
+        TheMainStep.start();
+        TheMainStep.run();
+        TheMainStep.end();
+    }
+    catch(std::exception &e)
+    {
+        std::cerr << "\nRun has been interrupted (" << e.what() << ")\n\n";
+    }
         
     return 0;
 }

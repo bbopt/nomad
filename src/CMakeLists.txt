@@ -6,6 +6,7 @@
 set(ALGOS_HEADERS
 Algos/Algorithm.hpp
 Algos/AlgoStopReasons.hpp
+Algos/AlgoCallback.hpp
 Algos/CacheInterface.hpp
 Algos/EvcInterface.hpp
 Algos/Initialization.hpp
@@ -106,10 +107,10 @@ Cache/CacheSet.cpp
 # Eval
 #
 set(EVAL_HEADERS
-#Eval/Barrier.hpp
 Eval/BarrierBase.hpp
 Eval/BBInput.hpp
 Eval/BBOutput.hpp
+Eval/EvalCallback.hpp
 Eval/ComparePriority.hpp
 Eval/ComputeSuccessType.hpp
 Eval/Eval.hpp
@@ -123,7 +124,6 @@ Eval/ProgressiveBarrier.hpp
 Eval/SuccessStats.hpp)
 
 set(EVAL_SOURCES
-#Eval/Barrier.cpp
 Eval/BarrierBase.cpp
 Eval/BBInput.cpp
 Eval/BBOutput.cpp
@@ -153,7 +153,9 @@ Math/MathUtils.hpp
 Math/MatrixUtils.hpp
 Math/Point.hpp
 Math/RandomPickup.hpp
-Math/RNG.hpp)
+Math/RNG.hpp
+Math/SimpleRNG.hpp
+)
 
 set(MATH_SOURCES
 Math/ArrayOfDouble.cpp
@@ -166,6 +168,7 @@ Math/MatrixUtils.cpp
 Math/Point.cpp
 Math/RandomPickup.cpp
 Math/RNG.cpp
+Math/SimpleRNG.cpp
 )
 
 #
@@ -268,7 +271,6 @@ Type/DMultiMadsSearchStrategyType.cpp
 Type/EvalSortType.cpp
 Type/EvalType.cpp
 Type/LHSearchType.cpp
-Type/ListOfVariableGroup.cpp
 Type/SgtelibModelFeasibilityType.cpp
 Type/SgtelibModelFormulationType.cpp
 Type/StepType.cpp
@@ -338,6 +340,37 @@ Algos/LatinHypercubeSampling/LH.cpp
 )
 
 #
+# CatMads
+#
+set(CATMADS_HEADERS
+Algos/CatMads/CatAlgoUtils.hpp
+Algos/CatMads/CatExtendedPollMethod.hpp
+Algos/CatMads/CatMads.hpp
+Algos/CatMads/CatSpeculativeSearchMethod.hpp
+Algos/CatMads/CatPollMethod.hpp
+Algos/CatMads/CatSearchMethod.hpp
+)
+set(CATMADS_SOURCES
+Algos/CatMads/CatAlgoUtils.cpp
+Algos/CatMads/CatExtendedPollMethod.cpp
+Algos/CatMads/CatMads.cpp
+Algos/CatMads/CatCustomOrder.cpp
+Algos/CatMads/CatSpeculativeSearchMethod.cpp
+Algos/CatMads/CatPollMethod.cpp
+Algos/CatMads/CatSearchMethod.cpp
+)
+
+#
+# CatAds
+#
+set(CATADS_HEADERS
+Algos/CatAds/CatAds.hpp
+)
+set(CATADS_SOURCES
+Algos/CatAds/CatAds.cpp
+)
+
+#
 # DMultiMads
 #
 set(DMULTIMADS_HEADERS
@@ -391,6 +424,8 @@ Algos/DiscoMads/DiscoMadsUpdate.cpp
 #
 set(MADS_HEADERS
 Algos/Mads/DoublePollMethod.hpp
+Algos/Mads/ExtendedPoll.hpp
+Algos/Mads/ExtendedPollMethod.hpp
 Algos/Mads/GMesh.hpp
 Algos/Mads/LHSearchMethod.hpp
 Algos/Mads/Mads.hpp
@@ -398,6 +433,7 @@ Algos/Mads/MadsInitialization.hpp
 Algos/Mads/MadsIteration.hpp
 Algos/Mads/MadsMegaIteration.hpp
 Algos/Mads/MadsUpdate.hpp
+Algos/Mads/MadsUserMethodCallback.hpp
 Algos/Mads/MegaSearchPoll.hpp
 Algos/Mads/NMSearchMethod.hpp
 Algos/Mads/NP1UniPollMethod.hpp
@@ -416,7 +452,6 @@ Algos/Mads/SgtelibSearchMethod.hpp
 Algos/Mads/SimpleLineSearchMethod.hpp
 Algos/Mads/SinglePollMethod.hpp
 Algos/Mads/SpeculativeSearchMethod.hpp
-Algos/Mads/TemplateAlgoSearchMethod.hpp
 Algos/Mads/UserSearchMethod.hpp
 Algos/Mads/UserPollMethod.hpp
 Algos/Mads/VNSmartSearchMethod.hpp
@@ -425,6 +460,8 @@ Algos/Mads/VNSSearchMethod.hpp
 
 set(MADS_SOURCES
 Algos/Mads/DoublePollMethod.cpp
+Algos/Mads/ExtendedPoll.cpp
+Algos/Mads/ExtendedPollMethod.cpp
 Algos/Mads/GMesh.cpp
 Algos/Mads/LHSearchMethod.cpp
 Algos/Mads/Mads.cpp
@@ -450,12 +487,40 @@ Algos/Mads/SgtelibSearchMethod.cpp
 Algos/Mads/SimpleLineSearchMethod.cpp
 Algos/Mads/SinglePollMethod.cpp
 Algos/Mads/SpeculativeSearchMethod.cpp
-Algos/Mads/TemplateAlgoSearchMethod.cpp
 Algos/Mads/UserSearchMethod.cpp
 Algos/Mads/UserPollMethod.cpp
 Algos/Mads/VNSmartSearchMethod.cpp
 Algos/Mads/VNSSearchMethod.cpp
 )
+
+#
+# Ads
+#
+set(ADS_HEADERS
+Algos/Ads/Ads.hpp
+Algos/Ads/AdsMegaIteration.hpp
+Algos/Ads/AdsIteration.hpp
+Algos/Ads/AdsProgressiveBarrier.hpp
+Algos/Ads/AdsUpdate.hpp
+)
+set(ADS_SOURCES
+Algos/Ads/Ads.cpp
+Algos/Ads/AdsMegaIteration.cpp
+Algos/Ads/AdsIteration.cpp
+Algos/Ads/AdsProgressiveBarrier.cpp
+Algos/Ads/AdsUpdate.cpp
+)
+
+#
+# MadsPIP
+#
+set(MADSPIP_HEADERS
+Algos/MadsMixedPenaltyLogBarrier/MadsPIP.hpp
+)
+set(MADSPIP_SOURCES
+Algos/MadsMixedPenaltyLogBarrier/MadsPIP.cpp
+)
+
 
 #
 # Simple Mads
@@ -575,6 +640,8 @@ Algos/QuadModel/QuadModelUpdate.cpp
 # QP Solvers
 #
 set(QPSOLVER_HEADERS
+Algos/QPSolverAlgo/AugLagSolver.hpp
+Algos/QPSolverAlgo/BCQPSolver.hpp
 Algos/QPSolverAlgo/DoglegTRSolver.hpp
 Algos/QPSolverAlgo/LevenbergMarquardtSolver.hpp
 Algos/QPSolverAlgo/L1AugLagSolver.hpp
@@ -589,6 +656,8 @@ Algos/QPSolverAlgo/TRIPMSolver.hpp
 )
 
 set(QPSOLVER_SOURCES
+Algos/QPSolverAlgo/AugLagSolver.cpp
+Algos/QPSolverAlgo/BCQPSolver.cpp
 Algos/QPSolverAlgo/DoglegTRSolver.cpp
 Algos/QPSolverAlgo/LevenbergMarquardtSolver.cpp
 Algos/QPSolverAlgo/L1AugLagSolver.cpp
@@ -628,27 +697,27 @@ Algos/SgtelibModel/SgtelibModelUpdate.cpp
 )
 
 #
-# Template Algorithm
+# Random Algorithm
 # Can be used as an example to create a new algorithm
 #
-set(TEMPLATE_ALGO_HEADERS
-Algos/TemplateAlgo/TemplateAlgo.hpp
-Algos/TemplateAlgo/TemplateAlgoInitialization.hpp
-Algos/TemplateAlgo/TemplateAlgoIteration.hpp
-Algos/TemplateAlgo/TemplateAlgoMegaIteration.hpp
-Algos/TemplateAlgo/TemplateAlgoRandom.hpp
-Algos/TemplateAlgo/TemplateAlgoSinglePass.hpp
-Algos/TemplateAlgo/TemplateAlgoUpdate.hpp
+set(RANDOM_ALGO_HEADERS
+Algos/RandomAlgo/RandomAlgo.hpp
+Algos/RandomAlgo/RandomAlgoInitialization.hpp
+Algos/RandomAlgo/RandomAlgoIteration.hpp
+Algos/RandomAlgo/RandomAlgoMegaIteration.hpp
+Algos/RandomAlgo/RandomAlgoRandom.hpp
+Algos/RandomAlgo/RandomAlgoSinglePass.hpp
+Algos/RandomAlgo/RandomAlgoUpdate.hpp
 )
 
-set(TEMPLATE_ALGO_SOURCES
-Algos/TemplateAlgo/TemplateAlgo.cpp
-Algos/TemplateAlgo/TemplateAlgoInitialization.cpp
-Algos/TemplateAlgo/TemplateAlgoIteration.cpp
-Algos/TemplateAlgo/TemplateAlgoMegaIteration.cpp
-Algos/TemplateAlgo/TemplateAlgoRandom.cpp
-Algos/TemplateAlgo/TemplateAlgoSinglePass.cpp
-Algos/TemplateAlgo/TemplateAlgoUpdate.cpp)
+set(RANDOM_ALGO_SOURCES
+Algos/RandomAlgo/RandomAlgo.cpp
+Algos/RandomAlgo/RandomAlgoInitialization.cpp
+Algos/RandomAlgo/RandomAlgoIteration.cpp
+Algos/RandomAlgo/RandomAlgoMegaIteration.cpp
+Algos/RandomAlgo/RandomAlgoRandom.cpp
+Algos/RandomAlgo/RandomAlgoSinglePass.cpp
+Algos/RandomAlgo/RandomAlgoUpdate.cpp)
 
 #
 # Simple Line Search
@@ -712,6 +781,9 @@ include(./CMakeListsLibs.txt)
 
 # build statically linked library (nomadStatic) for PyNomad interface
 if(BUILD_INTERFACE_PYTHON MATCHES ON)
+   include(./CMakeListsLibsStatic.txt)
+endif()
+if(BUILD_INTERFACE_PYTHON_CAT MATCHES ON)
    include(./CMakeListsLibsStatic.txt)
 endif()
 
@@ -778,6 +850,16 @@ install(
 )
 
 install(
+  FILES ${CATMADS_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/CatMads
+)
+
+install(
+  FILES ${CATADS_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/CatAds
+)
+
+install(
   FILES ${DMULTIMADS_HEADERS}
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/DMultiMads
 )
@@ -798,7 +880,12 @@ install(
 )
 
 install(
-  FILES ${MADSLOGBARRIER_HEADERS}
+  FILES ${ADS_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/Ads
+)
+
+install(
+  FILES ${MADSPIP_HEADERS}
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/MadsMixedPenaltyLogBarrier
 )
 
@@ -844,13 +931,8 @@ install(
 )
 
 install(
-  FILES ${SSDMADS_HEADERS}
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/SSDMads
-)
-
-install(
-  FILES ${TEMPLATE_ALGO_HEADERS}
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/TemplateAlgo
+  FILES ${RANDOM_ALGO_HEADERS}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/nomad/Algos/RandomAlgo
 )
 
 install(

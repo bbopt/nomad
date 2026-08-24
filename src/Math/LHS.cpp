@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Math/LHS.hpp"
 #include "../Math/RNG.hpp"
 #include "../Math/RandomPickup.hpp"

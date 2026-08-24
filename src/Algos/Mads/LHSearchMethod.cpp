@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/LHSearchMethod.hpp"
 #include "../../Algos/SubproblemManager.hpp"
 #include "../../Math/LHS.hpp"

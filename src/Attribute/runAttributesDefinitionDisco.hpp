@@ -44,11 +44,12 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 //////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////
 //////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////
 
-#ifndef __NOMAD_4_5_RUNATTRIBUTESDEFINITIONDISCO__
-#define __NOMAD_4_5_RUNATTRIBUTESDEFINITIONDISCO__
+#ifndef __NOMAD_4_6_RUNATTRIBUTESDEFINITIONDISCO__
+#define __NOMAD_4_6_RUNATTRIBUTESDEFINITIONDISCO__
 
 _definition = {
 { "DISCO_MADS_OPTIMIZATION",  "bool",  "false",  " DiscoMads optimization ",  " \n  \n . DiscoMads optimization: reveal and escape either weak discontinuities \n in revealing outputs or hidden constraints regions (with DISCO_MADS_HID_CONST). \n  \n . If DiscoMads is used for discontinuities, they are characterized by  \n DISCO_MADS_DETECTION_RADIUS and DISCO_MADS_LIMIT_RATE.  Revealing outputs \n  should be indicated by appending -R to blackbox outputs type in parameters file. \n  \n . Prescribed distance to revealing points is controlled by  \n DISCO_MADS_EXCLUSION_RADIUS. \n  \n . Revealing poll parameters are DISCO_MADS_REVEALING_POLL_NB_POINTS and \n DISCO_MADS_REVEALING_POLL_RADIUS. \n  \n . Argument: bool \n  \n . Example: DISCO_MADS_OPTIMIZATION true \n  \n . Default: false\n\n",  "  discomads mads discontinuity "  , "true" , "false" , "true" },
