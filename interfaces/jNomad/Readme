@@ -21,6 +21,7 @@ How to run the example ?
 
 cd $NOMAD_HOME/interfaces/jNomad/
 javac -cp $NOMAD_HOME/build/release/interfaces/jNomad/jNomad.jar Examples/Rosenbrock.java
-java -cp .:$NOMAD_HOME/build/release/interfaces/jNomad/jNomad.jar Examples/Rosenbrock
+cd Examples
+java -cp .:$NOMAD_HOME/build/release/interfaces/jNomad/jNomad.jar Rosenbrock
 
 
