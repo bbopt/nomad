@@ -36,7 +36,7 @@ def test_single_constraint ():
 
     result = PyNomad.optimize(blackbox, x0, [], [], params)
 
-    f_result = result['f_best']
+    f_result = result['f_single_best']
     f_expect = -4.0
 
     assert result['run_flag'] == 0

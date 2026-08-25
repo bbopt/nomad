@@ -24,6 +24,6 @@ def test_single ():
     result = PyNomad.optimize(blackbox, x0, lb, ub, params)
 
     assert result['run_flag'] == 1
-    for value in result['x_best']:
+    for value in result['x_single_best']:
         assert abs(value) < 1e-6
 
