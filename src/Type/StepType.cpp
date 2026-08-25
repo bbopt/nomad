@@ -74,7 +74,6 @@ bool NOMAD::isAlgorithm(const StepType& stepType)
         case NOMAD::StepType::ALGORITHM_PSD_MADS:
         case NOMAD::StepType::ALGORITHM_QPSOLVER:
         case NOMAD::StepType::ALGORITHM_SGTELIB_MODEL:
-        case NOMAD::StepType::ALGORITHM_SSD_MADS:
         case NOMAD::StepType::ALGORITHM_DISCO_MADS:
         case NOMAD::StepType::ALGORITHM_QUAD_MODEL:
         case NOMAD::StepType::ALGORITHM_VNS_MADS:
@@ -104,7 +103,6 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::ALGORITHM_PSD_MADS, "PSD-Mads"},
         {NOMAD::StepType::ALGORITHM_QPSOLVER, "Algorithm for Quad Model"},
         {NOMAD::StepType::ALGORITHM_SGTELIB_MODEL, "Sgtelib Model"},
-        {NOMAD::StepType::ALGORITHM_SSD_MADS, "SSD-Mads"},
         {NOMAD::StepType::ALGORITHM_DISCO_MADS, "DiscoMads"},
         {NOMAD::StepType::ALGORITHM_RANDOM, "Random algorithm"},
         {NOMAD::StepType::ALGORITHM_QUAD_MODEL, "Quad Model"},

@@ -51,7 +51,6 @@ target_include_directories(
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PhaseOne
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QPSolverAlgo
-      ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/RandomAlgo
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SimpleLineSearch
       ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads

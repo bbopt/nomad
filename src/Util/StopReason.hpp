@@ -95,15 +95,6 @@ enum class PhaseOneStopType : int
     LAST
 };
 
-/// Stop type that happen during SSD-Mads (super-algo)
-enum class SSDMadsStopType : int
-{
-    STARTED                 ,  ///< Started (no stop)
-    X0_FAIL                 ,  ///< Problem with starting point evaluation
-    SUBPB_MADS_FAIL         ,  ///< Subproblem Mads fail
-    LAST
-};
-
 /// Stop type for Latin Hypercube
 enum class LHStopType : int
 {
@@ -239,7 +230,7 @@ enum class EvalMainThreadStopType : int
 {
     STARTED                 ,  ///< Started (no stop)
     LAP_MAX_BB_EVAL_REACHED,   ///< Max number of blackbox evaluations for a sub algorithm run (lap run)
-    SUBPROBLEM_MAX_BB_EVAL_REACHED,   ///< Max number of blackbox evaluations for a subproblem run (E.g. SSD-Mads)
+    SUBPROBLEM_MAX_BB_EVAL_REACHED,   ///< Max number of blackbox evaluations for a subproblem run 
     OPPORTUNISTIC_SUCCESS         ,  ///< Success found and opportunistic strategy is used
     CUSTOM_OPPORTUNISTIC_ITER_STOP,  ///< Custom opportunistic iteration stop has been detected via a callback
     CUSTOM_OPPORTUNISTIC_EVAL_STOP,  ///< Custom opportunistic evaluation stop has been detected via a callback

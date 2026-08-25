@@ -140,6 +140,7 @@ The contributions of  Miguel Anjos, Romain Couderc, Miguel Diago Martinez, Solè
 The development of DMultiMads was conducted by Ludovic Salomon during his PhD thesis. Additional work was done to integrate DMultiMads in NOMAD 4, including some advanced search methods.
 
 The new MadsPIP algorithm was developed in collaboration with Andrea Brilli and Youssef Diouane. 
+
 The integration of the Adaptive Direct Search (ADS) algorithm into NOMAD was conducted in collaboration with Youssef Diouane and Théo Denorme.
 
 .. Finally, many thanks to the TOMS anonymous referees for their useful comments which helped a lot to improve the code and the text of [AuLeRoTr2021]_.

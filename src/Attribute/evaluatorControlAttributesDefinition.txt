@@ -150,28 +150,10 @@ INF
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################
-SSD_MADS_SUBPROBLEM_MAX_BB_EVAL
-size_t
-INF
-\( Max number of evaluations for each subproblem \)
-\(
-. Used in the context of Sequential Space Decomposition (SSD) MADS algorithm.
-
-. Select the max number of evaluations in each Mads subproblem.
-
-. Argument: a positive integer.
-
-. Example: SSD_MADS_SUBPROBLEM_MAX_BB_EVAL 10
-
-\)
-\( advanced ssd mads sequential decomposition subproblem \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE no
-################################################################################
 SUBPROBLEM_MAX_BB_EVAL
 size_t
 INF
-\( Internal parameter for PSD_MADS_SUBPROBLEM_MAX_BB_EVAL and SSD_MADS_SUBPROBLEM_MAX_BB_EVAL \)
+\( Internal parameter for PSD_MADS_SUBPROBLEM_MAX_BB_EVAL \)
 \(
 
 . CANNOT BE MODIFIED BY USER. Internal parameter.

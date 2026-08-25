@@ -79,7 +79,6 @@ enum class StepType
     ALGORITHM_QPSOLVER,         ///< Algorithm QPSolver
     ALGORITHM_QUAD_MODEL,       ///< Algorithm Quad Model
     ALGORITHM_SGTELIB_MODEL,    ///< Algorithm Quad Model
-    ALGORITHM_SSD_MADS,         ///< Algorithm SSD-Mads
     ALGORITHM_RANDOM,           ///< Algorithm random (to be used as a template example for a new algorithm)
     ALGORITHM_VNS_MADS,         ///< Algorithm VNS-Mads
     ALGORITHM_DISCO_MADS,       ///< Algorithm DISCO-Mads

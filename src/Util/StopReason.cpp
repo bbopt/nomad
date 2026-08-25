@@ -137,18 +137,6 @@ template<> DLL_UTIL_API std::map<NOMAD::PhaseOneStopType,std::string> & NOMAD::S
 }
 
 
-// Dictionary function for SSDMadsStopType
-template<> DLL_UTIL_API std::map<NOMAD::SSDMadsStopType,std::string> & NOMAD::StopReason<NOMAD::SSDMadsStopType>::dict() const
-{
-    static std::map<NOMAD::SSDMadsStopType,std::string> dictionary = {
-        {NOMAD::SSDMadsStopType::STARTED,"Started"},   // Set at the beginning of a Step
-        {NOMAD::SSDMadsStopType::X0_FAIL,"Problem with starting point evaluation"}
-        //{NOMAD::SSDMadsStopType::MADS_FAIL,"Mads has terminated but no feasible point obtained"}
-    };
-    return dictionary;
-}
-
-
 // Returns true only to terminate an algorithm using PhaseOne (Mads, ...)
 template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::PhaseOneStopType>::checkTerminate() const
 {
@@ -158,22 +146,6 @@ template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::PhaseOneStopType>::checkTe
         case NOMAD::PhaseOneStopType::MADS_FAIL:
             return true;
         case NOMAD::PhaseOneStopType::STARTED:
-            return false;
-        default:
-            throw NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for terminate");
-    }
-    return false;
-}
-
-
-template<> DLL_UTIL_API bool NOMAD::StopReason<NOMAD::SSDMadsStopType>::checkTerminate() const
-{
-    switch ( _stopReason )
-    {
-        case NOMAD::SSDMadsStopType::X0_FAIL:
-        //case NOMAD::SSDMadsStopType::MADS_FAIL:
-            return true;
-        case NOMAD::SSDMadsStopType::STARTED:
             return false;
         default:
             throw NOMAD::Exception ( __FILE__, __LINE__,"All stop types must be checked for terminate");

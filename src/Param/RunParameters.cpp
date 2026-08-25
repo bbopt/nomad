@@ -556,10 +556,9 @@ void NOMAD::RunParameters::checkAndComply(
 #endif // _OPENMP
 
 
-    bool useAlgoSSDMads = getAttributeValueProtected<bool>("SSD_MADS_OPTIMIZATION", false);
-    if (useAlgoPSDMads || useAlgoSSDMads)
+    if (useAlgoPSDMads)
     {
-        std::string nbVarParamName = (useAlgoPSDMads ? "PSD_MADS_NB_VAR_IN_SUBPROBLEM" : "SSD_MADS_NB_VAR_IN_SUBPROBLEM");
+        std::string nbVarParamName = "PSD_MADS_NB_VAR_IN_SUBPROBLEM";
         const size_t nbVariablesInSubproblem = getAttributeValueProtected<size_t>(nbVarParamName, false);
         if (0 == nbVariablesInSubproblem || nbVariablesInSubproblem > n)
         {
@@ -568,12 +567,12 @@ void NOMAD::RunParameters::checkAndComply(
             throw NOMAD::InvalidParameter(__FILE__,__LINE__, err);
         }
 
-        size_t nbMadsSubproblem = getAttributeValueProtected<size_t>((useAlgoPSDMads ? "PSD_MADS_NB_SUBPROBLEM" : "SSD_MADS_NB_SUBPROBLEM"), false);
+        size_t nbMadsSubproblem = getAttributeValueProtected<size_t>("PSD_MADS_NB_SUBPROBLEM", false);
         // Distribute all the variables between subproblems of reduced dimension.
         if (nbMadsSubproblem == INF_SIZE_T)
         {
             nbMadsSubproblem = (size_t)std::round(n/nbVariablesInSubproblem)+1; // Add a mads for the pollster
-            setAttributeValue((useAlgoPSDMads ? "PSD_MADS_NB_SUBPROBLEM" : "SSD_MADS_NB_SUBPROBLEM"), nbMadsSubproblem);
+            setAttributeValue("PSD_MADS_NB_SUBPROBLEM", nbMadsSubproblem);
         }
 
 #ifdef _OPENMP
@@ -710,7 +709,7 @@ void NOMAD::RunParameters::checkAndComply(
     bool useAlgoMadsPIP = getAttributeValueProtected<bool>("MADSPIP_OPTIMIZATION", false);
 
     int totalAlgoSet = (int)useAlgoAds + (int)useAlgoLH + (int)useAlgoCS +(int)useAlgoNM + (int)useAlgoQuadOpt
-                       + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoSSDMads + (int)useAlgoDMultiMads + (int)useAlgoDiscoMads + (int)useAlgoCatMads + (int)useAlgoCatAds;
+                       + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoDMultiMads + (int)useAlgoDiscoMads + (int)useAlgoCatMads + (int)useAlgoCatAds;
 
     if (totalAlgoSet >= 2)
     {
@@ -763,10 +762,6 @@ void NOMAD::RunParameters::checkAndComply(
         if (useAlgoSgtelibModel)
         {
             err += " SGTELIB_MODEL_EVAL";
-        }
-        if (useAlgoSSDMads)
-        {
-            err += " SSD_MADS_OPTIMIZATION";
         }
         if (useAlgoDiscoMads)
         {

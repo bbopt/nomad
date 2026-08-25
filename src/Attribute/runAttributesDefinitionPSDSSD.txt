@@ -1,5 +1,5 @@
 ###############################################################################
-#######     Definition of Run Parameters attributes (PSD-SSD)      ############
+#######     Definition of Run Parameters attributes (PSD)          ############
 #####
 ##### . Each definition must be separated by at least a comment line
 #####     (starting by #)
