@@ -31,7 +31,7 @@ jobs:
             os: macos-latest
             archs: arm64
             extra_option: -DCMAKE_OSX_ARCHITECTURES=arm64
-            openm: 'FALSE'
+            openmp: 'FALSE'
 
     name: Wheels for ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.os }}
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.14'
+          python-version: '3.11'
 
       - name: Prepare Python environment
         run: >-
@@ -69,6 +69,9 @@ jobs:
       - name: Build binary wheels
         uses: pypa/cibuildwheel@v3.3.1
         env:
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
+          # (optional) skip PyPy explicitly:
+          # CIBW_SKIP: "pp*"
           CIBW_ARCHS: >-
             ${{ matrix.target.archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: >-
@@ -85,9 +88,9 @@ jobs:
             NOMAD_MSVC_CONF=Release
             BUILD_OPENMP=${{ matrix.target.openmp }}
           CIBW_PROJECT_REQUIRES_PYTHON: >-
-            >=3.14
+            >=3.9, <3.14
           CIBW_BUILD_FRONTEND: >-
-            build
+            build            
         with:
           output-dir: wheelhouse
           package-dir: interfaces/PyNomad
