@@ -118,7 +118,7 @@ jobs:
       - name: Prepare upload
         shell: bash
         run: |
-          mv README.txt instdir/.
+          mv README.md instdir/.
           mv LICENSE instdir/.
           cd instdir
           tar -cf NOMAD4.tar *
