@@ -7,7 +7,7 @@ On Linux, Windows and Mac OS X, NOMAD can be compiled using *CMake*, a tool to m
 
 The minimum version of *CMake* is 3.15. Older versions should trigger an error. *CMake* will detect which compiler is available.
 
-A recent C++ compiler supporting C++14 is also required. The compilation has been tested on Linux with gcc 10.1.0, 11.1.0 and 12.2.0. The compilation has been tested on OSX with gcc Homebrew 9.3.0 and 11.2.0, and also Apple clang version 14.0.3. The compilation has been tested on Windows 8 and Windows 10 Enterprise with Microsoft Visual Studio 2019 (cl.exe 19.29.300038.1) and Microsoft Visual Studio 2017.
+A recent C++ compiler supporting C++17 is also required. The compilation has been tested on Linux with gcc 11.5.0 and 13.3. The compilation has been tested on OSX with gcc Homebrew 9.3.0 and 11.2.0, and also Apple clang version 14.0.3 and 21.0.0 for X86_64 and ARM64 architectures. The compilation has been tested on Windows 8 and Windows 10 Enterprise with Microsoft Visual Studio 2022.
 
 
 .. warning:: Some older version of *CMake* do not trigger an explicit error on the version number.

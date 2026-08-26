@@ -36,9 +36,12 @@ To conduct optimization in batch mode the users must define their separate black
 Blackbox program executions are managed by NOMAD with system calls.
 
 A valid blackbox program:
-    `- takes an input vector file as single argument,
+    `-` takes an input vector file as single argument,
+
     `-` reads space-separated values in input vector file,
+
     `-` returns evaluation values on standard output or file,
+
     `-` returns an evaluation status.
 
 In what follows we use the example in the ``$NOMAD_HOME/examples/basic/batch/single_obj``.
@@ -61,7 +64,7 @@ This example optimization problem has a single objective, 5 variables, 2 nonline
     It must also **return an evaluation status of 0** to indicate that the evaluation went well. Otherwise NOMAD considers that the evaluation has failed.
 
     4. The minimum number of values displayed by the blackbox program corresponds to the number of constraints plus one (or two for bi-objective problems) representing the objective function(s) that one seeks to minimize.
-    The constraints values correspond to left-hand side of constraints of the form :math:`c_j \leq 0` (for example, the constraint :math:`0 \leq x_1 + x_2 \leq 10` must be displayed with the two quantities :math:`c_1(x)=-x_1-x_2` and :math:`c_2(x)=x_1+x_2-10`).
+    The constraints values correspond to left-hand side of constraints of the form :math:`c_j \leq 0` (for example, the constraint :math:`0 \leq x_1 + x_2 \leq 10` must be displayed with the two quantities :math:`c_1(x)=-x_1-x_2` and :math:`c_2(x)=x_1+x_2-10`). Quantities having infinite upper or lower bounds should not be considered. The order of the displayed outputs must correspond to the order defined in the parameter file (see :ref:`bb_output_type` for details).
 
 The blackbox ``C++`` program of the previous example to evaluate the objective and the two constraints for a given design vector is given as:
 

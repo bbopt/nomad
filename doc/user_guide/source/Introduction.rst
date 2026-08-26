@@ -172,7 +172,7 @@ Bug reports and suggestions are valuable to us! We are committed to answer to po
 
 
 .. topic:: References
-
+      
     .. [AbAuDeLe09] M.A. Abramson, C. Audet, J.E. Dennis, Jr., and S. Le Digabel.
        OrthoMADS: A Deterministic MADS Instance with Orthogonal Directions.
        *SIAM Journal on Optimization*, 20(2):948–966, 2009.

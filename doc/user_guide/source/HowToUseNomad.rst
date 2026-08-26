@@ -46,13 +46,9 @@ Basic parameters description
 
 This section describes the basic parameters for the optimization problem definition, the algorithmic parameters and the parameters to manage output information. Additional information can be obtained by executing the command::
 
-  $NOMAD_HOME/bin/nomad -h
-
-to see all parameters, or::
-
   $NOMAD_HOME/bin/nomad -h PARAM_NAME
 
-for a particular parameter.
+for a particular parameter a concept or a keyword. 
 
 The remaining content of a line is ignored after the character ``#``. Except for the file names, all strings and parameter names are case insensitive: ``DIMENSION 2`` is the same as ``Dimension 2``. File names refer to files in the problem directory. To indicate a file name containing spaces, use quotes ``"name"`` or ``'name'``. These names may include directory information relatively to the problem directory. The problem directory will be added to the names, unless the ``$`` character is used in front of the names. For example, if a blackbox executable is run by the command ``python script.py``, define parameter ``BB_EXE "$python script.py"``.
 
@@ -363,7 +359,18 @@ These parameters display information each time a new feasible incumbent (i.e. a 
 
 .. topic:: References
 
-  .. [AuDe04a] C. Audet and J.E. Dennis, Jr. A pattern search filter method for nonlinear programming without derivatives. *SIAM Journal on Optimization*, 14(4):980–1010, 2004.
-  .. [AuIaLeDTr2014] C. Audet and A. Ianni and S. Le Digabel and C. Tribes. Reducing the Number of Function Evaluations in Mesh Adaptive Direct Search Algorithms. *SIAM Journal on Optimization*, 24(2):621-642, 2014.
-  .. [AuDiHHLeDTr2025] C. Audet and Y. Diouane and E. Hallé-Hannan, S. Le Digabel and Tribes, Christophe. CatMADS: Mesh Adaptive Direct Search for constrained blackbox optimization with categorical variables. https://www.gerad.ca/papers/G-2025-42.pdf, 2025.
-  .. [AuBrDiLeDSiTr2026] C. Audet, A. Brilli, Y. Diouane, S. Le Digabel, E. J. Silva, C. Tribes. A penalty-interior point method combined with MADS for equality and inequality constrained optimization. *https://arxiv.org/abs/2601.20811*, 2026
+    .. [AuDe04a] C. Audet and J.E. Dennis, Jr. 
+      A pattern search filter method for nonlinear programming without derivatives. 
+      *SIAM Journal on Optimization*, 14(4):980–1010, 2004.
+
+    .. [AuIaLeDTr2014] C. Audet and A. Ianni and S. Le Digabel and C. Tribes. 
+      Reducing the Number of Function Evaluations in Mesh Adaptive Direct Search Algorithms.
+      *SIAM Journal on Optimization*, 24(2):621-642, 2014.
+
+    .. [AuDiHHLeDTr2025] C. Audet and Y. Diouane and E. Hallé-Hannan, S. Le Digabel and Tribes, Christophe.
+      CatMADS: Mesh Adaptive Direct Search for constrained blackbox optimization with categorical variables.
+      https://www.gerad.ca/papers/G-2025-42.pdf, 2025.
+
+    .. [AuBrDiLeDSiTr2026] C. Audet, A. Brilli, Y. Diouane, S. Le Digabel, E. J. Silva, C. Tribes. 
+      A penalty-interior point method combined with MADS for equality and inequality constrained optimization. 
+      *https://arxiv.org/abs/2601.20811*, 2026.

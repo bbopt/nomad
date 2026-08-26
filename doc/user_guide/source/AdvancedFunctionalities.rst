@@ -18,7 +18,7 @@ Setting ``ADS_OPTIMIZATION`` to ``true`` enables the Adaptive Direct Search (ADS
 ``MADSPIP_OPTIMIZATION``
 """""""""""""""""""""""""
 
-Setting ``MADSPIP_OPTIMIZATION`` to ``true`` enables a Mads algorithm that uses a mixed penalty logarithmic barrier merit function to handle constraints, instead of the default progressive barrier approach. Constraints close to the feasible region are handled with a logarithmic barrier interior penalty, while infeasibility is handled with an exterior penalty term. Only single-objective problems are supported.
+Setting ``MADSPIP_OPTIMIZATION`` to ``true`` enables a Mads algorithm that uses a mixed penalty logarithmic barrier merit function to handle constraints, instead of the default progressive barrier approach [AuBrDiLeDSiTr2026]_. Constraints close to the feasible region are handled with a logarithmic barrier interior penalty, while infeasibility is handled with an exterior penalty term. Only single-objective problems are supported.
 
 
 Advanced parameters
