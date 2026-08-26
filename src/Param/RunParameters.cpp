@@ -555,7 +555,7 @@ void NOMAD::RunParameters::checkAndComply(
     }
 #endif // _OPENMP
 
-
+#ifdef _OPENMP
     if (useAlgoPSDMads)
     {
         std::string nbVarParamName = "PSD_MADS_NB_VAR_IN_SUBPROBLEM";
@@ -575,32 +575,25 @@ void NOMAD::RunParameters::checkAndComply(
             setAttributeValue("PSD_MADS_NB_SUBPROBLEM", nbMadsSubproblem);
         }
 
-#ifdef _OPENMP
-        if (useAlgoPSDMads)
+        int nbThreadsHard = static_cast<int>(std::thread::hardware_concurrency());
+        if (nbMadsSubproblem > nbThreadsHard)
         {
-            int nbThreadsHard = static_cast<int>(std::thread::hardware_concurrency());
-            if (nbMadsSubproblem > nbThreadsHard)
-            {
-                std::string s = "Warning: PSD_MADS_NB_SUBPROBLEM exceeds the number of threads registered for this hardware: ";
-                s += NOMAD::itos(nbThreadsHard);
-                s += ". If this is true, it is not efficient. Let's continue anyway.";
-                std::cout << s << std::endl;
-            }
+            std::string s = "Warning: PSD_MADS_NB_SUBPROBLEM exceeds the number of threads registered for this hardware: ";
+            s += NOMAD::itos(nbThreadsHard);
+            s += ". If this is true, it is not efficient. Let's continue anyway.";
+            std::cout << s << std::endl;
         }
 
         // Check parameter for coverage
-        if (useAlgoPSDMads)
+        std::string covParamName = "PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE";
+        auto coverage = getAttributeValueProtected<NOMAD::Double>(covParamName, false);
+        if (coverage < 0.0 || coverage > 100.0)
         {
-            std::string covParamName = "PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE";
-            auto coverage = getAttributeValueProtected<NOMAD::Double>(covParamName, false);
-            if (coverage < 0.0 || coverage > 100.0)
-            {
-                err = "Parameter " + covParamName + " must be between 0.0 and 100.0";
-                throw NOMAD::InvalidParameter(__FILE__,__LINE__, err);
-            }
+            err = "Parameter " + covParamName + " must be between 0.0 and 100.0";
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__, err);
         }
-#endif
     }
+#endif
 
     // Test quad model search regular or simple mads. Cannot be both
     if ( getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH",false) && getAttributeValueProtected<bool>("QUAD_MODEL_SEARCH_SIMPLE_MADS",false))

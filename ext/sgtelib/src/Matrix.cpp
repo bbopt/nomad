@@ -2412,7 +2412,7 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
     g      = s = scale = 0.0;
     if ( i < nbRows ) {
       for ( k = i ; k < nbRows ; ++k )
-   scale += fabs ( U[k][i] );
+   scale += std::fabs ( U[k][i] );
       if ( scale != 0.0 ) {
    for ( k = i ; k < nbRows ; ++k ) {
      U[k][i] /= scale;
@@ -2514,11 +2514,11 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
       flag = true;
       for ( l = k ; l >= 0 ; l-- ) {
    nm = l - 1;
-   if ( nm < 0 || fabs ( rv1[l]) + norm == norm ) {
+   if ( nm < 0 || std::fabs ( rv1[l]) + norm == norm ) {
      flag = false;
      break;
   }
-   if ( fabs ( W[nm] ) + norm == norm )
+   if ( std::fabs ( W[nm] ) + norm == norm )
     break;
       }
       if ( flag ) {

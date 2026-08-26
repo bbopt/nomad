@@ -882,7 +882,7 @@ void NOMAD::QPSolverOptimize::solve_TR_constrained_QP(
         successInverseIteration = InverseIteration(&bk, HW, eigmin, nfree, 1E-12);
 
         if (!successInverseIteration)
-        { 
+        {
             std::cerr << "Error InverseIteration" << std::endl;
             d->fill(0.0);
         }
@@ -1344,7 +1344,7 @@ bool NOMAD::QPSolverOptimize::solveBCQP(
             continue;
         }
 
-        getModelGrad(&Grad, X, H, g); 
+        getModelGrad(&Grad, X, H, g);
 
         // Allocate "working" submatrices.
         for (int i = 0; i < n; ++i)
@@ -1674,7 +1674,7 @@ double NOMAD::QPSolverOptimize::projected_armijo(
     // const int bA_max = 10; // non-negative integer
     const double t_increase = 5; // > 1
 
-    bool good_grad = false; // true if gradient has been updated. 
+    bool good_grad = false; // true if gradient has been updated.
 
     // Check compatibility dimension
     lencheck(n, Xp);
@@ -1722,7 +1722,7 @@ double NOMAD::QPSolverOptimize::projected_armijo(
     // "A new conjugate gradient method with guaranteed descent and an efficient line search",
     // by W. W. HAGER AND H. ZHANG, SIAM Journal on Optimization, 16 (2005), pp. 170–192.
     // armijo = armijo || ((fkp <= fk + 4E-10 * abs(fk)) && (slope_t <= fact * slope));
-    while (!armijoCond && tk > t_small) 
+    while (!armijoCond && tk > t_small)
     {
         tk /= t_decrease;
         Xp = d; Xp.multiply(tk); Xp.add(X); // Xp = X + t_k d
@@ -2906,7 +2906,7 @@ bool NOMAD::QPSolverOptimize::solveAugLag(
 
     // Compute stopping criterion for outer iterations.
     SGTELIB::Matrix dualFeas("DualFeas", nbVar, 1);
-    double ngproj = check_optimality_bounds(XS, GradPk, lvar, uvar, dualFeas); 
+    double ngproj = check_optimality_bounds(XS, GradPk, lvar, uvar, dualFeas);
     bool outerSuccess = ngproj < tol; // nonlinear equality constraints feasibility.
     bool outerFailure = (distXOuterLoop <= tolDistDX) || (iterOuterLoop >= max_iter);
 

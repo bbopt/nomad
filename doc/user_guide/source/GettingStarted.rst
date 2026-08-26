@@ -36,6 +36,7 @@ To conduct optimization in batch mode the users must define their separate black
 Blackbox program executions are managed by NOMAD with system calls.
 
 A valid blackbox program:
+
     `-` takes an input vector file as single argument,
 
     `-` reads space-separated values in input vector file,

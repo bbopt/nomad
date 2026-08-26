@@ -170,7 +170,7 @@ bool NOMAD::SVD_decomposition ( std::string & error_msg,
         error_msg = "SVD_decomposition() error: m and n must >0: n=" + NOMAD::itos ( n ) + " m=" + NOMAD::itos ( m );
         return false;
     }
-    
+
     if ( max_mpn > 0 && m+n > max_mpn )
     {
         error_msg = "SVD_decomposition() error: m+n > " + NOMAD::itos ( max_mpn );
@@ -493,7 +493,7 @@ bool NOMAD::LU_decomposition ( std::string & error_msg,
         error_msg = "LU_decomposition() error: n <= 0. n=" + NOMAD::itos ( n );
         return false;
     }
-    
+
     if ( max_n > 0 && n > max_n )
     {
         error_msg = "LU_decomposition() error: n > " + NOMAD::itos ( max_n );
@@ -1262,7 +1262,7 @@ bool NOMAD::LDLt_decomposition ( std::string & error_msg,
                 }
                 else if (piv == 2) // piv = 'p'
                 {
-                    ; 
+                    ;
                 }
                 else
                 {
@@ -1545,7 +1545,7 @@ bool NOMAD::ldl_lsolve( double ** L, const double * rhs, double * Ly, int n)
     {
         return false;
     }
-    
+
     for(int k = 0; k < n; k++)
     {
         Ly[k] = rhs[k];
@@ -1563,7 +1563,7 @@ bool NOMAD::ldl_ltsolve( double ** L, const double * rhs, double * Ly, int n)
     {
         return false;
     }
-    
+
     for(int k = n - 1; k > -1; k--)
     {
         Ly[k] = rhs[k];
@@ -1581,7 +1581,7 @@ bool NOMAD::ldl_dsolve( double ** D, const double * rhs, double * Ly, int n)
     {
         return false;
     }
-    
+
     int s; // it is either 1 or 2
     double detE; // determinant of the 2x2 block matrix
     int k = 0;
@@ -1626,7 +1626,7 @@ bool NOMAD::ldl_solve(std::string& error_msg,
                       const int n)
 {
     error_msg.clear();
-    
+
     if ( n <= 0 )
     {
         error_msg = "Unexpected value for n: " + std::to_string(n);
@@ -1781,7 +1781,7 @@ bool NOMAD::ldl_solve( std::string & error_msg,
         error_msg = "Unexpected value for n: " + std::to_string(n);
         return false;
     }
-    
+
     bool success;
 
     auto prhs = new double [n];

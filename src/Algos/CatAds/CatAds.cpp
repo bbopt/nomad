@@ -51,14 +51,14 @@
 void NOMAD::CatAds::init()
 {
     setStepType(NOMAD::StepType::ALGORITHM_CATALGO);
-    
+
     // Access to the number of categorical variables
     _catVG = _pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("CAT_GROUP");
     if (_catVG.empty())
     {
         NOMAD::Exception(__FILE__,__LINE__,"CatAds algo is called but no group of categorical variables is defined (CAT_GROUP).");
     }
-    
+
     // Set eval sort type
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     if (nullptr == evc)
@@ -66,8 +66,5 @@ void NOMAD::CatAds::init()
         NOMAD::Exception(__FILE__,__LINE__,"CatAds algo needs evaluator control.");
     }
     evc->setEvalSortType(NOMAD::EvalSortType::CAT_SORT);
-    
+
 }
-
-
-

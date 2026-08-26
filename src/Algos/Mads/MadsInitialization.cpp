@@ -310,7 +310,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
             {
                 // Pass POne barrier point(s) to Mads barrier
                 auto pOneBarrierPoints = phaseOne->getRefMegaIteration()->getBarrier()->getAllPoints();
-                
+
                 // Force update of cache for mesh
                 if (_isUsedForDMultiMads && NOMAD::EvalType::BB == evalType)
                 {
@@ -319,7 +319,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
                         ep.setMesh(_initialMesh);
                     }
                 }
-                
+
                 _barrier->updateWithPoints(pOneBarrierPoints, false , true /* true: update barrier incumbents and hMax */);
             }
         }

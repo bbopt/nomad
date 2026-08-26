@@ -61,25 +61,25 @@ protected:
     std::vector<EvalPointPtr> _xFeas;  ///< Current feasible incumbent solutions
     std::vector<EvalPointPtr> _xInf;   ///< Current infeasible barrier points (contains infeasible incumbents) with h<=hMax
     std::vector<EvalPointPtr> _xInfOut;   ///< Current infeasible points not in barrier because h=INF. Used for initialization only when EB constraint is not verified.
-    
+
     std::vector<EvalPointPtr> _xIncFeas;   ///< Current feasible incumbent solutions. Can be a subset of _xFeas but for now, xIncFeas and xFeas are the same
     std::vector<EvalPointPtr> _xIncInf;   ///< Current infeasible incumbent solutions (subset of _xInf if it is defined). For now, we consider a vector (maybe DMultiMads needs it)
-    
+
     EvalPointPtr _refBestFeas;      ///< Previous first feasible incumbent
     EvalPointPtr _refBestInf;       ///< Previous first infeasible incumbent
                                     ///< NB: can be above the barrier threshold
-    
+
     Double _hMax;                   ///< Maximum acceptable value for
-    
+
     /// Attributes to define the computation of f and h
     FHComputeType _computeType;
-    
+
     // Flag to keep track of the inserted points
     bool _keepInsertedPointsTag = false;
-    
+
     /// Keep track of the tags of points to update the barrier (not the original build from cache)
     std::vector<int> _insertedPointsTag;
-    
+
     /// Dimension of the points in the barrier.
     /**
      * Used for verification only.
@@ -109,10 +109,10 @@ public:
         _hMax = b._hMax;
         _computeType = b._computeType;
     }
-    
+
     // Use clone to create a barrier of the same type (for example, ProgressiveBarrier, DiscoMadsBarrier or DMultiMadsBarrier)
     virtual std::shared_ptr<BarrierBase> clone() const = 0;
-    
+
     /*-----------------*/
     /* Feasible points */
     /*-----------------*/
@@ -121,21 +121,21 @@ public:
      \return All the eval points that are feasible.
      */
     const std::vector<EvalPointPtr>& getAllXFeas() const { return _xFeas; }
-    
+
     ///  Get the current incumbent feasible point in the barrier.
     /**
      * If there is no feasible point, return a \c nullptr
      \return A single feasible eval point.
      */
     virtual EvalPointPtr getCurrentIncumbentFeas() const =0;
-    
-    
+
+
     ///  Get all incumbent feasible points in the barrier
     /**
      \return All the eval points that are feasible incumbents (with same f and h).
      */
     const std::vector<EvalPointPtr>& getAllXIncFeas() const { return _xIncFeas; }
-    
+
     ///  Get the point that was previously the first feasible point in the barrier.
     /**
      * If there is no feasible point, return a \c nullptr
@@ -143,7 +143,7 @@ public:
      */
     EvalPointPtr getRefBestFeas() const { return _refBestFeas; }
     void setRefBestFeas(const EvalPointPtr refBestFeas) { _refBestFeas = refBestFeas; }
-    
+
     /// Update ref best feasible and ref best infeasible values.
     virtual void updateRefBests() = 0;
 
@@ -161,22 +161,22 @@ public:
      \return All the eval points that are infeasible.
      */
     const std::vector<EvalPointPtr>& getAllXInf() const { return _xInf; }
-    
+
     ///  Get all incumbent infeasible points in the barrier
     /**
      \return All the eval points that are infeasible incumbents (with same f and h).
      */
     const std::vector<EvalPointPtr>& getAllXIncInf() const { return _xIncInf; }
 
-    
+
     ///  Get the current infeasible incumbent.
     /**
      * If there is no infeasible point, return a \c nullptr
      \return A single infeasible eval point.
      */
     virtual EvalPointPtr getCurrentIncumbentInf() const = 0;
-    
-    
+
+
     ///  Get the point that was previously the first infeasible point in the barrier.
     /**
      * If there is no feasible point, return a \c nullptr
@@ -184,7 +184,7 @@ public:
      */
     EvalPointPtr getRefBestInf() const { return _refBestInf; }
     void setRefBestInf(const EvalPointPtr refBestInf) { _refBestInf = refBestInf; }
-    
+
     /// Number of infeasible points in the barrier.
     size_t nbXInf() const { return _xInf.size() ;}
 
@@ -196,7 +196,7 @@ public:
     /*---------------*/
     /// Get all feasible and infeasible points ptr
     std::vector<EvalPoint> getAllPoints() const ;
-    
+
     /// Make a copy of all feasible and infeasible points
     std::vector<EvalPointPtr> getAllPointsPtr() const ;
 
@@ -204,7 +204,7 @@ public:
     /** If there are feasible points, returns first feasible point.
       * else, returns first infeasible incumbent. */
     const EvalPointPtr getFirstPoint() const;
-    
+
     /// Get the current hMax of the barrier.
     Double getHMax() const { return _hMax; }
 
@@ -233,7 +233,7 @@ public:
                           const std::vector<EvalPoint>& evalPointList,
                           const bool keepAllPoints = false,
                           const bool updateInfeasibleIncumbentAndHmax = false) = 0;
-    
+
     /// Return the barrier as a string.
     /* May be used for information, or for saving a barrier. In the former case,
      * it may be useful to set parameter max to a small value (e.g., 4). In the
@@ -242,29 +242,29 @@ public:
      * \return A string describing the barrier
      */
     virtual std::vector<std::string> display(const size_t max = INF_SIZE_T) const =0;
-    
-    
+
+
     bool findPoint(const Point & point, EvalPoint & foundEvalPoint) const;
-    
+
     void checkForFHComputeType(const FHComputeType& computeType) const;
-    
+
     /// Access to f and h computation
     HNormType getHNormType() const {return _computeType.fhComputeTypeS.hNormType; }
     ComputeType getComputeType() const { return _computeType.fhComputeTypeS.computeType;}
     EvalType getEvalType() const { return _computeType.evalType; }
     const FHComputeType& getFHComputeType() const { return _computeType;}
-   
+
     /// Control access to the inserted points tags.
     void setKeepInsertedPointsTag(bool keep) { _keepInsertedPointsTag = keep; }
     std::vector<int> getInsertedPointsTag() const { return _insertedPointsTag ;}
-    
+
 protected:
-    
+
     /**
      * \brief Helper function for init/constructor.
      */
     void setN();
-    
+
     /**
      * \brief Helper function for init/setHMax.
      *
@@ -278,10 +278,10 @@ protected:
      * Throw an exception if the Cache has not been instantiated yet. Will remain silent otherwise.
      */
     void checkCache();
-    
-    
+
+
     std::vector<EvalPointPtr>::iterator findEvalPoint(std::vector<EvalPointPtr>::iterator first, std::vector<EvalPointPtr>::iterator last, const EvalPoint & p  );
-    
+
 private:
 
     /**
@@ -293,29 +293,29 @@ private:
      */
     virtual void init(const Point& fixedVariable,
                       bool barrierInitializedFromCache) = 0;
-    
+
     /**
      * \brief Helper function for insertion.
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
     void checkXFeas(const EvalPoint &xFeas) ;
-    
+
     /**
      * \brief Helper function for insertion.
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
     virtual void checkXFeasIsFeas(const EvalPoint &xFeas);
-    
+
     /**
      * \brief Helper function for insertion.
      *
      * Will throw exceptions or output error messages if something is wrong. Will remain silent otherwise.
      */
     void checkXInf(const EvalPoint &xInf) const;
-    
-    
+
+
 };
 
 /// Display useful values so that a new Barrier could be constructed using these values.

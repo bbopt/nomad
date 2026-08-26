@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.15...3.15)
 # Warning. This must be consistent with src/nomad_version.hpp
 set(NOMAD_VERSION_MAJOR 4)
 set(NOMAD_VERSION_MINOR 6)
-set(NOMAD_VERSION_PATCH 0) 
+set(NOMAD_VERSION_PATCH 0)
 
 set(NOMAD_VERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}.${NOMAD_VERSION_PATCH})
 
@@ -25,7 +25,7 @@ else()
    set(NO_SONAME False)
 endif()
 
-# Nomad src template (copy of template defined in src/nomad_version.hpp, used by jNomad) 
+# Nomad src template (copy of template defined in src/nomad_version.hpp, used by jNomad)
 # Need to update when version changes
 set(NOMAD_SRC_TEMPLATE NOMAD_${NOMAD_VERSION_MAJOR}_${NOMAD_VERSION_MINOR})
 
@@ -46,7 +46,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8)
         message(FATAL_ERROR "GCC version < 8 has not been tested for Nomad")
     endif()
-elseif (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") 
+elseif (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
     # require at least clang 5
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5)
@@ -75,7 +75,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 message(CHECK_START "Configuring custom options")
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 
-# 
+#
 # Modify the build type if not specified on the command
 #
 if (CMAKE_CONFIGURATION_TYPES)
@@ -95,7 +95,7 @@ endif()
 # Modify the install prefix if not specified on the command
 #
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-   set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR} CACHE PATH "..." FORCE) 
+   set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR} CACHE PATH "..." FORCE)
 endif()
 message(STATUS "  Installation prefix set to ${CMAKE_INSTALL_PREFIX}")
 
@@ -146,7 +146,7 @@ option(USE_SGTELIB "Option to use the Sgtelib library" ON)
 if(USE_SGTELIB MATCHES ON)
   message(CHECK_START "  Configuring for use of Sgtelib library")
 
-  if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib) 
+  if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib)
      message(CHECK_FAIL "  failed. Directory ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib not found. Let's configure without Sgtelib library")
      set(USE_SGTELIB OFF)
   else()
@@ -161,13 +161,13 @@ endif()
 
 
 #
-# Add nomad app directory for building 
+# Add nomad app directory for building
 #
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 
 #
-# Choose to build the examples/tests using batch and library mode 
+# Choose to build the examples/tests using batch and library mode
 #
 option(BUILD_EXAMPLES "Option to build examples (library and batch)" ON)
 if(BUILD_EXAMPLES MATCHES ON)
@@ -275,10 +275,10 @@ option(USE_IBEX "Option to use IBEX" OFF)
 if(USE_IBEX MATCHES ON)
    message(CHECK_START "  Enabling Ibex use.")
    if(NOT DEFINED ENV{IBEX_ROOT})
-        message(FATAL_ERROR "FATAL: Ibex root environment variable IBEX_ROOT is not defined")     
+        message(FATAL_ERROR "FATAL: Ibex root environment variable IBEX_ROOT is not defined")
    endif()
    If (NOT EXISTS "$ENV{IBEX_ROOT}")
-        message(FATAL_ERROR "FATAL: Ibex root dir $ENV{IBEX_ROOT} is not present")      
+        message(FATAL_ERROR "FATAL: Ibex root dir $ENV{IBEX_ROOT} is not present")
    endif()
    message(STATUS "  Ibex root: $ENV{IBEX_ROOT}")
    set(USE_IBEX ON)
@@ -293,5 +293,3 @@ endif()
 #
 list(REMOVE_ITEM CMAKE_MESSAGE_INDENT "  ")
 message(CHECK_PASS " done")
-
-

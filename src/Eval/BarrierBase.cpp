@@ -138,7 +138,7 @@ std::vector<NOMAD::EvalPoint> NOMAD::BarrierBase::getAllPoints() const
     {
         allPoints.push_back(*p);
     }
-    
+
     return allPoints;
 }
 
@@ -204,7 +204,7 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::BarrierBase& barrier)
     NOMAD::Double hMax = NOMAD::INF;
     barrier.clearXFeas();
     barrier.clearXInf();
-    
+
     std::vector<NOMAD::EvalPoint> evalPointList;
 
     // Read line by line
@@ -219,7 +219,7 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::BarrierBase& barrier)
             NOMAD::CacheBase::getInstance()->find(xFeas, xFeas);
             // EvalType undefined: No check will be done on the feasibility
             evalPointList.push_back(xFeas);
-            
+
         }
         else if ("X_INF" == name)
         {
@@ -241,7 +241,7 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::BarrierBase& barrier)
             break;
         }
     }
-    
+
     barrier.updateWithPoints(evalPointList, false, true /* true: update incumbents and hMax */);
     return is;
 }

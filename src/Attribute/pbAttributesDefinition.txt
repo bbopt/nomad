@@ -163,7 +163,7 @@ NOMAD::ArrayOfDouble
     . INITIAL_MESH_SIZE * 1.0          # for all variables
     . INITIAL_MESH_SIZE 1 0.5        # for variable 1 only
     . INITIAL_MESH_SIZE 2-4 0.25     # for variables 2 to 4
-    . INITIAL_MESH_SIZE ( 0.0001 0.001 0.01 0.001 ) # each variable  
+    . INITIAL_MESH_SIZE ( 0.0001 0.001 0.01 0.001 ) # each variable
 
 \)
 \( advanced initial mesh size mads gmesh \)
@@ -330,7 +330,7 @@ NOMAD::ArrayOfPoint
       X0 1 * 1.0    # Second starting point
 
     . X0 ( 0 1 2 )  # if DIMENSION = 3
-    
+
     . X0 0 (0 0 0) # First starting point
       X0 1 (0 1 2) # Second starting point
 

@@ -62,22 +62,22 @@ private:
     OutputLevel _displayLevel;
 
     Point   _refFrameCenter;    ///< The reference frame center for the last call. If frame center same as reference, do not perform search.
-        
+
     double _trigger; ///< Evaluation ratio (vns evals vs all evals) to trigger vns search
 
     bool _VNSUseSurrogate = false; ///< Flag to enable VNS with surrogate.
-    
+
     /**
         The algorithm used by the search method.
      */
     std::unique_ptr<VNS> _vnsAlgo;
-    
+
     /**
         VNS has its own stop reasons
      */
     std::shared_ptr<NOMAD::AlgoStopReasons<NOMAD::VNSStopType>>        _vnsStopReasons;
 
-    
+
 /*----------------------------------------------------------------------*/
 
 
@@ -96,7 +96,7 @@ public:
 
 private:
     void init();
-    
+
     bool runImp() override;
 
     ///Generate new points (no evaluation)
@@ -108,10 +108,9 @@ private:
     void generateTrialPointsFinal() override;
 
 
-    
+
 };
 
 #include "../../nomad_nsend.hpp"
 
 #endif // __NOMAD_4_6_VNSSEARCHMETHOD__
-

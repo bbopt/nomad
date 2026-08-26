@@ -183,7 +183,7 @@ void NOMAD::AllParameters::displayHelp(const std::string &helpSubject , bool dev
     _pbParams->displayHelp(helpSubject,devHelp, ossBasic , ossAdvanced);
     _cacheParams->displayHelp(helpSubject,devHelp,ossBasic , ossAdvanced);
     _dispParams->displayHelp(helpSubject,devHelp, ossBasic , ossAdvanced);
-    
+
     if ( !devHelp )
     {
         if (ossBasic.str().empty() && ossAdvanced.str().empty())
@@ -251,7 +251,7 @@ void NOMAD::AllParameters::displayHelp(const std::string &helpSubject , bool dev
 void NOMAD::AllParameters::displayCSVDoc(std::ostream & os )
 {
     std::map<std::string,std::string> csvdoc;
-    
+
     _pbParams->insertCSVDoc(csvdoc);
     _evaluatorControlGlobalParams->insertCSVDoc(csvdoc);
     _runParams->insertCSVDoc(csvdoc);
@@ -259,12 +259,12 @@ void NOMAD::AllParameters::displayCSVDoc(std::ostream & os )
     _evalParams->insertCSVDoc(csvdoc);
     _cacheParams->insertCSVDoc(csvdoc);
     _dispParams->insertCSVDoc(csvdoc);
-    
+
     for (const auto & singleEntry : csvdoc )
     {
         os << singleEntry.first << "," << singleEntry.second << std::endl;
     }
-    
+
 }
 
 bool NOMAD::AllParameters::mayUseSurrogate() const
@@ -275,8 +275,8 @@ bool NOMAD::AllParameters::mayUseSurrogate() const
     }
     bool sortWithSurrogate = (_evaluatorControlParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT") == NOMAD::EvalSortType::SURROGATE);
     bool vnsUseSurrogate = _runParams->getAttributeValue<bool>("VNS_MADS_SEARCH_WITH_SURROGATE");
-    
-    
+
+
     return sortWithSurrogate || vnsUseSurrogate;
 }
 
@@ -347,5 +347,3 @@ void NOMAD::AllParameters::display(std::ostream & os, bool flagHelp )
     os << "----- DISPLAY PARAMETERS -----" << std::endl;
     _dispParams->display(os,flagHelp);
 }
-
-

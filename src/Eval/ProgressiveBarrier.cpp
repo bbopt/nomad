@@ -124,14 +124,14 @@ void NOMAD::ProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
             {
                 continue;
             }
-            
+
             // Test if there is EB constraint and if all EB constraint are feasible.
             auto bboEB = eval->getBBOutputByType(NOMAD::BBOutputType::EB);
             if ( bboEB.size() == 0 || bboEB <= NOMAD::ArrayOfDouble(bboEB.size(),0.0))
             {
                 continue;
             }
-            
+
             // Let's change bb output type EB to PB
             auto bbot = eval->getBBOutputTypeList();
             std::replace_if(bbot.begin(), bbot.end(),
@@ -141,7 +141,7 @@ void NOMAD::ProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
             // Copy eval and replace EB to PB
             NOMAD::Eval updatedEval = *eval;
             updatedEval.setBBOutputTypeList(bbot);
-            
+
             // Get infeasibility using default computation
             NOMAD::Double h = updatedEval.getH(defaultFHComputeTypeS);
             if (!h.isDefined() || h == NOMAD::INF)
@@ -153,7 +153,7 @@ void NOMAD::ProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
             {
                 continue;
             }
-            
+
             // Keep the least infeasible point(s)
             if (h <= hLim)
             {
@@ -166,7 +166,7 @@ void NOMAD::ProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
             }
         }
     }
-    
+
     // Constructor's call to update should not update ref best points.
     updateWithPoints(evalPointList, true, true /*true update infeasible incumbent and hmax*/ );
 
@@ -265,7 +265,7 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
     bool updatedIncInf = false;
     bool rejectInf = false;
     bool updatedHMax = false;
-    
+
     auto evalType = _computeType.evalType;
     auto computeTypeS = _computeType.Short();
 
@@ -339,12 +339,12 @@ bool NOMAD::ProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::EvalPo
             updatedFeas = true;
 
         }
-        
+
         if (_keepInsertedPointsTag)
         {
             _insertedPointsTag.push_back(evalPoint.getTag());
         }
-        
+
     }
 
     // Second loop updates the barrier infeasible points.

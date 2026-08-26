@@ -961,7 +961,7 @@ NOMAD::Double NOMAD::Double::relErr ( const NOMAD::Double & x ) const
     if ( this == &x || _value == x._value )
         return 0.0;
 
-    double diff = fabs ( _value - x._value );
+    double diff = std::fabs ( _value - x._value );
 
     // 2. test if one of the values is zero:
     if ( _value == 0.0 || x._value == 0.0 )
@@ -974,8 +974,8 @@ NOMAD::Double NOMAD::Double::relErr ( const NOMAD::Double & x ) const
     }
 
     // 3. compute the original error:
-    double a   = fabs ( _value   );
-    double b   = fabs ( x._value );
+    double a   = std::fabs ( _value   );
+    double b   = std::fabs ( x._value );
     double err = diff / ( (a<b) ? b : a );
 
     // 4. test if we have opposite signs:

@@ -37,10 +37,10 @@ jobs:
     runs-on: ${{ matrix.target.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Prepare Python environment
         run: >-
@@ -67,7 +67,7 @@ jobs:
           cmake --version
 
       - name: Build binary wheels
-        uses: pypa/cibuildwheel@v2.23.3
+        uses: pypa/cibuildwheel@v3.3.1
         env:
           CIBW_ARCHS: >-
             ${{ matrix.target.archs }}
@@ -85,7 +85,7 @@ jobs:
             NOMAD_MSVC_CONF=Release
             BUILD_OPENMP=${{ matrix.target.openmp }}
           CIBW_PROJECT_REQUIRES_PYTHON: >-
-            >=3.8
+            >=3.14
           CIBW_BUILD_FRONTEND: >-
             build
         with:

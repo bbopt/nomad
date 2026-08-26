@@ -1915,7 +1915,7 @@ bool NOMAD::EvaluatorControl::evalBlock(NOMAD::BlockForEval& blockForEval)
     {
         if (block.size() != 0 )
         {
-            getMainThreadInfo(mainThreadNum).incCurrentlyRunning(block.size()); 
+            getMainThreadInfo(mainThreadNum).incCurrentlyRunning(block.size());
             evalOk = evalBlockOfPoints(block, *evaluator, hMax);
         }
     }

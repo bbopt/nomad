@@ -33,13 +33,13 @@
 /*     string comparison         */
 /*-------------------------------*/
 bool SGTELIB::streq  ( const std::string & s1 , const std::string & s2 ){
-  return !std::strcmp(s1.c_str(),s2.c_str()); 
+  return !std::strcmp(s1.c_str(),s2.c_str());
 }//
 
 bool SGTELIB::streqi ( const std::string & s1 , const std::string & s2 ){
   const std::string s1u = SGTELIB::toupper(s1);
   const std::string s2u = SGTELIB::toupper(s2);
-  return !std::strcmp(SGTELIB::toupper(s1u).c_str(),s2u.c_str()); 
+  return !std::strcmp(SGTELIB::toupper(s1u).c_str(),s2u.c_str());
 }//
 
 // Check if s is in S.
@@ -68,7 +68,7 @@ std::string SGTELIB::deblank ( const std::string & s_input ){
   while ( (i>0) && (s.at(i-1)==' ') ) {
     s.erase(i-1,1);
     i--;
-  }  
+  }
   // Remove double spaces
   i=1;
   while (i+2<s.length()){
@@ -89,8 +89,8 @@ std::string SGTELIB::deblank ( const std::string & s_input ){
 /*  test if a file is existing   */
 /*-------------------------------*/
 bool SGTELIB::exists (const std::string & file) {
-  struct stat buffer;   
-  return (stat (file.c_str(), &buffer) == 0); 
+  struct stat buffer;
+  return (stat (file.c_str(), &buffer) == 0);
 }//
 
 
@@ -177,7 +177,7 @@ double SGTELIB::rel_err ( double x , double y ) {
   double max = std::fabs(x);
   if ( std::fabs(y) > max )
     max = std::fabs(y);
-  return ( fabs ( x-y ) / max );
+  return ( std::fabs ( x-y ) / max );
 }
 
 /*---------------------------------*/
@@ -212,14 +212,14 @@ std::string SGTELIB::btos (bool b ) {
 /*------------------------------------------*/
 double SGTELIB::stod ( const std::string & s ){
 /*------------------------------------------*/
-  double d = atof(s.c_str()); 
+  double d = atof(s.c_str());
   return d;
 }//
 
 /*------------------------------------------*/
 int SGTELIB::stoi ( const std::string & s ){
 /*------------------------------------------*/
-  int d = atoi(s.c_str()); 
+  int d = atoi(s.c_str());
   return d;
 }//
 
@@ -296,7 +296,7 @@ std::string SGTELIB::model_type_to_str ( const SGTELIB::model_t t ) {
   case SGTELIB::SVN      : return "SVN";
   case SGTELIB::LOWESS   : return "LOWESS";
   case SGTELIB::ENSEMBLE : return "ENSEMBLE";
-  case SGTELIB::ENSEMBLE_STAT : return "ENSEMBLE_STAT"; 
+  case SGTELIB::ENSEMBLE_STAT : return "ENSEMBLE_STAT";
   default:
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined type" );
   }
@@ -322,11 +322,11 @@ std::string SGTELIB::weight_type_to_str ( const SGTELIB::weight_t cb ) {
 /*----------------------------------------------------------*/
   switch (cb){
     case SGTELIB::WEIGHT_SELECT : return "SELECT";
-    case SGTELIB::WEIGHT_SELECT2 : return "SELECT2";  
-    case SGTELIB::WEIGHT_SELECT3 : return "SELECT3";  
-    case SGTELIB::WEIGHT_SELECT4 : return "SELECT4";  
-    case SGTELIB::WEIGHT_SELECT5 : return "SELECT5";  
-    case SGTELIB::WEIGHT_SELECT6 : return "SELECT6";  
+    case SGTELIB::WEIGHT_SELECT2 : return "SELECT2";
+    case SGTELIB::WEIGHT_SELECT3 : return "SELECT3";
+    case SGTELIB::WEIGHT_SELECT4 : return "SELECT4";
+    case SGTELIB::WEIGHT_SELECT5 : return "SELECT5";
+    case SGTELIB::WEIGHT_SELECT6 : return "SELECT6";
     case SGTELIB::WEIGHT_OPTIM  : return "OPTIM" ;
     case SGTELIB::WEIGHT_WTA1   : return "WTA1"  ;
     case SGTELIB::WEIGHT_WTA3   : return "WTA3"  ;
@@ -418,11 +418,11 @@ SGTELIB::weight_t SGTELIB::str_to_weight_type ( const std::string & s ) {
 /*----------------------------------------------------------*/
   std::string ss = SGTELIB::toupper(s);
   if ( ss=="SELECT" ){ return SGTELIB::WEIGHT_SELECT;}
-  if ( ss=="SELECT2" ){ return SGTELIB::WEIGHT_SELECT2;} 
-  if ( ss=="SELECT3" ){ return SGTELIB::WEIGHT_SELECT3;} 
-  if ( ss=="SELECT4" ){ return SGTELIB::WEIGHT_SELECT4;} 
-  if ( ss=="SELECT5" ){ return SGTELIB::WEIGHT_SELECT5;} 
-  if ( ss=="SELECT6" ){ return SGTELIB::WEIGHT_SELECT6;} 
+  if ( ss=="SELECT2" ){ return SGTELIB::WEIGHT_SELECT2;}
+  if ( ss=="SELECT3" ){ return SGTELIB::WEIGHT_SELECT3;}
+  if ( ss=="SELECT4" ){ return SGTELIB::WEIGHT_SELECT4;}
+  if ( ss=="SELECT5" ){ return SGTELIB::WEIGHT_SELECT5;}
+  if ( ss=="SELECT6" ){ return SGTELIB::WEIGHT_SELECT6;}
 
   if ( ss=="OPTIM"  ){ return SGTELIB::WEIGHT_OPTIM; }
   if ( ss=="WTA1"   ){ return SGTELIB::WEIGHT_WTA1;  }
@@ -496,11 +496,11 @@ SGTELIB::distance_t SGTELIB::int_to_distance_type ( const int i ) {
       "int_to_distance_type: invalid integer "+itos(i) );
   }
   switch ( i ){
-    case 0: return SGTELIB::DISTANCE_NORM2; 
-    case 1: return SGTELIB::DISTANCE_NORM1; 
-    case 2: return SGTELIB::DISTANCE_NORMINF; 
-    case 3: return SGTELIB::DISTANCE_NORM2_IS0; 
-    case 4: return SGTELIB::DISTANCE_NORM2_CAT; 
+    case 0: return SGTELIB::DISTANCE_NORM2;
+    case 1: return SGTELIB::DISTANCE_NORM1;
+    case 2: return SGTELIB::DISTANCE_NORMINF;
+    case 3: return SGTELIB::DISTANCE_NORM2_IS0;
+    case 4: return SGTELIB::DISTANCE_NORM2_CAT;
     default:
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
         "int_to_kernel_type: invalid integer "+itos(i) );
@@ -522,7 +522,7 @@ bool SGTELIB::same_sign (const double a, const double b) {
 /*--------------------------------------*/
 double SGTELIB::sigmoid (double x , double lambda ) {
   return 1 / (1 + exp( - lambda*x));
-} 
+}
 
 double SGTELIB::sigmoid (double f, double mu, double sigma , double lambda) {
   if (sigma < -EPSILON){
@@ -535,7 +535,7 @@ double SGTELIB::sigmoid (double f, double mu, double sigma , double lambda) {
   }
   double x = (f-mu) / sigma;
   return sigmoid(x, lambda);
-} 
+}
 
 /*----------------------------------------*/
 /*  Compute CUMULATIVE Density Function   */
@@ -563,7 +563,7 @@ double SGTELIB::normcdf ( double x , double mu , double sigma ) {
   if (sigma<-EPSILON){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "Surrogate_Utils::normpdf: sigma is <0" );
-  } 
+  }
   // Apply lower bound to sigma
   if (APPROX_CDF){
     sigma = std::max(sigma,EPSILON);
@@ -596,7 +596,7 @@ double SGTELIB::normpdf ( double x , double mu , double sigma ) {
   if (sigma<EPSILON){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "Surrogate_Utils::normpdf: sigma is NULL" );
-  } 
+  }
   return normpdf( (x-mu)/sigma )/sigma;
 }//
 
@@ -608,7 +608,7 @@ double SGTELIB::normei ( double fh , double sh , double f_min ) {
   if (sh<-EPSILON){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "Surrogate_Utils::normei: sigma is <0" );
-  } 
+  }
   // Apply lower bound to sigma
   if (APPROX_CDF){
     sh = std::max(sh,EPSILON);
@@ -635,7 +635,7 @@ double SGTELIB::newei ( double fh , double sh , double f_min ) {
   if (sh<-EPSILON){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "Surrogate_Utils::normei: sigma is <0" );
-  } 
+  }
   // Apply lower bound to sigma
   if (APPROX_CDF){
     sh = std::max(sh,EPSILON);
@@ -662,7 +662,7 @@ double SGTELIB::gammacdf(double x, double a, double b){
   if ( (a<=0) || (b<=0) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "Surrogate_Utils::gammacdf: a or b is <0" );
-  }  
+  }
   if (x<EPSILON) return 0.0;
 
   return lower_incomplete_gamma(x/b,a);
@@ -677,11 +677,11 @@ double SGTELIB::gammacdfinv(double f, double a, double b){
   if ( (a<=0) || (b<=0) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "Surrogate_Utils::gammacdfinv: a or b is <=0" );
-  }  
+  }
   if ( (f<0) || (f>1) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "Surrogate_Utils::gammacdfinv: f<0 or f>1" );
-  }  
+  }
   if (f==1.0) return INF;
   if (f==0.0) return 0;
 
@@ -734,7 +734,7 @@ double SGTELIB::lower_incomplete_gamma ( const double x, double p ){
     v += dv;
   }
   return v*f;
-    
+
 }//
 
 /*----------------------------------------*/
@@ -771,8 +771,3 @@ double SGTELIB::rceil (double d){
   else if (d<0) return std::floor(d);
   else return 0.0;
 }//
-
-
-
-
-

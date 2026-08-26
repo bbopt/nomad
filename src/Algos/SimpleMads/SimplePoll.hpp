@@ -70,7 +70,7 @@ private:
     std::vector<NOMAD::SimpleEvalPoint> _trialPoints; ///< The points generated during the start(). Used for run() and postProcessing().
 
     NOMAD::Point _X0;
-    
+
     NOMAD::BBOutputTypeList _bbot;
 
     std::unique_ptr<SimpleProgressiveBarrier> _barrier;
@@ -100,7 +100,7 @@ private:
     // Some tests led to fix these paramaters.
     const bool _refineOnPartial = false;
     const bool _twoPointsBarrier = false;
-    
+
     std::shared_ptr<SimpleRNG> _rng = nullptr;
 
     std::function<bool(std::vector<NOMAD::SimpleEvalPoint>&)> _eval_x; ///< Function for outputs evaluation

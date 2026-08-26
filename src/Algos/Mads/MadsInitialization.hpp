@@ -60,16 +60,16 @@
  */
 class MadsInitialization : public Initialization
 {
-    
+
 private:
-    
+
     BBInputTypeList _bbInputType;
-    
+
     Double _hMax0;  ///< Initial HMax for Mads barrier
-    
+
 protected:
     MeshBasePtr _initialMesh;
-    
+
     bool _barrierInitializedFromCache;
     bool _isUsedForDMultiMads;
     bool _isUsedForDiscoMads;
@@ -102,7 +102,7 @@ private:
     bool eval_x0s();
 
 protected:
-    
+
     virtual bool runImp() override;
 
 };
