@@ -25,19 +25,19 @@
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
-package Examples;
 
 import static java.lang.Math.pow;
 
 import jNomad.AllParameters;
 import jNomad.CacheBase;
 import jNomad.Double;
+import jNomad.EvalStopCheckCallback;
 import jNomad.EvalPoint;
 import jNomad.EvalPointVector;
+import jNomad.EvalQueuePointPtr;
 import jNomad.EvalType;
 import jNomad.Evaluator;
 import jNomad.MainStep;
-import jNomad.Point;
 
 /*
  * A simple program to test jNomad with the well-known Rosenbrock problem
@@ -95,6 +95,19 @@ public class Rosenbrock {
 		}
 	}
 
+	public class My_EvalCallback extends EvalStopCheckCallback {
+		private int eval_count=0;
+
+		public void call(EvalQueuePointPtr evalQueuePoint, boolean[] globalStop){
+			eval_count++;
+
+			if(eval_count >=5)
+				globalStop[0] = true;
+			else
+				globalStop[0] = false;
+		}
+	}
+
 	public Rosenbrock(int argc, String argv[]) {
 		try {
 
@@ -134,7 +147,7 @@ public class Rosenbrock {
 			p.setAttributeValueBool("DISPLAY_ALL_EVAL", true);
 			p.readParamLine("DISPLAY_STATS EVAL ( SOL ) OBJ CONS_H H_MAX");
 
-      // output set parameters
+			// output set parameters
 			// System.out.println(p.getSetAttributeAsString());
 
 			p.checkAndComply();
@@ -144,6 +157,9 @@ public class Rosenbrock {
 			// custom evaluator creation:
 			My_Evaluator ev = new My_Evaluator(p);
 			mainstep.addEvaluator(ev);
+
+			EvalStopCheckCallback cb = new My_EvalCallback();
+			mainstep.addEvalStopCheckCallback(cb);
 
 			mainstep.start();
 			mainstep.run();

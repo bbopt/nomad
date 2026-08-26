@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include <algorithm>    // For std::merge and std::unique
 
 #include "../../nomad_platform.hpp"
@@ -57,32 +58,34 @@
 #include "../../Algos/DMultiMads/DMultiMadsQuadModSearchMethod.hpp"
 
 
+
 void NOMAD::DMultiMadsIteration::init()
 {
     setStepType(NOMAD::StepType::ITERATION);
     
     _DMultiMadsAlgoUpdate = std::make_unique<NOMAD::DMultiMadsUpdate> (this);
     
-    _poll = std::make_unique<NOMAD::Poll>(this);
-    _search = std::make_unique<NOMAD::Search>(this);
+    
+    _poll = std::make_unique<NOMAD::Poll>(this, _userCallbackEnabled);
+    _search = std::make_unique<NOMAD::Search>(this, _userCallbackEnabled);
 
-    // 1- First (at position 10), quad model search method for DMultiMads
+    // 1- First (at position 8), quad model search method for DMultiMads
     auto quadDMSSearch = std::make_shared<NOMAD::DMultiMadsQuadDMSSearchMethod>(this);
-    _search->insertSearchMethod(10, quadDMSSearch);
+    _search->insertSearchMethod(8, quadDMSSearch);
     auto qmSearch = std::make_shared<NOMAD::DMultiMadsQuadModSearchMethod>(this);
-    _search->insertSearchMethod(11, qmSearch);
+    _search->insertSearchMethod(9, qmSearch);
 
-    // 2- Nelder-Mead (NM) search for DMultiMads (at position 12)
+    // 2- Nelder-Mead (NM) search for DMultiMads (at position 10)
     auto nmSearch = std::make_shared<NOMAD::DMultiMadsNMSearchMethod>(this);
-    _search->insertSearchMethod(12,nmSearch);
+    _search->insertSearchMethod(10,nmSearch);
 
-    // 3- Special Middle Point search method for DMultiMads (at position 13)
+    // 3- Special Middle Point search method for DMultiMads (at position 11)
     auto middlePtSearch = std::make_shared<NOMAD::DMultiMadsMiddlePointSearchMethod>(this);
-    _search->insertSearchMethod(13, middlePtSearch);
+    _search->insertSearchMethod(11, middlePtSearch);
 
     // 4- Special line search method for DMultiMads.
     auto expansionLinesearch = std::make_shared<NOMAD::DMultiMadsExpansionIntLineSearchMethod>(this);
-    _search->insertSearchMethod(13, expansionLinesearch);
+    _search->insertSearchMethod(12, expansionLinesearch);
 }
 
 void NOMAD::DMultiMadsIteration::startImp()
@@ -128,7 +131,7 @@ bool NOMAD::DMultiMadsIteration::runImp()
     // 1. Search
     if ( nullptr != _search && ! _stopReasons->checkTerminate() )
     {
-        // Let's do a search using the search methods.
+    
         _search->start();
         iterationSuccess = _search->run();
         _search->end();
@@ -166,9 +169,7 @@ bool NOMAD::DMultiMadsIteration::runImp()
             
         }
     }
-
     
-
     // End of the iteration: iterationSuccess is true if we have a partial or full success.
     return iterationSuccess;
 

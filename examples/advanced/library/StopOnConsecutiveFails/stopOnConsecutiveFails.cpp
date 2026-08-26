@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*--------------------------------------------------------------------------*/
 /*  Example of a program that makes NOMAD stop at the end of an iteration   */
 /*  The user stopping criterion is a number of consecutive failed iteration */
@@ -132,12 +133,12 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 }
 
 
-/*----------------------------------------*/
-/* After each (Mega)Iteration, verify if  */
-/* the algorithm should stop.             */
-/*----------------------------------------*/
+/*------------------------------------------------------------------------*/
+/* After each (Mega)Iteration, verify if the algorithm should stop.       */
+/* Define the callback algo custom class with its call function           */
+/*------------------------------------------------------------------------*/
 void userIterationCallback(const NOMAD::Step& step,
-                          bool &stop)
+                       bool &stop)
 {
     // Several NOMAD::Algorithm are used by NOMAD.
     // We are interested only on the main Mads (Mega) Iteration.
@@ -160,7 +161,7 @@ void userIterationCallback(const NOMAD::Step& step,
             stop = true;
         }
     }
-}
+};
 
 
 /*------------------------------------------*/
@@ -180,7 +181,7 @@ int main()
     TheMainStep.addEvaluator(std::move(ev));
     
     // Set main step callback
-    TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_END, userIterationCallback);
+    TheMainStep.addCallback<NOMAD::AlgoCallbackType::MEGA_ITERATION_END>(userIterationCallback);
 
     // The run
     TheMainStep.start();

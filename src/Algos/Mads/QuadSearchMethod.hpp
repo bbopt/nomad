@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_QUADSEARCHMETHOD__
-#define __NOMAD_4_5_QUADSEARCHMETHOD__
+
+#ifndef __NOMAD_4_6_QUADSEARCHMETHOD__
+#define __NOMAD_4_6_QUADSEARCHMETHOD__
 
 #include "../../Algos/Mads/SearchMethodSimple.hpp"
 
@@ -91,11 +92,10 @@ private:
     virtual void generateTrialPointsFinal() override ;
 
     /// Update flag to dynamically enabled or not the search method
-    /// Tests have shown this is not efficient. Let's keep the function for future use.
-    void updateDynamicEnabled() override {};
+    void updateDynamicEnabled() override;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QUADSEARCHMETHOD__
+#endif // __NOMAD_4_6_QUADSEARCHMETHOD__

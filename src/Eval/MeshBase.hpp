@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  * \file   MeshBase.hpp
  * \brief  Base class for mesh
@@ -51,8 +52,8 @@
  * \date   November 2017
  */
 
-#ifndef __NOMAD_4_5_MESHBASE__
-#define __NOMAD_4_5_MESHBASE__
+#ifndef __NOMAD_4_6_MESHBASE__
+#define __NOMAD_4_6_MESHBASE__
 
 #include <memory>   // for shared_ptr
 
@@ -264,14 +265,14 @@ public:
      \param l   The vector component value          -- \b IN.
      \return    The ith component of a vector after mesh scaling and projection.
      */
-    virtual Double scaleAndProjectOnMesh(size_t i, const Double &l) const = 0;
+    virtual Double scaleAndProjectOnMesh(size_t i, const Double &l, bool isAds = false) const = 0;
 
     /// Scale and project a direction on the mesh
     /**
      \param dir   The direction to scale and project          -- \b IN.
      \return      The ith component of a vector after mesh scaling and projection.
      */
-    virtual ArrayOfDouble scaleAndProjectOnMesh(const Direction &dir) const;
+    virtual ArrayOfDouble scaleAndProjectOnMesh(const Direction &dir, bool isAds = false) const;
 
     /// Project the point on the mesh centered on frameCenter. No scaling.
     virtual Point projectOnMesh(const Point& point, const Point& frameCenter) const;
@@ -315,4 +316,4 @@ DLL_EVAL_API std::istream& operator>>(std::istream& is, MeshBase& mesh);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_MESHBASE__
+#endif // __NOMAD_4_6_MESHBASE__

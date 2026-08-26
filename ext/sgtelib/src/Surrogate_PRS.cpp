@@ -89,10 +89,6 @@ bool SGTELIB::Surrogate_PRS::build_private ( void ) {
     _H = Matrix( "H",0,0);
     _Ai = Matrix( "Ai",0,0    );
     _alpha = Matrix( "alpha",0,0 );
-
-  // If _q is too big or there is not enough points, then quit
-  if (_q>200)
-      return false;
     
 // Let's try to building model with less points by adding a small ridge
   if ( (_q>pvar) && (_param.get_ridge()==0) )
@@ -258,7 +254,7 @@ bool SGTELIB::Surrogate_PRS::compute_alpha ( void ){
 /*--------------------------------------*/
 void SGTELIB::Surrogate_PRS::predict_private ( const SGTELIB::Matrix & XXs,
                                                      SGTELIB::Matrix * ZZs ) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   *ZZs = compute_design_matrix(_M,XXs) * _alpha;
 }//
 
@@ -469,7 +465,7 @@ void SGTELIB::Surrogate_PRS::predict_hessian(const SGTELIB::Matrix & XX,
 // Predict only objectives (used in Surrogate Ensemble Stat)
 void SGTELIB::Surrogate_PRS::predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
                                                          SGTELIB::Matrix * ZZsurr_around            ) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
   const size_t pxx = XXd.size();
   SGTELIB::Matrix _alpha_obj ("alpha_obj", _q, 1);
@@ -499,7 +495,7 @@ void SGTELIB::Surrogate_PRS::predict_private_objective ( const std::vector<SGTEL
 /*       compute Zvs                    */
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate_PRS::get_matrix_Zvs (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   // Not necessary. Zv is computed in "build".
   if ( !  _Zvs){
     _Zvs = new SGTELIB::Matrix;
@@ -605,7 +601,7 @@ SGTELIB::Matrix SGTELIB::Surrogate_PRS::get_PRS_monomes(const int nvar, const in
 /*--------------------------------------*/
 SGTELIB::Matrix SGTELIB::Surrogate_PRS::get_alpha() const
 {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   return _alpha;
 }
 
@@ -642,7 +638,7 @@ SGTELIB::Matrix SGTELIB::Surrogate_PRS::getModelOut(
     predict_private( XXs , &Mpredict );
   /*
     {
-        check_ready(__FILE__,__FUNCTION__,__LINE__);
+        check_ready(__FILE__,__func__,__LINE__);
         
         if ((XX.get_nb_rows() == _n) && (XX.get_nb_cols() == 1) ) {
           this->predict(XX.transpose(), &Mpredict);

@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_ALLPARAMETERS__
-#define __NOMAD_4_5_ALLPARAMETERS__
+
+#ifndef __NOMAD_4_6_ALLPARAMETERS__
+#define __NOMAD_4_6_ALLPARAMETERS__
 
 
 #include "../Param/CacheParameters.hpp"
@@ -78,6 +79,7 @@
  Some parameters have a tag to indicate that they control algorithm execution. To verify that two sets of parameters
  are compatible we can compare all "algo" tagged parameters with the function AllParameters::isAlgoCompatible.
  The tagged parameters are the one having "ALGO_COMPATIBILITY_CHECK yes" in their attribute definition file.
+
  */
 class DLL_UTIL_API AllParameters
 {
@@ -288,4 +290,4 @@ public:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_5_ALLPARAMETERS__
+#endif // __NOMAD_4_6_ALLPARAMETERS__

@@ -19,7 +19,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'Nomad 4'
-copyright = '2021, C. Tribes and V. Rochon Montplaisir'
+copyright = '2026, C. Tribes and V. Rochon Montplaisir'
 author = 'C. Tribes and V. Rochon Montplaisir'
 
 

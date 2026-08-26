@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   ComputeSuccessType.hpp
  \brief  Comparison methods for EvalPoints
@@ -52,8 +53,8 @@
  \see    ComputeSuccessType.cpp
  */
 
-#ifndef __NOMAD_4_5_COMPUTESUCCESSTYPE__
-#define __NOMAD_4_5_COMPUTESUCCESSTYPE__
+#ifndef __NOMAD_4_6_COMPUTESUCCESSTYPE__
+#define __NOMAD_4_6_COMPUTESUCCESSTYPE__
 
 #include "../Eval/EvalPoint.hpp"
 
@@ -88,4 +89,4 @@ public:
 };
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_COMPUTESUCCESSTYPE__
+#endif // __NOMAD_4_6_COMPUTESUCCESSTYPE__

@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Algos/EvcInterface.hpp"
 #include "../Algos/QuadModel/QuadModelEvaluator.hpp"
 #include "../Algos/AlgoStopReasons.hpp"

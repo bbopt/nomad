@@ -147,7 +147,8 @@ size_t
 \( VNS-Mads search stopping criterion.\)
 \(
 
-. VNS Mads stopping criterion. Max number of trial pts < dimension * NFactor
+. VNS Mads single searchstopping criterion.
+  Max number of trial pts < dimension * NFactor
 
 . Argument: Positive integer. INF disables this criterion.
 

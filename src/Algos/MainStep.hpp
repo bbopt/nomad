@@ -44,16 +44,18 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
   \file   MainStep.hpp
   \brief  Main Step to hold MADS, or other Algorithms
   \author Viviane Rochon Montplaisir
   \date   June 2018
 */
-#ifndef __NOMAD_4_5_MAINSTEP__
-#define __NOMAD_4_5_MAINSTEP__
+#ifndef __NOMAD_4_6_MAINSTEP__
+#define __NOMAD_4_6_MAINSTEP__
 
 #include "../Algos/Algorithm.hpp"
+#include "../Algos/Mads/MadsUserMethodCallback.hpp"
 #include "../Eval/Evaluator.hpp"
 #include "../Param/AllParameters.hpp"
 #include "../Type/LHSearchType.hpp"
@@ -77,6 +79,18 @@
 */
 class DLL_ALGO_API MainStep: public Step
 {
+private:
+    
+    // Store algo callbacks into vector according to their type
+    // Vector is empty. Size will be adapted when adding callbacks.
+    std::vector<std::unique_ptr<AlgoCallbackBase>> _algoCallbacks;
+    std::vector<std::unique_ptr<MadsCallbackBase>> _madsCallbacks;
+    std::vector<std::unique_ptr<EvalCallbackBase>> _evalCallbacks;
+    std::shared_ptr<EvalStopCheckCallback> _evalStopCheckCallback = nullptr;
+    
+    bool _mainStepStarted = false;
+    
+    
 protected:
     std::string                         _paramFileName;  ///< Name of the file containing the parameters.
     
@@ -87,6 +101,8 @@ protected:
     std::shared_ptr<AllParameters>      _allParams;
     std::vector<EvaluatorPtr>           _evaluators; ///<  Can be used in library running mode (not batch mode). Keep evaluators for convenience when constructing evaluator control. See addEvaluator function.
     std::vector<std::shared_ptr<Algorithm>>  _algos;
+    
+
 
 #ifdef TIME_STATS
     size_t _totalRealTime;
@@ -111,14 +127,19 @@ public:
     {
         init();
     }
-
+    
+    MainStep(const MainStep&) = delete;
+    MainStep& operator=(const MainStep&) = delete;
+    MainStep(MainStep&&) = delete;
+    MainStep& operator=(MainStep&&) = delete;
+    
     /// Destructor
     virtual ~MainStep();
 
+    
     /*---------*/
     /* Get/Set */
     /*---------*/
-
     /**
      In batch mode: Set the parameter file name, which will be read in start().
      In library mode: Set the parameters directly using set_PARAM_NAME(...). In library mode, it is also possible to read a parameter file.
@@ -138,6 +159,133 @@ public:
      */
     void setEvaluator(const EvaluatorPtr& ev);
     
+    // The eval callback is managed by evaluator control
+    // Let's use the main step to transfer the EvalCallback.
+    // First option: add a callback function.
+    template<EvalCallbackType CT, typename Fn>
+    void addCallback(Fn&& fn, bool custom = true)
+    {
+        if (_mainStepStarted)
+        {
+            NOMAD::EvcInterface::getEvaluatorControl()->addCallback<CT>(fn, custom);
+        }
+        else
+        {
+            if (_evalCallbacks.empty())
+            {
+                _evalCallbacks.resize(eval_callback_type_index(NOMAD::EvalCallbackType::COUNT));
+            }
+            _evalCallbacks[eval_callback_type_index(CT)] = std::move(makeEvalCallbackBase<CT>(fn, custom));
+        }
+    }
+    
+    // Second option: add a callback class object
+    template<EvalCallbackType CT>
+    void addCallback(std::unique_ptr<NOMAD::EvalCallback<CT>> cb)
+    {
+        if (_mainStepStarted)
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__, "Cannot add an EvalCallback unique_ptr after MainStep is started. Note: adding a callback function is possible after MainStep is started.");
+        }
+        else
+        {
+            if (_evalCallbacks.empty())
+            {
+                _evalCallbacks.resize(eval_callback_type_index(NOMAD::EvalCallbackType::COUNT));
+            }
+            _evalCallbacks[eval_callback_type_index(CT)] = std::move(cb);
+        }
+    }
+    // Specialized option for jNomad.
+    void addEvalStopCheckCallback(std::shared_ptr<NOMAD::EvalStopCheckCallback> cb)
+    {
+        if (_mainStepStarted)
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__, "Cannot add an EvalStopCheckCallback shared_ptr after MainStep is started. Note: adding a callback function is possible after MainStep is started.");
+        }
+        else
+        {
+            _evalStopCheckCallback = std::move(cb);
+        }
+    }
+    
+    
+    // The algo callback are managed by .... algo
+    // Let's use the main step to keep it and transfer the AlgoCallback during start.
+    // First option: add a callback function.
+    template<AlgoCallbackType CT, typename Fn>
+    void addCallback(Fn&& fn)
+    {
+        if (_mainStepStarted)
+        {
+            _algos.back()->addCallback<CT>(fn);
+        }
+        else
+        {
+            if (_algoCallbacks.empty())
+            {
+                _algoCallbacks.resize(algo_callback_type_index(NOMAD::AlgoCallbackType::COUNT));
+            }
+            _algoCallbacks[algo_callback_type_index(CT)] = std::move(makeAlgoCallbackBase<CT>(fn));
+        }
+    }
+    // Second option: add a callback class object
+    template<AlgoCallbackType CT>
+    void addCallback(std::unique_ptr<NOMAD::AlgoCallback<CT>> cb)
+    {
+        if (_mainStepStarted)
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__, "Cannot add an AlgoCallback unique_ptr after MainStep is started. Adding a callback function is possible after MainStep is started.");
+        }
+        else
+        {
+            if (_algoCallbacks.empty())
+            {
+                _algoCallbacks.resize(algo_callback_type_index(NOMAD::AlgoCallbackType::COUNT));
+            }
+            _algoCallbacks[algo_callback_type_index(CT)] = std::move(cb);
+        }
+    }
+    
+    
+    // The mads callback are managed by .... Mads
+    // Let's use the main step to keep it and transfer the MadsCallback during start.
+    // First option: add a callback function.
+    template<MadsCallbackType CT, typename Fn>
+    void addCallback(Fn&& fn)
+    {
+        auto cb = makeMadsCallbackBase<CT>(std::forward<Fn>(fn));
+        
+        if (_mainStepStarted)
+        {
+            addMadsCallbackNow(std::move(cb));
+        }
+        else
+        {
+            if (_madsCallbacks.empty())
+            {
+                _madsCallbacks.resize(mads_callback_type_index(NOMAD::MadsCallbackType::COUNT));
+            }
+            _madsCallbacks[mads_callback_type_index(CT)] = std::move(cb);
+        }
+    }
+    // Second option: add a callback class object
+    template<MadsCallbackType CT>
+    void addCallback(std::unique_ptr<NOMAD::MadsCallback<CT>> cb)
+    {
+        if (_mainStepStarted)
+        {
+            throw NOMAD::Exception(__FILE__, __LINE__, "Cannot add a MadsCallback unique_ptr after MainStep is started. Adding a callback function is possible after MainStep is started.");
+        }
+        else
+        {
+            if (_madsCallbacks.empty())
+            {
+                _madsCallbacks.resize(mads_callback_type_index(NOMAD::MadsCallbackType::COUNT));
+            }
+            _madsCallbacks[mads_callback_type_index(CT)] = std::move(cb);
+        }
+    }
     
     /// Get the run flag of the execution (success or type of fail)
     /**
@@ -214,6 +362,8 @@ public:
     const std::shared_ptr<ibex::Set> getIbexSet(){return _set;}
     #endif
     
+    std::vector<NOMAD::EvalPoint> getBarrierIncumbentPoints(bool feas) const;
+    
 protected:
     /// Specific implementation to start NOMAD
     /**
@@ -252,9 +402,13 @@ protected:
     /// Helper for start
     ArrayOfPoint suggestFromLH(const size_t nbPoints) const;
     
- 
+    /// Helper for start
+    ArrayOfPoint suggestFromCatDOE(const size_t nbPoints) const;
 
 private:
+    /// Helper to forward a mads callback to the current algorithm when already started.
+    void addMadsCallbackNow(std::unique_ptr<MadsCallbackBase> cb);
+
     /// Helper for constructor
     void init();
 
@@ -267,7 +421,8 @@ private:
 };
 
 
+
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_5_MAINSTEP__
+#endif // __NOMAD_4_6_MAINSTEP__

@@ -45,8 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_5_CSPOLLMETHOD__
-#define __NOMAD_4_5_CSPOLLMETHOD__
+
+#ifndef __NOMAD_4_6_CSPOLLMETHOD__
+#define __NOMAD_4_6_CSPOLLMETHOD__
 
 #include "../../Algos/Mads/PollMethodBase.hpp"
 
@@ -91,4 +92,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_CSPOLLMETHOD__
+#endif // __NOMAD_4_6_CSPOLLMETHOD__

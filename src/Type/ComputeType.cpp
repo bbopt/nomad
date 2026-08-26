@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   ComputeType.cpp
  \brief  Types for Computation of f and h (implementation)
@@ -80,8 +81,7 @@ NOMAD::ComputeType NOMAD::stringToComputeType(const std::string &sConst)
     }
     else if (s == "USER")
     {
-        ret = NOMAD::ComputeType::USER;
-        throw NOMAD::Exception(__FILE__, __LINE__, "User ComputeType is not available");
+        throw NOMAD::Exception(__FILE__, __LINE__, "User ComputeType is not yet available");
     }
     else
     {

@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_QUAD_MODEL_SINGLE_PASS__
-#define __NOMAD_4_5_QUAD_MODEL_SINGLE_PASS__
+
+#ifndef __NOMAD_4_6_QUAD_MODEL_SINGLE_PASS__
+#define __NOMAD_4_6_QUAD_MODEL_SINGLE_PASS__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/QuadModel/QuadModelIteration.hpp"
@@ -81,8 +82,9 @@ public:
                                  const EvalPointPtr frameCenter,
                                  const MeshBasePtr madsMesh,
                                  const std::vector<Direction> & scalingDirections,
-                                 bool flagPriorCombineObjsForModel = false)
-      : QuadModelIteration(parentStep, frameCenter, 0, madsMesh, {} /* no trial points */, flagPriorCombineObjsForModel),
+                                 bool flagPriorCombineObjsForModel = false,
+                                 const Point * initialPoint = nullptr)
+      : QuadModelIteration(parentStep, frameCenter, 0, madsMesh, {} /* no trial points */, flagPriorCombineObjsForModel, initialPoint),
         QuadModelIterationUtils(parentStep),
         _scalingDirections(scalingDirections),
         _flagPriorCombineObjsForModel(flagPriorCombineObjsForModel)
@@ -115,4 +117,4 @@ public:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QUAD_MODEL_SINGLE_PASS__
+#endif // __NOMAD_4_6_QUAD_MODEL_SINGLE_PASS__

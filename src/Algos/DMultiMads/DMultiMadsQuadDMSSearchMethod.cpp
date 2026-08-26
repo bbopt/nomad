@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../../Algos/QuadModel/QuadModelSinglePass.hpp"
 
 #include "../../Cache/CacheBase.hpp"
@@ -114,7 +115,7 @@ void NOMAD::DMultiMadsQuadDMSSearchMethod::init()
     }
     
 #ifndef USE_SGTELIB
-    if (isEnabled())
+    if (isEnabled)
     {
         OUTPUT_INFO_START
         AddOutputInfo(getName() + " cannot be performed because NOMAD is compiled without sgtelib library");

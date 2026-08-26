@@ -45,11 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
-#ifdef WINDOWS
-#include <tchar.h>
-#include <windows.h>
-#endif
 
 // For hardware thread number
 #ifdef _OPENMP
@@ -179,6 +176,7 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
     auto modelMaxEval = quadModelMaxEval;
     if (quadModelChanged && sgtelibModelChanged && quadModelMaxEval != sgtelibModelMaxEval)
     {
+        // See issue #505
         std::cout << "Warning: Currently not supported: QUAD_MODEL_MAX_EVAL (";
         std::cout << quadModelMaxEval << ") different than SGTELIB_MODEL_MAX_EVAL (";
         std::cout << sgtelibModelMaxEval << "). Using only the value of QUAD_MODEL_MAX_EVAL." << std::endl;
@@ -224,6 +222,7 @@ void NOMAD::EvaluatorControlGlobalParameters::checkAndComply(const std::shared_p
     
     if (quadModelChanged && sgtelibModelChanged && quadModelBlockSize != sgtelibModelBlockSize)
     {
+        // See issue #505
         std::cout << "Warning: Currently not supported: QUAD_MODEL_MAX_BLOCK_SIZE (";
         std::cout << quadModelBlockSize << ") different than SGTELIB_MODEL_MAX_BLOCK_SIZE (";
         std::cout << sgtelibModelBlockSize << "). Using only the value of QUAD_MODEL_MAX_BLOCK_SIZE." << std::endl;

@@ -45,8 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_5_SIMPLEMADS__
-#define __NOMAD_4_5_SIMPLEMADS__
+
+#ifndef __NOMAD_4_6_SIMPLEMADS__
+#define __NOMAD_4_6_SIMPLEMADS__
 
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
@@ -66,10 +67,26 @@ class DLL_ALGO_API SimpleMads: public Mads
 private:
 
     SimplePoll _poll;
+    
+    std::unique_ptr<SimplePoll> _vnsPoll = nullptr;
 
     BBOutputTypeList _bbot;
+    
+    const std::shared_ptr<SGTELIB::Surrogate> _model;
+    const singleOutputComputeFType _singleObjCompute  ;
+    std::function<bool(std::vector<NOMAD::SimpleEvalPoint>&)> _eval_x = [](const std::vector<NOMAD::SimpleEvalPoint>&) -> bool{ return false; };
 
     const size_t _maxEval;
+    size_t _nbEval = 0;  // Total Mads eval counter (poll +vns)
+    
+    // For VNS Search
+    bool _vnsEnabled = false;
+    size_t _nbEvalByVNS = 0; // Eval counter for VNS only
+    const double _vnsTrigger = 0.75;
+    double _neighParameter;
+    bool _boxedVNS;
+    NOMAD::Point _lb, _ub;
+    std::shared_ptr<NOMAD::SimpleRNG> _rng = nullptr;
 
 public:
     /// Constructor #1 for model optim
@@ -93,6 +110,8 @@ public:
                   const size_t maxEval )
       : Mads(parentStep, stopReasons, runParams, pbParams, false /* false: barrier not initialized from cache */, false /* false: do not use local fixed variables */),
         _poll(this, model, bbot, singleObjCompute),
+        _model(model),
+        _singleObjCompute(singleObjCompute),
         _bbot(bbot),
         _maxEval(maxEval)
     {
@@ -105,7 +124,6 @@ public:
      \param stopReasons                The stop reasons for MADS -- \b IN.
      \param runParams                    The run parameters that control MADS -- \b IN.
      \param pbParams                      The problem parameters that control MADS -- \b IN.
-     \param bbot                               The bb output type -- \b IN.
      \param eval_x                           The function to compute outputs -- \b IN.
      \param maxEval                         Max evaluation stopping criterion -- \b IN.
      */
@@ -113,12 +131,11 @@ public:
                   std::shared_ptr<AlgoStopReasons<MadsStopType>> stopReasons,
                   const std::shared_ptr<RunParameters>& runParams,
                   const std::shared_ptr<PbParameters>& pbParams,
-                  const BBOutputTypeList & bbot,
                   std::function<bool(std::vector<NOMAD::SimpleEvalPoint>&)> eval_x,
                   const size_t maxEval )
       : Mads(parentStep, stopReasons, runParams, pbParams, false /* false: barrier not initialized from cache */, false /* false: do not use local fixed variables */),
-        _poll(this, bbot, eval_x),
-        _bbot(bbot),
+        _poll(this, eval_x),
+        _eval_x(eval_x),
         _maxEval(maxEval)
     {
         init();
@@ -127,6 +144,8 @@ public:
     const SimpleEvalPoint & getBestSimpleSolution(bool bestFeas) const ;
 
     EvalPoint getBestSolution (bool bestFeas) const override;
+    
+    size_t getNbEval() const { return _nbEval; };
 
 private:
     ///  Initialization of class, to be used by Constructor.
@@ -144,9 +163,13 @@ private:
     virtual void endImp() override;
 
     void endDisplay() const ;
+    
+    // Helpers for SimpleMads VNS
+    bool runVNSSearch() ;
+    void updatePollBarrierFromVNS();
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SIMPLEMADS__
+#endif // __NOMAD_4_6_SIMPLEMADS__

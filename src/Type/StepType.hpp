@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   StepType.hpp
  \brief  Types for Steps that generate points: Search and Poll methods, and Algorithms
@@ -52,8 +53,8 @@
  \see    StepType.cpp
  */
 
-#ifndef __NOMAD_4_5_STEP_TYPE__
-#define __NOMAD_4_5_STEP_TYPE__
+#ifndef __NOMAD_4_6_STEP_TYPE__
+#define __NOMAD_4_6_STEP_TYPE__
 
 #include <map>
 #include <sstream>
@@ -68,7 +69,9 @@ enum class StepType
     ALGORITHM_CS,               ///< Algorithm Coordinate Search
     ALGORITHM_DMULTIMADS,       ///< Algorithm DmultiMads
     ALGORITHM_MADS,             ///< Algorithm Mads
-    ALGORITHM_SIMPLE_MADS,      ///< Algorithm Mads trimmed 
+    ALGORITHM_ADS,              ///< Algorithm Ads
+    ALGORITHM_CATALGO,          ///< Algorithm CatMads/CatAds
+    ALGORITHM_SIMPLE_MADS,      ///< Algorithm Mads trimmed
     ALGORITHM_NM,               ///< Algorithm Nelder-Mead
     ALGORITHM_PHASE_ONE,        ///< Phase One
     ALGORITHM_PSD_MADS_SUBPROBLEM, ///< Subproblem in PSD-Mads
@@ -102,6 +105,7 @@ enum class StepType
 
     MODEL_OPTIMIZE,                   ///<  model sub-optimization
     POLL,                       ///< Mads Poll
+    EXTENDED_POLL,              ///< Mads extended poll
     SIMPLE_POLL,                ///< Simple Mads Poll
     CS_POLL,                    ///< Coordinate Search poll  
     REVEALING_POLL,             ///< Revealing poll      
@@ -113,23 +117,28 @@ enum class StepType
     POLL_METHOD_SINGLE,         ///< Single poll method
     POLL_METHOD_UNI_NPLUS1,     ///< Uniform N+1 poll method
     POLL_METHOD_USER,           ///< User custom poll method
+    POLL_METHOD_CAT,           ///< Cat Mads poll method
     CS_POLL_METHOD,             ///< Coordinate Search poll method 
     SEARCH,                     ///< Search
     SEARCH_METHOD_ALGO_RANDOM,///< Template for a search method using an algo (iterations)
     SEARCH_METHOD_CACHE,           ///< Cache search method to sync. parallel algos
+    SEARCH_METHOD_CATALGO_CAT,     ///< CatMads/CatAds custom search method for categorical variables only
     SEARCH_METHOD_DMULTIMADS_MIDDLEPOINT, ///< DMultiMads Middle Point search method
     SEARCH_METHOD_DMULTIMADS_EXPANSIONINT_LINESEARCH, ///< DMultiMads Expansion integer line search method
     SEARCH_METHOD_DMULTIMADS_QUAD_DMS, ///< DMultiMads Quad DMS search method
     SEARCH_METHOD_LH,           ///< Latin hypercube search method
     SEARCH_METHOD_NM,           ///< Nelder-Mead search method
     SEARCH_METHOD_QUAD_MODEL,   ///< Quadratic model search method
+    SEARCH_METHOD_QUAD_MODEL_SLD,///< Quadratic model (SLD) search method
     SEARCH_METHOD_REVEALING,     ///< Revealing search method (revealing poll in DiscoMads)  
     SEARCH_METHOD_SGTELIB_MODEL,///< Sgtelib model search method
+    SEARCH_METHOD_SIMPLE_RANDOM,///< Template for a simple (no iteration) search method
     SEARCH_METHOD_SIMPLE_LINE_SEARCH,  ///< Simple line search method
     SEARCH_METHOD_SPECULATIVE,  ///< Speculative search method
     SEARCH_METHOD_USER,         ///< User-defined search method
     SEARCH_METHOD_VNS_MADS,     ///< VNS Mads search method
     SEARCH_METHOD_VNSMART_MADS, ///< VNS Mads smart search method
+    SEARCH_METHOD_CAT_SPECULATIVE ,  ///< CatMads/CatAds speculative search method
     SURROGATE_EVALUATION,       ///< Evaluating trial points using static surrogate
     MODEL_EVALUATION,           ///< Evaluating trial points using dynamic model
     QUAD_MODEL_SORT,           ///< Build quad model to sort trial points
@@ -162,4 +171,4 @@ inline std::ostream& operator<<(std::ostream& out, const StepType &stepType)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_5_STEP_TYPE__
+#endif  // __NOMAD_4_6_STEP_TYPE__

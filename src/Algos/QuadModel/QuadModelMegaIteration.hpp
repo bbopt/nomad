@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_QUAD_MODEL_MEGAITERATION__
-#define __NOMAD_4_5_QUAD_MODEL_MEGAITERATION__
+
+#ifndef __NOMAD_4_6_QUAD_MODEL_MEGAITERATION__
+#define __NOMAD_4_6_QUAD_MODEL_MEGAITERATION__
 
 
 #include "../../Algos/MegaIteration.hpp"
@@ -65,6 +66,14 @@ class QuadModelMegaIteration: public MegaIteration
 private:
     std::vector<std::shared_ptr<QuadModelIteration>> _iterList;
     
+    /**
+     Main mesh that holds the  frame size of QPSolveAlgo for Trust Region radius (Delta)
+     */
+    MeshBasePtr _mainMesh;
+    
+    // Flag for sufficient decrease. Note: only feasible points are considered
+    bool _sufficientDecrease = false;
+    
 public:
     /// Constructor
     /**
@@ -74,15 +83,21 @@ public:
      \param success         Success type of the previous MegaIteration. -- \b IN.
      */
     explicit QuadModelMegaIteration(const Step* parentStep,
-                              size_t k,
-                              std::shared_ptr<BarrierBase> barrier,
-                              SuccessType success)
-      : MegaIteration(parentStep, k, barrier, success)
+                                    size_t k,
+                                    std::shared_ptr<BarrierBase> barrier,
+                                    MeshBasePtr mesh,
+                                    SuccessType success)
+          : MegaIteration(parentStep, k, barrier,success),
+            _mainMesh(mesh)
     {
         init();
     }
 
     virtual ~QuadModelMegaIteration();
+    
+    const MeshBasePtr getMesh() const override { return _mainMesh; }
+    
+    bool hasSufficientDecrease() const { return _sufficientDecrease; }
 
 private:
 
@@ -105,4 +120,4 @@ std::istream& operator>>(std::istream& is, QuadModelMegaIteration& megaIteration
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QUAD_MODEL_MEGAITERATION__
+#endif // __NOMAD_4_6_QUAD_MODEL_MEGAITERATION__

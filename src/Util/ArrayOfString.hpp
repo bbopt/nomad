@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   ArrayOfString.hpp
  \brief  Class to be used for an array of n strings
@@ -52,8 +53,8 @@
  \see    ArrayOfString.cpp
  */
 
-#ifndef __NOMAD_4_5_ARRAYOFSTRING__
-#define __NOMAD_4_5_ARRAYOFSTRING__
+#ifndef __NOMAD_4_6_ARRAYOFSTRING__
+#define __NOMAD_4_6_ARRAYOFSTRING__
 
 #include <string>
 #include <vector>
@@ -184,4 +185,4 @@ DLL_UTIL_API std::ostream& operator<< (std::ostream& out,
                           const ArrayOfString& arrayOfString);
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_5_ARRAYOFSTRING__
+#endif // __NOMAD_4_6_ARRAYOFSTRING__

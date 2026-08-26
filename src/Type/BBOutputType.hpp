@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   BBOutputType.hpp
  \brief  types for BBOutput
@@ -51,8 +52,8 @@
  \date   September 2018
  \see    BBOutput.hpp
  */
-#ifndef __NOMAD_4_5_BB_OUTPUT_TYPE__
-#define __NOMAD_4_5_BB_OUTPUT_TYPE__
+#ifndef __NOMAD_4_6_BB_OUTPUT_TYPE__
+#define __NOMAD_4_6_BB_OUTPUT_TYPE__
 
 #include <string>
 #include <sstream>
@@ -71,6 +72,7 @@ struct DLL_UTIL_API BBOutputType
         EB,         ///< Extreme barrier constraint
         PB,         ///< Progressive barrier constraint
         RPB,         ///<  Revealed constraint (obtained from DiscoMads revealing mechanism, not from blackbox evaluation). Similar to BBO_Undefined but it is considered in H calculation.
+        EQPB,        ///< Equality constraint handled as PB through contribution into h with a threshold
         CNT_EVAL,   ///< Output set to 0 or 1 to count the blackbox evaluation or not
         BBO_UNDEFINED ///< Output ignored
     };
@@ -111,7 +113,7 @@ struct DLL_UTIL_API BBOutputType
     /// Verify if the BBOutputType defines a constraint
     bool isConstraint() const
     {
-        return (_type == NOMAD::BBOutputType::Type::EB || _type == NOMAD::BBOutputType::Type::PB || _type == NOMAD::BBOutputType::Type::RPB);
+        return (_type == NOMAD::BBOutputType::Type::EB || _type == NOMAD::BBOutputType::Type::PB || _type == NOMAD::BBOutputType::Type::RPB || _type == NOMAD::BBOutputType::Type::EQPB);
     }
     
     
@@ -184,9 +186,6 @@ DLL_UTIL_API BBOutputTypeList stringToBBOutputTypeList(const std::string &s);
  */
 DLL_UTIL_API std::string BBOutputTypeListToString ( const BBOutputTypeList & bbotList );
 
-///// Helper to test if a BBOutputType is a constraint (PB, EB, ....)
-DLL_UTIL_API bool BBOutputTypeIsConstraint(const BBOutputType & bbotType);
-
 /// Count the number of constraints
 DLL_UTIL_API size_t getNbConstraints(const BBOutputTypeList& bbotList);
 
@@ -227,4 +226,4 @@ DLL_UTIL_API std::istream& operator>>(std::istream& is, BBOutputTypeList& bbOutp
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_BB_OUTPUT_TYPE__
+#endif // __NOMAD_4_6_BB_OUTPUT_TYPE__

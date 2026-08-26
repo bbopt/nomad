@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*--------------------------------------------------------------------------*/
-/*  example of a program that makes NOMAD restart after failed iterations   */
+/*  example of a program that makes NOMAD restarts after failed iterations  */
 /*--------------------------------------------------------------------------*/
 #include "Nomad/nomad.hpp"
 #include "Algos/EvcInterface.hpp"
@@ -140,9 +141,9 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams, const
 /* After each MegaIteration, verify if */
 /* the algorithm should stop.          */
 /*-------------------------------------*/
-void userMegaIterationEnd(const NOMAD::Step& step,
-                          bool &stop)
+void myAlgoCallback(const NOMAD::Step& step, bool & stop)
 {
+    
     auto megaIter = dynamic_cast<const NOMAD::MadsMegaIteration*>(&step);
     
     // Let's have bb eval for fun.
@@ -152,7 +153,7 @@ void userMegaIterationEnd(const NOMAD::Step& step,
     {
         // Let's have the mesh for fun.
         mesh = megaIter->getMesh();
-    
+        
         auto nbConsecutiveFail = megaIter->getConstSuccessStats().getStatsNbConsecutiveFail();
         if (nbConsecutiveFail >= 2 )
         {
@@ -160,7 +161,7 @@ void userMegaIterationEnd(const NOMAD::Step& step,
             stop = true;
         }
     }
-}
+};
 
 
 /*------------------------------------------*/
@@ -172,10 +173,6 @@ int main()
     size_t n = 5;
 
     NOMAD::MainStep TheMainStep;
-
-    // Set main step callback
-    TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_END, userMegaIterationEnd);
-
     // Set parameters
     auto params = std::make_shared<NOMAD::AllParameters>();
     initAllParams(params, n);
@@ -183,10 +180,15 @@ int main()
     
     auto ev = std::make_unique<My_Evaluator>(params->getEvalParams(),NOMAD::EvalType::BB);
     TheMainStep.addEvaluator(std::move(ev));
+    
+    // Set main step algo callback
+    TheMainStep.addCallback<NOMAD::AlgoCallbackType::MEGA_ITERATION_END>(myAlgoCallback);
 
     std::vector<NOMAD::EvalPoint> bf;
     std::vector<NOMAD::EvalPoint> bi;
     
+    NOMAD::FHComputeType computeType = { NOMAD::EvalType::BB, {NOMAD::ComputeType::STANDARD, NOMAD::HNormType::L2}};
+
     // Main run
     try
     {
@@ -231,8 +233,13 @@ int main()
 
             bf.clear();
             bi.clear();
-            NOMAD::CacheBase::getInstance()->findBestFeas(bf);
-            NOMAD::CacheBase::getInstance()->findBestInf(bi);
+            NOMAD::CacheBase::getInstance()->findBestFeas(bf,
+                                                          NOMAD::Point(n),
+                                                          computeType);
+            NOMAD::CacheBase::getInstance()->findBestInf(bi,
+                                                         NOMAD::INF,
+                                                         NOMAD::Point(n),
+                                                         computeType);
         }
     }
 

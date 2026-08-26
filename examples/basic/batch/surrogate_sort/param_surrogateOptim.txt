@@ -25,6 +25,7 @@ MAX_SURROGATE_EVAL_OPTIMIZATION 100
 
 # Use surrogate evaluation for optimization
 EVAL_SURROGATE_OPTIMIZATION yes
+VNS_MADS_SEARCH yes
 
 # Display parameters
 ####################

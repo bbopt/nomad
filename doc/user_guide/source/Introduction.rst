@@ -122,7 +122,7 @@ The SGTELIB is included in NOMAD since version 3.8.0.
 
   `-` Viviane Rochon Montplaisir (`<https://www.linkedin.com/in/montplaisir>`_).
 
-  `-` Christophe Tribes, GERAD (`<https://www.gerad.ca/en/people/christophe-tribes>`_) and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
+  `-` Christophe Tribes (`<https://www.gerad.ca/en/people/christophe-tribes>`_) , GERAD and Département de mathématiques et de génie industriel, École Polytechnique de Montréal.
 
 
 Acknowledgments
@@ -138,6 +138,10 @@ Another special thank to Jean-Max Redonnet for pushing the development of the Ja
 The contributions of  Miguel Anjos, Romain Couderc, Miguel Diago Martinez, Solène Kojtych, Guillaume Lameynardie, Wim Lavrijsen, Alexis Montoison, Caroline Rocha, Renaud Saltet, Yassine Diouri, Xavier Lebeuf, Tangi Migot and Samuel Mendoza was highly appreciated during the development and testing of NOMAD 4.
 
 The development of DMultiMads was conducted by Ludovic Salomon during his PhD thesis. Additional work was done to integrate DMultiMads in NOMAD 4, including some advanced search methods.
+
+The new MadsPIP algorithm was developed in collaboration with Andrea Brilli and Youssef Diouane. 
+
+The integration of the Adaptive Direct Search (ADS) algorithm into NOMAD was conducted in collaboration with Youssef Diouane and Théo Denorme.
 
 .. Finally, many thanks to the TOMS anonymous referees for their useful comments which helped a lot to improve the code and the text of [AuLeRoTr2021]_.
 
@@ -168,7 +172,7 @@ Bug reports and suggestions are valuable to us! We are committed to answer to po
 
 
 .. topic:: References
-
+      
     .. [AbAuDeLe09] M.A. Abramson, C. Audet, J.E. Dennis, Jr., and S. Le Digabel.
        OrthoMADS: A Deterministic MADS Instance with Orthogonal Directions.
        *SIAM Journal on Optimization*, 20(2):948–966, 2009.

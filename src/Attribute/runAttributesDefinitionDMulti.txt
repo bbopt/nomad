@@ -166,12 +166,13 @@ false
 . When BB_OUTPUT_TYPE contains more than one objective, DMultiMads algorithm
 must be explicitly enabled.
 
-. ChT. TODO modify the note. Pareto front can be output in a file.
-. Note: It is recommended to output all evaluation points into a file (use
-HISTORY_FILE). The user must do some post-processing for these results to obtain
- the approximation of the pareto front. Future version will have the option
- to output the pareto front in a file.
+. Pareto solution can be written in a file. See SOLUTION_FILE and
+SOLUTION_FILE_FINAL
 
+. Note: It is recommended to output all evaluation points into a file (use
+HISTORY_FILE). The user can do some post-processing for these results to obtain
+ the approximation of the pareto front.
+ 
 . Argument: bool
 
 . Example: DMULTIMADS_OPTIMIZATION true
@@ -210,7 +211,6 @@ true
 \( Select compute method for objective of DMultiMads quad model search \)
 \(
 
-. TODO select the correct option and get rid of the parameter
 
 \)
 \( advanced multi objective algorithm pareto front \)

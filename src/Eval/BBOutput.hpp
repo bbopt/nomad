@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   BBOutput.hpp
  \brief  Output of a Blackbox evaluation
@@ -53,8 +54,8 @@
  */
 
 
-#ifndef __NOMAD_4_5_BB_OUTPUT__
-#define __NOMAD_4_5_BB_OUTPUT__
+#ifndef __NOMAD_4_6_BB_OUTPUT__
+#define __NOMAD_4_6_BB_OUTPUT__
 
 #include "../Type/BBOutputType.hpp"
 #include "../Math/ArrayOfDouble.hpp"
@@ -194,4 +195,4 @@ DLL_EVAL_API std::istream& operator>>(std::istream& is, BBOutput &bbo);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_5_BB_OUTPUT__
+#endif // __NOMAD_4_6_BB_OUTPUT__

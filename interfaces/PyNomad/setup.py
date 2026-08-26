@@ -19,13 +19,21 @@ import os.path
 import os
 import re
 
+import numpy
+
 # Environment processing
 
 env_nomad_src = os.environ.get('NOMAD_SRC')
 env_nomad_build_dir = os.environ.get('NOMAD_BUILD_DIR')
 env_nomad_msvc_flag = os.environ.get('NOMAD_MSVC_FLAG')
 env_nomad_msvc_conf = os.environ.get('NOMAD_MSVC_CONF')
-env_nomad_openmp_flag = (os.environ.get('BUILD_OPENMP') == 'TRUE') 
+env_nomad_openmp_flag = (os.environ.get('BUILD_OPENMP') == 'TRUE')
+env_nomad_sysroot = os.environ.get('SYSROOT')
+env_nomad_archflags = os.environ.get('ARCHFLAGS')
+
+
+if env_nomad_archflags:
+    print('Building PyNomad with ARCHFLAGS: ',os.environ.get('ARCHFLAGS'))
 
 if not(env_nomad_src):
     print('Missing NOMAD_SRC env.')
@@ -43,10 +51,17 @@ if not(env_nomad_msvc_conf):
 
 if env_nomad_openmp_flag:
     print('Building PyNomad with OpenMP support.')
+    
+if env_nomad_sysroot:
+    print('Building PyNomad with isysroot set.')
 
 # Construct base paths
 
-path_include = env_nomad_src
+# Create the list of include files for Nomad
+path_include = [ env_nomad_src ]
+path_include.append(numpy.get_include())
+
+
 path_library_nomad = os.path.join(env_nomad_build_dir, 'src') 
 path_library_sgtelib = os.path.join(env_nomad_build_dir, 'ext', 'sgtelib') 
 
@@ -56,6 +71,13 @@ setup_compile_args = []
 setup_compile_args.append('-DNOMAD_STATIC_BUILD')
 setup_link_args = []
 
+if env_nomad_sysroot:
+    clean_sysroot = env_nomad_sysroot.strip('"').strip("'")
+    setup_compile_args.append('-isysroot')
+    setup_compile_args.append(clean_sysroot)
+    setup_link_args.append('-isysroot')
+    setup_link_args.append(clean_sysroot)
+    
 if env_nomad_openmp_flag:
     setup_compile_args.append('-fopenmp')
     setup_link_args.append('-lgomp')
@@ -66,7 +88,6 @@ else:
     setup_compile_args.append('-w')
     setup_compile_args.append('-std=c++17')
     setup_compile_args.append('-pthread') 
-
 
 # MSVC linker automagically resolves static libraries
 # by their base names if given appropriate search paths.
@@ -96,14 +117,13 @@ else:
     setup_extra_objects.append(os.path.join(path_library_nomad, 'libnomadStatic.a'))
     setup_extra_objects.append(os.path.join(path_library_sgtelib, 'libsgtelibStatic.a'))
 
+
 # Determine package version directly from NOMAD header file.
-
 __version__ = "unknown"
-
-path_version = os.path.join(path_include, 'nomad_version.hpp')
+path_version = os.path.join(env_nomad_src, 'nomad_version.hpp')
 
 with open(path_version, encoding = 'utf-8') as file:
-    pattern = '#define\s+NOMAD_VERSION_NUMBER\s+"([^"]+)"'
+    pattern = r'#define\s+NOMAD_VERSION_NUMBER\s+"([^"]+)"'
     for line in file:
         if (match := re.match(pattern, line)):
             __version__ = match.group(1)
@@ -121,7 +141,7 @@ setuptools.setup(
     ext_modules = cythonize(setuptools.Extension(
         'PyNomad',
         sources = [ 'PyNomad.pyx' ],
-        include_dirs = [ path_include ],
+        include_dirs = path_include,
         extra_compile_args = setup_compile_args,
         extra_link_args = setup_link_args,
         extra_objects = setup_extra_objects,

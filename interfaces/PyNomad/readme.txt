@@ -27,9 +27,9 @@ https://packaging.python.org/en/latest/tutorials/installing-packages/
 
 To install the last version, from a shell command line perform:
 
-pip install PyNomadBBO
+pip install PyNomad 
 
-PyNomadBBO from PyPI relies on Python3 version 3.8 and above.
+PyNomad from PyPI relies on Python3 version 3.8 and above.
 
 **********
 HOW TO USE
@@ -63,7 +63,7 @@ Building PyNomad
 Alternatively, one can build PyNomad (and Nomad binaries) from Nomad 
 source code as described below.  
 
-The build procedure relies on Python 3.8 or higher and Cython 0.24 
+The build procedure relies on Python 3.6 and Cython 0.24 
 or higher. 
 
 The procedure is often straightforward but several issues that can prevent

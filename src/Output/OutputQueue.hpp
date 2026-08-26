@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_OUTPUTQUEUE__
-#define __NOMAD_4_5_OUTPUTQUEUE__
+
+#ifndef __NOMAD_4_6_OUTPUTQUEUE__
+#define __NOMAD_4_6_OUTPUTQUEUE__
 
 #include <vector>
 #ifdef _OPENMP
@@ -81,20 +82,20 @@ public:
      virtual ~OutputQueue();
 
     /// Access to singleton
-	DLL_UTIL_API static std::unique_ptr<OutputQueue>& getInstance();
+    DLL_UTIL_API static std::unique_ptr<OutputQueue>& getInstance();
 
-	DLL_UTIL_API void initParameters(const std::shared_ptr<DisplayParameters>& params);
+    DLL_UTIL_API void initParameters(const std::shared_ptr<DisplayParameters>& params);
 
     /// Flush and close stats file (called by initParameters) if OutputQueue has been already  initialized
     void reset();
 
-	DLL_UTIL_API void add(OutputInfo outputInfo);
+    DLL_UTIL_API void add(OutputInfo outputInfo);
     static void Add(OutputInfo outputInfo)
     {
         getInstance()->add(std::move(outputInfo));
     }
 
-	DLL_UTIL_API void add(const std::string& s,
+    DLL_UTIL_API void add(const std::string& s,
              OutputLevel outputLevel = OutputLevel::LEVEL_INFO) const;
     static void Add(const std::string& s,
                     OutputLevel outputLevel = OutputLevel::LEVEL_INFO)
@@ -134,8 +135,11 @@ public:
 
     size_t getMaxStepLevel() const { return _maxStepLevel; }
     void setMaxStepLevel(const size_t maxStepLevel) { _maxStepLevel = maxStepLevel; }
+    
+    // This is for library mode only, when having to debug specific section
+    void setDisplayTargetIndentLevel(const size_t displayTargetIndentLevel) { _displayTargetIndentLevel = displayTargetIndentLevel; };
 
-	DLL_UTIL_API bool goodLevel(const OutputLevel& outputLevel) const;
+    DLL_UTIL_API bool goodLevel(const OutputLevel& outputLevel) const;
     static bool GoodLevel(const OutputLevel& outputLevel)
     {
         return getInstance()->goodLevel(outputLevel);
@@ -151,7 +155,7 @@ public:
 #define OUTPUT_DEBUG_END }
 #define OUTPUT_DEBUGDEBUG_END }
 
-	DLL_UTIL_API void setDisplayDegree(const int displayDegree);
+    DLL_UTIL_API void setDisplayDegree(const int displayDegree);
     void setMaxOutputLevel(OutputLevel outputLevel) { _maxOutputLevel = outputLevel; }
     
     OutputLevel getMaxOutputLevel() { return _maxOutputLevel ;}
@@ -220,13 +224,14 @@ private:
     size_t _maxStepLevel;  ///< Maximum step level we want to print out.
     OutputLevel _maxOutputLevel; ///< Output level (~display degree) we want to print out
     int _indentLevel;   ///< Internal indentation level
+    int _displayTargetIndentLevel = 0;  ///< For debugging only. Help to target specific step/block
 
     const std::string _blockStart; ///< Symbol for a block start.
     const std::string _blockEnd; ///< Symbol for an end block.
 
     void startBlock();
     void endBlock();
-	DLL_UTIL_API void flush();
+    DLL_UTIL_API void flush();
     void flushBlock(const OutputInfo &outputInfo);
     void flushStatsToStatsFile(const StatsInfo *statsInfo);
     void flushStatsToStdout(const StatsInfo *statsInfo);
@@ -235,4 +240,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_OUTPUTQUEUE__
+#endif // __NOMAD_4_6_OUTPUTQUEUE__

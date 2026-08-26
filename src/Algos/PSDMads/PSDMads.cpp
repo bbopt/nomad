@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/MadsInitialization.hpp"
 #include "../../Algos/Mads/MadsUpdate.hpp"
@@ -69,13 +70,13 @@ void NOMAD::PSDMads::init(const std::vector<NOMAD::EvaluatorPtr> &evaluators,
 
     // Get the evaluator control
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
-    
+
     auto blockSize = evc->getEvaluatorControlGlobalParams()->getAttributeValue<size_t>("BB_MAX_BLOCK_SIZE");
     if (blockSize > 1)
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "PSD-Mads: eval points blocks are not supported.");
     }
-    
+
     // Check the number of parallel evaluation handled by the evaluator control
     OUTPUT_INFO_START
     if (evc->getNbThreadsForParallelEval() != 1)
@@ -149,7 +150,7 @@ bool NOMAD::PSDMads::runImp()
             omp_set_lock(&psdMadsLock);
             auto bestEvalPoint = _barrier->getAllPoints()[0];
             auto barrier = _barrier->clone();                      // Barrier points are not transferred during clone.
-            auto success = _masterMegaIteration->getSuccessType(); 
+            auto success = _masterMegaIteration->getSuccessType();
 
             NOMAD::Point fixedVariable(_pbParams->getAttributeValue<size_t>("DIMENSION"));
             if (!isPollster)

@@ -44,13 +44,16 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_SIMPLEPOLL__
-#define __NOMAD_4_5_SIMPLEPOLL__
+
+#ifndef __NOMAD_4_6_SIMPLEPOLL__
+#define __NOMAD_4_6_SIMPLEPOLL__
 
 #include "../../Algos/Mads/GMesh.hpp"
 #include "../../Algos/Mads/PollMethodBase.hpp"
 #include "../../Algos/QuadModel/QuadModelEvaluator.hpp"
 #include "../../Algos/SimpleMads/SimpleProgressiveBarrier.hpp"
+
+#include "../../Math/SimpleRNG.hpp"
 
 #include "../../../ext/sgtelib/src/Surrogate.hpp"
 
@@ -60,12 +63,13 @@
 /**
  Generate the trial points (Poll::startImp), launch evaluation (Poll::runImp) and postprocessing (Poll::endImp).
  */
-class DLL_ALGO_API SimplePoll: public Iteration
+class DLL_ALGO_API SimplePoll : public Iteration
 {
 private:
 
     std::vector<NOMAD::SimpleEvalPoint> _trialPoints; ///< The points generated during the start(). Used for run() and postProcessing().
 
+    NOMAD::Point _X0;
 
     NOMAD::BBOutputTypeList _bbot;
 
@@ -82,15 +86,22 @@ private:
 
     NOMAD::Double _rho; ///< Rho parameter of the progressive barrier. Used to choose if the primary frame center is the feasible or infeasible  incumbent.
 
-    size_t _nbEval;
+    size_t _nbEval = 0; ///< Overall eval counter
+    size_t _singleNbEval = 0; /// Single start/run/end call eval counter (reset in start)
 
-    std::vector<std::shared_ptr<PollMethodBase>> _pollMethods;  ///< Unlike for Search, Poll methods generate all their points and only then they are evaluated.
+    std::vector<std::unique_ptr<PollMethodBase>> _pollMethods;  ///< Unlike for Search, Poll methods generate all their points and only then they are evaluated.
 
     size_t _n, _nSimple, _nbOutputs;  ///< Pb dimension
 
     Point _fixedVariable;
 
     bool _phaseOneSearch;
+
+    // Some tests led to fix these paramaters.
+    const bool _refineOnPartial = false;
+    const bool _twoPointsBarrier = false;
+
+    std::shared_ptr<SimpleRNG> _rng = nullptr;
 
     std::function<bool(std::vector<NOMAD::SimpleEvalPoint>&)> _eval_x; ///< Function for outputs evaluation
 
@@ -99,15 +110,15 @@ public:
     /**
      \param parentStep The parent of this poll step
      */
-    explicit SimplePoll(const Step* parentStep, const std::shared_ptr<SGTELIB::Surrogate> & model, const NOMAD::BBOutputTypeList & bbot, const singleOutputComputeFType & singleObjCompute)
+    explicit SimplePoll(const Step* parentStep, const std::shared_ptr<SGTELIB::Surrogate> & model, const NOMAD::BBOutputTypeList & bbot, const singleOutputComputeFType & singleObjCompute, const NOMAD::Point x0 = NOMAD::Point())
       : Iteration(parentStep, 0),
         _barrier(nullptr),
         _mesh(nullptr),
         _model(model),
         _bbot(bbot),
-        _nbEval(0),
         _phaseOneSearch(false),
-        _singleObjCompute(singleObjCompute)
+        _singleObjCompute(singleObjCompute),
+        _X0(x0)
     {
         init();
     }
@@ -115,15 +126,14 @@ public:
     /**
      \param parentStep The parent of this poll step
      */
-    explicit SimplePoll(const Step* parentStep, const NOMAD::BBOutputTypeList & bbot, std::function<bool(std::vector<NOMAD::SimpleEvalPoint> &)> eval_x)
+    explicit SimplePoll(const Step* parentStep, std::function<bool(std::vector<NOMAD::SimpleEvalPoint> &)> eval_x, const NOMAD::Point x0 = NOMAD::Point())
       : Iteration(parentStep, 0),
         _barrier(nullptr),
         _mesh(nullptr),
-        _bbot(bbot),
-        _nbEval(0),
         _phaseOneSearch(false),
         _eval_x(eval_x),
-        _singleObjCompute(NOMAD::defaultEmptySingleOutputCompute)
+        _singleObjCompute(NOMAD::defaultEmptySingleOutputCompute),
+        _X0(x0)
     {
         init();
     }
@@ -135,6 +145,7 @@ public:
     const MeshBasePtr getMesh() const override { return _mesh; }
 
     size_t getNbEval () const { return _nbEval;}
+    size_t getSingleNbEval () const { return _singleNbEval;}
 
     bool getPhaseOneSearch () const { return _phaseOneSearch; }
 
@@ -186,4 +197,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SIMPLEPOLL__
+#endif // __NOMAD_4_6_SIMPLEPOLL__

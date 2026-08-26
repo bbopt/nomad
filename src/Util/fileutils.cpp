@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   fileutils.cpp
  \brief  Utility functions for files
@@ -253,6 +254,27 @@ void NOMAD::ensureDirPath(std::string &dirname)
 }
 
 
+
+// Remove multiple consecutive DIR_SEP characters from a filename or path.
+std::string NOMAD::cleanPath(const std::string &filename)
+{
+    std::string cleaned;
+    cleaned.reserve(filename.size());
+
+    bool previousWasDirSep = false;
+    for (const char c : filename)
+    {
+        const bool isDirSep = (c == NOMAD::DIR_SEP);
+        if (!isDirSep || !previousWasDirSep)
+        {
+            cleaned.push_back(c);
+        }
+        previousWasDirSep = isDirSep;
+    }
+
+    return cleaned;
+}
+
 // Input a line (from a parameters file).
 // Remove comments starting with '#'.
 // Replace tabs by spaces.
@@ -318,30 +340,47 @@ void NOMAD::completeFileName(std::string &filename,
                                         bool addSeed,
                                         int seed)
 {
-    if (filename.empty()
-        || NOMAD::isAbsolute(filename))
+    if (filename.empty())
     {
         return;
     }
+    
+    bool fileNameHasExtension = (filename.find_last_of('.') != std::string::npos) ;
 
-    if (NOMAD::isAbsolute(problemDir))
+    // Complete filename with problem dir if filename is not absolute
+    if (! NOMAD::isAbsolute(filename))
     {
-        filename = problemDir + filename;
-    }
-    else
-    {
-        filename = NOMAD::curdir() + NOMAD::DIR_SEP + problemDir + filename;
+        if (NOMAD::isAbsolute(problemDir))
+        {
+            filename = problemDir + NOMAD::DIR_SEP + filename;
+        }
+        else
+        {
+            filename = NOMAD::curdir() + NOMAD::DIR_SEP + problemDir + NOMAD::DIR_SEP + filename;
+        }
+        
+        // Remove duplicate dir sep
+        filename = cleanPath(filename);
+        
     }
 
     // Set stats file name relative to problem dir.
     if (addSeed)
     {
+        // Add seed works with a file name having an extension. Add fake one if necessary
+        if ( !fileNameHasExtension)
+        {
+            filename = filename + '.';
+        }
+        
         std::string sSeed = NOMAD::itos(seed);
         size_t nSeed = sSeed.size();
 
         addSeedToFileName(nSeed, sSeed, filename);
     }
 }
+
+
 
 
 /*---------------------------------------------------------------*/
@@ -366,12 +405,8 @@ void NOMAD::addSeedToFileName(size_t nSeed,
     {
         fic = filename.substr(0, lastPoint);
         ext = filename.substr(lastPoint, filenameSize - lastPoint);
-        filenameSize = lastPoint;
-    }
-
-    if (filenameSize <= nSeed + 1 ||
-        fic.substr(filenameSize - nSeed, filenameSize - 1) != sSeed)
-    {
+        
+        // Add seed between before extension
         filename = fic + "." + sSeed + ext;
     }
 }

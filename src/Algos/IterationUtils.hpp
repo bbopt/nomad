@@ -45,8 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_5_ITERATIONUTILS__
-#define __NOMAD_4_5_ITERATIONUTILS__
+
+#ifndef __NOMAD_4_6_ITERATIONUTILS__
+#define __NOMAD_4_6_ITERATIONUTILS__
 
 #include <stdexcept>
 
@@ -82,13 +83,13 @@ protected:
 
     /**
      Iteration ancestor (may be _parentStep).
-     If _fromAlgo is true, this is NULL.
+     If _directFromAlgo is true, this is NULL.
      */
     Iteration* _iterAncestor;
 
     /**
      Mega Iteration ancestor (may be _parentStep).
-     If _fromAlgo is true, this is NULL.
+     If _directFromAlgo is true, this is NULL.
      */
     MegaIteration* _megaIterAncestor;
 
@@ -102,7 +103,14 @@ protected:
      For now, this is only for search method.
      Note: theory requires mesh projection.
      */
-    bool _projectOnMesh ;
+    bool _projectOnMesh = true ;
+    
+    /**
+     For algo Ads, trial points can be rejected during poll steps
+     when not belonging to the puncturedSpace. Check is done
+     by evaluator control using cache.
+     */
+    bool _puncturedSpaceCheckPreEval = false;
     
     
     #ifdef USE_IBEX
@@ -119,6 +127,7 @@ protected:
     
     SuccessType _trialPointsSuccess; ///< Success type of trial points evaluation.
     
+    // Flag set by methods creating points
     bool _updateIncumbentsAndHMax;
     
 private:
@@ -126,7 +135,7 @@ private:
      Flag: True if the direct parent step is an Algorithm. False otherwise. \n
      Used when evaluating trial points without mesh and frame center.
      */
-    bool _fromAlgo;
+    bool _directFromAlgo;
     
 public:
     /// Constructor
@@ -140,9 +149,8 @@ public:
         _trialPointsSuccess(SuccessType::UNDEFINED),
         _iterAncestor(nullptr),
         _trialPointStats( parentStep ),
-        _fromAlgo(false),
-        _updateIncumbentsAndHMax(true),
-        _projectOnMesh(true)
+        _directFromAlgo(false),
+        _updateIncumbentsAndHMax(true)
     {
         init();
     }
@@ -294,4 +302,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_ITERATIONUTILS__
+#endif // __NOMAD_4_6_ITERATIONUTILS__

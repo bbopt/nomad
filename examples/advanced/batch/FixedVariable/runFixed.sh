@@ -3,6 +3,11 @@
 
 # Argument #1: path to Nomad install dir
 
+if [ -z "$1" ]; then
+    echo "Argument 1 is missing or empty. Argument 1 must be the NOMAD root dir path."
+    exit 1
+fi
+
 rm -f cache.txt
 # Fix 0-2
 echo "Fix 0-2"

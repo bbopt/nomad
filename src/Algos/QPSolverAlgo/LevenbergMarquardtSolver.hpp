@@ -44,14 +44,15 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   LevenbergMarquardtSolver.hpp
  \brief  Levenberg-Marquardt algorithm
  \author Tangi Migot and Ludovic Salomon
  \see    LevenbergMarquardtSolver.cpp
  */
-#ifndef __NOMAD_4_5_LEVENBERG_MARQUARDT_SOLVER__
-#define __NOMAD_4_5_LEVENBERG_MARQUARDT_SOLVER__
+#ifndef __NOMAD_4_6_LEVENBERG_MARQUARDT_SOLVER__
+#define __NOMAD_4_6_LEVENBERG_MARQUARDT_SOLVER__
 
 #include "../../../ext/sgtelib/src/Matrix.hpp"
 
@@ -126,4 +127,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif //__NOMAD_4_5_LEVENBERG_MARQUARDT_SOLVER__
+#endif //__NOMAD_4_6_LEVENBERG_MARQUARDT_SOLVER__

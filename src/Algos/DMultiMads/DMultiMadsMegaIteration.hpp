@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_DMULTIMADSMEGAITERATION__
-#define __NOMAD_4_5_DMULTIMADSMEGAITERATION__
+
+#ifndef __NOMAD_4_6_DMULTIMADSMEGAITERATION__
+#define __NOMAD_4_6_DMULTIMADSMEGAITERATION__
 
 #include "../../Algos/MegaIteration.hpp"
 #include "../../Algos/DMultiMads/DMultiMadsIteration.hpp"
@@ -122,12 +123,7 @@ private:
      */
     virtual bool runImp() override;
     
-    /// Implementation of end task.
-    /**
-    This only for writing solution file using the mega iteration progressive barrier.
-     */
     virtual void endImp() override;
-    
     
 
 };
@@ -142,4 +138,4 @@ std::istream& operator>>(std::istream& is, DMultiMadsMegaIteration& megaIteratio
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_DMULTIMADSMEGAITERATION__
+#endif // __NOMAD_4_6_DMULTIMADSMEGAITERATION__

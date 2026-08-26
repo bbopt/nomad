@@ -183,9 +183,6 @@ BBE OBJ
   example: %5.2Ef displays f in 5 columns and 2 decimals in scientific notation
 . Do not use quotes
 . The '%' character may be explicitly indicated with '\%'
-. For multi-objective optimization, OBJ displays a single objective value.
-  BBO keyword can be used to display all outputs. 
-  It is also recommended to allow DISPLAY_ALL_EVAL.  
 
 . Example:
     DISPLAY_STATS BBE EVAL ( SOL ) OBJ CONS_H
@@ -345,14 +342,24 @@ RESTART_ATTRIBUTE no
 SOLUTION_FILE
 std::string
 -
-\( The name of the file containing the best feasible solution \)
+\( The name of the file containing the best solution \)
 \(
 
-. The solution file contains the best feasible incumbent point in a simple
+. The solution file contains the best incumbent point in a simple
   format (SOL BBO)
   
+. If the best incumbent is feasible it will be put into the solution file.
+
+. If only a best infeasible incumbent is available, it will be put into the
+solution file only if the SOLUTION_FILE_FEAS_ONLY parameter is set to false.
+  
 . If SOLUTION_FILE_FINAL is set to false, the solution file is written when
-a new success is obtained. Otherwise, it is written upon finalizing the run.
+a new success is obtained (only a single point at a time). Otherwise, it is
+written upon finalizing the run.
+
+. If SOLUTION_FILE_FINAL is set to true, the solution file is written at the
+end of the optimization. It will contain all equivalent points in terms of
+f and h (could be more than one).
 
 . Arguments: one string (file name)
 
@@ -360,6 +367,25 @@ a new success is obtained. Otherwise, it is written upon finalizing the run.
   ADD_SEED_TO_FILE_NAMES=\'yes\' (default)
 
 . Example: SOLUTION_FILE sol.txt
+
+
+\)
+\( basic solution best incumbent file name display(s) output(s) \)
+ALGO_COMPATIBILITY_CHECK no
+RESTART_ATTRIBUTE no
+###############################################################################
+SOLUTION_FILE_FEAS_ONLY
+bool
+true
+\( Option to control which incumbent is put in solution  \)
+\(
+
+. See the SOLUTION_FILE paramters info for details.
+
+. If set to false, the solution file will always contain a point after the first
+blackbox evaluation (no failure).
+  
+. Example: SOLUTION_FILE_FEAS_ONLY false
 
 
 \)

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   Point.hpp
  \brief  Point
@@ -52,8 +53,8 @@
  \see    Point.cpp
  */
 
-#ifndef __NOMAD_4_5_POINT__
-#define __NOMAD_4_5_POINT__
+#ifndef __NOMAD_4_6_POINT__
+#define __NOMAD_4_6_POINT__
 
 #include <numeric>
 #include "../Math/ArrayOfDouble.hpp"
@@ -150,7 +151,7 @@ public:
      * Ends up to lexicographic order. Not useful. Throw an exception.
      * Ignore warning about unused variable point
      */
-    bool operator<(const Point &NOMAD_UNUSED(point)) const
+    bool operator<([[maybe_unused]] const Point &point) const
     {
         throw Exception(__FILE__,__LINE__,"Error: Attempting to use lexicographical order on a Point.");
     }
@@ -267,4 +268,4 @@ DLL_UTIL_API std::istream& operator>>(std::istream& in, Point& pt);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_5_POINT__
+#endif // __NOMAD_4_6_POINT__

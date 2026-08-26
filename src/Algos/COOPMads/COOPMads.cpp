@@ -46,6 +46,7 @@
 /*---------------------------------------------------------------------------------*/
 
 
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/Mads/MadsInitialization.hpp"
@@ -137,6 +138,7 @@ bool NOMAD::COOPMads::runImp()
         // the mads.
         // During Search initialization, the extra search methods will be transferred from
         // Mads to the Search.
+        // The cache search is optional.
         auto cacheSearch = std::make_shared<NOMAD::CacheSearchMethod>(this);
         madsOnPb.insertSearchMethod(0,cacheSearch);
 

@@ -7,8 +7,8 @@ cmake_minimum_required(VERSION 3.15...3.15)
 
 # Warning. This must be consistent with src/nomad_version.hpp
 set(NOMAD_VERSION_MAJOR 4)
-set(NOMAD_VERSION_MINOR 5)
-set(NOMAD_VERSION_PATCH 1) 
+set(NOMAD_VERSION_MINOR 6)
+set(NOMAD_VERSION_PATCH 0)
 
 set(NOMAD_VERSION ${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}.${NOMAD_VERSION_PATCH})
 
@@ -25,7 +25,7 @@ else()
    set(NO_SONAME False)
 endif()
 
-# Nomad src template (copy of template defined in src/nomad_version.hpp, used by jNomad) 
+# Nomad src template (copy of template defined in src/nomad_version.hpp, used by jNomad)
 # Need to update when version changes
 set(NOMAD_SRC_TEMPLATE NOMAD_${NOMAD_VERSION_MAJOR}_${NOMAD_VERSION_MINOR})
 
@@ -46,7 +46,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8)
         message(FATAL_ERROR "GCC version < 8 has not been tested for Nomad")
     endif()
-elseif (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") 
+elseif (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
     # require at least clang 5
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5)
@@ -75,7 +75,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 message(CHECK_START "Configuring custom options")
 list(APPEND CMAKE_MESSAGE_INDENT "  ")
 
-# 
+#
 # Modify the build type if not specified on the command
 #
 if (CMAKE_CONFIGURATION_TYPES)
@@ -95,7 +95,7 @@ endif()
 # Modify the install prefix if not specified on the command
 #
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-   set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR} CACHE PATH "..." FORCE) 
+   set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR} CACHE PATH "..." FORCE)
 endif()
 message(STATUS "  Installation prefix set to ${CMAKE_INSTALL_PREFIX}")
 
@@ -125,8 +125,49 @@ else()
     message(STATUS "  Compiling Nomad without OpenMP")
 endif()
 
+
 #
-# Choose to build the examples/tests using batch and library mode 
+# Declare these options here (before add_subdirectory(ext) and add_subdirectory(src))
+# so that ext/sgtelib and src can safely test their value with MATCHES ON. Testing an
+# undefined variable with MATCHES ON wrongly evaluates to true because the literal
+# name "BUILD_INTERFACE_PYTHON" contains "ON" as a substring.
+#
+option(BUILD_INTERFACE_PYTHON "Option to build Python interface to Nomad" OFF)
+option(BUILD_INTERFACE_PYTHON_CAT "Option to build NomadBBO interface" OFF)
+# Build only one of the Python interfaces (Python or Python-CAT)
+if((BUILD_INTERFACE_PYTHON MATCHES ON) AND (BUILD_INTERFACE_PYTHON_CAT MATCHES ON))
+  message(FATAL_ERROR "  Error: cannot build for both Python and Python-CAT interfaces. Please choose one of them AND remove build directory.")
+endif()
+
+#
+# Use sgtelib
+#
+option(USE_SGTELIB "Option to use the Sgtelib library" ON)
+if(USE_SGTELIB MATCHES ON)
+  message(CHECK_START "  Configuring for use of Sgtelib library")
+
+  if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib)
+     message(CHECK_FAIL "  failed. Directory ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib not found. Let's configure without Sgtelib library")
+     set(USE_SGTELIB OFF)
+  else()
+     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext)
+     add_compile_definitions(USE_SGTELIB)
+     list(APPEND EXTRA_LIBS sgtelib)
+     message(CHECK_PASS "   Sgtelib found. done")
+  endif()
+else()
+   message(STATUS "  Sgtelib library will NOT be used\n")
+endif()
+
+
+#
+# Add nomad app directory for building
+#
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+
+#
+# Choose to build the examples/tests using batch and library mode
 #
 option(BUILD_EXAMPLES "Option to build examples (library and batch)" ON)
 if(BUILD_EXAMPLES MATCHES ON)
@@ -156,7 +197,6 @@ endif()
 #
 # Choose to build the Python interface
 #
-option(BUILD_INTERFACE_PYTHON "Option to build Python interface to Nomad" OFF)
 if(BUILD_INTERFACE_PYTHON MATCHES ON)
        set(Python3_FIND_VIRTUALENV "First") # Using virtualenv to have cython and wheel is easy
        find_package(Python 3.8 QUIET REQUIRED)
@@ -165,6 +205,19 @@ if(BUILD_INTERFACE_PYTHON MATCHES ON)
        message(CHECK_PASS " done")
 else()
    message(STATUS "  Python interface to Nomad NOT built")
+endif()
+
+#
+# Choose to build the Python interface specialized for Categorical variables
+#
+if(BUILD_INTERFACE_PYTHON_CAT MATCHES ON)
+   set(Python3_FIND_VIRTUALENV "First")
+   find_package(Python 3.8 QUIET REQUIRED)
+   message(CHECK_START "  Configuring build for NomadBBO interface (Python ${Python_VERSION})")
+   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interfaces/NomadBBO)
+   message(CHECK_PASS " done")
+else()
+   message(STATUS "  NomadBBO interface to Nomad NOT built")
 endif()
 
 #
@@ -222,10 +275,10 @@ option(USE_IBEX "Option to use IBEX" OFF)
 if(USE_IBEX MATCHES ON)
    message(CHECK_START "  Enabling Ibex use.")
    if(NOT DEFINED ENV{IBEX_ROOT})
-        message(FATAL_ERROR "FATAL: Ibex root environment variable IBEX_ROOT is not defined")     
+        message(FATAL_ERROR "FATAL: Ibex root environment variable IBEX_ROOT is not defined")
    endif()
    If (NOT EXISTS "$ENV{IBEX_ROOT}")
-        message(FATAL_ERROR "FATAL: Ibex root dir $ENV{IBEX_ROOT} is not present")      
+        message(FATAL_ERROR "FATAL: Ibex root dir $ENV{IBEX_ROOT} is not present")
    endif()
    message(STATUS "  Ibex root: $ENV{IBEX_ROOT}")
    set(USE_IBEX ON)
@@ -234,34 +287,9 @@ else()
 endif()
 
 
-#
-# Use sgtelib
-#
-option(USE_SGTELIB "Option to use the Sgtelib library" ON)
-if(USE_SGTELIB MATCHES ON)
-  message(CHECK_START "  Configuring for use of Sgtelib library")
-
-  if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib) 
-     message(CHECK_FAIL "  failed. Directory ${CMAKE_CURRENT_SOURCE_DIR}/ext/sgtelib not found. Let's configure without Sgtelib library")
-     set(USE_SGTELIB OFF)
-  else()
-     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext)
-     add_compile_definitions(USE_SGTELIB)
-     list(APPEND EXTRA_LIBS sgtelib)
-     message(CHECK_PASS "   Sgtelib found. done")
-  endif()
-else()
-   message(STATUS "  Sgtelib library will NOT be used\n")
-endif()
 
 #
 # Custom options final message
 #
 list(REMOVE_ITEM CMAKE_MESSAGE_INDENT "  ")
 message(CHECK_PASS " done")
-
-
-#
-# Add nomad app directory for building 
-#
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)

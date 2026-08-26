@@ -96,7 +96,7 @@ namespace SGTELIB {
     double _Ds_mean;
 
     // private affectation operator:
-    TrainingSet & operator = ( const TrainingSet & );
+    TrainingSet & operator = ( const TrainingSet & ) = delete;
 
     // Data preparation 
 

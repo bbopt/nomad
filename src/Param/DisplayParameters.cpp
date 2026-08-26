@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Param/DisplayParameters.hpp"
 #include "../Util/fileutils.hpp"
 
@@ -209,7 +210,7 @@ void NOMAD::DisplayParameters::checkAndComply(
     bool solutionFileFinal = getAttributeValueProtected<bool>("SOLUTION_FILE_FINAL",false) ;
     if(solutionFileName.empty() && solutionFileFinal)
     {
-        throw NOMAD::InvalidParameter(__FILE__,__LINE__, "SOLUTION_FILE_FINAL must be enabled only with SOLUTION_FILE properly set.");
+        throw NOMAD::InvalidParameter(__FILE__,__LINE__, "SOLUTION_FILE_FINAL can be enabled only with SOLUTION_FILE properly set.");
     }
 
     _toBeChecked = false;

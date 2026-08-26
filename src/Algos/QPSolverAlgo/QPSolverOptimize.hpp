@@ -44,15 +44,17 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   QPSolverOptimize.hpp
  \brief  Class to create trial points by performing quadratic model optimization using QP solver
  \author Tangi Migot
  \see    QPSolverOptimize.cpp
  */
-#ifndef __NOMAD_4_5_QP_SOLVER_OPTIMIZE__
-#define __NOMAD_4_5_QP_SOLVER_OPTIMIZE__
+#ifndef __NOMAD_4_6_QP_SOLVER_OPTIMIZE__
+#define __NOMAD_4_6_QP_SOLVER_OPTIMIZE__
 
+#include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Step.hpp"
 #include "../../Algos/QuadModel/QuadModelIterationUtils.hpp"
 
@@ -73,6 +75,10 @@ private:
 
     ArrayOfDouble _modelLowerBound; ///> Lower bound: min of trainingSet points
     ArrayOfDouble _modelUpperBound; ///> Upper bound: max of trainingSet points
+    
+    ArrayOfDouble _optimLowerBound; ///> Lower bound for optim. If not defined, use model bounds
+    ArrayOfDouble _optimUpperBound; ///> Upper bound bound for optim. If not defined, use model bounds
+
     Point         _modelFixedVar;   ///> Fixed variables: fixed variables detected from trainingSet
 
     Double        _modelBoxSizeLimit;  ///> Bounds box size limit to generate trial points
@@ -88,6 +94,10 @@ private:
 
     bool _optWithScaledBounds;
     
+    bool _flagReducedIterations; ///< Flag to reduce the number of iterations for model optimization
+    
+    std::shared_ptr<AlgoStopReasons<QPStopType>> _qpStopReason;
+    
     int _n;
     int _m;  // number of bb outputs
     int _nbCons ; // number of constraints (!= _m-1 if multi-obj)
@@ -97,6 +107,8 @@ private:
 
     bool _verbose, _verboseFull;
     
+    NOMAD::Double _reductionRatio = NOMAD::M_INF;
+    
 public:
     /// Constructor
     /* Parent must explicitely be a (pointer to a) QuadModelAlgo.
@@ -104,20 +116,25 @@ public:
      */
     explicit QPSolverOptimize(const Step* parentStep,
                                const std::shared_ptr<PbParameters>               refPbParams,
-                               bool optWithScaledBounds)
+                               bool optWithScaledBounds,
+                               bool flagReducedIterations = false)
       : Step(parentStep),
       QuadModelIterationUtils (parentStep),
         _displayLevel(OutputLevel::LEVEL_DEBUG),
         _modelLowerBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _modelUpperBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
+        _optimLowerBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
+        _optimUpperBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _modelFixedVar(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _modelCenter(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _refPbParams(refPbParams),
         _optPbParams(nullptr),
         _optWithScaledBounds(optWithScaledBounds),
+        _flagReducedIterations(flagReducedIterations),
         _verbose(false),
         _verboseFull(false)
     {
+        _qpStopReason = std::make_shared<AlgoStopReasons<QPStopType>>();
         init();
     }
 
@@ -137,6 +154,13 @@ public:
     virtual bool runImp() override; ///< Trial (oracle) points are evaluated with EvalType::BB. Set the stop reason.
     virtual void endImp() override {} ///< Remove from cache EvalType::MODEL only cache points.
 
+    std::shared_ptr<AlgoStopReasons<QPStopType>> getQPStopReason() const { return _qpStopReason;}
+    
+    
+    void setOptimBounds(const ArrayOfDouble & optimLowerBound, const ArrayOfDouble & optimUpperBound) {_optimLowerBound = optimLowerBound; _optimUpperBound = optimUpperBound; };
+    
+    // Reduction ratio (rho) is computed by run function
+    NOMAD::Double getReductionRatio() const {return _reductionRatio;}
         
 private:
     void init();
@@ -171,11 +195,6 @@ private:
     // Solve QP with bound constraints using a basic active-set strategy.
     bool solveBCQP(NOMAD::Point & X, const int max_iter = 10, const double atol = 1E-7, const double rtol = 1E-7, const bool verbose = false);
     bool solveBCQP(SGTELIB::Matrix & X, const SGTELIB::Matrix & H, const SGTELIB::Matrix & g, const double g0, const SGTELIB::Matrix & lvar, const SGTELIB::Matrix & uvar, const int max_iter = 100, const double atol = 1E-12, const double rtol = 1E-12, bool verbose = false);
-    // void projectedGradient(SGTELIB::Matrix& X, const SGTELIB::Matrix& H, const SGTELIB::Matrix& g, const double g0,
-    //                        const SGTELIB::Matrix& lvar, const SGTELIB::Matrix& uvar,
-    //                        bool* active_l, bool* active_u, bool* working, SGTELIB::Matrix& d_k, SGTELIB::Matrix& Temp,
-    //                        const double kappa = 0,
-    //                        const double tol = 1E-12, const int max_iter = 100, const bool verbose = false);
 
     void projectedGradient(SGTELIB::Matrix& X, const SGTELIB::Matrix& H, const SGTELIB::Matrix& g, const double g0,
                            const SGTELIB::Matrix& lvar, const SGTELIB::Matrix& uvar,
@@ -272,7 +291,7 @@ private:
     double check_inner_success(NOMAD::Point & X, const SGTELIB::Matrix & Jacobian_k, SGTELIB::Matrix & multiplier_k, const SGTELIB::Matrix & lambda, const double mu, const bool * active, const bool * infeasible) const ;
 
     // Algo 3.
-    // Augmented Lagrangian
+    // Augmented Lagrangian 
     bool solveAugLag(NOMAD::Point& X,
                      const int max_iter = 30,
                      const double tolDistDX = -1.0,
@@ -371,7 +390,7 @@ private:
                       const SGTELIB::Matrix& HW, int* pp, double** D, double** L, const bool* active, const double Delta,
                       const bool verbose) ;
     
-// Model getters with NOMAD points
+    // Model getters with NOMAD points
     SGTELIB::Matrix getModelOut(const Point & x) const ;
     // Get model output j at point x
     double getModelOut(const Point & x, int j ) const { return getModelOut(x).get(0,j); }
@@ -449,4 +468,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QP_SOLVER_OPTIMIZE__
+#endif // __NOMAD_4_6_QP_SOLVER_OPTIMIZE__

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
   \file   ParameterEntry.hpp
   \brief  Parameter entry (headers)
@@ -51,8 +52,8 @@
   \date   2010-04-05
   \see    ParameterEntry.cpp
 */
-#ifndef __NOMAD_4_5_ParameterEntry__
-#define __NOMAD_4_5_ParameterEntry__
+#ifndef __NOMAD_4_6_ParameterEntry__
+#define __NOMAD_4_6_ParameterEntry__
 
 #include "../Util/utils.hpp"
 
@@ -233,4 +234,4 @@ inline std::ostream& operator<< (std::ostream &out,
 #include "../nomad_nsend.hpp"
 
 
-#endif  // __NOMAD_4_5_ParameterEntry__
+#endif  // __NOMAD_4_6_ParameterEntry__

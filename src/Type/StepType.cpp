@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   StepType.cpp
  \brief  types for Types for Steps that generate points (implementation)
@@ -65,6 +66,7 @@ bool NOMAD::isAlgorithm(const StepType& stepType)
         case NOMAD::StepType::ALGORITHM_CS:
         case NOMAD::StepType::ALGORITHM_DMULTIMADS:
         case NOMAD::StepType::ALGORITHM_MADS:
+        case NOMAD::StepType::ALGORITHM_ADS:
         case NOMAD::StepType::ALGORITHM_SIMPLE_MADS:
         case NOMAD::StepType::ALGORITHM_NM:
         case NOMAD::StepType::ALGORITHM_PHASE_ONE:
@@ -92,6 +94,8 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::ALGORITHM_CS, "Coordinate Search"},
         {NOMAD::StepType::ALGORITHM_DMULTIMADS, "DMultiMADS"},
         {NOMAD::StepType::ALGORITHM_MADS, "MADS"},
+        {NOMAD::StepType::ALGORITHM_ADS, "ADS"},
+        {NOMAD::StepType::ALGORITHM_CATALGO, "Cat Mads or Cat Ads"},
         {NOMAD::StepType::ALGORITHM_SIMPLE_MADS, "Simple MADS"},
         {NOMAD::StepType::ALGORITHM_NM, "Nelder-Mead"},
         {NOMAD::StepType::ALGORITHM_PHASE_ONE, "Phase One"},
@@ -126,6 +130,7 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
 
         {NOMAD::StepType::MODEL_OPTIMIZE, "Model optimize"},
         {NOMAD::StepType::POLL, "Poll"},
+        {NOMAD::StepType::EXTENDED_POLL, "Extended poll"},
         {NOMAD::StepType::SIMPLE_POLL, "Simple Poll"},
         {NOMAD::StepType::CS_POLL, "Coordinate Search Poll"},
         {NOMAD::StepType::REVEALING_POLL, "Revealing Poll"},
@@ -137,6 +142,7 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::POLL_METHOD_SINGLE, "Single Poll Method"},
         {NOMAD::StepType::POLL_METHOD_UNI_NPLUS1, "Uniform N+1 Poll Method"},
         {NOMAD::StepType::POLL_METHOD_USER, "User-Defined Poll Method"},
+        {NOMAD::StepType::POLL_METHOD_CAT, "CatMads Poll Method"},
         {NOMAD::StepType::CS_POLL_METHOD, "Coordinate Search Poll Method"},
         {NOMAD::StepType::SEARCH, "Search"},
         {NOMAD::StepType::SEARCH_METHOD_ALGO_RANDOM, "Search method using a random algorithm (iteration)"},
@@ -147,13 +153,17 @@ std::map<NOMAD::StepType, std::string>& NOMAD::dictStepType()
         {NOMAD::StepType::SEARCH_METHOD_LH, "Latin Hypercube Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_NM, "Nelder-Mead Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_QUAD_MODEL, "Quadratic Model Search Method"},
+        {NOMAD::StepType::SEARCH_METHOD_QUAD_MODEL_SLD, "Quadratic Model (SLD) Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_SGTELIB_MODEL, "Sgtelib Model Search Method"},
+        {NOMAD::StepType::SEARCH_METHOD_SIMPLE_RANDOM, "Simple (no iter.) random search method"},
         {NOMAD::StepType::SEARCH_METHOD_SIMPLE_LINE_SEARCH, "Simple line search Method"},
         {NOMAD::StepType::SEARCH_METHOD_SPECULATIVE, "Speculative Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_USER, "User-Defined Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_VNS_MADS, "VNS Mads Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_VNSMART_MADS, "VNSmart Mads Search Method"},
         {NOMAD::StepType::SEARCH_METHOD_REVEALING, "Revealing Search Method"},
+        {NOMAD::StepType::SEARCH_METHOD_CATALGO_CAT, "CatMads/CatAds search method for categorical variables"},
+        {NOMAD::StepType::SEARCH_METHOD_CAT_SPECULATIVE, "CatMads/CatAds Speculative Search Method"},
         {NOMAD::StepType::SURROGATE_EVALUATION, "Points evaluated using static surrogate"},
         {NOMAD::StepType::MODEL_EVALUATION, "Points evaluated using dynamic model"},
         {NOMAD::StepType::QUAD_MODEL_SORT, "Build dynamic model for sorting points"},

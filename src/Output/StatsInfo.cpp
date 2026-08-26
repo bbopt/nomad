@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  * \file   StatsInfo.cpp
  * \brief  Class for Stats info and display
@@ -56,7 +57,8 @@
 
 // Constructor 1
 NOMAD::StatsInfo::StatsInfo()
-  : _obj(),
+: _failedEval(false),
+    _obj(),
     _consH(),
     _hMax(),
     _bbe(0),

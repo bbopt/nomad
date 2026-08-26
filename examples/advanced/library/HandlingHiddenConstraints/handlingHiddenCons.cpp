@@ -44,9 +44,10 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*--------------------------------------------------------------------------*/
 /*  example of a program that makes NOMAD call a user call back function to */
-/*  manage failed evaluations.                                              */
+/*  manage failed evaluations                                               */
 /*--------------------------------------------------------------------------*/
 #include "Nomad/nomad.hpp"
 #include "Algos/EvcInterface.hpp"
@@ -96,22 +97,23 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 
 /*------------------------------------------------------------------------*/
 /* After failed evaluation, may apply a special treatment to eval point   */
+/* Define the callback eval class with its call function                  */
 /*------------------------------------------------------------------------*/
-void customFailEvalCB( NOMAD::EvalQueuePointPtr & evalQueuePoint)
+void cbFailCheck(NOMAD::EvalQueuePointPtr &evalQueuePoint)
 {
     if (nullptr != evalQueuePoint)
     {
-    auto eval = evalQueuePoint->getEval(NOMAD::EvalType::BB);
-    if ( nullptr != eval )
-    {
-        if (! eval->isBBOutputComplete())
+        auto eval = evalQueuePoint->getEval(NOMAD::EvalType::BB);
+        if ( nullptr != eval )
         {
-            eval->setBBO(std::string("1 1 1 1 1 1 1 1 1 1 1 1"), eval->getBBOutputTypeList(), true);
-            std::cout<<"Blackbox outputs are incomplete. BBO is reset to be complete."<<std::endl;
+            if (! eval->isBBOutputComplete())
+            {
+                eval->setBBO(std::string("1 1 1 1 1 1 1 1 1 1 1 1"), eval->getBBOutputTypeList(), true);
+                std::cout<<"Blackbox outputs are incomplete. BBO is reset to be complete."<<std::endl;
+            }
         }
     }
-    }
-}
+};
 
 
 /*------------------------------------------*/
@@ -126,13 +128,9 @@ int main()
     initAllParams(params);
     TheMainStep.setAllParameters(params);
     
-    // Link callback function with user function defined locally
-    NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_FAIL_CHECK> cbFailCheck = customFailEvalCB;
-    
     // Add callback function for fail eval check and management.
-    NOMAD::EvcInterface::getEvaluatorControl()->addEvalCallback<NOMAD::CallbackType::EVAL_FAIL_CHECK>(cbFailCheck);
-
-    
+    TheMainStep.addCallback<NOMAD::EvalCallbackType::EVAL_FAIL_CHECK>(cbFailCheck);
+        
     // The run
     TheMainStep.start();
     TheMainStep.run();

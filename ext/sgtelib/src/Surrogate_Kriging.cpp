@@ -1,7 +1,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.3                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -31,8 +31,8 @@
 SGTELIB::Surrogate_Kriging::Surrogate_Kriging ( SGTELIB::TrainingSet & trainingset,
                                                 const SGTELIB::Surrogate_Parameters& param) :
   SGTELIB::Surrogate ( trainingset , param ),
-  _R                 ( "R",0,0             ),  
-  _Ri                ( "Ri",0,0            ),  
+  _R                 ( "R",0,0             ),
+  _Ri                ( "Ri",0,0            ),
   _H                 ( "H",0,0             ),
   _alpha             ( "alpha",0,0         ),
   _beta              ( "beta",0,0          ),
@@ -55,7 +55,7 @@ SGTELIB::Surrogate_Kriging::~Surrogate_Kriging ( void ) {
 /*          display           */
 /*----------------------------*/
 void SGTELIB::Surrogate_Kriging::display_private ( std::ostream & out ) const {
-  //_alpha.display(out);  
+  //_alpha.display(out);
   _beta.display(out);
   _var.display(out);
 }//
@@ -77,7 +77,7 @@ bool SGTELIB::Surrogate_Kriging::init_private ( void ) {
 /*--------------------------------------*/
 bool SGTELIB::Surrogate_Kriging::build_private ( void ) {
 
-  // The build mainly consists of computing alpha  
+  // The build mainly consists of computing alpha
 
   // Compute scaling distance for each training point
   const int nvar = _trainingset.get_nvar();
@@ -101,7 +101,7 @@ bool SGTELIB::Surrogate_Kriging::build_private ( void ) {
 
   _beta.set_name("beta");
   _alpha.set_name("alpha");
-  
+
   _var = SGTELIB::Matrix("var",1,_m);
   double v;
   SGTELIB::Matrix Zj;
@@ -113,12 +113,12 @@ bool SGTELIB::Surrogate_Kriging::build_private ( void ) {
     v = Vj.get(0,0) / (_p-nvar);
     if (v<0) return false;
     _var.set(0,j,v);
-    
+
   }
 
   _ready = true;
-  return true;    
-  
+  return true;
+
 }//
 
 
@@ -149,7 +149,7 @@ const SGTELIB::Matrix SGTELIB::Surrogate_Kriging::compute_covariance_matrix ( co
       R.set(i1,i2,cov);
     }
   }
-  
+
   return R;
 }//
 
@@ -161,7 +161,7 @@ const SGTELIB::Matrix SGTELIB::Surrogate_Kriging::compute_covariance_matrix ( co
 /*--------------------------------------*/
 void SGTELIB::Surrogate_Kriging::predict_private ( const SGTELIB::Matrix & XXs,
                                                      SGTELIB::Matrix * ZZs) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   const int pxx = XXs.get_nb_rows();
   const SGTELIB::Matrix r = compute_covariance_matrix(XXs).transpose();
   *ZZs =  SGTELIB::Matrix::ones(pxx,1)*_beta + r.transpose() * _alpha;
@@ -171,14 +171,14 @@ void SGTELIB::Surrogate_Kriging::predict_private ( const SGTELIB::Matrix & XXs,
 // Predict only objectives (used in Surrogate Ensemble Stat)
 void SGTELIB::Surrogate_Kriging::predict_private_objective ( const std::vector<SGTELIB::Matrix *> & XXd,
                                                              SGTELIB::Matrix * ZZsurr_around            ) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
   const size_t pxx = XXd.size();
   const int nbd = XXd[0]->get_nb_rows();
   SGTELIB::Matrix temp;
 
 
-  // Loop on all pxx points 
+  // Loop on all pxx points
   for (int i=0 ; i<static_cast<int>(pxx) ; i++){
     // *(XXd[i]) is of dimension nbd * _n
     const SGTELIB::Matrix r = compute_covariance_matrix(*(XXd[i])).transpose();
@@ -198,10 +198,10 @@ void SGTELIB::Surrogate_Kriging::predict_private_objective ( const std::vector<S
 
 void SGTELIB::Surrogate_Kriging::predict_private (const SGTELIB::Matrix & XXs,
                                                 SGTELIB::Matrix * ZZs,
-                                                SGTELIB::Matrix * std, 
+                                                SGTELIB::Matrix * std,
                                                 SGTELIB::Matrix * ei ,
                                                 SGTELIB::Matrix * cdf) {
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
   const int pxx = XXs.get_nb_rows();
   const double fs_min = _trainingset.get_fs_min();
@@ -209,7 +209,7 @@ void SGTELIB::Surrogate_Kriging::predict_private (const SGTELIB::Matrix & XXs,
   int i,j;
 
   // Predict ZZ
-  if (ZZs) predict_private(XXs,ZZs);
+  predict_private(XXs,ZZs);
 
   // Predict std
   if (std) std->fill(-SGTELIB::INF);
@@ -223,7 +223,7 @@ void SGTELIB::Surrogate_Kriging::predict_private (const SGTELIB::Matrix & XXs,
   for (i=0 ; i<pxx ; i++){
     ri = r.get_col(i);
     rRr = (ri.transpose()*_Ri*ri).get(0,0);
-    if (std::fabs(rRr-1)<EPSILON){
+    if (std::fabs(rRr-1)<SGTELIB::EPSILON){
       v = std::fabs(rRr-1);
     }
     else{
@@ -280,7 +280,7 @@ void SGTELIB::Surrogate_Kriging::predict_private (const SGTELIB::Matrix & XXs,
 
 
 bool SGTELIB::Surrogate_Kriging::compute_cv_values (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
 
   if ((_Zvs) && (_Svs)) return true;
 
@@ -288,7 +288,7 @@ bool SGTELIB::Surrogate_Kriging::compute_cv_values (void){
   const SGTELIB::Matrix RiH = _Ri*_H;
   const SGTELIB::Matrix Q = _Ri - RiH*( _H.transpose()*_Ri*_H)*RiH.transpose();
   const SGTELIB::Matrix dQ = Q.diag_inverse();
-  
+
   // Init matrices
   if ( !  _Zvs){
     _Zvs = new SGTELIB::Matrix;
@@ -296,7 +296,7 @@ bool SGTELIB::Surrogate_Kriging::compute_cv_values (void){
     _Zvs->replace_nan(+INF);
     _Zvs->set_name("Zvs");
   }
-    
+
   if ( !  _Svs){
     _Svs = new SGTELIB::Matrix ("Svs",_p,_m);
     double q;
@@ -330,7 +330,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_Kriging::get_matrix_Svs (void){
 /*       compute linv                   */
 /*--------------------------------------*/
 void SGTELIB::Surrogate_Kriging::compute_metric_linv (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  check_ready(__FILE__,__func__,__LINE__);
   if ( !is_defined(SGTELIB::METRIC_LINV) ){
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute metric linv\n";
@@ -343,9 +343,3 @@ void SGTELIB::Surrogate_Kriging::compute_metric_linv (void){
   }
 
 }//
-
-
-
-
-
-

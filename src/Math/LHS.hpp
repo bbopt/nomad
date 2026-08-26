@@ -45,8 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_5_LHS__
-#define __NOMAD_4_5_LHS__
+
+#ifndef __NOMAD_4_6_LHS__
+#define __NOMAD_4_6_LHS__
 
 #include <vector>
 #include "../Math/Point.hpp"
@@ -133,4 +134,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_LHS__
+#endif // __NOMAD_4_6_LHS__

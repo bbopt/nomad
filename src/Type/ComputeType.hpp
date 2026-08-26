@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   ComputeType.hpp
  \brief  Types for Computation of f and h: Blackbox, PhaseOne
@@ -52,8 +53,8 @@
  \see    ComputeType.cpp
  */
 
-#ifndef __NOMAD_4_5_COMPUTE_TYPE__
-#define __NOMAD_4_5_COMPUTE_TYPE__
+#ifndef __NOMAD_4_6_COMPUTE_TYPE__
+#define __NOMAD_4_6_COMPUTE_TYPE__
 
 #include "../Eval/BBOutput.hpp"
 #include "../Type/BBOutputType.hpp"
@@ -131,6 +132,7 @@ struct FHComputeTypeS {
     HNormType hNormType = HNormType::L2;
     singleOutputComputeFType singleObjectiveCompute = defaultEmptySingleOutputCompute;
     singleOutputComputeFType infeasHCompute = defaultEmptySingleOutputCompute;
+    
 };
 
 // Default is taken from struct initializers
@@ -156,4 +158,4 @@ const FHComputeType defaultFHComputeType;
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_5_COMPUTE_TYPE__
+#endif  // __NOMAD_4_6_COMPUTE_TYPE__

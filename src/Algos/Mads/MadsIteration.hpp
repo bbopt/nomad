@@ -44,12 +44,14 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_MADSITERATION__
-#define __NOMAD_4_5_MADSITERATION__
+
+#ifndef __NOMAD_4_6_MADSITERATION__
+#define __NOMAD_4_6_MADSITERATION__
 
 #include "../../Algos/Iteration.hpp"
 #include "../../Algos/Mads/MegaSearchPoll.hpp"
 #include "../../Algos/Mads/Poll.hpp"
+#include "../../Algos/Mads/ExtendedPoll.hpp"
 #include "../../Algos/Mads/Search.hpp"
 #include "../../Eval/EvalPoint.hpp"
 #include "../../Eval/MeshBase.hpp"
@@ -66,6 +68,8 @@ protected:
     const MeshBasePtr  _mesh;        ///< Mesh on which the points are
 
     std::unique_ptr<Poll> _poll;
+    std::unique_ptr<ExtendedPoll> _extendedPoll;
+    
     std::unique_ptr<Search> _search;
     std::unique_ptr<MegaSearchPoll> _megasearchpoll;
     
@@ -92,6 +96,7 @@ public:
       : Iteration(parentStep, k),
         _mesh(mesh),
         _poll(nullptr),
+        _extendedPoll(nullptr),
         _search(nullptr),
         _megasearchpoll(nullptr)
 #ifdef TIME_STATS
@@ -124,7 +129,16 @@ public:
     /*---------------------*/
     /* Other class methods */
     /*---------------------*/
+    
+    const EvalPointSet& getPollTrialPoints() const {return _poll->getTrialPoints(); }
+    const EvalPointSet& getSearchTrialPoints() const {return _search->getTrialPoints(); }
 
+protected:
+    
+    /// Helpers for doing iteration steps
+    bool doMegaSearchPoll();
+    bool doPoll();
+    bool doSearch();
 
 private:
     /// Helper for constructor
@@ -145,4 +159,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_MADSITERATION__
+#endif // __NOMAD_4_6_MADSITERATION__

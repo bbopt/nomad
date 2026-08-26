@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
@@ -76,7 +77,7 @@ int main ( int argc , char ** argv ) {
                 f1 += -10*exp(-0.2*pow(x[i]*x[i]+x[i+1]*x[i+1],0.5));
             }
             for ( int i = 0 ; i < 3 ; i++ ) {
-                f2 += pow(abs(x[i]),0.8)+5.0*sin(pow(x[i],3.0));
+                f2 += pow(std::abs(x[i]),0.8)+5.0*sin(pow(x[i],3.0));
             }
         }
         in.close();

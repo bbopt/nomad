@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   DirectionType.hpp
  \brief  Types for Poll direction : Ortho Mads (2n, n+1 Uni, n+1 neg), LT_MADS,
@@ -52,8 +53,8 @@
  \see    DirectionType.cpp
  */
 
-#ifndef __NOMAD_4_5_DIRECTION_TYPE__
-#define __NOMAD_4_5_DIRECTION_TYPE__
+#ifndef __NOMAD_4_6_DIRECTION_TYPE__
+#define __NOMAD_4_6_DIRECTION_TYPE__
 
 #include <list>
 #include <sstream>
@@ -87,6 +88,7 @@ enum class DirectionType
     GPS_1_STATIC,
     USER_POLL,
     USER_FREE_POLL,
+    CAT_FREE,
     UNDEFINED_DIRECTION
     ///< DirectionType is mandatory
 };
@@ -119,4 +121,4 @@ inline std::ostream& operator<<(std::ostream& out, const DirectionTypeList &dirT
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_5_DIRECTION_TYPE__
+#endif  // __NOMAD_4_6_DIRECTION_TYPE__

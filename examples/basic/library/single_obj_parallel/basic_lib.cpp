@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*----------------------------------------------------------*/
 /*  How to use the NOMAD library with a user eval function  */
 /*  that take a block of points and evaluate them in        */

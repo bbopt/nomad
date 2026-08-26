@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   example1_lib.cpp
  \brief  Library example for nomad
@@ -152,7 +153,7 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
     // this number of black-box evaluations
     allParams->setAttributeValue( "MAX_BB_EVAL", 1000);
     // Starting point
-    allParams->setAttributeValue( "X0", NOMAD::Point(n, 7.0) );
+    allParams->setAttributeValue( "X0", NOMAD::Point(n, 5.0) );
 
     allParams->getPbParams()->setAttributeValue("GRANULARITY", NOMAD::ArrayOfDouble(n, 0.0000001));
 

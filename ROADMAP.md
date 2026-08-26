@@ -1,11 +1,9 @@
 ## Next release
 
-### v4.6 - Not before July 2025
+### v4.7 - Not before July 2027
 
-These are the features we consider for 4.6:
+New features for 4.7 have not yet been planned.
 
-* Paralel run of multiple algorithms
+### v5.0 - Not before July 2027
 
-* Suggest and Observe paradigm without control on the evaluations
-
-* Categorical variables
+Change of paradigm to conduct optimization with parallel blackbox evaluations.

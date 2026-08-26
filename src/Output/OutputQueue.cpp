@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include <fstream>
 #include "../Output/OutputQueue.hpp"
 #include "../Util/Exception.hpp"
@@ -85,8 +86,7 @@ NOMAD::OutputQueue::~OutputQueue()
     // empty at this point.
     if (! _queue.empty())
     {
-        //std::cerr << "Calling destructor on a non-empty OutputQueue." << std::endl;
-        flush();
+        std::cerr << "Calling destructor on a non-empty OutputQueue." << std::endl;
     }
 #ifdef _OPENMP
     omp_destroy_lock(&_s_queue_lock);
@@ -369,23 +369,39 @@ void NOMAD::OutputQueue::flushBlock(const NOMAD::OutputInfo &outputInfo)
         }
 
         // Verify step level is high enough in the tree to be displayed.
+        // Display core message only for targeted indent level
         if (_indentLevel <= (int)_maxStepLevel)
         {
             for (size_t i = 0; i < msg.size(); i++)
             {
-                indent(_indentLevel);
+                bool endLine = false;
+                
+                if (_displayTargetIndentLevel == 0 || _indentLevel == _displayTargetIndentLevel || outputInfo.isBlockEnd() || (outputInfo.isBlockStart() && !outputInfo.getOriginator().empty()))
+                {
+                    indent(_indentLevel);
+                    endLine = true;
+                }
                 if (outputInfo.isBlockEnd())
                 {
                     endBlock();
+                    endLine = true;
                 }
 
-                std::cout << msg[i];
+                if (_displayTargetIndentLevel == 0 || _indentLevel == 4 || (outputInfo.isBlockStart() && !outputInfo.getOriginator().empty()))
+                {
+                    std::cout << msg[i];
+                    endLine = true;
+                }
 
                 if (outputInfo.isBlockStart())
                 {
                     startBlock();
+                    endLine = true;
                 }
-                std::cout << std::endl;
+                if (endLine)
+                {
+                    std::cout << std::endl;
+                }
             }
         }
         else
@@ -424,7 +440,7 @@ void NOMAD::OutputQueue::flushStatsToStdout(const NOMAD::StatsInfo *statsInfo)
     }
 
     // Maybe we can do it once in initParameters.
-    bool displayFailed      = _params->getAttributeValue<bool>("DISPLAY_FAILED");
+    bool displayFailed          = _params->getAttributeValue<bool>("DISPLAY_FAILED");
     bool displayInfeasible      = _params->getAttributeValue<bool>("DISPLAY_INFEASIBLE");
     bool displayUnsuccessful    = _params->getAttributeValue<bool>("DISPLAY_UNSUCCESSFUL");
     bool displayAllEval         = _params->getAttributeValue<bool>("DISPLAY_ALL_EVAL");

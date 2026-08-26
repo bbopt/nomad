@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   EvaluatorControl.hpp
  \brief  Management for evaluation.
@@ -52,12 +53,13 @@
  \see    EvaluatorControl.cpp
  */
 
-#ifndef __NOMAD_4_5_EVALUATORCONTROL__
-#define __NOMAD_4_5_EVALUATORCONTROL__
+#ifndef __NOMAD_4_6_EVALUATORCONTROL__
+#define __NOMAD_4_6_EVALUATORCONTROL__
 
 #include "../Eval/BarrierBase.hpp"
 #include "../Eval/SuccessStats.hpp"
 #include "../Eval/ComparePriority.hpp"
+#include "../Eval/EvalCallback.hpp"
 #include "../Eval/EvalQueuePoint.hpp"
 #include "../Eval/EvcMainThreadInfo.hpp"
 #include "../Param/EvaluatorControlGlobalParameters.hpp"
@@ -70,64 +72,6 @@
 
 #include "../nomad_platform.hpp"
 #include "../nomad_nsbegin.hpp"
-
-// Generic function with a  mandatory eval queue point (in/out) and a variable number of in/out bool arguments
-template<class ... Types>
-using EvalCbFunc = std::function<void(EvalQueuePointPtr & EvalQueuePoint, Types ...)>;  ///< Type definitions for callback functions during evaluation.
-
-// Generic callback function type stored in a struc
-template<CallbackType type>
-struct CallbackFuncType
-{
-    typedef std::function<void()> funcType;
-};
-
-// Callback function type for eval opportunistic check. 1 bool opportunisticStop + eval queue point
-template<>
-struct CallbackFuncType<CallbackType::EVAL_OPPORTUNISTIC_CHECK>
-{
-    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, bool&, bool&)> funcType;
-};
-
-// Callback function type for global stop check. 1 bool opportunisticStop + eval queue point
-template<>
-struct CallbackFuncType<CallbackType::EVAL_STOP_CHECK>
-{
-    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, bool&)> funcType;
-};
-
-// Callback function type for pre evaluation check. Same as eval_x. 1 double for hmax, 1 bool for count eval + eval queue point
-template<>
-struct CallbackFuncType<CallbackType::PRE_EVAL_UPDATE>
-{
-    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint, const Double &, bool&)> funcType;
-};
-
-// Callback function type for pre evaluation check of a block of point.
-template<>
-struct CallbackFuncType<CallbackType::PRE_EVAL_BLOCK_UPDATE>
-{
-    typedef std::function<void(BlockForEval & block)> funcType;
-};
-
-
-// Callback function type for update just after point evaluation. No argument apart from eval queue point.
-template<>
-struct CallbackFuncType<CallbackType::POST_EVAL_UPDATE>
-{
-    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint)> funcType;
-};
-
-// Callback function type for fail eval check and management. No argument apart from eval queue point.
-template<>
-struct CallbackFuncType<CallbackType::EVAL_FAIL_CHECK>
-{
-    typedef std::function<void(EvalQueuePointPtr & EvalQueuePoint)> funcType;
-};
-
-// Callback function template
-template<CallbackType type>
-using EvalCallbackFunc = typename CallbackFuncType<type>::funcType;
 
 
 // Define the default single objective compute function
@@ -156,6 +100,15 @@ const singleOutputComputeFType defaultSingleObjectiveCompute = [](const BBOutput
 
 
 /// \brief Class to control the evaluation of points using a queue.
+/**
+ * EvaluatorControl centralizes and manages blackbox (and surrogate/model) evaluations
+ * for all main threads of a run. Trial points are added to a shared queue, sorted by
+ * priority, then popped (individually or as blocks) and evaluated through the current
+ * Evaluator. It tracks evaluation counters (blackbox, surrogate, model, block, success),
+ * enforces stopping criteria (MAX_BB_EVAL, MAX_EVAL, opportunistic strategy), maintains
+ * per-main-thread state (barrier, best incumbent, evaluated points, stop reasons) via
+ * EvcMainThreadInfo, and notifies user-defined callbacks after each evaluation.
+ */
 class DLL_EVAL_API EvaluatorControl {
 private:
     const std::shared_ptr<EvaluatorControlGlobalParameters> _evalContGlobalParams;  ///< The parameters controlling the behavior of the class
@@ -175,7 +128,8 @@ private:
      */
     std::vector<EvalQueuePointPtr> _evalPointQueue;
 
-    static std::shared_ptr<ComparePriorityMethod>  _userCompMethod;    ///< User-implemented comparison method to sort points before evaluation
+    std::shared_ptr<ComparePriorityMethod>  _catCompMethod = nullptr;
+    std::shared_ptr<ComparePriorityMethod>  _userCompMethod = nullptr;    ///< User-implemented comparison method to sort points before evaluation
 
 #ifdef _OPENMP
     /// To lock the queue
@@ -294,54 +248,16 @@ private:
     SPAttribute<int> _nbThreadsForParallelEval; ///< The number of threads for parallel run evaluations. Parallel eval available only when OpenMP is available.
 
 
-    // Default callback function. Does nothing.
-    template<typename... ARGS>
-    static void defaultEvalCB(EvalQueuePointPtr & evalQueuePoint, ARGS&&... args) {}
-
-    // Default callback function for a block. Does nothing.
-    static void defaultEvalBlockCB(BlockForEval & block) {}
-
-
-    // Callback function definition for eval opportunistic check. Requires two out bool attribute for opportunistic stop
-    static EvalCallbackFunc<CallbackType::EVAL_OPPORTUNISTIC_CHECK> _cbEvalOpportunisticCheck ;
-    static bool _customOpportunisticOnlyCheck;
-
-    // Callback function definition for a special pre eval update defined by the user run just before evaluation.
-    static EvalCallbackFunc<CallbackType::PRE_EVAL_UPDATE> _cbPreEvalUpdate;
-
-    // Callback function definition for a special pre eval update of a block defined by the user run just before evaluation.
-    static EvalCallbackFunc<CallbackType::PRE_EVAL_BLOCK_UPDATE> _cbPreEvalBlockUpdate;
-
-    // Callback function definition for a special update defined by the user run just after evaluation.
-    static EvalCallbackFunc<CallbackType::POST_EVAL_UPDATE> _cbPostEvalUpdate;
-
-    // Callback function definition for global stop check. Requires one in/out bool attributes for global stop
-    static EvalCallbackFunc<CallbackType::EVAL_STOP_CHECK> _cbEvalStopCheck ;
-
-    // Callback function definition for eval fail check and manage. Requires no in/out attribute
-    static EvalCallbackFunc<CallbackType::EVAL_FAIL_CHECK> _cbFailEvalCheck ;
-
-    // Flag to indicate if callback for eval fail check has been set by user
-    static bool _cbFailEvalCheckIsDefault;
+    // Callbacks eval opportunistic check.
+    std::vector<std::unique_ptr<EvalCallbackBase>> _evalCallbacks;
+    std::shared_ptr<EvalStopCheckCallback> _evalStopCheckCallback = nullptr; // ONLY for jNomad
+    bool _customOpportunisticOnlyCheck = false;
 
 #ifdef TIME_STATS
     double _evalTime;  ///< Total time spent running evaluations
 #endif // TIME_STATS
 
 public:
-    /**
-    Set the callbacks to defaultEvalCB.
-    Useful for Runner between two optimization problems to reset all callback. Callbacks are initiated in MainStep::startImp()
-     */
-    static void resetCallbacks()
-    {
-        _cbEvalOpportunisticCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&,bool&>;
-        _cbPreEvalUpdate = NOMAD::EvaluatorControl::defaultEvalCB<const Double &, bool &>;
-        _cbPreEvalBlockUpdate = NOMAD::EvaluatorControl::defaultEvalBlockCB;
-        _cbPostEvalUpdate = NOMAD::EvaluatorControl::defaultEvalCB<>;
-        _cbEvalStopCheck = NOMAD::EvaluatorControl::defaultEvalCB<bool&>;
-        _cbFailEvalCheck = NOMAD::EvaluatorControl::defaultEvalCB<>;
-    }
 
     /// Constructor
     /**
@@ -423,6 +339,11 @@ public:
         init();
         addEvaluator(evaluator);
     }
+
+    EvaluatorControl(const EvaluatorControl&) = delete;
+    EvaluatorControl& operator=(const EvaluatorControl&) = delete;
+    EvaluatorControl(EvaluatorControl&&) = delete;
+    EvaluatorControl& operator=(EvaluatorControl&&) = delete;
 
     /// Destructor.
     virtual ~EvaluatorControl()
@@ -508,6 +429,9 @@ public:
     void setLapMaxBbEval(const size_t maxBbEval);
     void resetLapBbEval();
     size_t getLapBbEval(const int threadNum = -1) const;
+    // Force LapBbEval (needed for nested algos, for example VNS+QMS nested)
+    void setForceLapBbEval(const size_t bbEval);
+
 
     size_t getNbPhaseOneSuccess() const {return  _nbPhaseOneSuccess; }
     size_t getNbRelativeSuccess() const {return  _nbRelativeSuccess; }
@@ -536,6 +460,10 @@ public:
 
     const std::shared_ptr<ComparePriorityMethod>& getUserCompMethod() const { return _userCompMethod; }
     void setUserCompMethod(const std::shared_ptr<ComparePriorityMethod>& compMethod) { _userCompMethod = compMethod; setEvalSortType(NOMAD::EvalSortType::USER); }
+
+    // CatMads comparison method.
+    void setCatCompMethod(const std::shared_ptr<ComparePriorityMethod>& compMethod) { _catCompMethod = compMethod; setEvalSortType(NOMAD::EvalSortType::CAT_SORT); }
+    const std::shared_ptr<ComparePriorityMethod>& getCatCompMethod() const { return _catCompMethod; }
 
     void setComputeType(const ComputeType computeType, const singleOutputComputeFType& = defaultSingleObjectiveCompute, const singleOutputComputeFType& = defaultEmptySingleOutputCompute );
     const ComputeType& getComputeType(const int mainThreadNum = -1) const;
@@ -745,15 +673,47 @@ public:
     void sort(std::vector<EvalQueuePointPtr> & evalPointsPtrToSort, bool forceRandom);
 
     /*
-     Callback function can be added for checking if a special condition that is not a SuccessType (defined by an algo for example) is obtained after evaluating each point.
+     Callback class (with call functions) can be added for checking if a special condition that is not a SuccessType (defined by an algo for example) is obtained after evaluating each point.
      Callback function can be added for checking a fail evaluation and manage it (no stop will be called after this callback).
      */
-    template<CallbackType type>
-    void DLL_EVAL_API addEvalCallback(const NOMAD::EvalCallbackFunc<type>& evalCbFunc);
 
-    template<CallbackType type>
-    void DLL_EVAL_API addEvalCallback(const NOMAD::EvalCallbackFunc<type>& evalCbFunc, bool);
-    // Template specializations in .cpp
+
+    // Find and cast a specific callback
+    template<NOMAD::EvalCallbackType CT>
+    EvalCallback<CT>* getCallback() const
+    {
+        return dynamic_cast<EvalCallback<CT>*>(_evalCallbacks[eval_callback_type_index(CT)].get());
+    }
+
+    // Add evalCallback for callback type
+    // NOTE: more convenient to use callbackType passed as argument instead as template
+    /// \brief Set mads user method callback according to callback type
+    template<EvalCallbackType CT, typename Fn>
+    void addCallback(Fn&& fn, bool custom = true /*Only used by EVAL_OPPORTUNISTIC_CHECK with DiscoMads (custom=false)*/)
+    {
+        checkCallback(CT, custom);
+        _evalCallbacks[eval_callback_type_index(CT)] = std::move(makeEvalCallbackBase<CT>(fn, custom));
+    }
+
+    void addCallback(std::unique_ptr<EvalCallbackBase> cb)
+    {
+        checkCallback(cb->getType(), cb->isCustom());
+        _evalCallbacks[eval_callback_type_index(cb->getType())] = std::move(cb);
+    }
+    // Only for jNomad
+    void addEvalStopCheckCallback(std::shared_ptr<EvalStopCheckCallback> cb);
+
+    void checkCallback(EvalCallbackType CT, bool custom)
+    {
+
+        if (CT == NOMAD::EvalCallbackType::EVAL_OPPORTUNISTIC_CHECK)
+        {
+            // If true (default for custom), the custom opportunistic check is the only one considered, the default is not.
+            // If the exclusive flag is false, both the custom and default opportunistic check are considered. This is used by DiscoMads.
+            _customOpportunisticOnlyCheck = custom;
+        }
+    }
+
 
     /// Update local variables
     /**
@@ -829,32 +789,10 @@ private:
     std::shared_ptr<NOMAD::OrderByDirection> makeCompMethodOrderByDirection(const FHComputeType & computeType) const ;
 
     bool checkModelEvals() const;
-
-    /// \brief Generic run user eval callback (no extra argument)
-    template<CallbackType callback>
-    void runEvalCallback(EvalQueuePointPtr & evalQueuePoint);
-
-    /// \brief Generic run user eval callback for a block (no extra argument)
-    template<CallbackType callback>
-    void runEvalCallback(BlockForEval & block);
-
-    /// \brief Generic run user eval callback (1 extra bool argument)
-    template<CallbackType callback>
-    void runEvalCallback(EvalQueuePointPtr & evalQueuePoint, bool &);
-
-    /// \brief Generic run user eval callback (2 extra bool argument)
-    template<CallbackType callback>
-    void runEvalCallback(EvalQueuePointPtr & evalQueuePoint, bool &, bool &);
-
-    /// \brief Generic run user eval callback (1 Double and 1 extra bool argument)
-    template<CallbackType callback>
-    void runEvalCallback(EvalQueuePointPtr & evalQueuePoint, const Double &, bool &);
-
-    // Template specializations in .cpp
 };
 
 
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_EVALUATORCONTROL__
+#endif // __NOMAD_4_6_EVALUATORCONTROL__

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../../Algos/QPSolverAlgo/QPSolverAlgoIteration.hpp"
 #include "../../Algos/QPSolverAlgo/QPSolverOptimize.hpp"
 
@@ -61,14 +62,25 @@ bool NOMAD::QPSolverAlgoIteration::runImp()
         // Initialize optimize member on model
         NOMAD::QPSolverOptimize optimize (this, _pbParams, false /* do not perform on a scaled models */);
         
+        //
+        // Determine and set Trust Region subproblem bounds.
+        //
+        // Box size is the current frame size
+        auto boxSize = getMesh()->getDeltaFrameSize();
+        // The center
+        auto center = getRefCenter();
+        auto lowerBound = *center - boxSize;
+        auto upperBound = *center + boxSize;
+        optimize.setOptimBounds(lowerBound, upperBound);
         
         // Optimize to find oracle points on this model
         optimize.start();
         iterationSuccess = optimize.run();
         optimize.end();
-        
-        
 
+        // Update sufficient decrease flag
+        _sufficientDecrease = optimize.getReductionRatio() > _eta;
+                
         // Update MegaIteration success type
         _success = optimize.getTrialPointsSuccessType();
         auto megaIter = getParentOfType<NOMAD::MegaIteration*>();

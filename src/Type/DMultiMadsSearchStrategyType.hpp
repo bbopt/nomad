@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_DMULTIMADS_SEARCH_STRATEGY_TYPE__
-#define __NOMAD_4_5_DMULTIMADS_SEARCH_STRATEGY_TYPE__
+
+#ifndef __NOMAD_4_6_DMULTIMADS_SEARCH_STRATEGY_TYPE__
+#define __NOMAD_4_6_DMULTIMADS_SEARCH_STRATEGY_TYPE__
 
 #include <string>
 
@@ -93,4 +94,4 @@ inline std::ostream& operator<<(std::ostream& out, DMultiMadsQuadSearchType quad
 
 #include "../nomad_nsend.hpp"
 
-#endif //__NOMAD_4_5_DMULTIMADS_SEARCH_STRATEGY_TYPE__
+#endif //__NOMAD_4_6_DMULTIMADS_SEARCH_STRATEGY_TYPE__

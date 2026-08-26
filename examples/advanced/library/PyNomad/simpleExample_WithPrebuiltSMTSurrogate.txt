@@ -1,0 +1,81 @@
+import sys
+import numpy as np
+import PyNomad
+
+from smt.sampling_methods import LHS
+from smt.surrogate_models import KRG
+
+
+def objective_and_constraints(xx):
+    dim = len(xx)
+    f = xx[dim - 1]
+    g1 = sum((xx[i] - 1) ** 2 for i in range(dim)) - 25
+    g2 = 25 - sum((xx[i] + 1) ** 2 for i in range(dim))
+    return np.array([f, g1, g2], dtype=float)
+
+def build_surrogates(dim, lb, ub):
+    n_train = 10 * dim
+    xlimits = np.array([[lb, ub]] * dim, dtype=float)
+
+    sampling = LHS(xlimits=xlimits, criterion="maximin")
+    X_train = sampling(n_train)
+    Y_train = np.vstack([objective_and_constraints(x) for x in X_train])
+    
+    # print("X_train:",X_train)
+    # print("Y_train:",Y_train)
+
+    sm_f = KRG(print_global=False)
+    sm_g1 = KRG(print_global=False)
+    sm_g2 = KRG(print_global=False)
+
+    sm_f.set_training_values(X_train, Y_train[:, 0:1])
+    sm_g1.set_training_values(X_train, Y_train[:, 1:2])
+    sm_g2.set_training_values(X_train, Y_train[:, 2:3])
+
+    sm_f.train()
+    sm_g1.train()
+    sm_g2.train()
+
+    return sm_f, sm_g1, sm_g2
+
+
+X0 = [0, 0, 0, 0, 0]
+dim = len(X0)
+lb = -6
+ub = 6
+
+surrogate_f, surrogate_g1, surrogate_g2 = build_surrogates(dim, lb, ub)
+
+
+def surrogate(x):
+    try:
+        coords = np.array([x.get_coord(i) for i in range(x.size())], dtype=float).reshape(1, -1)
+
+        f = float(surrogate_f.predict_values(coords)[0, 0])
+        g1 = float(surrogate_g1.predict_values(coords)[0, 0])
+        g2 = float(surrogate_g2.predict_values(coords)[0, 0])
+
+        rawBBO = f"{f} {g1} {g2}"
+        x.setBBO(rawBBO.encode("UTF-8"))
+    except:
+        print("Unexpected eval error", sys.exc_info()[0])
+        return 0
+    return 1  # 1: success 0: failed evaluation
+
+
+params = [
+    "DIMENSION 5",
+    "BB_OUTPUT_TYPE OBJ PB PB",
+    "X0 * 0",
+    "LOWER_BOUND * -6",
+    "UPPER_BOUND * 6",
+    "DISPLAY_DEGREE 2",
+    "DISPLAY_ALL_EVAL false",
+    "DISPLAY_STATS BBE BBO"
+]
+
+result = PyNomad.optimize(surrogate, X0, [], [], params)
+
+fmt = ["{} = {}".format(n, v) for (n, v) in result.items()]
+output = "\n".join(fmt)
+print("\nNOMAD results \n" + output + " \n")

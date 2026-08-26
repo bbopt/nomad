@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 //
 //  TypeAttribute.hpp
 //  nomad
@@ -52,8 +53,8 @@
 //  Copyright (c) 2017 GERAD. All rights reserved.
 //
 
-#ifndef __NOMAD_4_5_TYPEATTRIBUTE__
-#define __NOMAD_4_5_TYPEATTRIBUTE__
+#ifndef __NOMAD_4_6_TYPEATTRIBUTE__
+#define __NOMAD_4_6_TYPEATTRIBUTE__
 
 #include "../Param/Attribute.hpp"
 #include "../Util/defines.hpp"
@@ -118,4 +119,4 @@ public:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_TYPEATTRIBUTE__
+#endif // __NOMAD_4_6_TYPEATTRIBUTE__

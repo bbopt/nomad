@@ -45,6 +45,8 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
+#include "../../Algos/Mads/GMesh.hpp"
 #include "../../Algos/QuadModel/QuadModelAlgo.hpp"
 #include "../../Algos/QuadModel/QuadModelMegaIteration.hpp"
 #include "../../Algos/QuadModel/QuadModelInitialization.hpp"
@@ -62,6 +64,8 @@ void NOMAD::QuadModelAlgo::init()
 
     // Instantiate quad model initialization class
     _initialization = std::make_unique<NOMAD::QuadModelInitialization>(this);
+
+    _minTrustRegionRadius = _runParams->getAttributeValue<NOMAD::Double>("QUAD_MODEL_OPTIMIZATION_MIN_TR_RADIUS");
 
 }
 
@@ -81,42 +85,69 @@ bool NOMAD::QuadModelAlgo::runImp()
     {
         // Barrier constructor automatically finds the best points in the cache.
         // Barrier is used for MegaIteration management.
-        
+
         auto barrier = _initialization->getBarrier();
         if (nullptr == barrier)
         {
             auto hMax = _runParams->getAttributeValue<NOMAD::Double>("H_MAX_0");
-            
+
             // Create a single objective progressive barrier
             barrier = std::make_shared<NOMAD::ProgressiveBarrier>(hMax,
                                                        NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
                                                        NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType(),
                                                        NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS());
         }
-        
+
         NOMAD::SuccessType megaIterSuccessType = NOMAD::SuccessType::UNDEFINED;
-        
+
+        auto gMeshStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
+
+
+        // Model based trust region (TR) uses the mesh to manage the TR radius (Delta).
+        // Mesh refining/coarsening mechanics is used for changing the TR radius
+        std::shared_ptr<NOMAD::MeshBase> mesh = std::make_shared<NOMAD::GMesh>(_pbParams,_runParams);
+
         // member _megaIteration is used for hot restart (read and write)
         // Update it here.
-        _refMegaIteration = std::make_shared<NOMAD::QuadModelMegaIteration>(this, k, barrier, megaIterSuccessType);
-        
+        _refMegaIteration = std::make_shared<NOMAD::QuadModelMegaIteration>(this, k, barrier, mesh, megaIterSuccessType);
+
         // Create an MegaIteration: manage multiple iterations around
         // different frame centers at the same time.
-        NOMAD::QuadModelMegaIteration megaIteration(this, k, barrier, megaIterSuccessType);
-        
-        while (!_termination->terminate(k))
+        NOMAD::QuadModelMegaIteration megaIteration(this, k, barrier, mesh, megaIterSuccessType);
+
+        while (!_termination->terminate(megaIteration.getK()))
         {
             megaIteration.start();
             bool currentMegaIterSuccess = megaIteration.run();
             megaIteration.end();
-            
+
             success = success || currentMegaIterSuccess;
-            
-            // Remember these values to construct the next MegaIteration.
-            k       = megaIteration.getK();
-            barrier = megaIteration.getBarrier();
-            megaIterSuccessType = megaIteration.NOMAD::MegaIteration::getSuccessType();
-            
+
+            if (megaIteration.hasSufficientDecrease())
+            {
+                // The TR radius (frame size) is updated.
+                mesh->enlargeDeltaFrameSize(NOMAD::Direction());
+            }
+            else
+            {
+                // Reset some stop type that should not trigger a stop
+                auto stopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(megaIteration.getAllStopReasons());
+                if (stopReason->testIf(NOMAD::ModelStopType::NO_NEW_POINTS_FOUND))
+                {
+                    megaIteration.getAllStopReasons()->setStarted();
+                }
+                // Refine the mesh
+                mesh->refineDeltaFrameSize();
+
+                // Check for stopping. Mesh is not anisotropic. Compare on a single value.
+                if (mesh->getDeltaFrameSize()[0] < _minTrustRegionRadius)
+                {
+                    auto qmsStopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get ( getAllStopReasons() );
+                    qmsStopReason->set( NOMAD::ModelStopType::MIN_TRUST_REGION_RADIUS);
+                }
+
+            }
+
             if (getUserInterrupt())
             {
                 hotRestartOnUserInterrupt();

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*--------------------------------------------------------------------------*/
 /*  example of a program that makes NOMAD do a local stop from user output  */
 /*  The user criterion is based upon extra output                           */
@@ -161,7 +162,8 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 /* After each evaluation compute user stats on extra outputs and check on */
 /* user stat stopping criterion                                           */
 /*------------------------------------------------------------------------*/
-void customEvalStopCB(NOMAD::EvalQueuePointPtr& evalQueuePoint, bool& globalStop)
+void myEvalCallback(NOMAD::EvalQueuePointPtr& evalQueuePoint,
+              bool &globalStop)
 {
     globalStop = false;
     if (nullptr != evalQueuePoint)
@@ -182,7 +184,7 @@ void customEvalStopCB(NOMAD::EvalQueuePointPtr& evalQueuePoint, bool& globalStop
             }
         }
     }
-}
+};
 
 
 /*------------------------------------------*/
@@ -201,11 +203,8 @@ int main()
     auto ev = std::make_unique<My_Evaluator>(params->getEvalParams());
     TheMainStep.addEvaluator(std::move(ev));
     
-    // Link callback function with user function defined locally
-    NOMAD::EvalCallbackFunc<NOMAD::CallbackType::EVAL_STOP_CHECK> cbFailCheck = customEvalStopCB;
-    
-    // Add callback function for eval check and stop management.
-    NOMAD::EvcInterface::getEvaluatorControl()->addEvalCallback<NOMAD::CallbackType::EVAL_STOP_CHECK>(cbFailCheck);
+    // Add callback function for stat sum on evals, then check for stop management.
+    TheMainStep.addCallback<NOMAD::EvalCallbackType::EVAL_STOP_CHECK>(myEvalCallback);
 
     // The run
     TheMainStep.start();

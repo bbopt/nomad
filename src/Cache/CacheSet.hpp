@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  * \file   CacheSet.hpp
  * \brief  Simple implementation of Cache derived from CacheBase, using set or unordered_set.
@@ -52,8 +53,8 @@
  * \see    CacheSet.cpp
  */
 
-#ifndef __NOMAD_4_5_CACHESET__
-#define __NOMAD_4_5_CACHESET__
+#ifndef __NOMAD_4_6_CACHESET__
+#define __NOMAD_4_6_CACHESET__
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -165,9 +166,9 @@ public:
      * If insertion did not work, the point was in the cache before. \n
      * Depending on its EvalStatus, return true if it should be evaluated again, false otherwise.
 
-     \param evalPoint       The point to insert                         -- \b IN.
-     \param maxNumberEval   The max number of evaluations of the point  -- \b IN.
-     \param evalType        Which eval of the EvalPoint to look at -- \b IN.
+     \param evalPoint             The point to insert                         -- \b IN.
+     \param maxNumberEval         The max number of evaluations of the point  -- \b IN.
+     \param evalType              Which eval of the EvalPoint to look at -- \b IN.
      \return                A boolean indicating if we should eval this point.
      */
     bool smartInsert(const EvalPoint &evalPoint,
@@ -259,6 +260,17 @@ public:
      */
     virtual size_t find(std::function<bool(const EvalPoint&)> crit,
                         std::vector<EvalPoint> &evalPointList) const override;
+    
+   
+    /// \brief Find using tag.
+    /**
+     return a single point with tag.
+
+     \param tag                        The tag                               -- \b IN.
+     \return              The eval point with the selected tag. Can be undefined if not found.
+     */
+    virtual const EvalPoint find(const int & tag) const override;
+    
     
     /// Browse cache using criteria. The function can have access to remote info using the lambda
     /// function capture by reference.
@@ -354,6 +366,7 @@ public:
     void clearModelEval(const int mainThreadNum) override;
 
     /** Purge the cache to get under CACHE_SIZE_MAX.
+     * The current implementation is naïve. It could be more sophisticated.
      */
     void purge() override;
 
@@ -435,4 +448,4 @@ DLL_EVAL_API std::istream& operator>>(std::istream& is, CacheSet& cache);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_CACHESET__
+#endif // __NOMAD_4_6_CACHESET__

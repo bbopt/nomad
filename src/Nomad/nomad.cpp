@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   nomad.cpp
  \brief  NOMAD main file
@@ -162,7 +163,9 @@ int main (int argc, char ** argv)
                     // Creates the EvaluatorControl, Mads, and runs Mads.
                     TheMainStep->run();
 
+                    // Ending means also clearing the algos (barrier,....)
                     TheMainStep->end();
+                    
                 }
             }
             catch (NOMAD::Exception &e)

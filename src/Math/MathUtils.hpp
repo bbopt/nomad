@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_MATH_UTILS__
-#define __NOMAD_4_5_MATH_UTILS__
+
+#ifndef __NOMAD_4_6_MATH_UTILS__
+#define __NOMAD_4_6_MATH_UTILS__
 
 #include "../Util/defines.hpp"
 
@@ -73,4 +74,4 @@ DLL_UTIL_API bool roots_quadratic(const double q2, const double q1, const double
                                   double& r1, double& r2);
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_5_MATH_UTILS__
+#endif // __NOMAD_4_6_MATH_UTILS__

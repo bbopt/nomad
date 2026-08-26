@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   RNG.hpp
  \brief  Custom class for random number generator
@@ -52,8 +53,8 @@
  \see    RNG.cpp
  */
 
-#ifndef __NOMAD_4_5_RNG__
-#define __NOMAD_4_5_RNG__
+#ifndef __NOMAD_4_6_RNG__
+#define __NOMAD_4_6_RNG__
 
 #include "../Util/defines.hpp"
 #include "../Util/Exception.hpp"
@@ -225,4 +226,4 @@ private:
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_RNG__
+#endif // __NOMAD_4_6_RNG__

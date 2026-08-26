@@ -44,14 +44,15 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   DiscoMadsMegaIteration.hpp
  \brief  The DiscoMads algorithm iteration (more specific)
  \author Solene Kojtych
  \see    DiscoMadsMegaIteration.cpp
  */
-#ifndef __NOMAD_4_5_DISCOMADSMEGAITERATION__
-#define __NOMAD_4_5_DISCOMADSMEGAITERATION__
+#ifndef __NOMAD_4_6_DISCOMADSMEGAITERATION__
+#define __NOMAD_4_6_DISCOMADSMEGAITERATION__
 
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
@@ -78,9 +79,10 @@ private:
 
     bool _detectHiddConst;               // if true, discoMads used to reveal hidden constraints instead of discontinuities      
     NOMAD::Double _hiddConstOutputValue;  // only used to reveal hidden constraints regions
+    std::string _hiddConstOutputValueAsString;
 
     bool _isRevealing ;  // Flag for indicating if MegaIteration is revealing. Reset at start, after DiscoMadsUpdate because it uses the flag.
-
+    
 public:
     /// Constructor
     /**
@@ -99,7 +101,7 @@ public:
         _isRevealing(false)
     {
         // Replace MadsIteration by DiscoMadsIteration
-        _madsIteration = std::make_unique<NOMAD::DiscoMadsIteration>(this, k, mesh);
+        _algoIteration = std::make_unique<NOMAD::DiscoMadsIteration>(this, k, mesh);
         init();
     }
     // No Destructor needed - keep defaults.
@@ -126,35 +128,32 @@ private:
 
     void init();
 
-    // Test presence of weak discontinuity between x1 and x2
-    bool discontinuityTest(const NOMAD::EvalPoint & x1, const NOMAD::EvalPoint & x2);
-
-    // Test if x1 and x2 are at distance less than exclusion radius and that x2 is revealing
-    bool proximityTestOnRevealingPoint(const NOMAD::Point & x1, const NOMAD::EvalPoint & x2);
-
-
-
-    // Callback attached to evaluator: test if evalQueuePoint is a revealing point (for discontinuities or hidden constraints) and update its revealed constraint
-    void callbackCheckIfRevealingAndUpdate(EvalQueuePointPtr & evalQueuePoint);
-
-    // Callback attached to evaluator: put high value of objective function f for failed eval
-    /**
-    Only used if DiscoMads is used to reveal hidden constraints regions)
-    */
-    void callbackFailedEval(EvalQueuePointPtr & evalQueuePoint);
-
-    // Callback attached to evaluator: check after each evaluation if there was a revelation and set opportunisticIterStop to True.
-    // This will trigger an iter stop.
-    void callbackEvalOpportStop(bool &opportunisticIterStop, EvalQueuePointPtr & evalQueuePoint );
-
     // Callback attached to postProcessing : if there has been a revelation, stop current step and stop megaiteration without doing remaining eval
     void callbackPostProcessing(const NOMAD::Step & step, bool &stop);
-
+    
+    // Test presence of weak discontinuity between x1 and x2
+    bool discontinuityTest(const NOMAD::EvalPoint & x1, const NOMAD::EvalPoint & x2) const ;
+    
+    // Test if x1 and x2 are at distance less than exclusion radius and that x2 is revealing
+    bool proximityTestOnRevealingPoint(const NOMAD::Point & x1, const NOMAD::EvalPoint & x2) const;
+    
     // Only use for debug: save a special text file with cache information at the end of each megaiteration
-    void exportCache(const std::string& cacheFile);
+    void exportCache(const std::string& cacheFile) const;
+    
+    // For CallbackType::POST_EVAL_UPDATE
+    void postEvalUpdateCallback(NOMAD::EvalQueuePointPtr &evalQueuePoint) const;
+    
+    // For CallbackType::EVAL_OPPORTUNISTIC_CHECK
+    void evalOpportunisticCheckCallback (NOMAD::EvalQueuePointPtr & evalQueuePoint, bool & opportunisticEvalStop, bool &opportunisticIterStop) ;
+    
+    // For CallbackType::EVAL_FAIL_CHECK
+    void evalFailCheckCallback(NOMAD::EvalQueuePointPtr & evalQueuePoint) const ;
+
 
 };
 
+
+
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_DISCOMADSMEGAITERATION__
+#endif // __NOMAD_4_6_DISCOMADSMEGAITERATION__

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   utils.cpp
  \brief  Utility functions
@@ -91,6 +92,12 @@ void NOMAD::toupper(std::string &s)
     // There is no easy way to show a clear warning, so do not do
     // anything about it - just file it is as a known issue.
 
+// So 98
+//    size_t ns = s.size();
+//    for ( size_t i = 0 ; i < ns ; ++i )
+//    {
+//        s[i] = std::toupper(s[i]);
+//    }
 
 // modern obfuscated C++
     for_each(s.begin(), s.end(), [](char& in){ in = std::toupper(in); });

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../Eval/ComparePriority.hpp"
 
 
@@ -75,7 +76,7 @@ bool NOMAD::OrderByDirection::comp(NOMAD::EvalQueuePointPtr& point1,
                                                                            : _lastSuccessfulInfDirs[point1->getThreadAlgo()];
     }
     if (nullptr != point2From && NOMAD::EvalStatusType::EVAL_OK == point2From->getEvalStatus(_computeType.evalType))
-    { 
+    {
         lastSuccessfulDir2 = (point2From->isFeasible(_computeType)) ? _lastSuccessfulFeasDirs[point2->getThreadAlgo()]
                                                                            : _lastSuccessfulInfDirs[point2->getThreadAlgo()];
     }
@@ -198,10 +199,11 @@ bool NOMAD::OrderByEval::comp(NOMAD::EvalQueuePointPtr& point1,
 
     auto evalType = _computeType.evalType;
     auto computeTypeS = _computeType.Short();
-    
-    
+
+
     auto eval1 = point1->getEval(evalType);
     auto eval2 = point2->getEval(evalType);
+
     if (nullptr == eval1)
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "OrderByEval: " + evalTypeToString(evalType) + " evaluation missing for point " + point1->displayAll(computeTypeS));
@@ -210,7 +212,7 @@ bool NOMAD::OrderByEval::comp(NOMAD::EvalQueuePointPtr& point1,
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "OrderBySurrogate: " + evalTypeToString(evalType) + " evaluation missing for point " + point2->displayAll(computeTypeS));
     }
-    
+
     // Manage failed evaluations
     if (eval1->getEvalStatus() != NOMAD::EvalStatusType::EVAL_OK)
     {
@@ -229,7 +231,7 @@ bool NOMAD::OrderByEval::comp(NOMAD::EvalQueuePointPtr& point1,
     }
     else  // Both evaluations are ok
     {
-        
+
         // two cases to compare when both are feasible or both are infeasible. Dominance based on fs and hs.
         if (eval1->dominates(*eval2,computeTypeS))
         {
@@ -295,5 +297,3 @@ bool NOMAD::ComparePriority::operator()(NOMAD::EvalQueuePointPtr& point1,
 
     return ret;
 }
-
-

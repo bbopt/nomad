@@ -44,12 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-/**
- \file   DMultiMadsBarrier.cpp
- \brief  The DMultiMads algorithm barrier: implementation
- \author Ludovic Salomon
- \see    DMultiMadsBarrier.hpp
- */
+
 #include "../../Algos/DMultiMads/DMultiMadsBarrier.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Cache/CacheBase.hpp"
@@ -135,7 +130,6 @@ void NOMAD::DMultiMadsBarrier::init(const NOMAD::Point& fixedVariables,
             lexicographicallyObjOrder(_computeType, _xFilterInf);
         }
     }
-
     if (!_xFeas.empty() || !_xInf.empty())
     {
         setN();
@@ -1238,7 +1232,6 @@ void NOMAD::DMultiMadsBarrier::updateXInfAndFilterInfAfterHMaxSet()
     {
         return;
     }
-
     size_t currentInd = 0;
     
     // Remove all infeasible incumbent solutions above the threshold _hMax.

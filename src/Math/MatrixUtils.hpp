@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_MATRIXUTILS__
-#define __NOMAD_4_5_MATRIXUTILS__
+
+#ifndef __NOMAD_4_6_MATRIXUTILS__
+#define __NOMAD_4_6_MATRIXUTILS__
 
 #include <string>
 #include "../Util/defines.hpp"
@@ -322,4 +323,4 @@ DLL_UTIL_API bool getDeterminant(double **M,
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_5_MATRIXUTILS__
+#endif // __NOMAD_4_6_MATRIXUTILS__

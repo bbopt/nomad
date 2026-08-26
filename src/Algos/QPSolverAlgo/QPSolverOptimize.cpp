@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   QPSolverOptimize.cpp
  \brief  Class to create trial points by performing quadratic model optimization using QP solver: implementation
@@ -52,6 +53,8 @@
  */
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Algos/QPSolverAlgo/AugLagSolver.hpp"
+#include "../../Algos/QPSolverAlgo/BCQPSolver.hpp"
 #include "../../Algos/QPSolverAlgo/DoglegTRSolver.hpp"
 #include "../../Algos/QPSolverAlgo/L1AugLagSolver.hpp"
 #include "../../Algos/QPSolverAlgo/ProjectedConjugateGradientSolver.hpp"
@@ -75,19 +78,19 @@ void NOMAD::QPSolverOptimize::init()
 {
     setStepType(NOMAD::StepType::MODEL_OPTIMIZE);
     verifyParentNotNull();
-    
+
     // Set the bounds and fixed variables from the model
     setModelBoundsAndFixedVar();
-    
+
     // Get the model box size limit.
     // Compare with the actual model bounds to enable or not the search at start
     _modelBoxSizeLimit = _runParams->getAttributeValue<NOMAD::Double>("QP_SEARCH_MODEL_BOX_SIZE_LIMIT");
-    
+
     auto evc = NOMAD::EvcInterface::getEvaluatorControl();
     _bbot = evc->getCurrentEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
     _m = static_cast<int>(_bbot.size());
     _nbCons = static_cast<int>(getNbConstraints(_bbot));
-    
+
     _quadModelMaxEval = evc->getEvaluatorControlGlobalParams()->getAttributeValue<size_t>("QUAD_MODEL_MAX_EVAL");
 
     if ( _modelFixedVar.nbDefined() == _modelFixedVar.size() )
@@ -100,35 +103,35 @@ void NOMAD::QPSolverOptimize::init()
 
         return;
     }
-    
-    
+
+
     /// Access to model coefficients for Surrogate_PRS
     if (nullptr == _model)
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "QPSolverOptimize: a model is required (nullptr)");
     }
-    _model->check_ready(__FILE__,__FUNCTION__,__LINE__);
+    _model->check_ready(__FILE__,__func__,__LINE__);
     auto surrogate_prs = std::dynamic_pointer_cast<SGTELIB::Surrogate_PRS>(_model);
     if ( nullptr != surrogate_prs)
     {
         SGTELIB::Matrix model_coef = surrogate_prs->get_alpha();
         SGTELIB::Matrix  model_monomes = surrogate_prs->get_PRS_monomes(static_cast<int>(_n), 2);
-        
+
         if (model_coef.get_nb_cols() != _m)
         {
             throw NOMAD::Exception(__FILE__,__LINE__,"Number of cols in polynom coefficients do not match number of models required (bbo)");
         }
-        
+
         OUTPUT_INFO_START
         std::ostringstream os;
         model_coef.display(os);
         NOMAD::OutputQueue::Add(os.str(), _displayLevel);
         OUTPUT_INFO_END
     }
-    
+
     _verbose = _runParams->getAttributeValue<bool>("QP_verbose");
     _verboseFull = _runParams->getAttributeValue<bool>("QP_verboseFull");
-    
+
 }
 
 
@@ -139,13 +142,14 @@ void NOMAD::QPSolverOptimize::startImp()
         ? NOMAD::OutputLevel::LEVEL_INFO
         : NOMAD::OutputLevel::LEVEL_DEBUGDEBUG;
 
+
     // Test size of model box bounds
-    bool modelBoxOk = false;
+    bool modelBoxOk = true;
     for (int i = 0; i < _n; i++)
     {
-        if ( _modelLowerBound[i].isDefined() && _modelUpperBound[i].isDefined() && _modelUpperBound[i] - _modelLowerBound[i] > _modelBoxSizeLimit )
+        if ( _modelLowerBound[i].isDefined() && _modelUpperBound[i].isDefined() && _modelUpperBound[i] - _modelLowerBound[i] < _modelBoxSizeLimit )
         {
-            modelBoxOk = true;
+            modelBoxOk = false;
             break;
         }
     }
@@ -177,20 +181,89 @@ bool NOMAD::QPSolverOptimize::runImp()
     if ( ! _stopReasons->checkTerminate() )
     {
         foundBetter = evalTrialPoints(this);
-        
+
         if (_modelFixedVar.nbDefined() > 0)
         {
             NOMAD::EvalPointSet evalPointSet;
             for (const auto& trialPoint : _trialPoints)
             {
                 evalPointSet.insert(trialPoint.makeFullSpacePointFromFixed(_modelFixedVar));
+
             }
             _trialPoints.clear();
             _trialPoints = evalPointSet;
         }
         // Update barrier
         postProcessing();
-        
+
+        // Update best feas/infeas trial points with model info
+        // Update sufficient decrease
+        NOMAD::EvalPointSet evalPointSet;
+        _reductionRatio = NOMAD::M_INF;
+        for (const auto& tp : _trialPoints)
+        {
+
+            // Get current incumbent
+            const auto refCenter = getParentOfType<QuadModelIteration*>()->getRefCenter();
+            if (tp.isEvalOk(NOMAD::EvalType::BB) && refCenter->isEvalOk(NOMAD::EvalType::BB))
+            {
+                auto eTL = tp.getEval(NOMAD::EvalType::BB)->getBBOutputTypeList();
+
+                // Get model outputs as eval BBO
+                const NOMAD::Point & X = * tp.getX();
+                auto out = getModelOut(X);
+                std::ostringstream oss;
+                oss.precision(NOMAD::DISPLAY_PRECISION_DOUBLE);
+                for (int i=0 ; i < eTL.size(); i++)
+                {
+                    oss << std::scientific << out.get(0,i) << " ";
+                }
+
+                if (tp.isFeasible(NOMAD::defaultFHComputeType))
+                {
+                    _bestXFeas = std::make_shared<NOMAD::EvalPoint>(tp);
+                    _bestXFeas->setBBO(oss.str(), eTL, NOMAD::EvalType::MODEL);
+
+                    // Reduction factor is only for feasible incumbent and trial points
+                    if (refCenter->isFeasible(NOMAD::defaultFHComputeType))
+                    {
+                        NOMAD::EvalPoint epCenter(*refCenter);
+                        // Get model outputs as eval BBO
+                        const NOMAD::Point & X = * epCenter.getX();
+                        auto out = getModelOut(X);
+                        std::ostringstream oss;
+                        oss.precision(NOMAD::DISPLAY_PRECISION_DOUBLE);
+                        for (int i=0 ; i < eTL.size(); i++)
+                        {
+                            oss << std::scientific << out.get(0,i) << " ";
+                        }
+                        epCenter.setBBO(oss.str(), eTL, NOMAD::EvalType::MODEL);
+
+                        NOMAD::FHComputeType computeType = defaultFHComputeType;
+                        NOMAD::Double f_k = epCenter.getF(computeType);
+                        computeType.evalType = NOMAD::EvalType::MODEL;
+                        NOMAD::Double f_k_m = epCenter.getF(computeType);
+
+                        // Objective function for new point
+                        computeType = defaultFHComputeType;
+                        NOMAD::Double f_n = _bestXFeas->getF(computeType);
+                        computeType.evalType = NOMAD::EvalType::MODEL;
+                        NOMAD::Double f_n_m = _bestXFeas->getF(computeType);
+
+                        if (f_k_m != f_n_m)
+                        {
+                            _reductionRatio = (f_k - f_n)/(f_k_m - f_n_m);
+                        }
+                    }
+                }
+                else
+                {
+                    _bestXInf = std::make_shared<NOMAD::EvalPoint>(tp);
+                    _bestXInf->setBBO(oss.str(), eTL, NOMAD::EvalType::MODEL);
+                }
+            }
+        }
+
         // If the oracle point cannot be evaluated, the optimization has failed.
         if (_success==NOMAD::SuccessType::NO_TRIALS)
         {
@@ -198,7 +271,7 @@ bool NOMAD::QPSolverOptimize::runImp()
             qmsStopReason->set( NOMAD::ModelStopType::NO_NEW_POINTS_FOUND);
         }
     }
-    
+
     return foundBetter;
 }
 
@@ -212,8 +285,12 @@ void NOMAD::QPSolverOptimize::generateTrialPointsImp()
         throw NOMAD::Exception(__FILE__,__LINE__,getName() + " must have an Iteration ancestor.");
     }
 
-    // We need a base point.
+    // We need an initial point.
+    // The initial point can be provided directly by the user or by the parent iteration.
+    // Or it can be the refCenter of the parent QuadModelIteration.
     const auto refCenter = getParentOfType<QuadModelIteration*>()->getRefCenter();
+    // const auto initialPoint = getParentOfType<QuadModelIteration*>()->getInitialPoint(); // NOT USED FOR NOW
+
     NOMAD::Point X_k = *(refCenter->getX());
     if (_verboseFull)
     {
@@ -239,6 +316,16 @@ void NOMAD::QPSolverOptimize::generateTrialPointsImp()
         return true;
     };
 
+    // Use model bounds or provided optim bounds
+    if ( !_optimLowerBound.isComplete())
+    {
+        _optimLowerBound = _modelLowerBound;
+    }
+    if ( !_optimUpperBound.isComplete())
+    {
+        _optimUpperBound = _modelUpperBound;
+    }
+
     bool feasRefCenter = false;
     const auto computeType = getMegaIterationBarrier()->getFHComputeType();
     if (refCenter->isFeasible(computeType))
@@ -247,7 +334,7 @@ void NOMAD::QPSolverOptimize::generateTrialPointsImp()
             _prevFeasRefCenter->NOMAD::ArrayOfDouble::isDefined() &&
             X_k == *(_prevFeasRefCenter->getX()) &&
             _prevFeasXopt.isComplete() &&
-            isInBounds(_prevFeasXopt, _modelLowerBound, _modelUpperBound))
+            isInBounds(_prevFeasXopt, _optimLowerBound, _optimUpperBound))
         {
             X_k = _prevFeasXopt;
         }
@@ -260,7 +347,7 @@ void NOMAD::QPSolverOptimize::generateTrialPointsImp()
             _prevInfeasRefCenter->NOMAD::ArrayOfDouble::isDefined() &&
             X_k == *(_prevInfeasRefCenter->getX()) &&
             _prevInfeasXopt.isComplete() &&
-            isInBounds(_prevInfeasXopt, _modelLowerBound, _modelUpperBound))
+            isInBounds(_prevInfeasXopt, _optimLowerBound, _optimUpperBound))
         {
             X_k = _prevInfeasXopt;
         }
@@ -268,7 +355,7 @@ void NOMAD::QPSolverOptimize::generateTrialPointsImp()
         feasRefCenter = false;
     }
 
-    
+
     OUTPUT_INFO_START
     std::string s = "Model base X:" + X_k.display();
     AddOutputInfo(s, _displayLevel);
@@ -285,15 +372,16 @@ void NOMAD::QPSolverOptimize::generateTrialPointsImp()
         {
             throw NOMAD::Exception(__FILE__,__LINE__,"QPSolverOptimize must have a quadModelIteration as parent");
         }
-        
+
         const auto mesh = quadModelIter->getMesh();
         double MeshSize = 0.0;
         if (nullptr != mesh)
         {
-            // auto FrameSize = mesh->getDeltaFrameSize().max().todouble();
+
             MeshSize = mesh->getdeltaMeshSize().max().todouble();
             const auto meshIndex = mesh->getMeshIndex();
             _verbose && std::cout << " meshIndex=" << meshIndex << std::endl;
+
         }
 
         SGTELIB::Matrix Gk("Gk", static_cast<int>(_n), 1);
@@ -325,29 +413,17 @@ void NOMAD::QPSolverOptimize::generateTrialPointsImp()
         const double ng0 = ng;
         const double tol = atol + ng0 * rtol;
 
-        const auto maxIter = static_cast<int>(_runParams->getAttributeValue<size_t>("QP_maxIter"));
-        const auto tolDistDX = _runParams->getAttributeValue<Double>("QP_tolDistDX").todouble();
-
         // Parameters specific to augmented Lagrangian
         const auto mu0 = _runParams->getAttributeValue<Double>("QP_AugLag_mu0").todouble();
-        const auto muDecrease = _runParams->getAttributeValue<Double>("QP_AugLag_muDecrease").todouble();
 
         const auto eta0 = _runParams->getAttributeValue<Double>("QP_AugLag_eta0").todouble();
         const auto omega0 = _runParams->getAttributeValue<Double>("QP_AugLag_omega0").todouble();
 
-        const auto successRatio = _runParams->getAttributeValue<Double>("QP_AugLag_successRatio").todouble();
         const auto maxIterInner = _runParams->getAttributeValue<size_t>("QP_AugLag_maxIterInner");
         const auto tolDistDXInner = _runParams->getAttributeValue<Double>("QP_AugLag_tolDistDXInner").todouble();
-        const auto maxSuccessiveFail = _runParams->getAttributeValue<size_t>("QP_AugLag_maxSuccessivFail");
 
         const auto SelectAlgo = _runParams->getAttributeValue<size_t>("QP_SelectAlgo");
-        if (SelectAlgo == 0)
-        {
-            _verbose && std::cout << "Run solveAugLag (n=" << _n << ", m=" << _nbCons << ")" << std::endl;
-            _verbose && std::cout << "atol=" << atol << " rtol=" << rtol << " tol=" << tol << " cond(H)=" << condHessian << " mesh=" << MeshSize << std::endl;
-            runOk = solveAugLag(X_k, maxIter, tolDistDX, atol, rtol, mu0, muDecrease, eta0, omega0, successRatio, maxIterInner, tolDistDXInner, maxSuccessiveFail);
-        }
-        else if (SelectAlgo == 1 || SelectAlgo == 2)
+        if (SelectAlgo == 0 || SelectAlgo == 1 || SelectAlgo == 2)
         {
             // Extract matrix and lower and upper bounds
             SGTELIB::Matrix QPModel = computeQPModelMatrix();
@@ -361,30 +437,66 @@ void NOMAD::QPSolverOptimize::generateTrialPointsImp()
                 if (_trainingSet->get_X_nbdiff(i) <= 1)
                     continue;
 
-                const double lbi = _modelLowerBound[i].isDefined() ? _modelLowerBound[i].todouble() : NOMAD::M_INF;
-                const double ubi = _modelUpperBound[i].isDefined() ? _modelUpperBound[i].todouble() : NOMAD::INF;
+                const double lbi = _optimLowerBound[i].isDefined() ? _optimLowerBound[i].todouble() : NOMAD::M_INF;
+                const double ubi = _optimUpperBound[i].isDefined() ? _optimUpperBound[i].todouble() : NOMAD::INF;
                 lb.set(k, 0, lbi);
                 ub.set(k, 0, ubi);
                 x.set(k, 0, X_k[i].todouble());
                 k++;
             }
-            if (SelectAlgo == 1)
+
+            if (SelectAlgo == 0)
+            {
+                AugLagSolverStatus status = AugLagSolverStatus::UNDEFINED;
+                if (_flagReducedIterations)
+                {
+                    AugLagSolver auglag_solver{0.1, 10.0, omega0, eta0, 1e-12, 40, 150, 25, 0};
+                    status = auglag_solver.solve(x, QPModel, lb, ub);
+                }
+                else
+                {
+                    AugLagSolver auglag_solver{0.1, 10.0, omega0, eta0, 1e-12, 80, 600, 100, 0};
+                    status = auglag_solver.solve(x, QPModel, lb, ub);
+                }
+                runOk = status != AugLagSolverStatus::MATRIX_DIMENSIONS_FAILURE &&
+                        status != AugLagSolverStatus::NUM_ERROR &&
+                        status != AugLagSolverStatus::BOUNDS_ERROR;
+
+                if (status == AugLagSolverStatus::SOLVED)
+                {
+                    _qpStopReason->set(NOMAD::QPStopType::CONVERGED);
+                }
+                else if (status == AugLagSolverStatus::MAX_ITER_REACHED)
+                {
+                    _qpStopReason->set(NOMAD::QPStopType::MAX_ITERATIONS);
+                }
+                else if(status == AugLagSolverStatus::STAGNATION_ITERATES)
+                {
+                    _qpStopReason->set(NOMAD::QPStopType::STAGNATION_ITERATES);
+                }
+                else
+                {
+                    _qpStopReason->set(NOMAD::QPStopType::FAILED);
+                }
+
+            }
+            else if (SelectAlgo == 1)
             {
                 _verbose && std::cout << "Run solveTRIPM (n=" << _n << ", m=" << _nbCons << ")" << std::endl;
                 _verbose && std::cout << "atol=" << atol << " rtol=" << rtol << " tol=" << tol << " cond(H)=" << condHessian << std::endl;
 
-                TRIPMSolver tripm_solver{mu0, muDecrease, 1e-12,
-                                         80, 90, 0};
+                TRIPMSolver tripm_solver{0.1, 10.0, 1e-12,
+                    80, 200, 0};
 
                 auto status = tripm_solver.solve(x, QPModel, lb, ub);
                 runOk = status != TRIPMSolverStatus::PARAM_ERROR &&
-                        status != TRIPMSolverStatus::MATRIX_DIMENSIONS_FAILURE &&
-                        status != TRIPMSolverStatus::NUM_ERROR &&
-                        status != TRIPMSolverStatus::BOUNDS_ERROR;
+                status != TRIPMSolverStatus::MATRIX_DIMENSIONS_FAILURE &&
+                status != TRIPMSolverStatus::NUM_ERROR &&
+                status != TRIPMSolverStatus::BOUNDS_ERROR;
             }
             else if (SelectAlgo == 2)
             {
-                L1AugLagSolver l1_auglag_solver {1e-12, 50, 25, 0};
+                L1AugLagSolver l1_auglag_solver {1e-12, 50, 150, 0};
                 auto status = l1_auglag_solver.solve(x, QPModel, lb, ub);
                 runOk = status != L1AugLagSolverStatus::PARAM_ERROR &&
                         status != L1AugLagSolverStatus::MATRIX_DIMENSIONS_FAILURE &&
@@ -403,6 +515,10 @@ void NOMAD::QPSolverOptimize::generateTrialPointsImp()
                     X_k[i] = x.get(k, 0);
                     k++;
                 }
+            }
+            else
+            {
+                std::cout << "Warning: something wrong has happened with the resolution of the QCQP: still continue" << std::endl;
             }
         }
         else if (SelectAlgo == 3)
@@ -431,15 +547,39 @@ void NOMAD::QPSolverOptimize::generateTrialPointsImp()
         }
     }
 
-    if (!runOk) {
-        OUTPUT_INFO_START
-            std::string s = "Solver run NOT OK";
-            AddOutputInfo(s);
-        OUTPUT_INFO_END
+    if (!runOk)
+    {
+        if (X_k.isComplete())
+        {
+            // Keep the solution returned by solver
+            if ((feasRefCenter && _prevFeasXopt==X_k) || _prevInfeasXopt == X_k)
+            {
+                auto modelStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+                modelStopReasons->set(NOMAD::ModelStopType::NO_NEW_POINTS_FOUND);
 
-        auto modelStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
-        modelStopReasons->set(NOMAD::ModelStopType::MODEL_OPTIMIZATION_FAIL);
-        return;
+                OUTPUT_INFO_START
+                    std::string s = "Solver run did not produce new point";
+                    AddOutputInfo(s);
+                OUTPUT_INFO_END
+
+                return;
+            }
+
+        }
+        else
+        {
+
+            auto modelStopReasons = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get(_stopReasons);
+            modelStopReasons->set(NOMAD::ModelStopType::MODEL_OPTIMIZATION_FAIL);
+
+            OUTPUT_INFO_START
+                std::string s = "Solver run NOT OK";
+                AddOutputInfo(s);
+            OUTPUT_INFO_END
+            return;
+        }
+
+
     }
 
     if (X_k.isComplete())
@@ -480,21 +620,19 @@ void NOMAD::QPSolverOptimize::setModelBoundsAndFixedVar()
 {
     // When optWithScaleBounds is true, the training set is scaled with some generating directions. Warning: points are not necessarily in [0,1]^n
     const SGTELIB::Matrix & X = _trainingSet->get_matrix_X();
-    
+
     _n = static_cast<int>(_pbParams->getAttributeValue<size_t>("DIMENSION"));
-    
+
     if (_n != X.get_nb_cols())
     {
         throw NOMAD::Exception(__FILE__, __LINE__,
                                "QPSolverOptimize::setModelBounds() dimensions do not match");
     }
-    
+
     const int nbDim = X.get_nb_cols();
     const int nbPoints = X.get_nb_rows();
-    
+
     // Build model bounds and detect fixed variables
-    //NOMAD::Double lb;
-    //NOMAD::Double ub;
     bool isFixed = false;
     for (int j = 0; j < nbDim; j++)
     {
@@ -533,8 +671,8 @@ void NOMAD::QPSolverOptimize::setModelBoundsAndFixedVar()
             ub = NOMAD::Double();
             isFixed = true;
         }
-        
-        
+
+
         if (!_optWithScaledBounds)
         {
             _modelLowerBound[j] = lb;
@@ -559,7 +697,7 @@ void NOMAD::QPSolverOptimize::setModelBoundsAndFixedVar()
             }
         }
     }
-    
+
     if (!_optWithScaledBounds)
     {
         // Detect the model center of the bounds
@@ -573,11 +711,11 @@ void NOMAD::QPSolverOptimize::setModelBoundsAndFixedVar()
             {
                 // The model center is the bounds middle point
                 _modelCenter[j] = (lb + ub)/2.0;
-                
+
                 // Scale the bounds with respect to the bounds
                 lb = _modelCenter[j] + (lb-_modelCenter[j])/reduction_factor;
                 ub = _modelCenter[j] + (ub-_modelCenter[j])/reduction_factor;
-                
+
                 // Comparison of Double at epsilon
                 if (lb == ub)
                 {
@@ -585,19 +723,19 @@ void NOMAD::QPSolverOptimize::setModelBoundsAndFixedVar()
                     _modelCenter[j] = ub;
                     lb = NOMAD::Double(); // undefined
                     ub = NOMAD::Double();
-                    
+
                 }
             }
             else
             {
                 _modelCenter[j] = _modelFixedVar[j];
             }
-            
+
             _modelLowerBound[j] = lb;
             _modelUpperBound[j] = ub;
         }
     }
-    
+
     OUTPUT_INFO_START
     std::string s = "model lower bound: " + _modelLowerBound.display();
     AddOutputInfo(s);
@@ -606,7 +744,7 @@ void NOMAD::QPSolverOptimize::setModelBoundsAndFixedVar()
     s = "model center: " + _modelCenter.display();
     AddOutputInfo(s);
     OUTPUT_INFO_END
-    
+
 } // end setModelBounds
 
 bool NOMAD::QPSolverOptimize::update(NOMAD::Point & X, const SGTELIB::Matrix & Y, const double a)
@@ -733,7 +871,7 @@ void NOMAD::QPSolverOptimize::solve_TR_constrained_QP(
     else
     {
         _verbose && std::cout << "Not positive definite. Delta= " << Delta << " l=" << eigmin << std::endl;
-        
+
         SGTELIB::Matrix bk("bk", nfree, 1); // depend on X
         bool successInverseIteration = true;
 
@@ -748,7 +886,7 @@ void NOMAD::QPSolverOptimize::solve_TR_constrained_QP(
             std::cerr << "Error InverseIteration" << std::endl;
             d->fill(0.0);
         }
-        else 
+        else
         {
             // Move in the direction of the eigenvector associated to the minimum
             // eigenvalue.
@@ -801,7 +939,7 @@ bool NOMAD::QPSolverOptimize::solveBCQP(
     bool verbose )
 {
     auto surrogate_prs = std::dynamic_pointer_cast<SGTELIB::Surrogate_PRS>(_model);
-    
+
     SGTELIB::Matrix Y("x0", _n, 1);
     Y.fill(0);
     double g0 = surrogate_prs->getModelObj(Y);
@@ -1488,7 +1626,6 @@ bool NOMAD::QPSolverOptimize::solveBCQP(
 }
 
 
-
 bool NOMAD::QPSolverOptimize::check_subset_binding_update(
     bool* working,
     const bool* binding,
@@ -1501,7 +1638,7 @@ bool NOMAD::QPSolverOptimize::check_subset_binding_update(
             working[i] = false;
             return false;
         }
-    }  
+    }
     return true;
 }
 
@@ -1581,6 +1718,10 @@ double NOMAD::QPSolverOptimize::projected_armijo(
     // Then try to satisfy Armijo's conditions.
     int nbA = 0;
     armijoCond = fkp <= fk - armijo_tol * tk * std::fabs(slope);
+    // Enrich Armijo condition with these numerical tricks, taken from
+    // "A new conjugate gradient method with guaranteed descent and an efficient line search",
+    // by W. W. HAGER AND H. ZHANG, SIAM Journal on Optimization, 16 (2005), pp. 170–192.
+    // armijo = armijo || ((fkp <= fk + 4E-10 * abs(fk)) && (slope_t <= fact * slope));
     while (!armijoCond && tk > t_small)
     {
         tk /= t_decrease;
@@ -1590,6 +1731,14 @@ double NOMAD::QPSolverOptimize::projected_armijo(
 
         armijoCond = fkp <= fk - armijo_tol * tk * std::fabs(slope);
         nbA ++;
+        //good_grad = false;
+        //if (!armijo && (fkp <= fk + 4E-10 * std::fabs(fk)))
+        //{
+        //    getModelGrad(&gradientF_kp, Xp, H, g);
+        //    slope_t = SGTELIB::Matrix::dot(d, gradientF_kp);
+        //    armijo = slope_t <= fact * slope;
+        //    good_grad = true;
+        //}
     }
 
     if (!armijoCond)
@@ -1608,7 +1757,9 @@ bool NOMAD::QPSolverOptimize::solveL1AugLag(
     const double rtol,
     const bool verbose)
 {
-    
+
+    // std::ostream& os = std::cout; // For debugging
+
     // Compute stopping tolerance
     SGTELIB::Matrix gradientLag_k("gradientLag_k", _n, 1);
     getModelGrad(&gradientLag_k, X_k);
@@ -1769,7 +1920,7 @@ bool NOMAD::QPSolverOptimize::solveL1AugLag(
         // 2- Compute a nullspace matrix for active Jacobian constraints. It is the identity matrix if
         // the set of active constraints is empty.
         int nbActive = sum(active, _nbCons);
-        bool areActiveConstraints = nbActive + nbActiveBounds > 0;
+        bool areActiveConstraints = ((nbActive + nbActiveBounds) > 0);
         Jacobian_k = getModelJacobian(X_k);
         SGTELIB::Matrix activeJacobian_k = getModelActiveJacobian(Jacobian_k, active);
         // Complete with bound constraints
@@ -1978,7 +2129,7 @@ bool NOMAD::QPSolverOptimize::solveL1AugLag(
             innerSuccess = ZtransposePseudoGrad_k.norm() <= tol && isFeasible(cons, tol);
             if (areActiveConstraints && innerSuccess)
             {
-                activeMultiplier_k = SGTELIB::Surrogate_PRS::compute_multiplier(pseudoGradient_k, activeJacobian_k);
+                activeMultiplier_k = SGTELIB::Surrogate_PRS::compute_multiplier(pseudoGradient_k, activeJacobian_k); // TODO: recompute multiplier
 
                 for (int i = 0; i < activeMultiplier_k.get_nb_cols(); ++i)
                 {
@@ -1995,7 +2146,6 @@ bool NOMAD::QPSolverOptimize::solveL1AugLag(
             // normGradLag_k = gradLag_k.norm();
             F_k = getPenalizedL1AugLagModelObj(X_k, cons, lambda_l, mu_l);
             const double deltaF = std::fabs(F_k - F_km1);
-            // double dual_norm = 0;
             verbose && std::cout << " Inner: (l=" << iterInnerLoop << ") Pl = " << F_k << " |c| = " << cons.norm() << " |L| = " << ZtransposePseudoGrad_k.norm() << " |dF| = " << deltaF;
             verbose && std::cout << " inner precision = " << innerPrecision << " bounds precision (inf) = " << innerTolBounds.norm_inf() << std::endl;
             verbose && std::cout << " |cons|_epsilon = " << nbActive << " nb bds active = " << nbActiveBounds << std::endl;
@@ -2090,7 +2240,8 @@ bool NOMAD::QPSolverOptimize::solveL1AugLag(
 
         distXOuterLoop = NOMAD::Point::dist(X_k, X_om1).todouble();
         outerFailure = (!unbounded_subpb && (distXOuterLoop <= tolerance_distDX)) || (nbActiveLb + nbActiveUb) >= _n;
-        outerFailure = outerFailure || (iterOuterLoop >= maxIterOuterLoop);
+        // outerFailure = outerFailure || innerFailure;
+        outerFailure = outerFailure || (iterOuterLoop >= maxIterOuterLoop); //|| (quadModelNbEval >= _quadModelMaxEval);
         if (outerFailure)
         {
             verbose && std::cout << "Early stop: |d| = " << distXOuterLoop << " inner? " << innerFailure << " unbounded? " << unbounded_subpb << std::endl;
@@ -2352,8 +2503,8 @@ double NOMAD::QPSolverOptimize::piecewise_line_search(
     const double delta /* = 1E-4 // Pk < (P0 - delta) */ ) const
 {
 
-    
-    
+
+
     // Allocations
     // const int nbActive = sum(active, ncon);
     // double slope;
@@ -2372,9 +2523,12 @@ double NOMAD::QPSolverOptimize::piecewise_line_search(
     SGTELIB::Matrix Jacobian = getModelJacobian(X);
     SGTELIB::Matrix jprod = SGTELIB::Matrix::product(Jacobian, d);
 
+    // std::ostream& os = std::cout; // For debugging
+
     double ak = SGTELIB::Matrix::dot(d, pseudoGradient); // < 0
     if (ak >= 0)
     {
+        std::cout << "piecewise_line_search: error slope should be negative." << std::endl;
         return 0.0;
     }
 
@@ -2436,11 +2590,19 @@ double NOMAD::QPSolverOptimize::piecewise_line_search(
         int lk = -1;
         for (int i = 0; i < _nbCons + 2 * _n; ++i)
         {
+            //std::cout<<"gamma["<<i<<"]="<<gamma[i]<<std::endl;
+            //std::cout<<"Ik["<<i<<"]="<<Ik[i]<<std::endl;
             if (Ik[i] && gamma[i] <= gamma_lk) {
                 lk = i;
                 gamma_lk = gamma[i];
             }
         }
+
+        if (lk<0)
+        {
+            std::cout<<"Hello"<<std::endl;
+        }
+
 
         // Update ak
         if (lk < _nbCons) {
@@ -2463,11 +2625,12 @@ double NOMAD::QPSolverOptimize::piecewise_line_search(
     {
         X_k[i] = X[i] +  gamma_lk * d.get(i, 0);
     }
-    
+
     const double P0 = getPenalizedL1AugLagModelObj(X, cons, lambda, mu);
     getModelCons(&cons, X_k);
     double Pk = getPenalizedL1AugLagModelObj(X_k, cons, lambda, mu);
     bool OK = Pk < (P0 - delta);
+//    std::cout << "L-S P0=" << P0 << " Pk=" << Pk << " g=" << gamma_lk << std::endl;
     while (!OK)
     {
         // Normally, we should do a cubic interpolation, but we choose
@@ -2480,7 +2643,14 @@ double NOMAD::QPSolverOptimize::piecewise_line_search(
         getModelCons(&cons, X_k);
         Pk = getPenalizedL1AugLagModelObj(X_k, cons, lambda, mu);
         OK = (Pk < (P0 - delta)) || (gamma_lk <= small_gamma);
+//        std::cout << "L-S P0=" << P0 << " Pk=" << Pk << " g=" << gamma_lk << std::endl;
     }
+
+    if (gamma_lk <= small_gamma)
+    {
+        std::cout << "piecewise_line_search: no sufficient decrease found." << std::endl;
+    }
+
     delete [] Ik;
 
     return gamma_lk;
@@ -2573,7 +2743,8 @@ bool NOMAD::QPSolverOptimize::compute_horizontal_step(
     const SGTELIB::Matrix& lambda_l,
     const double mu_l) const
 {
-    
+    // std::ostream& os = std::cout; // For debugging
+
     // Compute Z such that activeJacobian_k Z = 0; and Zt Z = I
     SGTELIB::Matrix activeJacobian_k = getModelActiveJacobian(Jacobian_k, active);
     for (int i = 0; i < _n; ++i)
@@ -2769,7 +2940,7 @@ bool NOMAD::QPSolverOptimize::solveAugLag(
         cxp = cslack.norm();
         fk = getModelObj(Xp);
         const double Pkp = getAugLagModelObj(XSp, cons, fk, lambda_l, mu_l);
-        
+
         // Update parameters
         if ((cxp <= eta_l) && innerSuccess)
         {
@@ -2979,6 +3150,7 @@ int NOMAD::QPSolverOptimize::solveBoundAugLag(
 
     // Compute stopping criteria
     SGTELIB::Matrix dualFeas("dualFeas", nvar, 1);
+    // double ngproj =
     check_optimality_bounds(XS, GradPk, lvar, uvar, dualFeas);
     double ngproj = dualFeas.norm_inf();
     const double ngproj0 = ngproj;
@@ -3036,6 +3208,9 @@ int NOMAD::QPSolverOptimize::solveBoundAugLag(
             feasible = feasible && (dlvar.get(j, 0) <= 0) && (duvar.get(j, 0) >= 0);
             dfeasible = dfeasible && (dlvar.get(j, 0) <= d.get(j, 0)) && (duvar.get(j, 0) >= d.get(j, 0));
 
+            // Initial scaling
+            // scaling.set(j, j, 1 / sqrt(std::fabs(HessPk.get(j, j)) + 1));
+            // unscaling.set(j, j, sqrt(std::fabs(HessPk.get(j, j)) + 1));
         }
 
         // When x has not been updated (meaning the gradient and the hessian of the trust-region model is still
@@ -3046,11 +3221,29 @@ int NOMAD::QPSolverOptimize::solveBoundAugLag(
             d.fill(0);
             if (!feasible)
             {
+                // throw NOMAD::Exception(__FILE__, __LINE__, "solve_bound_AugLag assertion error: Error d is not feasible");
+                std::cerr << "solveBoundAugLag assertion error: Error d is not feasible " << delta << std::endl;
+                // dlvar.display(std::cout);
+                // duvar.display(std::cout);
+                // XSp.display(std::cout);
                 return 0;
             }
 
+            // Try scaling
+            // HessPk.display(std::cout); GradPk.display(std::cout);
+            // GradPk = SGTELIB::Matrix::product(scaling, GradPk);
+            // HessPk = SGTELIB::Matrix::product(scaling, HessPk, scaling);
+            // HessPk.display(std::cout); GradPk.display(std::cout);
+            // dlvar = SGTELIB::Matrix::product(scaling, dlvar);
+            // duvar = SGTELIB::Matrix::product(scaling, duvar);
+
             subPbSuccess = solveBCQP(d, HessPk, GradPk, 0.0, dlvar, duvar,
                                      maxIterBCQP, atol_BCQP, rtol_BCQP); // you can specify verbose
+
+            // Try scaling
+            // d.display(std::cout);
+            // d = SGTELIB::Matrix::product(unscaling, d);
+            // d.display(std::cout);
         }
 
         // Trust region update
@@ -3058,7 +3251,7 @@ int NOMAD::QPSolverOptimize::solveBoundAugLag(
         const double pred = getModelObj(d, HessPk, GradPk);
         if (pred > 0)
         {
-            // std::cerr << "Assertion error: prediction " << pred << " > 0" <<std::endl;
+            std::cerr << "Assertion error: prediction " << pred << " > 0" <<std::endl;
             return false;
         }
         Xcan = XSp; Xcan.add(d);
@@ -3073,6 +3266,7 @@ int NOMAD::QPSolverOptimize::solveBoundAugLag(
         const double nd = d.norm_inf(); //d.norm();
         double alpha = 1.0;
         bool pointAccepted = false;
+        // if (subPbSuccess && (ared <= pred * epsilon_1)) // r >= epsilon_1
         if (subPbSuccess && (rho >= epsilon_1)) // r >= epsilon_1
         {
             // Accept the point
@@ -3082,6 +3276,7 @@ int NOMAD::QPSolverOptimize::solveBoundAugLag(
             // if (ared <= pred * epsilon_2) // r >= epsilon_2
             if (rho >= epsilon_2) // r >= epsilon_2
             {
+                // delta = std::min(gamma_2 * delta, std::max(1 / omega, largestDelta)); // std::max(d.norm(), delta);
                 delta = std::min(gamma_2 * std::max(nd, delta), largestDelta);
             }
 
@@ -3135,6 +3330,7 @@ int NOMAD::QPSolverOptimize::solveBoundAugLag(
 
             if (ArmijoCond)
             {
+                // verbose && std::cout << "Backtracking linesearch succeeded" << std::endl;
                 // Accept new candidate
                 XSp = Xcan;
                 successiveUnsuccessful = 0;
@@ -3145,6 +3341,8 @@ int NOMAD::QPSolverOptimize::solveBoundAugLag(
             else
             {
                 // Do not accept the point and reduce trust-region radius delta.
+                // verbose && std::cout << "Backtracking linesearch fails: reduces trust-region radius" << std::endl;
+                //delta = std::max(gamma_1 * std::min(delta, nd), smallestDelta);
                 delta = std::max(gamma_1 * std::min(delta, nd), smallestDelta);
                 successiveUnsuccessful += 1;
             }
@@ -3162,7 +3360,7 @@ int NOMAD::QPSolverOptimize::solveBoundAugLag(
         distXInnerLoop = sqrt(alpha) * d.norm();
         innerFailure = !subPbSuccess || (iterInnerLoop >= maxIterInnerLoop) || (distXInnerLoop <= tolerance_distDX);
         innerFailure = innerFailure || (successiveUnsuccessful > limitUnsuccessful);
-    
+
         Pk = getAugLagModelObj(XSp, lambda, mu);
         verbose && std::cout << "Inner ("<< iterInnerLoop <<") " << subPbSuccess;
         verbose && std::cout << " " << pointAccepted;
@@ -3187,7 +3385,7 @@ int NOMAD::QPSolverOptimize::solveBoundAugLag(
     }
     else if (!success)
     {
-        verbose && std::cout << "Trust-region failure: return XS" << std::endl; 
+        verbose && std::cout << "Trust-region failure: return XS" << std::endl;
         XSp = XS;
         result = 0;
     }
@@ -3248,7 +3446,7 @@ double NOMAD::QPSolverOptimize::getAugLagModelObj(
     double mu ) const
 {
     const int nbVar = _n + _nbCons;
-    
+
     lencheck(nbVar, XS);
     lencheck(_nbCons, lambda);
     lencheck(_nbCons, cons);
@@ -3657,7 +3855,7 @@ bool NOMAD::QPSolverOptimize::solveTRIPM(
             {
                 mu /= mu_decrease;
                 tol_mu /= mu_decrease;
-            }        
+            }
         }
         tol_mu = std::max(smallest_tol_mu, tol_mu);
 
@@ -3744,7 +3942,7 @@ void NOMAD::QPSolverOptimize::compute_slack_multiplier(
         if (y.get(i, 0) >= 0)
         {
             const double si = XS.get(_n + i, 0);
-            y.set(i, 0, -std::min(std::fabs(1E-3), std::fabs(mu / si)));
+            y.set(i, 0, -std::min(1E-3, std::fabs(mu / si)));
         }
     }
 }
@@ -3795,12 +3993,24 @@ double NOMAD::QPSolverOptimize::errorTRIPM(
         dual_feas.set(i, 0, dual_feas.get(i, 0) - X.get(i, 0));
     }
 
+//    for (int i = 0 ; i < _n ; i++)
+//    {
+//        lagGradX.set(i, 0, lagGradX.get(i, 0) + mu / (X.get(i, 0) - lvar.get(i, 0)) - mu / (uvar.get(i, 0) - X.get(i, 0)));
+//    }
+
     // Compute ||-Sy - mu||_inf
     double lagGradS = 0;
     for (int i=0; i < _nbCons; i++)
     {
         lagGradS = std::max(std::fabs(-XS.get(i + _n, 0) * lambda.get(i, 0) - mu), lagGradS);
     }
+
+/*
+    std::cout << " |G_s|=" << lagGradS;
+    std::cout << " |c + s|=" << cslack.norm();
+    std::cout << " |G_x|=" << dual_feas.norm() << " |newG_x|=" << lagGradX.norm() << std::endl;
+    // XS.display(std::cout); lvar.display(std::cout); uvar.display(std::cout); lambda.display(std::cout);
+*/
     return std::max(lagGradS, std::max(cslack.norm_inf(), dual_feas.norm_inf()));
 }
 
@@ -3815,6 +4025,7 @@ size_t NOMAD::QPSolverOptimize::solveLM(
     const size_t maxIterInner,
     const double tolDistDXInner,
     const bool checkStrict, // if true, it checks whether the point is strictly feasible.
+    // const double Delta0, // Initial trust-region radius
     const bool verbose)
 {
     // We use slack variables here
@@ -3932,7 +4143,18 @@ size_t NOMAD::QPSolverOptimize::solveLM(
             xi = XSp.get(i, 0);
             li = lvar.get(i, 0);
             ui = uvar.get(i, 0);
-            if (vxi != 0)
+            if (vxi == 0)
+            {
+                if (xi < li)
+                {
+                    std::cout << " lvar issue: " << std::fabs(li - xi) << std::endl;
+                }
+                if (xi > ui)
+                {
+                    std::cout << " uvar issue: " << std::fabs(ui - xi) << std::endl;
+                }
+            }
+            else
             {
                 if (vxi < tau * (li - xi))
                 {
@@ -3990,6 +4212,7 @@ size_t NOMAD::QPSolverOptimize::solveLM(
         if (f_normal_model < 0)
         {
             _verbose && std::cout << " solver normal step: |v|=" << vxs.norm() << " f(v)=" << f_normal_model << " |c(xv) + sv|=" << checkslack.norm() << " |c(x) + s|=" << cslack.norm() << std::endl;
+            // throw NOMAD::Exception(__FILE__, __LINE__, " NOT POSSIBLE");
         }
 
         // Compute the residual: r = Jx * vx + vs + (cx + s)
@@ -4124,7 +4347,7 @@ int NOMAD::QPSolverOptimize::solver_barrier(
 
     // Allocation of matrices for the normal step
     SGTELIB::Matrix W("W", _nbCons, _nbCons + _n);
-    SGTELIB::Matrix Wscal("Wscal", _nbCons, _nbCons + _n);
+    SGTELIB::Matrix Wscal("Wscal", _nbCons, _nbCons + _n); // For debugging purposes
     SGTELIB::Matrix WtW("WtW", _nbCons + _n, _nbCons + _n);
     SGTELIB::Matrix wq("wq", _nbCons + _n, 1);
     SGTELIB::Matrix vxs("vxs", _nbCons + _n, 1); // The normal step
@@ -4164,6 +4387,7 @@ int NOMAD::QPSolverOptimize::solver_barrier(
 
     const double normal_step_regularization = 1e-7; // regularizer of the normal equation in normal step
     const double Delta_normal_step_factor = 0.8; // Factor of Delta used in normal step
+    // const double min_tol_PCG = 1e-10;
     const double small_p = 1e-15; // Below this value `p` is considered 0 (declare success).
 
     // Stopping criteria for the barrier solver
@@ -4244,6 +4468,16 @@ int NOMAD::QPSolverOptimize::solver_barrier(
         {
             checkslack.set(j, 0, XSp.get(j + _n, 0) + checkcons.get(j, 0));
         }
+
+        if (f_normal_model < 0)
+        {
+            std::cout << " solver normal step: |v| = " << vxs.norm() << " f(v) = " << f_normal_model << " |c(xv) + sv| = " << checkslack.norm() << " |c(x) + s| = " << cslack.norm() << std::endl;
+            //            WtW.display(std::cout);
+            //            wq.display(std::cout);
+            //            cslack.display(std::cout);
+            //            vxs.display(std::cout);
+            // throw NOMAD::Exception(__FILE__, __LINE__, " NOT POSSIBLE");
+        }
         ///////////////////////////////////////////////////////////////
 
         // Backtrack to satisfy vs >= -tau/2
@@ -4263,7 +4497,18 @@ int NOMAD::QPSolverOptimize::solver_barrier(
             const double xi = XSp.get(i, 0);
             const double li = lvar.get(i, 0);
             const double ui = uvar.get(i, 0);
-            if (vxi != 0)
+            if (vxi == 0)
+            {
+                if (xi < li)
+                {
+                    std::cout << " lvar issue: " << std::fabs(li - xi) << std::endl;
+                }
+                if (xi > ui)
+                {
+                    std::cout << " uvar issue: " << std::fabs(ui - xi) << std::endl;
+                }
+            }
+            else
             {
                 if (vxi < tau * (li - xi))
                 {
@@ -4356,6 +4601,16 @@ int NOMAD::QPSolverOptimize::solver_barrier(
             throw NOMAD::Exception(__FILE__, __LINE__, "TRIPM: Error with conjugate gradient");
         }
 
+        //if (!success_PCG)
+        //{
+            // std::cout << "Check PCG |Wp - r|=" << SGTELIB::Matrix::sub(SGTELIB::Matrix::product(W, p), r).norm() << std::endl;
+            // std::cout << "Check PCG |Qp + q|=" << SGTELIB::Matrix::add(SGTELIB::Matrix::product(Q, p), qc).norm() << std::endl;
+            // p.display(std::cout);
+            // SGTELIB::Matrix::add(SGTELIB::Matrix::product(Q, p), qc).display(std::cout);
+            // W.display(std::cout);
+            //std::cout << " PCG failed, we should call off. |x0| = " << x0PCG.norm() << " d = " << Delta << std::endl;
+        //}
+
         // Backtrack to satisfy ptildes >= -tau e
         backtrack_length = p.norm() > Delta ? Delta / p.norm() : 1.0;
         for (int i = 0; i < _nbCons; i++)
@@ -4373,7 +4628,19 @@ int NOMAD::QPSolverOptimize::solver_barrier(
             const double xi = XSp.get(i, 0);
             const double li = lvar.get(i, 0);
             const double ui = uvar.get(i, 0);
-            if (pxi != 0)
+            // std::cout << " (n=" << n << ") i=" << i << " li=" << li << " ui=" << ui << " xi=" << xi << " pxi + xi=" << pxi + xi;
+            if (pxi == 0)
+            {
+                if (xi < li)
+                {
+                    std::cout << " lvar issue: " << std::fabs(li - xi) << std::endl;
+                }
+                if (xi > ui)
+                {
+                    std::cout << " uvar issue: " << std::fabs(ui - xi) << std::endl;
+                }
+            }
+            else
             {
                 if (pxi < tau * (li - xi))
                 {
@@ -4384,8 +4651,12 @@ int NOMAD::QPSolverOptimize::solver_barrier(
                     backtrack_length = std::min(backtrack_length, tau * (ui - xi) / pxi);
                 }
             }
+            //std::cout << " b=" << backtrack_length << std::endl;
         }
-
+        if (backtrack_length <= 0)
+        {
+            std::cout << " backtrack length=" << backtrack_length << " tau=" << tau << std::endl;
+        }
         p.multiply(backtrack_length);
 
         // Compute the residual: r = Jx * px + ps + (cx + s)
@@ -4419,6 +4690,7 @@ int NOMAD::QPSolverOptimize::solver_barrier(
         else if (den > 0)
         {
             nu = std::max(getModelObj(p, Q, qc) / ((1 - rho) * den) + 1, nu);
+            // nu = std::max(nu, -nu); // std::max(nu, smallest_nu);
         }
 
         // Compute pred (> 0):
@@ -4487,7 +4759,7 @@ int NOMAD::QPSolverOptimize::solver_barrier(
             // Increase Delta
             if (ared >= pred * epsilon_2) // r >= epsilon_2
             {
-                Delta = std::min(gamma_2 * Delta, std::max(1 / mu, largestDelta));
+                Delta = std::min(gamma_2 * Delta, std::max(1 / mu, largestDelta)); // std::max(d.norm(), delta);
             }
 
             success = true;
@@ -4649,7 +4921,7 @@ double NOMAD::QPSolverOptimize::check_optimality_bounds(
     {
         norm_temp += temp[i].pow2();
     }
-    
+
     return norm_temp.sqrt().todouble();
 }
 
@@ -4688,7 +4960,7 @@ double NOMAD::QPSolverOptimize::check_optimality_bounds(
     }
     snapToBounds(dual_feas, lvar, uvar);
     dual_feas.sub(X);
-    
+
     return dual_feas.norm();
 }
 
@@ -5019,7 +5291,7 @@ bool NOMAD::QPSolverOptimize::projected_conjugate_gradient (
     {
         g.set(i, 0, sol[i]);
     }
-    
+
     // Init g+
     SGTELIB::Matrix gp = g;
 
@@ -5171,7 +5443,6 @@ bool NOMAD::QPSolverOptimize::projected_conjugate_gradient (
     delete [] rhs;
     delete [] sol;
 
-    // Normally, one should retrieve the former direction if the feasibility has not be reached.
     if (max_iter_reached)
     {
         verbose && std::cout << "PCG has reached the maximum number of iterations allowed : stop" << std::endl;
@@ -5190,48 +5461,48 @@ bool NOMAD::QPSolverOptimize::projected_conjugate_gradient (
 SGTELIB::Matrix NOMAD::QPSolverOptimize::getModelOut(const NOMAD::Point & x) const
 {
 
-    
-    
+
+
     // Verify there is at least one point to evaluate
     if (!x.isComplete())
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Evaluator: eval_x called with undefined eval point");
     }
-    
-    
-    
+
+
+
     // Init the matrices for prediction
     // Creation of matrix for input / output of SGTELIB model
     SGTELIB::Matrix Mpredict (  "M_predict", 1, static_cast<int>(_m));
     SGTELIB::Matrix Xpredict("X_predict", 1, static_cast<int>(_n));
-    
+
     std::string s = "X =" + x.display();
     NOMAD::OutputQueue::Add(s, _displayLevel);
-    
+
     // Set the input matrix
     for (int i = 0; i < _n; i++)
     {
         Xpredict.set(0, static_cast<int>(i), x[i].todouble());
     }
-     
+
     // ------------------------- //
     //   Output Prediction    //
     // ------------------------- //
     NOMAD::OutputQueue::Add("Predict with quadratic formulation... ", _displayLevel);
-    
-    
+
+
     // Unfortunately, Sgtelib is not thread-safe.
     // For this reason we have to set part of the eval_x code to critical.
 #ifdef _OPENMP
 #pragma omp critical(SgtelibEvalBlock)
 #endif // _OPENMP
     {
-        _model->check_ready(__FILE__,__FUNCTION__,__LINE__);
-        
+        _model->check_ready(__FILE__,__func__,__LINE__);
+
         _model->predict(Xpredict, &Mpredict);
         NOMAD::OutputQueue::Add("ok", _displayLevel);
     }
-    
+
     return Mpredict;
 }
 
@@ -5286,7 +5557,7 @@ SGTELIB::Matrix NOMAD::QPSolverOptimize::getModelHessian(const NOMAD::Point & x,
 }
 
 SGTELIB::Matrix NOMAD::QPSolverOptimize::getModelHessian(const NOMAD::Point& X) const
-{   
+{
     SGTELIB::Matrix XX("X_k", 1, static_cast<int>(_n));
     for (int i = 0; i < _n; i++)
     {
@@ -5332,7 +5603,7 @@ SGTELIB::Matrix NOMAD::QPSolverOptimize::getModelJacobian(const NOMAD::Point & X
     auto surrogate_prs = std::dynamic_pointer_cast<SGTELIB::Surrogate_PRS>(_model);
     SGTELIB::Matrix Jx = surrogate_prs->getModelJacobian(XX);
     sizecheck(_nbCons, _n, Jx);
-    
+
     return Jx;
 }
 
@@ -5364,13 +5635,13 @@ SGTELIB::Matrix NOMAD::QPSolverOptimize::getModelLagGradient(
 
     SGTELIB::Matrix lagGradient("lagGradient", nbVar, 1);
     lagGradient.fill(0.0);
-    
+
     SGTELIB::Matrix outGradient("tmp", nbVar, 1);
     SGTELIB::Matrix modelJacobian = getModelJacobian(x);
 
     lencheck(_nbCons, multiplier);
     sizecheck(_nbCons, nbVar, modelJacobian);
-    
+
     getModelGrad(&outGradient, x);
     outGradient.multiply(sigma) ;
     lagGradient.add(outGradient);
@@ -5498,7 +5769,7 @@ void NOMAD::QPSolverOptimize::lencheck(const int n, const SGTELIB::Matrix & X) c
 void NOMAD::QPSolverOptimize::sizecheck(const int m, const int n, const SGTELIB::Matrix & X) const
 {
     if (X.get_nb_rows() != m || X.get_nb_cols() != n )
-    {   
+    {
         std::cout << X.get_nb_rows() << " != " << m << " and " << X.get_nb_cols() << " != " << n << std::endl;
         throw NOMAD::Exception(__FILE__, __LINE__, X.get_name() + " has wrong dimensions!");
     }
@@ -5587,7 +5858,7 @@ double NOMAD::QPSolverOptimize::max_step_bounds(const NOMAD::Point & X, const SG
     double gamma = INF;
     if (d.get_nb_rows() != _n)
     {
-        
+
         // should return an error
     }
     // X should be feasible
@@ -5638,6 +5909,13 @@ double NOMAD::QPSolverOptimize::max_step_bounds(
         }
 
         const bool feasible = (X.get(i, 0) >= lvar.get(i, 0)) && (X.get(i, 0) <= uvar.get(i, 0));
+        if (!feasible)
+        {
+            // Temp for debugging
+            // throw NOMAD::Exception(__FILE__, __LINE__, "Assertion error: Error X is not feasible");
+            std::cout << lvar.get(i, 0) << " " << X.get(i, 0) << " " << uvar.get(i, 0) << std::endl;
+            std::cout << "Assertion error: Error X is not feasible" << std::endl;
+        }
     }
 
     double t_max = INF;
@@ -5662,7 +5940,7 @@ double NOMAD::QPSolverOptimize::max_step_bounds(
     return t_max;
 }
 
-void NOMAD::QPSolverOptimize::project_bounds(NOMAD::Point & X_k, SGTELIB::Matrix & d_k) 
+void NOMAD::QPSolverOptimize::project_bounds(NOMAD::Point & X_k, SGTELIB::Matrix & d_k)
 {
     for (int i = 0 ; i < _n ; ++i )
     {
@@ -5745,7 +6023,7 @@ void NOMAD::QPSolverOptimize::active_bounds(
     {
         active_l[i] = (X.get(i, 0) == _modelLowerBound[i]);
         active_u[i] = (X.get(i, 0) == _modelUpperBound[i]);
-    }    
+    }
 }
 
 void NOMAD::QPSolverOptimize::active_bounds(
@@ -5772,7 +6050,7 @@ void NOMAD::QPSolverOptimize::active_bounds(
     {
         active_l[i] = (std::fabs(X.get(i, 0) - lvar.get(i, 0)) < tol);
         active_u[i] = (std::fabs(X.get(i, 0) - uvar.get(i, 0)) < tol);
-    }    
+    }
 }
 
 /*
@@ -5790,7 +6068,7 @@ void NOMAD::QPSolverOptimize::binding_bounds(
     for (int i = 0; i < n; ++i)
     {
         binding[i] = (active_l[i] && (Grad[i] >= 0)) || (active_u[i] && (Grad[i] <= 0));
-    }    
+    }
 }
 
 void NOMAD::QPSolverOptimize::getModelActiveCons(
@@ -5864,7 +6142,7 @@ void NOMAD::QPSolverOptimize::feasibility(SGTELIB::Matrix * feas, const SGTELIB:
 {
 
     lencheck(_nbCons, cons);
-    
+
     for (int i = 0; i < static_cast<int>(_nbCons) ; i++)
     {
         feas[i] = max(cons.get(i, 0), 0).todouble();
@@ -5874,7 +6152,7 @@ void NOMAD::QPSolverOptimize::feasibility(SGTELIB::Matrix * feas, const SGTELIB:
 bool NOMAD::QPSolverOptimize::isFeasible(
     const SGTELIB::Matrix & cons,
     const double tol
-) const 
+) const
 {
 
     lencheck(_nbCons, cons);
@@ -5883,7 +6161,7 @@ bool NOMAD::QPSolverOptimize::isFeasible(
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Assertion error: tol should be > 0");
     }
-    
+
     for (int i = 0; i < static_cast<int>(_nbCons) ; i++)
     {
         if (cons.get(i, 0) > tol)
@@ -5945,7 +6223,7 @@ void NOMAD::QPSolverOptimize::snapToBounds(SGTELIB::Matrix& X,
                                            const SGTELIB::Matrix& upperBound) const
 {
     const int n = X.get_nb_rows();
-    
+
     if (lowerBound.get_nb_rows() != n || upperBound.get_nb_rows() != n)
     {
         std::string err = "snapToBounds: ";

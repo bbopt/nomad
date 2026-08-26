@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   EvalType.hpp
  \brief  Types for Evaluation: Blackbox, Model
@@ -52,8 +53,8 @@
  \see    EvalType.cpp
  */
 
-#ifndef __NOMAD_4_5_EVAL_TYPE__
-#define __NOMAD_4_5_EVAL_TYPE__
+#ifndef __NOMAD_4_6_EVAL_TYPE__
+#define __NOMAD_4_6_EVAL_TYPE__
 
 #include <sstream>
 
@@ -68,6 +69,7 @@ enum class EvalType
                         /// potentially much faster to run than a blackbox.
     MODEL,              ///< The evaluator is a model function,
                         /// potentially much faster to run than a blackbox.
+    CAT_MODEL,         ///< Use Cat model. Only for CatMads/CatAds optimization
     LAST,               ///< For iterations; Note: UNDEFINED evals are ignored.
     UNDEFINED           ///< Undefined: This value may be used when the
                         ///< EvalType is not mandatory
@@ -90,4 +92,4 @@ inline std::ostream& operator<<(std::ostream& out, EvalType evalType)
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_5_EVAL_TYPE__
+#endif  // __NOMAD_4_6_EVAL_TYPE__

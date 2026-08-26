@@ -44,15 +44,16 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------------*/
 /*  Example of a program that makes NOMAD stop at the end of a Mads iteration */
 /*  The user stopping criterion is that F has reached a target                */
 /*----------------------------------------------------------------------------*/
 #include "Nomad/nomad.hpp"
 #include "Algos/EvcInterface.hpp"
+#include "Algos/AlgoCallback.hpp"
 #include "Algos/Mads/MadsMegaIteration.hpp"
 #include "Cache/CacheBase.hpp"
-
 
 /*----------------------------------------*/
 /*               The problem              */
@@ -70,6 +71,8 @@ public:
 
     bool eval_x(NOMAD::EvalPoint &x, const NOMAD::Double &hMax, bool &countEval) const override;
 };
+
+
 
 
 /*----------------------------------------*/
@@ -101,10 +104,10 @@ bool My_Evaluator::eval_x(NOMAD::EvalPoint &x,
 void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
 {
     const size_t n = 5;
-    
+
     // Parameters creation
     allParams->setAttributeValue("DIMENSION", n);
-    
+
     // Starting point
     allParams->setAttributeValue("X0", NOMAD::Point(n, 0.0) );
 
@@ -122,34 +125,34 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
     bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::EB);
     bbOutputTypes.emplace_back(NOMAD::BBOutputType::Type::EB);
     allParams->setAttributeValue("BB_OUTPUT_TYPE", bbOutputTypes);
-    
+
     // Algo for search
     allParams->setAttributeValue("NM_SEARCH", false);
 
     allParams->setAttributeValue("DISPLAY_DEGREE", 2);
     allParams->setAttributeValue("DISPLAY_STATS", NOMAD::ArrayOfString("bbe ( sol ) obj cons_h"));
     allParams->setAttributeValue("DISPLAY_ALL_EVAL", true);
-    
+
     // Parameters validation requested to have access to their value.
     allParams->checkAndComply();
-    
-}
 
+    // Default h norm type
+    auto hNormType = allParams->getAttributeValue<NOMAD::HNormType>("H_NORM");
+
+}
 
 /*----------------------------------------*/
 /* After each (Mega)Iteration, verify if  */
 /* the algorithm should stop.             */
 /*----------------------------------------*/
-void userIterationCallback(const NOMAD::Step& step,
-                           bool &stop)
+void megaIterCallback(const NOMAD::Step& step, bool & stop)
 {
-    // Several NOMAD::Algorithm are used by NOMAD.
-    // We are interested only on the main Mads (Mega) Iteration.
-    // Use a dynamic cast to make sure with have the Mads (Mega) Iteration.
+    stop = false;
+
     auto iter = dynamic_cast<const NOMAD::MadsMegaIteration*>(&step);
-    
+
     const NOMAD::Double FTarget = -2.0;
-    
+
     if (nullptr != iter)
     {
         // Fetch the best feasible point in the cache
@@ -164,13 +167,12 @@ void userIterationCallback(const NOMAD::Step& step,
                 break;
             }
         }
-        
+
         // NOTE: This strategy stops at the end of Mads (Mega) iteration.
         // Several points can be evaluated after reaching the F target.
         // To stop right after evaluating a point having the F target, refer to example $NOMAD_HOME/examples/advanced/library/StopIfBBFails
     }
-}
-
+};
 
 /*------------------------------------------*/
 /*            NOMAD main function           */
@@ -178,23 +180,29 @@ void userIterationCallback(const NOMAD::Step& step,
 int main()
 {
     NOMAD::MainStep TheMainStep;
-        
+
     // Set parameters
     auto params = std::make_shared<NOMAD::AllParameters>();
     initAllParams(params);
     TheMainStep.setAllParameters(params);
-    
+
     // Custom Evaluator creation
     auto ev = std::make_unique<My_Evaluator>(params->getEvalParams());
     TheMainStep.addEvaluator(std::move(ev));
-    
+
     // Set main step callback
-    TheMainStep.addCallback(NOMAD::CallbackType::MEGA_ITERATION_END, userIterationCallback);
-    
-    // The run
-    TheMainStep.start();
-    TheMainStep.run();
-    TheMainStep.end();
-        
+    TheMainStep.addCallback<NOMAD::AlgoCallbackType::MEGA_ITERATION_END>(megaIterCallback);
+
+    try
+    {
+        TheMainStep.start();
+        TheMainStep.run();
+        TheMainStep.end();
+    }
+    catch(std::exception &e)
+    {
+        std::cerr << "\nRun has been interrupted (" << e.what() << ")\n\n";
+    }
+
     return 1;
 }

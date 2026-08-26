@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include <algorithm>    // For std::merge and std::unique
 
 #include "../../Algos/CoordinateSearch/CSIteration.hpp"

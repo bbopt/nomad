@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/CoordinateSearch/CSMesh.hpp"
 #include "../../Output/OutputQueue.hpp"
@@ -348,10 +349,15 @@ void NOMAD::CSMesh::setDeltas(const NOMAD::ArrayOfDouble &deltaMeshSize,
 /*-----------------------------------------------------------*/
 /*     scale and project on the mesh /not changed yet        */
 /*-----------------------------------------------------------*/
-NOMAD::Double NOMAD::CSMesh::scaleAndProjectOnMesh(size_t i, const NOMAD::Double &l) const
+NOMAD::Double NOMAD::CSMesh::scaleAndProjectOnMesh(size_t i, const NOMAD::Double &l, bool isAds) const
 {
     const NOMAD::Double delta = getdeltaMeshSize(i);
 
+    if (isAds)
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Cannot had a CS Mesh for Ads");
+    }
+    
     if (i < _n && _frameSize.isDefined()  && delta.isDefined())
     {
         NOMAD::Double d = getRho(i) * l;
@@ -372,7 +378,7 @@ NOMAD::Double NOMAD::CSMesh::scaleAndProjectOnMesh(size_t i, const NOMAD::Double
 
 // Scale and project, using infinite norm.
 NOMAD::ArrayOfDouble NOMAD::CSMesh::scaleAndProjectOnMesh(
-    const NOMAD::Direction &dir) const
+    const NOMAD::Direction &dir, bool isAds) const
 {
     size_t n = _pbParams->getAttributeValue<size_t>("DIMENSION");
     NOMAD::ArrayOfDouble proj(n);
@@ -387,8 +393,8 @@ NOMAD::ArrayOfDouble NOMAD::CSMesh::scaleAndProjectOnMesh(
 
     for (size_t i = 0; i < n; ++i)
     {
-        // Scaling and projection on the mesh
-        proj[i] = this->scaleAndProjectOnMesh(i, dir[i] / infiniteNorm);
+        // Scaling and projection on the mesh (ADS uses continuous scaling)
+        proj[i] = this->scaleAndProjectOnMesh(i, dir[i] / infiniteNorm, isAds);
     }
 
     return proj;

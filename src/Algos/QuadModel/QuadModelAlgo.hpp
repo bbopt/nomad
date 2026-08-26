@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_QUAD_MODEL_ALGO__
-#define __NOMAD_4_5_QUAD_MODEL_ALGO__
+
+#ifndef __NOMAD_4_6_QUAD_MODEL_ALGO__
+#define __NOMAD_4_6_QUAD_MODEL_ALGO__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Algorithm.hpp"
@@ -56,23 +57,23 @@
 /**
  * Use the start, run and end tasks. Iterate on the following sequence:
  *
- * 1- Points provided as X0s and points in cache are put in a training set.
+ * Implement a version of Model Based Trust Region using GMesh frame size for the TR "radius"
+ *
+ * 1- Points provided as X0s or LH intial search and points in cache are put in a training set.
  * 2- These points are used to build a dynamic model.
  * 3- The model is optimized. This gives oracle points.
  * 4- The oracle points are evaluated by the blackbox.
- * 5- As long as new oracle points are found, the process is repeated.
- *
- * When used by Mads SearchMethod (QuadSearchMethod):
- * - Steps 1, 2, 3 and 4 are the same.
- * - The oracle points are send back to QuadSearchMethod, which takes care
- *   of projecting them to mesh and evaluate them.
- *
- * Training set and model are stored here to allow access to other Quad classes.
+ * 5- Update the TR radius.
+ * 6- Check for stopping
+ * 7- Go to 2
  *
  */
 
 class QuadModelAlgo: public Algorithm
 {
+private:
+    
+    Double _minTrustRegionRadius ; // For TR stopping criterion
 public:
     /// Constructor
     explicit QuadModelAlgo(const Step* parentStep,
@@ -97,5 +98,5 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QUAD_MODEL_ALGO__
+#endif // __NOMAD_4_6_QUAD_MODEL_ALGO__
 

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../../Cache/CacheBase.hpp"
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/DMultiMads/DMultiMadsBarrier.hpp"
@@ -343,7 +344,7 @@ bool NOMAD::DMultiMadsNMSearchMethod::runDoMStrategy()
     _tagBefore = NOMAD::EvalPoint::getCurrentTag();
 
     // Run Nelder-Mead search
-    NOMAD::NMSearchMethod::runImp();
+    NOMAD::NMSearchMethod::runImp(); 
     const bool successPostProcessing = postRunUpdates();
 
     return successPostProcessing;
@@ -400,7 +401,7 @@ bool NOMAD::DMultiMadsNMSearchMethod::runMultiMadsStrategy()
     OUTPUT_DEBUG_END
 
     prepareMultiMadsRun(ref);
-    NOMAD::NMSearchMethod::runImp();
+    NOMAD::NMSearchMethod::runImp(); 
     success = postRunUpdates();
 
     return success;
@@ -453,11 +454,12 @@ void NOMAD::DMultiMadsNMSearchMethod::prepareSingleObjectiveRun(const NOMAD::Arr
 
     // Set the mega iter barrier to a ProgressiveBarrier with all the DMultiMads barrier points.
     auto megaIter = getParentOfType<NOMAD::DMultiMadsMegaIteration*>(false);
-    megaIter->setBarrier(std::make_shared<NOMAD::ProgressiveBarrier>(hMax,
+    const auto progressiveBarrier = make_shared<NOMAD::ProgressiveBarrier>(hMax,
                                                                      NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
                                                                      evc->getCurrentEvalType(),
                                                                      evc->getFHComputeTypeS(),
-                                                                     evalPointList));
+                                                                     evalPointList);
+    megaIter->setBarrier(std::move(progressiveBarrier));
 
     _tagBefore = NOMAD::EvalPoint::getCurrentTag();
 }
@@ -648,6 +650,7 @@ bool NOMAD::DMultiMadsNMSearchMethod::postRunUpdates()
 void NOMAD::DMultiMadsNMSearchMethod::generateTrialPointsFinal()
 {
     throw NOMAD::Exception(__FILE__, __LINE__, "Not yet implemented");
+
 }
 
 NOMAD::ArrayOfDouble NOMAD::DMultiMadsNMSearchMethod::computeReferencePoint(const NOMAD::DMultiMadsBarrier& barrier) const

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   EvalPoint.hpp
  \brief  Evaluation point
@@ -52,8 +53,8 @@
  \see    EvalPoint.cpp
  */
 
-#ifndef __NOMAD_4_5_EVALPOINT__
-#define __NOMAD_4_5_EVALPOINT__
+#ifndef __NOMAD_4_6_EVALPOINT__
+#define __NOMAD_4_6_EVALPOINT__
 
 #ifdef USE_UNORDEREDSET
 #include <unordered_set>
@@ -83,10 +84,11 @@ private:
 
     static int     _currentTag;  ///< Value of the current tag
 
-    EvalUPtr _eval[3];  ///< Value of the evaluation for each eval type. The index number must correspond to EvalType enum order
+    EvalUPtr _eval[4];  ///< Value of the evaluation for each eval type. The index number must correspond to EvalType enum order
                         ///< Index 0: access to BB
                         ///< Index 1: access to SURROGATE
                         ///< Index 2: access to MODEL
+                        ///< Index 3: access to CAT_MODEL
 
     mutable int                 _tag; ///< Tag: Ordinal representing the order of creation
 
@@ -162,14 +164,14 @@ public:
     /// Get Point part of this EvalPoint
     const Point* getX() const { return dynamic_cast<const Point*>(this); }
 
-    /// Get the Eval part of this EvalPoint, using the right EvalType (BB or MODEL)
+    /// Get the Eval part of this EvalPoint, using the right EvalType (BB, MODEL, CATMADS_MODEL)
     Eval* getEval(EvalType evalType) const;
 
 
     /// Get the single eval with the given eval status. If no eval is defined, return nullptr. If more than one eval has the eval status, throw exception.
     NOMAD::EvalType getSingleEvalType(NOMAD::EvalStatusType evalStatusType) const;
     
-    /// Set the Eval part of this EvalPoint, using the right EvalType (BB or MODEL)
+    /// Set the Eval part of this EvalPoint, using the right EvalType (BB, MODEL, CAT_MODEL)
     void setEval(const Eval& eval, EvalType evalType);
     
     /// Clear the eval type evaluation of \c *this
@@ -418,6 +420,9 @@ public:
     /// Determine if an eval point has a model eval.
     static bool hasModelEval(const EvalPoint& evalPoint);
     
+    /// Determine if an eval point has a cat model eval.
+    static bool hasCatModelEval(const EvalPoint& evalPoint);
+    
     /// Determine if an eval point has a static surrogate eval.
     static bool hasSurrogateEval(const EvalPoint& evalPoint);
     /// Used for phase one
@@ -525,4 +530,4 @@ namespace std {
 #endif // USE_UNORDEREDSET
 
 
-#endif // __NOMAD_4_5_EVALPOINT__
+#endif // __NOMAD_4_6_EVALPOINT__

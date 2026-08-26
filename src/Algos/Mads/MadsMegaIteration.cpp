@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../../Algos/Mads/Mads.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/MadsUpdate.hpp"
@@ -55,7 +56,7 @@ void NOMAD::MadsMegaIteration::init()
 {
 
     // Create a single MadsIteration
-    _madsIteration = std::make_unique<NOMAD::MadsIteration>(this, _k, _mainMesh);
+    _algoIteration = std::make_unique<NOMAD::MadsIteration>(this, _k, _mainMesh);
 }
 
 
@@ -64,14 +65,14 @@ NOMAD::ArrayOfPoint NOMAD::MadsMegaIteration::suggest()
     
     OUTPUT_DEBUG_START
     AddOutputDebug("Iteration generated:");
-    AddOutputDebug(_madsIteration->getName());
-    NOMAD::ArrayOfDouble meshSize  = _madsIteration->getMesh()->getdeltaMeshSize();
-    NOMAD::ArrayOfDouble frameSize = _madsIteration->getMesh()->getDeltaFrameSize();
+    AddOutputDebug(_algoIteration->getName());
+    NOMAD::ArrayOfDouble meshSize  = _algoIteration->getMesh()->getdeltaMeshSize();
+    NOMAD::ArrayOfDouble frameSize = _algoIteration->getMesh()->getDeltaFrameSize();
     AddOutputDebug("Mesh size:  " + meshSize.display());
     AddOutputDebug("Frame size: " + frameSize.display());
     OUTPUT_DEBUG_END
 
-    return _madsIteration->suggest();
+    return _algoIteration->suggest();
 }
 
 
@@ -116,6 +117,9 @@ void NOMAD::MadsMegaIteration::observe(const std::vector<NOMAD::EvalPoint>& eval
 
 void NOMAD::MadsMegaIteration::startImp()
 {
+    // Used for callback if user call enabled
+    NOMAD::MegaIteration::startImp();
+    
     // Update main mesh and barrier.
     NOMAD::MadsUpdate update( this );
     update.start();
@@ -157,16 +161,16 @@ bool NOMAD::MadsMegaIteration::runImp()
 
         OUTPUT_DEBUG_START
         AddOutputDebug("Iteration generated:");
-        AddOutputDebug(_madsIteration->getName());
-        NOMAD::ArrayOfDouble meshSize  = _madsIteration->getMesh()->getdeltaMeshSize();
-        NOMAD::ArrayOfDouble frameSize = _madsIteration->getMesh()->getDeltaFrameSize();
+        AddOutputDebug(_algoIteration->getName());
+        NOMAD::ArrayOfDouble meshSize  = _algoIteration->getMesh()->getdeltaMeshSize();
+        NOMAD::ArrayOfDouble frameSize = _algoIteration->getMesh()->getDeltaFrameSize();
         AddOutputDebug("Mesh size:  " + meshSize.display());
         AddOutputDebug("Frame size: " + frameSize.display());
         OUTPUT_DEBUG_END
 
-        _madsIteration->start();
-        bool iterSuccessful = _madsIteration->run();
-        _madsIteration->end();
+        _algoIteration->start();
+        bool iterSuccessful = _algoIteration->run();
+        _algoIteration->end();
 
         if (iterSuccessful)
         {

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   Double.cpp
  \brief  Custom class for double-precision reals (implementation)
@@ -160,6 +161,7 @@ const double & NOMAD::Double::todouble() const
 {
     if (! _defined)
     {
+        
         throw NotDefined(__FILE__, __LINE__, "NOMAD::Double::todouble(): value not defined");
     }
     return _value;
@@ -199,7 +201,6 @@ bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision, const NOMA
             double powprec = std::pow(10,precision.round());
             _value = std::round(_value * powprec) / powprec;
 
-
             // During the arithmetic operations we may have rounded _value slightly below or above (wrt EPSILON) lb or ub
             // This can trigger an exception later
             if (lb.isDefined() && _value < lb.todouble())
@@ -210,7 +211,6 @@ bool NOMAD::Double::roundToPrecision(const NOMAD::Double & precision, const NOMA
             {
                 _value = ub.todouble();
             }
-
         }
         else
         {

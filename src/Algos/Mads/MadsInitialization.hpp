@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_MADSINITIALIZATION__
-#define __NOMAD_4_5_MADSINITIALIZATION__
+
+#ifndef __NOMAD_4_6_MADSINITIALIZATION__
+#define __NOMAD_4_6_MADSINITIALIZATION__
 
 #include "../../Algos/Initialization.hpp"
 #include "../../Type/BBInputType.hpp"
@@ -59,16 +60,16 @@
  */
 class MadsInitialization : public Initialization
 {
-    
+
 private:
-    
+
     BBInputTypeList _bbInputType;
-    
+
     Double _hMax0;  ///< Initial HMax for Mads barrier
-    
+
 protected:
     MeshBasePtr _initialMesh;
-    
+
     bool _barrierInitializedFromCache;
     bool _isUsedForDMultiMads;
     bool _isUsedForDiscoMads;
@@ -80,7 +81,7 @@ public:
      \param parentStep                   The parent of this step -- \b IN.
      \param barrierInitializedFromCache  Flag to initialize barrier from cache or not -- \b IN.
      */
-    explicit MadsInitialization(const Step* parentStep, bool barrierInitializedFromCache=true, bool isUsedForDMultiMads=false, bool isUsedForDiscoMads=false,bool isUsedForPSDMads=false)
+    explicit MadsInitialization(const Step* parentStep, bool barrierInitializedFromCache=true, bool isUsedForDMultiMads=false, bool isUsedForDiscoMads=false, bool isUsedForPSDMads=false)
       : Initialization(parentStep),
         _initialMesh(nullptr),
         _barrierInitializedFromCache(barrierInitializedFromCache),
@@ -101,11 +102,11 @@ private:
     bool eval_x0s();
 
 protected:
-    
+
     virtual bool runImp() override;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_MADSINITIALIZATION__
+#endif // __NOMAD_4_6_MADSINITIALIZATION__

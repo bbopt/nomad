@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../../Algos/CoordinateSearch/CSMesh.hpp"
 #include "../../Algos/CoordinateSearch/CS.hpp"
 #include "../../Algos/CoordinateSearch/CSInitialization.hpp"

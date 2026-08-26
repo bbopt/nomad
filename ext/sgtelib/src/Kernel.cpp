@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.3                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -25,7 +25,7 @@
 
 #include "Kernel.hpp"
 
-     
+
 
 
 /*----------------------------------------------------------*/
@@ -44,7 +44,7 @@ std::string SGTELIB::kernel_type_to_str ( SGTELIB::kernel_t kt ) {
   case SGTELIB::KERNEL_I2: return "I2"; //Polyharmonic Spline, k=2
   case SGTELIB::KERNEL_I3: return "I3"; //Polyharmonic Spline, k=3
   case SGTELIB::KERNEL_I4: return "I4"; //Polyharmonic Spline, k=4
-  default                : 
+  default                :
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "kernel_type_to_str: undefined kernel type" );
     return "undefined";
@@ -64,17 +64,17 @@ bool SGTELIB::kernel_is_decreasing ( const SGTELIB::kernel_t kt ) {
   case SGTELIB::KERNEL_D2:
   case SGTELIB::KERNEL_D3:
   case SGTELIB::KERNEL_D4:
-  case SGTELIB::KERNEL_D5: 
-  case SGTELIB::KERNEL_D6: 
-  case SGTELIB::KERNEL_D7: 
+  case SGTELIB::KERNEL_D5:
+  case SGTELIB::KERNEL_D6:
+  case SGTELIB::KERNEL_D7:
     return true;
-  case SGTELIB::KERNEL_I0: 
-  case SGTELIB::KERNEL_I1: 
-  case SGTELIB::KERNEL_I2: 
-  case SGTELIB::KERNEL_I3: 
-  case SGTELIB::KERNEL_I4: 
+  case SGTELIB::KERNEL_I0:
+  case SGTELIB::KERNEL_I1:
+  case SGTELIB::KERNEL_I2:
+  case SGTELIB::KERNEL_I3:
+  case SGTELIB::KERNEL_I4:
     return false;
-  default                : 
+  default                :
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "kernel_is_decreasing: undefined kernel type" );
     return false;
@@ -89,17 +89,17 @@ bool SGTELIB::kernel_has_parameter ( const SGTELIB::kernel_t kt ) {
   case SGTELIB::KERNEL_D2:
   case SGTELIB::KERNEL_D3:
   case SGTELIB::KERNEL_D4:
-  case SGTELIB::KERNEL_D5: 
-  case SGTELIB::KERNEL_D6: 
-  case SGTELIB::KERNEL_D7: 
-  case SGTELIB::KERNEL_I0: 
+  case SGTELIB::KERNEL_D5:
+  case SGTELIB::KERNEL_D6:
+  case SGTELIB::KERNEL_D7:
+  case SGTELIB::KERNEL_I0:
     return true;
-  case SGTELIB::KERNEL_I2: 
-  case SGTELIB::KERNEL_I1: 
-  case SGTELIB::KERNEL_I3: 
-  case SGTELIB::KERNEL_I4: 
+  case SGTELIB::KERNEL_I2:
+  case SGTELIB::KERNEL_I1:
+  case SGTELIB::KERNEL_I3:
+  case SGTELIB::KERNEL_I4:
     return false;
-  default: 
+  default:
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "kernel_has_parameter: undefined kernel type" );
     return false;
@@ -114,18 +114,18 @@ int SGTELIB::kernel_dmin ( const SGTELIB::kernel_t kt ) {
   case SGTELIB::KERNEL_D2:
   case SGTELIB::KERNEL_D3:
   case SGTELIB::KERNEL_D4:
-  case SGTELIB::KERNEL_D5: 
-  case SGTELIB::KERNEL_D6: 
-  case SGTELIB::KERNEL_D7: 
+  case SGTELIB::KERNEL_D5:
+  case SGTELIB::KERNEL_D6:
+  case SGTELIB::KERNEL_D7:
     return -1;
-  case SGTELIB::KERNEL_I0: 
-  case SGTELIB::KERNEL_I1: 
+  case SGTELIB::KERNEL_I0:
+  case SGTELIB::KERNEL_I1:
     return 0;
-  case SGTELIB::KERNEL_I2: 
-  case SGTELIB::KERNEL_I3: 
-  case SGTELIB::KERNEL_I4: 
+  case SGTELIB::KERNEL_I2:
+  case SGTELIB::KERNEL_I3:
+  case SGTELIB::KERNEL_I4:
     return 1;
-  default: 
+  default:
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "kernel_dmin: undefined kernel type" );
     return false;
@@ -204,18 +204,18 @@ SGTELIB::kernel_t SGTELIB::int_to_kernel_type ( const int i ) {
       "int_to_kernel_type: invalid integer "+itos(i) );
   }
   switch ( i ){
-    case 0:  return SGTELIB::KERNEL_D1; 
-    case 1:  return SGTELIB::KERNEL_D2; 
-    case 2:  return SGTELIB::KERNEL_D3; 
-    case 3:  return SGTELIB::KERNEL_D4; 
-    case 4:  return SGTELIB::KERNEL_D5; 
-    case 5:  return SGTELIB::KERNEL_D6; 
-    case 6:  return SGTELIB::KERNEL_D7; 
-    case 7:  return SGTELIB::KERNEL_I0; 
-    case 8:  return SGTELIB::KERNEL_I1; 
-    case 9:  return SGTELIB::KERNEL_I2; 
-    case 10:  return SGTELIB::KERNEL_I3; 
-    case 11: return SGTELIB::KERNEL_I4; 
+    case 0:  return SGTELIB::KERNEL_D1;
+    case 1:  return SGTELIB::KERNEL_D2;
+    case 2:  return SGTELIB::KERNEL_D3;
+    case 3:  return SGTELIB::KERNEL_D4;
+    case 4:  return SGTELIB::KERNEL_D5;
+    case 5:  return SGTELIB::KERNEL_D6;
+    case 6:  return SGTELIB::KERNEL_D7;
+    case 7:  return SGTELIB::KERNEL_I0;
+    case 8:  return SGTELIB::KERNEL_I1;
+    case 9:  return SGTELIB::KERNEL_I2;
+    case 10:  return SGTELIB::KERNEL_I3;
+    case 11: return SGTELIB::KERNEL_I4;
     default:
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
         "int_to_kernel_type: invalid integer "+itos(i) );
@@ -225,7 +225,7 @@ SGTELIB::kernel_t SGTELIB::int_to_kernel_type ( const int i ) {
 /*----------------------------------------------*/
 /*       Compute the value of the kernel        */
 /*----------------------------------------------*/
-double SGTELIB::kernel (  const SGTELIB::kernel_t kt , 
+double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
                           const double ks ,
                           const double r ){
   // kt : kernel type
@@ -243,7 +243,7 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
       // Inverse Multiquadratic
       return 1.0/sqrt(1.0+52.015*ks*ks*r*r);
     case SGTELIB::KERNEL_D4:
-      // Bi-quadratic 
+      // Bi-quadratic
       {
         double ksr = std::fabs(ks*r)*16.0/15.0;
         if (ksr<=1){
@@ -259,7 +259,7 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
         if (ksr<=1.0){
           double d = (1-ksr*ksr*ksr);
           return d*d*d;
-        }   
+        }
       }
       return 0.0;
     case SGTELIB::KERNEL_D6:
@@ -269,7 +269,7 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
       // Epanechnikov
       {
         double ksr = std::fabs(ks*r);
-        if (ksr<=3/4) return (1-(16/9)*ksr*ksr);
+        if (ksr<=3.0/4.0) return (1.0-(16.0/9.0)*ksr*ksr);
       }
       return 0.0;
     case SGTELIB::KERNEL_I0:
@@ -302,7 +302,7 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
 /*----------------------------------------------*/
 /*       Compute the value of the kernel        */
 /*----------------------------------------------*/
-SGTELIB::Matrix SGTELIB::kernel (  const SGTELIB::kernel_t kt , 
+SGTELIB::Matrix SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
                                    const double ks ,
                                    SGTELIB::Matrix R ){
 
@@ -316,7 +316,3 @@ SGTELIB::Matrix SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
   }
   return R;
 }//
-
-
-
-

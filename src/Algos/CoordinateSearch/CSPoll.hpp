@@ -45,8 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
-#ifndef __NOMAD_4_5_CSPOLL__
-#define __NOMAD_4_5_CSPOLL__
+
+#ifndef __NOMAD_4_6_CSPOLL__
+#define __NOMAD_4_6_CSPOLL__
 
 #include "../../Algos/Mads/Poll.hpp"
 
@@ -65,7 +66,7 @@ public:
      /param parentStep      The parent of this poll step -- \b IN.
      */
     explicit CSPoll(const Step* parentStep)
-      : Poll(parentStep)
+      : Poll(parentStep, false /* no user poll allowed*/)
     {
         init();
     }
@@ -89,6 +90,6 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_CSPOLL__
+#endif // __NOMAD_4_6_CSPOLL__
 
 

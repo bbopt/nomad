@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
 \file   TrialPointStats.cpp
 \brief  Manage stats for point generation methods (ex. Search and Poll)

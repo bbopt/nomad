@@ -44,14 +44,15 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   QPModelUtils.hpp
  \brief  Utilities functions for Quadratic Model
  \author Ludovic Salomon
  \see    QPModelUtils.cpp
  */
-#ifndef __NOMAD_4_5_QPMODEL_UTILS__
-#define __NOMAD_4_5_QPMODEL_UTILS__
+#ifndef __NOMAD_4_6_QPMODEL_UTILS__
+#define __NOMAD_4_6_QPMODEL_UTILS__
 
 #include "../../../ext/sgtelib/src/Matrix.hpp"
 
@@ -84,6 +85,10 @@ public:
                                 const SGTELIB::Matrix& QPModel,
                                 const SGTELIB::Matrix& x);
 
+    static void getModelObjHessian(SGTELIB::Matrix& H,
+                                   const SGTELIB::Matrix& QPModel,
+                                   const SGTELIB::Matrix& x);
+
     static double getModelCons(const SGTELIB::Matrix& QPModel,
                                const int ind,
                                const SGTELIB::Matrix& x);
@@ -95,6 +100,11 @@ public:
     static void getModelJacobianCons(SGTELIB::Matrix& jacobian,
                                      const SGTELIB::Matrix& QPModel,
                                      const SGTELIB::Matrix& x);
+
+    static void getModelConsHessian(SGTELIB::Matrix& H,
+                                    const SGTELIB::Matrix& QPModel,
+                                    const int ind,
+                                    const SGTELIB::Matrix& x);
 
     // Functions for the computation of the Lagrangian function:
     // L(x, lambda) = sigma f(x) - lambda' c(x)
@@ -137,4 +147,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif //__NOMAD_4_5_QPMODEL_UTILS__
+#endif //__NOMAD_4_6_QPMODEL_UTILS__

@@ -45,8 +45,10 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
+#include "../../Algos/CatMads/CatMads.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
 #include "../../Algos/Mads/MadsUpdate.hpp"
 #include "../../Algos/SubproblemManager.hpp"
@@ -307,6 +309,32 @@ bool NOMAD::MadsUpdate::runImp()
     AddOutputInfo("Delta frame size = " + mesh->getDeltaFrameSize().display());
     OUTPUT_INFO_END
 
+    
+    // CatMads initial DOE is performed during algo initialization (MadsInitialization).
+    // Now we are ready to build Python Cat model
+    auto catalgo = getParentOfType<NOMAD::CatAlgoUtils*>(NOMAD::Step::_parentStep);
+    if ( nullptr != catalgo)
+    {
+        
+        OUTPUT_INFO_START
+        AddOutputInfo("Cat model update is called");
+        NOMAD::OutputQueue::Flush();
+        OUTPUT_INFO_END
+        
+        bool success = catalgo->buildCatModel();
+        OUTPUT_INFO_START
+        if (!success)
+        {
+            AddOutputInfo("Cat model not built successfully");
+        }
+        else
+        {
+            AddOutputInfo("Cat model built successfully");
+        }
+        OUTPUT_INFO_END
+    }
+
+    
 
     return true;
 }

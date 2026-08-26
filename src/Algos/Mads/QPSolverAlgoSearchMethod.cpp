@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/QPSolverAlgoSearchMethod.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/QPSolverAlgo/QPSolverAlgoSinglePass.hpp"
@@ -96,10 +97,23 @@ void NOMAD::QPSolverAlgoSearchMethod::init()
         _displayLevel = modelDisplay.empty()
                             ? NOMAD::OutputLevel::LEVEL_DEBUGDEBUG
                             : NOMAD::OutputLevel::LEVEL_INFO;
+        
+        
+        _dynamicSearch = _runParams->getAttributeValue<bool>("QP_SEARCH_DYNAMIC_ENABLE");
+        // The first search is dynamic enabled by default. After that, it is set in updateDynamicSearchEnabled()
     }
 #endif
 }
 
+void NOMAD::QPSolverAlgoSearchMethod::updateDynamicEnabled()
+{
+    // More complex strategies have been tested without success.
+    // Let's consider a simple, yet efficient strategy
+    // After a full success we rarely have another one. Let's deactivate for the next iteration
+    _dynamicSearchEnabled = !(_allSuccessTypes.back() == NOMAD::SuccessType::FULL_SUCCESS);
+    return;
+    
+}
 
 void NOMAD::QPSolverAlgoSearchMethod::generateTrialPointsFinal()
 {

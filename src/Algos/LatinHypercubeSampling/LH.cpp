@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/LatinHypercubeSampling/LH.hpp"
 #include "../../Algos/Mads/GMesh.hpp"
@@ -77,6 +78,7 @@ NOMAD::ArrayOfPoint NOMAD::LH::suggest ()
 void NOMAD::LH::startImp()
 {
     // Default algorithm start
+    // See issue #639
     NOMAD::Algorithm::startImp();
     
     generateTrialPoints();

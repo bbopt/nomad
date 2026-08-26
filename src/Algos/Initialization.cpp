@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../Algos/Initialization.hpp"
 #include "../Cache/CacheBase.hpp"
 #include "../Output/OutputQueue.hpp"

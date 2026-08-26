@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Cache/CacheBase.hpp"
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/SgtelibModel/SgtelibModel.hpp"

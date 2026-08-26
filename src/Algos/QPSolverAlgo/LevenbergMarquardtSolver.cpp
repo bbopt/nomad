@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   LevenbergMarquardtSolver.cpp
  \brief  Levenberg-Marquardt algorithm: implementation
@@ -126,6 +127,9 @@ NOMAD::LMSolverStatus NOMAD::LevenbergMarquardtSolver::solve(SGTELIB::Matrix& x,
 
     // Tolerance threshold for v
     constexpr double small_v = 1e-10;
+
+    // Tolerance for trust-region ratio
+    constexpr double tol_tr_ratio = 1e-15;
 
     const bool verbose = verbose_level > 0;
     if (verbose)
@@ -218,7 +222,7 @@ NOMAD::LMSolverStatus NOMAD::LevenbergMarquardtSolver::solve(SGTELIB::Matrix& x,
     size_t successiveUnsuccessful = 0;
     double distXLoop = 1e15;
     double backtrackStepSize = 1.0;
-    double ared =0, pred = 0;
+    double ared = 0, pred = 0;
     auto status = LMSolverStatus::MAX_ITER_REACHED;
     for (int iter = 0; iter < (int) max_iter; ++iter)
     {
@@ -311,6 +315,13 @@ NOMAD::LMSolverStatus NOMAD::LevenbergMarquardtSolver::solve(SGTELIB::Matrix& x,
             xp[i] = xpi;
         }
 
+        // Compute f_trial
+        for (int j = 0; j < nbCons; ++j)
+        {
+            checkslack.set(j, 0, Xcan.get(j + n, 0) + cxp.get(j, 0));
+        }
+        const double f_trial = checkslack.norm();
+
         // Magic step: for all coordinates j for which cj(x) < 0,
         // set sj := -cj(x). Such steps allow to decrease further the
         // objective function. See
@@ -339,17 +350,12 @@ NOMAD::LMSolverStatus NOMAD::LevenbergMarquardtSolver::solve(SGTELIB::Matrix& x,
             Xcan.set(i + n, 0, si);
         }
 
-        // Re-adjust the step vxs
-        for (int i = 0; i < nbVar; ++i)
-        {
-            vxs.set(i, 0, Xcan.get(i, 0) - XSp.get(i, 0));
-        }
-
         // Compute trust-region ratio
         for (int j = 0; j < nbCons; ++j)
         {
             checkslack.set(j, 0, Xcan.get(j + n, 0) + cxp.get(j, 0));
         }
+        const double f_trial_magic = checkslack.norm();
 
         // Compute the residual: r = J(x) * vx + vs + (c(x) + s)
         SGTELIB::Matrix::inplace_product(r, W, vxs);
@@ -358,8 +364,20 @@ NOMAD::LMSolverStatus NOMAD::LevenbergMarquardtSolver::solve(SGTELIB::Matrix& x,
         // Update W' W r (for stopping criteria)
         SGTELIB::Matrix::inplace_product(WtWr, W.transpose(), r);
 
-        ared = cslack.norm() - checkslack.norm(); // > 0 if that works
-        pred = cslack.norm() - r.norm();
+        const double f_current = cslack.norm();
+        const double qm = r.norm();
+        pred = f_current - qm + f_trial - f_trial_magic + tol_tr_ratio * std::max(1.0, f_current);
+        ared = f_current - f_trial_magic + tol_tr_ratio * std::max(1.0, f_current); // > 0 if that works
+
+        // Correct for rounding errors
+        // Taken from Trust-Regions
+        // by Conn, Gould, and Toint
+        if (std::max(std::fabs(pred), std::fabs(ared)) <= tol_tr_ratio)
+        {
+            // Trust-region ratio is set to 1.0
+            ared = 1.0;
+            pred = 1.0;
+        }
 
         if ((ared >= pred * epsilon_1) && (pred > 0))
         { // TR ratio >= epsilon_1

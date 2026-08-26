@@ -44,13 +44,13 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   DiscoMadsBarrier.cpp
  \brief  The DiscoMads algorithm barrier: implementation
  \author Solene Kojtych
  \see    DiscoMadsBarrier.hpp
  */
-
 #include "../../Cache/CacheBase.hpp"
 #include "../../Eval/ComputeSuccessType.hpp"
 #include "../../Algos/DiscoMads/DiscoMadsBarrier.hpp"
@@ -178,7 +178,7 @@ bool NOMAD::DiscoMadsBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoin
     bool revealingIteration = false;
     string s; // for output
     
-    // Detect if there has been a revelation (so the iteration is revealing) 
+    // Detect if there has been a revelation (so the iteration is revealing)
     std::vector<NOMAD::EvalPoint> newRevealingPoints; 
     auto cache = CacheBase::getInstance().get();
     auto crittestNewRevealing = [&](const EvalPoint& x){ return x.getRevealingStatus()==2;};
@@ -352,7 +352,7 @@ bool NOMAD::DiscoMadsBarrier::updateWithPoints(const std::vector<NOMAD::EvalPoin
             // There may be no best feasible as feasibility of points may change during run
             info.setBBO("No best feasible solution at this iteration.");
         }
-        NOMAD::OutputDirectToFile::Write(info, true);
+        NOMAD::OutputDirectToFile::Write(info, true, NOMAD::SuccessType::FULL_SUCCESS, true /* feasible*/);
         OUTPUT_DIRECTTOFILE_END
     }
 

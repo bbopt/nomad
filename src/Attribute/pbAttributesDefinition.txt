@@ -163,7 +163,7 @@ NOMAD::ArrayOfDouble
     . INITIAL_MESH_SIZE * 1.0          # for all variables
     . INITIAL_MESH_SIZE 1 0.5        # for variable 1 only
     . INITIAL_MESH_SIZE 2-4 0.25     # for variables 2 to 4
-    . INITIAL_MESH_SIZE ( 0.0001 0.001 0.01 0.001 ) # each variable 
+    . INITIAL_MESH_SIZE ( 0.0001 0.001 0.01 0.001 ) # each variable
 
 \)
 \( advanced initial mesh size mads gmesh \)
@@ -269,6 +269,36 @@ UNIQUE_ENTRY false
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################
+CAT_GROUP
+NOMAD::ListOfVariableGroup
+-
+\( The group of categorical variables) \)
+\(
+
+. When defined, CatMads poll generates trial points in a separate subspace for
+  the categorical group of variables.
+
+. Arguments: a list of variable indices or a range of indices
+
+. A single group of categorical variables can be defined.
+
+. Cannot set both CAT_GROUP and VARIABLE_GROUP. The VARIABLE_GROUP is automatically
+constructed.
+
+. The variables not in the CAT_GROUP are put into another variable group.
+
+. The indices in the groups of variables must be unique.
+
+. Examples:
+    . CAT_GROUP 0 1 2
+    . CAT_GROUP 2-6
+
+\)
+\( advanced group(s) variable(s) categorical cat var(s) poll \)
+UNIQUE_ENTRY false
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
 X0
 NOMAD::ArrayOfPoint
 -
@@ -281,7 +311,8 @@ NOMAD::ArrayOfPoint
 
 . More than one starting point can be defined in a separate text file
   (X0 x0s.txt) with one point per line. A single point can be provided in the
-  parameter file: X0 (0 0 0).
+  parameter file with the syntax X0 (0 0 0). Several points can be provided
+  in the parameter file with the syntax X0 0 (0 0 0) // X0 1 (0 1 2).
 
 . All points are evaluated: X0 evaluations are not opportunistic.
   Initial LH_SEARCH points are handled as X0s (no opportunism for evaluation).
@@ -299,6 +330,9 @@ NOMAD::ArrayOfPoint
       X0 1 * 1.0    # Second starting point
 
     . X0 ( 0 1 2 )  # if DIMENSION = 3
+
+    . X0 0 (0 0 0) # First starting point
+      X0 1 (0 1 2) # Second starting point
 
 \)
 \( basic initial variable(s) var(s) init point(s) bound(s) lower upper cache start starting \)

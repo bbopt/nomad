@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_SIMPLELINESEARCH__
-#define __NOMAD_4_5_SIMPLELINESEARCH__
+
+#ifndef __NOMAD_4_6_SIMPLELINESEARCH__
+#define __NOMAD_4_6_SIMPLELINESEARCH__
 
 
 #include "../../Algos/Algorithm.hpp"
@@ -102,4 +103,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SIMPLELINESEARCH__
+#endif // __NOMAD_4_6_SIMPLELINESEARCH__

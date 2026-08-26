@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/Mads/NMSearchMethod.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/EvcInterface.hpp"
@@ -128,6 +129,7 @@ void NOMAD::NMSearchMethod::generateTrialPointsFinal()
     auto madsIteration = getParentOfType<MadsIteration*>();
 
     // Note: Use first point of barrier as simplex center.
+    // See issue #392
     NOMAD::NMAllReflective allReflective(this,
                             getMegaIterationBarrier()->getFirstPoint(),
                             madsIteration->getMesh());

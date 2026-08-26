@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Param/AllParameters.hpp"
 
 // Implementation of set and get functions for backwards compatibility with NOMAD 3.

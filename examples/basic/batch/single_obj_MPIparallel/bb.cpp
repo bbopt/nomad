@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
@@ -180,7 +181,7 @@ void evalServerStart(const char* input_file_name)
     
     // Get the input vectors
     std::string str;
-    std::vector<std::vector<double> > X;
+    std::vector<std::vector<double>> X;
             
     while (std::getline(in, str))
     {
@@ -206,7 +207,7 @@ void evalServerStart(const char* input_file_name)
     char         signal;
     MPI_Status  status;
     int          evaluator;
-    std::vector<std::vector<double> > all_outputs(X.size(),std::vector<double>(m,0));
+    std::vector<std::vector<double>> all_outputs(X.size(),std::vector<double>(m,0));
     size_t eval_counter_sent = 0, eval_counter_received = 0, nb_points = X.size() ;
     int index;
     while (eval_counter_received != nb_points)

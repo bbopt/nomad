@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/NelderMead/NMShrink.hpp"
 #include "../../Algos/NelderMead/NMUpdate.hpp"
@@ -54,7 +55,7 @@
 void NOMAD::NMShrink::init()
 {
     setStepType(NOMAD::StepType::NM_SHRINK);
-    _currentStepType = NOMAD::StepType::NM_SHRINK; 
+    _currentStepType = NOMAD::StepType::NM_SHRINK;  
 
     _gamma = _runParams->getAttributeValue<NOMAD::Double>("NM_GAMMA");
 

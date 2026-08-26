@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 /*--------------------------------------------------------------------------*/
 /*  Example of a program that makes NOMAD do a Mads custom user search in   */
 /*  addition to the default search.                                         */
@@ -132,6 +133,9 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
     // Enable the user search method. See below for registering the callback function
     // to generate the search directions. Both are required.
     allParams->setAttributeValue("USER_SEARCH", true);
+    
+    // Let's use Ads with user search ->  no mesh projection
+    allParams->setAttributeValue("ADS_OPTIMIZATION", true);
 
     // Display
     allParams->setAttributeValue("DISPLAY_DEGREE", 3);
@@ -142,12 +146,13 @@ void initAllParams(const std::shared_ptr<NOMAD::AllParameters>& allParams)
     allParams->checkAndComply();
 }
 
-// The function to generate user search directions. This is registered as a callback below.
-bool userSearchMethodCallback(const NOMAD::Step& step, NOMAD::EvalPointSet & trialPoints)
+    
+bool userSearchCallbackFn(const NOMAD::Step& step,
+                          NOMAD::EvalPointSet & trialPoints)
 {
     // Important: by default USER_CALLS are disabled when doing quad model optimization
     // -> NO call to this function when doing quad model search.
-
+    
     auto mads = dynamic_cast<const NOMAD::Mads*>(step.getRootAlgorithm());
     if (nullptr == mads)
     {
@@ -159,13 +164,13 @@ bool userSearchMethodCallback(const NOMAD::Step& step, NOMAD::EvalPointSet & tri
         throw NOMAD::Exception(__FILE__,__LINE__,"No barrier available.");
     }
     auto frameCenter = barrier->getFirstPoint();
-
+    
     // Let's work on the Mads pb.
     auto pbParams = mads->getPbParams();
-
+    
     // Pb parameters
     auto n = pbParams->getAttributeValue<size_t>("DIMENSION");
-
+    
     // Mesh delta frame size is  used to scale the proposed search direction
     auto mesh = step.getIterationMesh();
     if (nullptr == mesh)
@@ -173,29 +178,29 @@ bool userSearchMethodCallback(const NOMAD::Step& step, NOMAD::EvalPointSet & tri
         throw NOMAD::Exception(__FILE__,__LINE__,"No mesh available.");
     }
     //  Frame size of the mesh
-     NOMAD::ArrayOfDouble frameSize = mesh->getDeltaFrameSize();
-
+    NOMAD::ArrayOfDouble frameSize = mesh->getDeltaFrameSize();
+    
     // Let's try a random direction larger than the mesh frame size.
     NOMAD::Direction dir(n,0.0);
-
+    
+    //
+    // Let's explore beyond the frame size
+    //
     // Compute unit sphere direction
     NOMAD::Direction::computeDirOnUnitSphere(dir);
 
     for (size_t i = 0 ; i < n ; i++)
     {
-        // Let's explore beyond the frame size
-            dir[i] *= frameSize[i]*2.0; // Note: resulting pt is projected on the bounds and on the mesh if required.
+        dir[i] *= frameSize[i]*2.0; // Note: resulting pt is projected on the bounds and on the mesh if required.
     }
-
-    trialPoints.clear();
-
-    // insert the trial point in the trial point set
     NOMAD::EvalPoint ep(*frameCenter->getX() + dir);
-    ep.setPointFrom(frameCenter, NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(&step));
+    
+    // insert the trial point in the trial point set
+    trialPoints.clear();
     trialPoints.insert(ep);
-
+    
     return true;
-}
+};
 
 
 /*------------------------------------------*/
@@ -213,19 +218,13 @@ int main()
     // Custom Evaluator
     std::unique_ptr<My_Evaluator> ev(new My_Evaluator(params->getEvalParams()));
     TheMainStep.setEvaluator(std::move(ev));
+    
+    // Registering the callback function to generate Mads user search trial points
+    // Setting USER_SEARCH yes is also required (see above)
+    TheMainStep.addCallback<NOMAD::MadsCallbackType::USER_METHOD_SEARCH>(userSearchCallbackFn);
 
     // Main step start initializes Mads (default algorithm)
     TheMainStep.start();
-
-    // Registering the callback function to generate Mads user search trial points
-    // Setting USER_SEARCH yes is also required (see above)
-    auto mads = std::dynamic_pointer_cast<NOMAD::Mads>(TheMainStep.getAlgo(NOMAD::StepType::ALGORITHM_MADS));
-    if (nullptr == mads)
-    {
-        throw NOMAD::Exception(__FILE__,__LINE__,"Cannot access to Mads algorithm");
-    }
-    mads->addCallback(NOMAD::CallbackType::USER_METHOD_SEARCH, userSearchMethodCallback);
-
     TheMainStep.run();
     TheMainStep.end();
 

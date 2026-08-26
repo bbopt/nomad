@@ -44,14 +44,15 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
   \file   Uncopyable.hpp
   \brief  Base class for uncopyable classes (headers)
   \author Sebastien Le Digabel
   \date   2010-04-02
 */
-#ifndef __NOMAD_4_5_UNCOPYABLE__
-#define __NOMAD_4_5_UNCOPYABLE__
+#ifndef __NOMAD_4_6_UNCOPYABLE__
+#define __NOMAD_4_6_UNCOPYABLE__
 
 #include "../nomad_nsbegin.hpp"
 
@@ -80,5 +81,5 @@
   };
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_UNCOPYABLE__
+#endif // __NOMAD_4_6_UNCOPYABLE__
 

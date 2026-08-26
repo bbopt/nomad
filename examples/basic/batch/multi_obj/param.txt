@@ -30,7 +30,7 @@ QUAD_MODEL_SEARCH no
 SPECULATIVE_SEARCH no
 DMULTIMADS_NM_STRATEGY MULTI
 
-DISPLAY_DEGREE 2
+DISPLAY_DEGREE 3
 DISPLAY_ALL_EVAL yes
 DISPLAY_STATS BBE ( SOL ) BBO  # Display the number of evaluation (BBE),
 		     	       # the current points ( SOL ) and the blackbox outputs

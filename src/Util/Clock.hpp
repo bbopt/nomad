@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   Clock.hpp
  \brief  Clock class (headers)
@@ -51,8 +52,8 @@
  \date   2010-04-02
  \see    Clock.cpp
  */
-#ifndef __NOMAD_4_5_CLOCK__
-#define __NOMAD_4_5_CLOCK__
+#ifndef __NOMAD_4_6_CLOCK__
+#define __NOMAD_4_6_CLOCK__
 
 #include <ctime>
 
@@ -107,4 +108,4 @@ public:
 #include "../nomad_nsend.hpp"
 
 
-#endif // __NOMAD_4_5_CLOCK__
+#endif // __NOMAD_4_6_CLOCK__

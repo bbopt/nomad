@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   Eval.hpp
  \brief  Evaluation at a point
@@ -52,8 +53,8 @@
  \see    Eval.cpp
  */
 
-#ifndef __NOMAD_4_5_EVAL__
-#define __NOMAD_4_5_EVAL__
+#ifndef __NOMAD_4_6_EVAL__
+#define __NOMAD_4_6_EVAL__
 
 #include <functional>   // For std::function
 
@@ -75,6 +76,10 @@
 
 
 /// Type for an evaluation status
+/**
+ * Add something in the name that says if we can re-evaluate the point or not.
+ * Even add some User Cases.
+ */
 enum class EvalStatusType
 {
     EVAL_NOT_STARTED,       ///< Evaluation has not been done yet. Initial status.
@@ -114,7 +119,7 @@ private:
     BBOutputTypeList _bbOutputTypeList; ///< List of output types: OBJ, PB, EB etc.
     bool _bbOutputComplete;             ///< All bbo outputs have a valid value for functions (OBJ, PB and EB).
     std::unique_ptr<MOInfo> _moInfo; ///< Multiobjective information; precomputed to have more performance
-    
+        
 public:
 
     /*---------------*/
@@ -165,7 +170,7 @@ public:
     bool isEvalOk () const { return _evalStatus == EvalStatusType::EVAL_OK; }
 
     bool isBBOutputComplete() const { return _bbOutputComplete; }
-    BBOutput getBBOutput() const { return _bbOutput; }
+    const BBOutput & getBBOutput() const { return _bbOutput; }
     ArrayOfDouble getBBOutputByType( const BBOutputType & bboType );
     BBOutputTypeList getBBOutputTypeList() const { return _bbOutputTypeList; }
     void setBBOutputTypeList(const BBOutputTypeList& bbOutputTypeList)
@@ -320,9 +325,11 @@ public:
 
 private:
     /// Helpers for getF() and getH()
-    Double computeHStandard( NOMAD::HNormType hNormType) const;
+    // Handling EQ constraints is for MADS-PIP only.
+    // Mads-PB does a poor job at handling EQ constraints.
+    // Let's pass a default eqAsPBThreshold value, just in case use MADS-PB.
+    Double computeHStandard( NOMAD::HNormType hNormType, const NOMAD::Double & eqAsPBThreshold = 1E-8 ) const;
     Double computeFPhaseOne( NOMAD::HNormType hNormType) const;
-    
 
     
 };
@@ -344,4 +351,4 @@ std::istream& operator>>(std::istream& is, EvalStatusType &evalStatus);
 
 
 #include "../nomad_nsend.hpp"
-#endif  // __NOMAD_4_5_EVAL__
+#endif  // __NOMAD_4_6_EVAL__

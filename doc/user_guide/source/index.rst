@@ -38,12 +38,12 @@ Please cite NOMAD 4 with reference:
 
 A complete introduction to derivative-free and blackbox optimization can be found in the textbook:
 
-.. [AuHa2017] C. Audet and W. Hare.
-    Derivative-Free and Blackbox Optimization.
+.. [AuHa2026] C. Audet and W. Hare.
+    Derivative-Free and Blackbox Optimization, Second Edition.
     *Springer Series in Operations Research and Financial Engineering.*
-    Springer International Publishing, Berlin, 2017.
+    Springer International Publishing, Berlin, 2026.
 
-.. |dfo_book| image:: ../figs/livre_DFO_AuHa2017.png
+.. |dfo_book| image:: ../figs/livre_DFO_AuHa2026.png
                :width: 60 pt
 
 .. toctree::

@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   ArrayOfPoint.hpp
  \brief  Vector of Points
@@ -52,8 +53,8 @@
  \see    ArrayOfPoint.cpp
  */
 
-#ifndef __NOMAD_4_5_ARRAY_OF_POINT__
-#define __NOMAD_4_5_ARRAY_OF_POINT__
+#ifndef __NOMAD_4_6_ARRAY_OF_POINT__
+#define __NOMAD_4_6_ARRAY_OF_POINT__
 
 #include <vector>
 #include "../Math/Point.hpp"
@@ -70,4 +71,4 @@ DLL_UTIL_API std::istream& operator>>(std::istream& in, ArrayOfPoint& aop);
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_5_ARRAY_OF_POINT__
+#endif // __NOMAD_4_6_ARRAY_OF_POINT__

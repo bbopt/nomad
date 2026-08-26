@@ -6,8 +6,8 @@
 
 # Utils
 add_library (
-    nomadUtils 
-    SHARED 
+    nomadUtils
+    SHARED
     ${MATH_SOURCES}
     ${OUTPUT_SOURCES}
     ${PARAM_SOURCES}
@@ -16,9 +16,9 @@ add_library (
     ${ATTRIBUTE_HEADERS})
 
 target_include_directories(
-    nomadUtils 
+    nomadUtils
     PUBLIC
-    $<BUILD_INTERFACE: 
+    $<BUILD_INTERFACE:
      ${CMAKE_SOURCE_DIR}/src/Attribute
      ${CMAKE_SOURCE_DIR}/src/Math
      ${CMAKE_SOURCE_DIR}/src/Output
@@ -26,21 +26,21 @@ target_include_directories(
      ${CMAKE_SOURCE_DIR}/src/Type
      ${CMAKE_SOURCE_DIR}/src/Util
     >
-    $<INSTALL_INTERFACE: 
+    $<INSTALL_INTERFACE:
      ${CMAKE_INSTALL_INCLUDEDIR}
     >
 )
 
 if(OpenMP_CXX_FOUND)
     target_link_libraries(
-      nomadUtils 
+      nomadUtils
       PUBLIC
         OpenMP::OpenMP_CXX
     )
 endif()
 
 set_target_properties(
-    nomadUtils 
+    nomadUtils
     PROPERTIES
        VERSION "${NOMAD_VERSION}"
        SOVERSION "${NOMAD_VERSION_MAJOR}.${NOMAD_VERSION_MINOR}"
@@ -51,7 +51,7 @@ set_target_properties(
 if (WIN32)
     target_compile_definitions(
       nomadUtils
-      PRIVATE 
+      PRIVATE
         -DDLL_UTIL_EXPORTS
     )
 endif()
@@ -63,16 +63,16 @@ endif()
 
 # Evals
 add_library(
-    nomadEval 
-    SHARED 
-      ${CACHE_SOURCES} 
+    nomadEval
+    SHARED
+      ${CACHE_SOURCES}
       ${EVAL_SOURCES}
 )
 
 target_include_directories(
-    nomadEval 
+    nomadEval
     PUBLIC
-      $<BUILD_INTERFACE: 
+      $<BUILD_INTERFACE:
         ${CMAKE_CURRENT_SOURCE_DIR}/Cache
         ${CMAKE_CURRENT_SOURCE_DIR}/Eval
       >
@@ -82,14 +82,14 @@ target_include_directories(
 )
 
 target_link_libraries(
-    nomadEval 
+    nomadEval
     PUBLIC
     nomadUtils
 )
 
 if(OpenMP_CXX_FOUND)
     target_link_libraries(
-      nomadEval 
+      nomadEval
       PUBLIC
         OpenMP::OpenMP_CXX
     )
@@ -106,7 +106,7 @@ set_target_properties(
 if (WIN32)
     target_compile_definitions(
       nomadEval
-      PRIVATE 
+      PRIVATE
         -DDLL_EVAL_EXPORTS
     )
 endif()
@@ -119,28 +119,31 @@ endif()
 
 # Algos
 add_library(
-  nomadAlgos 
-    SHARED 
-      ${ALGOS_SOURCES} ${CS_SOURCES} 
-      ${DMULTIMADS_SOURCES} ${DISCOMADS_SOURCES} 
-      ${MADS_SOURCES} ${MADSLOGBARRIER_SOURCES} ${SIMPLE_MADS_SOURCES} ${LH_SOURCES}
-      ${NM_SOURCES} ${PHASEONE_SOURCES} 
-      ${PSDMADS_SOURCES} ${COOPMADS_SOURCES} 
-      ${QPSOLVER_SOURCES} ${SSDMADS_SOURCES} 
-      ${TEMPLATE_ALGO_SOURCES} ${SIMPLELINESEARCH_ALGO_SOURCES} 
+  nomadAlgos
+    SHARED
+      ${ALGOS_SOURCES} ${CS_SOURCES}
+      ${CATMADS_SOURCES} ${CATADS_SOURCES} ${DMULTIMADS_SOURCES} ${DISCOMADS_SOURCES}
+      ${MADS_SOURCES} ${ADS_SOURCES} ${MADSPIP_SOURCES} ${SIMPLE_MADS_SOURCES} ${LH_SOURCES}
+      ${NM_SOURCES} ${PHASEONE_SOURCES}
+      ${PSDMADS_SOURCES} ${COOPMADS_SOURCES}
+      ${QPSOLVER_SOURCES}
+      ${RANDOM_ALGO_SOURCES} ${SIMPLELINESEARCH_ALGO_SOURCES}
       ${VNSMADS_SOURCES}
 )
-   
+
 target_include_directories(
   nomadAlgos
     PUBLIC
-      $<BUILD_INTERFACE: 
+      $<BUILD_INTERFACE:
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos
+	${CMAKE_CURRENT_SOURCE_DIR}/Algos/CatMads
+	${CMAKE_CURRENT_SOURCE_DIR}/Algos/CatAds
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/CoordinateSearch
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/DMultiMads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/DiscoMads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/LatinHypercubeSampling
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/Mads
+	${CMAKE_CURRENT_SOURCE_DIR}/Algos/Ads
 	${CMAKE_CURRENT_SOURCE_DIR}/Algos/MadsMixedPenaltyLogBarrier
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SimpleMads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/NelderMead
@@ -148,12 +151,11 @@ target_include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/PSDMads
 	${CMAKE_CURRENT_SOURCE_DIR}/Algos/COOPMads
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QPSolverAlgo
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SSDMads
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/TemplateAlgo
+        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/RandomAlgo
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SimpleLineSearch
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/VNSMads
        >
-       $<INSTALL_INTERFACE: 
+       $<INSTALL_INTERFACE:
           ${CMAKE_INSTALL_INCLUDEDIR}
        >
 )
@@ -164,23 +166,21 @@ if(USE_SGTELIB MATCHES ON)
     nomadAlgos
     PRIVATE
       ${QUADMODEL_SOURCES}
-      ${QUADMODELSLD_SOURCES} 
-      ${SGTELIBMODEL_SOURCES} 
+      ${SGTELIBMODEL_SOURCES}
   )
 
   target_include_directories(
     nomadAlgos
     PUBLIC
-      $<BUILD_INTERFACE: 
+      $<BUILD_INTERFACE:
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModel
-        ${CMAKE_CURRENT_SOURCE_DIR}/Algos/QuadModelSLD
         ${CMAKE_CURRENT_SOURCE_DIR}/Algos/SgtelibModel
       >
   )
 
   target_link_libraries(
     nomadAlgos
-    PUBLIC 
+    PUBLIC
       sgtelib
   )
 else()
@@ -188,7 +188,7 @@ else()
   target_include_directories(
     nomadAlgos
     PUBLIC
-      $<BUILD_INTERFACE: 
+      $<BUILD_INTERFACE:
         $ENV{IBEX_ROOT}/src
       >
   )
@@ -262,4 +262,3 @@ install(
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/
 )
-

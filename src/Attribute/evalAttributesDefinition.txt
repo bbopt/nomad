@@ -131,14 +131,16 @@ and BB_OUTPUT_TYPE.
     . PB        : constraint <= 0 treated with Progressive Barrier (PB)
     . CSTR      : same as 'PB'
     . EB        : constraint <= 0 treated with Extreme Barrier (EB)
+    . EQPB      : equality constraint infeasibility treated as PB in h
+                  for Mads-PB. It is supported in Mads-PB but not very good.
+                  For Mads-PIP, EQPB equality constraints penalize the merit function.
+                  With EQPB, Mads-PIP works better than Mads-PB.
     . F         : constraint <= 0 treated with Filter
     . CNT_EVAL  : 0 or 1 output: count or not the evaluation (for batch mode and Matlab interface)
     . NOTHING   : this output is ignored
     . EXTRA_O   : same as 'NOTHING'
     .  -        : same as 'NOTHING'
     . BBO_UNDEFINED: same as 'NOTHING'
-
-. Equality constraints are not natively supported
 
 . Extra outputs (EXTRA_O, NOTHING, BBO_UNDEFINED, ...) are not used for
   optimization but are available for display and custom user testing
@@ -158,7 +160,7 @@ and BB_OUTPUT_TYPE.
 \( basic bb exe blackbox(s) output(s) constraint(s) type(s) infeasibility norm \)
 ALGO_COMPATIBILITY_CHECK no
 RESTART_ATTRIBUTE no
-################################################################################
+#################################################################################
 SURROGATE_EXE
 std::string
 -

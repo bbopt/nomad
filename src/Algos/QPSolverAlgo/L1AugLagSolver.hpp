@@ -44,14 +44,15 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   L1AugLagSolver.hpp
  \brief  L1 Augmented Lagrangian algorithm
  \author Tangi Migot and Ludovic Salomon
  \see    L1AugLagSolver.cpp
  */
-#ifndef __NOMAD_4_5_L1AUGLAG_SOLVER__
-#define __NOMAD_4_5_L1AUGLAG_SOLVER__
+#ifndef __NOMAD_4_6_L1AUGLAG_SOLVER__
+#define __NOMAD_4_6_L1AUGLAG_SOLVER__
 
 #include "../../../ext/sgtelib/src/Matrix.hpp"
 
@@ -62,6 +63,7 @@ enum class L1AugLagSolverStatus
     BOUNDS_ERROR, ///< Problem with lower bounds and upper bounds
     MATRIX_DIMENSIONS_FAILURE, ///< Problem with matrix dimensions
     MAX_ITER_REACHED, ///< Maximum number of iterations reached
+    MIN_STEPSIZE_REACHED, ///< Minimum step size reached
     NUM_ERROR, ///< Trust-region numerical error
     PARAM_ERROR, ///< Parameter error
     TIGHT_VAR_BOUNDS, ///< Bounds on variables are too tight
@@ -113,7 +115,9 @@ private:
                                       const std::vector<bool>& activeConstraints,
                                       const std::vector<bool>& infeasibleConstraints,
                                       const SGTELIB::Matrix& lambda,
-                                      const double mu);
+                                      const SGTELIB::Matrix& lambdaB,
+                                      const double mu,
+                                      const bool considerActiveMultipliers);
 
     static bool computeStrengthenedStep(SGTELIB::Matrix& h_k,
                                         const SGTELIB::Matrix& QPModel,
@@ -138,16 +142,26 @@ private:
                                     const SGTELIB::Matrix &Xcan,
                                     const std::vector<bool> &activeConstraints);
 
-    double piecewiseLineSearch(const SGTELIB::Matrix& X,
-                               const SGTELIB::Matrix& QPModel,
-                               const SGTELIB::Matrix& d,
-                               const std::vector<bool>& activeConstraints,
-                               const std::vector<bool>& infeasibleConstraints,
-                               const SGTELIB::Matrix& lambda,
-                               const double mu,
-                               const double small_gamma, // = 1E-20
-                               const double gamma_update, // = 1.5
-                               const double delta /* = 1E-4 // Pk < (P0 - delta) */ ) const;
+    static double piecewiseLineSearch(const SGTELIB::Matrix& X,
+                                      const SGTELIB::Matrix& QPModel,
+                                      const SGTELIB::Matrix& d,
+                                      const SGTELIB::Matrix& lb,
+                                      const SGTELIB::Matrix& ub,
+                                      const std::vector<bool>& activeConstraints,
+                                      const std::vector<bool>& infeasibleConstraints,
+                                      const SGTELIB::Matrix& lambda,
+                                      const double mu,
+                                      const double small_gamma, // = 1E-20
+                                      const double gamma_update, // = 1.5
+                                      const double delta /* = 1E-4 // Pk < (P0 - delta) */ );
+
+    static double quadraticInterpolationSearch(const SGTELIB::Matrix& X,
+                                               const SGTELIB::Matrix& QPModel,
+                                               const SGTELIB::Matrix& d,
+                                               const SGTELIB::Matrix& lb,
+                                               const SGTELIB::Matrix& ub,
+                                               const SGTELIB::Matrix& lambda,
+                                               const double mu);
 
     static bool checkDimensions(const SGTELIB::Matrix& x,
                                 const SGTELIB::Matrix& QPModel,
@@ -212,4 +226,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif //__NOMAD_4_5_L1AUGLAG_SOLVER__
+#endif //__NOMAD_4_6_L1AUGLAG_SOLVER__

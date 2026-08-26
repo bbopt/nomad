@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/MadsIteration.hpp"
 #include "../../Algos/Mads/OrthoNPlus1PollMethod.hpp"
@@ -158,6 +159,7 @@ void NOMAD::OrthoNPlus1PollMethod::trialPointsReduction()
 
     // If the mesh is finest we don't want to order the direction based on some informed rule. Some informed ordering can select always the same directions.
     // Forcing random will ensure that the Ortho n+1 direction will grow asymptotically dense
+    // NOTE: Check that the test works well after fixing issue #387 to have mesh index available.
     // NOTE: With GMesh the mesh is refined less frequently then with XMesh (the Ortho N+1 paper was based on XMesh). So we more frequently force a random ordering. The quad model ordering is beneficial when opportunistic. Using the Frame size to decide is also not pertinent. When the mesh index is available we should use it instead of the mesh size.
     // bool forceRandom = meshIsFinest();
     bool forceRandom = false;

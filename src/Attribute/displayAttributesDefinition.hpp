@@ -1,54 +1,8 @@
-/*---------------------------------------------------------------------------------*/
-/*  NOMAD - Nonlinear Optimization by Mesh Adaptive Direct Search -                */
-/*                                                                                 */
-/*  NOMAD - Version 4 has been created and developed by                            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  The copyright of NOMAD - version 4 is owned by                                 */
-/*                 Charles Audet               - Polytechnique Montreal            */
-/*                 Sebastien Le Digabel        - Polytechnique Montreal            */
-/*                 Viviane Rochon Montplaisir  - Polytechnique Montreal            */
-/*                 Christophe Tribes           - Polytechnique Montreal            */
-/*                                                                                 */
-/*  NOMAD 4 has been funded by Rio Tinto, Hydro-Québec, Huawei-Canada,             */
-/*  NSERC (Natural Sciences and Engineering Research Council of Canada),           */
-/*  InnovÉÉ (Innovation en Énergie Électrique) and IVADO (The Institute            */
-/*  for Data Valorization)                                                         */
-/*                                                                                 */
-/*  NOMAD v3 was created and developed by Charles Audet, Sebastien Le Digabel,     */
-/*  Christophe Tribes and Viviane Rochon Montplaisir and was funded by AFOSR       */
-/*  and Exxon Mobil.                                                               */
-/*                                                                                 */
-/*  NOMAD v1 and v2 were created and developed by Mark Abramson, Charles Audet,    */
-/*  Gilles Couture, and John E. Dennis Jr., and were funded by AFOSR and           */
-/*  Exxon Mobil.                                                                   */
-/*                                                                                 */
-/*  Contact information:                                                           */
-/*    Polytechnique Montreal - GERAD                                               */
-/*    C.P. 6079, Succ. Centre-ville, Montreal (Quebec) H3C 3A7 Canada              */
-/*    e-mail: nomad@gerad.ca                                                       */
-/*                                                                                 */
-/*  This program is free software: you can redistribute it and/or modify it        */
-/*  under the terms of the GNU Lesser General Public License as published by       */
-/*  the Free Software Foundation, either version 3 of the License, or (at your     */
-/*  option) any later version.                                                     */
-/*                                                                                 */
-/*  This program is distributed in the hope that it will be useful, but WITHOUT    */
-/*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or          */
-/*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License    */
-/*  for more details.                                                              */
-/*                                                                                 */
-/*  You should have received a copy of the GNU Lesser General Public License       */
-/*  along with this program. If not, see <http://www.gnu.org/licenses/>.           */
-/*                                                                                 */
-/*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
-/*---------------------------------------------------------------------------------*/
 //////////// THIS FILE MUST BE CREATED BY EXECUTING WriteAttributeDefinitionFile ////////////
 //////////// DO NOT MODIFY THIS FILE MANUALLY ///////////////////////////////////////////////
 
-#ifndef __NOMAD_4_5_DISPLAYATTRIBUTESDEFINITION__
-#define __NOMAD_4_5_DISPLAYATTRIBUTESDEFINITION__
+#ifndef __NOMAD_4_6_DISPLAYATTRIBUTESDEFINITION__
+#define __NOMAD_4_6_DISPLAYATTRIBUTESDEFINITION__
 
 _definition = {
 { "DISPLAY_ALL_EVAL",  "bool",  "false",  " Flag to display all evaluations ",  " \n  \n . If true, more points are displayed with parameters DISPLAY_STATS and \n   STATS_FILE \n  \n . If false, only the successful evaluations are displayed. \n  \n . Overrides parameters DISPLAY_INFEASIBLE and DISPLAY_UNSUCCESSFUL \n  \n . Points of the phase one with EB constraint are not displayed \n  \n . Argument: one boolean \n  \n . Example: DISPLAY_ALL_EVAL yes \n  \n . Default: false\n\n",  "  basic display displays stat stats eval evals evaluation evaluations   "  , "false" , "true" , "true" },
@@ -64,7 +18,8 @@ _definition = {
 { "SOL_FORMAT",  "NOMAD::ArrayOfDouble",  "-",  " Internal parameter for format of the solution ",  " \n  \n . SOL_FORMAT is computed from BB_OUTPUT_TYPE and GRANULARITY \n   parameters. \n  \n . Gives the format precision for display of SOL. May also be used for \n   other ArrayOfDouble of the same DIMENSION (ex. bounds, deltas). \n  \n . CANNOT BE MODIFIED BY USER. Internal parameter. \n  \n . No default value.\n\n",  "  internal  "  , "false" , "true" , "true" },
 { "OBJ_WIDTH",  "size_t",  "0",  " Internal parameter for character width of the objective ",  " \n  \n . Computed to display the objective correctly when NOMAD is run. \n  \n . CANNOT BE MODIFIED BY USER. Internal parameter. \n  \n . Default: 0\n\n",  "  internal  "  , "false" , "false" , "true" },
 { "HISTORY_FILE",  "std::string",  "",  " The name of the history file ",  " \n  \n . The history file contains all evaluations in a simple format (SOL BBO) \n  \n . Arguments: one string (file name) \n  \n . The seed is added to the file name if \n   ADD_SEED_TO_FILE_NAMES=\'yes\' (default) \n  \n . Example: HISTORY_FILE history.txt \n  \n  \n . Default: Empty string.\n\n",  "  basic history file name display displays output outputs  "  , "false" , "false" , "true" },
-{ "SOLUTION_FILE",  "std::string",  "",  " The name of the file containing the best feasible solution ",  " \n  \n . The solution file contains the best feasible incumbent point in a simple \n   format (SOL BBO) \n    \n . If SOLUTION_FILE_FINAL is set to false, the solution file is written when \n a new success is obtained. Otherwise, it is written upon finalizing the run. \n  \n . Arguments: one string (file name) \n  \n . The seed is added to the file name if \n   ADD_SEED_TO_FILE_NAMES=\'yes\' (default) \n  \n . Example: SOLUTION_FILE sol.txt \n  \n  \n . Default: Empty string.\n\n",  "  basic solution best incumbent file name display displays output outputs  "  , "false" , "false" , "true" },
+{ "SOLUTION_FILE",  "std::string",  "",  " The name of the file containing the best solution ",  " \n  \n . The solution file contains the best incumbent point in a simple \n   format (SOL BBO) \n    \n . If the best incumbent is feasible it will be put into the solution file. \n  \n . If only a best infeasible incumbent is available, it will be put into the \n solution file only if the SOLUTION_FILE_FEAS_ONLY parameter is set to false. \n    \n . If SOLUTION_FILE_FINAL is set to false, the solution file is written when \n a new success is obtained (only a single point at a time). Otherwise, it is \n written upon finalizing the run. \n  \n . If SOLUTION_FILE_FINAL is set to true, the solution file is written at the \n end of the optimization. It will contain all equivalent points in terms of \n f and h (could be more than one). \n  \n . Arguments: one string (file name) \n  \n . The seed is added to the file name if \n   ADD_SEED_TO_FILE_NAMES=\'yes\' (default) \n  \n . Example: SOLUTION_FILE sol.txt \n  \n  \n . Default: Empty string.\n\n",  "  basic solution best incumbent file name display displays output outputs  "  , "false" , "false" , "true" },
+{ "SOLUTION_FILE_FEAS_ONLY",  "bool",  "true",  " Option to control which incumbent is put in solution  ",  " \n  \n . See the SOLUTION_FILE paramters info for details. \n  \n . If set to false, the solution file will always contain a point after the first \n blackbox evaluation (no failure). \n    \n . Example: SOLUTION_FILE_FEAS_ONLY false \n  \n  \n . Default: true\n\n",  "  basic solution best incumbent file name display displays output outputs  "  , "false" , "false" , "true" },
 { "SOLUTION_FILE_FINAL",  "bool",  "false",  " Flag to decide when to write best feasible solution ",  " \n  \n . If a SOLUTION_FILE is provided, the best feasible incumbent point can be \n written on every success or at the end of the optimization. \n  \n . For multiobjective optimization problem the solution file contains current \n pareto solutions. There can be a large number of pareto points. \n    \n . If SOLUTION_FILE_FINAL is set to false, the solution file is written when \n a new success is obtained. Otherwise, it is written upon finalizing the run. \n  \n . The flag has not effect if SOLUTION_FILE is not set properly. \n  \n . Arguments: one bool \n  \n . Example: SOLUTION_FILE_FINAL true \n  \n  \n . Default: false\n\n",  "  basic solution best incumbent file name display displays output outputs  "  , "false" , "false" , "true" } };
 
 #endif

@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../Math/RNG.hpp"  // for setSeed()
 #include "../Param/RunParameters.hpp"
 #include "../Type/DirectionType.hpp"
@@ -489,7 +490,7 @@ void NOMAD::RunParameters::checkAndComply(
 
         // Use with openMP
         int nb_threads = evaluatorControlGlobalParams->getAttributeValue<int>("NB_THREADS_PARALLEL_EVAL");
-        if(nb_threads>1)
+        if(nb_threads > 1)
         {
             std::cerr << "Warning: NB_THREADS_PARALLEL_EVAL>1. DiscoMads should not return any errors but it was not extensively validated with OpenMP. Prefer run on one thread if you want to stick to the theory." <<  std::endl;
         }
@@ -510,9 +511,10 @@ void NOMAD::RunParameters::checkAndComply(
 
         // Variable group during revealing poll
         auto varGroups = pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP",false);
-        if (!varGroups.empty())
+        auto catvarGroups = pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("CAT_GROUP",false);
+        if (!varGroups.empty() || !catvarGroups.empty())
         {
-            throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DiscoMads is not compatible with VARIABLE_GROUP. This breaks the density properties of the revealing poll." );
+            throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: DiscoMads is not compatible with VARIABLE_GROUP/CAT_GROUP. This breaks the density properties of the revealing poll." );
         }
     }
 
@@ -535,19 +537,17 @@ void NOMAD::RunParameters::checkAndComply(
     }
 #endif // _OPENMP
 
-
-    // PSD-Mads
     bool useAlgoPSDMads = getAttributeValueProtected<bool>("PSD_MADS_OPTIMIZATION", false);
 
 #ifndef _OPENMP
     if (useAlgoPSDMads)
     {
-        err = "Error: PSD_MADS_OPTIMIZATION can only be used when OpenMP is available.";
+        err = "Error: PSD_MADS_OPTIMIZATION can only be used when OpenMP is available. Please rebuild Nomad with OpenMP enabled.";
         throw NOMAD::Exception(__FILE__,__LINE__, err);
     }
 #else
     size_t nbPSDMads = getAttributeValueProtected<size_t>("PSD_MADS_NB_SUBPROBLEM", false);
-    // Test PSD-Mads nb problem
+    // Test COOP-Mads nb problem
     if (nbPSDMads <= 1)
     {
         err = "Error: PSD-Mads requires to have more than one sub-problem to solve in parallel. PSD_MADS_NB_SUBPROBLEM must be greater than 1.";
@@ -575,28 +575,22 @@ void NOMAD::RunParameters::checkAndComply(
             setAttributeValue("PSD_MADS_NB_SUBPROBLEM", nbMadsSubproblem);
         }
 
-        if (useAlgoPSDMads)
+        int nbThreadsHard = static_cast<int>(std::thread::hardware_concurrency());
+        if (nbMadsSubproblem > nbThreadsHard)
         {
-            int nbThreadsHard = static_cast<int>(std::thread::hardware_concurrency());
-            if (nbMadsSubproblem > nbThreadsHard)
-            {
-                std::string s = "Warning: PSD_MADS_NB_SUBPROBLEM exceeds the number of threads registered for this hardware: ";
-                s += NOMAD::itos(nbThreadsHard);
-                s += ". If this is true, it is not efficient. Let's continue anyway.";
-                std::cout << s << std::endl;
-            }
+            std::string s = "Warning: PSD_MADS_NB_SUBPROBLEM exceeds the number of threads registered for this hardware: ";
+            s += NOMAD::itos(nbThreadsHard);
+            s += ". If this is true, it is not efficient. Let's continue anyway.";
+            std::cout << s << std::endl;
         }
 
         // Check parameter for coverage
-        if (useAlgoPSDMads)
+        std::string covParamName = "PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE";
+        auto coverage = getAttributeValueProtected<NOMAD::Double>(covParamName, false);
+        if (coverage < 0.0 || coverage > 100.0)
         {
-            std::string covParamName = "PSD_MADS_SUBPROBLEM_PERCENT_COVERAGE";
-            auto coverage = getAttributeValueProtected<NOMAD::Double>(covParamName, false);
-            if (coverage < 0.0 || coverage > 100.0)
-            {
-                err = "Parameter " + covParamName + " must be between 0.0 and 100.0";
-                throw NOMAD::InvalidParameter(__FILE__,__LINE__, err);
-            }
+            err = "Parameter " + covParamName + " must be between 0.0 and 100.0";
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__, err);
         }
     }
 #endif
@@ -607,15 +601,108 @@ void NOMAD::RunParameters::checkAndComply(
         throw NOMAD::InvalidParameter(__FILE__,__LINE__,"Quad model search using simple mads is incompatible with the regular quad model search. Please deactivate: QUAD_MODEL_SEARCH no.");
     }
 
+    // DMultiMads optimization can be enabled/disabled automatically based on bbot in future versions.
+    if (useAlgoDMultiMads)
+    {
+        // Case where QUAD_MODEL_SLD_SEARCH is explicitly set by user -> exception
+        if ( isSetByUser("QUAD_MODEL_SLD_SEARCH") &&
+            getAttributeValueProtected<bool>("QUAD_MODEL_SLD_SEARCH",false) )
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"DMultiMads cannot currently use quad model sld search. Please deactivate: QUAD_MODEL_SLD_SEARCH no.");
+        }
+        // Case where default is used -> change to false with message
+        if ( getAttributeValueProtected<bool>("QUAD_MODEL_SLD_SEARCH",false) )
+        {
+            setAttributeValue("QUAD_MODEL_SLD_SEARCH", false);
+            // Warn the user
+            std::cout << "Warning: QUAD_MODEL_SLD_SEARCH is deactivated when enabling DMultiMads optimization" <<  std::endl;
+        }
+    }
+
+    bool useAlgoCatMads = getAttributeValueProtected<bool>("CATMADS_OPTIMIZATION", false);
+    bool useAlgoCatAds = getAttributeValueProtected<bool>("CATADS_OPTIMIZATION", false);
+    if (useAlgoCatMads || useAlgoCatAds)
+    {
+        auto catGroups = pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("CAT_GROUP");
+        if (catGroups.empty())
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"CATMADS_OPTIMIZATION/CATADS_OPTIMIZATION requires CAT_GROUP to be set.");
+        }
+        // Transfer to VARIABLE_GROUP has been done already. Let's create a map DIRECTION_TYPE<->VARIABLE_GROUP
+        // The map works for primary and secondary
+        // The first variable groups are for categorical variables the last one is for quantitative variables.
+        auto quantVarDirType = getAttributeValueProtected<NOMAD::DirectionTypeList>("DIRECTION_TYPE", false);
+        auto quantVarSecDirType = getAttributeValueProtected<NOMAD::DirectionTypeList>("DIRECTION_TYPE_SECONDARY_POLL", false);
+        if (quantVarDirType.size() > 1 || quantVarSecDirType.size() > 1)
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"CATMADS_OPTIMIZATION or CATADS_OPTIMIZATION: A single DIRECTION_TYPE/DIRECTION_TYPE_SECONDARY_POLL must be provided for quantitative variables.");
+        }
+        if (quantVarDirType[0] != NOMAD::DirectionType::ORTHO_2N)
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"CATMADS_OPTIMIZATION or CATADS_OPTIMIZATION: For now DIRECTION_TYPE other than ORTHO 2N is not possible.");
+        }
+        if (quantVarSecDirType[0] != NOMAD::DirectionType::DOUBLE)
+        {
+            throw NOMAD::InvalidParameter(__FILE__,__LINE__,"CATMADS_OPTIMIZATION or CATADS_OPTIMIZATION: For now DIRECTION_TYPE_SECONDARY_POLL other than DOUBLE is not possible.");
+        }
+
+        //
+        // Create the map VG<->DirType
+        //
+
+        // Insert a CatMads direction type and a secondary direction type for each CAT_GROUP.
+        NOMAD::DirectionTypeList dtList, sdtList;
+        // First, a direction for each group of cat variables. Next, a single direction for all quantitative variables.
+        dtList.insert(dtList.end(), catGroups.size(), NOMAD::DirectionType::CAT_FREE);
+        sdtList.insert(sdtList.end(), catGroups.size(), NOMAD::DirectionType::CAT_FREE);
+        dtList.push_back(quantVarDirType[0]);
+        sdtList.push_back(quantVarSecDirType[0]);
+
+
+        setAttributeValue("DIRECTION_TYPE",dtList);
+        setAttributeValue("DIRECTION_TYPE_SECONDARY_POLL",sdtList);
+
+
+        auto varGroups = pbParams->getAttributeValue<NOMAD::ListOfVariableGroup>("VARIABLE_GROUP");
+
+        if (varGroups.size() != dtList.size())
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__,"Something wrong with the creation of _mapDirTypeToVG");
+        }
+
+        // The map works for both DIRECTION and SECONDARY_DIRECTION
+        size_t i=0;
+        _mapDirTypeToVG.clear();
+        for (const auto &vg: varGroups)
+        {
+            _mapDirTypeToVG.insert({dtList[i++],{vg}});
+        }
+
+        //
+        // Create the list of fix variables for Quad Model search (used for cat variables)
+        //
+        setListFixVGForQuadModelSearch(pbParams, catGroups);
+
+
+        //
+        // Disable general speculative search. Replaced by CatMadsSpeculativeSearch
+        //
+        setAttributeValue("SPECULATIVE_SEARCH",false);
+
+    }
+
     // Algorithm parameters: use an algorithm other than MADS.
     // They are mutually-exclusive.
     bool useAlgoLH = (getAttributeValueProtected<size_t>("LH_EVAL", false) > 0);
     bool useAlgoNM = getAttributeValueProtected<bool>("NM_OPTIMIZATION", false);
     bool useAlgoQuadOpt = getAttributeValueProtected<bool>("QUAD_MODEL_OPTIMIZATION", false);
+    bool useAlgoQuadQPOpt = getAttributeValueProtected<bool>("QP_OPTIMIZATION", false);
     bool useAlgoSgtelibModel = getAttributeValueProtected<bool>("SGTELIB_MODEL_EVAL", false);
+    bool useAlgoAds = getAttributeValueProtected<bool>("ADS_OPTIMIZATION", false);
+    bool useAlgoMadsPIP = getAttributeValueProtected<bool>("MADSPIP_OPTIMIZATION", false);
 
-    int totalAlgoSet = (int)useAlgoLH + (int)useAlgoCS +(int)useAlgoNM + (int)useAlgoQuadOpt
-                       + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoDMultiMads + (int)useAlgoDiscoMads;
+    int totalAlgoSet = (int)useAlgoAds + (int)useAlgoLH + (int)useAlgoCS +(int)useAlgoNM + (int)useAlgoQuadOpt
+                       + (int)useAlgoPSDMads + (int)useAlgoSgtelibModel + (int)useAlgoDMultiMads + (int)useAlgoDiscoMads + (int)useAlgoCatMads + (int)useAlgoCatAds;
 
     if (totalAlgoSet >= 2)
     {
@@ -628,6 +715,22 @@ void NOMAD::RunParameters::checkAndComply(
         if (useAlgoDMultiMads)
         {
             err += " DMULTIMADS_OPTIMIZATION";
+        }
+        if (useAlgoAds)
+        {
+            err += " ADS_OPTIMIZATION";
+        }
+        if (useAlgoMadsPIP)
+        {
+            err += " MADSPIP_OPTIMIZATION";
+        }
+        if (useAlgoCatMads)
+        {
+            err += " CATMADS_OPTIMIZATION";
+        }
+        if (useAlgoCatAds)
+        {
+            err += " CATADS_OPTIMIZATION";
         }
         if (useAlgoLH)
         {
@@ -644,6 +747,10 @@ void NOMAD::RunParameters::checkAndComply(
         if (useAlgoQuadOpt)
         {
             err += " QUAD_MODEL_OPTIMIZATION";
+        }
+        if (useAlgoQuadQPOpt)
+        {
+            err += " QP_OPTIMIZATION";
         }
         if (useAlgoSgtelibModel)
         {
@@ -702,6 +809,16 @@ void NOMAD::RunParameters::checkAndComply(
         throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: GRANULARITY is defined and search method mesh projection is disabled. Mesh projection is required to maintain granularity of variable.");
     }
 
+
+
+    if (useAlgoQuadQPOpt)
+    {
+        if (granularity != NOMAD::ArrayOfDouble(n,0.0))
+        {
+            throw NOMAD::Exception(__FILE__,__LINE__, "Parameters check: GRANULARITY cannot be defined with QP_OPTIMIZATION.");
+        }
+    }
+
     _warningUnknownParamShown = true;
 
     _toBeChecked = false;
@@ -744,8 +861,8 @@ void NOMAD::RunParameters::setStaticParameters()
     setAttributeValue ( "INF_STR", NOMAD::Double::getInfStr() );
 }
 
-// These set methods are for CatMads (not yet available) and are not used in the current version of NOMAD.
-// Probably not needed once a CatMads algorithm is available.
+
+// Used in example CustomPollAndSearchMethodsWithSort
 bool NOMAD::RunParameters::setMapDirTypeToVG(const std::shared_ptr<NOMAD::PbParameters>& pbParams, std::map<NOMAD::DirectionType,NOMAD::ListOfVariableGroup> & mapDirTypeToVG)
 {
     if (_toBeChecked)
@@ -786,17 +903,12 @@ bool NOMAD::RunParameters::setMapDirTypeToVG(const std::shared_ptr<NOMAD::PbPara
 
 bool NOMAD::RunParameters::setListFixVGForQuadModelSearch(const std::shared_ptr<NOMAD::PbParameters>& pbParams, const NOMAD::ListOfVariableGroup & listFixVG)
 {
-    if (_toBeChecked)
-    {
-        std::string errorMsg = "Cannot set fixed variable group for QMS before checkAndComply is done";
-        throw NOMAD::Exception(__FILE__,__LINE__, errorMsg);
-    }
 
     auto listVG = pbParams->getAttributeValue<ListOfVariableGroup>("VARIABLE_GROUP");
 
     if (listVG.empty() && !listFixVG.empty())
     {
-        std::string errorMsg = "Cannot set fixed variable group for QMS if no variable group is defined";
+        std::string errorMsg = "Cannot set fixed variable group for QMS if no variable group is defined. User can call this function only once checkAndComply is done.";
         throw NOMAD::Exception(__FILE__,__LINE__, errorMsg);
     }
 

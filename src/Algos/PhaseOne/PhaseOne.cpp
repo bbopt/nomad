@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/PhaseOne/PhaseOne.hpp"
@@ -66,6 +67,7 @@ void NOMAD::PhaseOne::startImp()
     NOMAD::OutputDirectToFile::getInstance()->disableSolutionFile();
 
     // Default algorithm start
+    // See issue #639
     NOMAD::Algorithm::startImp();
     
     // Set up the run parameters to stop once a point that satisfies EB constraints is obtained
@@ -156,7 +158,7 @@ void NOMAD::PhaseOne::endImp()
             info.setBBO(evalPointList[0].getBBO(NOMAD::EvalType::BB));
             info.setSol(*(evalPointList[0].getX()));
 
-            NOMAD::OutputDirectToFile::Write(info,true,false); // Write in solution (if solution_file exists) but not in history file
+            NOMAD::OutputDirectToFile::Write(info,true, NOMAD::SuccessType::FULL_SUCCESS, true /* feasible*/, false); // Write in solution (if solution_file exists) but not in history file
         }
     }
 }

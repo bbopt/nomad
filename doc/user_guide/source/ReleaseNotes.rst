@@ -5,15 +5,20 @@ NOMAD 4 is a complete redesign compared with NOMAD 3, with a new architecture pr
 
 Some functionalities available in NOMAD 3 will be included in NOMAD 4 in future releases:
 
-   `-` *RobustMads* [AudIhaLedTrib2016]_ and *StoMads* [G-2019-30]_
+   `-` *RobustMads* [AudIhaLedTrib2016]_ and *StoMads* [AuDzKoLeD2021]_
 
-   `-` Categorical [AuDe01a]_ and periodical variables [AuLe2012]_
+Categorical variables are handled using the *CatMads* algorithm [AuDiHHLeDTr2025]_ in the python version of NOMAD 4 called NomadBBO soon available in PyPI.
 
 The performance of NOMAD 4 and 3 are similar when the default parameters of NOMAD 3 are used (see [AuLeRoTr2021]_).
 
 .. topic:: References
 
-  .. [AudIhaLedTrib2016] C. Audet, A. Ihaddadene, S. Le Digabel, and C. Tribes. 2018. Robust optimization of noisy blackbox problems using the Mesh Adaptive Direct Search algorithm. *Optimization Letters* 12, 4 (2018), 675–689
-  .. [G-2019-30] C. Audet, K.J. Dzahini, M. Kokkolaras, and S. Le Digabel. 2021.Stochastic mesh adaptive direct search for blackbox optimization using probabilistic estimates. *Technical Report* G-2019-30. Les cahiers du GERAD.  To appear in *Computational Optimization and Applications*.
-  .. [AuDe01a] C. Audet and J.E. Dennis, Jr. 2001. Pattern Search Algorithms for Mixed Variable Programming. *SIAM Journal on Optimization* 11, 3 (2001), 573–594.
-  .. [AuLe2012] C. Audet and S. Le Digabel. 2012.  The mesh adaptive direct search algorithm for periodic variables. *Pacific Journal of Optimization* 8, 1 (2012),103–119
+   .. [AudIhaLedTrib2016] C. Audet, A. Ihaddadene, S. Le Digabel, and C. Tribes. 2018. 
+      Robust optimization of noisy blackbox problems using the Mesh Adaptive Direct Search algorithm. 
+      *Optimization Letters* 12, 4 (2018), 675–689.
+
+   .. [AuDzKoLeD2021] C. Audet, K.J. Dzahini, M. Kokkolaras, and S. Le Digabel. 2021.
+      Stochastic mesh adaptive direct search for blackbox optimization using probabilistic estimates.
+      *Computational Optimization and Applications* 79, 1–34 (2021). https://doi.org/10.1007/s10589-020-00249-0
+
+

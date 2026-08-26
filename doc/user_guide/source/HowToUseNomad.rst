@@ -46,13 +46,9 @@ Basic parameters description
 
 This section describes the basic parameters for the optimization problem definition, the algorithmic parameters and the parameters to manage output information. Additional information can be obtained by executing the command::
 
-  $NOMAD_HOME/bin/nomad -h
-
-to see all parameters, or::
-
   $NOMAD_HOME/bin/nomad -h PARAM_NAME
 
-for a particular parameter.
+for a particular parameter a concept or a keyword. 
 
 The remaining content of a line is ignored after the character ``#``. Except for the file names, all strings and parameter names are case insensitive: ``DIMENSION 2`` is the same as ``Dimension 2``. File names refer to files in the problem directory. To indicate a file name containing spaces, use quotes ``"name"`` or ``'name'``. These names may include directory information relatively to the problem directory. The problem directory will be added to the names, unless the ``$`` character is used in front of the names. For example, if a blackbox executable is run by the command ``python script.py``, define parameter ``BB_EXE "$python script.py"``.
 
@@ -119,9 +115,7 @@ It may be defined once with a list of :math:`n` input types with format  ``(t1 t
 Input types ``t`` are values in ``R, B, I``. ``R`` is for real/continuous variables, ``B`` for binary variables, and ``I`` for integer variables.
 The default type is ``R``. See also :doc:`ListOfParameters`.
 
-.. note:: Categorical variables are not yet supported in NOMAD 4 but are available in NOMAD 3. Some work by a PhD student is currently being done to reintroduce this feature in NOMAD 4.
-
-
+.. note:: Categorical variables are supported in NOMAD 4 only through the NomadBBO python interface [AuDiHHLeDTr2025]_.
 
 
 .. _bb_output_type:
@@ -136,6 +130,8 @@ This parameter characterizes the values supplied by the blackbox, and in particu
   * ``EB`` constraints correspond to constraints that need to be always satisfied (*unrelaxable constraints*). The technique used to deal with those is the **Extreme Barrier** approach, consisting in simply rejecting the  infeasible points.
 
   * ``PB`` and ``F`` constraints correspond to constraints that need to be satisfied only at the solution, and not necessarily at intermediate points (*relaxable constraints*). More precisely, ``F`` constraints are treated with the **Filter** approach [AuDe04a]_,  and ``PB`` constraints are treated with the **Progressive Barrier**  approach [AuDe09a]_.
+
+  * ``EQPB``. Since version 4.6, equality constraints are supported. Equality constraint infeasibility is treated as PB for Mads-PB. It is supported in Mads-PB but not very good. For Mads-PIP, EQPB equality constraints penalize a merit function [AuBrDiLeDSiTr2026]_. With EQPB, Mads-PIP works better than Mads-PB.
 
   * There may be another type of constraints, the *hidden constraints*, but these only  appear inside the blackbox during an execution, and thus they   cannot be indicated in advance to NOMAD  (when such a constraint is violated, the evaluation simply fails and the point  is not considered).
 
@@ -157,14 +153,18 @@ All the types are:
 +---------------+-------------------------------------------------------+
 | ``OBJ``       | Objective value to be minimized                       |
 +---------------+-------------------------------------------------------+
-| ``PB``        | Constraint treated with **Progressive Barrier**       |
-| ``CSTR``      |                                                       |
+| ``PB``        | Inequality constraint treated with                    |
+| ``CSTR``      |  **Mads Progressive Barrier (Mads-PB)** or            |
+|               |  **Mads Penalty-Interior Point (Mads-PIP)**           |
 +---------------+-------------------------------------------------------+
-
+| ``EQPB``      | Equality constraint treated with Mads-PB              |
+|               | Equality constraint treated penalty-interior point    |
+|               |   within Mads-PIP                                     |
++---------------+-------------------------------------------------------+
 
 Please note that ``F`` constraints are not compatible with ``CSTR`` or ``PB``. However, ``EB`` can be combined  with ``F``, ``CSTR`` or ``PB``.
 
-
+.. warning:: Do not define an inequality constraint for an output that always return -Inf. By default, Nomad will build quadratic models on these outputs which can hinder the overall optimization. For example, CUTEst problems have two bounds for each constraint output which do not always necessitate two constraints.
 
 
 
@@ -359,5 +359,18 @@ These parameters display information each time a new feasible incumbent (i.e. a 
 
 .. topic:: References
 
-  .. [AuDe04a] C. Audet and J.E. Dennis, Jr. A pattern search filter method for nonlinear programming without derivatives. *SIAM Journal on Optimization*, 14(4):980–1010, 2004.
-  .. [AuIaLeDTr2014] C. Audet and A. Ianni and S. Le Digabel and C. Tribes. Reducing the Number of Function Evaluations in Mesh Adaptive Direct Search Algorithms. *SIAM Journal on Optimization*, 24(2):621-642, 2014.
+    .. [AuDe04a] C. Audet and J.E. Dennis, Jr. 
+      A pattern search filter method for nonlinear programming without derivatives. 
+      *SIAM Journal on Optimization*, 14(4):980–1010, 2004.
+
+    .. [AuIaLeDTr2014] C. Audet and A. Ianni and S. Le Digabel and C. Tribes. 
+      Reducing the Number of Function Evaluations in Mesh Adaptive Direct Search Algorithms.
+      *SIAM Journal on Optimization*, 24(2):621-642, 2014.
+
+    .. [AuDiHHLeDTr2025] C. Audet and Y. Diouane and E. Hallé-Hannan, S. Le Digabel and Tribes, Christophe.
+      CatMADS: Mesh Adaptive Direct Search for constrained blackbox optimization with categorical variables.
+      https://www.gerad.ca/papers/G-2025-42.pdf, 2025.
+
+    .. [AuBrDiLeDSiTr2026] C. Audet, A. Brilli, Y. Diouane, S. Le Digabel, E. J. Silva, C. Tribes. 
+      A penalty-interior point method combined with MADS for equality and inequality constrained optimization. 
+      *https://arxiv.org/abs/2601.20811*, 2026.

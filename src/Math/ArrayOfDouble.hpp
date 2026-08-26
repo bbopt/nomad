@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   ArrayOfDouble.hpp
  \brief  Base class to be used for an array of n \c Double values, as base class for \c Point and \c Direction.
@@ -52,8 +53,8 @@
  \see    ArrayOfDouble.cpp
  */
 
-#ifndef __NOMAD_4_5_ARRAYOFDOUBLE__
-#define __NOMAD_4_5_ARRAYOFDOUBLE__
+#ifndef __NOMAD_4_6_ARRAYOFDOUBLE__
+#define __NOMAD_4_6_ARRAYOFDOUBLE__
 
 #include <numeric>
 #include "../Math/Double.hpp"
@@ -364,4 +365,4 @@ DLL_UTIL_API std::ostream& operator<<(std::ostream& out, const ArrayOfDouble& ao
 DLL_UTIL_API std::istream& operator>>(std::istream& in, ArrayOfDouble& aod);
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_5_ARRAYOFDOUBLE__
+#endif // __NOMAD_4_6_ARRAYOFDOUBLE__

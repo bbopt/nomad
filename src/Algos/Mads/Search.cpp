@@ -45,14 +45,18 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/EvcInterface.hpp"
+#include "../../Algos/CatMads/CatMads.hpp"
+#include "../../Algos/CatAds/CatAds.hpp"
+#include "../../Algos/CatMads/CatSearchMethod.hpp"
+#include "../../Algos/CatMads/CatSpeculativeSearchMethod.hpp"
 #include "../../Algos/Mads/Search.hpp"
 #include "../../Algos/Mads/QPSolverAlgoSearchMethod.hpp"
 #include "../../Algos/Mads/QuadSearchMethod.hpp"
 #include "../../Algos/Mads/SgtelibSearchMethod.hpp"
 #include "../../Algos/Mads/SimpleLineSearchMethod.hpp"
 #include "../../Algos/Mads/SpeculativeSearchMethod.hpp"
-#include "../../Algos/Mads/TemplateAlgoSearchMethod.hpp"
 #include "../../Algos/Mads/LHSearchMethod.hpp"
 #include "../../Algos/Mads/NMSearchMethod.hpp"
 #include "../../Algos/Mads/UserSearchMethod.hpp"
@@ -64,9 +68,9 @@
 #include "../../Util/Clock.hpp"
 
 // Initialize static variables
-// 11 search methods are available
-std::vector<double> NOMAD::Search::_searchTime(11, 0.0);
-std::vector<double> NOMAD::Search::_searchEvalTime(11, 0.0);
+// Potentially 12 search methods are available
+std::vector<double> NOMAD::Search::_searchTime(12, 0.0);
+std::vector<double> NOMAD::Search::_searchEvalTime(12, 0.0);
 #endif // TIME_STATS
 
 void NOMAD::Search::init()
@@ -74,9 +78,25 @@ void NOMAD::Search::init()
     setStepType(NOMAD::StepType::SEARCH);
     verifyParentNotNull();
 
-    auto speculativeSearch      = std::make_shared<NOMAD::SpeculativeSearchMethod>(this);
-    auto simpleLineSearch       = std::make_shared<NOMAD::SimpleLineSearchMethod>(this);
+    
+    if (_userSearchMethodCallbackEnabled)
+    {
+        auto userSearch = std::make_shared<NOMAD::UserSearchMethod>(this);
+        _searchMethods.push_back(userSearch);    // 0. User search
+    }
+    
+    std::shared_ptr<SearchMethodBase> speculativeSearch;
 
+    auto *catAlgo = getParentOfType<NOMAD::CatAlgoUtils*>(NOMAD::Step::_parentStep);
+    if (nullptr !=catAlgo)
+    {
+        speculativeSearch = std::make_shared<NOMAD::CatSpeculativeSearchMethod>(this);
+    }
+    else
+    {
+        speculativeSearch = std::make_shared<NOMAD::SpeculativeSearchMethod>(this);
+    }
+    auto simpleLineSearch       = std::make_shared<NOMAD::SimpleLineSearchMethod>(this);
     auto qpsolverSearch         = std::make_shared<NOMAD::QPSolverAlgoSearchMethod>(this);
     auto quadSearch             = std::make_shared<NOMAD::QuadSearchMethod>(this);
     auto sgtelibSearch          = std::make_shared<NOMAD::SgtelibSearchMethod>(this);
@@ -84,11 +104,25 @@ void NOMAD::Search::init()
     auto nmSearch               = std::make_shared<NOMAD::NMSearchMethod>(this);
     auto vnsmartSearch          = std::make_shared<NOMAD::VNSmartAlgoSearchMethod>(this);
     auto vnsSearch              = std::make_shared<NOMAD::VNSSearchMethod>(this);
-    auto templateAlgoSearch     = std::make_shared<NOMAD::TemplateAlgoSearchMethod>(this);
-
+    auto catSearch              = std::make_shared<NOMAD::CatSearchMethod>(this);
 
     // The default search methods will be executed in the same order
     // as they are inserted.
+    // This is the order for NOMAD 3:
+    // 1. speculative search
+    // 1b. simple line search
+    //  ----> User search not added by default. It is added only when user calls are enabled (prevent sub-algo to call it).
+    //        User search is enabled only when callback function to generate dirs is added.
+    // 3. trend matrix basic line search
+    // 4. cache search
+    // 5. Model Searches
+    // 6. VNS search
+    // 6b. VNS Smart search
+    // 7. Latin-Hypercube (LH) search
+    // 8. NelderMead (NM) search
+    // 9. Cat search method (conditional to CatMads)
+
+    // Default search method
     _searchMethods.push_back(speculativeSearch);    // 1. speculative search
     _searchMethods.push_back(simpleLineSearch);    // 1b. speculative search
     _searchMethods.push_back(qpsolverSearch);       // 5a. QP solver on quad Model
@@ -98,12 +132,15 @@ void NOMAD::Search::init()
     _searchMethods.push_back(vnsmartSearch);        // 6b. VNSmart algo search
     _searchMethods.push_back(lhSearch);             // 7. Latin-Hypercube (LH) search
     _searchMethods.push_back(nmSearch);             // 8. NelderMead (NM) search
-
-    _searchMethods.push_back(templateAlgoSearch); // 10. Template algo (iteration) search (order of search method is important; a new search method copied from this template should be carefully positioned in the list)
+    if (nullptr != catAlgo)
+    {
+        _searchMethods.push_back(catSearch);        // 9. Cat search for mixed variables
+    }
+    
 
     // Extra search method added dynamically to Mads are moved to Search
     auto *mads = getParentOfType<NOMAD::Mads*>(NOMAD::Step::_parentStep);
-    if (nullptr !=mads )
+    if (nullptr != mads )
     {
         auto & extraSearchMethods = mads->accessExtraSearchMethods();
 
@@ -157,7 +194,7 @@ bool NOMAD::Search::runImp()
 
         // A local user stop is requested. Do not perform remaining search methods. Stop type reset is done at the end of iteration/megaiteration and algorithm.
         if (_stopReasons->testIf(NOMAD::IterStopType::USER_ITER_STOP) || _stopReasons->testIf(NOMAD::IterStopType::USER_ALGO_STOP) ||
-            _stopReasons->testIf(NOMAD::EvalGlobalStopType::CUSTOM_GLOBAL_STOP)) // C.T : I think we should test NOMAD::EvalMainThreadStopType::CUSTOM_OPPORTUNISTIC_STOP as the others are not yet triggered
+            _stopReasons->testIf(NOMAD::EvalGlobalStopType::CUSTOM_GLOBAL_STOP))
         {
             break;
         }
@@ -167,9 +204,6 @@ bool NOMAD::Search::runImp()
         bool enabled = searchMethod->isEnabled();
         OUTPUT_DEBUG_START
         s = "Search method " + NOMAD::stepTypeToString(searchMethod->getStepType()) + (enabled ? " is enabled" : " not enabled");
-
-
-
         AddOutputDebug(s);
         OUTPUT_DEBUG_END
 

@@ -39,6 +39,10 @@ false
 
 . QP standalone optimization on quadratic models for constrained and
   unconstrained problems
+  
+. Use a Model Based Trust Region algorithm to iterate.
+
+. The parameter QP_OPTIMIZATION_TR_RADIUS_MIN is 1E-12 by default
 
 . Argument: bool
 
@@ -48,6 +52,30 @@ false
 
 \)
 \( advanced sgtelib quadratic quad optimization programming qp \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE no
+################################################################################
+QP_OPTIMIZATION_MIN_TR_RADIUS
+Double
+1E-12
+\( Min trust region radius for QP optim  \)
+\(
+
+. QP standalone optimization on quadratic models for constrained and
+  unconstrained problems
+  
+. Use a Model Based Trust Region algorithm to iterate.
+
+. Minimum trust region radius is used as termination criterion.
+
+. The parameter QP_OPTIMIZATION_MIN_TR_RADIUS is 1E-12 by default
+
+. Argument: Double
+
+. Example: QP_OPTIMIZATION_MIN_TR_RADIUS 1E-6
+
+\)
+\( advanced sgtelib quadratic quad optimization programming qp trust region radius\)
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE no
 ################################################################################
@@ -68,6 +96,30 @@ false
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
+QP_SEARCH_DYNAMIC_ENABLE
+bool
+false
+\( Dynamic enabling/disabling of QP search based on success \)
+\(
+
+. Dynamic enabling/disabling of QP search based on success.
+
+. After a full success we rarely have another one.
+  Let's deactivate for the next iteration.
+  
+. This is a simple, yet efficient strategy.
+
+. Can work well with QUAD_MODEL_SEARCH_DYNAMIC_ENABLE.
+
+. Argument: bool
+
+. Example: QP_SEARCH_DYNAMIC_ENABLE yes
+
+\)
+\( advanced algorithm search quadratic quad model programming qp dynamic \)
+ALGO_COMPATIBILITY_CHECK yes
+RESTART_ATTRIBUTE yes
+################################################################################
 QP_SelectAlgo
 size_t
 0
@@ -85,42 +137,6 @@ size_t
 . Argument: size_t
 
 . Example: QP_SelectAlgo 0
-
-\)
-\( advanced algorithm search quadratic quad model programming qp \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-QP_maxIter
-size_t
-20
-\( QPSolver outter loop iteration limit \)
-\(
-
-. QPSolver outter loop iteration limit.
-
-. Common to algos #0, AugLag and #2, L1AugLag.
-
-. Argument: size_t
-
-. Example: maxIter 100
-
-\)
-\( advanced algorithm search quadratic quad model programming qp \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-QP_tolDistDX
-NOMAD::Double
--1.0
-\( A quad model based search step for Mads using a QP solver \)
-\(
-
-. QPSolver smallest progress accepted
-
-. Argument: Double
-
-. Example: QP_tolDistDX 1e-15
 
 \)
 \( advanced algorithm search quadratic quad model programming qp \)
@@ -246,23 +262,6 @@ NOMAD::Double
 ALGO_COMPATIBILITY_CHECK yes
 RESTART_ATTRIBUTE yes
 ################################################################################
-QP_AugLag_muDecrease
-NOMAD::Double
-2
-\( A quad model based search step for Mads using a QP solver \)
-\(
-
-. QPSolver penalty parameter decrease factor for Augmented Lagrangian solver
-
-. Argument: Double
-
-. Example: QP_AugLag_muDecrease 2
-
-\)
-\( advanced algorithm search quadratic quad model programming qp \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
 QP_AugLag_eta0
 NOMAD::Double
 1.0
@@ -325,40 +324,6 @@ NOMAD::Double
 . Argument: Double
 
 . Example: QP_AugLag_tolDistDXInner 1e-15
-
-\)
-\( advanced algorithm search quadratic quad model programming qp \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-QP_AugLag_maxSuccessivFail
-size_t
-3
-\( A quad model based search step for Mads using a QP solver \)
-\(
-
-. QPSolver maximum number of successiv failure for the subproblem
-
-. Argument: size_t
-
-. Example: QP_AugLag_maxSuccessivFail 3
-
-\)
-\( advanced algorithm search quadratic quad model programming qp \)
-ALGO_COMPATIBILITY_CHECK yes
-RESTART_ATTRIBUTE yes
-################################################################################
-QP_AugLag_successRatio
-NOMAD::Double
-0.99
-\( A quad model based search step for Mads using a QP solver \)
-\(
-
-. QPSolver ratio of expected decrease, so that f_{k+1} < ratio * f_k
-
-. Argument: NOMAD::Double (between 0 and 1)
-
-. Example: QP_AugLag_successRatio 0.99
 
 \)
 \( advanced algorithm search quadratic quad model programming qp \)

@@ -44,14 +44,15 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   defines.hpp
  \brief  Definitions
  \author Sebastien Le Digabel, modified by Viviane Rochon Montplaisir
  \date   March 2017
  */
-#ifndef __NOMAD_4_5_DEFINES__
-#define __NOMAD_4_5_DEFINES__
+#ifndef __NOMAD_4_6_DEFINES__
+#define __NOMAD_4_6_DEFINES__
 
 #include <string>
 #include <iostream>
@@ -153,7 +154,7 @@ const int INT_DISPLAY_WIDTH = 3;        // Width for integers
 const double MODEL_MAX_OUTPUT = 1E20;
 
 // Buffer size for reading BB outputs
-const size_t BUFFER_SIZE = 1024;
+const size_t BUFFER_SIZE = 8192;
 
 
 // -------------------------
@@ -172,12 +173,12 @@ enum class SuccessType
     UNDEFINED,          ///< Default type set at start
     NO_TRIALS,          ///< No trial points produced
     UNSUCCESSFUL,       ///< Trial point is not a success
-    PARTIAL_SUCCESS,    ///< Partial success (improving). Found an infeasible
+    PARTIAL_SUCCESS,    ///< Partial success. Found an infeasible
     ///< solution with a better h. f is worse.
-    FULL_SUCCESS        ///< Full success (dominating)
+    FULL_SUCCESS,       ///< Full success (dominating)
 };
 
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_DEFINES__
+#endif // __NOMAD_4_6_DEFINES__

@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_TRIALPOINTSTATS__
-#define __NOMAD_4_5_TRIALPOINTSTATS__
+
+#ifndef __NOMAD_4_6_TRIALPOINTSTATS__
+#define __NOMAD_4_6_TRIALPOINTSTATS__
 
 #include <map>
 #ifdef _OPENMP
@@ -136,4 +137,4 @@ std::ostream& operator<<(std::ostream& os, const TrialPointStats& stats);
 
 #include "../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_TRIALPOINTSTATS__
+#endif // __NOMAD_4_6_TRIALPOINTSTATS__

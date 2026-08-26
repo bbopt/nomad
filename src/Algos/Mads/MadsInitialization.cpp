@@ -45,7 +45,9 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/AlgoStopReasons.hpp"
+#include "../../Algos/Ads/AdsProgressiveBarrier.hpp"
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/DMultiMads/DMultiMadsBarrier.hpp"
 #include "../../Algos/DiscoMads/DiscoMadsBarrier.hpp"
@@ -57,6 +59,7 @@
 #include "../../Cache/CacheBase.hpp"
 #include "../../Eval/ProgressiveBarrier.hpp"
 #include "../../Output/OutputQueue.hpp"
+#include "../../Type/StepType.hpp"
 #include "../../Util/MicroSleep.hpp"
 
 void NOMAD::MadsInitialization::init()
@@ -76,7 +79,7 @@ bool NOMAD::MadsInitialization::runImp()
 
     if (doContinue)
     {
-        eval_x0s();
+        NOMAD::MadsInitialization::eval_x0s();
         doContinue = ! _stopReasons->checkTerminate();
     }
 
@@ -151,7 +154,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
         // Look for x0 in freshly evaluated points
         bool x0Found = findInList(x0, evaluatedPoints, evalPointX0);
 
-        if (!x0Found)
+        if (! x0Found)
         {
             // Done stop waiting in cache.
             NOMAD::CacheBase::getInstance()->setStopWaiting(true);
@@ -184,11 +187,11 @@ bool NOMAD::MadsInitialization::eval_x0s()
         for (const auto & ep: evalPointX0s)
         {
             const auto x0Full = ep.getX()->makeFullSpacePointFromFixed(NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this));
-            AddOutputError(evalTypeToString(evalType)+ " evaluation failed for X0 = " + x0Full.display() + " -> Raw bb outputs obtained: \"" + ep.getBBO(evalType) + "\"");
+            AddOutputError("Evaluation failed for X0 = " + x0Full.display() + " -> Raw bb outputs obtained: \"" + ep.getBBO(evalType) + "\"");
             const auto eval = ep.getEval(evalType);
             if (eval != nullptr && !eval->getBBOutputTypeList().empty() && eval->getBBOutput().getBBOAsArrayOfDouble().size() != eval->getBBOutputTypeList().size())
             {
-                AddOutputError(evalTypeToString(evalType) + "evaluation of point do not return the registered number of outputs, " +  std::to_string(ep.getEval(evalType)->getBBOutput().getBBOAsArrayOfDouble().size()) + " instead of " + std::to_string(ep.getEval(evalType)->getBBOutputTypeList().size()) + " expected. You may need to increase the buffer size in $NOMAD_HOME/src/Util/defines.hpp and rebuild Nomad." );
+                AddOutputError("Evaluation of point do not return the registered number of outputs, " +  std::to_string(ep.getEval(evalType)->getBBOutput().getBBOAsArrayOfDouble().size()) + " instead of " + std::to_string(ep.getEval(evalType)->getBBOutputTypeList().size()) + " expected. You may need to increase the buffer size in $NOMAD_HOME/src/Util/defines.hpp and rebuild Nomad." );
             }
         }
     }
@@ -259,6 +262,15 @@ bool NOMAD::MadsInitialization::eval_x0s()
                                                     _runParams->getAttributeValue<Double>("DISCO_MADS_EXCLUSION_RADIUS")
                                                    );
         }
+        else if (nullptr != _parentStep && _parentStep->getStepType() == NOMAD::StepType::ALGORITHM_ADS)
+        {
+            _barrier = std::make_shared<NOMAD::AdsProgressiveBarrier>(_hMax0,
+                                                    NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this),
+                                                    evalType,
+                                                    computeType,
+                                                    evalPointX0s,
+                                                    _barrierInitializedFromCache);
+        }
         else
         {
             _barrier = std::make_shared<NOMAD::ProgressiveBarrier>(_hMax0,
@@ -271,7 +283,7 @@ bool NOMAD::MadsInitialization::eval_x0s()
 
         // Case where x0 evaluation does not satisfy an extreme barrier constraint
         // For PSD-Mads, we do not want to conduct PhaseOne on a single thread.
-        if (nullptr == _barrier->getCurrentIncumbentFeas() && nullptr == _barrier->getCurrentIncumbentInf() && !_isUsedForPSDMads /*No phase one for psd mads*/)
+        if (nullptr == _barrier->getCurrentIncumbentFeas() && nullptr == _barrier->getCurrentIncumbentInf()&& !_isUsedForPSDMads /*No phase one for psd mads*/)
         {
             // Run PhaseOne, which has its own Mads.
             // Then continue regular Mads with an initial feasible point (if found by phaseOne).
@@ -298,6 +310,16 @@ bool NOMAD::MadsInitialization::eval_x0s()
             {
                 // Pass POne barrier point(s) to Mads barrier
                 auto pOneBarrierPoints = phaseOne->getRefMegaIteration()->getBarrier()->getAllPoints();
+
+                // Force update of cache for mesh
+                if (_isUsedForDMultiMads && NOMAD::EvalType::BB == evalType)
+                {
+                    for (auto & ep : pOneBarrierPoints)
+                    {
+                        ep.setMesh(_initialMesh);
+                    }
+                }
+
                 _barrier->updateWithPoints(pOneBarrierPoints, false , true /* true: update barrier incumbents and hMax */);
             }
         }

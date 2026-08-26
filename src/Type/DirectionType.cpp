@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   DirectionType.cpp
  \brief  types for Direction (implementation)
@@ -128,6 +129,11 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
     if (s == "USER_FREE_POLL")
     {
         ret = NOMAD::DirectionType::USER_FREE_POLL;
+    }
+    
+    if (s == "CAT_FREE")
+    {
+        ret = NOMAD::DirectionType::CAT_FREE;
     }
 
     // Ortho-MADS with n+1 (plus QUAD or NEG), or 2n directions:
@@ -218,6 +224,7 @@ NOMAD::DirectionType NOMAD::stringToDirectionType(const std::list<std::string> &
     if ( s == "LT" )
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "LT direction type not yet supported");
+
     }
 
     // GPS:
@@ -276,6 +283,9 @@ std::string NOMAD::directionTypeToString(NOMAD::DirectionType dt)
             break;
         case NOMAD::DirectionType::USER_FREE_POLL:
             s = "USER_FREE_POLL";
+            break;
+        case NOMAD::DirectionType::CAT_FREE:
+            s = "CAT_FREE";
             break;
         default:
             throw NOMAD::Exception(__FILE__, __LINE__, "Unrecognized NOMAD::DirectionType " + std::to_string((int)dt));

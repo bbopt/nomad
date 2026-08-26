@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/Mads/MegaSearchPoll.hpp"
 #include "../../Algos/Mads/MadsMegaIteration.hpp"
@@ -61,8 +62,8 @@ void NOMAD::MegaSearchPoll::init()
         throw NOMAD::Exception(__FILE__,__LINE__,"An instance of class MegaSearch must have a MadsMegaIteration among its ancestors");
     }
     
-    _poll = std::make_unique<NOMAD::Poll>(this);
-    _search = std::make_unique<NOMAD::Search>(this);
+    _poll = std::make_unique<NOMAD::Poll>(this, _userCallbackEnabled);
+    _search = std::make_unique<NOMAD::Search>(this, _userCallbackEnabled);
 
 }
 

@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
@@ -201,7 +202,7 @@ bool NOMAD::SgtelibModelInitialization::eval_x0s()
         }
         else
         {
-            AddOutputError("Sgtelib evaluation failed for X0 = " + x0.display());
+            AddOutputError("Evaluation failed for X0 = " + x0.display());
         }
     }
 

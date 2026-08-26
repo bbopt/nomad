@@ -77,7 +77,7 @@ RESTART_ATTRIBUTE no
 ################################################################################
 COOP_MADS_OPTIMIZATION_CACHE_SEARCH
 bool
-true
+false
 \( COOP-MADS cache search for incumbent synchronization \)
 \(
 

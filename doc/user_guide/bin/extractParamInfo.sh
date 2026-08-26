@@ -37,19 +37,19 @@ egrep -v "^#|^ALGO_COMPATIBILITY_CHECK|^RESTART_ATTRIBUTE|UNIQUE_ENTRY" $1 | \
             biginfopassed = 1;
         } else if (1 == biginfopassed && 0 == lastline) {
             keywords = keywords" "$0;
-            lastline = ($keywords ~ "\\\\)" );  # It took me a while to figure this one out!
+            lastline = (keywords ~ "\\\\)" );  # It took me a while to figure this one out!
         }
         if (1 == lastline) {
             # Compute argument (basic / advanced / developer)
-            if ($keywords ~ "developer" || $keywords ~ "developper")
+            if (keywords ~ "developer" || keywords ~ "developper")
             {
                 argument = "developer";
             }
-            else if ($keywords ~ "advanced")
+            else if (keywords ~ "advanced")
             {
                 argument = "advanced";
             }
-            else if ($keywords ~ "internal")
+            else if (keywords ~ "internal")
             {
                 argument = "internal";
             }

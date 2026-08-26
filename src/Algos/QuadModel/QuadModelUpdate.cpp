@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/CacheInterface.hpp"
 #include "../../Algos/EvcInterface.hpp"
 #include "../../Algos/QuadModel/QuadModelAlgo.hpp"
@@ -79,7 +80,7 @@ void NOMAD::QuadModelUpdate::init()
 
 
     // Fixed groups of variables.
-    if ( nullptr != _pbParams)
+    if ( nullptr != _runParams)
     {
         _listFixVG = _runParams->getListFixVGForQuadModelSearch();
     }
@@ -174,8 +175,6 @@ bool NOMAD::QuadModelUpdate::runImp()
             _modelCenter.reset(_n);
             _boxSize.reset(_n);
 
-
-
             // Model center is obtained by averaging min and max of the trial points.
             // Multiply box size by box factor parameter
             for (size_t i=0; i < _n ; i++)
@@ -257,7 +256,6 @@ bool NOMAD::QuadModelUpdate::runImp()
         NOMAD::CacheInterface cacheInterface(this);
 
         // Get number of valid points in cache
-
         std::vector<NOMAD::EvalPoint> evalPointListInCache;
         auto crit0 = [&](const NOMAD::EvalPoint& evalPoint){return this->isValidForUpdate(evalPoint);};
         cacheInterface.find(crit0, evalPointListInCache, true /*find in subspace*/);
@@ -266,13 +264,14 @@ bool NOMAD::QuadModelUpdate::runImp()
         evalPointList.clear();
         for (const auto & evalPoint: evalPointListInCache)
         {
-            if (isValidForIncludeInModel(evalPoint))
+            if (isValidForIncludeInModelAndPlus(evalPoint))
             {
                 evalPointList.push_back(evalPoint);
             }
         }
 
-
+        // Get points in the box
+        // If the number of points is less than 0.5*(n+2)*(n+1), enlarge the box size and repeat
         size_t nbEvalTarget = 0.5*(_n+2)*(_n+1); // Best target to build a quadratic model
         if (nbMaxCache < nbEvalTarget)
         {
@@ -280,15 +279,17 @@ bool NOMAD::QuadModelUpdate::runImp()
         }
         if ( nbMaxCache >= nbEvalTarget )
         {
+            // Safeguard on the number of increase.
             size_t nbIncrease = 0;
-            while (nbIncrease < 20 && evalPointList.size() < nbEvalTarget)
+            const size_t maxNbIncrease =1000;
+            while (nbIncrease < maxNbIncrease && evalPointList.size() < nbEvalTarget)
             {
                 nbIncrease++;
                 _boxSize *= 2.0;
                 evalPointList.clear();
                 for (const auto & evalPoint: evalPointListInCache)
                 {
-                    if (isValidForIncludeInModel(evalPoint))
+                    if (isValidForIncludeInModelAndPlus(evalPoint))
                     {
                         evalPointList.push_back(evalPoint);
                     }
@@ -298,8 +299,8 @@ bool NOMAD::QuadModelUpdate::runImp()
                 AddOutputInfo(s);
                 OUTPUT_INFO_END
             }
-        }
 
+        }
     }
 
     // Minimum and maximum number of valid points to build a model
@@ -477,7 +478,9 @@ bool NOMAD::QuadModelUpdate::runImp()
     // Check if the model is ready
     if ( model->is_ready() )
     {
-        updateSuccess = true;
+        {
+             updateSuccess = true;
+        }
     }
     // updateSuccess default is "false"
 
@@ -495,12 +498,25 @@ bool NOMAD::QuadModelUpdate::runImp()
 bool NOMAD::QuadModelUpdate::isValidForIncludeInModel(const NOMAD::EvalPoint& evalPoint) const
 {
 
+    if(! isValidForUpdate(evalPoint))
+        return false;
+
     NOMAD::ArrayOfDouble diff = (*evalPoint.getX() - _modelCenter);
 
     diff *= 2.0; // Comparison with half of the box size. But instead we multiply the diff by two.
 
     return diff.abs() <= _boxSize ;
 
+}
+
+bool NOMAD::QuadModelUpdate::isValidForIncludeInModelAndPlus(const NOMAD::EvalPoint& evalPoint) const
+{
+
+    NOMAD::ArrayOfDouble diff = (*evalPoint.getX() - _modelCenter);
+
+    diff *= 2.0; // Comparison with half of the box size. But instead we multiply the diff by two.
+
+    return diff.abs() <= _boxSize;
 }
 
 bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint) const
@@ -543,10 +559,66 @@ bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint)
                 return false;
             }
         }
+
+        // Get fixed value for model center
+        if (!evalPoint.hasFixed(_forcedFixVG))
+        {
+            return false;
+        }
     }
 
     return true;
 }
+
+// Previous version
+//bool NOMAD::QuadModelUpdate::isValidForUpdate(const NOMAD::EvalPoint& evalPoint) const
+//{
+//    // Verify that the point is valid
+//    // - Not a NaN
+//    // - Not a fail
+//    // - All outputs defined
+//    // - Blackbox OBJ available (Not MODEL)
+//    bool validPoint = true;
+//
+//    auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
+//    auto eval = evalPoint.getEval(evalType);
+//    if (NOMAD::EvalType::BB != evalType)
+//    {
+//        validPoint = false;
+//    }
+//    else if (nullptr == eval)
+//    {
+//        // Eval must be available
+//        validPoint = false;
+//    }
+//    else
+//    {
+//        const auto& computeType = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
+//
+//        // Note: it could be discussed if points that have h > hMax should still be used
+//        // to build the model (Nomad 3). We validate them to comply with Nomad 3.
+//        // If f or h greater than MODEL_MAX_OUTPUT (default=1E10) the point is not valid (same as Nomad 3)
+//        if (   ! eval->isBBOutputComplete()
+//            || !(NOMAD::EvalStatusType::EVAL_OK == eval->getEvalStatus())
+//            || !eval->getF(computeType).isDefined()
+//            || !eval->getH(computeType).isDefined()
+//            || eval->getF(computeType) > NOMAD::MODEL_MAX_OUTPUT
+//            || eval->getH(computeType) > NOMAD::MODEL_MAX_OUTPUT)
+//        {
+//            validPoint = false;
+//        }
+//
+//        // Get fixed value for model center
+//        if (!evalPoint.hasFixed(_forcedFixVG))
+//        {
+//            validPoint = false;
+//        }
+//
+//    }
+//
+//    return validPoint;
+//}
+
 
 bool NOMAD::QuadModelUpdate::scalingByDirections ( NOMAD::Point & x )
 {

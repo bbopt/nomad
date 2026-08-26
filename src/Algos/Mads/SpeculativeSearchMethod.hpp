@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_SPECULATIVESEARCHMETHOD__
-#define __NOMAD_4_5_SPECULATIVESEARCHMETHOD__
+
+#ifndef __NOMAD_4_6_SPECULATIVESEARCHMETHOD__
+#define __NOMAD_4_6_SPECULATIVESEARCHMETHOD__
 
 #include "../../Algos/Mads/SearchMethodSimple.hpp"
 
@@ -57,7 +58,7 @@
  The speculative search consists in looking further away along
  the successful direction after an improvement.
  */
-class SpeculativeSearchMethod  final : public SearchMethodSimple
+class SpeculativeSearchMethod : public SearchMethodSimple
 {
 private:
     
@@ -75,6 +76,11 @@ public:
     {
         init();
     }
+    
+protected:
+    
+    // Protected helper for generateTrialPointsFinal()
+    void generateTrialPointsFromFC(const std::shared_ptr<EvalPoint> & frameCenter);
 
 private:
     void init();
@@ -84,10 +90,10 @@ private:
      \copydoc SearchMethodSimple::generateTrialPointsFinal \n
      The speculative search generates points in the direction of success.
      */
-    void generateTrialPointsFinal() override;
+    virtual void generateTrialPointsFinal() override;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SPECULATIVESEARCHMETHOD__
+#endif // __NOMAD_4_6_SPECULATIVESEARCHMETHOD__

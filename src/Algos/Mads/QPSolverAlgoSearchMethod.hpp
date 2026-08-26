@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_QPSOLVERALGOSEARCHMETHOD__
-#define __NOMAD_4_5_QPSOLVERALGOSEARCHMETHOD__
+
+#ifndef __NOMAD_4_6_QPSOLVERALGOSEARCHMETHOD__
+#define __NOMAD_4_6_QPSOLVERALGOSEARCHMETHOD__
 
 #include "../../Algos/AlgoStopReasons.hpp"
 #include "../../Algos/Mads/SearchMethodSimple.hpp"
@@ -92,11 +93,11 @@ private:
     
     /// Update flag to dynamically enabled or not the search method
     /// Tests have shown this is not efficient. Let's keep the function for future use.
-    void updateDynamicEnabled() override {};
+    void updateDynamicEnabled() override;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QPSOLVERALGOSEARCHMETHOD__
+#endif // __NOMAD_4_6_QPSOLVERALGOSEARCHMETHOD__
 

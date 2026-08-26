@@ -45,6 +45,7 @@
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
 
+
 #include "../../Algos/QPSolverAlgo/QPSolverAlgoSinglePass.hpp"
 #include "../../Algos/QPSolverAlgo/QPSolverOptimize.hpp"
 #include "../../Algos/QuadModel/QuadModelUpdate.hpp"
@@ -71,11 +72,14 @@ void NOMAD::QPSolverAlgoSinglePass::generateTrialPointsImp ()
         // Optimize to generate oracle points on this model
         // Initialize optimize member - model optimizer on sgte
         bool scaledBounds = (_scalingDirections.size() > 0);
-        NOMAD::QPSolverOptimize optimize (this, _pbParams , scaledBounds);
-
+        NOMAD::QPSolverOptimize optimize (this, _pbParams , scaledBounds, _flagReducedIterations);
+        
         optimize.start();
         // No run, the trial points are evaluated somewhere else.
         optimize.end();
+        
+        // Get the stop reasons from the optimization
+        _qpStopReason = optimize.getQPStopReason();
 
         const auto& trialPts = optimize.getTrialPoints();
 
@@ -121,6 +125,12 @@ void NOMAD::QPSolverAlgoSinglePass::generateTrialPointsImp ()
     {
         auto stopReason = NOMAD::AlgoStopReasons<NOMAD::ModelStopType>::get ( getAllStopReasons() );
         stopReason->set(NOMAD::ModelStopType::MODEL_SINGLE_PASS_COMPLETED);
+    }
+    
+    //
+    if (_stopReasons->checkTerminate())
+    {
+        _qpStopReason->set(NOMAD::QPStopType::FAILED);
     }
 
 }

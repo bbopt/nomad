@@ -192,15 +192,7 @@ SGTELIB::TrainingSet::~TrainingSet ( void ) {
   delete [] _Z_nbdiff;
 }//
 
-/*--------------------------------------*/
-/*               operator =             */
-/*--------------------------------------*/
-SGTELIB::TrainingSet & SGTELIB::TrainingSet::operator = ( const SGTELIB::TrainingSet & A ) {
-  A.info();
-  throw Exception ( __FILE__ , __LINE__ ,
-       "TrainingSet: operator \"=\" forbiden." );
-  return *this;
-}
+
 
 
 /*--------------------------------------*/
@@ -853,7 +845,7 @@ double SGTELIB::TrainingSet::get_Zs ( const int i , const int j ) const {
 /*---------------------------------------------------*/
 void SGTELIB::TrainingSet::get_Xs ( const int i , double * x ) const {
   #ifdef SGTELIB_DEBUG
-    check_ready(__FILE__,__FUNCTION__,__LINE__);
+    check_ready(__FILE__,__func__,__LINE__);
     // Check index
     if ( (i<0) || (i>=_p) ){
       throw Exception ( __FILE__ , __LINE__ ,
@@ -872,7 +864,7 @@ void SGTELIB::TrainingSet::get_Xs ( const int i , double * x ) const {
 /*---------------------------------------------------*/
 void SGTELIB::TrainingSet::get_Zs ( const int i , double * z ) const {
   #ifdef SGTELIB_DEBUG
-    check_ready(__FILE__,__FUNCTION__,__LINE__);
+    check_ready(__FILE__,__func__,__LINE__);
     // Check index
     if ( (i<0) || (i>=_p) ){
       throw Exception ( __FILE__ , __LINE__ ,
@@ -891,7 +883,7 @@ void SGTELIB::TrainingSet::get_Zs ( const int i , double * z ) const {
 /*---------------------------------------------------*/
 double SGTELIB::TrainingSet::get_Zs_mean ( const int j ) const {
   #ifdef SGTELIB_DEBUG
-    check_ready(__FILE__,__FUNCTION__,__LINE__);
+    check_ready(__FILE__,__func__,__LINE__);
     // Check index
     if ( (j<0) || (j>=_m) ){
       throw Exception ( __FILE__ , __LINE__ ,
@@ -905,7 +897,7 @@ double SGTELIB::TrainingSet::get_Zs_mean ( const int j ) const {
 /*---------------------------------------------------*/
 int SGTELIB::TrainingSet::get_X_nbdiff ( const int i ) const {
   #ifdef SGTELIB_DEBUG
-    check_ready(__FILE__,__FUNCTION__,__LINE__);
+    check_ready(__FILE__,__func__,__LINE__);
     // Check index
     if ( (i<0) || (i>=_n) ){
       throw Exception ( __FILE__ , __LINE__ ,
@@ -928,7 +920,7 @@ const Matrix SGTELIB::TrainingSet::get_X_nbdiff ( void ) const {
 /*---------------------------------------------------*/
 int SGTELIB::TrainingSet::get_Z_nbdiff ( const int j ) const {
   #ifdef SGTELIB_DEBUG
-    check_ready(__FILE__,__FUNCTION__,__LINE__);
+    check_ready(__FILE__,__func__,__LINE__);
     // Check index
     if ( (j<0) || (j>=_m) ){
       throw Exception ( __FILE__ , __LINE__ ,

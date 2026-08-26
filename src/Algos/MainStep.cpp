@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /**
  \file   MainStep.cpp
  \brief  Main Step to hold MADS
@@ -72,9 +73,13 @@
 #include "../Algos/CoordinateSearch/CS.hpp"
 #include "../Algos/DMultiMads/DMultiMads.hpp"
 #include "../Algos/Mads/Mads.hpp"
+#include "../Algos/Ads/Ads.hpp"
+#include "../Algos/CatMads/CatMads.hpp"
+#include "../Algos/CatAds/CatAds.hpp"
 #include "../Algos/Mads/MadsIteration.hpp"
 #include "../Algos/Mads/Search.hpp"
 #include "../Algos/Mads/VNSSearchMethod.hpp"
+#include "../Algos/MadsMixedPenaltyLogBarrier/MadsPIP.hpp"
 #include "../Algos/NelderMead/NM.hpp"
 #ifdef _OPENMP
 #include "../Algos/PSDMads/PSDMads.hpp"
@@ -86,7 +91,7 @@
 #include "../Algos/SgtelibModel/SgtelibModel.hpp"
 #endif
 #include "../Algos/DiscoMads/DiscoMads.hpp"
-#include "../Algos/TemplateAlgo/TemplateAlgo.hpp"
+#include "../Algos/RandomAlgo/RandomAlgo.hpp"
 
 // For hardware thread number
 #ifdef _OPENMP
@@ -116,12 +121,31 @@ void NOMAD::MainStep::init()
 
     // Start the clock
     NOMAD::Clock::reset();
+    
 }
 
 
 NOMAD::MainStep::~MainStep()
 {
     _algos.clear();
+}
+
+void NOMAD::MainStep::addMadsCallbackNow(std::unique_ptr<MadsCallbackBase> cb)
+{
+    if (_algos.empty())
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Cannot add a Mads callback because no algorithm is available.");
+    }
+
+    auto mads = dynamic_cast<NOMAD::Mads*>(_algos.back().get());
+    if (mads)
+    {
+        mads->addCallback(std::move(cb));
+    }
+    else
+    {
+        throw NOMAD::Exception(__FILE__, __LINE__, "Cannot add a Mads callback because the selected algo is not Mads.");
+    }
 }
 
 NOMAD::ArrayOfPoint NOMAD::MainStep::suggest()
@@ -336,7 +360,7 @@ void NOMAD::MainStep::startImp()
     // Reset only if param file is not in working dir
     if ( !_paramFileName.empty() && k < _paramFileName.size() )
     {
-        problemDir = _paramFileName.substr (0,k) + NOMAD::DIR_SEP;
+        problemDir = cleanPath(_paramFileName.substr (0,k) + NOMAD::DIR_SEP);
         _allParams->setAttributeValue("PROBLEM_DIR", problemDir);
     }
 
@@ -373,9 +397,11 @@ void NOMAD::MainStep::startImp()
     auto nbLHEval = _allParams->getRunParams()->getAttributeValue<size_t>("LH_EVAL");
     auto doRandomAlgo = _allParams->getRunParams()->getAttributeValue<bool>("RANDOM_ALGO_OPTIMIZATION");
     auto doDMultiMadsAlgo = _allParams->getRunParams()->getAttributeValue<bool>("DMULTIMADS_OPTIMIZATION");
+    auto doCatMadsAlgo = _allParams->getRunParams()->getAttributeValue<bool>("CATMADS_OPTIMIZATION");
+    auto doCatAdsAlgo = _allParams->getRunParams()->getAttributeValue<bool>("CATADS_OPTIMIZATION");
 
 
-    if ( (x0s.empty() || x0s[0].toBeDefined()) && nbLHEval == 0 && !doRandomAlgo && !doDMultiMadsAlgo)
+    if ( (x0s.empty() || x0s[0].toBeDefined()) && nbLHEval == 0 && !doRandomAlgo && !doDMultiMadsAlgo & ! doCatMadsAlgo & ! doCatAdsAlgo)
     {
         throw NOMAD::Exception(__FILE__, __LINE__, "Need X0 to continue.");
     }
@@ -458,6 +484,8 @@ void NOMAD::MainStep::startImp()
     bool doRandomAlgoOpt = _allParams->getRunParams()->getAttributeValue<bool>("RANDOM_ALGO_OPTIMIZATION");
     bool doDMultimadsOpt = _allParams->getRunParams()->getAttributeValue<bool>("DMULTIMADS_OPTIMIZATION");
     bool doDiscoMads = _allParams->getRunParams()->getAttributeValue<bool>("DISCO_MADS_OPTIMIZATION");
+    bool doMadsPIP = _allParams->getRunParams()->getAttributeValue<bool>("MADSPIP_OPTIMIZATION");
+    bool doAds = _allParams->getRunParams()->getAttributeValue<bool>("ADS_OPTIMIZATION");
     
     bool evalOpportunistic = _allParams->getAttributeValue<bool>("EVAL_OPPORTUNISTIC");
     // LH_EVAL can be done before another algo (not after!)
@@ -543,10 +571,12 @@ void NOMAD::MainStep::startImp()
 #ifdef USE_SGTELIB
     else if (doQuadModelOpt)
     {
+        // Let's use a MadsStopType for GMesh stopping criterion
         auto quadModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
 
-        // Deactivate mega search poll
+        // Deactivate mega search poll and anisotropic_mesh
         _allParams->setAttributeValue("MEGA_SEARCH_POLL", false);
+        _allParams->setAttributeValue("ANISOTROPIC_MESH", false);
         _allParams->checkAndComply();
 
         auto quadModelAlgo = std::make_shared<NOMAD::QuadModelAlgo>(this,
@@ -582,11 +612,15 @@ void NOMAD::MainStep::startImp()
     }
     else if (doQPSolverQuadModelOpt)
     {
+        // Let's use a MadsStopType for GMesh stopping criterion
         auto quadModelStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::ModelStopType>>();
 
         // All the Sgtelib Model sample points are evaluated sequentially. No opportunism.
         NOMAD::EvcInterface::getEvaluatorControl()->setOpportunisticEval(false);
+        
+        // Deactivate mega search poll and anisotropic_mesh
         _allParams->setAttributeValue("MEGA_SEARCH_POLL", false);
+        _allParams->setAttributeValue("ANISOTROPIC_MESH", false);
         _allParams->checkAndComply();
 
         auto qpSolverQuadModelOptAlgo = std::make_shared<NOMAD::QPSolverAlgo>(this,
@@ -599,7 +633,7 @@ void NOMAD::MainStep::startImp()
     else if (doRandomAlgoOpt)
     {
         auto randomAlgoStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::RandomAlgoStopType>>(); // A template algo has a special Stop type.
-        auto randomAlgo = std::make_shared<NOMAD::TemplateAlgo>(this,
+        auto randomAlgo = std::make_shared<NOMAD::RandomAlgo>(this,
                                                                   randomAlgoStopReasons,
                                                                   _allParams->getRunParams(),
                                                                   _allParams->getPbParams());
@@ -627,6 +661,57 @@ void NOMAD::MainStep::startImp()
                                                                   _allParams->getPbParams());
         _algos.push_back(discoMadsAlgo);
     }
+    else if (doMadsPIP)
+    {
+        auto madsPIPStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
+        auto madsPIPAlgo = std::make_shared<NOMAD::MadsPIP>(this,
+                                                                  madsPIPStopReasons,
+                                                                  _allParams->getRunParams(),
+                                                                  _allParams->getPbParams());
+        _algos.push_back(madsPIPAlgo);
+    }
+    else if (doCatMadsAlgo)
+    {
+
+        auto catmadsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
+        auto catmadsAlgo = std::make_shared<NOMAD::CatMads>(this,
+                                                            catmadsStopReasons,
+                                                            _allParams->getRunParams(),
+                                                            _allParams->getPbParams());
+        _algos.push_back(catmadsAlgo);
+    }
+    else if (doCatAdsAlgo)
+    {
+
+        auto catadsStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
+        auto catadsAlgo = std::make_shared<NOMAD::CatAds>(this,
+                                                         catadsStopReasons,
+                                                         _allParams->getRunParams(),
+                                                         _allParams->getPbParams());
+        _algos.push_back(catadsAlgo);
+    }
+    else if (doAds)
+    {
+        // PhaseOne search in Ads is managed in MadsInitialization)
+        if (nbLHEval > 0)
+        {
+            std::cout << "Warning: To perform LH initialization for Ads use LH_SEARCH."<<std::endl ;
+            return;
+
+        }
+
+        // The stop reasons for mads
+        auto stopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::MadsStopType>>();
+
+        // Default behavior: create Mads and add it to _algos.
+        auto ads = std::make_shared<NOMAD::Ads>(this,
+                                                 stopReasons ,
+                                                 _allParams->getRunParams(),
+                                                 _allParams->getPbParams(),
+                                                  false /* false: do no initialize barrier from cache, X0s is used instead */);
+        ads->setEvalOpportunistic(evalOpportunistic);
+        _algos.push_back(ads);
+    }
     else
     {
         // Mads is the default algorithm (PhaseOne search is managed in MadsInitialization)
@@ -650,49 +735,87 @@ void NOMAD::MainStep::startImp()
         mads->setEvalOpportunistic(evalOpportunistic);
         _algos.push_back(mads);
     }
+    
 
     bool useIbex = _allParams->getRunParams()->getAttributeValue<bool>("USE_IBEX");
-	if (useIbex)
-	{
-
+    if (useIbex)
+    {
+        
 #ifdef USE_IBEX
-		// A Set file determine the feasible domain
-
-		// If the Set file is already created, we can load it
-		bool setFile = _allParams->getRunParams()->getAttributeValue<bool>("SET_FILE");
-		if (setFile)
-		{
-			string setFileName = _allParams->getAttributeValue<string>("SET_FILE_NAME");
-			const char * c = setFileName.c_str();
-			_set = std::make_shared<ibex::Set>(c);
-		}
-
-		// Else, we can load the system file of the problem (containing the variables, constraints, ...) and then create the Set
-		else
-		{
-			string constraintsFileName = _allParams->getAttributeValue<string>("SYSTEM_FILE_NAME");
-		        const char * c = constraintsFileName.c_str();
-
-			ibex::System sys(c);
-			ibex::IntervalVector box = sys.box;
-
-			const int n = sys.nb_ctr;
-			ibex::Array<ibex::NumConstraint> constraints = sys.ctrs;
-			ibex::Array<ibex::Sep> separators(n);
-
-			for (int i = 0; i<n; i++)
-			{
-				separators.set_ref(i, *new ibex::SepFwdBwd(constraints[i]));
-			}
-
-			ibex::SepInter sep_poly_in(separators);
-			_set = std::make_shared<ibex::Set>(box);
-			sep_poly_in.contract(*_set, 0.1);
-		}
+        // A Set file determine the feasible domain
+        
+        // If the Set file is already created, we can load it
+        bool setFile = _allParams->getRunParams()->getAttributeValue<bool>("SET_FILE");
+        if (setFile)
+        {
+            string setFileName = _allParams->getAttributeValue<string>("SET_FILE_NAME");
+            const char * c = setFileName.c_str();
+            _set = std::make_shared<ibex::Set>(c);
+        }
+        
+        // Else, we can load the system file of the problem (containing the variables, constraints, ...) and then create the Set
+        else
+        {
+            string constraintsFileName = _allParams->getAttributeValue<string>("SYSTEM_FILE_NAME");
+            const char * c = constraintsFileName.c_str();
+            
+            ibex::System sys(c);
+            ibex::IntervalVector box = sys.box;
+            
+            const int n = sys.nb_ctr;
+            ibex::Array<ibex::NumConstraint> constraints = sys.ctrs;
+            ibex::Array<ibex::Sep> separators(n);
+            
+            for (int i = 0; i<n; i++)
+            {
+                separators.set_ref(i, *new ibex::SepFwdBwd(constraints[i]));
+            }
+            
+            ibex::SepInter sep_poly_in(separators);
+            _set = std::make_shared<ibex::Set>(box);
+            sep_poly_in.contract(*_set, 0.1);
+        }
 #else
-    throw NOMAD::Exception(__FILE__, __LINE__, "IBEX projection requires to configure and build NOMAD with the option USE_IBEX.");
+        throw NOMAD::Exception(__FILE__, __LINE__, "IBEX projection requires to configure and build NOMAD with the option USE_IBEX.");
 #endif
     }
+    
+    
+    // Set the Algo, mads and eval callbacks
+    for (size_t i=0; i < _algoCallbacks.size(); i++ )
+    {
+        if (_algoCallbacks[i])
+        {
+            _algos.back()->addCallback(_algoCallbacks[i]->clone()); // Clone, not move, to keep a copy of _algoCallbacks.
+        }
+    }
+    for (size_t i=0; i < _madsCallbacks.size(); i++ )
+    {
+        if (_madsCallbacks[i])
+        {
+            auto mads = dynamic_cast<NOMAD::Mads*>(_algos.back().get());
+            if (mads)
+            {
+                mads->addCallback(_madsCallbacks[i]->clone()); // Clone, not move, to keep a copy of _madsCallbacks.
+            }
+            else
+            {
+                throw NOMAD::Exception(__FILE__, __LINE__, "A mads callback is defined but the algo at hand is not mads!");
+            }
+        }
+    }
+    for (size_t i=0; i < _evalCallbacks.size(); i++ )
+    {
+        if (_evalCallbacks[i])
+            NOMAD::EvcInterface::getEvaluatorControl()->addCallback(_evalCallbacks[i]->clone());
+    }
+
+    if (_evalStopCheckCallback)
+    {
+        NOMAD::EvcInterface::getEvaluatorControl()->addEvalStopCheckCallback(_evalStopCheckCallback);
+    }
+
+    _mainStepStarted = true;
 
 }
 
@@ -733,7 +856,12 @@ void NOMAD::MainStep::endImp()
 
     writeFinalSolutionFile();
 
+    // Clear all algos
     _algos.clear();
+   
+    // Reset flag to false
+    _mainStepStarted = false;
+    
 
 }
 
@@ -751,6 +879,7 @@ void NOMAD::MainStep::printNumThreads() const
     }
 #endif // _OPENMP
 }
+
 
 
 // Helper for start
@@ -848,6 +977,7 @@ void NOMAD::MainStep::updateX0sFromCacheAndFromLHSInit() const
         }
         updatedX0s = updatedX0s || (!sampleEvalPoints.empty());
     }
+    
     if (updatedX0s)
     {
         _allParams->getPbParams()->setAttributeValue("X0", x0s);
@@ -856,12 +986,12 @@ void NOMAD::MainStep::updateX0sFromCacheAndFromLHSInit() const
 
 }
 
-
 NOMAD::ArrayOfPoint NOMAD::MainStep::suggestFromLH(const size_t nbPoints) const
 {
     auto lhStopReasons = std::make_shared<NOMAD::AlgoStopReasons<NOMAD::LHStopType>>();
     auto lhRunParams = std::make_shared<NOMAD::RunParameters>();
     lhRunParams->setAttributeValue("LH_EVAL", nbPoints);
+    lhRunParams->setAttributeValue("SEED",_runParams->getAttributeValue<int>("SEED"));
 
     lhRunParams->checkAndComply(_allParams->getEvaluatorControlGlobalParams(), _allParams->getPbParams());
 
@@ -1015,44 +1145,32 @@ void NOMAD::MainStep::hotRestartOnUserInterrupt()
     if (!getUserTerminate())
     {
         std::cout << "Hot restart" ;
-
+        
         // Do not use a shared_ptr _evaluator because it is NULL in this function
-        std::vector<std::string> paramLines;
-        _cbHotRestart(paramLines);
-
-        if (paramLines.empty())
+        
+        std::cout << std::endl << "Enter a parameter file name," << std::endl;
+        std::cout << "or enter parameter values, ending with CTRL-D." << std::endl;
+        
+        std::string line;
+        std::getline(std::cin, line);
+        // Is this line a parameter file?
+        if (NOMAD::checkReadFile(line))
         {
-            std::cout << std::endl << "Enter a parameter file name," << std::endl;
-            std::cout << "or enter parameter values, ending with CTRL-D." << std::endl;
-
-            std::string line;
-            std::getline(std::cin, line);
-            // Is this line a parameter file?
-            if (NOMAD::checkReadFile(line))
-            {
-                std::cout << "Reading parameter file: " << line << std::endl;
-                _allParams->read(line, true /* overwrite */);
-            }
-            else
-            {
-                _allParams->readParamLine(line);
-                // Continue reading parameters
-                while(!getUserTerminate() && std::getline(std::cin, line))
-                {
-                    // Read parameter
-                    _allParams->readParamLine(line);
-                }
-            }
+            std::cout << "Reading parameter file: " << line << std::endl;
+            _allParams->read(line, true /* overwrite */);
         }
         else
         {
-            std::cout << ": read parameters update" << std::endl;
-            for (const auto& line : paramLines )
+            _allParams->readParamLine(line);
+            // Continue reading parameters
+            while(!getUserTerminate() && std::getline(std::cin, line))
             {
-                _allParams->readParamLine( line );
+                // Read parameter
+                _allParams->readParamLine(line);
             }
         }
-
+        
+        
         _allParams->checkAndComply();
     }
 
@@ -1069,9 +1187,6 @@ void NOMAD::MainStep::resetComponentsBetweenOptimization()
 	// with persistent memory of static variables
 	NOMAD::Step::resetUserTerminate();
     NOMAD::Step::resetUserInterrupt();
-    
-    // Reset callbacks
-    NOMAD::Step::resetCallbacks();
 
     // Reset static tag counter
     NOMAD::EvalPoint::resetCurrentTag();
@@ -1088,6 +1203,8 @@ void NOMAD::MainStep::resetComponentsBetweenOptimization()
     // Reset parameter entries
     NOMAD::Parameters::eraseAllEntries();
     
+
+
 }
 
 void NOMAD::MainStep::resetCache()
@@ -1275,6 +1392,7 @@ void NOMAD::MainStep::writeFinalSolutionFile() const
         NOMAD::OutputDirectToFile::getInstance()->enableSolutionFile();
 
         auto barrier = _algos.back()->getMegaIterationBarrier();
+        auto fixedVariables = _allParams->getAttributeValue<NOMAD::Point>("FIXED_VARIABLE");
 
         if (nullptr != barrier)
         {
@@ -1287,20 +1405,75 @@ void NOMAD::MainStep::writeFinalSolutionFile() const
                     NOMAD::StatsInfo info;
 
                     info.setBBO(ev->getBBO(NOMAD::EvalType::BB));
-                    info.setSol(*(ev->getX()));
+                    info.setSol(ev->getX()->makeFullSpacePointFromFixed(fixedVariables));
 
-                    NOMAD::OutputDirectToFile::Write(info, true, false /* do no write in history file */, append /* append in solution file */);
+                    NOMAD::OutputDirectToFile::Write(info, true, NOMAD::SuccessType::FULL_SUCCESS, true /* feasible*/, false /* do no write in history file */, append /* append in solution file */);
                     append = true;
                 }
             }
             else
             {
-                // No solution: generate an empty solution file.
-                NOMAD::StatsInfo info;
-                NOMAD::OutputDirectToFile::Write(info, true, false /* do no write in history file */, false /* do no append in solution file */);
+                // Get the infeasible incumbent. ONLY for single objective. Not really meaningfull for multi-objective
+                const std::vector<EvalPointPtr>& xInfeas = barrier->getAllXIncInf();
+                if (xInfeas.size() > 0 && xInfeas[0]->getFs(NOMAD::defaultFHComputeType).size() == 1)
+                {
+                    bool append = false;
+                    for (const EvalPointPtr & ev: xInfeas)
+                    {
+                        NOMAD::StatsInfo info;
+                        
+                        info.setBBO(ev->getBBO(NOMAD::EvalType::BB));
+                        info.setSol(*(ev->getX()));
+                        
+                        NOMAD::OutputDirectToFile::Write(info, true, NOMAD::SuccessType::FULL_SUCCESS, false /* infeas*/, false /* do no write in history file */, append /* append in solution file */);
+                        append = true;
+                    }
+                }
+                else
+                {
+                    // No solution: generate an empty solution file.
+                    NOMAD::StatsInfo info;
+                    NOMAD::OutputDirectToFile::Write(info, true, NOMAD::SuccessType::FULL_SUCCESS, true /* feasible*/, false /* do no write in history file */, false /* do no append in solution file */);
+                }
             }
         }
     }
+}
+
+std::vector<NOMAD::EvalPoint> NOMAD::MainStep::getBarrierIncumbentPoints(bool feas) const
+{
+    std::vector<NOMAD::EvalPoint> incPts;
+    
+    if (_algos.size() == 0)
+    {
+        return incPts;
+    }
+    
+    auto barrier = _algos.back()->getMegaIterationBarrier();
+    if (nullptr != barrier)
+    {
+        if (feas)
+        {
+            const std::vector<EvalPointPtr>& xFeas = barrier->getAllXFeas();
+            for (const EvalPointPtr & ev: xFeas)
+            {
+                incPts.push_back(*ev);
+            }
+        }
+        else
+        {
+            // Get the infeasible incumbent. ONLY for single objective. Not really meaningfull for multi-objective
+            const std::vector<EvalPointPtr>& xInfeas = barrier->getAllXIncInf();
+            if (xInfeas.size() > 0 && xInfeas[0]->getFs(NOMAD::defaultFHComputeType).size() == 1)
+            {
+                for (const EvalPointPtr & ev: xInfeas)
+                {
+                    incPts.push_back(*ev);
+                }
+            }
+        }
+    }
+    return incPts;
 }
 
 
@@ -1462,3 +1635,4 @@ std::shared_ptr<NOMAD::Algorithm> NOMAD::MainStep::getAlgo(const StepType & step
     }
     return nullptr;
 }
+

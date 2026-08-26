@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_SIMPLEPROGRESSIVEBARRIER__
-#define __NOMAD_4_5_SIMPLEPROGRESSIVEBARRIER__
+
+#ifndef __NOMAD_4_6_SIMPLEPROGRESSIVEBARRIER__
+#define __NOMAD_4_6_SIMPLEPROGRESSIVEBARRIER__
 
 #include "../../Eval/BarrierBase.hpp"
 #include "../../Eval/EvalPoint.hpp"
@@ -179,4 +180,4 @@ private:
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_SIMPLEPROGRESSIVEBARRIER__
+#endif // __NOMAD_4_6_SIMPLEPROGRESSIVEBARRIER__

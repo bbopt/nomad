@@ -44,8 +44,9 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
-#ifndef __NOMAD_4_5_QUAD_MODEL_OPTIMIZE__
-#define __NOMAD_4_5_QUAD_MODEL_OPTIMIZE__
+
+#ifndef __NOMAD_4_6_QUAD_MODEL_OPTIMIZE__
+#define __NOMAD_4_6_QUAD_MODEL_OPTIMIZE__
 
 #include "../../Algos/Step.hpp"
 #include "../../Algos/QuadModel/QuadModelIterationUtils.hpp"
@@ -67,6 +68,10 @@ private:
 
     ArrayOfDouble _modelLowerBound; ///> Lower bound: min of trainingSet points
     ArrayOfDouble _modelUpperBound; ///> Upper bound: max of trainingSet points
+    
+    ArrayOfDouble _optimLowerBound; ///> Lower bound for optim. If not defined, use model bounds
+    ArrayOfDouble _optimUpperBound; ///> Upper bound bound for optim. If not defined, use model bounds
+    
     Point         _modelFixedVar;   ///> Fixed variables: fixed variables detected from trainingSet
 
     Point _modelCenter;
@@ -81,6 +86,8 @@ private:
     bool _optWithEBConstraints;
     
     bool _flagPriorCombineObjsForModel;
+    
+    NOMAD::Double _reductionRatio = NOMAD::M_INF;
 
     
 public:
@@ -97,6 +104,8 @@ public:
         _displayLevel(OutputLevel::LEVEL_INFO),
         _modelLowerBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _modelUpperBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
+        _optimLowerBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
+        _optimUpperBound(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _modelFixedVar(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _modelCenter(refPbParams->getAttributeValue<size_t>("DIMENSION"), Double()),
         _refPbParams(refPbParams),
@@ -107,6 +116,9 @@ public:
     {
         init();
     }
+    
+    void setOptimBounds(const ArrayOfDouble & optimLowerBound, const ArrayOfDouble & optimUpperBound) {_optimLowerBound = optimLowerBound; _optimUpperBound = optimUpperBound; };
+    
 
     /// Generate new points to evaluate
     /**
@@ -119,6 +131,9 @@ public:
      - best feasible and best infeasible (if available) are inserted as trial points.
      */
     void generateTrialPointsImp() override;
+    
+    // Reduction ratio (rho) is computed by run function
+    NOMAD::Double getReductionRatio() const {return _reductionRatio;}
         
     
 private:
@@ -132,9 +147,12 @@ private:
     void setupRunParameters();
     void setupPbParameters();
     void setModelBoundsAndFixedVar();
+    
+    // Model getters with NOMAD points
+    SGTELIB::Matrix getModelOut(const Point & x) const ;
 
 };
 
 #include "../../nomad_nsend.hpp"
 
-#endif // __NOMAD_4_5_QUAD_MODEL_OPTIMIZE__
+#endif // __NOMAD_4_6_QUAD_MODEL_OPTIMIZE__

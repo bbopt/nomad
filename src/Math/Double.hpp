@@ -44,6 +44,7 @@
 /*                                                                                 */
 /*  You can find information on the NOMAD software at www.gerad.ca/nomad           */
 /*---------------------------------------------------------------------------------*/
+
 /*-------------------------------------------------------------------------------------*/
 /**
  \file   Double.hpp
@@ -52,8 +53,8 @@
  \date   2010-04-02
  \see    Double.cpp
  */
-#ifndef __NOMAD_4_5_DOUBLE__
-#define __NOMAD_4_5_DOUBLE__
+#ifndef __NOMAD_4_6_DOUBLE__
+#define __NOMAD_4_6_DOUBLE__
 
 #include <cmath>
 
@@ -642,4 +643,4 @@
 
 
 #include "../nomad_nsend.hpp"
-#endif // __NOMAD_4_5_DOUBLE__
+#endif // __NOMAD_4_6_DOUBLE__
