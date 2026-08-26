@@ -286,23 +286,6 @@ bool NOMAD::VNSSearchMethod::runImp()
                                               _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"),
                                               true /*true: update incumbents and hMax*/);
                 }
-
-                NOMAD::SuccessType success = barrier->getSuccessTypeOfPoints(vnsBestFeas,
-                                                                             vnsBestInf);
-                setSuccessType(success);
-                if (success >= NOMAD::SuccessType::PARTIAL_SUCCESS)
-                {
-                    foundBetter = true;
-                }
-
-
-                // Update the barrier
-                if ( NOMAD::EvalType::BB == searchEvalType )
-                {
-                    barrier->updateWithPoints(vnsBarrier->getAllPoints(),
-                                              _runParams->getAttributeValue<bool>("FRAME_CENTER_USE_CACHE"),
-                                              true /*true: update incumbents and hMax*/);
-                }
             }
         }
         else
