@@ -1,4 +1,4 @@
-name: Build and publish binary wheels onto PyPi
+name: Build and publish NomadBBO binary wheels onto PyPi
 
 on:
   workflow_dispatch:
@@ -69,7 +69,7 @@ jobs:
       - name: Build binary wheels
         uses: pypa/cibuildwheel@v3.3.1
         env:
-          CIBW_BUILD: "cp311-* cp312-* cp313-* cp314-*"  # For 3.9 and 3.10. Need to change to numpy 2.0.0
+          CIBW_BUILD: "cp311-* cp312-* cp313-* cp314-*" # For 3.9 and 3.10. Need to change to numpy 2.0.0
           # (optional) skip PyPy explicitly:
           # CIBW_SKIP: "pp*"
           CIBW_ARCHS: >-
@@ -79,7 +79,7 @@ jobs:
           CIBW_BEFORE_BUILD: >-
             python -m pip install --only-binary=:all: "numpy>=2.3.2"
           CIBW_BEFORE_ALL: >-
-            cmake -DBUILD_INTERFACE_PYTHON=ON -DBUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release ${{ matrix.target.extra_option }} -S . -B build &&
+            cmake -DBUILD_INTERFACE_PYTHON_CAT=ON -DBUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release ${{ matrix.target.extra_option }} -S . -B build &&
             cmake --build build --config Release --clean-first --target nomadStatic --parallel 2
           CIBW_ENVIRONMENT: >-
             NOMAD_SRC=../../src
@@ -90,10 +90,10 @@ jobs:
           CIBW_PROJECT_REQUIRES_PYTHON: >-
             >=3.11
           CIBW_BUILD_FRONTEND: >-
-            build
+            build            
         with:
           output-dir: wheelhouse
-          package-dir: interfaces/PyNomad
+          package-dir: interfaces/NomadBBO
 
       - name: Collect wheels for processing
         uses: actions/upload-artifact@v4
