@@ -69,7 +69,7 @@ jobs:
       - name: Build binary wheels
         uses: pypa/cibuildwheel@v3.3.1
         env:
-          CIBW_BUILD: "cp311-* cp312-* cp313-* cp314-*"
+          CIBW_BUILD: "cp311-* cp312-* cp313-* cp314-*" # For 3.9 and 3.10. Need to change to numpy 2.0.0
           # (optional) skip PyPy explicitly:
           # CIBW_SKIP: "pp*"
           CIBW_ARCHS: >-
