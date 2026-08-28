@@ -177,13 +177,6 @@ bool NOMAD::SimpleProgressiveBarrier::updateWithPointsKeep2(const std::vector<NO
         // Step three: remove dominated points
         updateBarrierPointsKeep2();
         
-//        // Temp for testing
-//        std::cout<<"================================="<<std::endl;
-//        for(const NOMAD::SimpleEvalPoint & x: _xInf)
-//        {
-//            std::cout<<"F="<<x.getF()<<" H="<<x.getH()<<std::endl;
-//        }
-
         // Step four: update hMax
         if (infeasSuccessType == NOMAD::SuccessType::FULL_SUCCESS
             || feasSuccessType == NOMAD::SuccessType::FULL_SUCCESS)
@@ -324,15 +317,6 @@ bool NOMAD::SimpleProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::
         // Step three: remove dominated points
         bool updatedIncInf = removeInfeasibleDominatedPoints();
         
-//        // TEMP for testing
-//        auto compFunc = [](const NOMAD::SimpleEvalPoint & a, const NOMAD::SimpleEvalPoint & b) { return a.getH() < b.getH(); };
-//        std::sort(_xInf.begin(), _xInf.end(), compFunc);
-//        std::cout<<"================================="<<std::endl;
-//        for(const NOMAD::SimpleEvalPoint & x: _xInf)
-//        {
-//            std::cout<<"F="<<x.getF()<<" H="<<x.getH()<<std::endl;
-//        }
-
         // Step four: update hMax
         if (infeasSuccessType == NOMAD::SuccessType::FULL_SUCCESS
             || feasSuccessType == NOMAD::SuccessType::FULL_SUCCESS)

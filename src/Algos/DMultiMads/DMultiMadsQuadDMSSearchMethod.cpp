@@ -90,9 +90,6 @@ void NOMAD::DMultiMadsQuadDMSSearchMethod::init()
     // Number of objectives. This is used to select the objective combination to consider.
     _m = std::dynamic_pointer_cast<NOMAD::DMultiMadsBarrier>(barrier)->getNbObj();
     
-    // Temp for testing. Cheap unit test!
-    // testObjCombinations();
-    
     if (evc->getCurrentEvalType() == NOMAD::EvalType::MODEL)
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"Cannot do Quad DMS search for DMultiMads on EvalType::MODEL.");
