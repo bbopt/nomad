@@ -106,10 +106,9 @@ namespace SGTELIB {
     
     SGTELIB::Matrix get_alpha() const;
       
-    // TEMP. Uncomment for use in unittest. Alloe predict_grad to work
-      void set_alpha(const SGTELIB::Matrix & alpha) {_alpha = alpha; } // Set alpha but the model is not ready ( maybe empty _training set)
+    void set_alpha(const SGTELIB::Matrix & alpha) {_alpha = alpha; } // Set alpha but the model is not ready ( maybe empty _training set)
       
-      void set_PRS_monones(const SGTELIB::Matrix & monome ) { _M = monome; _ready = true; }
+    void set_PRS_monones(const SGTELIB::Matrix & monome ) { _M = monome; _ready = true; }
       
     void predict_obj ( const SGTELIB::Matrix & XX,
                         SGTELIB::Matrix * ZZs,

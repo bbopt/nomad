@@ -4,8 +4,6 @@ import os
 # Add the current directory to Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Import from CatMads: temp
-#from python_src import ProblemDefinition, MixedOptimizer, LatinHypercubeDOE, Binary, Choice, Integer, Real
 from NomadBBO import (
     ProblemDefinition,
     MixedOptimizer,

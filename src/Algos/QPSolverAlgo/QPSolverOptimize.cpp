@@ -5911,8 +5911,6 @@ double NOMAD::QPSolverOptimize::max_step_bounds(
         const bool feasible = (X.get(i, 0) >= lvar.get(i, 0)) && (X.get(i, 0) <= uvar.get(i, 0));
         if (!feasible)
         {
-            // Temp for debugging
-            // throw NOMAD::Exception(__FILE__, __LINE__, "Assertion error: Error X is not feasible");
             std::cout << lvar.get(i, 0) << " " << X.get(i, 0) << " " << uvar.get(i, 0) << std::endl;
             std::cout << "Assertion error: Error X is not feasible" << std::endl;
         }
