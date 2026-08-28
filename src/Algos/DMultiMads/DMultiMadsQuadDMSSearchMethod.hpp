@@ -95,7 +95,6 @@ public:
     
     virtual bool runImp() override;
     
-    // Temp for testing obj combinations
     void testObjCombinations();
 
 private:
