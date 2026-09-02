@@ -734,21 +734,18 @@ int checkInputs(const mxArray *prhs[], int nrhs, mxArray *plhs[], int nlhs)
 
 void setNomadParams(const std::shared_ptr<NOMAD::AllParameters> p, const mxArray *params)
 {
-
+    
     // For cout redirection
     mxstreambuf  mout;
-
-    char strbuf[1024];
+    
     int i, no = 0;
-    mxArray *value;
-
     bool doAdd = false;
-
+    
     if(!mxIsStruct(params))
     {
         mexErrMsgTxt("Params should be provided as Matlab structure: struct('KEY1','VAL1','KEY2','VAL2') ");
     }
-
+    
     if(params)
     {
         no = mxGetNumberOfFields(params);
@@ -761,15 +758,25 @@ void setNomadParams(const std::shared_ptr<NOMAD::AllParameters> p, const mxArray
     //For each field, check if it's empty, if not, set it within NOMAD
     for(i=0;i<no;i++)
     {
-       value = mxGetFieldByNumber(params,0,i);
-       if(!mxIsChar(value))
-       {
-          mexErrMsgTxt("Params should be provided as Matlab structure with string value: struct('KEY1','VAL1','KEY2','VAL2') ");
-       }
-       const char * keyword = mxGetFieldNameByNumber(params,i);
-       sprintf(strbuf,"%s %s",keyword,mxArrayToString(value));
-        // std::cout<<strbuf << std::endl;
-       p->readParamLine(strbuf);
+        const mxArray *value = mxGetFieldByNumber(params,0,i);
+        if(value == nullptr || !mxIsChar(value))
+        {
+            mexErrMsgTxt("Params should be provided as Matlab structure with string value: struct('KEY1','VAL1','KEY2','VAL2') ");
+        }
+        
+        const char * keyword = mxGetFieldNameByNumber(params,i);
+        char *valueString = mxArrayToString(value);
+        
+        if (valueString == nullptr)
+        {
+           mexErrMsgTxt("Unable to convert NOMAD parameter value to string.");
+        }
+        
+        std::string paramLine(keyword);
+        paramLine += " ";
+        paramLine += valueString;
+        mxFree(valueString);
+        p->readParamLine(paramLine);
     }
 }
 

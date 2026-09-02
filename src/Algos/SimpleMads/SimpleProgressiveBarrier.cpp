@@ -60,7 +60,7 @@ void NOMAD::SimpleProgressiveBarrier::init(const NOMAD::Point& fixedVariable,
         std::string s = "Error: Fixed variable of dimension 0";
         throw NOMAD::Exception(__FILE__,__LINE__,s);
     }
-    
+
     // Constructor's call to update should not update ref best points.
     updateWithPoints(evalPointList);
 
@@ -135,7 +135,7 @@ bool NOMAD::SimpleProgressiveBarrier::updateWithPointsKeep2(const std::vector<NO
     if (!_incumbentsAndHMaxUpToDate)
     {
         NOMAD::SuccessType feasSuccessType = NOMAD::SuccessType::UNSUCCESSFUL;
-        
+
         // Step One: Set xIncFeas (feasible incumbent) from xFeas
         if (_xFeas.isDefined())
         {
@@ -173,7 +173,7 @@ bool NOMAD::SimpleProgressiveBarrier::updateWithPointsKeep2(const std::vector<NO
                 }
             }
         }
-        
+
         // Step three: remove dominated points
         updateBarrierPointsKeep2();
 
@@ -313,7 +313,7 @@ bool NOMAD::SimpleProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::
                 }
             }
         }
-        
+
         // Step three: remove dominated points
         bool updatedIncInf = removeInfeasibleDominatedPoints();
 
@@ -345,7 +345,7 @@ bool NOMAD::SimpleProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::
 
         // Step five: remove barrier points with h > hmax and update infeasible incumbent;
         updatedIncInf = setInfeasibleIncumbents();
-        
+
         // Reduction of the number of barrier points using slices between hmin and hmax of infeasible points
         // reduceBarrierInfeasible();
 
@@ -365,7 +365,7 @@ bool NOMAD::SimpleProgressiveBarrier::updateWithPoints(const std::vector<NOMAD::
 bool NOMAD::SimpleProgressiveBarrier::removeInfeasibleDominatedPoints()
 {
     bool updatedXInf = false;
-    
+
     auto it1= _xTmpInf.begin();
     std::vector<NOMAD::SimpleEvalPoint>::iterator it2 ;
     for ( it1 = _xTmpInf.begin(); it1 < _xTmpInf.end(); it1++)
@@ -374,7 +374,7 @@ bool NOMAD::SimpleProgressiveBarrier::removeInfeasibleDominatedPoints()
         bool keepXTmp = true;
         for ( it2 = _xInf.begin(); it2 < _xInf.end(); )
         {
-            
+
             // Case 2 dominates 1 --> 1 is dominated. Do not consider.
             // Test and remove doublons
             if ( dominates(*it2, *it1) )
@@ -408,12 +408,12 @@ bool NOMAD::SimpleProgressiveBarrier::removeInfeasibleDominatedPoints()
         }
         // std::cout << std::endl;
     }
-    
-    
+
+
 
     // Done with xTmpInf.
     _xTmpInf.clear();
- 
+
     return updatedXInf;
 }
 
@@ -430,19 +430,19 @@ bool NOMAD::SimpleProgressiveBarrier::updateBarrierPointsKeep2()
         }
         return true;
     }
-    
+
     // The simple barrier 2 must always have at least one point and two points at most (P0 and P1).
     // Point 0 to replace _xInf[0], the best F, the current incumbent, must always exist
     // Point 1 to replace _xInf[1], the best H, may not exist.
     auto itForP0 = _xTmpInf.end(), itForP1 = _xTmpInf.end();
-    
+
     NOMAD::Double FForP0=NOMAD::INF, HForP1=NOMAD::INF, tmpF, tmpH;
     if (_xInf.size() == 2)
     {
         // Add _xInf[1]. It could be Point 1 again
         _xTmpInf.push_back(_xInf[1]);
     }
-    
+
     for (auto it = _xTmpInf.begin(); it< _xTmpInf.end(); it++)
     {
         // Search new infeasible point with the smallest f
@@ -452,7 +452,7 @@ bool NOMAD::SimpleProgressiveBarrier::updateBarrierPointsKeep2()
             itForP0 = it;
             FForP0 = tmpF;
         }
-        
+
         // Search new infeasible point with smallest h
         tmpH = it->getH();
         if ( tmpH < HForP1 )
@@ -465,7 +465,7 @@ bool NOMAD::SimpleProgressiveBarrier::updateBarrierPointsKeep2()
     {
         throw NOMAD::Exception(__FILE__, __LINE__,"We must have a P0");
     }
-        
+
     // Update _xInf[0] with P0
     if (!_xInf.empty())
     {
@@ -491,7 +491,7 @@ bool NOMAD::SimpleProgressiveBarrier::updateBarrierPointsKeep2()
 
     // Done with xTmpInf.
     _xTmpInf.clear();
- 
+
     return true;
 }
 
@@ -506,7 +506,7 @@ bool NOMAD::SimpleProgressiveBarrier::setInfeasibleIncumbents()
     {
         return false;
     }
-    
+
 
     NOMAD::Double prevXIncInfH = NOMAD::INF;
     NOMAD::SimpleEvalPoint prevXIncInf;
@@ -515,7 +515,7 @@ bool NOMAD::SimpleProgressiveBarrier::setInfeasibleIncumbents()
         prevXIncInfH = _xIncInf.getH(); // NOT necessarily hMax.
         prevXIncInf = _xIncInf;
     }
-    
+
     if (_xInf.size() == 1)
     {
         _xIncInf = _xInf[0];
@@ -528,7 +528,7 @@ bool NOMAD::SimpleProgressiveBarrier::setInfeasibleIncumbents()
             return true;
         }
     }
-    
+
     bool updatedInfInc = false;
     NOMAD::Double maxH = 0.0;
     auto it1= _xInf.begin();
@@ -545,31 +545,31 @@ bool NOMAD::SimpleProgressiveBarrier::setInfeasibleIncumbents()
             // std::cout << " ---> erased (h>hMax)" <<std::endl;
             continue;
         }
-        
+
         if (h > maxH)
         {
             ptMaxH = *it1;
             maxH = h;
         }
-        
+
         it1++;
     }
 
     // std::cout << "--------------------------------" << std::endl;
-    
+
     if (_xInf.empty() || !ptMaxH.isDefined())
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"All barrier points have been removed.");
     }
-    
+
     _xIncInf= ptMaxH;
-    
+
     // Infeasible incumbent(s) have been updated.
     if (prevXIncInf != _xIncInf )
     {
         updatedInfInc = true;
     }
-    
+
     return updatedInfInc;
 }
 
@@ -579,27 +579,27 @@ void NOMAD::SimpleProgressiveBarrier::reduceBarrierInfeasible()
     {
         return;
     }
-    
+
     std::vector<NOMAD::SimpleEvalPoint>::iterator it1;
-    
-    
+
+
     auto compFunc = [](const NOMAD::SimpleEvalPoint & a, const NOMAD::SimpleEvalPoint & b) { return a.getH() < b.getH(); };
-    
+
     std::sort(_xInf.begin(), _xInf.end(), compFunc);
-    
-    
+
+
     size_t nbDH = 2;
     NOMAD::Double Hbase = _xInf[0].getH();
     NOMAD::Double DH = (_hMax - Hbase)/ (double)nbDH;
-    
-    
+
+
     it1 = _xInf.begin();
     // Slice DH in nbDH
     for (size_t i= 1 ; i < nbDH+1 ; i++)
     {
         NOMAD::Double h1 = Hbase + (double)i*DH;
         NOMAD::Double h2 = Hbase + (double)(i+1)*DH;
-        
+
         // Remove points in slice, except the first one
         it1++;
         while (it1 < _xInf.end())
@@ -656,7 +656,7 @@ bool NOMAD::SimpleProgressiveBarrier::dominates(const NOMAD::SimpleEvalPoint & p
     {
         throw NOMAD::Exception(__FILE__,__LINE__,"F1, H1, F2 and H2 must be defined.");
     }
-    
+
     if (p1.getH() <=0 && p2.getH() <=0) // Both feasible
     {
         // 1 and 2 are both feasible, and 1 dominates 2.
@@ -686,12 +686,12 @@ NOMAD::SuccessType NOMAD::SimpleProgressiveBarrier::computeSuccessType(const NOM
     //                        solution with a better h. f is worse.
     // FULL_SUCCESS        // Full success (dominating)
     NOMAD::SuccessType success = NOMAD::SuccessType::UNDEFINED; /// Will trigger exception if not changed
-    
+
     if (! p1.isDefined())
     {
         return NOMAD::SuccessType::UNSUCCESSFUL;
     }
-    
+
     if (! p2.isDefined())
     {
         if (p1.getH() > _hMax || p1.getH() == NOMAD::INF)
@@ -716,7 +716,7 @@ NOMAD::SuccessType NOMAD::SimpleProgressiveBarrier::computeSuccessType(const NOM
     else
     {
 
-        
+
         success = NOMAD::SuccessType::UNSUCCESSFUL;
         if (p1.getH() <=0 && p2.getH() <=0) // Both feasible
         {
@@ -748,6 +748,6 @@ NOMAD::SuccessType NOMAD::SimpleProgressiveBarrier::computeSuccessType(const NOM
             success = NOMAD::SuccessType::UNSUCCESSFUL;
         }
     }
-    
+
     return success;
 }
