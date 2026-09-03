@@ -90,6 +90,15 @@ void NOMAD::QPSolverOptimize::init()
     _bbot = evc->getCurrentEvalParams()->getAttributeValue<NOMAD::BBOutputTypeList>("BB_OUTPUT_TYPE");
     _m = static_cast<int>(_bbot.size());
     _nbCons = static_cast<int>(getNbConstraints(_bbot));
+    
+    // Test for EQPB -> not supported
+    auto it = std::find_if(_bbot.begin(), _bbot.end(), [](NOMAD::BBOutputType & bbot) {
+        return bbot ==NOMAD::BBOutputType::EQPB;
+    });
+    if ( it != _bbot.end())
+    {
+        throw NOMAD::Exception(__FILE__,__LINE__,"QP solver (QP_SEARCH yes or QP_OPTIMIZATION yes) cannot handle EQPB (equality) constraints.");
+    }
 
     _quadModelMaxEval = evc->getEvaluatorControlGlobalParams()->getAttributeValue<size_t>("QUAD_MODEL_MAX_EVAL");
 
