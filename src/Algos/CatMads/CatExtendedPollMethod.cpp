@@ -181,6 +181,7 @@ bool NOMAD::CatExtendedPollMethod::runDouble(const NOMAD::EvalPoint & pp)
 
     // Reset to a regular optimization
     optRunParams->setAttributeValue("CATMADS_OPTIMIZATION", false);
+    optRunParams->setAttributeValue("CATADS_OPTIMIZATION", false);
     optPbParams->resetToDefaultValue("CAT_GROUP");
 
 
