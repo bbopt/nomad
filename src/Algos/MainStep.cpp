@@ -1521,7 +1521,7 @@ int NOMAD::MainStep::getRunFlag() const
         throw NOMAD::Exception(__FILE__, __LINE__, "No evaluator control available. Cannot access to compute type.");
     }
     auto evalType = evc->getCurrentEvalType();
-    auto computeTypeS = evc->getFHComputeTypeS();
+    auto computeTypeS = NOMAD::defaultFHComputeTypeS; // Always use default compute type for feas/infeas detection
     NOMAD::FHComputeType computeType = { evalType ,computeTypeS};
     
     bool hasFeas = NOMAD::CacheBase::getInstance()->hasFeas(computeType);
