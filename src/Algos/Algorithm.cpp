@@ -312,7 +312,7 @@ void NOMAD::Algorithm::displayBestSolutions() const
 {
     std::vector<NOMAD::EvalPoint> evalPointList;
     // Display the best feasible solutions.
-    std::string sFeas;
+    std::string sFeas, sInf;;
     // Output level is very high if there are no parent algorithm
     // Output level is info if this algorithm is a sub part of another algorithm.
     NOMAD::OutputLevel outputLevel = _isSubAlgo ? NOMAD::OutputLevel::LEVEL_INFO
@@ -322,22 +322,31 @@ void NOMAD::Algorithm::displayBestSolutions() const
     // Complete compute type
     NOMAD::FHComputeTypeS computeType = NOMAD::EvcInterface::getEvaluatorControl()->getFHComputeTypeS();
     auto evalType = NOMAD::EvcInterface::getEvaluatorControl()->getCurrentEvalType();
-    //auto hNormType = NOMAD::EvcInterface::getEvaluatorControl()->getHNormType();
     NOMAD::FHComputeType  completeComputeType = {evalType, computeType};
     
     auto surrogateAsBB = NOMAD::EvcInterface::getEvaluatorControl()->getSurrogateOptimization();
+    
+    bool resetComputeType = false;
     if (isRootAlgo())
     {
+        if (computeType.computeType == NOMAD::ComputeType::USER)
+        {
+            // For root algorithm. Reset compute type to default
+            resetComputeType = true;
+            computeType = NOMAD::defaultFHComputeTypeS;
+            completeComputeType = {evalType, computeType};
+        }
         solFormat.set(-1);
     }
+    
     NOMAD::OutputInfo displaySolFeas(getName(), sFeas, outputLevel);
     auto fixedVariable = NOMAD::SubproblemManager::getInstance()->getSubFixedVariable(this);
-
-    sFeas = "Best feasible solution";
+    
+    sFeas = (resetComputeType)? "[Default PB compute type] Best feasible solution":"Best feasible solution";
     auto barrier = getMegaIterationBarrier();
     
     // Let's try to build a progressive barrier from the cache
-    if (nullptr == barrier)
+    if (nullptr == barrier || resetComputeType)
     {
         barrier = std::make_shared<NOMAD::ProgressiveBarrier>(NOMAD::INF,
                                                               fixedVariable,
@@ -409,9 +418,8 @@ void NOMAD::Algorithm::displayBestSolutions() const
 
 
     // Display the best infeasible solutions.
-    std::string sInf;
     NOMAD::OutputInfo displaySolInf(getName(), sInf, outputLevel);
-    sInf = "Best infeasible solution";
+    sInf = (resetComputeType)? "[Default PB compute type] Best infeasible solution":"Best infeasible solution";
     if (nullptr != barrier)
     {
         for (auto const & p : barrier->getAllXInf())
@@ -470,7 +478,6 @@ void NOMAD::Algorithm::displayBestSolutions() const
 
     NOMAD::OutputQueue::Add(std::move(displaySolInf));
 }
-
 
 void NOMAD::Algorithm::displayEvalCounts() const
 {
