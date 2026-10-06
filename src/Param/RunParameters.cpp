@@ -201,7 +201,7 @@ void NOMAD::RunParameters::checkAndComply(
     /*---------------------------*/
     /* Sgtelib Search parameters */
     /*---------------------------*/
-    const size_t bigDim = 50;
+    const size_t bigDim = 50, bigDim_2 = 100, bigDim_3 = 400;
     size_t n = pbParams->getAttributeValue<size_t>("DIMENSION");
     // If dimension is too large, disable models.
     if (n >= bigDim)
@@ -213,9 +213,43 @@ void NOMAD::RunParameters::checkAndComply(
             setAttributeValue("QUAD_MODEL_SEARCH", false);
             setAttributeValue("QUAD_MODEL_SEARCH_SIMPLE_MADS", false);
             setAttributeValue("SGTELIB_MODEL_SEARCH", false);
-            std::cout << "Warning: Dimension " << n << " is greater than (or equal to) " << bigDim << ". Models are disabled." << std::endl;
+            std::cout << "Warning: Dimension " << n << " is greater than (or equal to) " << bigDim << ". Quadratic model search are disabled." << std::endl;
+        }
+        
+        // Deactivate Ortho n+1 quad -> replace by ortho n+1 neg.
+        // Note: ortho n+1 neg requires to sort 2n points. if n is too large
+        // the quad model eval sort will be replaced too in EvalParameters checkAndComply.
+        auto primaryDirTypes = getAttributeValueProtected<NOMAD::DirectionTypeList>("DIRECTION_TYPE", false);
+        for (auto & primaryDirType : primaryDirTypes)
+        {
+            
+            // Ortho 2n does not require to sort the points with quad model and does not need to compute rank
+            if ( NOMAD::DirectionType::ORTHO_NP1_QUAD == primaryDirType)
+            {
+                if ( n >= bigDim_3)
+                {
+                    primaryDirType = NOMAD::DirectionType::ORTHO_2N;
+                    std::cout << "Warning: Dimension " << n << " is greater than (or equal to) " << bigDim_3 << ". Direction type ortho n+1 quad is replaced by ortho 2n." << std::endl;
+                }
+                else
+                {
+                    primaryDirType = NOMAD::DirectionType::ORTHO_NP1_NEG;
+                    std::cout << "Warning: Dimension " << n << " is greater than (or equal to) " << bigDim << ". Direction type ortho n+1 quad is replaced by ortho n+1 neg." << std::endl;
+                }
+            }
+        }
+        setAttributeValue("DIRECTION_TYPE", primaryDirTypes);
+        
+        // If user decides to play crazy with secondary direction type ---> too bad!
+        
+        // Deactivate NM_SEARCH if n is too big.
+        if (n >= bigDim_2 && getAttributeValueProtected<bool>("NM_SEARCH", false))
+        {
+            setAttributeValue("NM_SEARCH", false);
+            std::cout << "Warning: Dimension " << n << " is greater than (or equal to) " << bigDim_2 << ". NM_SEARCH is disabled because it is too costly." << std::endl;
         }
     }
+
 
     // Set default value, if the parameter is not set.
     // Default value: TYPE LOWESS DEGREE 1 KERNEL_SHAPE OPTIM KERNEL_COEF OPTIM RIDGE 0 METRIC AOECV

@@ -117,6 +117,15 @@ void NOMAD::EvalParameters::checkAndComply(const std::shared_ptr<NOMAD::RunParam
             throw NOMAD::InvalidParameter(__FILE__, __LINE__, "Parameter SURROGATE_EXE is defined but not used. To fix this, unset SURROGATE_EXE (if set by mistake), or set parameter EVAL_QUEUE_SORT to SURROGATE, or set parameter EVAL_SURROGATE_OPTIMIZATION to true.");
         }
     }
+    
+    const size_t bigDim_2 = 100;
+    size_t n = pbParams->getAttributeValue<size_t>("DIMENSION");
+    // If dimension is too large, disable quad model sort. Replace with direction of last success.
+    if (n >= bigDim_2 && NOMAD::EvalSortType::QUADRATIC_MODEL == evaluatorControlParams->getAttributeValue<NOMAD::EvalSortType>("EVAL_QUEUE_SORT"))
+    {
+        evaluatorControlParams->setAttributeValue("EVAL_QUEUE_SORT", NOMAD::EvalSortType::DIR_LAST_SUCCESS);
+        std::cout << "Warning: Dimension " << n << " is greater than (or equal to) " << bigDim_2 << ". Quadratic model eval queue sort is replaced by direction of last success." << std::endl;
+    }
 
     updateExeParam(runParams, "BB_EXE");
     updateExeParam(runParams, "SURROGATE_EXE");
