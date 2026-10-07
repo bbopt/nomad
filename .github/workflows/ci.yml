@@ -88,7 +88,7 @@ jobs:
           mkdir instdir
           mkdir build
           cd build
-          cmake .. -DTEST_OPENMP=OFF -DBUILD_INTERFACE_C=ON -DBUILD_INTERFACE_PYTHON=ON -DBUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=../instdir
+          cmake .. -DTEST_OPENMP=OFF -DBUILD_INTERFACE_C=OFF -DBUILD_INTERFACE_PYTHON=OFF -DBUILD_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=../instdir
           
       - name: Build
         shell: bash
