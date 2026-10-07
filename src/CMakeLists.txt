@@ -346,6 +346,7 @@ set(CATMADS_HEADERS
 Algos/CatMads/CatAlgoUtils.hpp
 Algos/CatMads/CatExtendedPollMethod.hpp
 Algos/CatMads/CatMads.hpp
+Algos/CatMads/CatCustomOrder.hpp
 Algos/CatMads/CatSpeculativeSearchMethod.hpp
 Algos/CatMads/CatPollMethod.hpp
 Algos/CatMads/CatSearchMethod.hpp
