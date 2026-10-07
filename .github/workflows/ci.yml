@@ -22,17 +22,16 @@ jobs:
             build_type: "Release", cc: "cl", cxx: "cl",
             environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           }
-         #- {
-         #   name: "Ubuntu", artifact: "Linux.tar.xz",
-         #   os: ubuntu-latest,
-         #   build_type: "Release", cc: "gcc", cxx: "g++"
-         # }
-         # - {
-         #   name: "MacOS", artifact: "macOS.tar.xz",
-         #   os: macos-latest,
-         #   build_type: "Release", cc: "clang", cxx: "clang++"
-         #   }
-            
+         - {
+            name: "Ubuntu", artifact: "Linux.tar.xz",
+            os: ubuntu-latest,
+            build_type: "Release", cc: "gcc", cxx: "g++"
+          }
+          - {
+            name: "MacOS", artifact: "macOS.tar.xz",
+            os: macos-latest,
+            build_type: "Release", cc: "clang", cxx: "clang++"
+            }     
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       # Usually this is always needed
@@ -89,7 +88,7 @@ jobs:
           mkdir instdir
           mkdir build
           cd build
-          cmake .. -DTEST_OPENMP=OFF -DBUILD_INTERFACE_C=OFF -DBUILD_INTERFACE_PYTHON=OFF -DBUILD_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=../instdir
+          cmake .. -DTEST_OPENMP=OFF -DBUILD_INTERFACE_C=ON -DBUILD_INTERFACE_PYTHON=ON -DBUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=../instdir
           
       - name: Build
         shell: bash
