@@ -773,9 +773,9 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # export all symbols on Windows
-if (WIN32)
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif()
+#if (WIN32)
+#    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+#endif()
 
 # Build shared libraries (nomadUtils, nomadEval, nomadAlgos)
 include(./CMakeListsLibs.txt)
