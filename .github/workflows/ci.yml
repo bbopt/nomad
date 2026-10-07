@@ -33,9 +33,8 @@ jobs:
             build_type: "Release", cc: "clang", cxx: "clang++"
             }
         exclude:
-          - config:
-            - { name: "MacOS" }
-            - { namne: "Ubuntu }
+          - name: "MacOS"
+          - name: "Ubuntu"
             
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
