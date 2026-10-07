@@ -31,7 +31,12 @@ jobs:
             name: "MacOS", artifact: "macOS.tar.xz",
             os: macos-latest,
             build_type: "Release", cc: "clang", cxx: "clang++"
-          }
+            }
+        exclude:
+          - config:
+            - { name: "MacOS" }
+            - { namne: "Ubuntu }
+            
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       # Usually this is always needed
