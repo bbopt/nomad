@@ -68,7 +68,7 @@
 /**
  An instance of this class has a comp() method that compares two EvalQueuePoints for ordering.
 */
-class ComparePriorityMethod
+class DLL_EVAL_API ComparePriorityMethod
 {
 private:
     std::string _name;  ///< Method name, useful for information or debugging
@@ -143,7 +143,7 @@ public:
 
 
 // Class for comparison using static surrogate or model evaluations.
-class OrderByEval : public ComparePriorityMethod
+class DLL_EVAL_API OrderByEval : public ComparePriorityMethod
 {
 private:
 
