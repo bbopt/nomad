@@ -47,6 +47,13 @@
 
 #include "../Eval/ComparePriority.hpp"
 
+/*-------------------------------------*/
+/* Parent class ComparePriorityMethod  */
+/*-------------------------------------*/
+bool comp([[maybe_unused]] EvalQueuePointPtr& point1, [[maybe_unused]] EvalQueuePointPtr& point2) const
+{
+    return false;
+}
 
 /*-------------------------*/
 /* Class OrderByDirection  */

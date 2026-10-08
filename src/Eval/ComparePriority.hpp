@@ -74,10 +74,7 @@ private:
     std::string _name;  ///< Method name, useful for information or debugging
 
 public:
-    virtual bool comp([[maybe_unused]] EvalQueuePointPtr& point1, [[maybe_unused]] EvalQueuePointPtr& point2) const
-    {
-        return false;
-    }
+    virtual bool comp([[maybe_unused]] EvalQueuePointPtr& point1, [[maybe_unused]] EvalQueuePointPtr& point2) const;
 
     // Called before sorting with all eval queue points.
     virtual void completeTrialPointsInformation(const Step * step, EvalPointSet & trialPoints) {return; }
