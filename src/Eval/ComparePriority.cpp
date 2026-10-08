@@ -50,7 +50,7 @@
 /*-------------------------------------*/
 /* Parent class ComparePriorityMethod  */
 /*-------------------------------------*/
-bool comp([[maybe_unused]] EvalQueuePointPtr& point1, [[maybe_unused]] EvalQueuePointPtr& point2) const
+bool comp(EvalQueuePointPtr& point1, EvalQueuePointPtr& point2) const
 {
     return false;
 }
