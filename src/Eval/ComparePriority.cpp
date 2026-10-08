@@ -50,7 +50,7 @@
 /*-------------------------------------*/
 /* Parent class ComparePriorityMethod  */
 /*-------------------------------------*/
-bool comp(EvalQueuePointPtr& point1, EvalQueuePointPtr& point2) const
+bool NOMAD::ComparePriorityMethod::comp(NOMAD::EvalQueuePointPtr& point1, NOMAD::EvalQueuePointPtr& point2) const
 {
     return false;
 }
