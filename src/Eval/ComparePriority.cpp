@@ -47,6 +47,13 @@
 
 #include "../Eval/ComparePriority.hpp"
 
+/*-------------------------------------*/
+/* Parent class ComparePriorityMethod  */
+/*-------------------------------------*/
+bool NOMAD::ComparePriorityMethod::comp(NOMAD::EvalQueuePointPtr& point1, NOMAD::EvalQueuePointPtr& point2) const
+{
+    return false;
+}
 
 /*-------------------------*/
 /* Class OrderByDirection  */

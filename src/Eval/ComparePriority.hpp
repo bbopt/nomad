@@ -68,16 +68,13 @@
 /**
  An instance of this class has a comp() method that compares two EvalQueuePoints for ordering.
 */
-class ComparePriorityMethod
+class DLL_EVAL_API ComparePriorityMethod
 {
 private:
     std::string _name;  ///< Method name, useful for information or debugging
 
 public:
-    virtual bool comp([[maybe_unused]] EvalQueuePointPtr& point1, [[maybe_unused]] EvalQueuePointPtr& point2) const
-    {
-        return false;
-    }
+    virtual bool comp([[maybe_unused]] EvalQueuePointPtr& point1, [[maybe_unused]] EvalQueuePointPtr& point2) const;
 
     // Called before sorting with all eval queue points.
     virtual void completeTrialPointsInformation(const Step * step, EvalPointSet & trialPoints) {return; }
@@ -146,7 +143,7 @@ public:
 
 
 // Class for comparison using static surrogate or model evaluations.
-class OrderByEval : public ComparePriorityMethod
+class DLL_EVAL_API OrderByEval : public ComparePriorityMethod
 {
 private:
 
