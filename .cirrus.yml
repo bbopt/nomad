@@ -2,7 +2,7 @@ task:
   matrix:
     - name: FreeBSD -- gcc | g++
       freebsd_instance:
-        image: freebsd-14-0-release-amd64-ufs
+        image: freebsd-14-2-release-amd64-ufs
       env:
         cc: gcc13
         cxx: g++13
@@ -16,8 +16,8 @@ task:
       macos_instance:
         image: ghcr.io/cirruslabs/macos-runner:sonoma
       env:
-        cc: gcc-14
-        cxx: g++-14
+        cc: gcc-15
+        cxx: g++-15
     - name: MacOS M1 -- clang | clang++
       macos_instance:
         image: ghcr.io/cirruslabs/macos-runner:sonoma
