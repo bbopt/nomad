@@ -30,6 +30,7 @@ if (BUILD_INTERFACE_C MATCHES ON)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/c_api/example1)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/c_api/example2)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/c_api/example3)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/advanced/library/c_api/example4)
 endif()
 
 # For running the tests on the batch examples we need to build the blackbox

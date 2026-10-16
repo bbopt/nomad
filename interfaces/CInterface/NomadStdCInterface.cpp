@@ -750,10 +750,21 @@ int solveNomadProblem(const NomadResult result,
         //
         // For single objective optimization, we have usually single feas/infeas incumbent points.
         // For multi-objective optimization, we have several feasible incumbent points but infeasible incumbent are not supported.
-        const auto evalPointFeasList = TheMainStep.getBarrierIncumbentPoints(true);
-        const auto evalPointInfList = TheMainStep.getBarrierIncumbentPoints(false);
+        auto evalPointFeasList = TheMainStep.getBarrierIncumbentPoints(true);
+        auto evalPointInfList = TheMainStep.getBarrierIncumbentPoints(false);
         
         TheMainStep.end();
+
+        // Fallback to cache when getBarrierIncumbentPoints returns empty.
+        // This happens when STOP_IF_FEASIBLE triggers during initialization
+        // before _refMegaIteration is populated.
+        if (evalPointFeasList.empty() && evalPointInfList.empty())
+        {
+            const auto hNormType = nomad_problem->p->getAttributeValue<NOMAD::HNormType>("H_NORM");
+            const NOMAD::FHComputeType computeType = {NOMAD::EvalType::BB, {NOMAD::ComputeType::STANDARD, hNormType}};
+            NOMAD::CacheBase::getInstance()->findBestFeas(evalPointFeasList, NOMAD::Point(), computeType);
+            NOMAD::CacheBase::getInstance()->findBestInf(evalPointInfList, NOMAD::INF, NOMAD::Point(), computeType);
+        }
 
         runFlag = TheMainStep.getRunFlag();
 
