@@ -71,6 +71,10 @@ On the command line, in the ``$NOMAD_HOME`` directory::
 
         cmake -DBUILD_INTERFACE_PYTHON=ON -S . -B build/release
 
+     To enable Java interface (jNomad) building::
+
+        cmake -DBUILD_INTERFACE_JAVA=ON -S . -B build/release
+
      To disable *OpenMP* compilation::
 
        cmake -DTEST_OPENMP=OFF -S . -B build/release

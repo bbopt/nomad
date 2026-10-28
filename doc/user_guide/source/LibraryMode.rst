@@ -443,7 +443,7 @@ PyNomad interface
 
    PyNomadBBO from PyPI relies on Python3 version 3.8+. We recommend to install PyNomadBBO into a virtual environment.
 
-   Please note that PyNomad wheels may not be available for your OS and Python version. 
+   Please note that PyNomad wheels may not be available for your OS and Python version.
 
 PyNomad can also be obtained by building source codes.
 The source codes and basic tests are provided in ``$NOMAD_HOME/interfaces/PyNomad``. Examples are given in ``$NOMAD_HOME/examples/advanced/library/PyNomad``.
@@ -460,7 +460,7 @@ The Visual Studio version must be adapted.
 
 The command ``cmake --build build/release`` (or ``cmake --build build/release --config Release`` for Windows) is used for building the selected configuration.
 
-The command ``cmake --install build/release`` must be performed. 
+The command ``cmake --install build/release`` must be performed.
 
 The wheel file created during the build must be installed in the Python environment before using the PyNomad module. In the PyNomad directory the command ``pip install dist/*`` must be executed.
 
@@ -493,3 +493,33 @@ NOMAD parameters are provided via these functions:
     bool addNomadArrayOfDoubleParam(NomadProblem nomad_problem, char *keyword, double *array_param);
 
 See examples that are proposed in the ``$NOMAD_HOME/examples/advanced/library/c_api`` directory.
+
+
+Java interface
+--------------
+
+A Java interface for NOMAD is available.
+The source codes are provided in ``$NOMAD_HOME/interfaces/jNomad/``.
+To enable the building of the Java interface, option ``-DBUILD_INTERFACE_JAVA=ON`` must be
+set when building NOMAD, as such: ``cmake -DBUILD_INTERFACE_JAVA=ON -S . -B build/release``.
+
+Building the Java interface also requires SWIG. SWIG (Simplified Wrapper and Interface Generator) is a software development tool that connects programs written in C and C++ with a variety of high-level programming languages, including Java. SWIG can be found at `<http://www.swig.org/>`
+
+The command ``cmake --build build/release`` (or ``cmake --build build/release --config Release`` for Windows) is used for building the selected configuration.
+
+The command ``cmake --install build/release`` must be run before using the library.
+
+Main functionalities of NOMAD are available in the Java interface (more to come).
+NOMAD parameters are provided via these functions:
+
+.. code-block:: java
+
+    public void setAttributeValueSizeT(String name, long value);
+    public void setAttributeValueAOD(String name, ArrayOfDouble value);
+    public void setAttributeValueAOS(String name, ArrayOfString value);
+    public void setAttributeValuePoint(String name, Point value);
+    public void setAttributeValueBool(String name, boolean value);
+    public void setAttributeValueInt(String name, int value);
+    public void setAttributeValueDT(String name, DirectionType value);
+
+See examples that are proposed in the ``$NOMAD_HOME/interfaces/jNomad/Examples/`` directory.
