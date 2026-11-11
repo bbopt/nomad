@@ -1005,18 +1005,15 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalPoint &evalPoint)
     NOMAD::EvalStatusType evalStatus = NOMAD::EvalStatusType::EVAL_STATUS_UNDEFINED;
     bool skip = false;
 
-    std::string s;
-    is >> s;
 
-    if (s.empty() || !is.good() || is.eof())
+    is >> std::ws;
+    if (!is.good() || is.eof())
     {
         skip = true;
     }
-
-    if (!skip && NOMAD::ArrayOfDouble::pStart == s)
+    if (!skip && is.peek() == NOMAD::ArrayOfDouble::pStart.c_str()[0])
     {
         // Found start of point.
-        is.unget();
         is >> point;
 
         evalPoint = NOMAD::EvalPoint(point);
@@ -1050,6 +1047,8 @@ std::istream& NOMAD::operator>>(std::istream& is, NOMAD::EvalPoint &evalPoint)
     else if (!skip)
     {
         is.setstate(std::ios::failbit);
+        std::string s = "";
+        is >> s;
         std::string err = "Expecting \"" + NOMAD::ArrayOfDouble::pStart + "\", got \"" + s + "\"";
         throw NOMAD::Exception(__FILE__, __LINE__, err);
     }

@@ -1470,54 +1470,78 @@ std::ostream& NOMAD::operator<<(std::ostream& os, const NOMAD::CacheSet& cache)
 // Get these EvalPoints from stream
 std::istream& NOMAD::operator>>(std::istream& is, NOMAD::CacheSet& cache)
 {
-    std::string s;
+    std::string line;
     NOMAD::BBOutputTypeList bbOutputTypes;
-
-    is >> s;
-    if ("CACHE_HITS" == s)
+    
+    // Skip empty/comment lines until a data line is found or EOF.
+    while (std::getline(is, line))
     {
-        size_t cacheHits;
-        is >> cacheHits;
-        cache.setNbCacheHits(cacheHits);
-    }
-    else
-    {
-        // Put back s to istream.
-        for (unsigned i = 0; i < s.size(); i++)
+        // Skip empty/comment lines
+        const auto first = line.find_first_not_of(" \t\r");
+        if (first == std::string::npos)
+            continue;
+        if (line[first] == '#')
+            continue;
+        
+        // Read the line
+        std::istringstream ls(line);
+        
+        // Do we have the first eval point to read (starts with '('))
+        ls >> std::ws;
+        if (ls.peek() != NOMAD::ArrayOfDouble::pStart.c_str()[0])
         {
-            is.unget();
+            std::string key;
+            if (!(ls >> key))
+            {
+                is.setstate(std::ios::failbit);
+                return is;
+            }
+            if ("CACHE_HITS" == key)
+            {
+                size_t cacheHits;
+                ls >> cacheHits;
+                cache.setNbCacheHits(cacheHits);
+                continue;
+            }
+            
+            if ("BB_OUTPUT_TYPE" == key)
+            {
+                std::string tok;
+                while (ls.good() && !ls.eof() && ls >> tok )
+                {
+                    bbOutputTypes.emplace_back(tok);
+                }
+                
+                cache.setBBOutputType(bbOutputTypes);
+                continue;
+            }
+            // Unknown header: fail
+            std::string err = "Expecting a specific keyword (CHACHE_HITS or BB_OUTPUT_TYPE), got \"" + key + "\"";
+            throw NOMAD::Exception(__FILE__, __LINE__, err);
         }
-    }
-
-    is >> s;
-    if ("BB_OUTPUT_TYPE" == s)
-    {
-        while (is >> s && is.good() && !is.eof())
+        
+        // Let's read eval point
+        NOMAD::EvalPoint evalPoint;
+        if (!(ls >> evalPoint))
         {
-            if (NOMAD::ArrayOfDouble::pStart == s)
-            {
-                is.unget();
-                break;
-            }
-            else
-            {
-                bbOutputTypes.emplace_back(s);
-            }
+            is.setstate(std::ios::failbit);
+            return is;
         }
 
-        cache.setBBOutputType(bbOutputTypes);
-    }
-
-
-    NOMAD::EvalPoint evalPoint;
-    while (is >> evalPoint && is.good() && !is.eof())
-    {
-        evalPoint.setBBOutputType(bbOutputTypes);
+        // Optional strictness: reject trailing junk
+        ls >> std::ws;
+        if (!ls.eof())
+        {
+            is.setstate(std::ios::failbit);
+            return is;
+        }
+        
+        evalPoint.setBBOutputType(bbOutputTypes); // Also detects if bbOutputTypes is complete
         evalPoint.updateTag();
         evalPoint.setEvalIsFromCacheFile(true);
         cache.insert(evalPoint);
+        
     }
-
     return is;
 }
 
